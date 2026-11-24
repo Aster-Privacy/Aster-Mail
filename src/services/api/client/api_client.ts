@@ -53,6 +53,7 @@ import {
   PROACTIVE_REFRESH_THRESHOLD_MINUTES,
   PendingTokenWrite,
   REFRESH_INTERVAL_MINUTES,
+  REFRESH_TOKEN_REVOKED_SERVER_CODE,
   RequestConfig,
   SessionReestablishResult,
   TAURI_AUTH_SLOT_ACCESS,
@@ -100,6 +101,7 @@ import { record_vault_iterations_from_response } from "@/services/crypto/vault_l
 import { get_device_id } from "@/services/device_id";
 import { ignore_error } from "@/lib/ignore_error";
 import { note_server_date } from "@/lib/server_clock";
+import { note_transient_failure } from "@/services/crypto/decrypt_readiness";
 import {
   routed_fetch,
   get_effective_base_url,
@@ -133,6 +135,28 @@ interface TimedResponse {
 
 function is_abort_error(error: unknown): boolean {
   return error instanceof Error && error.name === "AbortError";
+}
+
+const TRANSIENT_RESPONSE_CODES = new Set(["NETWORK_ERROR", "TIMEOUT_ERROR"]);
+const TRANSIENT_RESPONSE_STATUSES = new Set([401, 403, 408, 425, 429]);
+
+function is_transient_response(result: {
+  error?: unknown;
+  code?: unknown;
+  status?: unknown;
+}): boolean {
+  if (!result.error) return false;
+  if (
+    typeof result.code === "string" &&
+    TRANSIENT_RESPONSE_CODES.has(result.code)
+  ) {
+    return true;
+  }
+
+  return (
+    typeof result.status === "number" &&
+    (TRANSIENT_RESPONSE_STATUSES.has(result.status) || result.status >= 500)
+  );
 }
 
 export class ApiClient {
@@ -361,9 +385,7 @@ export class ApiClient {
 
   private async persist_native_csrf(token: string): Promise<void> {
     try {
-      const { native_token_set } = await import(
-        "@/native/secure_token_store"
-      );
+      const { native_token_set } = await import("@/native/secure_token_store");
 
       await native_token_set(NATIVE_CSRF_KEY, token);
     } catch (caught) {
@@ -373,9 +395,7 @@ export class ApiClient {
 
   private async load_native_csrf(): Promise<string | null> {
     try {
-      const { native_token_get } = await import(
-        "@/native/secure_token_store"
-      );
+      const { native_token_get } = await import("@/native/secure_token_store");
 
       return await native_token_get(NATIVE_CSRF_KEY);
     } catch {
@@ -385,9 +405,8 @@ export class ApiClient {
 
   private async clear_native_csrf(): Promise<void> {
     try {
-      const { native_token_remove } = await import(
-        "@/native/secure_token_store"
-      );
+      const { native_token_remove } =
+        await import("@/native/secure_token_store");
 
       await native_token_remove(NATIVE_CSRF_KEY);
     } catch (caught) {
@@ -1045,6 +1064,15 @@ export class ApiClient {
           return;
         }
 
+        if (
+          response.server_code === REFRESH_TOKEN_REVOKED_SERVER_CODE &&
+          !this.account_add_in_progress
+        ) {
+          this.end_session_after_revoked_refresh();
+
+          return;
+        }
+
         if (this.is_transient_error_code(response.code)) {
           if (attempt < max_retries - 1) {
             await this.delay(retry_delay_base * (attempt + 1));
@@ -1116,6 +1144,20 @@ export class ApiClient {
         this.note_refresh_failure();
       }
     }
+  }
+
+  private end_session_after_revoked_refresh(): void {
+    this.is_authenticated_flag = false;
+    request_cache.clear();
+    this._cached_user_info = null;
+    if (this.refresh_timeout) {
+      clearTimeout(this.refresh_timeout);
+      this.refresh_timeout = null;
+    }
+    if (this.intentional_logout) return;
+    if (this.session_expired_dispatched) return;
+    this.session_expired_dispatched = true;
+    window.dispatchEvent(new Event("astermail:session-ended"));
   }
 
   private dispatch_session_expired(force: boolean = false): void {
@@ -1870,6 +1912,17 @@ export class ApiClient {
     endpoint: string,
     config: RequestConfig = {},
   ): Promise<ApiResponse<T>> {
+    const result = await this.send_request<T>(endpoint, config);
+
+    if (is_transient_response(result)) note_transient_failure();
+
+    return result;
+  }
+
+  private async send_request<T>(
+    endpoint: string,
+    config: RequestConfig = {},
+  ): Promise<ApiResponse<T>> {
     if (
       is_app_network_locked() &&
       !is_endpoint_allowed_while_locked(endpoint)
@@ -2293,7 +2346,8 @@ export class ApiClient {
             response.status === 426 &&
             error_data.code === CLIENT_UPGRADE_REQUIRED
           ) {
-            const message = get_active_translations().errors.client_upgrade_required;
+            const message =
+              get_active_translations().errors.client_upgrade_required;
 
             window.dispatchEvent(
               new CustomEvent(CLIENT_UPGRADE_REQUIRED_EVENT, {

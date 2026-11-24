@@ -309,6 +309,11 @@ export const ar = {
     notifications_muted: "الإشعارات مكتومة",
     remove_lock: "إزالة القفل",
     lock: "قفل",
+    folder_password_settings: "إعدادات كلمة المرور",
+    lock_all_folders: "قفل كل المجلدات المحمية",
+    lock_all_folders_description: "يقفل كل المجلدات المحمية المفتوحة حاليًا",
+    folder_locked_notice: "تم قفل المجلد",
+    folders_locked_notice: "تم قفل المجلدات المحمية",
     change_color: "تغيير اللون",
     change_icon: "تغيير الأيقونة",
     more_information: "مزيد من المعلومات",
@@ -1815,6 +1820,8 @@ export const ar = {
     remove_recovery_email: "إزالة بريد الاسترداد",
     step_up_description: "لأمانك، أكِّد كلمة المرور للمتابعة.",
     step_up_error: "كلمة المرور أو رمز التحقق غير صحيح. حاول مرة أخرى.",
+    step_up_key_needs_browser:
+      "لا يمكن لتطبيق سطح المكتب استخدام مفاتيح الأمان أو مفاتيح المرور. لإجراء هذا التغيير، افتح Aster في المتصفح.",
     step_up_security_key_hint:
       "بعد إدخال كلمة المرور، سيُطلب منك التحقق باستخدام مفتاح الأمان الخاص بك.",
     security_key_add_step_up_hint:
@@ -3269,12 +3276,9 @@ export const ar = {
       "يتم وسم البريد الوارد إلى هذا الاسم المستعار تلقائيًا دون الحاجة إلى قاعدة. تُطبّق التسمية بغض النظر عن المجلد الذي يصل إليه البريد.",
     alias_delivery_label_none: "بدون تسمية",
     alias_delivery_label_missing: "تسمية محذوفة",
-    alias_apply_existing: "تطبيق على البريد الحالي",
+    alias_apply_existing: "تشغيل على البريد الموجود",
     alias_apply_existing_desc:
       "انقل البريد الذي استلمه هذا الاسم المستعار مسبقًا إلى المجلد والتسمية اللذين اخترتهما.",
-    alias_apply_existing_info:
-      "يطبّق هذا الإجراء مجلد التسليم والتسمية أعلاه على البريد الموجود في حسابك بالفعل. يعمل في الخلفية، ولا تُشغَّل قواعد البريد مرة أخرى.",
-    alias_apply_existing_action: "تطبيق الآن",
     alias_apply_existing_cancel: "إيقاف",
     alias_apply_existing_started:
       "يجري تطبيق إعدادات التسليم على البريد الحالي. تعمل العملية في الخلفية.",
@@ -3290,6 +3294,12 @@ export const ar = {
     alias_apply_existing_error: "فشل التطبيق على البريد الحالي. حاول مرة أخرى.",
     alias_apply_existing_unavailable:
       "لا يمكن نقل البريد الموجود في حسابك بالفعل إلى البريد العشوائي.",
+    alias_apply_existing_confirm_folder_label:
+      "يُنقل البريد الذي استلمه هذا الاسم المستعار مسبقًا إلى {{folder}} ويحصل على التصنيف {{label}}. يبقى البريد الموجود في المهملات والبريد العشوائي في مكانه.",
+    alias_apply_existing_confirm_folder:
+      "يُنقل البريد الذي استلمه هذا الاسم المستعار مسبقًا إلى {{folder}}. يبقى البريد الموجود في المهملات والبريد العشوائي في مكانه.",
+    alias_apply_existing_confirm_label:
+      "يحصل البريد الذي استلمه هذا الاسم المستعار مسبقًا على التصنيف {{label}}. يبقى البريد الموجود في المهملات والبريد العشوائي في مكانه.",
     alias_delivery_label_error: "حاول مجددًا.",
     alias_delivery_rule_note:
       'القاعدة "{{ rule }}" تنقل بريد هذا الاسم المستعار بالفعل إلى {{ target }}.',
@@ -4698,6 +4708,9 @@ export const ar = {
     close_popup_on_outside_click: "إغلاق النافذة المنبثقة بالنقر خارجها",
     close_popup_on_outside_click_description:
       "عند فتح الرسائل في نافذة منبثقة، يؤدي النقر في أي مكان خارجها إلى إغلاقها",
+    open_popup_maximized: "فتح النافذة المنبثقة بملء الشاشة",
+    open_popup_maximized_description:
+      "عند فتح الرسائل في نافذة منبثقة، تملأ النافذة الشاشة",
     split_view: "عرض مقسم",
     split_view_description: "يعرض قائمة الرسائل والمعاينة جنبًا إلى جنب",
     full_page: "صفحة كاملة",
@@ -4985,6 +4998,8 @@ export const ar = {
     feedback_placeholder: "صِف فكرتك أو المشكلة التي واجهتها",
     feedback_not_encrypted:
       "الملاحظات غير مشفرة تشفيرًا تامًا بين الطرفين، لذا لا تضمّنها كلمات مرور أو رموز استرداد أو أي معلومات خاصة أخرى.",
+    feedback_support_notice:
+      "هذا النموذج مخصص للملاحظات والأفكار والإبلاغ عن الأخطاء. للأسئلة أو للمساعدة في حسابك، راسل فريق الدعم على {{ email }} بدلاً من ذلك.",
     feedback_intro:
       "شارك فكرة أو أبلغ عن خطأ أو أخبر فريق Aster برأيك. لا تُنشئ الملاحظات طلب دعم، لذا للحصول على مساعدة أو رد، تواصل مع الدعم.",
     support_intro:
@@ -6579,6 +6594,7 @@ export const ar = {
     swipe_left: "سحب لليسار",
     swipe_right: "سحب لليمين",
     swipe_none: "بدون",
+    swipe_toggle_read: "تعليم كمقروء أو غير مقروء",
     swipe_actions_description:
       "اختر ما يحدث عند السحب يسارًا أو يمينًا على الرسائل.",
     badges_title: "الشارات",
@@ -8781,6 +8797,9 @@ export const ar = {
     theme_sync_across_devices: "مزامنة السمة بين الأجهزة",
     theme_sync_across_devices_description:
       "أوقف هذا الخيار للاحتفاظ بسمة مختلفة على هذا الجهاز.",
+    hide_scrollbars: "إخفاء أشرطة التمرير",
+    hide_scrollbars_description:
+      "يخفي أشرطة التمرير على جميع أجهزتك. لا يزال بإمكانك التمرير عبر القوائم والرسائل.",
     setup_2fa: "إعداد",
     product_updates: "مستجدات المنتج",
     product_updates_description: "احصل على رسالة عند إصدار Aster تحديثًا مهمًا",
@@ -9793,11 +9812,13 @@ export const ar = {
     no_password: "بدون كلمة مرور",
     replying_to: "الرد على {{name}}",
     reply_sent_successfully: "تم إرسال الرد بنجاح",
-    successfully_unsubscribed: "تم إلغاء الاشتراك بنجاح",
-    unsubscribe_failed:
-      "إلغاء الاشتراك لم يكتمل. الرابط داخل البريد يأخذك إلى موقع المرسل لإكمال ذلك بنفسك.",
-    unsubscribe_manual_required:
-      "هذا المرسل لا يدعم إلغاء الاشتراك التلقائي. الرابط داخل البريد يتيح لك إكمال ذلك بنفسك.",
+    successfully_unsubscribed: "تم إلغاء الاشتراك",
+    unsubscribe_failed: "تعذّر إلغاء الاشتراك. حاول مرة أخرى لاحقًا.",
+    unsubscribe_on_website: "ألغِ الاشتراك من هذا المرسل عبر موقعه.",
+    unsubscribe_not_confirmed: "لم يؤكد المرسل الطلب. ألغِ الاشتراك عبر موقعه.",
+    unsubscribe_use_email_link: "استخدم رابط إلغاء الاشتراك الموجود في البريد.",
+    unsubscribe_some_need_website: "يتطلب بعض المرسلين إلغاء الاشتراك عبر مواقعهم.",
+    open_page: "فتح الصفحة",
     stop_receiving_from: "التوقف عن تلقي رسائل من",
     send_email: "إرسال بريد",
     order_number: "طلب #{{id}}",
@@ -10008,13 +10029,13 @@ export const ar = {
     tracker: "متتبع",
     trackers: "متتبعات",
     trash_auto_delete_notice:
-      "ستُحذف العناصر في سلة المهملات تلقائيًا بعد {{ days }} يوم.",
+      "تُحذف الرسائل في سلة المهملات بعد {{ days }} يومًا.",
     spam_auto_delete_notice:
-      "ستُحذف العناصر في المزعج تلقائيًا بعد {{ days }} يوم.",
+      "تُحذف الرسائل في الرسائل المزعجة بعد {{ days }} يومًا.",
     trash_auto_delete_notice_family:
-      "ستُحذف العناصر في سلة المهملات تلقائيًا بعد {{ days }} يومًا (يحدده مسؤول العائلة).",
+      "تُحذف الرسائل في سلة المهملات بعد {{ days }} يومًا، حسب إعداد مسؤول العائلة.",
     spam_auto_delete_notice_family:
-      "ستُحذف العناصر في البريد المزعج تلقائيًا بعد {{ days }} يومًا (يحدده مسؤول العائلة).",
+      "تُحذف الرسائل في الرسائل المزعجة بعد {{ days }} يومًا، حسب إعداد مسؤول العائلة.",
     insert_link_title: "إدراج رابط",
     add_link_to_selection: 'إضافة رابط إلى "{{text}}"',
     url_label: "URL",
@@ -10761,6 +10782,9 @@ export const ar = {
     link_device_confirming: "جارٍ ربط الجهاز...",
     link_device_cancel: "إلغاء",
     link_device_desktop: "جهاز جديد",
+    link_device_extension: "إضافة المتصفح",
+    link_device_extension_grant_notice:
+      "يمنح الربط Aster Companion على {{device}} وصولاً إلى العناوين والأسماء المستعارة في {{email}}، حتى يتمكن من إدخالها في المواقع وإنشاء أسماء مستعارة جديدة.",
     device_fingerprint: "بصمة الجهاز",
     device_fingerprint_copy: "نسخ بصمة الجهاز",
     link_device_grant_notice:
@@ -12104,6 +12128,13 @@ export const ar = {
     sign_in_rescue_hint: "أدخل رمز الإنقاذ الذي حفظته عند إعداد Guard. يُفتح حسابك بعد انتظار 72 ساعة، ويمكن لأجهزتك إيقاف ذلك.",
     sign_in_rescue_submit: "بدء الإنقاذ",
     sign_in_rescue_invalid: "لم يعمل رمز الإنقاذ هذا. تحقّق منه وحاول مرة أخرى.",
+    sign_in_rescue_not_allowed: "لا يمكن بدء الإنقاذ من عملية تسجيل الدخول هذه. ارجع وسجّل الدخول بكلمة المرور ثم حاول مرة أخرى.",
+    sign_in_rescue_paused: "محاولات كثيرة جدًا. انتظر 15 دقيقة ثم أدخل رمز الإنقاذ مرة أخرى.",
+    sign_in_rescue_in_progress: "هناك عملية إنقاذ جارية بالفعل لهذا الحساب. تحقّق من بريدك الإلكتروني لمعرفة موعد انتهائها.",
+    sign_in_rescue_failed: "تعذّر بدء الإنقاذ. تحقّق من اتصالك وحاول مرة أخرى.",
+    sign_in_rescue_only: "لا يمكن لأي من أجهزتك الموافقة على تسجيل الدخول هذا، لذا أدخل رمز الإنقاذ للعودة إلى حسابك.",
+    sign_in_no_method: "لا يمكن لأي جهاز الموافقة على تسجيل الدخول هذا، وليس لحسابك رمز إنقاذ. للعودة إلى حسابك، أعد تعيين كلمة المرور باستخدام مفتاح الاسترداد.",
+    sign_in_on_hold: "تم إيقاف تسجيل الدخول مؤقتًا في هذا الحساب لأن عدة طلبات بقيت دون رد. حاول مرة أخرى بعد ساعة تقريبًا.",
     sign_in_rescue_started: "بدأ الإنقاذ. يمكنك تسجيل الدخول بعد {{date}}. حتى ذلك الحين، يمكن لأي من أجهزتك المسجّلة الدخول إيقافه.",
     sign_in_back: "العودة إلى تسجيل الدخول",
     link_device_needs_approver: "Guard مفعّل لهذا الحساب، لذا يجب أن يوافق جهاز مزوّد بـ Guard على الأجهزة الجديدة. افتح Aster على جهاز أعددته باستخدام Guard وحاول مرة أخرى.",
@@ -12117,6 +12148,7 @@ export const ar = {
     approve_time_label: "الوقت",
     approve_device: "{{browser}} على {{os}}",
     approve_unknown_device: "جهاز غير معروف",
+    approve_device_named: "الاسم: «{{name}}»",
     approve_number_label: "أدخل الرقم الظاهر على الجهاز الجديد",
     approve_confirm: "موافقة",
     approve_deny: "رفض",
@@ -12319,12 +12351,49 @@ export const ar = {
     panic_changes_label: "تغييرات أُلغيت",
     panic_changes_label_one: "تغيير أُلغي",
     panic_changes_label_other: "تغييرات أُلغيت",
+    error_paused: "أوقف Aster Guard هذا الطلب مؤقتًا بعد محاولات كثيرة جدًا. يمكنك المحاولة مرة أخرى في {{time}}.",
+    error_paused_soon: "أوقف Aster Guard هذا الطلب مؤقتًا بعد محاولات كثيرة جدًا. حاول مرة أخرى بعد لحظات.",
+    error_too_many: "لدى هذا الحساب طلبات تسجيل دخول كثيرة جدًا الآن. يمكنك المحاولة مرة أخرى في {{time}}.",
+    error_too_many_soon: "لدى هذا الحساب طلبات كثيرة جدًا الآن. انتظر لحظة، ثم حاول مرة أخرى.",
+    error_request_gone: "انتهت صلاحية هذا الطلب أو تمّ الرد عليه بالفعل على جهاز آخر.",
+    error_device_required: "لا يمكن تنفيذ هذا إلا من جهاز معتمد. استخدم جهازًا اعتمدته في Aster Guard.",
+    error_not_allowed: "لا يمكن لهذا الجهاز تنفيذ ذلك. استخدم جهازًا معتمدًا آخر.",
+    error_disabled: "Aster Guard متوقف في هذا الحساب، لذا لا يوجد ما يمكن اعتماده.",
+    error_request_conflict: "غيّر جهاز آخر هذا الطلب في الوقت نفسه. حدّث الصفحة وحاول مرة أخرى.",
+    error_last_device: "هذا هو الجهاز الوحيد المعتمد في Aster Guard، لذا لا يمكنك إزالته أو تسجيل خروجه. اعتمد جهازًا آخر أولًا، أو أوقف Aster Guard.",
+    error_device_pending: "يمكن لهذا الجهاز اعتماد الطلبات بدءًا من {{time}}.",
+    error_device_pending_soon: "لم يُعتمد هذا الجهاز بعد. سيتمكن من اعتماد الطلبات خلال بضع دقائق.",
+    error_held: "يحتجز Aster Guard هذا التغيير لحماية حسابك. سيسري في {{time}} ما لم تلغه.",
+    error_held_soon: "يحتجز Aster Guard هذا التغيير لحماية حسابك. سيسري قريبًا ما لم تلغه.",
+    error_upgrade: "هذا الإصدار من Aster Mail قديم. حدّث التطبيق، ثم حاول مرة أخرى.",
+    error_action_invalid: "تعذّر على Aster Guard التحقق من توقيع هذا الجهاز. أعد تحميل الصفحة وحاول مرة أخرى.",
+    error_step_up: "للمتابعة، أكّد هويتك مرة أخرى.",
+    error_device_keys: "مفاتيح Aster Guard على هذا الجهاز غير صالحة. أزل هذا الجهاز من Aster Guard، ثم أضفه مرة أخرى.",
+    error_device_unknown: "لا يتعرّف Aster Guard على هذا الجهاز. أضفه مرة أخرى من إعدادات Aster Guard.",
+    error_veto_invalid: "لم يعد بإمكانك إيقاف عملية الإنقاذ هذه لأنها انتهت أو أُوقفت بالفعل.",
+    error_offline: "أنت غير متصل بالإنترنت. تحقّق من اتصالك وحاول مرة أخرى.",
+    sign_in_where_to_approve: "يظهر الطلب في Aster Mail على أجهزتك المعتمدة، مثل هاتفك. افتح Aster Mail هناك لاعتماده.",
+    sign_in_paused_until: "كانت هناك محاولات كثيرة جدًا، لذا هذا الطلب متوقف مؤقتًا حتى {{time}}.",
+    sign_in_again: "سجّل الدخول مرة أخرى",
+    sign_in_on_hold_title: "تسجيل الدخول متوقف مؤقتًا",
+    sign_in_on_hold_until: "تم إيقاف تسجيل الدخول مؤقتًا في هذا الحساب لأن عدة طلبات بقيت دون رد. يمكنك المحاولة مرة أخرى في {{time}}.",
+    switches_join_denied: "رفض جهازك الآخر طلب إضافة هذا المتصفح.",
+    switches_join_expired: "انتهت صلاحية طلب إضافة هذا المتصفح. حاول مرة أخرى، واعتمده على جهازك الآخر.",
+    setup_who_for: "صُمّم Aster Guard للحسابات عالية الخطورة. بعد إعداده، يحتاج كل تسجيل دخول جديد إلى اعتماد من جهاز اعتمدته، ويستغرق إيقاف Aster Guard 24 ساعة.",
+    setup_only_device_warning: "يصبح هذا المتصفح جهازك المعتمد الوحيد. إذا فقدت الوصول إليه، فستحتاج إلى رمز الإنقاذ لتسجيل الدخول.",
+    setup_carry_device_tip: "بعد الإعداد، اعتمد جهازًا تحمله دائمًا، مثل هاتفك.",
+    intro_hold_timing_body: "تنتظر تغييرات كلمة المرور والأمان 24 ساعة، وتنتظر إعادة التوجيه وقواعد البريد ساعة واحدة، وتنتظر تغييرات الاسترداد 72 ساعة، حتى تتمكن من إيقافها.",
+    setup_progress_keys: "الخطوة 1 من 3: إنشاء مفاتيح لهذا الجهاز",
+    setup_progress_server: "الخطوة 2 من 3: تشغيل Aster Guard لحسابك",
+    setup_progress_device: "الخطوة 3 من 3: حفظ هذا الجهاز كجهاز معتمد",
+    setup_retry: "حاول مرة أخرى",
   },
   settings_keywords: {
     theme_dark: "الوضع الداكن, الوضع الليلي, سمة داكنة, مظهر",
     theme_light: "الوضع الفاتح, سمة فاتحة, مظهر",
     theme_system: "سمة النظام, سمة تلقائية, مطابقة الجهاز",
     theme_sync_across_devices: "مزامنة السمة, سمة لكل جهاز, سمة الجهاز, سمة منفصلة",
+    hide_scrollbars: "أشرطة التمرير, إخفاء أشرطة التمرير, التمرير",
     custom_theme_colors_title: "ألوان السمة, بنفسجي, أخضر, وردي, برتقالي, أزرق, أسود, داكن, لون التمييز",
     custom_theme_title: "لون مخصص, لوحة ألوان, سمة مخصصة, سمة مميزة, starplan",
     font_choice_title: "الخط, نوع الخط, عائلة الخط, تغيير الخط",
@@ -12415,6 +12484,7 @@ export const ar = {
     fam_kids_tab: "الأطفال, حسابات الأطفال, حساب طفل",
     email_view_mode: "وضع عرض البريد, نافذة منبثقة, عرض مقسم, صفحة كاملة, فتح البريد, تخطيط القراءة",
     close_popup_on_outside_click: "إغلاق النافذة المنبثقة, النقر خارجها, نافذة منبثقة, إغلاق",
+    open_popup_maximized: "نافذة منبثقة, ملء الشاشة, تكبير, فتح مكبرة",
     compose_window_mode: "وضع نافذة الإنشاء, نافذة عائمة, إنشاء بملء الشاشة, إنشاء مصغر, تخطيط الكتابة",
     reduce_transparency: "تقليل الشفافية, الشفافية, التمويه, معتم",
     underline_links: "تسطير الروابط, الروابط, خط تحت الروابط",

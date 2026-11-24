@@ -44,6 +44,7 @@ import { MobileFab } from "@/components/mobile/mobile_fab";
 import { SimpleToast } from "@/components/toast/simple_toast";
 import { KeyTrustChangePrompt } from "@/components/compose/key_trust_change_prompt";
 import { GuardApprovalHost } from "@/components/guard/guard_approval_sheet";
+import { TotpRequirementWarmup } from "@/hooks/use_totp_required";
 import { PostQuantumSendPrompt } from "@/components/compose/post_quantum_send_prompt";
 import { CreationTokenPrompt } from "@/components/auth/creation_token_prompt";
 import { ActionToast } from "@/components/toast/action_toast";
@@ -931,6 +932,7 @@ function MobileApp() {
         <KeyTrustChangePrompt />
         <ErrorBoundary fallback={null}>
           <GuardApprovalHost show_rescue_banner />
+          <TotpRequirementWarmup />
         </ErrorBoundary>
         <PostQuantumSendPrompt />
         <CreationTokenPrompt />

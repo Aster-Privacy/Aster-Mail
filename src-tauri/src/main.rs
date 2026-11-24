@@ -371,6 +371,7 @@ fn restore_dock_presence(app: &tauri::AppHandle) {
 fn show_main_window(app: &tauri::AppHandle) {
     #[cfg(target_os = "macos")]
     restore_dock_presence(app);
+    boot_guard::reload_on_first_show_after_hidden_start(app);
     if let Some(window) = app.get_webview_window("main") {
         let _ = window.show();
         let _ = window.unminimize();
@@ -383,6 +384,45 @@ fn set_tray_tooltip(state: State<TrayState>, tooltip: String) {
     let Ok(guard) = state.0.lock() else { return };
     if let Some(tray) = guard.as_ref() {
         let _ = tray.set_tooltip(Some(&tooltip));
+    }
+}
+
+#[cfg(windows)]
+fn watch_webview_processes(window: &tauri::WebviewWindow) {
+    use webview2_com::Microsoft::Web::WebView2::Win32::{
+        COREWEBVIEW2_PROCESS_FAILED_KIND, COREWEBVIEW2_PROCESS_FAILED_KIND_BROWSER_PROCESS_EXITED,
+        COREWEBVIEW2_PROCESS_FAILED_KIND_RENDER_PROCESS_EXITED,
+        COREWEBVIEW2_PROCESS_FAILED_KIND_RENDER_PROCESS_UNRESPONSIVE,
+    };
+    use webview2_com::ProcessFailedEventHandler;
+
+    let app = window.app_handle().clone();
+    let result = window.with_webview(move |webview| unsafe {
+        let Ok(core) = webview.controller().CoreWebView2() else {
+            boot_guard::log_line("could not watch webview processes");
+            return;
+        };
+        let handler = ProcessFailedEventHandler::create(Box::new(move |_, args| {
+            let mut kind = COREWEBVIEW2_PROCESS_FAILED_KIND::default();
+            if let Some(args) = args {
+                let _ = args.ProcessFailedKind(&mut kind);
+            }
+            if kind == COREWEBVIEW2_PROCESS_FAILED_KIND_BROWSER_PROCESS_EXITED {
+                boot_guard::handle_webview_process_failure(&app, true);
+            } else if kind == COREWEBVIEW2_PROCESS_FAILED_KIND_RENDER_PROCESS_EXITED
+                || kind == COREWEBVIEW2_PROCESS_FAILED_KIND_RENDER_PROCESS_UNRESPONSIVE
+            {
+                boot_guard::handle_webview_process_failure(&app, false);
+            }
+            Ok(())
+        }));
+        let mut token = 0i64;
+        if core.add_ProcessFailed(&handler, &mut token).is_err() {
+            boot_guard::log_line("could not watch webview processes");
+        }
+    });
+    if let Err(error) = result {
+        boot_guard::log_line(&format!("could not watch webview processes: {error}"));
     }
 }
 
@@ -679,7 +719,7 @@ fn main() {
                     mail_notification::queue_open(app, open, was_visible);
                 }
                 if !was_visible {
-                    let _ = window.eval(RELOAD_WITHOUT_OPEN_EMAIL_JS);
+                    boot_guard::reload_main_webview(app, "opened from another launch");
                 }
                 show_main_window(app);
             }
@@ -803,6 +843,7 @@ fn main() {
 
             default_mail::refresh_registration(app.handle());
             launch_at_login::refresh_registration();
+
 
             let start_hidden = launch_at_login::should_start_hidden(
                 launch_at_login::launched_at_login(std::env::args_os()),
@@ -999,8 +1040,12 @@ fn main() {
             boot_guard_state(app).enter_stage(boot_guard::SetupStage::WindowCreated);
 
             if start_hidden {
+                boot_guard_state(app).mark_started_hidden();
                 let _ = main_window.hide();
             }
+
+            #[cfg(windows)]
+            watch_webview_processes(&main_window);
 
             window_fit::fit_to_work_area(
                 &main_window,
@@ -1022,6 +1067,11 @@ fn main() {
             Ok(())
         })
         .on_window_event(|window, event| {
+            if let WindowEvent::Focused(true) = event {
+                if window.is_visible().unwrap_or(false) {
+                    boot_guard::reload_on_first_show_after_hidden_start(window.app_handle());
+                }
+            }
             if let WindowEvent::Focused(false) = event {
                 let _ = window.app_handle().save_window_state(window_state_flags());
             }

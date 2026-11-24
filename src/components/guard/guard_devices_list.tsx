@@ -26,6 +26,7 @@ import { FingerPrintIcon, TrashIcon } from "@heroicons/react/24/outline";
 import { Badge, Island, IslandRow, IslandSection } from "@aster/ui";
 
 import { GuardDeviceIcon } from "@/components/guard/guard_visuals";
+import { guard_error_text } from "@/components/guard/guard_error_text";
 import { format_guard_time } from "@/components/guard/guard_waiting_screen";
 import { use_guard_step_up } from "@/components/guard/use_guard_step_up";
 import { ConfirmationModal } from "@/components/modals/confirmation_modal";
@@ -76,7 +77,10 @@ export function GuardDevicesList({
           "info",
         );
       } else if (response.error) {
-        show_toast(t("guard.devices_remove_error"), "error");
+        show_toast(
+          guard_error_text(t, response, "guard.devices_remove_error"),
+          "error",
+        );
       } else {
         show_toast(t("guard.devices_removed"), "success");
       }

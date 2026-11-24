@@ -325,6 +325,11 @@ export const pl = {
     notifications_muted: "Powiadomienia wyciszone",
     remove_lock: "Usuń blokadę",
     lock: "Zablokuj",
+    folder_password_settings: "Ustawienia hasła",
+    lock_all_folders: "Zablokuj wszystkie chronione foldery",
+    lock_all_folders_description: "Blokuje wszystkie chronione foldery, które są teraz odblokowane",
+    folder_locked_notice: "Folder zablokowany",
+    folders_locked_notice: "Chronione foldery zablokowane",
     change_color: "Zmień kolor",
     delete_folder: "Usuń folder",
     edit_reschedule: "Edytuj i przełóż",
@@ -1739,6 +1744,8 @@ export const pl = {
       "Ze względów bezpieczeństwa potwierdź hasło, aby kontynuować.",
     step_up_error:
       "Nieprawidłowe hasło lub kod weryfikacyjny. Spróbuj ponownie.",
+    step_up_key_needs_browser:
+      "Aplikacja komputerowa nie może używać kluczy bezpieczeństwa ani kluczy dostępu. Aby wprowadzić tę zmianę, otwórz Aster w przeglądarce.",
     step_up_security_key_hint:
       "Po wpisaniu hasła zostaniesz poproszony o weryfikację kluczem bezpieczeństwa.",
     security_key_add_step_up_hint:
@@ -3370,12 +3377,9 @@ export const pl = {
       "Poczta wysłana na ten alias jest etykietowana automatycznie, bez reguły. Etykieta działa niezależnie od folderu docelowego.",
     alias_delivery_label_none: "Brak etykiety",
     alias_delivery_label_missing: "Usunięta etykieta",
-    alias_apply_existing: "Zastosuj do istniejącej poczty",
+    alias_apply_existing: "Uruchom na istniejącej poczcie",
     alias_apply_existing_desc:
       "Przenieś pocztę już odebraną przez ten alias do wybranego folderu i etykiety.",
-    alias_apply_existing_info:
-      "Ta opcja stosuje folder dostarczania i etykietę powyżej do poczty, która już jest na Twoim koncie. Działa w tle, a reguły poczty nie są uruchamiane ponownie.",
-    alias_apply_existing_action: "Zastosuj teraz",
     alias_apply_existing_cancel: "Zatrzymaj",
     alias_apply_existing_started:
       "Trwa stosowanie ustawień dostarczania do istniejącej poczty. Działa w tle.",
@@ -3394,6 +3398,12 @@ export const pl = {
       "Zastosowanie do istniejącej poczty nie powiodło się. Spróbuj ponownie.",
     alias_apply_existing_unavailable:
       "Poczty, która już jest na Twoim koncie, nie można przenieść do folderu Spam.",
+    alias_apply_existing_confirm_folder_label:
+      "Poczta, którą ten alias już otrzymał, zostanie przeniesiona do {{folder}} i otrzyma etykietę {{label}}. Poczta w koszu i spamie pozostanie na miejscu.",
+    alias_apply_existing_confirm_folder:
+      "Poczta, którą ten alias już otrzymał, zostanie przeniesiona do {{folder}}. Poczta w koszu i spamie pozostanie na miejscu.",
+    alias_apply_existing_confirm_label:
+      "Poczta, którą ten alias już otrzymał, otrzyma etykietę {{label}}. Poczta w koszu i spamie pozostanie na miejscu.",
     alias_delivery_label_error: "Spróbuj ponownie.",
     alias_delivery_rule_note:
       'Reguła "{{ rule }}" już przenosi pocztę tego aliasu do {{ target }}.',
@@ -4752,6 +4762,9 @@ export const pl = {
     close_popup_on_outside_click: "Zamykaj okno po kliknięciu poza nim",
     close_popup_on_outside_click_description:
       "Gdy e-maile otwierają się w wyskakującym oknie, kliknięcie w dowolnym miejscu poza nim je zamyka",
+    open_popup_maximized: "Otwieraj okno na pełnym ekranie",
+    open_popup_maximized_description:
+      "Gdy e-maile otwierają się w wyskakującym oknie, okno wypełnia cały ekran",
     split_view: "Widok podzielony",
     split_view_description: "Pokazuje listę e-maili i podgląd obok siebie",
     full_page: "Pełna strona",
@@ -5058,6 +5071,8 @@ export const pl = {
     feedback_placeholder: "Opisz swój pomysł lub problem, który zauważyłeś",
     feedback_not_encrypted:
       "Opinie nie są szyfrowane metodą end-to-end, więc nie podawaj haseł, kodów odzyskiwania ani innych prywatnych informacji.",
+    feedback_support_notice:
+      "Ten formularz służy do przesyłania opinii, pomysłów i zgłoszeń błędów. W razie pytań lub potrzeby pomocy z kontem napisz zamiast tego do zespołu pomocy technicznej na adres {{ email }}.",
     feedback_intro:
       "Podziel się pomysłem, zgłoś błąd lub powiedz zespołowi Aster, co myślisz. Opinia nie tworzy zgłoszenia do pomocy technicznej, więc aby uzyskać pomoc lub odpowiedź, skontaktuj się z pomocą techniczną.",
     support_intro:
@@ -6735,6 +6750,7 @@ export const pl = {
     swipe_left: "Przesuń w lewo",
     swipe_right: "Przesuń w prawo",
     swipe_none: "Brak",
+    swipe_toggle_read: "Oznacz jako przeczytane lub nieprzeczytane",
     swipe_actions_description:
       "Wybierz, co się stanie po przesunięciu e-maila w lewo lub w prawo.",
     badges_title: "Odznaki",
@@ -9166,6 +9182,9 @@ export const pl = {
     theme_sync_across_devices: "Synchronizuj motyw między urządzeniami",
     theme_sync_across_devices_description:
       "Wyłącz, aby na tym urządzeniu zachować osobny motyw.",
+    hide_scrollbars: "Ukryj paski przewijania",
+    hide_scrollbars_description:
+      "Ukrywa paski przewijania na wszystkich Twoich urządzeniach. Nadal możesz przewijać listy i wiadomości.",
     product_updates: "Nowości w produkcie",
     product_updates_description:
       "Otrzymuj wiadomość, gdy Aster wyda ważną aktualizację",
@@ -10219,11 +10238,13 @@ export const pl = {
     no_password: "Brak hasła",
     replying_to: "Odpowiadanie do {{name}}",
     reply_sent_successfully: "Odpowiedź wysłana pomyślnie",
-    successfully_unsubscribed: "Pomyślnie wypisano",
-    unsubscribe_failed:
-      "Rezygnacja z subskrypcji nie została zakończona. Link w wiadomości przeniesie na stronę nadawcy, aby zrobić to samodzielnie.",
-    unsubscribe_manual_required:
-      "Ten nadawca nie obsługuje automatycznej rezygnacji. Link w wiadomości pozwoli zrobić to samodzielnie.",
+    successfully_unsubscribed: "Wypisano",
+    unsubscribe_failed: "Nie udało się wypisać. Spróbuj ponownie później.",
+    unsubscribe_on_website: "Wypisz się od tego nadawcy na jego stronie internetowej.",
+    unsubscribe_not_confirmed: "Nadawca nie potwierdził. Wypisz się na jego stronie internetowej.",
+    unsubscribe_use_email_link: "Użyj linku do wypisania się w wiadomości.",
+    unsubscribe_some_need_website: "U niektórych nadawców musisz wypisać się na ich stronie internetowej.",
+    open_page: "Otwórz stronę",
     stop_receiving_from: "Przestań otrzymywać e-maile od",
     send_email: "Wyślij e-mail",
     order_number: "Zamówienie #{{id}}",
@@ -10444,13 +10465,13 @@ export const pl = {
     fonts: "czcionki",
     stylesheet: "arkusz stylów",
     trash_auto_delete_notice:
-      "Elementy w koszu zostaną automatycznie usunięte po {{ days }} dniach.",
+      "Wiadomości w Koszu są usuwane po {{ days }} dniach.",
     spam_auto_delete_notice:
-      "Elementy w spamie zostaną automatycznie usunięte po {{ days }} dniach.",
+      "Wiadomości w folderze Spam są usuwane po {{ days }} dniach.",
     trash_auto_delete_notice_family:
-      "Elementy w koszu będą automatycznie usuwane po {{ days }} dniach (ustawione przez administratora rodziny).",
+      "Wiadomości w Koszu są usuwane po {{ days }} dniach, zgodnie z ustawieniem administratora rodziny.",
     spam_auto_delete_notice_family:
-      "Elementy w spamie będą automatycznie usuwane po {{ days }} dniach (ustawione przez administratora rodziny).",
+      "Wiadomości w folderze Spam są usuwane po {{ days }} dniach, zgodnie z ustawieniem administratora rodziny.",
     insert_link_title: "Wstaw link",
     add_link_to_selection: 'Dodaj link do "{{text}}"',
     url_label: "URL",
@@ -11188,6 +11209,9 @@ export const pl = {
     link_device_confirming: "Łączenie urządzenia...",
     link_device_cancel: "Anuluj",
     link_device_desktop: "Nowe urządzenie",
+    link_device_extension: "Rozszerzenie przeglądarki",
+    link_device_extension_grant_notice:
+      "Połączenie daje Aster Companion na urządzeniu {{device}} dostęp do adresów i aliasów konta {{email}}, aby mógł wpisywać je na stronach i tworzyć nowe aliasy.",
     device_fingerprint: "Odcisk urządzenia",
     device_fingerprint_copy: "Kopiuj odcisk urządzenia",
     link_device_grant_notice:
@@ -12584,6 +12608,13 @@ export const pl = {
     sign_in_rescue_hint: "Wpisz kod ratunkowy zapisany podczas konfiguracji Guard. Konto otworzy się po 72 godzinach oczekiwania, a Twoje urządzenia mogą to zatrzymać.",
     sign_in_rescue_submit: "Rozpocznij odzyskiwanie",
     sign_in_rescue_invalid: "Ten kod ratunkowy nie zadziałał. Sprawdź go i spróbuj ponownie.",
+    sign_in_rescue_not_allowed: "Z tego logowania nie można rozpocząć odzyskiwania. Wróć, zaloguj się hasłem i spróbuj ponownie.",
+    sign_in_rescue_paused: "Zbyt wiele prób. Odczekaj 15 minut, a potem ponownie wpisz kod ratunkowy.",
+    sign_in_rescue_in_progress: "Dla tego konta trwa już odzyskiwanie. Sprawdź pocztę, aby zobaczyć, kiedy się zakończy.",
+    sign_in_rescue_failed: "Nie udało się rozpocząć odzyskiwania. Sprawdź połączenie i spróbuj ponownie.",
+    sign_in_rescue_only: "Żadne z Twoich urządzeń nie może zatwierdzić tego logowania, więc wpisz kod ratunkowy, aby odzyskać dostęp.",
+    sign_in_no_method: "Żadne urządzenie nie może zatwierdzić tego logowania, a Twoje konto nie ma kodu ratunkowego. Aby odzyskać dostęp, zresetuj hasło kluczem odzyskiwania.",
+    sign_in_on_hold: "Logowanie na tym koncie jest wstrzymane, ponieważ kilka próśb pozostało bez odpowiedzi. Spróbuj ponownie za około godzinę.",
     sign_in_rescue_started: "Odzyskiwanie rozpoczęte. Zalogujesz się po {{date}}. Do tego czasu każde zalogowane urządzenie może je zatrzymać.",
     sign_in_back: "Wróć do logowania",
     link_device_needs_approver: "Na tym koncie włączono Guard, więc nowe urządzenia musi zatwierdzić urządzenie z Guard. Otwórz Aster na urządzeniu skonfigurowanym z Guard i spróbuj ponownie.",
@@ -12597,6 +12628,7 @@ export const pl = {
     approve_time_label: "Czas",
     approve_device: "{{browser}} w systemie {{os}}",
     approve_unknown_device: "Nieznane urządzenie",
+    approve_device_named: "Nazwa: „{{name}}”",
     approve_number_label: "Wpisz liczbę widoczną na nowym urządzeniu",
     approve_confirm: "Zatwierdź",
     approve_deny: "Odrzuć",
@@ -12805,12 +12837,49 @@ export const pl = {
     panic_changes_label_few: "anulowane zmiany",
     panic_changes_label_many: "anulowanych zmian",
     panic_changes_label_other: "anulowanych zmian",
+    error_paused: "Aster Guard wstrzymał to żądanie po zbyt wielu próbach. Możesz spróbować ponownie o {{time}}.",
+    error_paused_soon: "Aster Guard wstrzymał to żądanie po zbyt wielu próbach. Spróbuj ponownie za chwilę.",
+    error_too_many: "To konto ma teraz zbyt wiele żądań logowania. Możesz spróbować ponownie o {{time}}.",
+    error_too_many_soon: "To konto ma teraz zbyt wiele żądań. Zaczekaj chwilę i spróbuj ponownie.",
+    error_request_gone: "To żądanie wygasło lub zostało już obsłużone na innym urządzeniu.",
+    error_device_required: "Tylko zatwierdzone urządzenie może to zrobić. Użyj urządzenia zatwierdzonego w Aster Guard.",
+    error_not_allowed: "To urządzenie nie może tego zrobić. Użyj innego zatwierdzonego urządzenia.",
+    error_disabled: "Aster Guard jest wyłączony na tym koncie, więc nie ma nic do zatwierdzenia.",
+    error_request_conflict: "Inne urządzenie zmieniło to żądanie w tym samym czasie. Odśwież stronę i spróbuj ponownie.",
+    error_last_device: "To jedyne urządzenie zatwierdzone w Aster Guard, więc nie możesz go usunąć ani wylogować. Najpierw zatwierdź inne urządzenie lub wyłącz Aster Guard.",
+    error_device_pending: "To urządzenie będzie mogło zatwierdzać żądania od {{time}}.",
+    error_device_pending_soon: "To urządzenie nie jest jeszcze zatwierdzone. Za kilka minut będzie mogło zatwierdzać żądania.",
+    error_held: "Aster Guard wstrzymuje tę zmianę, aby chronić Twoje konto. Zacznie obowiązywać o {{time}}, chyba że ją anulujesz.",
+    error_held_soon: "Aster Guard wstrzymuje tę zmianę, aby chronić Twoje konto. Wkrótce zacznie obowiązywać, chyba że ją anulujesz.",
+    error_upgrade: "Ta wersja Aster Mail jest nieaktualna. Zaktualizuj aplikację i spróbuj ponownie.",
+    error_action_invalid: "Aster Guard nie mógł zweryfikować podpisu tego urządzenia. Odśwież stronę i spróbuj ponownie.",
+    error_step_up: "Aby kontynuować, ponownie potwierdź swoją tożsamość.",
+    error_device_keys: "Klucze Aster Guard tego urządzenia są nieprawidłowe. Usuń to urządzenie z Aster Guard i dodaj je ponownie.",
+    error_device_unknown: "Aster Guard nie rozpoznaje tego urządzenia. Dodaj je ponownie w ustawieniach Aster Guard.",
+    error_veto_invalid: "Nie możesz już zatrzymać tego odzyskiwania, ponieważ zostało zakończone lub już zatrzymane.",
+    error_offline: "Jesteś offline. Sprawdź połączenie i spróbuj ponownie.",
+    sign_in_where_to_approve: "Żądanie pojawia się w Aster Mail na Twoich zatwierdzonych urządzeniach, na przykład na telefonie. Otwórz tam Aster Mail, aby je zatwierdzić.",
+    sign_in_paused_until: "Było zbyt wiele prób, więc to żądanie jest wstrzymane do {{time}}.",
+    sign_in_again: "Zaloguj się ponownie",
+    sign_in_on_hold_title: "Logowanie wstrzymane",
+    sign_in_on_hold_until: "Logowanie na tym koncie jest wstrzymane, ponieważ kilka żądań pozostało bez odpowiedzi. Możesz spróbować ponownie o {{time}}.",
+    switches_join_denied: "Twoje drugie urządzenie odrzuciło żądanie dodania tej przeglądarki.",
+    switches_join_expired: "Żądanie dodania tej przeglądarki wygasło. Spróbuj ponownie i zatwierdź je na drugim urządzeniu.",
+    setup_who_for: "Aster Guard jest przeznaczony dla kont wysokiego ryzyka. Po konfiguracji każde nowe logowanie wymaga zatwierdzenia na zatwierdzonym urządzeniu, a wyłączenie Aster Guard trwa 24 godziny.",
+    setup_only_device_warning: "Ta przeglądarka stanie się Twoim jedynym zatwierdzonym urządzeniem. Jeśli stracisz do niej dostęp, do zalogowania będziesz potrzebować kodu ratunkowego.",
+    setup_carry_device_tip: "Po konfiguracji zatwierdź urządzenie, które zawsze masz przy sobie, na przykład telefon.",
+    intro_hold_timing_body: "Zmiany hasła i zabezpieczeń czekają 24 godziny, przekazywanie i reguły poczty 1 godzinę, a zmiany odzyskiwania 72 godziny, aby można je było zatrzymać.",
+    setup_progress_keys: "Krok 1 z 3: tworzenie kluczy tego urządzenia",
+    setup_progress_server: "Krok 2 z 3: włączanie Aster Guard na Twoim koncie",
+    setup_progress_device: "Krok 3 z 3: zapisywanie tego urządzenia jako zatwierdzonego",
+    setup_retry: "Spróbuj ponownie",
   },
   settings_keywords: {
     theme_dark: "tryb ciemny, tryb nocny, ciemny motyw, motyw",
     theme_light: "tryb jasny, jasny motyw, motyw",
     theme_system: "motyw systemowy, motyw automatyczny, zgodnie z urządzeniem, ustawienia systemu",
     theme_sync_across_devices: "synchronizacja motywu, motyw na urządzenie, motyw urządzenia, osobny motyw",
+    hide_scrollbars: "paski przewijania, ukryj paski przewijania, przewijanie, scroll",
     custom_theme_colors_title: "motyw kolorystyczny, fioletowy, zielony, różany, pomarańczowy, morski, indygo, bursztynowy, cyjan, łupkowy, aster niebieski, niebieski, limonkowy, fuksja, magenta, szmaragdowy, różowy, czarny, ciemny, oled, kolor akcentu",
     custom_theme_title: "własny kolor, paleta, kolor bazowy, własna paleta, starplan, motyw premium",
     font_choice_title: "zmiana czcionki, krój pisma, rodzina czcionek, czcionka, starplan",
@@ -12901,6 +12970,7 @@ export const pl = {
     fam_kids_tab: "konta dzieci, konto dziecka, dzieci",
     email_view_mode: "okienko, widok podzielony, pełna strona, otwórz e-mail, układ odczytu",
     close_popup_on_outside_click: "okienko, kliknij poza, zamknij okienko, odrzuć",
+    open_popup_maximized: "okienko, pełny ekran, maksymalizuj",
     compose_window_mode: "pływające okienko, pisanie na pełnym ekranie, zminimalizowane pisanie, układ okna pisania",
     reduce_transparency: "przezroczystość, rozmycie, nieprzezroczysty",
     underline_links: "linki, podkreślenie, podkreślaj linki",

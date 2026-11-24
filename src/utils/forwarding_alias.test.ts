@@ -601,7 +601,9 @@ describe("custom domain forwards", () => {
   });
 
   it("rejects missing headers", () => {
-    expect(resolve_custom([{ name: "From", value: CUSTOM_FROM }])).toBeUndefined();
+    expect(
+      resolve_custom([{ name: "From", value: CUSTOM_FROM }]),
+    ).toBeUndefined();
     expect(resolve_custom([])).toBeUndefined();
   });
 
@@ -632,7 +634,14 @@ describe("custom domain forwards", () => {
   });
 
   it("rejects weak or missing DMARC", () => {
-    for (const dmarc of [undefined, "", "none", "fail", "missing", "temperror"]) {
+    for (const dmarc of [
+      undefined,
+      "",
+      "none",
+      "fail",
+      "missing",
+      "temperror",
+    ]) {
       expect(
         resolve_custom(custom_headers(), {
           dkim_result: "pass",
@@ -686,7 +695,9 @@ describe("custom domain forwards", () => {
       "+jane.doe=example.com@mail.custom.example",
     ]) {
       expect(decode_custom_domain_forward_address(from)).toBeUndefined();
-      expect(resolve_custom(custom_headers(), STRICT_AUTH, from)).toBeUndefined();
+      expect(
+        resolve_custom(custom_headers(), STRICT_AUTH, from),
+      ).toBeUndefined();
     }
   });
 
@@ -708,7 +719,12 @@ describe("custom domain forwards", () => {
     }
     expect(
       resolve_custom(
-        [{ name: "X-AnonAddy-Original-Sender", value: "jane.doe@exa_mple.com" }],
+        [
+          {
+            name: "X-AnonAddy-Original-Sender",
+            value: "jane.doe@exa_mple.com",
+          },
+        ],
         STRICT_AUTH,
         "shop+jane.doe=exa_mple.com@mail.custom.example",
       ),
@@ -760,5 +776,246 @@ describe("custom domain forwards", () => {
         display_sender_email: "",
       }),
     ).toBeNull();
+  });
+});
+
+const REPLY_MODE_FROM = "shop@mail.custom.example";
+const REPLY_MODE_REPLY_TO = "shop+jane.doe=example.com@mail.custom.example";
+
+function reply_mode_headers(
+  extra: { name: string; value: string }[] = [],
+  reply_to: string = REPLY_MODE_REPLY_TO,
+): { name: string; value: string }[] {
+  return custom_headers([{ name: "Reply-To", value: reply_to }, ...extra]);
+}
+
+describe("custom domain forwards in reply-to mode", () => {
+  it("resolves the original sender when the alias is the From address", () => {
+    const result = resolve_custom(
+      reply_mode_headers(),
+      STRICT_AUTH,
+      REPLY_MODE_FROM,
+    );
+
+    expect(result?.display_sender_name).toBe("Jane Doe");
+    expect(result?.display_sender_email).toBe("jane.doe@example.com");
+    expect(result?.forwarding_service).toBe("addy_custom");
+    expect(
+      custom_forward_via_domain({
+        sender_email: REPLY_MODE_FROM,
+        display_sender_email: result?.display_sender_email,
+        forwarding_service: result?.forwarding_service,
+      }),
+    ).toBe("mail.custom.example");
+  });
+
+  it("accepts a quoted Reply-To with a display name", () => {
+    const result = resolve_custom(
+      reply_mode_headers(
+        [],
+        `"Jane Doe 'jane.doe at example.com'" <${REPLY_MODE_REPLY_TO}>`,
+      ),
+      STRICT_AUTH,
+      REPLY_MODE_FROM,
+    );
+
+    expect(result?.display_sender_email).toBe("jane.doe@example.com");
+  });
+
+  it("binds a Reply-To that encodes the original Reply-To header", () => {
+    const result = resolve_custom(
+      reply_mode_headers(
+        [
+          {
+            name: "X-AnonAddy-Original-Reply-To-Header",
+            value: "Support <help@example.com>",
+          },
+        ],
+        "shop+help=example.com@mail.custom.example",
+      ),
+      STRICT_AUTH,
+      REPLY_MODE_FROM,
+    );
+
+    expect(result?.display_sender_name).toBe("Jane Doe");
+    expect(result?.display_sender_email).toBe("jane.doe@example.com");
+  });
+
+  it("decodes original senders whose address contains a plus sign", () => {
+    const result = resolve_custom(
+      [
+        {
+          name: "X-AnonAddy-Original-Sender",
+          value: "orders+es@shop.example",
+        },
+        {
+          name: "Reply-To",
+          value: "shop+orders+es=shop.example@mail.custom.example",
+        },
+      ],
+      STRICT_AUTH,
+      REPLY_MODE_FROM,
+    );
+
+    expect(result?.display_sender_email).toBe("orders+es@shop.example");
+    expect(result?.display_sender_name).toBe("orders+es");
+  });
+
+  it("rejects a Reply-To without an encoded address", () => {
+    for (const reply_to of [
+      "shop@mail.custom.example",
+      "shop+jane.doe@mail.custom.example",
+      "shop+=example.com@mail.custom.example",
+      "shop+jane.doe=exa_mple.com@mail.custom.example",
+    ]) {
+      expect(
+        resolve_custom(
+          reply_mode_headers([], reply_to),
+          STRICT_AUTH,
+          REPLY_MODE_FROM,
+        ),
+      ).toBeUndefined();
+    }
+  });
+
+  it("rejects a Reply-To on another domain", () => {
+    expect(
+      resolve_custom(
+        reply_mode_headers([], "shop+jane.doe=example.com@evil.example"),
+        STRICT_AUTH,
+        REPLY_MODE_FROM,
+      ),
+    ).toBeUndefined();
+  });
+
+  it("rejects a Reply-To for another alias", () => {
+    expect(
+      resolve_custom(
+        reply_mode_headers(
+          [],
+          "other+jane.doe=example.com@mail.custom.example",
+        ),
+        STRICT_AUTH,
+        REPLY_MODE_FROM,
+      ),
+    ).toBeUndefined();
+  });
+
+  it("rejects a Reply-To that does not match the original sender", () => {
+    expect(
+      resolve_custom(
+        reply_mode_headers([], "shop+ceo=bank.example@mail.custom.example"),
+        STRICT_AUTH,
+        REPLY_MODE_FROM,
+      ),
+    ).toBeUndefined();
+  });
+
+  it("rejects conflicting or multiple Reply-To addresses", () => {
+    expect(
+      resolve_custom(
+        reply_mode_headers([
+          {
+            name: "Reply-To",
+            value: "shop+ceo=bank.example@mail.custom.example",
+          },
+        ]),
+        STRICT_AUTH,
+        REPLY_MODE_FROM,
+      ),
+    ).toBeUndefined();
+    expect(
+      resolve_custom(
+        reply_mode_headers([], `${REPLY_MODE_REPLY_TO}, attacker@evil.example`),
+        STRICT_AUTH,
+        REPLY_MODE_FROM,
+      ),
+    ).toBeUndefined();
+  });
+
+  it("rejects weak DMARC and forwarder DMARC failures", () => {
+    expect(
+      resolve_custom(
+        reply_mode_headers(),
+        { dmarc_result: "none", sender_aligned: true },
+        REPLY_MODE_FROM,
+      ),
+    ).toBeUndefined();
+    expect(
+      resolve_custom(
+        reply_mode_headers([
+          {
+            name: "X-AnonAddy-Authentication-Results",
+            value: "mx.example.net; dmarc=fail (p=reject)",
+          },
+        ]),
+        STRICT_AUTH,
+        REPLY_MODE_FROM,
+      ),
+    ).toBeUndefined();
+  });
+
+  it("does not show a via domain without a custom forward", () => {
+    expect(
+      custom_forward_via_domain({
+        sender_email: REPLY_MODE_FROM,
+        display_sender_email: "jane.doe@example.com",
+      }),
+    ).toBeNull();
+    expect(
+      custom_forward_via_domain({
+        sender_email: "shop@addy.io",
+        display_sender_email: "jane.doe@example.com",
+        forwarding_service: "addy_custom",
+      }),
+    ).toBeNull();
+  });
+});
+
+describe("reply-to mode forward with a store sender", () => {
+  const alias = "pat.doe@relay.example";
+  const headers = [
+    {
+      name: "From",
+      value: `"Shop.example" <${alias}>`,
+    },
+    { name: "To", value: alias },
+    {
+      name: "Reply-To",
+      value: "pat.doe+auto-confirm=shop.example@relay.example",
+    },
+    { name: "X-AnonAddy-Original-Sender", value: "auto-confirm@shop.example" },
+    {
+      name: "X-AnonAddy-Original-Envelope-From",
+      value: "0102abc-0000@bounces.shop.example",
+    },
+    {
+      name: "X-AnonAddy-Original-From-Header",
+      value: '"Shop.example" <auto-confirm@shop.example>',
+    },
+    {
+      name: "X-AnonAddy-Authentication-Results",
+      value:
+        "mail.relay.example; dkim=pass header.d=shop.example; spf=pass smtp.mailfrom=0102abc-0000@bounces.shop.example; dmarc=pass (policy=quarantine) header.from=shop.example",
+    },
+    { name: "Feedback-ID", value: "F:0000:anonaddy" },
+  ];
+
+  it("shows the store as the sender", () => {
+    const result = resolve_forwarding_display(
+      { name: "Shop.example", email: alias },
+      headers,
+      STRICT_AUTH,
+    );
+
+    expect(result?.display_sender_name).toBe("Shop.example");
+    expect(result?.display_sender_email).toBe("auto-confirm@shop.example");
+    expect(
+      displayed_sender({
+        sender_name: "Shop.example",
+        sender_email: alias,
+        ...result,
+      }),
+    ).toEqual({ name: "Shop.example", email: "auto-confirm@shop.example" });
   });
 });

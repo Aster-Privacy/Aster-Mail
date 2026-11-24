@@ -22,7 +22,10 @@ import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 
-import { use_popup_drag_resize } from "./popup_viewer_drag";
+import {
+  get_initial_popup_size,
+  use_popup_drag_resize,
+} from "./popup_viewer_drag";
 import { POPUP_MARGIN } from "./popup_viewer_types";
 
 declare global {
@@ -106,6 +109,18 @@ describe("use_popup_drag_resize", () => {
     expect_fully_visible(latest);
   });
 
+  it("grows wider as well as taller when expanded", () => {
+    act(() => set_viewport(1920, 1080));
+    act(() => window.dispatchEvent(new Event("resize")));
+    const before = latest.dimensions;
+
+    act(() => latest.toggle_size());
+
+    expect(latest.dimensions.width).toBeGreaterThan(before.width);
+    expect(latest.dimensions.height).toBeGreaterThan(before.height);
+    expect_fully_visible(latest);
+  });
+
   it("returns to a visible default window after leaving fullscreen", () => {
     act(() => latest.handle_fullscreen());
     expect(latest.is_fullscreen).toBe(true);
@@ -118,5 +133,43 @@ describe("use_popup_drag_resize", () => {
     expect(latest.is_fullscreen).toBe(false);
     expect(latest.popup_size).toBe("default");
     expect_fully_visible(latest);
+  });
+});
+
+describe("opening the popup maximized", () => {
+  it("picks the size from the preference", () => {
+    expect(get_initial_popup_size(true)).toBe("fullscreen");
+    expect(get_initial_popup_size(false)).toBe("default");
+  });
+
+  it("opens in fullscreen and restores to a visible default window", () => {
+    vi.useFakeTimers();
+    set_viewport(1356, 667);
+    const container = document.createElement("div");
+
+    document.body.appendChild(container);
+    const root = createRoot(container);
+    let result: HookResult | null = null;
+
+    function Maximized() {
+      result = use_popup_drag_resize(true);
+
+      return null;
+    }
+
+    act(() => root.render(<Maximized />));
+    expect(result!.is_fullscreen).toBe(true);
+
+    act(() => result!.handle_fullscreen());
+    act(() => {
+      vi.advanceTimersByTime(200);
+    });
+
+    expect(result!.popup_size).toBe("default");
+    expect_fully_visible(result!);
+
+    act(() => root.unmount());
+    container.remove();
+    vi.useRealTimers();
   });
 });

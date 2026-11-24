@@ -21,7 +21,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
-  GUARD_PUSH_FALLBACK_ENDED,
   GUARD_PUSH_FALLBACK_SIGN_IN,
   GUARD_PUSH_SW_MESSAGE,
 } from "@/lib/guard_push";
@@ -109,19 +108,39 @@ afterEach(() => {
 });
 
 describe("service worker guard push", () => {
-  it("replaces the prompt with a notice when a request is denied and no window is open", async () => {
+  it("closes the prompt and shows nothing when a request is denied", async () => {
     await push("sign_in_denied");
 
     expect(closed).toEqual([PROMPT_TAG]);
+    expect(show_notification).not.toHaveBeenCalled();
+  });
+
+  it("never notifies for an expired request", async () => {
+    await push("sign_in_expired");
+
+    expect(closed).toEqual([PROMPT_TAG]);
+    expect(show_notification).not.toHaveBeenCalled();
+  });
+
+  it("closes the prompt without a new notice when a request is approved", async () => {
+    await push("sign_in_approved");
+
+    expect(closed).toEqual([PROMPT_TAG]);
+    expect(show_notification).not.toHaveBeenCalled();
+  });
+
+  it("notifies once per request", async () => {
+    await push("sign_in_request");
+    await push("sign_in_request");
+
     expect(show_notification).toHaveBeenCalledTimes(1);
-    expect(show_notification).toHaveBeenCalledWith(
-      "Aster Mail",
-      expect.objectContaining({
-        body: GUARD_PUSH_FALLBACK_ENDED,
-        tag: PROMPT_TAG,
-        silent: true,
-      }),
-    );
+  });
+
+  it("does not notify for a request that already ended", async () => {
+    await push("sign_in_expired");
+    await push("sign_in_request");
+
+    expect(show_notification).not.toHaveBeenCalled();
   });
 
   it("shows a sign-in prompt when the only window is in the background", async () => {

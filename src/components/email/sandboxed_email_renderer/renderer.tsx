@@ -591,6 +591,7 @@ ${email_font_override_css ? `<style>${email_font_override_css}</style>` : ""}
 ${dark_mode_css ? `<style>${dark_mode_css}</style>` : ""}
 ${forced_canvas_css ? `<style>${forced_canvas_css}</style>` : ""}
 ${link_underline_css ? `<style>${link_underline_css}</style>` : ""}
+${preferences.hide_scrollbars === true ? `<style>html, body { scrollbar-width: none !important; } html::-webkit-scrollbar, body::-webkit-scrollbar { display: none !important; width: 0 !important; height: 0 !important; }</style>` : ""}
 <style>${link_hover_css}</style>
 <style>img:not([data-blocked='true']) { cursor: zoom-in !important; } a img { cursor: pointer !important; } img[data-blocked='true'] { cursor: default !important; pointer-events: none !important; } a img[data-blocked='true'] { cursor: pointer !important; pointer-events: auto !important; }</style>
 </head>

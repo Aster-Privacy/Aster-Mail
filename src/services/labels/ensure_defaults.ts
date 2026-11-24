@@ -83,7 +83,74 @@ const SYSTEM_LABEL_SPECS: SystemLabelSpec[] = [
   },
 ];
 
+const RETRY_DELAYS_MS = [2000, 8000];
+
 const inflight_by_identity: Map<string, Promise<void>> = new Map();
+
+type BootstrapOutcome = "complete" | "retry";
+
+function wait(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function create_missing_system_folders(
+  identity_key: string,
+  t?: Translator,
+): Promise<BootstrapOutcome> {
+  const existing = await list_folders({
+    include_system: true,
+    include_counts: true,
+  });
+
+  if (existing.error || !existing.data) return "retry";
+
+  const present_types = new Set(
+    existing.data.folders
+      .filter((f) => !!f.folder_token)
+      .map((f) => f.folder_type),
+  );
+  const missing_specs = SYSTEM_LABEL_SPECS.filter(
+    (spec) => !present_types.has(spec.folder_type),
+  );
+
+  if (missing_specs.length === 0) return "complete";
+
+  const creations = missing_specs.map(async (spec) => {
+    const localized_name =
+      (t ? t(spec.i18n_key) : spec.fallback) || spec.fallback;
+    const display_name =
+      localized_name === spec.i18n_key ? spec.fallback : localized_name;
+
+    const folder_token = generate_folder_token();
+    const { encrypted: encrypted_name, nonce: name_nonce } =
+      await encrypt_folder_field(display_name, identity_key);
+
+    const request: CreateFolderRequest = {
+      folder_token,
+      encrypted_name,
+      name_nonce,
+      is_system: true,
+      sort_order: spec.sort_order,
+      folder_type: spec.folder_type,
+    };
+
+    const response = await create_folder(request);
+
+    if (response.error) {
+      throw new Error(response.error);
+    }
+
+    return { folder_type: spec.folder_type, folder_token };
+  });
+
+  const results = await Promise.allSettled(creations);
+
+  if (results.some((r) => r.status === "fulfilled")) {
+    emit_folders_changed();
+  }
+
+  return results.every((r) => r.status === "fulfilled") ? "complete" : "retry";
+}
 
 export async function ensure_default_labels(
   vault: EncryptedVault | null | undefined,
@@ -98,58 +165,20 @@ export async function ensure_default_labels(
 
   const promise = (async () => {
     try {
-      const existing = await list_folders({
-        include_system: true,
-        include_counts: true,
-      });
+      for (let attempt = 0; ; attempt++) {
+        let outcome: BootstrapOutcome;
 
-      if (existing.error || !existing.data) return;
-
-      const present_types = new Set(
-        existing.data.folders
-          .filter((f) => !!f.folder_token)
-          .map((f) => f.folder_type),
-      );
-      const missing_specs = SYSTEM_LABEL_SPECS.filter(
-        (spec) => !present_types.has(spec.folder_type),
-      );
-
-      if (missing_specs.length === 0) return;
-
-      const creations = missing_specs.map(async (spec) => {
-        const localized_name =
-          (t ? t(spec.i18n_key) : spec.fallback) || spec.fallback;
-        const display_name =
-          localized_name === spec.i18n_key ? spec.fallback : localized_name;
-
-        const folder_token = generate_folder_token();
-        const { encrypted: encrypted_name, nonce: name_nonce } =
-          await encrypt_folder_field(display_name, identity_key);
-
-        const request: CreateFolderRequest = {
-          folder_token,
-          encrypted_name,
-          name_nonce,
-          is_system: true,
-          sort_order: spec.sort_order,
-          folder_type: spec.folder_type,
-        };
-
-        const response = await create_folder(request);
-
-        if (response.error) {
-          throw new Error(response.error);
+        try {
+          outcome = await create_missing_system_folders(identity_key, t);
+        } catch {
+          outcome = "retry";
         }
 
-        return { folder_type: spec.folder_type, folder_token };
-      });
-
-      const results = await Promise.allSettled(creations);
-
-      const any_created = results.some((r) => r.status === "fulfilled");
-
-      if (any_created) {
-        emit_folders_changed();
+        if (outcome === "complete") return;
+        if (attempt >= RETRY_DELAYS_MS.length) {
+          throw new Error("system folders could not be created");
+        }
+        await wait(RETRY_DELAYS_MS[attempt]);
       }
     } finally {
       inflight_by_identity.delete(identity_key);

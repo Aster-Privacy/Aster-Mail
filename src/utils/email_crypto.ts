@@ -63,10 +63,21 @@ import {
 } from "@/services/api/keys";
 import {
   RATCHET_UNDECRYPTABLE_SENTINEL,
+  RATCHET_PENDING_SENTINEL,
   PGP_UNDECRYPTABLE_SENTINEL,
 } from "@/utils/undecryptable_body";
+import {
+  capture_decrypt_readiness,
+  settle_decrypt_failure,
+  settle_decrypt_success,
+  type DecryptReadiness,
+} from "@/services/crypto/decrypt_readiness";
 
-export { RATCHET_UNDECRYPTABLE_SENTINEL, PGP_UNDECRYPTABLE_SENTINEL };
+export {
+  RATCHET_UNDECRYPTABLE_SENTINEL,
+  RATCHET_PENDING_SENTINEL,
+  PGP_UNDECRYPTABLE_SENTINEL,
+};
 
 export function is_ratchet_envelope(body: string | null | undefined): boolean {
   if (!body) return false;
@@ -92,6 +103,7 @@ export async function try_decrypt_ratchet_body(
     return body_text;
   }
 
+  const before = capture_decrypt_readiness();
   let vault = get_vault_from_memory();
 
   if (!vault) {
@@ -99,21 +111,46 @@ export async function try_decrypt_ratchet_body(
     vault = get_vault_from_memory();
   }
 
-  if (!vault) return RATCHET_UNDECRYPTABLE_SENTINEL;
+  if (!vault) {
+    settle_decrypt_failure(message_id, { ...before, keys_settled: false });
 
-  try {
-    const decrypted = await decrypt_ratchet_message(
+    return RATCHET_PENDING_SENTINEL;
+  }
+
+  return settle_ratchet_attempt(message_id, before, () =>
+    decrypt_ratchet_message(
       our_email,
       sender_email,
       envelope,
       vault,
       message_id,
-    );
+    ),
+  );
+}
 
-    return decrypted ?? RATCHET_UNDECRYPTABLE_SENTINEL;
-  } catch {
-    return RATCHET_UNDECRYPTABLE_SENTINEL;
+export async function settle_ratchet_attempt(
+  message_id: string | undefined,
+  before: DecryptReadiness,
+  attempt: () => Promise<string | null>,
+): Promise<string> {
+  let decrypted: string | null = null;
+  let caught: unknown;
+
+  try {
+    decrypted = await attempt();
+  } catch (error) {
+    caught = error ?? new Error("ratchet decrypt failed");
   }
+
+  if (decrypted !== null && decrypted !== undefined) {
+    settle_decrypt_success(message_id);
+
+    return decrypted;
+  }
+
+  return settle_decrypt_failure(message_id, before, caught) === "pending"
+    ? RATCHET_PENDING_SENTINEL
+    : RATCHET_UNDECRYPTABLE_SENTINEL;
 }
 
 export function is_ratchet_verified_body(
@@ -125,6 +162,7 @@ export function is_ratchet_verified_body(
     is_ratchet_envelope(raw_body) &&
     !!decrypted_body &&
     decrypted_body !== RATCHET_UNDECRYPTABLE_SENTINEL &&
+    decrypted_body !== RATCHET_PENDING_SENTINEL &&
     !is_ratchet_envelope(decrypted_body) &&
     is_trusted_ratchet_plaintext(decrypted_body, message_id)
   );
@@ -1062,6 +1100,10 @@ async function resolve_body_text(
     sender_email,
     message_id,
   );
+
+  if (result === RATCHET_PENDING_SENTINEL) {
+    return { body: result, pgp_undecrypted: false, sealed: false };
+  }
 
   const sealed = is_ratchet_verified_body(body_text, result, message_id);
   const had_pgp_block = has_inbound_pgp_block(result);

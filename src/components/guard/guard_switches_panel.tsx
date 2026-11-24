@@ -26,6 +26,7 @@ import type { GuardSelection } from "@/components/guard/guard_setup_wizard";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { SettingNote } from "@aster/ui";
 
+import { guard_error_text } from "@/components/guard/guard_error_text";
 import { GuardRescueRotateDialog } from "@/components/guard/guard_rescue_rotate_dialog";
 import { GuardSwitchRows } from "@/components/guard/guard_setup_wizard";
 import { format_guard_time } from "@/components/guard/guard_waiting_screen";
@@ -107,7 +108,7 @@ export function GuardSwitchesPanel({
   const [busy, set_busy] = useState(false);
   const [held_off, set_held_off] = useState<GuardHeldOff | null>(null);
   const [join, set_join] = useState<GuardJoinPending | null>(null);
-  const [join_failed, set_join_failed] = useState(false);
+  const [join_failed, set_join_failed] = useState<string | null>(null);
   const [rotate_open, set_rotate_open] = useState(false);
   const join_ref = useRef<GuardJoinPending | null>(null);
   const is_approver = !!device && !!status.this_device;
@@ -139,7 +140,7 @@ export function GuardSwitchesPanel({
           apply_after: response.held.apply_after,
         });
       } else if (response.error) {
-        show_toast(t("guard.switches_error"), "error");
+        show_toast(guard_error_text(t, response, "guard.switches_error"), "error");
       }
       on_refresh();
     } catch {
@@ -163,7 +164,7 @@ export function GuardSwitchesPanel({
       );
 
       if (response.error) {
-        show_toast(t("guard.switches_error"), "error");
+        show_toast(guard_error_text(t, response, "guard.switches_error"), "error");
 
         return;
       }
@@ -175,27 +176,29 @@ export function GuardSwitchesPanel({
   };
 
   const begin_join = useCallback(async () => {
-    set_join_failed(false);
+    set_join_failed(null);
     const started = await start_guard_join(user_id);
 
     if (started.kind !== "pending") {
-      set_join_failed(true);
+      set_join_failed(
+        guard_error_text(t, started, "guard.switches_join_failed"),
+      );
 
       return;
     }
     join_ref.current = started.join;
     set_join(started.join);
-  }, [user_id]);
+  }, [user_id, t]);
 
   useEffect(() => {
     if (!join) return;
     let alive = true;
     let running = false;
-    const stop = (failed: boolean) => {
+    const stop = (failed: string | null) => {
       window.clearInterval(timer);
       join_ref.current = null;
       set_join(null);
-      if (failed) set_join_failed(true);
+      if (failed) set_join_failed(failed);
     };
     const tick = async () => {
       if (running) return;
@@ -209,13 +212,23 @@ export function GuardSwitchesPanel({
           const finished = await finish_guard_join(join);
 
           if (!alive) return;
-          stop(finished.kind !== "joined");
+          stop(
+            finished.kind === "joined"
+              ? null
+              : guard_error_text(t, finished, "guard.switches_join_failed"),
+          );
           if (finished.kind === "joined") {
             show_toast(t("guard.switches_joined"), "success");
             on_refresh();
           }
         } else if (state === "denied" || state === "expired") {
-          stop(true);
+          stop(
+            t(
+              state === "denied"
+                ? "guard.switches_join_denied"
+                : "guard.switches_join_expired",
+            ),
+          );
           void abandon_guard_join(user_id);
         }
       } finally {
@@ -325,8 +338,8 @@ export function GuardSwitchesPanel({
             </Button>
           )}
           {join_failed && (
-            <p className="w-full text-sm text-red-500">
-              {t("guard.switches_join_failed")}
+            <p className="w-full text-sm text-red-500" role="alert">
+              {join_failed}
             </p>
           )}
         </div>

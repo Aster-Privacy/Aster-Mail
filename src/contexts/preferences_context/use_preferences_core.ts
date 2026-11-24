@@ -689,6 +689,7 @@ export function use_preferences_core() {
         prefs.reduce_transparency ?? false,
       );
       root.classList.toggle("link-underlines", prefs.link_underlines ?? false);
+      root.classList.toggle("hide-scrollbars", prefs.hide_scrollbars === true);
       root.classList.toggle("dyslexia-font", prefs.dyslexia_font ?? false);
       root.classList.toggle("text-spacing", prefs.text_spacing ?? false);
     },

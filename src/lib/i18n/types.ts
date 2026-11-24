@@ -71,6 +71,7 @@ export interface SettingsKeywordsTranslations {
   theme_light: string;
   theme_system: string;
   theme_sync_across_devices: string;
+  hide_scrollbars: string;
   custom_theme_colors_title: string;
   custom_theme_title: string;
   font_choice_title: string;
@@ -161,6 +162,7 @@ export interface SettingsKeywordsTranslations {
   fam_kids_tab: string;
   email_view_mode: string;
   close_popup_on_outside_click: string;
+  open_popup_maximized: string;
   compose_window_mode: string;
   reduce_transparency: string;
   underline_links: string;
@@ -1276,6 +1278,7 @@ export interface CommonTranslations {
   remove_recovery_email: string;
   step_up_description: string;
   step_up_error: string;
+  step_up_key_needs_browser: string;
   step_up_security_key_hint: string;
   security_key_add_step_up_hint: string;
   security_key_add_ready: string;
@@ -1371,6 +1374,11 @@ export interface CommonTranslations {
   unmute_notifications: string;
   notifications_muted: string;
   remove_lock: string;
+  folder_password_settings: string;
+  lock_all_folders: string;
+  lock_all_folders_description: string;
+  folder_locked_notice: string;
+  folders_locked_notice: string;
   lock: string;
   change_color: string;
   change_icon: string;
@@ -3279,6 +3287,8 @@ export interface SettingsTranslations {
   theme_system: string;
   theme_sync_across_devices: string;
   theme_sync_across_devices_description: string;
+  hide_scrollbars: string;
+  hide_scrollbars_description: string;
   color_theme: string;
   color_theme_description: string;
   color_theme_default: string;
@@ -4099,6 +4109,8 @@ export interface SettingsTranslations {
   popup_description: string;
   close_popup_on_outside_click: string;
   close_popup_on_outside_click_description: string;
+  open_popup_maximized: string;
+  open_popup_maximized_description: string;
   split_view: string;
   split_view_description: string;
   full_page: string;
@@ -5459,6 +5471,7 @@ export interface SettingsTranslations {
   your_feedback: string;
   feedback_placeholder: string;
   feedback_not_encrypted: string;
+  feedback_support_notice: string;
   feedback_intro: string;
   support_intro: string;
   support_email_label: string;
@@ -7291,6 +7304,7 @@ export interface SettingsTranslations {
   swipe_left: string;
   swipe_right: string;
   swipe_none: string;
+  swipe_toggle_read: string;
   swipe_actions_description: string;
   feature_locked: string;
   available_on_plan: string;
@@ -8203,8 +8217,6 @@ export interface SettingsTranslations {
   alias_delivery_label_error: string;
   alias_apply_existing: string;
   alias_apply_existing_desc: string;
-  alias_apply_existing_info: string;
-  alias_apply_existing_action: string;
   alias_apply_existing_cancel: string;
   alias_apply_existing_started: string;
   alias_apply_existing_failed: string;
@@ -8217,6 +8229,9 @@ export interface SettingsTranslations {
   alias_apply_existing_canceled_one?: string;
   alias_apply_existing_error: string;
   alias_apply_existing_unavailable: string;
+  alias_apply_existing_confirm_folder_label: string;
+  alias_apply_existing_confirm_folder: string;
+  alias_apply_existing_confirm_label: string;
   alias_delivery_rule_note: string;
   alias_delivery_rule_conflict: string;
   alias_delivery_label_rule_note: string;
@@ -9353,7 +9368,11 @@ export interface MailTranslations {
   reply_sent_successfully: string;
   successfully_unsubscribed: string;
   unsubscribe_failed: string;
-  unsubscribe_manual_required: string;
+  unsubscribe_on_website: string;
+  unsubscribe_not_confirmed: string;
+  unsubscribe_use_email_link: string;
+  unsubscribe_some_need_website: string;
+  open_page: string;
   open_unsubscribe_page: string;
   stop_receiving_from: string;
   send_email: string;
@@ -9634,6 +9653,8 @@ export interface AuthTranslations {
   link_device_confirming: string;
   link_device_cancel: string;
   link_device_desktop: string;
+  link_device_extension: string;
+  link_device_extension_grant_notice: string;
   device_fingerprint: string;
   device_fingerprint_copy: string;
   link_device_grant_notice: string;
@@ -10318,6 +10339,13 @@ export interface GuardTranslations {
   sign_in_rescue_hint: string;
   sign_in_rescue_submit: string;
   sign_in_rescue_invalid: string;
+  sign_in_rescue_not_allowed: string;
+  sign_in_rescue_paused: string;
+  sign_in_rescue_in_progress: string;
+  sign_in_rescue_failed: string;
+  sign_in_rescue_only: string;
+  sign_in_no_method: string;
+  sign_in_on_hold: string;
   sign_in_rescue_started: string;
   sign_in_back: string;
   link_device_needs_approver: string;
@@ -10331,6 +10359,7 @@ export interface GuardTranslations {
   approve_time_label: string;
   approve_device: string;
   approve_unknown_device: string;
+  approve_device_named: string;
   approve_number_label: string;
   approve_confirm: string;
   approve_deny: string;
@@ -10533,6 +10562,42 @@ export interface GuardTranslations {
   panic_changes_label: string;
   panic_changes_label_one: string;
   panic_changes_label_other: string;
+  error_paused: string;
+  error_paused_soon: string;
+  error_too_many: string;
+  error_too_many_soon: string;
+  error_request_gone: string;
+  error_device_required: string;
+  error_not_allowed: string;
+  error_disabled: string;
+  error_request_conflict: string;
+  error_last_device: string;
+  error_device_pending: string;
+  error_device_pending_soon: string;
+  error_held: string;
+  error_held_soon: string;
+  error_upgrade: string;
+  error_action_invalid: string;
+  error_step_up: string;
+  error_device_keys: string;
+  error_device_unknown: string;
+  error_veto_invalid: string;
+  error_offline: string;
+  sign_in_where_to_approve: string;
+  sign_in_paused_until: string;
+  sign_in_again: string;
+  sign_in_on_hold_title: string;
+  sign_in_on_hold_until: string;
+  switches_join_denied: string;
+  switches_join_expired: string;
+  setup_who_for: string;
+  setup_only_device_warning: string;
+  setup_carry_device_tip: string;
+  intro_hold_timing_body: string;
+  setup_progress_keys: string;
+  setup_progress_server: string;
+  setup_progress_device: string;
+  setup_retry: string;
 }
 
 export type TranslationKey =

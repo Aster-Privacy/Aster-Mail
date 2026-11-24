@@ -361,6 +361,11 @@ export const ko = {
     notifications_muted: "알림 음소거됨",
     remove_lock: "잠금 해제",
     lock: "잠금",
+    folder_password_settings: "비밀번호 설정",
+    lock_all_folders: "보호된 폴더 모두 잠그기",
+    lock_all_folders_description: "현재 잠금 해제된 보호 폴더를 모두 잠급니다",
+    folder_locked_notice: "폴더를 잠갔습니다",
+    folders_locked_notice: "보호된 폴더를 잠갔습니다",
     change_color: "색상 변경",
     change_icon: "아이콘 변경",
     more_information: "자세한 정보",
@@ -1866,6 +1871,8 @@ export const ko = {
     step_up_description: "보안을 위해 계속하려면 비밀번호를 확인하세요.",
     step_up_error:
       "비밀번호 또는 인증 코드가 올바르지 않습니다. 다시 시도하세요.",
+    step_up_key_needs_browser:
+      "데스크톱 앱에서는 보안 키나 패스키를 사용할 수 없습니다. 이 변경을 하려면 브라우저에서 Aster를 여세요.",
     step_up_security_key_hint:
       "비밀번호를 입력하면 보안 키로 추가 인증을 진행하게 됩니다.",
     security_key_add_step_up_hint:
@@ -3083,12 +3090,9 @@ export const ko = {
       "이 별칭으로 오는 메일에는 규칙 없이 자동으로 라벨이 붙습니다. 라벨은 배달 폴더와 별개로 적용됩니다.",
     alias_delivery_label_none: "라벨 없음",
     alias_delivery_label_missing: "삭제된 라벨",
-    alias_apply_existing: "기존 메일에 적용",
+    alias_apply_existing: "기존 메일에 실행",
     alias_apply_existing_desc:
       "이 별칭이 이미 받은 메일을 선택한 폴더와 라벨로 정리합니다.",
-    alias_apply_existing_info:
-      "위에서 선택한 배달 폴더와 라벨을 계정에 이미 있는 메일에 적용합니다. 백그라운드에서 실행되며 메일 규칙은 다시 실행되지 않습니다.",
-    alias_apply_existing_action: "지금 적용",
     alias_apply_existing_cancel: "중지",
     alias_apply_existing_started:
       "배달 설정을 기존 메일에 적용하고 있습니다. 백그라운드에서 실행됩니다.",
@@ -3106,6 +3110,12 @@ export const ko = {
       "기존 메일에 적용하지 못했습니다. 다시 시도하세요.",
     alias_apply_existing_unavailable:
       "계정에 이미 있는 메일은 스팸으로 옮길 수 없습니다.",
+    alias_apply_existing_confirm_folder_label:
+      "이 별칭이 이미 받은 메일이 {{folder}}(으)로 이동하고 {{label}} 라벨이 붙습니다. 휴지통과 스팸에 있는 메일은 그대로 유지됩니다.",
+    alias_apply_existing_confirm_folder:
+      "이 별칭이 이미 받은 메일이 {{folder}}(으)로 이동합니다. 휴지통과 스팸에 있는 메일은 그대로 유지됩니다.",
+    alias_apply_existing_confirm_label:
+      "이 별칭이 이미 받은 메일에 {{label}} 라벨이 붙습니다. 휴지통과 스팸에 있는 메일은 그대로 유지됩니다.",
     alias_delivery_label_error: "다시 시도하세요.",
     alias_delivery_rule_note:
       '메일 규칙 "{{ rule }}"이(가) 이미 이 별칭의 메일을 {{ target }}(으)로 옮깁니다.',
@@ -4571,6 +4581,9 @@ export const ko = {
     close_popup_on_outside_click: "바깥쪽을 클릭하여 팝업 닫기",
     close_popup_on_outside_click_description:
       "이메일이 팝업으로 열려 있을 때 팝업 바깥 아무 곳이나 클릭하면 팝업이 닫힙니다",
+    open_popup_maximized: "팝업을 전체 화면으로 열기",
+    open_popup_maximized_description:
+      "이메일이 팝업으로 열릴 때 팝업이 화면 전체를 채웁니다",
     split_view: "분할 보기",
     split_view_description: "이메일 목록과 미리보기를 나란히 표시합니다",
     full_page: "전체 페이지",
@@ -4855,6 +4868,8 @@ export const ko = {
     feedback_placeholder: "아이디어나 발견한 문제를 설명해 주세요",
     feedback_not_encrypted:
       "피드백은 종단 간 암호화되지 않으므로 비밀번호, 복구 코드 또는 기타 개인 정보를 포함하지 마세요.",
+    feedback_support_notice:
+      "이 양식은 피드백, 아이디어, 버그 신고용입니다. 질문이 있거나 계정 관련 도움이 필요하면 대신 지원팀({{ email }})으로 이메일을 보내세요.",
     feedback_intro:
       "아이디어를 공유하거나 버그를 신고하거나 Aster 팀에 의견을 알려 주세요. 피드백은 지원 요청을 생성하지 않으므로 도움이나 답변이 필요하면 지원팀에 문의하세요.",
     support_intro:
@@ -6466,6 +6481,7 @@ export const ko = {
     swipe_left: "왼쪽 스와이프",
     swipe_right: "오른쪽 스와이프",
     swipe_none: "없음",
+    swipe_toggle_read: "읽음 또는 읽지 않음으로 표시",
     swipe_actions_description:
       "이메일에서 왼쪽 또는 오른쪽으로 스와이프할 때 수행할 작업을 선택하세요.",
     badges_title: "배지",
@@ -8649,6 +8665,9 @@ export const ko = {
     theme_sync_across_devices: "기기 간 테마 동기화",
     theme_sync_across_devices_description:
       "끄면 이 기기에서만 다른 테마를 쓸 수 있습니다.",
+    hide_scrollbars: "스크롤 막대 숨기기",
+    hide_scrollbars_description:
+      "모든 기기에서 스크롤 막대를 숨깁니다. 목록과 메시지는 계속 스크롤할 수 있습니다.",
     product_updates: "제품 소식",
     product_updates_description:
       "Aster가 주요 업데이트를 출시하면 소식을 받습니다",
@@ -9563,11 +9582,13 @@ export const ko = {
     no_password: "비밀번호 없음",
     replying_to: "{{name}}에게 답장 중",
     reply_sent_successfully: "답장이 성공적으로 전송되었습니다",
-    successfully_unsubscribed: "구독이 성공적으로 취소되었습니다",
-    unsubscribe_failed:
-      "구독 해지가 완료되지 않았습니다. 이메일의 링크를 누르면 발신자 사이트에서 직접 해지할 수 있습니다.",
-    unsubscribe_manual_required:
-      "이 발신자는 자동 구독 해지를 지원하지 않습니다. 이메일의 링크로 직접 해지할 수 있습니다.",
+    successfully_unsubscribed: "구독 취소됨",
+    unsubscribe_failed: "구독을 취소하지 못했습니다. 나중에 다시 시도하세요.",
+    unsubscribe_on_website: "보낸 사람의 웹사이트에서 구독을 취소하세요.",
+    unsubscribe_not_confirmed: "보낸 사람이 확인하지 않았습니다. 웹사이트에서 구독을 취소하세요.",
+    unsubscribe_use_email_link: "이메일에 있는 구독 취소 링크를 사용하세요.",
+    unsubscribe_some_need_website: "일부 보낸 사람은 웹사이트에서 구독을 취소해야 합니다.",
+    open_page: "페이지 열기",
     open_unsubscribe_page: "구독 취소 페이지 열기",
     stop_receiving_from: "다음으로부터 이메일 수신 중지",
     send_email: "이메일 보내기",
@@ -9780,14 +9801,12 @@ export const ko = {
     font: "글꼴",
     fonts: "글꼴",
     stylesheet: "스타일시트",
-    trash_auto_delete_notice:
-      "휴지통의 이메일은 {{ days }}일 후 자동으로 삭제됩니다.",
-    spam_auto_delete_notice:
-      "스팸의 이메일은 {{ days }}일 후 자동으로 삭제됩니다.",
+    trash_auto_delete_notice: "휴지통의 메시지는 {{ days }}일 후 삭제됩니다.",
+    spam_auto_delete_notice: "스팸의 메시지는 {{ days }}일 후 삭제됩니다.",
     trash_auto_delete_notice_family:
-      "휴지통의 항목은 {{ days }}일 후 자동으로 삭제됩니다(가족 관리자가 설정).",
+      "휴지통의 메시지는 가족 관리자 설정에 따라 {{ days }}일 후 삭제됩니다.",
     spam_auto_delete_notice_family:
-      "스팸의 항목은 {{ days }}일 후 자동으로 삭제됩니다(가족 관리자가 설정).",
+      "스팸의 메시지는 가족 관리자 설정에 따라 {{ days }}일 후 삭제됩니다.",
     insert_link_title: "링크 삽입",
     add_link_to_selection: '"{{text}}"에 링크 추가',
     url_label: "URL",
@@ -10509,6 +10528,9 @@ export const ko = {
     link_device_confirming: "연결 중...",
     link_device_cancel: "취소",
     link_device_desktop: "새 기기",
+    link_device_extension: "브라우저 확장 프로그램",
+    link_device_extension_grant_notice:
+      "연결하면 {{device}}의 Aster Companion이 {{email}}의 주소와 별칭에 접근할 수 있게 되어, 웹사이트에 입력하고 새 별칭을 만들 수 있습니다.",
     device_fingerprint: "기기 지문",
     device_fingerprint_copy: "기기 지문 복사",
     link_device_grant_notice:
@@ -11862,6 +11884,13 @@ export const ko = {
     sign_in_rescue_hint: "Guard를 설정할 때 저장한 복구 코드를 입력하세요. 72시간 대기 후 계정이 열리며, 내 기기에서 이를 중지할 수 있습니다.",
     sign_in_rescue_submit: "복구 시작",
     sign_in_rescue_invalid: "복구 코드가 맞지 않습니다. 확인하고 다시 시도하세요.",
+    sign_in_rescue_not_allowed: "이 로그인에서는 복구를 시작할 수 없습니다. 돌아가서 비밀번호로 로그인한 후 다시 시도하세요.",
+    sign_in_rescue_paused: "시도 횟수가 너무 많습니다. 15분 후에 복구 코드를 다시 입력하세요.",
+    sign_in_rescue_in_progress: "이 계정의 복구가 이미 진행 중입니다. 완료 시점은 이메일에서 확인하세요.",
+    sign_in_rescue_failed: "복구를 시작하지 못했습니다. 연결을 확인하고 다시 시도하세요.",
+    sign_in_rescue_only: "이 로그인을 승인할 수 있는 기기가 없으므로 복구 코드를 입력해 다시 로그인하세요.",
+    sign_in_no_method: "이 로그인을 승인할 수 있는 기기가 없고 계정에 복구 코드도 없습니다. 다시 로그인하려면 복구 키로 비밀번호를 재설정하세요.",
+    sign_in_on_hold: "여러 요청에 응답이 없어 이 계정의 로그인이 일시 중지되었습니다. 약 1시간 후에 다시 시도하세요.",
     sign_in_rescue_started: "복구가 시작되었습니다. {{date}} 이후에 로그인할 수 있습니다. 그 전까지는 로그인된 기기 중 어느 기기에서든 중지할 수 있습니다.",
     sign_in_back: "로그인으로 돌아가기",
     link_device_needs_approver: "이 계정은 Guard가 켜져 있어 Guard를 사용하는 기기에서 새 기기를 승인해야 합니다. Guard를 설정한 기기에서 Aster를 열고 다시 시도하세요.",
@@ -11875,6 +11904,7 @@ export const ko = {
     approve_time_label: "시간",
     approve_device: "{{os}}의 {{browser}}",
     approve_unknown_device: "알 수 없는 기기",
+    approve_device_named: "이름: '{{name}}'",
     approve_number_label: "새 기기에 표시된 번호를 입력하세요",
     approve_confirm: "승인",
     approve_deny: "거부",
@@ -12077,12 +12107,49 @@ export const ko = {
     panic_changes_label: "개 변경 사항 취소됨",
     panic_changes_label_one: "개 변경 사항 취소됨",
     panic_changes_label_other: "개 변경 사항 취소됨",
+    error_paused: "시도 횟수가 너무 많아 Aster Guard가 이 요청을 일시 중지했습니다. {{time}}에 다시 시도할 수 있습니다.",
+    error_paused_soon: "시도 횟수가 너무 많아 Aster Guard가 이 요청을 일시 중지했습니다. 잠시 후 다시 시도하세요.",
+    error_too_many: "지금 이 계정에 로그인 요청이 너무 많습니다. {{time}}에 다시 시도할 수 있습니다.",
+    error_too_many_soon: "지금 이 계정에 요청이 너무 많습니다. 잠시 기다린 후 다시 시도하세요.",
+    error_request_gone: "이 요청은 만료되었거나 다른 기기에서 이미 응답했습니다.",
+    error_device_required: "승인된 기기에서만 할 수 있습니다. Aster Guard에서 승인한 기기를 사용하세요.",
+    error_not_allowed: "이 기기에서는 할 수 없습니다. 다른 승인된 기기를 사용하세요.",
+    error_disabled: "이 계정에서 Aster Guard가 꺼져 있어 승인할 항목이 없습니다.",
+    error_request_conflict: "다른 기기에서 같은 시간에 이 요청을 변경했습니다. 페이지를 새로 고치고 다시 시도하세요.",
+    error_last_device: "Aster Guard에서 승인된 유일한 기기이므로 제거하거나 로그아웃할 수 없습니다. 먼저 다른 기기를 승인하거나 Aster Guard를 끄세요.",
+    error_device_pending: "이 기기는 {{time}}부터 요청을 승인할 수 있습니다.",
+    error_device_pending_soon: "이 기기는 아직 승인되지 않았습니다. 몇 분 후에 요청을 승인할 수 있습니다.",
+    error_held: "계정을 보호하기 위해 Aster Guard가 이 변경을 보류하고 있습니다. 취소하지 않으면 {{time}}에 적용됩니다.",
+    error_held_soon: "계정을 보호하기 위해 Aster Guard가 이 변경을 보류하고 있습니다. 취소하지 않으면 곧 적용됩니다.",
+    error_upgrade: "이 버전의 Aster Mail은 오래되었습니다. 앱을 업데이트한 후 다시 시도하세요.",
+    error_action_invalid: "Aster Guard가 이 기기의 서명을 확인하지 못했습니다. 페이지를 다시 불러오고 다시 시도하세요.",
+    error_step_up: "계속하려면 본인 확인을 다시 하세요.",
+    error_device_keys: "이 기기의 Aster Guard 키가 유효하지 않습니다. 이 기기를 Aster Guard에서 제거한 후 다시 추가하세요.",
+    error_device_unknown: "Aster Guard가 이 기기를 인식하지 못합니다. Aster Guard 설정에서 다시 추가하세요.",
+    error_veto_invalid: "이 복구는 이미 완료되었거나 중지되어 더 이상 중지할 수 없습니다.",
+    error_offline: "오프라인 상태입니다. 연결을 확인하고 다시 시도하세요.",
+    sign_in_where_to_approve: "요청은 휴대폰과 같은 승인된 기기의 Aster Mail에 표시됩니다. 그 기기에서 Aster Mail을 열어 승인하세요.",
+    sign_in_paused_until: "시도 횟수가 너무 많아 이 요청은 {{time}}까지 일시 중지됩니다.",
+    sign_in_again: "다시 로그인",
+    sign_in_on_hold_title: "로그인 일시 중지됨",
+    sign_in_on_hold_until: "여러 요청에 응답이 없어 이 계정의 로그인이 일시 중지되었습니다. {{time}}에 다시 시도할 수 있습니다.",
+    switches_join_denied: "다른 기기에서 이 브라우저 추가 요청을 거부했습니다.",
+    switches_join_expired: "이 브라우저 추가 요청이 만료되었습니다. 다시 시도한 후 다른 기기에서 승인하세요.",
+    setup_who_for: "Aster Guard는 위험도가 높은 계정을 위한 기능입니다. 설정 후에는 새로 로그인할 때마다 승인한 기기에서 승인해야 하며, Aster Guard를 끄는 데 24시간이 걸립니다.",
+    setup_only_device_warning: "이 브라우저가 유일한 승인된 기기가 됩니다. 이 브라우저에 접근할 수 없게 되면 로그인할 때 복구 코드가 필요합니다.",
+    setup_carry_device_tip: "설정 후에는 휴대폰처럼 항상 가지고 다니는 기기를 승인하세요.",
+    intro_hold_timing_body: "비밀번호 및 보안 변경은 24시간, 전달 및 메일 규칙은 1시간, 복구 변경은 72시간 동안 대기하므로 그동안 중지할 수 있습니다.",
+    setup_progress_keys: "1/3단계: 이 기기의 키를 만드는 중",
+    setup_progress_server: "2/3단계: 계정에서 Aster Guard를 켜는 중",
+    setup_progress_device: "3/3단계: 이 기기를 승인된 기기로 저장하는 중",
+    setup_retry: "다시 시도",
   },
   settings_keywords: {
     theme_dark: "다크, 다크 모드, 야간 모드, 어두운 테마, 테마",
     theme_light: "라이트, 라이트 모드, 밝은 테마, 테마",
     theme_system: "시스템, 시스템 테마, 자동 테마, 기기 설정에 맞춤",
     theme_sync_across_devices: "테마 동기화, 기기 간 테마 동기화, 기기별 테마, 기기 테마, 개별 테마",
+    hide_scrollbars: "스크롤 막대, 스크롤바, 스크롤 막대 숨기기, 스크롤",
     custom_theme_colors_title: "테마 색상, 색상 테마, 보라색, 초록색, 로즈, 주황색, 청록색, 남색, 파란색, 분홍색, 검은색, oled, 강조 색상",
     custom_theme_title: "사용자 지정 테마, 맞춤 색상, 팔레트, 기본 색상, 프리미엄 테마, starplan",
     font_choice_title: "글꼴, 폰트, 글꼴 변경, 서체, 글꼴 패밀리, starplan",
@@ -12173,6 +12240,7 @@ export const ko = {
     fam_kids_tab: "자녀, 자녀 계정, 어린이 계정, 아이 계정",
     email_view_mode: "이메일 보기 모드, 팝업, 분할 보기, 전체 페이지, 이메일 열기, 읽기 레이아웃",
     close_popup_on_outside_click: "바깥을 클릭하여 팝업 닫기, 팝업, 바깥 클릭, 팝업 닫기",
+    open_popup_maximized: "팝업, 전체 화면, 최대화",
     compose_window_mode: "작성 창 모드, 플로팅 창, 전체 화면 작성, 최소화된 작성 창, 작성 레이아웃",
     reduce_transparency: "투명도 줄이기, 투명도, 흐림 효과, 불투명",
     underline_links: "링크에 밑줄, 링크, 밑줄",

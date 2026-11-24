@@ -20,6 +20,7 @@
 //
 import type { EmailCategory, InboxEmail, InboxFilterType } from "@/types/email";
 import type { ListReadFilter } from "@/hooks/email_list_types";
+import type { DecryptedFolder } from "@/hooks/use_folders/tree";
 
 import { useState, useCallback, useMemo, useEffect, useRef } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
@@ -45,6 +46,7 @@ import {
 
 import {
   archive_keeps_row,
+  leaves_view_on_folder_move,
   unarchive_keeps_row,
 } from "@/hooks/view_membership";
 import { NotSpamIcon } from "@/components/email/spam_action_icons";
@@ -58,6 +60,7 @@ import {
 } from "@/components/email/inbox/category_move";
 import { use_category_tab_options } from "@/components/email/inbox/category_move_menu";
 import { MobileCategorySheet } from "@/components/mobile/mobile_category_sheet";
+import { MobileFolderSheet } from "@/components/mobile/mobile_folder_sheet";
 import { use_drafts_list, type DraftListItem } from "@/hooks/use_drafts_list";
 import { use_scheduled_emails } from "@/hooks/use_scheduled_emails";
 import { reschedule_email, send_scheduled_now } from "@/services/api/scheduled";
@@ -923,6 +926,57 @@ function MobileInbox({
     [actions, remove_email, request_spam, is_spam_view, t],
   );
 
+  const [folder_sheet_target, set_folder_sheet_target] =
+    useState<InboxEmail | null>(null);
+
+  const handle_move_to_folder = useCallback((email: InboxEmail) => {
+    set_folder_sheet_target(email);
+  }, []);
+
+  const handle_folder_select = useCallback(
+    async (folder: DecryptedFolder) => {
+      const email = folder_sheet_target;
+
+      set_folder_sheet_target(null);
+      if (!email) return;
+      const previous = email.folders ?? email.labels ?? [];
+      const success = await actions.move_to_folder(email, folder.folder_token);
+
+      if (!success) {
+        show_toast(t("common.failed_to_move_email"), "error");
+
+        return;
+      }
+
+      const leaves =
+        leaves_view_on_folder_move(current_view, folder.folder_token) &&
+        (!current_view.startsWith("folder-") || previous.length === 1);
+
+      if (leaves) {
+        remove_email(email.id);
+
+        return;
+      }
+
+      const kept = previous.length === 1 ? [] : previous;
+      const next_folders = kept.some(
+        (entry) => entry.folder_token === folder.folder_token,
+      )
+        ? kept
+        : [
+            ...kept,
+            {
+              folder_token: folder.folder_token,
+              name: folder.name,
+              color: folder.color,
+            },
+          ];
+
+      update_email(email.id, { folders: next_folders });
+    },
+    [folder_sheet_target, actions, current_view, remove_email, update_email, t],
+  );
+
   const handle_snooze_select = useCallback(
     async (snoozed_until: Date) => {
       if (!snooze_email_target) return;
@@ -1483,6 +1537,14 @@ function MobileInbox({
             on_mark_spam={
               is_drafts_view || is_scheduled_view ? undefined : handle_mark_spam
             }
+            on_move_to_folder={
+              is_drafts_view ||
+              is_scheduled_view ||
+              is_trash_view ||
+              is_spam_view
+                ? undefined
+                : handle_move_to_folder
+            }
             on_refresh={handle_refresh}
             on_snooze={
               is_drafts_view ||
@@ -1707,6 +1769,18 @@ function MobileInbox({
           </div>
         </div>
       </MobileBottomSheet>
+
+      <MobileFolderSheet
+        current_tokens={(
+          folder_sheet_target?.folders ??
+          folder_sheet_target?.labels ??
+          []
+        ).map((entry) => entry.folder_token)}
+        folders={folders_state.folders}
+        is_open={folder_sheet_target !== null}
+        on_close={() => set_folder_sheet_target(null)}
+        on_select={(folder) => void handle_folder_select(folder)}
+      />
 
       <MobileCategorySheet
         is_open={category_sheet_open && selection_mode}

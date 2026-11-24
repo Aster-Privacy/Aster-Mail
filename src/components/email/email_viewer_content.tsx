@@ -90,6 +90,7 @@ import {
   is_ratchet_envelope,
   is_password_protected_body,
 } from "@/utils/email_crypto";
+import { is_pending_decrypt_body } from "@/utils/undecryptable_body";
 import { PgpPasswordProtectedMessage } from "@/components/email/pgp_password_prompt";
 import { EmailTag } from "@/components/ui/email_tag";
 import { use_latched_by_id } from "@/hooks/use_latched_by_id";
@@ -524,6 +525,7 @@ export function EmailViewerContent({
 
   const is_ratchet_undecryptable =
     email.body === RATCHET_UNDECRYPTABLE_SENTINEL ||
+    is_pending_decrypt_body(email.body) ||
     email.body === PGP_UNDECRYPTABLE_SENTINEL ||
     is_ratchet_envelope(email.body) ||
     is_ratchet_envelope(email.html_content) ||

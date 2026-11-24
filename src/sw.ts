@@ -23,10 +23,10 @@ import { kept_across_updates } from "@/lib/app_update_caches";
 import {
   GUARD_PUSH_SW_MESSAGE,
   GUARD_PUSH_URL,
+  create_guard_push_ledger,
   guard_push_body,
-  guard_push_is_ended,
-  guard_push_notification_tag,
   guard_push_resolved_tag,
+  guard_push_tag,
   guard_window_is_watching,
   read_guard_push,
 } from "@/lib/guard_push";
@@ -40,6 +40,7 @@ export {};
 
 declare let self: ServiceWorkerGlobalScope;
 
+const guard_push_ledger = create_guard_push_ledger();
 const PUSH_STRINGS_CACHE = "aster_push_strings";
 const PUSH_STRINGS_URL = "/__aster_push_strings";
 const PUSH_MUTES_URL = "/__aster_push_mutes";
@@ -229,14 +230,14 @@ self.addEventListener("push", (event: PushEvent) => {
 
           for (const notification of open) notification.close();
         }
+        if (!guard_push_ledger.should_notify(guard)) return;
         if (guard_window_is_watching(clients)) return;
         await self.registration.showNotification("Aster Mail", {
           body: guard_push_body(guard, await read_push_strings()),
           icon: "/pwa-192x192.png",
           badge: "/favicon-32x32.png",
-          tag: guard_push_notification_tag(guard),
+          tag: guard_push_tag(guard),
           data: { url: GUARD_PUSH_URL, guard: true },
-          ...(guard_push_is_ended(guard) ? { silent: true } : {}),
         });
 
         return;

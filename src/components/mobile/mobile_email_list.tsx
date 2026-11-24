@@ -84,6 +84,7 @@ interface MobileEmailListProps {
   on_snooze?: (email: InboxEmail) => void;
   on_toggle_read?: (email: InboxEmail) => void;
   on_mark_spam?: (email: InboxEmail) => void;
+  on_move_to_folder?: (email: InboxEmail) => void;
   swipe_left_action?: string;
   swipe_right_action?: string;
   selection_mode?: boolean;
@@ -212,6 +213,7 @@ export const MobileEmailList = memo(function MobileEmailList({
   on_snooze,
   on_toggle_read,
   on_mark_spam,
+  on_move_to_folder,
   swipe_left_action,
   swipe_right_action,
   selection_mode = false,
@@ -669,6 +671,7 @@ export const MobileEmailList = memo(function MobileEmailList({
                 on_delete={on_delete}
                 on_long_press={on_long_press}
                 on_mark_spam={on_mark_spam}
+                on_move_to_folder={on_move_to_folder}
                 on_press={on_email_press}
                 on_snooze={on_snooze}
                 on_toggle_read={on_toggle_read}
@@ -697,6 +700,7 @@ export const MobileEmailList = memo(function MobileEmailList({
                   on_delete={on_delete}
                   on_long_press={on_long_press}
                   on_mark_spam={on_mark_spam}
+                  on_move_to_folder={on_move_to_folder}
                   on_press={on_email_press}
                   on_snooze={on_snooze}
                   on_toggle_read={on_toggle_read}

@@ -19,6 +19,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 import { useSyncExternalStore } from "react";
 
+import { forget_totp_required } from "@/services/api/step_up_cache";
+
 export type SuspensionState = "unknown" | "active" | "suspended";
 
 export const SUSPENDED_PATH = "/suspended";
@@ -77,6 +79,7 @@ export function apply_sign_in_scope(response: {
   session_scope?: string | null;
   is_suspended?: boolean;
 }): void {
+  forget_totp_required();
   const suspended =
     response.session_scope === SUSPENDED_SCOPE || response.is_suspended === true;
 
@@ -87,7 +90,7 @@ export function is_suspended_path(pathname: string): boolean {
   return pathname === SUSPENDED_PATH || pathname === `${SUSPENDED_PATH}/`;
 }
 
-function subscribe(listener: () => void): () => void {
+export function subscribe_suspension_state(listener: () => void): () => void {
   listeners.add(listener);
 
   return () => {
@@ -96,7 +99,11 @@ function subscribe(listener: () => void): () => void {
 }
 
 export function use_suspension_state(): SuspensionState {
-  return useSyncExternalStore(subscribe, get_suspension_state, () => "unknown");
+  return useSyncExternalStore(
+    subscribe_suspension_state,
+    get_suspension_state,
+    () => "unknown",
+  );
 }
 
 if (typeof window !== "undefined") {

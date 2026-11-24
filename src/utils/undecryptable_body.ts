@@ -30,3 +30,9 @@ export function is_undecryptable_body(body: string | null | undefined) {
       body.includes(PGP_UNDECRYPTABLE_SENTINEL))
   );
 }
+
+export const RATCHET_PENDING_SENTINEL = "\x00ASTER_RATCHET_PENDING\x00";
+
+export function is_pending_decrypt_body(body: string | null | undefined) {
+  return body === RATCHET_PENDING_SENTINEL;
+}

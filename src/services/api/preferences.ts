@@ -135,6 +135,7 @@ export interface UserPreferences {
   email_view_mode: "popup" | "split" | "fullpage";
   settings_view_mode: "fullpage" | "popup";
   close_popup_on_outside_click: boolean;
+  open_popup_maximized: boolean;
   keyboard_shortcuts_enabled: boolean;
   confirm_before_delete: boolean;
   confirm_before_permanent_delete: boolean;
@@ -205,6 +206,7 @@ export interface UserPreferences {
   high_contrast: boolean;
   reduce_transparency: boolean;
   link_underlines: boolean;
+  hide_scrollbars: boolean;
   dyslexia_font: boolean;
   text_spacing: boolean;
   color_vision_mode:
@@ -847,6 +849,7 @@ export const DEFAULT_PREFERENCES: UserPreferences = {
   email_view_mode: "split",
   settings_view_mode: "fullpage",
   close_popup_on_outside_click: false,
+  open_popup_maximized: false,
   keyboard_shortcuts_enabled: true,
   confirm_before_delete: false,
   confirm_before_permanent_delete: true,
@@ -890,6 +893,7 @@ export const DEFAULT_PREFERENCES: UserPreferences = {
   high_contrast: false,
   reduce_transparency: false,
   link_underlines: false,
+  hide_scrollbars: false,
   dyslexia_font: false,
   text_spacing: false,
   color_vision_mode: "none",
@@ -1032,6 +1036,7 @@ const SWIPE_ACTION_IDS = [
   "snooze",
   "star",
   "spam",
+  "move_to_folder",
   "none",
 ];
 const LEGACY_SWIPE_ACTIONS: Record<string, string> = {
@@ -1040,6 +1045,7 @@ const LEGACY_SWIPE_ACTIONS: Record<string, string> = {
   mark_unread: "toggle_read",
   read: "toggle_read",
   unread: "toggle_read",
+  move: "move_to_folder",
 };
 
 function normalize_swipe_action(raw: unknown, fallback: string): string {
@@ -1112,6 +1118,7 @@ export function build_merged_preferences(
     typeof merged.learn_from_category_moves === "boolean"
       ? merged.learn_from_category_moves
       : true;
+  merged.hide_scrollbars = merged.hide_scrollbars === true;
   merged.enabled_categories = Array.isArray(merged.enabled_categories)
     ? merged.enabled_categories.filter((c) => typeof c === "string")
     : [...DEFAULT_ENABLED_CATEGORIES];

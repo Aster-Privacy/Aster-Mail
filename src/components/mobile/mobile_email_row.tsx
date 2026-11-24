@@ -103,6 +103,7 @@ interface MobileEmailRowProps {
   on_snooze?: (email: InboxEmail) => void;
   on_toggle_read?: (email: InboxEmail) => void;
   on_mark_spam?: (email: InboxEmail) => void;
+  on_move_to_folder?: (email: InboxEmail) => void;
   swipe_left_action?: string;
   swipe_right_action?: string;
   selection_mode?: boolean;
@@ -123,6 +124,7 @@ export const MobileEmailRow = memo(function MobileEmailRow(
     on_snooze,
     on_toggle_read,
     on_mark_spam,
+    on_move_to_folder,
     swipe_left_action = "archive",
     swipe_right_action = "toggle_read",
     selection_mode = false,
@@ -339,6 +341,9 @@ export const MobileEmailRow = memo(function MobileEmailRow(
       snooze: on_snooze ? () => on_snooze(email) : undefined,
       star: on_toggle_star ? () => on_toggle_star(email) : undefined,
       spam: on_mark_spam ? () => on_mark_spam(email) : undefined,
+      move_to_folder: on_move_to_folder
+        ? () => on_move_to_folder(email)
+        : undefined,
     }),
     [
       email,
@@ -348,6 +353,7 @@ export const MobileEmailRow = memo(function MobileEmailRow(
       on_snooze,
       on_toggle_star,
       on_mark_spam,
+      on_move_to_folder,
     ],
   );
 

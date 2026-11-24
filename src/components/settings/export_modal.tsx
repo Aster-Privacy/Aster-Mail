@@ -49,6 +49,7 @@ import {
   TURNSTILE_SITE_KEY,
   type TurnstileWidgetRef,
 } from "@/components/auth/turnstile_widget";
+import { peek_totp_required } from "@/services/api/step_up_cache";
 import { use_i18n } from "@/lib/i18n/context";
 import { ButtonSpinner, Spinner } from "@/components/ui/spinner";
 import { show_toast } from "@/components/toast/simple_toast";
@@ -114,7 +115,9 @@ export function ExportModal({ is_open, on_close }: ExportModalProps) {
 
   const [verify_password, set_verify_password] = useState("");
   const [verify_code, set_verify_code] = useState("");
-  const [verify_totp_required, set_verify_totp_required] = useState(false);
+  const [verify_totp_required, set_verify_totp_required] = useState(
+    () => peek_totp_required() === true,
+  );
   const [verify_requirements_error, set_verify_requirements_error] =
     useState(false);
   const [verify_show_password, set_verify_show_password] = useState(false);
@@ -158,7 +161,7 @@ export function ExportModal({ is_open, on_close }: ExportModalProps) {
     set_token(null);
     set_verify_password("");
     set_verify_code("");
-    set_verify_totp_required(false);
+    set_verify_totp_required(peek_totp_required() === true);
     set_verify_requirements_error(false);
     set_verify_show_password(false);
     set_verify_loading(false);

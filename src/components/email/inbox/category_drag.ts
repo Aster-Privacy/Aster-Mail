@@ -20,6 +20,8 @@
 //
 import type { EmailCategory } from "@/types/email";
 import type { SelectionSnapshot } from "@/components/email/inbox/selection_snapshot";
+import type { MailLocation } from "@/lib/system_move_targets";
+import type { SystemDropTarget } from "@/lib/system_drop_targets";
 
 import { useSyncExternalStore } from "react";
 
@@ -52,6 +54,10 @@ export interface EmailDragPayload {
   folder_tokens: string[];
   tag_tokens: string[];
   is_scope: boolean;
+  source_id?: string;
+  is_selection?: boolean;
+  location?: MailLocation;
+  all_starred?: boolean;
 }
 
 let active_payload: EmailDragPayload | null = null;
@@ -208,6 +214,39 @@ export function run_scope_drop(
   if (!scope_drag_handler || !scope_drag_handler.is_active()) return false;
 
   scope_drag_handler.run(target);
+
+  return true;
+}
+
+interface SystemDropHandler {
+  owns: (payload: EmailDragPayload) => boolean;
+  run: (target: SystemDropTarget, payload: EmailDragPayload) => void;
+}
+
+let system_drop_handler: SystemDropHandler | null = null;
+
+export function register_system_drop_handler(
+  handler: SystemDropHandler,
+): () => void {
+  system_drop_handler = handler;
+
+  return () => {
+    if (system_drop_handler === handler) system_drop_handler = null;
+  };
+}
+
+export function active_email_drag(): EmailDragPayload | null {
+  if (!active_payload || !system_drop_handler) return null;
+
+  return system_drop_handler.owns(active_payload) ? active_payload : null;
+}
+
+export function run_system_drop(target: SystemDropTarget): boolean {
+  const payload = active_email_drag();
+
+  if (!payload || !system_drop_handler) return false;
+
+  system_drop_handler.run(target, payload);
 
   return true;
 }

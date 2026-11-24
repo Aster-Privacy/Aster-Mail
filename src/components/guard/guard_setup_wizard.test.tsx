@@ -42,7 +42,7 @@ import {
 
 const h = vi.hoisted(() => ({
   setup_body: null as Record<string, unknown> | null,
-  setup_result: "ok" as "ok" | "already_on" | "wrong" | "replayed",
+  setup_result: "ok" as "ok" | "already_on" | "wrong" | "replayed" | "upgrade",
   records: new Map<string, unknown>(),
   proof: { type: "password", password_hash: "ph", totp_code: null },
   verify_key: null as CryptoKey | null,
@@ -194,6 +194,13 @@ vi.mock("@/services/api/guard", async (original) => {
       }
       if (h.setup_result === "wrong") {
         return { error: "bad", server_code: "INVALID_CREDENTIALS", status: 401 };
+      }
+      if (h.setup_result === "upgrade") {
+        return {
+          error: "old",
+          server_code: "CLIENT_UPGRADE_REQUIRED",
+          status: 426,
+        };
       }
       if (h.setup_result === "replayed") {
         return { error: "used", server_code: "TOTP_CODE_REPLAYED", status: 400 };
@@ -398,10 +405,37 @@ describe("guard setup wizard", () => {
     expect(by_test_id("guard_setup_intro")).toBeTruthy();
     expect(container.querySelector('[data-testid="guard_hero"]')).toBeNull();
     expect(container.textContent).toContain("guard.intro_rescue_body");
+    expect(by_test_id("guard_setup_who_for").textContent).toBe(
+      "guard.setup_who_for",
+    );
+    expect(container.textContent).toContain("guard.intro_hold_timing_body");
     expect(container.querySelector('[data-testid="guard_setup_steps"]')).toBeNull();
     click(by_test_id("guard_setup_start"));
     expect(container.querySelector('[data-testid="guard_setup_intro"]')).toBeNull();
     expect(by_test_id("guard_setup_steps")).toBeTruthy();
+  });
+
+  it("warns that this browser becomes the only approved device", async () => {
+    render_wizard();
+    await go_to_confirm();
+    const warning = by_test_id("guard_setup_only_device");
+
+    expect(warning.textContent).toContain("guard.setup_only_device_warning");
+    expect(warning.textContent).toContain("guard.setup_carry_device_tip");
+  });
+
+  it("explains a server failure and offers a retry", async () => {
+    h.setup_result = "upgrade";
+    render_wizard();
+    await go_to_confirm();
+    click(by_test_id("guard_setup_confirm"));
+    await flush();
+
+    expect(container.textContent).toContain("guard.error_upgrade");
+    expect(by_test_id("guard_setup_confirm").textContent).toBe(
+      "guard.setup_retry",
+    );
+    expect(h.records.size).toBe(0);
   });
 
   it("dims dependent toggles while the parent is off", () => {

@@ -546,7 +546,7 @@ export function get_manual_unsubscribe_url(unsub_info: {
   return to_mailto_url(extract_mailto_from_header(header));
 }
 
-export type UnsubscribeResult = "api" | "link" | "mailto";
+export type UnsubscribeResult = "api" | "link" | "mailto" | "failed";
 
 export interface UnsubscribeSender {
   from_address: string;
@@ -636,7 +636,10 @@ export async function execute_unsubscribe(
     throw new UnsubscribeError("no_method");
   }
 
+  let attempted = false;
+
   if (unsub_info.method === "one-click" && unsub_info.unsubscribe_link) {
+    attempted = true;
     const succeeded = await call_proxy(
       {
         method: "one-click",
@@ -658,6 +661,7 @@ export async function execute_unsubscribe(
     : null;
 
   if (unsub_info.unsubscribe_mailto && sender) {
+    attempted = true;
     const succeeded = await call_proxy(
       {
         method: "mailto",
@@ -673,7 +677,7 @@ export async function execute_unsubscribe(
   }
 
   if (has_manual_page(unsub_info) || !unsub_info.unsubscribe_mailto) {
-    return "link";
+    return attempted ? "failed" : "link";
   }
 
   return "mailto";

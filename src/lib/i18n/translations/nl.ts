@@ -313,6 +313,11 @@ export const nl = {
     notifications_muted: "Meldingen gedempt",
     remove_lock: "Vergrendeling verwijderen",
     lock: "Vergrendelen",
+    folder_password_settings: "Wachtwoordinstellingen",
+    lock_all_folders: "Alle beveiligde mappen vergrendelen",
+    lock_all_folders_description: "Vergrendelt alle beveiligde mappen die nu ontgrendeld zijn",
+    folder_locked_notice: "Map vergrendeld",
+    folders_locked_notice: "Beveiligde mappen vergrendeld",
     change_color: "Kleur wijzigen",
     delete_folder: "Map verwijderen",
     edit_reschedule: "Bewerken en opnieuw plannen",
@@ -1912,6 +1917,8 @@ export const nl = {
       "Bevestig voor je veiligheid je wachtwoord om door te gaan.",
     step_up_error:
       "Onjuist wachtwoord of verificatiecode. Probeer het opnieuw.",
+    step_up_key_needs_browser:
+      "De desktop-app kan geen beveiligingssleutels of passkeys gebruiken. Open Aster in je browser om deze wijziging aan te brengen.",
     step_up_security_key_hint:
       "Na het invoeren van je wachtwoord word je gevraagd te verifiëren met je beveiligingssleutel.",
     security_key_add_step_up_hint:
@@ -3136,12 +3143,9 @@ export const nl = {
       "Post naar deze alias krijgt automatisch een label, zonder regel. Het label komt bovenop de doelmap.",
     alias_delivery_label_none: "Geen label",
     alias_delivery_label_missing: "Verwijderd label",
-    alias_apply_existing: "Toepassen op bestaande e-mail",
+    alias_apply_existing: "Uitvoeren op bestaande e-mail",
     alias_apply_existing_desc:
       "Verplaats e-mail die dit alias al heeft ontvangen naar de map en het label die je hebt gekozen.",
-    alias_apply_existing_info:
-      "Hiermee pas je de bezorgmap en het label hierboven toe op e-mail die al in je account staat. Dit gebeurt op de achtergrond, en je e-mailregels worden niet opnieuw uitgevoerd.",
-    alias_apply_existing_action: "Nu toepassen",
     alias_apply_existing_cancel: "Stoppen",
     alias_apply_existing_started:
       "Je bezorginstellingen worden toegepast op bestaande e-mail. Dit gebeurt op de achtergrond.",
@@ -3161,6 +3165,12 @@ export const nl = {
       "Toepassen op bestaande e-mail is mislukt. Probeer het opnieuw.",
     alias_apply_existing_unavailable:
       "E-mail die al in je account staat, kan niet naar Spam worden verplaatst.",
+    alias_apply_existing_confirm_folder_label:
+      "E-mail die deze alias al heeft ontvangen, wordt verplaatst naar {{folder}} en krijgt het label {{label}}. E-mail in de prullenbak en spam blijft waar hij is.",
+    alias_apply_existing_confirm_folder:
+      "E-mail die deze alias al heeft ontvangen, wordt verplaatst naar {{folder}}. E-mail in de prullenbak en spam blijft waar hij is.",
+    alias_apply_existing_confirm_label:
+      "E-mail die deze alias al heeft ontvangen, krijgt het label {{label}}. E-mail in de prullenbak en spam blijft waar hij is.",
     alias_delivery_label_error: "Probeer het opnieuw.",
     alias_delivery_rule_note:
       'Regel "{{ rule }}" verplaatst post voor deze alias al naar {{ target }}.',
@@ -4815,6 +4825,8 @@ export const nl = {
       "Beschrijf je idee of het probleem dat je hebt gevonden",
     feedback_not_encrypted:
       "Feedback is niet end-to-end versleuteld, dus voeg geen wachtwoorden, herstelcodes of andere privégegevens toe.",
+    feedback_support_notice:
+      "Dit formulier is bedoeld voor feedback, ideeën en bugmeldingen. Stuur voor vragen of hulp met je account in plaats daarvan een e-mail naar het supportteam via {{ email }}.",
     feedback_intro:
       "Deel een idee, meld een bug of laat het Aster-team weten wat je ervan vindt. Feedback opent geen supportverzoek. Neem voor hulp of een antwoord contact op met support.",
     support_intro:
@@ -6430,6 +6442,7 @@ export const nl = {
     swipe_left: "Veeg naar links",
     swipe_right: "Veeg naar rechts",
     swipe_none: "Geen",
+    swipe_toggle_read: "Als gelezen of ongelezen markeren",
     swipe_actions_description:
       "Kies wat er gebeurt als je naar links of rechts veegt op e-mails.",
     badges_title: "Badges",
@@ -6532,6 +6545,9 @@ export const nl = {
     close_popup_on_outside_click: "Pop-up sluiten door erbuiten te klikken",
     close_popup_on_outside_click_description:
       "Als e-mails in een pop-up openen, sluit een klik ergens buiten de pop-up deze",
+    open_popup_maximized: "Pop-up openen op volledig scherm",
+    open_popup_maximized_description:
+      "Als e-mails in een pop-up openen, vult de pop-up het hele scherm",
     full_page_description: "Opent e-mail in volledig breedte zonder inboxlijst",
     thread_count_position: "Positie van draadtelling badge",
     thread_count_position_description:
@@ -8966,6 +8982,9 @@ export const nl = {
     theme_sync_across_devices: "Thema synchroniseren tussen apparaten",
     theme_sync_across_devices_description:
       "Zet dit uit om op dit apparaat een eigen thema te houden.",
+    hide_scrollbars: "Schuifbalken verbergen",
+    hide_scrollbars_description:
+      "Verbergt schuifbalken op al je apparaten. Je kunt nog steeds door lijsten en berichten scrollen.",
     product_updates: "Productnieuws",
     product_updates_description:
       "Ontvang een bericht wanneer Aster een noemenswaardige update uitbrengt",
@@ -9960,11 +9979,13 @@ export const nl = {
     no_password: "Geen wachtwoord",
     replying_to: "Antwoord aan {{name}}",
     reply_sent_successfully: "Antwoord succesvol verzonden",
-    successfully_unsubscribed: "Succesvol uitgeschreven",
-    unsubscribe_failed:
-      "Het uitschrijven is niet voltooid. De link in de e-mail brengt je naar de site van de afzender om dit zelf te doen.",
-    unsubscribe_manual_required:
-      "Deze afzender ondersteunt geen automatisch uitschrijven. De link in de e-mail laat je dit zelf doen.",
+    successfully_unsubscribed: "Uitgeschreven",
+    unsubscribe_failed: "Uitschrijven is niet gelukt. Probeer het later opnieuw.",
+    unsubscribe_on_website: "Schrijf je uit voor deze afzender op hun website.",
+    unsubscribe_not_confirmed: "De afzender heeft het niet bevestigd. Schrijf je uit op hun website.",
+    unsubscribe_use_email_link: "Gebruik de afmeldlink in de e-mail.",
+    unsubscribe_some_need_website: "Bij sommige afzenders moet je je uitschrijven op hun website.",
+    open_page: "Pagina openen",
     stop_receiving_from: "Stop met het ontvangen van e-mails van",
     send_email: "E-mail verzenden",
     order_number: "Bestelling #{{id}}",
@@ -10181,13 +10202,13 @@ export const nl = {
     forwarded_by_label: "Doorgestuurd door",
     new_reaction: "Nieuwe reactie",
     trash_auto_delete_notice:
-      "Items in de prullenbak worden na {{ days }} dagen automatisch verwijderd.",
+      "Berichten in de Prullenbak worden na {{ days }} dagen verwijderd.",
     spam_auto_delete_notice:
-      "Items in spam worden na {{ days }} dagen automatisch verwijderd.",
+      "Berichten in Spam worden na {{ days }} dagen verwijderd.",
     trash_auto_delete_notice_family:
-      "Items in de prullenbak worden na {{ days }} dagen automatisch verwijderd (ingesteld door de familiebeheerder).",
+      "Berichten in de Prullenbak worden na {{ days }} dagen verwijderd, zoals ingesteld door de familiebeheerder.",
     spam_auto_delete_notice_family:
-      "Items in spam worden na {{ days }} dagen automatisch verwijderd (ingesteld door de familiebeheerder).",
+      "Berichten in Spam worden na {{ days }} dagen verwijderd, zoals ingesteld door de familiebeheerder.",
     insert_link_title: "Link invoegen",
     add_link_to_selection: 'Een link toevoegen aan "{{text}}"',
     url_label: "URL",
@@ -10945,6 +10966,9 @@ export const nl = {
     link_device_confirming: "Apparaat koppelen...",
     link_device_cancel: "Annuleren",
     link_device_desktop: "Nieuw apparaat",
+    link_device_extension: "Browserextensie",
+    link_device_extension_grant_notice:
+      "Door te koppelen krijgt Aster Companion op {{device}} toegang tot de adressen en aliassen van {{email}}, zodat het ze op websites kan invullen en nieuwe aliassen kan maken.",
     device_fingerprint: "Apparaatvingerafdruk",
     device_fingerprint_copy: "Apparaatvingerafdruk kopiëren",
     link_device_grant_notice:
@@ -12344,6 +12368,13 @@ export const nl = {
     sign_in_rescue_hint: "Voer de herstelcode in die je hebt bewaard toen je Guard instelde. Je account opent na een wachttijd van 72 uur, en je apparaten kunnen dat stoppen.",
     sign_in_rescue_submit: "Herstel starten",
     sign_in_rescue_invalid: "Die herstelcode werkte niet. Controleer de code en probeer het opnieuw.",
+    sign_in_rescue_not_allowed: "Vanuit deze aanmelding kan geen herstel starten. Ga terug, meld je aan met je wachtwoord en probeer het opnieuw.",
+    sign_in_rescue_paused: "Te veel pogingen. Wacht 15 minuten en voer je herstelcode daarna opnieuw in.",
+    sign_in_rescue_in_progress: "Voor dit account loopt al een herstel. In je e-mail zie je wanneer het klaar is.",
+    sign_in_rescue_failed: "Het herstel kon niet starten. Controleer je verbinding en probeer het opnieuw.",
+    sign_in_rescue_only: "Geen van je apparaten kan deze aanmelding goedkeuren. Voer je herstelcode in om weer toegang te krijgen.",
+    sign_in_no_method: "Geen enkel apparaat kan deze aanmelding goedkeuren en je account heeft geen herstelcode. Reset je wachtwoord met je herstelsleutel om weer toegang te krijgen.",
+    sign_in_on_hold: "Inloggen is gepauzeerd voor dit account omdat meerdere verzoeken onbeantwoord bleven. Probeer het over ongeveer een uur opnieuw.",
     sign_in_rescue_started: "Herstel gestart. Je kunt je aanmelden na {{date}}. Tot die tijd kan elk aangemeld apparaat het stoppen.",
     sign_in_back: "Terug naar aanmelden",
     link_device_needs_approver: "Guard staat aan voor dit account, dus een apparaat met Guard moet nieuwe apparaten goedkeuren. Open Aster op een apparaat dat je met Guard hebt ingesteld en probeer het opnieuw.",
@@ -12357,6 +12388,7 @@ export const nl = {
     approve_time_label: "Tijd",
     approve_device: "{{browser}} op {{os}}",
     approve_unknown_device: "Onbekend apparaat",
+    approve_device_named: "Naam: ‘{{name}}’",
     approve_number_label: "Voer het nummer in dat op het nieuwe apparaat staat",
     approve_confirm: "Goedkeuren",
     approve_deny: "Weigeren",
@@ -12559,12 +12591,49 @@ export const nl = {
     panic_changes_label: "wijzigingen geannuleerd",
     panic_changes_label_one: "wijziging geannuleerd",
     panic_changes_label_other: "wijzigingen geannuleerd",
+    error_paused: "Aster Guard heeft dit verzoek gepauzeerd na te veel pogingen. Je kunt het om {{time}} opnieuw proberen.",
+    error_paused_soon: "Aster Guard heeft dit verzoek gepauzeerd na te veel pogingen. Probeer het zo opnieuw.",
+    error_too_many: "Dit account heeft op dit moment te veel inlogverzoeken. Je kunt het om {{time}} opnieuw proberen.",
+    error_too_many_soon: "Dit account heeft op dit moment te veel verzoeken. Wacht even en probeer het dan opnieuw.",
+    error_request_gone: "Dit verzoek is verlopen of is al op een ander apparaat beantwoord.",
+    error_device_required: "Alleen een goedgekeurd apparaat kan dit doen. Gebruik een apparaat dat je voor Aster Guard hebt goedgekeurd.",
+    error_not_allowed: "Dit apparaat kan dat niet doen. Gebruik een ander goedgekeurd apparaat.",
+    error_disabled: "Aster Guard staat uit voor dit account, dus er is niets om goed te keuren.",
+    error_request_conflict: "Een ander apparaat heeft dit verzoek tegelijkertijd gewijzigd. Vernieuw de pagina en probeer het opnieuw.",
+    error_last_device: "Dit is het enige apparaat dat voor Aster Guard is goedgekeurd, dus je kunt het niet verwijderen of afmelden. Keur eerst een ander apparaat goed of zet Aster Guard uit.",
+    error_device_pending: "Dit apparaat kan vanaf {{time}} verzoeken goedkeuren.",
+    error_device_pending_soon: "Dit apparaat is nog niet goedgekeurd. Over een paar minuten kan het verzoeken goedkeuren.",
+    error_held: "Aster Guard houdt deze wijziging tegen om je account te beschermen. Ze gaat om {{time}} in, tenzij je haar annuleert.",
+    error_held_soon: "Aster Guard houdt deze wijziging tegen om je account te beschermen. Ze gaat binnenkort in, tenzij je haar annuleert.",
+    error_upgrade: "Deze versie van Aster Mail is verouderd. Werk de app bij en probeer het opnieuw.",
+    error_action_invalid: "Aster Guard kon de handtekening van dit apparaat niet controleren. Laad de pagina opnieuw en probeer het nog eens.",
+    error_step_up: "Bevestig je identiteit opnieuw om door te gaan.",
+    error_device_keys: "De Aster Guard-sleutels van dit apparaat zijn ongeldig. Verwijder dit apparaat uit Aster Guard en voeg het daarna opnieuw toe.",
+    error_device_unknown: "Aster Guard herkent dit apparaat niet. Voeg het opnieuw toe in de instellingen van Aster Guard.",
+    error_veto_invalid: "Je kunt dit herstel niet meer stoppen, omdat het al is voltooid of gestopt.",
+    error_offline: "Je bent offline. Controleer je verbinding en probeer het opnieuw.",
+    sign_in_where_to_approve: "Het verzoek verschijnt in Aster Mail op je goedgekeurde apparaten, zoals je telefoon. Open daar Aster Mail om het goed te keuren.",
+    sign_in_paused_until: "Er waren te veel pogingen, dus dit verzoek is gepauzeerd tot {{time}}.",
+    sign_in_again: "Opnieuw inloggen",
+    sign_in_on_hold_title: "Inloggen gepauzeerd",
+    sign_in_on_hold_until: "Inloggen is gepauzeerd voor dit account, omdat meerdere verzoeken onbeantwoord bleven. Je kunt het om {{time}} opnieuw proberen.",
+    switches_join_denied: "Je andere apparaat heeft het verzoek om deze browser toe te voegen geweigerd.",
+    switches_join_expired: "Het verzoek om deze browser toe te voegen is verlopen. Probeer het opnieuw en keur het goed op je andere apparaat.",
+    setup_who_for: "Aster Guard is bedoeld voor accounts met een hoog risico. Na de installatie moet elke nieuwe login worden goedgekeurd op een apparaat dat je hebt goedgekeurd, en het uitzetten van Aster Guard duurt 24 uur.",
+    setup_only_device_warning: "Deze browser wordt je enige goedgekeurde apparaat. Als je er geen toegang meer toe hebt, heb je je herstelcode nodig om in te loggen.",
+    setup_carry_device_tip: "Keur na de installatie een apparaat goed dat je altijd bij je hebt, zoals je telefoon.",
+    intro_hold_timing_body: "Wijzigingen aan wachtwoord en beveiliging wachten 24 uur, doorsturen en e-mailregels 1 uur en herstelwijzigingen 72 uur, zodat je ze kunt stoppen.",
+    setup_progress_keys: "Stap 1 van 3: sleutels voor dit apparaat maken",
+    setup_progress_server: "Stap 2 van 3: Aster Guard inschakelen voor je account",
+    setup_progress_device: "Stap 3 van 3: dit apparaat opslaan als goedgekeurd",
+    setup_retry: "Opnieuw proberen",
   },
   settings_keywords: {
     theme_dark: "donkere modus, nachtmodus, donker thema, thema",
     theme_light: "lichte modus, licht thema, thema",
     theme_system: "systeemthema, automatisch thema, apparaat volgen, systeeminstelling",
     theme_sync_across_devices: "thema synchroniseren, thema per apparaat, apparaatthema, apart thema",
+    hide_scrollbars: "schuifbalken, schuifbalken verbergen, scrollen, scrollbalk",
     custom_theme_colors_title: "kleurthema, paars, groen, roze, oranje, blauwgroen, indigo, amber, cyaan, leigrijs, aster blauw, blauw, limoen, fuchsia, magenta, smaragd, zwart, donker, oled, accentkleur",
     custom_theme_title: "eigen kleur, kleurenpalet, basiskleur, eigen palet, starplan, premium thema",
     font_choice_title: "lettertype wisselen, lettertype, letterfamilie, starplan",
@@ -12655,6 +12724,7 @@ export const nl = {
     fam_kids_tab: "kinderaccounts, kinderaccount, account voor kind, kinderen",
     email_view_mode: "pop-up, gesplitste weergave, volledige pagina, e-mail openen, leesindeling",
     close_popup_on_outside_click: "pop-up, buiten klikken, pop-up sluiten, wegklikken",
+    open_popup_maximized: "pop-up, volledig scherm, maximaliseren",
     compose_window_mode: "zwevende pop-up, opstellen volledig scherm, geminimaliseerd opstellen, opstelweergave",
     reduce_transparency: "transparantie, vervaging, ondoorzichtig",
     underline_links: "links, onderstrepen, links onderstrepen",

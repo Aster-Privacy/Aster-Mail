@@ -189,6 +189,8 @@ export const en: Translations = {
     step_up_description:
       "For your security, confirm your password to continue.",
     step_up_error: "Incorrect password or verification code. Please try again.",
+    step_up_key_needs_browser:
+      "The desktop app can't use security keys or passkeys. To make this change, open Aster in your browser.",
     step_up_security_key_hint:
       "After you enter your password, you'll be asked to verify with your security key.",
     security_key_add_step_up_hint:
@@ -309,6 +311,11 @@ export const en: Translations = {
     notifications_muted: "Notifications muted",
     remove_lock: "Remove Lock",
     lock: "Lock",
+    folder_password_settings: "Password settings",
+    lock_all_folders: "Lock all protected folders",
+    lock_all_folders_description: "Locks every protected folder that is open now",
+    folder_locked_notice: "Folder locked",
+    folders_locked_notice: "Protected folders locked",
     change_color: "Change color",
     change_icon: "Change icon",
     more_information: "More information",
@@ -2564,6 +2571,9 @@ export const en: Translations = {
     theme_sync_across_devices: "Sync theme across devices",
     theme_sync_across_devices_description:
       "Turn this off to keep a separate theme on this device.",
+    hide_scrollbars: "Hide scroll bars",
+    hide_scrollbars_description:
+      "Hides scroll bars on all your devices. You can still scroll through lists and messages.",
     color_theme: "Color theme",
     color_theme_description: "Choose a preset color palette for the app",
     color_theme_default: "Default",
@@ -3535,6 +3545,9 @@ export const en: Translations = {
     close_popup_on_outside_click: "Close popup by clicking outside",
     close_popup_on_outside_click_description:
       "When emails open in a popup, clicking anywhere outside the popup closes it",
+    open_popup_maximized: "Open popup in full screen",
+    open_popup_maximized_description:
+      "When emails open in a popup, the popup fills the screen",
     split_view: "Split view",
     split_view_description: "Shows email list and preview side by side",
     full_page: "Full page",
@@ -5820,6 +5833,8 @@ export const en: Translations = {
     feedback_placeholder: "Describe your idea or the problem you found",
     feedback_not_encrypted:
       "Feedback isn't end-to-end encrypted, so don't include passwords, recovery codes, or other private information.",
+    feedback_support_notice:
+      "This form is for feedback, ideas, and bug reports. For questions or help with your account, email the support team at {{ email }} instead.",
     feedback_intro:
       "Share an idea, report a bug, or tell the Aster team what you think. Feedback doesn't open a support request, so to get help or a reply, contact support.",
     support_intro:
@@ -8073,6 +8088,7 @@ export const en: Translations = {
     swipe_left: "Swipe left",
     swipe_right: "Swipe right",
     swipe_none: "None",
+    swipe_toggle_read: "Mark as read or unread",
     swipe_actions_description:
       "Choose what happens when you swipe left or right on emails.",
     feature_locked:
@@ -8462,12 +8478,9 @@ export const en: Translations = {
       "Mail sent to this alias is labelled automatically, with no rule needed. The label is applied on top of wherever the message lands.",
     alias_delivery_label_none: "No label",
     alias_delivery_label_missing: "Deleted label",
-    alias_apply_existing: "Apply to existing mail",
+    alias_apply_existing: "Run on existing mail",
     alias_apply_existing_desc:
       "Sort mail this alias already received into the folder and label you chose.",
-    alias_apply_existing_info:
-      "This applies the delivery folder and label above to mail already in your account. It runs in the background, and your mail rules don't run again.",
-    alias_apply_existing_action: "Apply now",
     alias_apply_existing_cancel: "Stop",
     alias_apply_existing_started:
       "Applying your delivery settings to existing mail. This runs in the background.",
@@ -8483,6 +8496,12 @@ export const en: Translations = {
     alias_apply_existing_error: "Applying to existing mail failed. Try again.",
     alias_apply_existing_unavailable:
       "Mail already in your account can't be moved to Spam.",
+    alias_apply_existing_confirm_folder_label:
+      "Mail this alias already received moves to {{folder}} and gets the {{label}} label. Mail in Trash and Spam stays where it is.",
+    alias_apply_existing_confirm_folder:
+      "Mail this alias already received moves to {{folder}}. Mail in Trash and Spam stays where it is.",
+    alias_apply_existing_confirm_label:
+      "Mail this alias already received gets the {{label}} label. Mail in Trash and Spam stays where it is.",
     alias_delivery_label_error: "That setting did not save. Try again.",
     alias_delivery_rule_note:
       'Mail rule "{{ rule }}" already moves mail for this alias to {{ target }}.',
@@ -9492,13 +9511,13 @@ export const en: Translations = {
     archive_subtitle: "Archive emails to keep your inbox clean",
     trash_subtitle: "Deleted emails will appear here",
     trash_auto_delete_notice:
-      "Items in trash will be automatically deleted after {{ days }} days.",
+      "Messages in Trash are deleted after {{ days }} days.",
     spam_auto_delete_notice:
-      "Items in spam will be automatically deleted after {{ days }} days.",
+      "Messages in Spam are deleted after {{ days }} days.",
     trash_auto_delete_notice_family:
-      "Items in trash will be automatically deleted after {{ days }} days (set by family admin).",
+      "Messages in Trash are deleted after {{ days }} days, as set by your family admin.",
     spam_auto_delete_notice_family:
-      "Items in spam will be automatically deleted after {{ days }} days (set by family admin).",
+      "Messages in Spam are deleted after {{ days }} days, as set by your family admin.",
     compose_email: "Compose email",
     one_hour_option: "1 hour",
     twenty_four_hours_option: "24 hours",
@@ -9960,11 +9979,13 @@ export const en: Translations = {
     no_password: "No password",
     replying_to: "Replying to {{name}}",
     reply_sent_successfully: "Reply sent successfully",
-    successfully_unsubscribed: "Successfully unsubscribed",
-    unsubscribe_failed:
-      "The unsubscribe did not finish. The link in the email will take you to the sender's site to do it yourself.",
-    unsubscribe_manual_required:
-      "This sender does not support automatic unsubscribe. The link in the email will let you do it yourself.",
+    successfully_unsubscribed: "Unsubscribed",
+    unsubscribe_failed: "Couldn't unsubscribe. Try again later.",
+    unsubscribe_on_website: "Unsubscribe from this sender on their website.",
+    unsubscribe_not_confirmed: "The sender didn't confirm. Unsubscribe on their website.",
+    unsubscribe_use_email_link: "Use the unsubscribe link in the email.",
+    unsubscribe_some_need_website: "Some senders need you to unsubscribe on their website.",
+    open_page: "Open page",
     open_unsubscribe_page: "Open unsubscribe page",
     stop_receiving_from: "Stop receiving emails from",
     send_email: "Send Email",
@@ -10293,6 +10314,9 @@ export const en: Translations = {
     link_device_confirming: "Linking device...",
     link_device_cancel: "Cancel",
     link_device_desktop: "New device",
+    link_device_extension: "Browser extension",
+    link_device_extension_grant_notice:
+      "Linking gives Aster Companion on {{device}} access to the addresses and aliases on {{email}}, so it can fill them in on websites and create new aliases.",
     device_fingerprint: "Device fingerprint",
     device_fingerprint_copy: "Copy device fingerprint",
     link_device_grant_notice:
@@ -12065,6 +12089,13 @@ export const en: Translations = {
     sign_in_rescue_hint: "Enter the rescue code you saved when you set up Guard. Your account opens after a 72-hour wait, and your devices can stop it.",
     sign_in_rescue_submit: "Start rescue",
     sign_in_rescue_invalid: "That rescue code didn't work. Check it and try again.",
+    sign_in_rescue_not_allowed: "A rescue can't start from this sign-in. Go back, sign in with your password, and try again.",
+    sign_in_rescue_paused: "Too many tries. Wait 15 minutes, then enter your rescue code again.",
+    sign_in_rescue_in_progress: "A rescue is already in progress for this account. Check your email to see when it finishes.",
+    sign_in_rescue_failed: "The rescue couldn't start. Check your connection and try again.",
+    sign_in_rescue_only: "None of your devices can approve this sign-in, so enter your rescue code to get back in.",
+    sign_in_no_method: "No device can approve this sign-in, and your account has no rescue code. To get back in, reset your password with your recovery key.",
+    sign_in_on_hold: "Sign-in is paused on this account because several requests went unanswered. Try again in about an hour.",
     sign_in_rescue_started: "Rescue started. You can sign in after {{date}}. Until then, any of your signed-in devices can stop it.",
     sign_in_back: "Back to sign-in",
     link_device_needs_approver: "Guard is on for this account, so a device with Guard must approve new devices. Open Aster on a device you set up with Guard and try again.",
@@ -12078,6 +12109,7 @@ export const en: Translations = {
     approve_time_label: "Time",
     approve_device: "{{browser}} on {{os}}",
     approve_unknown_device: "Unknown device",
+    approve_device_named: "Named “{{name}}”",
     approve_number_label: "Enter the number shown on the new device",
     approve_confirm: "Approve",
     approve_deny: "Deny",
@@ -12280,12 +12312,49 @@ export const en: Translations = {
     panic_changes_label: "changes canceled",
     panic_changes_label_one: "change canceled",
     panic_changes_label_other: "changes canceled",
+    error_paused: "Aster Guard paused this request after too many attempts. You can try again at {{time}}.",
+    error_paused_soon: "Aster Guard paused this request after too many attempts. Try again in a moment.",
+    error_too_many: "This account has too many sign-in requests right now. You can try again at {{time}}.",
+    error_too_many_soon: "This account has too many requests right now. Wait a moment, then try again.",
+    error_request_gone: "This request expired or was already answered on another device.",
+    error_device_required: "Only an approved device can do this. Use a device you approved for Aster Guard.",
+    error_not_allowed: "This device can't do that. Use another approved device.",
+    error_disabled: "Aster Guard is off for this account, so there's nothing to approve.",
+    error_request_conflict: "Another device changed this request at the same time. Refresh the page and try again.",
+    error_last_device: "This is the only device approved for Aster Guard, so you can't remove it or sign it out. Approve another device first, or turn off Aster Guard.",
+    error_device_pending: "This device can approve requests starting at {{time}}.",
+    error_device_pending_soon: "This device isn't approved yet. It can approve requests in a few minutes.",
+    error_held: "Aster Guard holds this change to protect your account. It takes effect at {{time}} unless you cancel it.",
+    error_held_soon: "Aster Guard holds this change to protect your account. It takes effect soon unless you cancel it.",
+    error_upgrade: "This version of Aster Mail is out of date. Update the app, then try again.",
+    error_action_invalid: "Aster Guard couldn't verify this device's signature. Reload the page and try again.",
+    error_step_up: "To continue, confirm your identity again.",
+    error_device_keys: "This device's Aster Guard keys aren't valid. Remove this device from Aster Guard, then add it again.",
+    error_device_unknown: "Aster Guard doesn't recognize this device. Add it again in Aster Guard settings.",
+    error_veto_invalid: "You can't stop this rescue anymore because it already finished or was stopped.",
+    error_offline: "You're offline. Check your connection and try again.",
+    sign_in_where_to_approve: "The request appears in Aster Mail on your approved devices, such as your phone. Open Aster Mail there to approve it.",
+    sign_in_paused_until: "There were too many attempts, so this request is paused until {{time}}.",
+    sign_in_again: "Sign in again",
+    sign_in_on_hold_title: "Sign-in paused",
+    sign_in_on_hold_until: "Sign-in is paused on this account because several requests went unanswered. You can try again at {{time}}.",
+    switches_join_denied: "Your other device denied the request to add this browser.",
+    switches_join_expired: "The request to add this browser expired. Try again, and approve it on your other device.",
+    setup_who_for: "Aster Guard is for high-risk accounts. After you set it up, every new sign-in needs approval from a device you approved, and turning Aster Guard off takes 24 hours.",
+    setup_only_device_warning: "This browser becomes your only approved device. If you lose access to it, you need your rescue code to sign in.",
+    setup_carry_device_tip: "After setup, approve a device you always carry, such as your phone.",
+    intro_hold_timing_body: "Password and security changes wait 24 hours, forwarding and mail rules wait 1 hour, and recovery changes wait 72 hours, so you can stop them.",
+    setup_progress_keys: "Step 1 of 3: Creating keys for this device",
+    setup_progress_server: "Step 2 of 3: Turning on Aster Guard for your account",
+    setup_progress_device: "Step 3 of 3: Saving this device as approved",
+    setup_retry: "Try again",
   },
   settings_keywords: {
     theme_dark: "dark mode, night mode, theme",
     theme_light: "light mode, theme",
     theme_system: "system theme, auto theme, match device",
     theme_sync_across_devices: "theme sync, per device theme, device theme, separate theme",
+    hide_scrollbars: "scroll bars, scrollbars, hide scroll bars, scrolling, scroll indicator",
     custom_theme_colors_title: "color theme, purple, green, rose, orange, teal, indigo, amber, cyan, slate, aster blue, blue, lime, fuchsia, magenta, emerald, pink, black, dark, oled, accent color",
     custom_theme_title: "custom color, palette, seed color, custom palette, starplan, premium theme",
     font_choice_title: "font switcher, typeface, font family, starplan",
@@ -12376,6 +12445,7 @@ export const en: Translations = {
     fam_kids_tab: "children's accounts, kids account, child account",
     email_view_mode: "popup, split view, full page, open email, reading layout",
     close_popup_on_outside_click: "popup, click outside, close popup, dismiss",
+    open_popup_maximized: "popup, full screen, maximize, open maximized, larger window",
     compose_window_mode: "floating popup, full screen compose, minimized compose, compose layout",
     reduce_transparency: "transparency, blur, opaque",
     underline_links: "links, underline",

@@ -771,6 +771,21 @@ export function use_auth_provider_state() {
       );
     };
 
+    const handle_session_ended = async () => {
+      if (api_client.is_intentional_logout()) return;
+
+      session_expired_muted_until.current = Date.now() + 15000;
+      sync_client.disconnect();
+      api_client.clear_auth_data();
+      api_client.set_authenticated(false);
+
+      await sign_out_keeping_other_accounts(
+        "common.session_expired_sign_in",
+        "session_expired",
+        keep_pairing_after_session_expiry(),
+      );
+    };
+
     const handle_session_timeout = async () => {
       sync_client.disconnect();
 
@@ -823,6 +838,8 @@ export function use_auth_provider_state() {
       handle_identity_mismatch_event,
     );
 
+    window.addEventListener("astermail:session-ended", handle_session_ended);
+
     window.addEventListener(
       "astermail:session-timeout",
       handle_session_timeout,
@@ -846,6 +863,10 @@ export function use_auth_provider_state() {
       window.removeEventListener(
         "astermail:identity-mismatch",
         handle_identity_mismatch_event,
+      );
+      window.removeEventListener(
+        "astermail:session-ended",
+        handle_session_ended,
       );
       window.removeEventListener(
         "astermail:session-timeout",

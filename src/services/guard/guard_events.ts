@@ -20,7 +20,7 @@
 //
 import type { GuardHeldInfo } from "@/services/api/client/helpers";
 
-import { GUARD_PUSH_SW_MESSAGE } from "@/lib/guard_push";
+import { GUARD_PUSH_SW_MESSAGE, guard_push_tag } from "@/lib/guard_push";
 import { GUARD_HELD_EVENT } from "@/services/api/client/helpers";
 
 export const GUARD_EVENT_NAMES = [
@@ -53,6 +53,35 @@ export interface GuardEvent {
 export const GUARD_CHANNEL_NAME = "aster_guard";
 export const GUARD_SW_MESSAGE = GUARD_PUSH_SW_MESSAGE;
 export const GUARD_DEDUPE_MS = 60_000;
+export const GUARD_REQUESTS_REFRESH_EVENT = "aster:guard-requests-refresh";
+
+export function request_guard_requests_refresh(): void {
+  if (typeof window === "undefined") return;
+  window.dispatchEvent(new CustomEvent(GUARD_REQUESTS_REFRESH_EVENT));
+}
+
+export async function close_guard_notifications(
+  request_id: string,
+  account_id: string,
+): Promise<void> {
+  if (typeof navigator === "undefined" || !navigator.serviceWorker) return;
+  try {
+    const registration = await navigator.serviceWorker.getRegistration();
+
+    if (!registration?.getNotifications) return;
+    const tag = guard_push_tag({
+      type: "guard",
+      event: "sign_in_request",
+      id: request_id,
+      account_id,
+    });
+    const open = await registration.getNotifications({ tag });
+
+    for (const notification of open) notification.close();
+  } catch {
+    return;
+  }
+}
 
 type GuardListener = (event: GuardEvent) => void;
 

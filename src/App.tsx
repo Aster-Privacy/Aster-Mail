@@ -18,8 +18,8 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { Suspense, useEffect, useRef, useState } from "react";
-import { Navigate, Route, Routes } from "react-router-dom";
+import { Suspense, useEffect, useRef, useState, type ReactNode } from "react";
+import { Navigate, Route, Routes, useLocation } from "react-router-dom";
 
 import { CalendarBillingReturn } from "@/components/calendar_billing_return";
 import {
@@ -62,6 +62,7 @@ import { SimpleToast } from "@/components/toast/simple_toast";
 import { DesktopDownloadNotifier } from "@/native/desktop_download_bridge";
 import { KeyTrustChangePrompt } from "@/components/compose/key_trust_change_prompt";
 import { GuardApprovalHost } from "@/components/guard/guard_approval_sheet";
+import { TotpRequirementWarmup } from "@/hooks/use_totp_required";
 import { PostQuantumSendPrompt } from "@/components/compose/post_quantum_send_prompt";
 import { CreationTokenPrompt } from "@/components/auth/creation_token_prompt";
 import { UnsubscribeConfirmationModal } from "@/components/modals/unsubscribe_confirmation_modal";
@@ -437,7 +438,23 @@ function BillingSuccessHandler() {
   );
 }
 
+function OverlayBoundary({
+  children,
+  reset_key,
+}: {
+  children: ReactNode;
+  reset_key: string;
+}) {
+  return (
+    <ErrorBoundary fallback={null} reset_key={reset_key}>
+      {children}
+    </ErrorBoundary>
+  );
+}
+
 function App() {
+  const { pathname } = useLocation();
+
   useEffect(() => install_global_autoscroll(), []);
 
   use_upgrade_prompt_events();
@@ -464,8 +481,12 @@ function App() {
       <SuspensionStatusWatcher />
       <PendingDeletionDialog />
       <Family2faDialog />
-      <UpdateBanner />
-      <WebSandboxNotice />
+      <OverlayBoundary reset_key={pathname}>
+        <UpdateBanner />
+      </OverlayBoundary>
+      <OverlayBoundary reset_key={pathname}>
+        <WebSandboxNotice />
+      </OverlayBoundary>
       <ErrorBoundary>
         <DesktopPairGate>
           <Suspense fallback={<FullPageLoader />}>
@@ -669,31 +690,50 @@ function App() {
           </Suspense>
         </DesktopPairGate>
       </ErrorBoundary>
-      <ActionToast />
-      <SimpleToast />
-      <DesktopDownloadNotifier />
-      <UnsubscribeConfirmationModal />
+      <OverlayBoundary reset_key={pathname}>
+        <ActionToast />
+      </OverlayBoundary>
+      <OverlayBoundary reset_key={pathname}>
+        <SimpleToast />
+      </OverlayBoundary>
+      <OverlayBoundary reset_key={pathname}>
+        <DesktopDownloadNotifier />
+      </OverlayBoundary>
+      <OverlayBoundary reset_key={pathname}>
+        <UnsubscribeConfirmationModal />
+      </OverlayBoundary>
       <KeyTrustChangePrompt />
       <PostQuantumSendPrompt />
       <CreationTokenPrompt />
       <ErrorBoundary fallback={null}>
         <GuardApprovalHost />
+        <TotpRequirementWarmup />
       </ErrorBoundary>
       <ErrorBoundary fallback={null}>
         <UpgradeModalHost />
         <AliasCapUpsellModalHost />
       </ErrorBoundary>
-      <ProfilePictureDialog />
+      <OverlayBoundary reset_key={pathname}>
+        <ProfilePictureDialog />
+      </OverlayBoundary>
       <ErrorBoundary fallback={null}>
         <SpecialOfferModalHost />
         <OfferModalHost />
       </ErrorBoundary>
-      <UndoSendContainer max_visible={3} position="bottom-center" />
-      <UndoSendPreviewModal />
-      <EmailNotificationManager />
+      <OverlayBoundary reset_key={pathname}>
+        <UndoSendContainer max_visible={3} position="bottom-center" />
+      </OverlayBoundary>
+      <OverlayBoundary reset_key={pathname}>
+        <UndoSendPreviewModal />
+      </OverlayBoundary>
+      <OverlayBoundary reset_key={pathname}>
+        <EmailNotificationManager />
+      </OverlayBoundary>
       <FolderUnlockPrompt />
       <MailKeyUpgradeGate />
-      <OfflineIndicator position="top" />
+      <OverlayBoundary reset_key={pathname}>
+        <OfflineIndicator position="top" />
+      </OverlayBoundary>
     </AppLock>
   );
 }

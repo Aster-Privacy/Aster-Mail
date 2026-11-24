@@ -45,7 +45,11 @@ import {
 } from "@/lib/chunk_recovery";
 import { show_self_xss_warning } from "@/lib/security/console_warning";
 import { start_input_modality_tracking } from "@/lib/input_modality";
-import { install_global_error_reporting } from "@/services/error_reporter";
+import {
+  install_global_error_reporting,
+  report_client_error,
+} from "@/services/error_reporter";
+import { install_dom_mutation_tolerance } from "@/lib/dom_mutation_tolerance";
 import { connection_store } from "@/services/routing/connection_store";
 import { apply_desktop_content_protection } from "@/native/desktop_content_protection";
 import { start_desktop_interface_zoom } from "@/native/desktop_interface_zoom";
@@ -133,6 +137,13 @@ warm_startup_route_chunk();
 
 start_input_modality_tracking();
 install_global_error_reporting();
+install_dom_mutation_tolerance((kind) =>
+  report_client_error({
+    feature: "dom_tolerance",
+    error_code: kind,
+    severity: "warn",
+  }),
+);
 capture_support_return();
 capture_link_commitment(true);
 

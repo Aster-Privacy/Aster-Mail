@@ -112,7 +112,13 @@ import { emit_mail_soft_refresh } from "@/hooks/email_action_types";
 import { ignore_error } from "@/lib/ignore_error";
 import {
   assemble_cached_page,
+  assemble_known_rows,
+  category_row_cache,
+  claim_category_row_cache,
+  fill_pending_rows,
   forget_rows,
+  has_pending_rows,
+  is_pending_row,
   patch_row,
   remember_rows,
   type RowStore,
@@ -132,10 +138,14 @@ const ARRIVAL_REFETCH_DEBOUNCE_MS = 800;
 const SENT_REFETCH_DEBOUNCE_MS = 250;
 const PREFETCH_DELAY_MS = 250;
 const PREFETCH_MAX_TABS = 6;
+const PREFETCH_BUSY_WAIT_MS = 200;
+const PREFETCH_BUSY_MAX_WAITS = 25;
 const LOADING_BACKSTOP_MS = 6_000;
 const GATE_RECHECK_MS = 15_000;
 const MAX_FETCH_RETRIES = 4;
 const FETCH_RETRY_DELAY_MS = 1500;
+const MAX_PENDING_ROW_RETRIES = 5;
+const PENDING_ROW_RETRY_BASE_MS = 2_000;
 
 function build_page_cache_key(
   category: EmailCategory,
@@ -221,6 +231,26 @@ function is_index_readable(): boolean {
   if (is_serving_previous_build()) return true;
 
   return is_fully_built() && get_index_entry_count() > 0;
+}
+
+function assemble_switch_rows(
+  pages: Map<string, InboxEmail[]>,
+  store: RowStore,
+  category: EmailCategory,
+  page: number,
+  variant: string,
+  ids: string[],
+): InboxEmail[] | null {
+  if (ids.length === 0) return null;
+
+  return (
+    pages.get(build_page_cache_key(category, page, variant, ids)) ??
+    assemble_known_rows(store, ids, is_representative_unread)
+  );
+}
+
+function wait_ms(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 function build_load_failed_state(prev: EmailListState): EmailListState {
@@ -345,7 +375,36 @@ export function use_category_inbox(
     ],
   );
 
-  const [state, set_state] = useState<EmailListState>(EMPTY_STATE);
+  const page_variant = useMemo(
+    () =>
+      `${preferences.conversation_grouping !== false ? "g1" : "g0"}~${format_options.date_format}~${format_options.time_format}`,
+    [preferences.conversation_grouping, format_options],
+  );
+  const [state, set_state] = useState<EmailListState>(() => {
+    if (!enabled || !user?.email) return EMPTY_STATE;
+    if (category_row_cache.owner !== user.email) return EMPTY_STATE;
+
+    const ids = get_page_ids(active_category, page, page_size, read_filter);
+    const rows = assemble_switch_rows(
+      category_row_cache.pages,
+      category_row_cache.rows,
+      active_category,
+      page,
+      page_variant,
+      ids,
+    );
+
+    if (!rows) return EMPTY_STATE;
+
+    const total = get_category_total(active_category, read_filter);
+
+    return build_list_state(
+      EMPTY_STATE,
+      correct_received_rows(rows),
+      total,
+      (page + 1) * page_size < total,
+    );
+  });
   const [gate_recheck, set_gate_recheck] = useState(0);
   const scope_key =
     read_filter === "all"
@@ -367,12 +426,6 @@ export function use_category_inbox(
         visible_rows_ref.current.find((email) => email.id === id),
       ),
     [],
-  );
-
-  const page_variant = useMemo(
-    () =>
-      `${preferences.conversation_grouping !== false ? "g1" : "g0"}~${format_options.date_format}~${format_options.time_format}`,
-    [preferences.conversation_grouping, format_options],
   );
 
   useEffect(() => {
@@ -472,14 +525,23 @@ export function use_category_inbox(
   const early_paint_count_ref = useRef(0);
   const keys_ready_account_ref = useRef<string | null>(null);
   const abort_ref = useRef<AbortController | null>(null);
-  const page_cache = useRef<Map<string, InboxEmail[]>>(new Map());
-  const row_store = useRef<RowStore>(new Map());
+  const page_cache = useRef<Map<string, InboxEmail[]>>(
+    category_row_cache.pages,
+  );
+  const row_store = useRef<RowStore>(category_row_cache.rows);
   const last_arrival_fetch_ref = useRef(0);
   const fetch_retry_ref = useRef<{ sig: string; attempts: number }>({
     sig: "",
     attempts: 0,
   });
   const fetch_retry_timer_ref = useRef<ReturnType<typeof setTimeout> | null>(
+    null,
+  );
+  const pending_retry_ref = useRef<{ sig: string; attempts: number }>({
+    sig: "",
+    attempts: 0,
+  });
+  const pending_retry_timer_ref = useRef<ReturnType<typeof setTimeout> | null>(
     null,
   );
   const fetch_in_flight_ref = useRef(false);
@@ -505,23 +567,15 @@ export function use_category_inbox(
       page_size,
       read_filter,
     );
-    const switch_cached =
-      switch_ids.length > 0
-        ? page_cache.current.get(
-            build_page_cache_key(
-              active_category,
-              page,
-              page_variant,
-              switch_ids,
-            ),
-          )
-        : undefined;
     const switch_rows =
-      switch_cached ??
-      assemble_cached_page(
+      category_row_cache.owner === (user?.email ?? null) &&
+      assemble_switch_rows(
+        page_cache.current,
         row_store.current,
+        active_category,
+        page,
+        page_variant,
         switch_ids,
-        is_representative_unread,
       );
 
     if (switch_rows) {
@@ -546,6 +600,10 @@ export function use_category_inbox(
         clearTimeout(fetch_retry_timer_ref.current);
         fetch_retry_timer_ref.current = null;
       }
+      if (pending_retry_timer_ref.current) {
+        clearTimeout(pending_retry_timer_ref.current);
+        pending_retry_timer_ref.current = null;
+      }
     };
   }, []);
 
@@ -558,10 +616,11 @@ export function use_category_inbox(
 
     const run = () => {
       if (keys_ready_account_ref.current !== account) {
+        const owned = category_row_cache.owner === account;
+
         keys_ready_account_ref.current = account;
-        page_cache.current.clear();
-        row_store.current.clear();
-        last_signature_ref.current = "";
+        claim_category_row_cache(account);
+        if (!owned) last_signature_ref.current = "";
         early_paint_scope_ref.current = "";
       }
 
@@ -643,6 +702,7 @@ export function use_category_inbox(
 
         return;
       }
+      if (user?.email) claim_category_row_cache(user.email);
 
       let snapshot_painted = false;
       let fetch_settled = false;
@@ -668,6 +728,41 @@ export function use_category_inbox(
         }, FETCH_RETRY_DELAY_MS);
 
         return true;
+      };
+
+      const schedule_pending_retry = (page_ids: string[]): void => {
+        const pending_sig = `${active_category}|${target_page}|${page_ids.join(",")}`;
+        const prev = pending_retry_ref.current;
+        const attempts = prev.sig === pending_sig ? prev.attempts : 0;
+
+        if (attempts >= MAX_PENDING_ROW_RETRIES) return;
+
+        pending_retry_ref.current = {
+          sig: pending_sig,
+          attempts: attempts + 1,
+        };
+        if (pending_retry_timer_ref.current) {
+          clearTimeout(pending_retry_timer_ref.current);
+        }
+        pending_retry_timer_ref.current = setTimeout(
+          () => {
+            pending_retry_timer_ref.current = null;
+            void fetch_page_ref.current?.(target_page, limit, {
+              ...options,
+              silent: true,
+              force: true,
+            });
+          },
+          PENDING_ROW_RETRY_BASE_MS * 2 ** attempts,
+        );
+      };
+
+      const clear_pending_retry = (): void => {
+        pending_retry_ref.current = { sig: "", attempts: 0 };
+        if (pending_retry_timer_ref.current) {
+          clearTimeout(pending_retry_timer_ref.current);
+          pending_retry_timer_ref.current = null;
+        }
       };
 
       const fetch_category = scope_key;
@@ -730,13 +825,21 @@ export function use_category_inbox(
         return;
       }
 
-      const assembled = force
-        ? null
-        : assemble_cached_page(
-            row_store.current,
-            ids,
-            is_representative_unread,
-          );
+      const assembled =
+        force || category_row_cache.owner !== (user?.email ?? null)
+          ? null
+          : (assemble_cached_page(
+              row_store.current,
+              ids,
+              is_representative_unread,
+            ) ??
+            (silent
+              ? null
+              : assemble_known_rows(
+                  row_store.current,
+                  ids,
+                  is_representative_unread,
+                )));
 
       if (assembled) {
         snapshot_painted = true;
@@ -864,10 +967,21 @@ export function use_category_inbox(
           fetch_started_at,
         );
 
-        touch_cache_entry(page_cache.current, cache_key, grouped);
-        remember_rows(row_store.current, grouped);
+        const pending = has_pending_rows(grouped);
 
-        if (target_page === 0 && owner && read_filter === "all") {
+        if (pending) {
+          remember_rows(
+            row_store.current,
+            grouped.filter((email) => !is_pending_row(email)),
+          );
+          schedule_pending_retry(ids);
+        } else {
+          clear_pending_retry();
+          touch_cache_entry(page_cache.current, cache_key, grouped);
+          remember_rows(row_store.current, grouped);
+        }
+
+        if (!pending && target_page === 0 && owner && read_filter === "all") {
           schedule_list_snapshot(
             `category:${active_category}`,
             owner,
@@ -890,7 +1004,17 @@ export function use_category_inbox(
         const effective_has_more = (target_page + 1) * limit < effective_total;
 
         set_state((prev) =>
-          build_list_state(prev, grouped, effective_total, effective_has_more),
+          build_list_state(
+            prev,
+            pending
+              ? fill_pending_rows(grouped, [
+                  new Map(prev.emails.map((email) => [email.id, email])),
+                  row_store.current,
+                ])
+              : grouped,
+            effective_total,
+            effective_has_more,
+          ),
         );
       } catch {
         fetch_settled = true;
@@ -924,6 +1048,11 @@ export function use_category_inbox(
       fetch_retry_timer_ref.current = null;
     }
     fetch_retry_ref.current = { sig: "", attempts: 0 };
+    if (pending_retry_timer_ref.current) {
+      clearTimeout(pending_retry_timer_ref.current);
+      pending_retry_timer_ref.current = null;
+    }
+    pending_retry_ref.current = { sig: "", attempts: 0 };
   }, [active_category, page]);
 
   // Warms the first page of the other category tabs once the visible tab has
@@ -933,21 +1062,29 @@ export function use_category_inbox(
     if (page !== 0) return;
     if (read_filter !== "all") return;
     if (!state.has_initial_load || state.is_loading) return;
-    if (!is_index_settled()) return;
+    if (!is_index_readable()) return;
     if (!has_passphrase_in_memory()) return;
     if (!user?.email) return;
 
     let cancelled = false;
     const account = user.email;
     const timer = setTimeout(() => {
+      claim_category_row_cache(account);
       void (async () => {
         const tabs = get_active_tabs()
           .filter((tab) => tab !== active_category)
           .slice(0, PREFETCH_MAX_TABS);
 
         for (const tab of tabs) {
+          for (
+            let waits = 0;
+            fetch_in_flight_ref.current && waits < PREFETCH_BUSY_MAX_WAITS;
+            waits++
+          ) {
+            if (cancelled) return;
+            await wait_ms(PREFETCH_BUSY_WAIT_MS);
+          }
           if (cancelled) return;
-          if (fetch_in_flight_ref.current) return;
 
           const ids = get_page_ids(tab, 0, page_size);
 
@@ -971,6 +1108,7 @@ export function use_category_inbox(
               await fetch_mail_by_ids_reconciled(ids, format_options, account);
 
             if (!request_ok) return;
+            if (category_row_cache.owner !== account) return;
 
             const received_only = correct_received_rows(
               fetched.filter(belongs_in_inbox),
@@ -979,6 +1117,14 @@ export function use_category_inbox(
               preferences.conversation_grouping !== false
                 ? group_emails_by_thread(received_only)
                 : received_only;
+
+            if (has_pending_rows(grouped)) {
+              remember_rows(
+                row_store.current,
+                grouped.filter((email) => !is_pending_row(email)),
+              );
+              continue;
+            }
 
             touch_cache_entry(page_cache.current, key, grouped);
             remember_rows(row_store.current, grouped);
@@ -1090,7 +1236,6 @@ export function use_category_inbox(
       if (!has_passphrase_in_memory()) return;
       request_cache.invalidate("GET:/mail/v1/messages");
       page_cache.current.clear();
-      row_store.current.clear();
       last_signature_ref.current = "";
       set_state((prev) => {
         if (prev.emails.length > 0) {

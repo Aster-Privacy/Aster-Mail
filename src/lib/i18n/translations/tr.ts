@@ -316,6 +316,11 @@ export const tr = {
     notifications_muted: "Bildirimler sessize alındı",
     remove_lock: "Kilidi kaldır",
     lock: "Kilitle",
+    folder_password_settings: "Parola ayarları",
+    lock_all_folders: "Tüm korumalı klasörleri kilitle",
+    lock_all_folders_description: "Şu anda kilidi açık olan tüm korumalı klasörleri kilitler",
+    folder_locked_notice: "Klasör kilitlendi",
+    folders_locked_notice: "Korumalı klasörler kilitlendi",
     change_color: "Rengi değiştir",
     change_icon: "Simgeyi değiştir",
     more_information: "Daha fazla bilgi",
@@ -1694,6 +1699,8 @@ export const tr = {
     step_up_description:
       "Güvenliğiniz için devam etmek üzere şifrenizi onaylayın.",
     step_up_error: "Şifre veya doğrulama kodu yanlış. Lütfen tekrar deneyin.",
+    step_up_key_needs_browser:
+      "Masaüstü uygulaması güvenlik anahtarlarını veya geçiş anahtarlarını kullanamaz. Bu değişikliği yapmak için Aster'ı tarayıcınızda açın.",
     step_up_security_key_hint:
       "Şifrenizi girdikten sonra güvenlik anahtarınızla doğrulama yapmanız istenecek.",
     security_key_add_step_up_hint:
@@ -3157,12 +3164,9 @@ export const tr = {
       "Bu takma ada gelen postalar kural gerekmeden otomatik etiketlenir. Etiket, iletinin düştüğü klasörden bağımsız uygulanır.",
     alias_delivery_label_none: "Etiket yok",
     alias_delivery_label_missing: "Silinmiş etiket",
-    alias_apply_existing: "Mevcut postaya uygula",
+    alias_apply_existing: "Mevcut postada çalıştır",
     alias_apply_existing_desc:
       "Bu takma adın daha önce aldığı postaları seçtiğiniz klasöre ve etikete taşıyın.",
-    alias_apply_existing_info:
-      "Bu işlem, yukarıdaki teslim klasörünü ve etiketi hesabınızda zaten bulunan postalara uygular. Arka planda çalışır ve posta kurallarınız yeniden çalıştırılmaz.",
-    alias_apply_existing_action: "Şimdi uygula",
     alias_apply_existing_cancel: "Durdur",
     alias_apply_existing_started:
       "Teslim ayarlarınız mevcut postalara uygulanıyor. İşlem arka planda çalışır.",
@@ -3180,6 +3184,12 @@ export const tr = {
       "Mevcut postaya uygulama başarısız oldu. Yeniden deneyin.",
     alias_apply_existing_unavailable:
       "Hesabınızda zaten bulunan postalar Spam klasörüne taşınamaz.",
+    alias_apply_existing_confirm_folder_label:
+      "Bu takma adın daha önce aldığı postalar {{folder}} klasörüne taşınır ve {{label}} etiketini alır. Çöp kutusu ve spam klasöründeki postalar olduğu yerde kalır.",
+    alias_apply_existing_confirm_folder:
+      "Bu takma adın daha önce aldığı postalar {{folder}} klasörüne taşınır. Çöp kutusu ve spam klasöründeki postalar olduğu yerde kalır.",
+    alias_apply_existing_confirm_label:
+      "Bu takma adın daha önce aldığı postalar {{label}} etiketini alır. Çöp kutusu ve spam klasöründeki postalar olduğu yerde kalır.",
     alias_delivery_label_error: "Tekrar deneyin.",
     alias_delivery_rule_note:
       '"{{ rule }}" kuralı bu takma adın postasını zaten {{ target }} klasörüne taşıyor.',
@@ -4524,6 +4534,9 @@ export const tr = {
     close_popup_on_outside_click: "Dışarı tıklayarak açılır pencereyi kapat",
     close_popup_on_outside_click_description:
       "E-postalar açılır pencerede açıldığında, pencerenin dışında herhangi bir yere tıklamak onu kapatır",
+    open_popup_maximized: "Açılır pencereyi tam ekran aç",
+    open_popup_maximized_description:
+      "E-postalar açılır pencerede açıldığında, pencere tüm ekranı kaplar",
     split_view: "Bölünmüş görünüm",
     split_view_description: "E-posta listesini ve önizlemeyi yan yana gösterir",
     full_page: "Tam sayfa",
@@ -4821,6 +4834,8 @@ export const tr = {
     feedback_placeholder: "Fikrinizi veya bulduğunuz sorunu açıklayın",
     feedback_not_encrypted:
       "Geri bildirim uçtan uca şifrelenmez, bu nedenle parola, kurtarma kodu veya başka özel bilgi eklemeyin.",
+    feedback_support_notice:
+      "Bu form geri bildirim, fikir ve hata bildirimleri içindir. Sorularınız veya hesabınızla ilgili yardım için bunun yerine {{ email }} adresinden destek ekibine e-posta gönderin.",
     feedback_intro:
       "Bir fikir paylaşın, hata bildirin veya Aster ekibine ne düşündüğünüzü söyleyin. Geri bildirim bir destek talebi oluşturmaz. Yardım veya yanıt almak için destekle iletişime geçin.",
     support_intro:
@@ -6490,6 +6505,7 @@ export const tr = {
     swipe_left: "Sola kaydır",
     swipe_right: "Sağa kaydır",
     swipe_none: "Yok",
+    swipe_toggle_read: "Okundu veya okunmadı olarak işaretle",
     swipe_actions_description:
       "E-postalarda sola veya sağa kaydırdığınızda ne olacağını seçin.",
     badges_title: "Rozetler",
@@ -8904,6 +8920,9 @@ export const tr = {
     theme_sync_across_devices: "Temayı cihazlar arasında eşitle",
     theme_sync_across_devices_description:
       "Bu cihazda farklı bir tema kullanmak için kapatın.",
+    hide_scrollbars: "Kaydırma çubuklarını gizle",
+    hide_scrollbars_description:
+      "Tüm cihazlarınızda kaydırma çubuklarını gizler. Listelerde ve iletilerde kaydırmaya devam edebilirsiniz.",
     product_updates: "Ürün güncellemeleri",
     product_updates_description:
       "Aster önemli bir güncelleme yayımladığında ileti alın",
@@ -9874,11 +9893,13 @@ export const tr = {
     no_password: "Parola yok",
     replying_to: "{{name}} kişisine yanıt veriliyor",
     reply_sent_successfully: "Yanıt başarıyla gönderildi",
-    successfully_unsubscribed: "Abonelik başarıyla iptal edildi",
-    unsubscribe_failed:
-      "Abonelikten çıkma tamamlanmadı. E-postadaki bağlantı sizi göndericinin sitesine götürür, abonelikten kendiniz çıkabilirsiniz.",
-    unsubscribe_manual_required:
-      "Bu gönderici otomatik abonelikten çıkmayı desteklemiyor. E-postadaki bağlantı bunu kendiniz yapmanıza olanak verir.",
+    successfully_unsubscribed: "Abonelik iptal edildi",
+    unsubscribe_failed: "Abonelik iptal edilemedi. Daha sonra tekrar deneyin.",
+    unsubscribe_on_website: "Bu gönderenin aboneliğini web sitesinden iptal edin.",
+    unsubscribe_not_confirmed: "Gönderen onaylamadı. Aboneliği web sitesinden iptal edin.",
+    unsubscribe_use_email_link: "E-postadaki abonelik iptal bağlantısını kullanın.",
+    unsubscribe_some_need_website: "Bazı gönderenlerin aboneliğini web sitelerinden iptal etmeniz gerekir.",
+    open_page: "Sayfayı aç",
     stop_receiving_from: "E-posta almayı durdurun:",
     send_email: "E-posta Gönder",
     order_number: "Sipariş #{{id}}",
@@ -10099,13 +10120,13 @@ export const tr = {
     fonts: "yazı tipleri",
     stylesheet: "stil sayfası",
     trash_auto_delete_notice:
-      "Çöp kutusundaki öğeler {{ days }} gün sonra otomatik olarak silinecek.",
+      "Çöp Kutusu'ndaki iletiler {{ days }} gün sonra silinir.",
     spam_auto_delete_notice:
-      "Spam klasöründeki öğeler {{ days }} gün sonra otomatik olarak silinecek.",
+      "Önemsiz klasöründeki iletiler {{ days }} gün sonra silinir.",
     trash_auto_delete_notice_family:
-      "Çöp kutusundaki öğeler {{ days }} gün sonra otomatik olarak silinecektir (aile yöneticisi tarafından ayarlanmıştır).",
+      "Çöp Kutusu'ndaki iletiler, aile yöneticisinin ayarına göre {{ days }} gün sonra silinir.",
     spam_auto_delete_notice_family:
-      "Spam'deki öğeler {{ days }} gün sonra otomatik olarak silinecektir (aile yöneticisi tarafından ayarlanmıştır).",
+      "Önemsiz klasöründeki iletiler, aile yöneticisinin ayarına göre {{ days }} gün sonra silinir.",
     insert_link_title: "Bağlantı Ekle",
     add_link_to_selection: '"{{text}}" için bağlantı ekle',
     url_label: "URL",
@@ -10844,6 +10865,9 @@ export const tr = {
     link_device_confirming: "Cihaz bağlanıyor...",
     link_device_cancel: "İptal",
     link_device_desktop: "Yeni cihaz",
+    link_device_extension: "Tarayıcı uzantısı",
+    link_device_extension_grant_notice:
+      "Bağlama işlemi, {{device}} üzerindeki Aster Companion'a {{email}} hesabının adreslerine ve takma adlarına erişim verir; böylece bunları sitelere girebilir ve yeni takma adlar oluşturabilir.",
     device_fingerprint: "Cihaz parmak izi",
     device_fingerprint_copy: "Cihaz parmak izini kopyala",
     link_device_grant_notice:
@@ -12211,6 +12235,13 @@ export const tr = {
     sign_in_rescue_hint: "Guard'ı kurarken kaydettiğiniz kurtarma kodunu girin. Hesabınız 72 saatlik bir beklemeden sonra açılır ve cihazlarınız bunu durdurabilir.",
     sign_in_rescue_submit: "Kurtarmayı başlat",
     sign_in_rescue_invalid: "Bu kurtarma kodu çalışmadı. Kontrol edip tekrar deneyin.",
+    sign_in_rescue_not_allowed: "Bu oturum açmadan kurtarma başlatılamaz. Geri dönün, parolanızla oturum açın ve tekrar deneyin.",
+    sign_in_rescue_paused: "Çok fazla deneme yapıldı. 15 dakika bekleyin, ardından kurtarma kodunuzu yeniden girin.",
+    sign_in_rescue_in_progress: "Bu hesap için zaten bir kurtarma işlemi sürüyor. Ne zaman biteceğini görmek için e-postanızı kontrol edin.",
+    sign_in_rescue_failed: "Kurtarma başlatılamadı. Bağlantınızı kontrol edip tekrar deneyin.",
+    sign_in_rescue_only: "Cihazlarınızın hiçbiri bu oturum açmayı onaylayamıyor. Yeniden erişmek için kurtarma kodunuzu girin.",
+    sign_in_no_method: "Hiçbir cihaz bu oturum açmayı onaylayamıyor ve hesabınızda kurtarma kodu yok. Yeniden erişmek için parolanızı kurtarma anahtarınızla sıfırlayın.",
+    sign_in_on_hold: "Birkaç istek yanıtsız kaldığı için bu hesapta oturum açma duraklatıldı. Yaklaşık bir saat sonra tekrar deneyin.",
     sign_in_rescue_started: "Kurtarma başladı. {{date}} tarihinden sonra oturum açabilirsiniz. O zamana kadar oturum açılmış cihazlarınızdan herhangi biri bunu durdurabilir.",
     sign_in_back: "Oturum açmaya dön",
     link_device_needs_approver: "Bu hesapta Guard açık, bu nedenle yeni cihazları Guard kurulu bir cihazın onaylaması gerekir. Aster'ı Guard ile kurduğunuz bir cihazda açıp tekrar deneyin.",
@@ -12224,6 +12255,7 @@ export const tr = {
     approve_time_label: "Zaman",
     approve_device: "{{os}} üzerinde {{browser}}",
     approve_unknown_device: "Bilinmeyen cihaz",
+    approve_device_named: "Adı: “{{name}}”",
     approve_number_label: "Yeni cihazda gösterilen numarayı girin",
     approve_confirm: "Onayla",
     approve_deny: "Reddet",
@@ -12426,12 +12458,49 @@ export const tr = {
     panic_changes_label: "değişiklik iptal edildi",
     panic_changes_label_one: "değişiklik iptal edildi",
     panic_changes_label_other: "değişiklik iptal edildi",
+    error_paused: "Aster Guard, çok fazla denemeden sonra bu isteği duraklattı. {{time}} itibarıyla tekrar deneyebilirsiniz.",
+    error_paused_soon: "Aster Guard, çok fazla denemeden sonra bu isteği duraklattı. Birazdan tekrar deneyin.",
+    error_too_many: "Bu hesapta şu anda çok fazla oturum açma isteği var. {{time}} itibarıyla tekrar deneyebilirsiniz.",
+    error_too_many_soon: "Bu hesapta şu anda çok fazla istek var. Biraz bekleyip tekrar deneyin.",
+    error_request_gone: "Bu isteğin süresi doldu veya başka bir cihazda zaten yanıtlandı.",
+    error_device_required: "Bunu yalnızca onaylı bir cihaz yapabilir. Aster Guard için onayladığınız bir cihazı kullanın.",
+    error_not_allowed: "Bu cihaz bunu yapamaz. Başka bir onaylı cihaz kullanın.",
+    error_disabled: "Bu hesapta Aster Guard kapalı, bu nedenle onaylanacak bir şey yok.",
+    error_request_conflict: "Başka bir cihaz bu isteği aynı anda değiştirdi. Sayfayı yenileyip tekrar deneyin.",
+    error_last_device: "Bu, Aster Guard için onaylı tek cihaz olduğundan onu kaldıramaz veya oturumunu kapatamazsınız. Önce başka bir cihazı onaylayın ya da Aster Guard'ı kapatın.",
+    error_device_pending: "Bu cihaz {{time}} itibarıyla istekleri onaylayabilir.",
+    error_device_pending_soon: "Bu cihaz henüz onaylanmadı. Birkaç dakika içinde istekleri onaylayabilir.",
+    error_held: "Aster Guard, hesabınızı korumak için bu değişikliği bekletiyor. İptal etmezseniz {{time}} itibarıyla geçerli olur.",
+    error_held_soon: "Aster Guard, hesabınızı korumak için bu değişikliği bekletiyor. İptal etmezseniz yakında geçerli olur.",
+    error_upgrade: "Aster Mail'in bu sürümü güncel değil. Uygulamayı güncelleyip tekrar deneyin.",
+    error_action_invalid: "Aster Guard bu cihazın imzasını doğrulayamadı. Sayfayı yeniden yükleyip tekrar deneyin.",
+    error_step_up: "Devam etmek için kimliğinizi tekrar doğrulayın.",
+    error_device_keys: "Bu cihazın Aster Guard anahtarları geçerli değil. Bu cihazı Aster Guard'dan kaldırıp yeniden ekleyin.",
+    error_device_unknown: "Aster Guard bu cihazı tanımıyor. Aster Guard ayarlarından cihazı yeniden ekleyin.",
+    error_veto_invalid: "Bu kurtarma zaten tamamlandığı veya durdurulduğu için artık durdurulamaz.",
+    error_offline: "Çevrimdışısınız. Bağlantınızı kontrol edip tekrar deneyin.",
+    sign_in_where_to_approve: "İstek, telefonunuz gibi onaylı cihazlarınızdaki Aster Mail'de görünür. Onaylamak için orada Aster Mail'i açın.",
+    sign_in_paused_until: "Çok fazla deneme yapıldığı için bu istek {{time}} saatine kadar duraklatıldı.",
+    sign_in_again: "Tekrar oturum açın",
+    sign_in_on_hold_title: "Oturum açma duraklatıldı",
+    sign_in_on_hold_until: "Birkaç istek yanıtsız kaldığı için bu hesapta oturum açma duraklatıldı. {{time}} itibarıyla tekrar deneyebilirsiniz.",
+    switches_join_denied: "Diğer cihazınız bu tarayıcıyı ekleme isteğini reddetti.",
+    switches_join_expired: "Bu tarayıcıyı ekleme isteğinin süresi doldu. Tekrar deneyin ve isteği diğer cihazınızda onaylayın.",
+    setup_who_for: "Aster Guard yüksek riskli hesaplar içindir. Kurulumdan sonra her yeni oturum açma, onayladığınız bir cihazdan onay gerektirir ve Aster Guard'ı kapatmak 24 saat sürer.",
+    setup_only_device_warning: "Bu tarayıcı onaylı tek cihazınız olur. Ona erişiminizi kaybederseniz oturum açmak için kurtarma kodunuza ihtiyacınız olur.",
+    setup_carry_device_tip: "Kurulumdan sonra her zaman yanınızda taşıdığınız bir cihazı, örneğin telefonunuzu onaylayın.",
+    intro_hold_timing_body: "Parola ve güvenlik değişiklikleri 24 saat, yönlendirme ve posta kuralları 1 saat, kurtarma değişiklikleri ise 72 saat bekler; böylece bunları durdurabilirsiniz.",
+    setup_progress_keys: "Adım 1/3: Bu cihaz için anahtarlar oluşturuluyor",
+    setup_progress_server: "Adım 2/3: Hesabınız için Aster Guard açılıyor",
+    setup_progress_device: "Adım 3/3: Bu cihaz onaylı olarak kaydediliyor",
+    setup_retry: "Tekrar dene",
   },
   settings_keywords: {
     theme_dark: "koyu mod, karanlık mod, gece modu, tema",
     theme_light: "açık mod, aydınlık tema, tema",
     theme_system: "sistem teması, otomatik tema, cihaza uy",
     theme_sync_across_devices: "tema senkronizasyonu, cihaz başına tema, cihaz teması, ayrı tema",
+    hide_scrollbars: "kaydırma çubukları, kaydırma çubuklarını gizle, kaydırma",
     custom_theme_colors_title: "tema renkleri, renk teması, mor, yeşil, pembe, turuncu, mavi, siyah, koyu, vurgu rengi",
     custom_theme_title: "özel tema, özel renk, renk paleti, premium tema, starplan",
     font_choice_title: "yazı tipi, font, yazı tipi ailesi, font değiştir",
@@ -12522,6 +12591,7 @@ export const tr = {
     fam_kids_tab: "çocuklar, çocuk hesapları, çocuk hesabı",
     email_view_mode: "e-posta görünüm modu, açılır pencere, bölünmüş görünüm, tam sayfa, e-postayı aç, okuma düzeni",
     close_popup_on_outside_click: "dışarı tıklayınca kapat, açılır pencere, dışarı tıkla, açılır pencereyi kapat",
+    open_popup_maximized: "açılır pencere, tam ekran, büyüt",
     compose_window_mode: "yazma penceresi modu, yüzen pencere, tam ekran yazma, küçültülmüş yazma, yazma düzeni",
     reduce_transparency: "şeffaflığı azalt, şeffaflık, bulanıklık, opak",
     underline_links: "bağlantıların altını çiz, bağlantılar, altı çizili",

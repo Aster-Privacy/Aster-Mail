@@ -42,7 +42,8 @@ function state(patch: Partial<GuardSignInState> = {}): GuardSignInState {
     number: 7,
     expires_at: "2026-11-15T10:05:00Z",
     code_error: false,
-    rescue_error: false,
+    methods: ["approve", "code", "rescue"],
+    rescue_error: null,
     rescue: null,
     ...patch,
   };
@@ -143,6 +144,17 @@ describe("GuardWaitingScreen", () => {
     ).not.toBeNull();
   });
 
+  it("shows only the rescue entry when no device can approve", () => {
+    render(state({ methods: ["rescue"] }));
+    expect(container.textContent).toContain("guard.sign_in_rescue_only");
+    expect(container.querySelector('[data-testid="guard_number"]')).toBeNull();
+  });
+
+  it("ends when the account has no way to finish", () => {
+    render(state({ methods: [] }));
+    expect(container.textContent).toContain("guard.sign_in_no_method");
+  });
+
   it("shows the paused note", () => {
     render(state({ phase: "paused" }));
     expect(container.textContent).toContain("guard.sign_in_paused");
@@ -152,12 +164,50 @@ describe("GuardWaitingScreen", () => {
     ["denied", "guard.sign_in_denied"],
     ["expired", "guard.sign_in_expired"],
     ["error", "guard.sign_in_error"],
+    ["on_hold", "guard.sign_in_on_hold"],
   ] as const)("ends on %s with a way back", (phase, message) => {
     render(state({ phase }));
     expect(container.textContent).toContain(message);
     expect(container.querySelector('[data-testid="guard_number"]')).toBeNull();
-    act(() => button("guard.sign_in_back").click());
+    act(() =>
+      (
+        container.querySelector(
+          '[data-testid="guard_sign_in_again"]',
+        ) as HTMLButtonElement
+      ).click(),
+    );
     expect(handlers.on_back).toHaveBeenCalledTimes(1);
+  });
+
+  it("offers to sign in again after the request ends", () => {
+    render(state({ phase: "expired" }));
+    expect(container.textContent).toContain("guard.sign_in_again");
+  });
+
+  it("says when a paused request continues", () => {
+    render(state({ phase: "paused", retry_at: "2026-11-18T10:00:00Z" }));
+    expect(container.textContent).toContain("guard.sign_in_paused_until");
+  });
+
+  it("says when sign-in prompts resume on the account", () => {
+    render(
+      state({
+        phase: "on_hold",
+        error_code: "GUARD_PAUSED",
+        retry_at: "2026-11-18T10:00:00Z",
+      }),
+    );
+    expect(container.textContent).toContain("guard.sign_in_on_hold_until");
+  });
+
+  it("explains an outdated app instead of a generic error", () => {
+    render(state({ phase: "error", error_code: "CLIENT_UPGRADE_REQUIRED" }));
+    expect(container.textContent).toContain("guard.error_upgrade");
+  });
+
+  it("says where to approve the request", () => {
+    render(state({ phase: "waiting", number: 42 }));
+    expect(container.textContent).toContain("guard.sign_in_where_to_approve");
   });
 
   it("shows when a started rescue finishes", () => {

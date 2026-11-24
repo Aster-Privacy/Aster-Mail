@@ -80,7 +80,9 @@ describe("bulk unsubscribe survives the proxy rate limit", () => {
   it("does not retry when the caller has not opted in", async () => {
     mock_proxy.mockResolvedValue(RATE_LIMITED);
 
-    await expect(execute_unsubscribe(ONE_CLICK_INFO, {})).resolves.toBe("link");
+    await expect(execute_unsubscribe(ONE_CLICK_INFO, {})).resolves.toBe(
+      "failed",
+    );
     expect(mock_proxy).toHaveBeenCalledTimes(1);
   });
 
@@ -97,7 +99,7 @@ describe("bulk unsubscribe survives the proxy rate limit", () => {
 
     await vi.advanceTimersByTimeAsync(10 * 60_000);
 
-    await expect(pending).resolves.toBe("link");
+    await expect(pending).resolves.toBe("failed");
     expect(mock_proxy).toHaveBeenCalledTimes(5);
   });
 });

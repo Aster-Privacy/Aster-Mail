@@ -22,6 +22,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
   guard_push_body,
+  create_guard_push_ledger,
   guard_push_is_ended,
   guard_push_notification_tag,
   guard_push_resolved_tag,
@@ -254,6 +255,24 @@ describe("guard push text", () => {
     expect(guard_push_body(expired, { guard_ended: "Beendet" })).toBe(
       "Beendet",
     );
+  });
+
+  it("notifies each request at most once and never after it ends", () => {
+    const ledger = create_guard_push_ledger();
+    const request = read_guard_push(push("sign_in_request"))!;
+    const expired = read_guard_push(push("sign_in_expired"))!;
+    const held = read_guard_push(push("change_held"))!;
+
+    expect(ledger.should_notify(request)).toBe(true);
+    expect(ledger.should_notify(request)).toBe(false);
+    expect(ledger.should_notify(expired)).toBe(false);
+    expect(ledger.should_notify(held)).toBe(true);
+    expect(ledger.should_notify(held)).toBe(false);
+
+    const late = create_guard_push_ledger();
+
+    expect(late.should_notify(expired)).toBe(false);
+    expect(late.should_notify(request)).toBe(false);
   });
 
   it("treats only a focused, visible window as watching", () => {

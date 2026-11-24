@@ -36,6 +36,7 @@ import {
   TrashIcon,
   EnvelopeIcon,
   BarsArrowDownIcon,
+  LockClosedIcon,
   PlusIcon,
   UsersIcon,
   NewspaperIcon,
@@ -63,7 +64,13 @@ import {
   is_folder_tree_sorted_a_z,
 } from "@/hooks/use_folders";
 import { order_tags_as_tree } from "@/hooks/tag_tree";
-import { is_folder_unlocked } from "@/hooks/use_protected_folder";
+import {
+  is_folder_unlocked,
+  lock_all_folders,
+  lock_folder_by_id,
+} from "@/hooks/use_protected_folder";
+import { use_unlocked_folder_count } from "@/hooks/use_folder_unlock_state";
+import { show_toast } from "@/components/toast/simple_toast";
 import { AliasNavIcon } from "@/components/common/alias_nav_icon";
 import { SidebarNavButton } from "@/components/mobile/sidebar_nav_button";
 import { LoadFailedNotice } from "@/components/settings/load_failed_notice";
@@ -165,6 +172,12 @@ export const DrawerNavContent = memo(function DrawerNavContent({
   indicator_style,
 }: DrawerNavContentProps) {
   const { t } = use_i18n();
+  const has_unlocked_folders = use_unlocked_folder_count() > 0;
+  const handle_lock_all = () => {
+    if (lock_all_folders() > 0) {
+      show_toast(t("common.folders_locked_notice"), "success");
+    }
+  };
 
   const { preferences } = use_preferences();
   const muted_folder_tokens = new Set(preferences.muted_folder_tokens ?? []);
@@ -304,22 +317,35 @@ export const DrawerNavContent = memo(function DrawerNavContent({
 
   const render_folders_section = (is_first: boolean) => (
     <>
-      {on_sort_folders && can_sort_folders ? (
+      {(on_sort_folders && can_sort_folders) || has_unlocked_folders ? (
         <div className={is_first ? "mb-1 px-2.5" : "mb-1 mt-5 px-2.5"}>
           <div className="flex w-full items-center justify-between">
             <span className="text-[10px] font-semibold uppercase tracking-[0.05em] text-[var(--text-muted)] opacity-70">
               {t("common.folders")}
             </span>
             <div className="flex items-center gap-2">
-              <button
-                aria-label={t("common.sort_a_to_z")}
-                className="-m-1 flex min-h-6 min-w-6 items-center justify-center rounded p-1.5 text-[var(--text-muted)] transition-all duration-150 active:bg-[var(--bg-tertiary)]"
-                data-testid="mobile-folders-sort-a-to-z"
-                type="button"
-                onClick={on_sort_folders}
-              >
-                <BarsArrowDownIcon className="h-3.5 w-3.5" />
-              </button>
+              {has_unlocked_folders && (
+                <button
+                  aria-label={t("common.lock_all_folders")}
+                  className="-m-1 flex min-h-6 min-w-6 items-center justify-center rounded p-1.5 text-[var(--text-muted)] transition-all duration-150 active:bg-[var(--bg-tertiary)]"
+                  data-testid="mobile-folders-lock-all"
+                  type="button"
+                  onClick={handle_lock_all}
+                >
+                  <LockClosedIcon className="h-3.5 w-3.5" />
+                </button>
+              )}
+              {on_sort_folders && can_sort_folders && (
+                <button
+                  aria-label={t("common.sort_a_to_z")}
+                  className="-m-1 flex min-h-6 min-w-6 items-center justify-center rounded p-1.5 text-[var(--text-muted)] transition-all duration-150 active:bg-[var(--bg-tertiary)]"
+                  data-testid="mobile-folders-sort-a-to-z"
+                  type="button"
+                  onClick={on_sort_folders}
+                >
+                  <BarsArrowDownIcon className="h-3.5 w-3.5" />
+                </button>
+              )}
               <button
                 aria-label={t("common.create_folder")}
                 className="-m-1 flex min-h-6 min-w-6 items-center justify-center rounded p-1.5 text-[var(--text-muted)] transition-all duration-150 active:bg-[var(--bg-tertiary)]"
@@ -409,7 +435,26 @@ export const DrawerNavContent = memo(function DrawerNavContent({
               handle_nav(path);
             }}
             on_long_press={() => on_open_edit_folder(folder)}
-            on_toggle_lock={() => on_toggle_lock(folder.id, folder.is_locked)}
+            on_toggle_lock={() => {
+              if (!folder.is_password_protected || !folder.password_set) {
+                on_toggle_lock(folder.id, folder.is_locked);
+
+                return;
+              }
+              if (is_folder_unlocked(folder.id)) {
+                if (lock_folder_by_id(folder.id)) {
+                  show_toast(t("common.folder_locked_notice"), "success");
+                }
+
+                return;
+              }
+              on_password_modal({
+                folder_id: folder.id,
+                folder_name: folder.name,
+                folder_token: folder.folder_token,
+                mode: "unlock",
+              });
+            }}
           />
         );
       })}

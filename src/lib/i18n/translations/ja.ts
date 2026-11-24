@@ -364,6 +364,11 @@ export const ja = {
     notifications_muted: "通知はミュート中",
     remove_lock: "ロックを解除",
     lock: "ロック",
+    folder_password_settings: "パスワード設定",
+    lock_all_folders: "保護されたフォルダをすべてロック",
+    lock_all_folders_description: "現在ロック解除されている保護フォルダをすべてロックします",
+    folder_locked_notice: "フォルダをロックしました",
+    folders_locked_notice: "保護されたフォルダをロックしました",
     change_color: "色を変更",
     delete_folder: "フォルダを削除",
     edit_reschedule: "編集と再スケジュール",
@@ -1737,6 +1742,8 @@ export const ja = {
       "セキュリティのため、続行するにはパスワードを確認してください。",
     step_up_error:
       "パスワードまたは確認コードが正しくありません。もう一度お試しください。",
+    step_up_key_needs_browser:
+      "デスクトップアプリではセキュリティキーやパスキーを使用できません。この変更を行うには、ブラウザで Aster を開いてください。",
     step_up_security_key_hint:
       "パスワードを入力すると、セキュリティキーによる確認を求められます。",
     security_key_add_step_up_hint:
@@ -3162,12 +3169,9 @@ export const ja = {
       "このエイリアス宛のメールにはルールなしで自動的にラベルが付きます。ラベルは配信先フォルダーとは別に適用されます。",
     alias_delivery_label_none: "ラベルなし",
     alias_delivery_label_missing: "削除されたラベル",
-    alias_apply_existing: "既存のメールに適用",
+    alias_apply_existing: "既存のメールに実行",
     alias_apply_existing_desc:
       "このエイリアスがすでに受信したメールを、選択したフォルダとラベルに整理します。",
-    alias_apply_existing_info:
-      "上で選択した配信先フォルダとラベルを、アカウント内にあるメールに適用します。処理はバックグラウンドで実行され、メールルールは再実行されません。",
-    alias_apply_existing_action: "今すぐ適用",
     alias_apply_existing_cancel: "停止",
     alias_apply_existing_started:
       "配信設定を既存のメールに適用しています。処理はバックグラウンドで実行されます。",
@@ -3185,6 +3189,12 @@ export const ja = {
       "既存のメールへの適用に失敗しました。もう一度お試しください。",
     alias_apply_existing_unavailable:
       "アカウント内にあるメールは迷惑メールに移動できません。",
+    alias_apply_existing_confirm_folder_label:
+      "このエイリアスがすでに受信したメールは {{folder}} に移動し、ラベル「{{label}}」が付きます。ゴミ箱と迷惑メールにあるメールはそのままです。",
+    alias_apply_existing_confirm_folder:
+      "このエイリアスがすでに受信したメールは {{folder}} に移動します。ゴミ箱と迷惑メールにあるメールはそのままです。",
+    alias_apply_existing_confirm_label:
+      "このエイリアスがすでに受信したメールにラベル「{{label}}」が付きます。ゴミ箱と迷惑メールにあるメールはそのままです。",
     alias_delivery_label_error: "もう一度お試しください。",
     alias_delivery_rule_note:
       "ルール「{{ rule }}」は、このエイリアスのメールをすでに {{ target }} に移動しています。",
@@ -4511,6 +4521,9 @@ export const ja = {
     close_popup_on_outside_click: "外側をクリックしてポップアップを閉じる",
     close_popup_on_outside_click_description:
       "メールをポップアップで開いているとき、ポップアップの外側をクリックすると閉じます",
+    open_popup_maximized: "ポップアップを全画面で開く",
+    open_popup_maximized_description:
+      "メールをポップアップで開くとき、ポップアップが画面全体に表示されます",
     split_view: "分割表示",
     split_view_description: "メールリストとプレビューを並べて表示します",
     full_page: "全画面",
@@ -4812,6 +4825,8 @@ export const ja = {
     feedback_placeholder: "アイデアや見つけた問題を説明してください",
     feedback_not_encrypted:
       "フィードバックはエンドツーエンドで暗号化されません。パスワード、復元コード、その他の個人情報は含めないでください。",
+    feedback_support_notice:
+      "このフォームは、フィードバック、アイデア、バグの報告用です。ご質問やアカウントに関するサポートについては、サポートチーム（{{ email }}）までメールでお問い合わせください。",
     feedback_intro:
       "アイデアの共有、バグの報告、Aster チームへのご意見をお送りください。フィードバックではサポートへの問い合わせは作成されません。サポートや返信が必要な場合は、サポートにお問い合わせください。",
     support_intro:
@@ -6457,6 +6472,7 @@ export const ja = {
     swipe_left: "左にスワイプ",
     swipe_right: "右にスワイプ",
     swipe_none: "なし",
+    swipe_toggle_read: "既読または未読にする",
     swipe_actions_description:
       "メールを左右にスワイプしたときの動作を選択します。",
     badges_title: "バッジ",
@@ -8795,6 +8811,9 @@ export const ja = {
     theme_sync_across_devices: "デバイス間でテーマを同期",
     theme_sync_across_devices_description:
       "オフにすると、この端末だけ別のテーマを使えます。",
+    hide_scrollbars: "スクロールバーを非表示",
+    hide_scrollbars_description:
+      "すべてのデバイスでスクロールバーを非表示にします。リストやメッセージは引き続きスクロールできます。",
     product_updates: "製品のお知らせ",
     product_updates_description:
       "Aster が注目の機能を公開したときにお知らせが届きます",
@@ -9731,11 +9750,13 @@ export const ja = {
     no_password: "パスワードなし",
     replying_to: "{{name}}に返信中",
     reply_sent_successfully: "返信を正常に送信しました",
-    successfully_unsubscribed: "購読を正常に解除しました",
-    unsubscribe_failed:
-      "購読解除が完了しませんでした。メール内のリンクから送信者のサイトに移動して、ご自身で購読解除できます。",
-    unsubscribe_manual_required:
-      "この送信者は自動での購読解除に対応していません。メール内のリンクから、ご自身で購読解除できます。",
+    successfully_unsubscribed: "購読を解除しました",
+    unsubscribe_failed: "購読を解除できませんでした。後でもう一度お試しください。",
+    unsubscribe_on_website: "この送信者の購読は、送信者のウェブサイトで解除してください。",
+    unsubscribe_not_confirmed: "送信者から確認が得られませんでした。送信者のウェブサイトで購読を解除してください。",
+    unsubscribe_use_email_link: "メール内の購読解除リンクを使用してください。",
+    unsubscribe_some_need_website: "一部の送信者は、送信者のウェブサイトで購読を解除する必要があります。",
+    open_page: "ページを開く",
     stop_receiving_from: "メールの受信を停止：",
     send_email: "メールを送信",
     order_number: "注文番号 #{{id}}",
@@ -9936,13 +9957,13 @@ export const ja = {
     forwarded_by_label: "転送元",
     new_reaction: "新しいリアクション",
     trash_auto_delete_notice:
-      "ゴミ箱のアイテムは {{ days }} 日後に自動的に削除されます。",
+      "ゴミ箱のメッセージは {{ days }} 日後に削除されます。",
     spam_auto_delete_notice:
-      "スパムのアイテムは {{ days }} 日後に自動的に削除されます。",
+      "スパムのメッセージは {{ days }} 日後に削除されます。",
     trash_auto_delete_notice_family:
-      "ゴミ箱内のアイテムは {{ days }} 日後に自動的に削除されます（ファミリー管理者が設定）。",
+      "ゴミ箱のメッセージは、ファミリー管理者の設定により {{ days }} 日後に削除されます。",
     spam_auto_delete_notice_family:
-      "スパム内のアイテムは {{ days }} 日後に自動的に削除されます（ファミリー管理者が設定）。",
+      "スパムのメッセージは、ファミリー管理者の設定により {{ days }} 日後に削除されます。",
     insert_link_title: "リンクを挿入",
     add_link_to_selection: "「{{text}}」にリンクを追加",
     url_label: "URL",
@@ -10692,6 +10713,9 @@ export const ja = {
     link_device_confirming: "デバイスをリンク中...",
     link_device_cancel: "キャンセル",
     link_device_desktop: "新しいデバイス",
+    link_device_extension: "ブラウザ拡張機能",
+    link_device_extension_grant_notice:
+      "リンクすると、{{device}} の Aster Companion が {{email}} のアドレスとエイリアスにアクセスできるようになり、ウェブサイトへの入力や新しいエイリアスの作成ができます。",
     device_fingerprint: "デバイスのフィンガープリント",
     device_fingerprint_copy: "デバイスのフィンガープリントをコピー",
     link_device_grant_notice:
@@ -12075,6 +12099,13 @@ export const ja = {
     sign_in_rescue_hint: "Guard の設定時に保存したレスキューコードを入力してください。72 時間の待機後にアカウントが開き、お使いのデバイスで停止することもできます。",
     sign_in_rescue_submit: "レスキューを開始",
     sign_in_rescue_invalid: "このレスキューコードは使用できませんでした。確認して、もう一度お試しください。",
+    sign_in_rescue_not_allowed: "このサインインからはレスキューを開始できません。前の画面に戻り、パスワードでサインインしてから、もう一度お試しください。",
+    sign_in_rescue_paused: "試行回数が多すぎます。15分待ってから、レスキューコードをもう一度入力してください。",
+    sign_in_rescue_in_progress: "このアカウントではすでにレスキューが進行中です。完了時期はメールで確認できます。",
+    sign_in_rescue_failed: "レスキューを開始できませんでした。接続を確認して、もう一度お試しください。",
+    sign_in_rescue_only: "このサインインを承認できるデバイスがありません。アカウントに戻るには、レスキューコードを入力してください。",
+    sign_in_no_method: "このサインインを承認できるデバイスがなく、アカウントにレスキューコードもありません。アカウントに戻るには、復旧キーでパスワードをリセットしてください。",
+    sign_in_on_hold: "複数のリクエストに応答がなかったため、このアカウントのサインインは一時停止されています。約1時間後にもう一度お試しください。",
     sign_in_rescue_started: "レスキューを開始しました。{{date}} 以降にサインインできます。それまでは、サインイン済みのどのデバイスからでも停止できます。",
     sign_in_back: "サインインに戻る",
     link_device_needs_approver: "このアカウントでは Guard がオンになっているため、新しいデバイスは Guard を設定したデバイスで承認する必要があります。Guard を設定したデバイスで Aster を開き、もう一度お試しください。",
@@ -12088,6 +12119,7 @@ export const ja = {
     approve_time_label: "時刻",
     approve_device: "{{os}} の {{browser}}",
     approve_unknown_device: "不明なデバイス",
+    approve_device_named: "名前:「{{name}}」",
     approve_number_label: "新しいデバイスに表示されている番号を入力",
     approve_confirm: "承認",
     approve_deny: "拒否",
@@ -12290,12 +12322,49 @@ export const ja = {
     panic_changes_label: "件の変更を取り消し",
     panic_changes_label_one: "件の変更を取り消し",
     panic_changes_label_other: "件の変更を取り消し",
+    error_paused: "試行回数が多すぎるため、Aster Guard はこのリクエストを一時停止しました。{{time}} に再試行できます。",
+    error_paused_soon: "試行回数が多すぎるため、Aster Guard はこのリクエストを一時停止しました。しばらくしてからもう一度お試しください。",
+    error_too_many: "現在、このアカウントへのサインインリクエストが多すぎます。{{time}} に再試行できます。",
+    error_too_many_soon: "現在、このアカウントへのリクエストが多すぎます。しばらく待ってから、もう一度お試しください。",
+    error_request_gone: "このリクエストは期限切れか、別のデバイスですでに応答済みです。",
+    error_device_required: "この操作は承認済みデバイスでのみ行えます。Aster Guard で承認したデバイスを使用してください。",
+    error_not_allowed: "このデバイスではその操作を行えません。別の承認済みデバイスを使用してください。",
+    error_disabled: "このアカウントでは Aster Guard がオフになっているため、承認するものはありません。",
+    error_request_conflict: "別のデバイスが同時にこのリクエストを変更しました。ページを更新して、もう一度お試しください。",
+    error_last_device: "これは Aster Guard で唯一の承認済みデバイスのため、削除やサインアウトはできません。先に別のデバイスを承認するか、Aster Guard をオフにしてください。",
+    error_device_pending: "このデバイスは {{time}} からリクエストを承認できます。",
+    error_device_pending_soon: "このデバイスはまだ承認されていません。数分後にリクエストを承認できるようになります。",
+    error_held: "アカウントを保護するため、Aster Guard はこの変更を保留しています。キャンセルしない限り、{{time}} に適用されます。",
+    error_held_soon: "アカウントを保護するため、Aster Guard はこの変更を保留しています。キャンセルしない限り、まもなく適用されます。",
+    error_upgrade: "このバージョンの Aster Mail は古くなっています。アプリをアップデートしてから、もう一度お試しください。",
+    error_action_invalid: "Aster Guard はこのデバイスの署名を確認できませんでした。ページを再読み込みして、もう一度お試しください。",
+    error_step_up: "続行するには、もう一度本人確認を行ってください。",
+    error_device_keys: "このデバイスの Aster Guard キーが無効です。このデバイスを Aster Guard から削除してから、もう一度追加してください。",
+    error_device_unknown: "Aster Guard はこのデバイスを認識できません。Aster Guard の設定で、もう一度追加してください。",
+    error_veto_invalid: "このレスキューはすでに完了したか停止されたため、停止できません。",
+    error_offline: "オフラインです。接続を確認して、もう一度お試しください。",
+    sign_in_where_to_approve: "リクエストは、スマートフォンなどの承認済みデバイスの Aster Mail に表示されます。そこで Aster Mail を開いて承認してください。",
+    sign_in_paused_until: "試行回数が多すぎるため、このリクエストは {{time}} まで一時停止されています。",
+    sign_in_again: "もう一度サインイン",
+    sign_in_on_hold_title: "サインインは一時停止中です",
+    sign_in_on_hold_until: "複数のリクエストに応答がなかったため、このアカウントのサインインは一時停止されています。{{time}} に再試行できます。",
+    switches_join_denied: "もう一方のデバイスで、このブラウザを追加するリクエストが拒否されました。",
+    switches_join_expired: "このブラウザを追加するリクエストの期限が切れました。もう一度試して、もう一方のデバイスで承認してください。",
+    setup_who_for: "Aster Guard はリスクの高いアカウント向けです。設定後は、新しいサインインのたびに承認済みデバイスでの承認が必要になり、Aster Guard をオフにするには 24 時間かかります。",
+    setup_only_device_warning: "このブラウザが唯一の承認済みデバイスになります。このブラウザにアクセスできなくなった場合、サインインにはレスキューコードが必要です。",
+    setup_carry_device_tip: "設定後に、スマートフォンなど、いつも持ち歩いているデバイスを承認してください。",
+    intro_hold_timing_body: "パスワードとセキュリティの変更は 24 時間、転送とメールルールは 1 時間、復旧の変更は 72 時間待機するため、その間に停止できます。",
+    setup_progress_keys: "ステップ 1/3: このデバイスのキーを作成しています",
+    setup_progress_server: "ステップ 2/3: アカウントの Aster Guard をオンにしています",
+    setup_progress_device: "ステップ 3/3: このデバイスを承認済みとして保存しています",
+    setup_retry: "再試行",
   },
   settings_keywords: {
     theme_dark: "ダーク, ダークモード, ナイトモード, 黒背景, テーマ",
     theme_light: "ライト, ライトモード, 白背景, テーマ",
     theme_system: "システム, システムテーマ, 自動テーマ, 端末に合わせる",
     theme_sync_across_devices: "テーマの同期, デバイス間で同期, デバイスごとのテーマ, 端末別テーマ, 個別テーマ",
+    hide_scrollbars: "スクロールバー, スクロールバーを非表示, スクロール",
     custom_theme_colors_title: "テーマカラー, 配色, 紫, 緑, ローズ, オレンジ, ティール, インディゴ, 青, ピンク, 黒, oled, アクセントカラー",
     custom_theme_title: "カスタムテーマ, カスタムカラー, パレット, ベースカラー, プレミアムテーマ, starplan",
     font_choice_title: "フォント, フォント切り替え, 書体, フォントファミリー, starplan",
@@ -12386,6 +12455,7 @@ export const ja = {
     fam_kids_tab: "子ども, 子どものアカウント, キッズアカウント, 子供用アカウント",
     email_view_mode: "メールの表示モード, ポップアップ, 分割表示, 全画面, メールを開く, 閲覧レイアウト",
     close_popup_on_outside_click: "外側をクリックしてポップアップを閉じる, ポップアップ, 外側クリック, 閉じる",
+    open_popup_maximized: "ポップアップ, 全画面, 最大化",
     compose_window_mode: "作成ウィンドウのモード, フローティング, 全画面で作成, 最小化, 作成レイアウト",
     reduce_transparency: "透明度を下げる, 透明度, ぼかし, 不透明",
     underline_links: "リンクに下線, リンク, 下線, アンダーライン",

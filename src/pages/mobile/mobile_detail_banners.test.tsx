@@ -96,7 +96,8 @@ const EMAIL = {
 
 async function render_and_unsubscribe(): Promise<{
   on_undo?: () => Promise<void>;
-  action_label?: string;
+  message?: string;
+  actions?: { label: string; on_press: () => void }[];
 }> {
   container = document.createElement("div");
   document.body.appendChild(container);
@@ -154,9 +155,13 @@ describe("MobileUnsubscribeBanner", () => {
   it("opens the manual unsubscribe page through the external link check", async () => {
     const toast = await render_and_unsubscribe();
 
-    expect(toast.action_label).toBe("mail.open_unsubscribe_page");
+    expect(toast.message).toBe("mail.unsubscribe_on_website");
+    expect(toast.actions?.[0]?.label).toBe("mail.open_page");
 
-    await toast.on_undo!();
+    await act(async () => {
+      toast.actions![0].on_press();
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
 
     expect(request_external_link).toHaveBeenCalledWith(
       "https://news.example.com/unsubscribe",
@@ -165,7 +170,10 @@ describe("MobileUnsubscribeBanner", () => {
     expect(persist_unsubscribe).not.toHaveBeenCalled();
 
     request_external_link.mockResolvedValueOnce(true);
-    await toast.on_undo!();
+    await act(async () => {
+      toast.actions![0].on_press();
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
 
     expect(persist_unsubscribe).toHaveBeenCalledTimes(1);
   });
@@ -175,7 +183,8 @@ describe("MobileUnsubscribeBanner", () => {
 
     const toast = await render_and_unsubscribe();
 
-    expect(toast.action_label).toBeUndefined();
+    expect(toast.actions).toBeUndefined();
     expect(toast.on_undo).toBeUndefined();
+    expect(toast.message).toBe("mail.unsubscribe_use_email_link");
   });
 });

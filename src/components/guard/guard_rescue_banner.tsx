@@ -25,6 +25,10 @@ import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { ExclamationTriangleIcon } from "@heroicons/react/20/solid";
 
+import {
+  guard_error_text,
+  type GuardErrorSource,
+} from "@/components/guard/guard_error_text";
 import { GuardSetupWizard } from "@/components/guard/guard_setup_wizard";
 import { use_guard_device } from "@/components/guard/guard_switches_panel";
 import { use_guard_step_up } from "@/components/guard/use_guard_step_up";
@@ -48,7 +52,7 @@ export async function veto_rescue(
   user_id: string,
   rescue_id: string,
   proof: StepUpProof,
-): Promise<boolean> {
+): Promise<true | GuardErrorSource> {
   const action = await sign_guard_action(
     device,
     user_id,
@@ -58,7 +62,9 @@ export async function veto_rescue(
   );
   const response = await guard_veto({ id: rescue_id, action });
 
-  return !response.error && response.data?.status === "vetoed";
+  if (!response.error && response.data?.status === "vetoed") return true;
+
+  return response;
 }
 
 export function GuardRescueBanner({ user_id }: { user_id: string | null }) {
@@ -67,6 +73,7 @@ export function GuardRescueBanner({ user_id }: { user_id: string | null }) {
   const step_up = use_guard_step_up();
   const [rescue_id, set_rescue_id] = useState<string | null>(null);
   const [phase, set_phase] = useState<BannerPhase>("idle");
+  const [failure, set_failure] = useState<GuardErrorSource | null>(null);
   const { device } = use_guard_device(user_id, rescue_id !== null);
 
   useEffect(() => {
@@ -98,9 +105,14 @@ export function GuardRescueBanner({ user_id }: { user_id: string | null }) {
 
         return;
       }
-      const ok = await veto_rescue(device, user_id, rescue_id, proof);
+      const outcome = await veto_rescue(device, user_id, rescue_id, proof);
 
-      set_phase(ok ? "stopped" : "error");
+      if (outcome === true) {
+        set_phase("stopped");
+      } else {
+        set_failure(outcome);
+        set_phase("error");
+      }
     } catch {
       set_phase("error");
     }
@@ -110,7 +122,7 @@ export function GuardRescueBanner({ user_id }: { user_id: string | null }) {
     phase === "stopped"
       ? t("guard.rescue_banner_stopped")
       : phase === "error"
-        ? t("guard.rescue_banner_error")
+        ? guard_error_text(t, failure, "guard.rescue_banner_error")
         : t("guard.rescue_banner");
 
   return (
