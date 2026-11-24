@@ -18,6 +18,16 @@ updates:
         dependency-type: production
         update-types:
           - patch
+    ignore:
+      - dependency-name: "@capacitor/share"
+        update-types:
+          - version-update:semver-major
+      - dependency-name: "@stripe/stripe-js"
+        versions:
+          - ">=10.0.0"
+      - dependency-name: "@stripe/react-stripe-js"
+        versions:
+          - ">=7.0.0"
 
   - package-ecosystem: cargo
     directory: /src-tauri
@@ -58,6 +68,13 @@ updates:
         update-types:
           - minor
           - patch
+    ignore:
+      - dependency-name: sha2
+        versions:
+          - ">=0.11.0"
+      - dependency-name: rand_chacha
+        versions:
+          - ">=0.4.0"
 
   - package-ecosystem: github-actions
     directory: /
