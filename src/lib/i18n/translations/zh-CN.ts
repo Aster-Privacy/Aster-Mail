@@ -6292,6 +6292,8 @@ export const zh_CN = {
     plan_everything_in: "包含 {{plan}} 的全部功能，另加",
     compare_features_show: "按套餐比较功能",
     compare_features_hide: "隐藏比较",
+    plan_compare_included: "包含",
+    plan_compare_not_included: "不包含",
     compare_plans: "比较所有套餐",
     feature: "功能",
     manage_payment_methods: "管理支付方式",

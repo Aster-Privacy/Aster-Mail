@@ -87,7 +87,10 @@ export function PlanFeaturesModal({
             ))}
           </ul>
         ) : (
-          <PlanComparisonTable highlight_plan_code={highlight_plan_code} />
+          <PlanComparisonTable
+            highlight_plan_code={highlight_plan_code}
+            sticky_background="var(--modal-bg)"
+          />
         )}
       </ModalBody>
     </Modal>

@@ -6979,6 +6979,8 @@ export const de = {
     plan_everything_in: "Alles aus {{plan}}, plus",
     compare_features_show: "Funktionen nach Tarif vergleichen",
     compare_features_hide: "Vergleich ausblenden",
+    plan_compare_included: "Enthalten",
+    plan_compare_not_included: "Nicht enthalten",
     compare_plans: "Alle Tarife vergleichen",
     feature: "Funktion",
     manage_payment_methods: "Zahlungsmethoden verwalten",

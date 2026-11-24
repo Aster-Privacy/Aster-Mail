@@ -7051,6 +7051,8 @@ export const ru = {
     plan_everything_in: "Всё из тарифа {{plan}}, плюс",
     compare_features_show: "Сравнить возможности по тарифам",
     compare_features_hide: "Скрыть сравнение",
+    plan_compare_included: "Включено",
+    plan_compare_not_included: "Не включено",
     compare_plans: "Сравнить все тарифы",
     feature: "Функция",
     manage_payment_methods: "Управление способами оплаты",

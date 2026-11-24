@@ -7009,6 +7009,8 @@ export const fr = {
     plan_everything_in: "Tout {{plan}}, et en plus",
     compare_features_show: "Comparer les fonctionnalités par offre",
     compare_features_hide: "Masquer la comparaison",
+    plan_compare_included: "Inclus",
+    plan_compare_not_included: "Non inclus",
     compare_plans: "Comparer toutes les offres",
     feature: "Fonctionnalité",
     manage_payment_methods: "Gérer les moyens de paiement",

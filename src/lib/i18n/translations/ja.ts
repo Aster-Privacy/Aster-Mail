@@ -6904,6 +6904,8 @@ export const ja = {
     plan_everything_in: "{{plan}}のすべての機能に加えて",
     compare_features_show: "プランごとに機能を比較",
     compare_features_hide: "比較を非表示",
+    plan_compare_included: "含まれる",
+    plan_compare_not_included: "含まれない",
     compare_plans: "すべてのプランを比較",
     feature: "機能",
     manage_payment_methods: "お支払い方法を管理",

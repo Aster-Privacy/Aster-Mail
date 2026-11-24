@@ -6947,6 +6947,8 @@ export const es = {
     plan_everything_in: "Todo lo de {{plan}} y, además",
     compare_features_show: "Comparar funciones por plan",
     compare_features_hide: "Ocultar comparación",
+    plan_compare_included: "Incluido",
+    plan_compare_not_included: "No incluido",
     compare_plans: "Comparar todos los planes",
     feature: "Característica",
     manage_payment_methods: "Gestionar métodos de pago",
