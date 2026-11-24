@@ -333,12 +333,27 @@ pub fn apply_compat_browser_args(config: &mut tauri::utils::config::Config) {
 }
 
 #[cfg(any(windows, test))]
-fn system32_tool_in(system_root: Option<std::ffi::OsString>, parts: &[&str]) -> PathBuf {
-    let mut path = system_root
+fn windows_dir_in(system_root: Option<std::ffi::OsString>) -> PathBuf {
+    system_root
         .filter(|value| !value.is_empty())
         .map(PathBuf::from)
         .filter(|root| root.is_absolute())
-        .unwrap_or_else(|| PathBuf::from(r"C:\Windows"));
+        .unwrap_or_else(|| PathBuf::from(r"C:\Windows"))
+}
+
+#[cfg(any(windows, test))]
+fn explorer_exe_in(system_root: Option<std::ffi::OsString>) -> PathBuf {
+    windows_dir_in(system_root).join("explorer.exe")
+}
+
+#[cfg(windows)]
+pub(crate) fn explorer_exe() -> PathBuf {
+    explorer_exe_in(std::env::var_os("SystemRoot"))
+}
+
+#[cfg(any(windows, test))]
+fn system32_tool_in(system_root: Option<std::ffi::OsString>, parts: &[&str]) -> PathBuf {
+    let mut path = windows_dir_in(system_root);
     path.push("System32");
     for part in parts {
         path.push(part);
@@ -1179,6 +1194,18 @@ mod tests {
         assert_eq!(system32_tool_in(None, &parts), fallback);
         assert_eq!(system32_tool_in(Some("".into()), &parts), fallback);
         assert_eq!(system32_tool_in(Some("Windows".into()), &parts), fallback);
+    }
+
+    #[test]
+    fn explorer_resolves_under_the_system_root() {
+        let root = std::env::temp_dir();
+        assert_eq!(
+            explorer_exe_in(Some(root.clone().into_os_string())),
+            root.join("explorer.exe")
+        );
+        let fallback = PathBuf::from(r"C:\Windows").join("explorer.exe");
+        assert_eq!(explorer_exe_in(None), fallback);
+        assert_eq!(explorer_exe_in(Some("Windows".into())), fallback);
     }
 
     #[cfg(windows)]
