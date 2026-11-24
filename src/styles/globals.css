@@ -1680,55 +1680,52 @@
 }
 
 :root {
-  --storage-emails: #2563eb;
-  --storage-attachments: #0d9488;
-  --storage-drafts: #d97706;
-  --storage-spam: #e11d48;
-  --storage-trash: #7c3aed;
-  --storage-other: #64748b;
-  --storage-track: rgba(100, 116, 139, 0.22);
-  --capacity-plan: #4f46e5;
-  --capacity-addons: #0891b2;
-  --capacity-family: #db2777;
+  --storage-blue: #3b82f6;
+  --storage-violet: #8b5cf6;
+  --storage-teal: #0d9488;
+  --storage-amber: #b86f06;
+  --storage-rose: #e11d48;
+  --storage-fuchsia: #c026d3;
+  --storage-track: rgba(100, 116, 139, 0.08);
+  --storage-emails: var(--storage-blue);
+  --storage-attachments: var(--storage-violet);
+  --storage-drafts: var(--storage-amber);
+  --storage-spam: var(--storage-rose);
+  --storage-trash: var(--storage-fuchsia);
+  --storage-other: var(--storage-teal);
+  --capacity-plan: var(--storage-blue);
+  --capacity-addons: var(--storage-violet);
+  --capacity-family: var(--storage-teal);
 }
 
 .dark {
-  --storage-emails: #3b82f6;
-  --storage-attachments: #2dd4bf;
-  --storage-drafts: #fbbf24;
-  --storage-spam: #fb7185;
-  --storage-trash: #a78bfa;
-  --storage-other: #94a3b8;
-  --storage-track: rgba(148, 163, 184, 0.26);
-  --capacity-plan: #818cf8;
-  --capacity-addons: #22d3ee;
-  --capacity-family: #f472b6;
+  --storage-blue: #4f8ff7;
+  --storage-violet: #a78bfa;
+  --storage-teal: #2dd4bf;
+  --storage-amber: #fbbf24;
+  --storage-rose: #fb7185;
+  --storage-fuchsia: #e879f9;
+  --storage-track: rgba(148, 163, 184, 0.16);
 }
 
 .high-contrast {
-  --storage-emails: #1d4ed8;
-  --storage-attachments: #0f766e;
-  --storage-drafts: #b45309;
-  --storage-spam: #be123c;
-  --storage-trash: #6d28d9;
-  --storage-other: #475569;
-  --storage-track: rgba(71, 85, 105, 0.35);
-  --capacity-plan: #4338ca;
-  --capacity-addons: #0e7490;
-  --capacity-family: #be185d;
+  --storage-blue: #2563eb;
+  --storage-violet: #7c3aed;
+  --storage-teal: #0f766e;
+  --storage-amber: #b45309;
+  --storage-rose: #be123c;
+  --storage-fuchsia: #a21caf;
+  --storage-track: rgba(71, 85, 105, 0.22);
 }
 
 .dark.high-contrast {
-  --storage-emails: #60a5fa;
-  --storage-attachments: #5eead4;
-  --storage-drafts: #fcd34d;
-  --storage-spam: #fda4af;
-  --storage-trash: #c4b5fd;
-  --storage-other: #cbd5e1;
-  --storage-track: rgba(203, 213, 225, 0.3);
-  --capacity-plan: #a5b4fc;
-  --capacity-addons: #67e8f9;
-  --capacity-family: #f9a8d4;
+  --storage-blue: #60a5fa;
+  --storage-violet: #a78bfa;
+  --storage-teal: #2dd4bf;
+  --storage-amber: #fbbf24;
+  --storage-rose: #fb7185;
+  --storage-fuchsia: #e879f9;
+  --storage-track: rgba(203, 213, 225, 0.22);
 }
 
 .aster_cat_badge {
