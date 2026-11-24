@@ -4834,6 +4834,8 @@ export const tr = {
     feedback_placeholder: "Fikrinizi veya bulduğunuz sorunu açıklayın",
     feedback_not_encrypted:
       "Geri bildirim uçtan uca şifrelenmez, bu nedenle parola, kurtarma kodu veya başka özel bilgi eklemeyin.",
+    feedback_support_notice:
+      "Geri bildirimler destek talepleri veya sorular için takip edilmez. Yardım almak için {{ email }} adresinden destek ekibiyle iletişime geçin.",
     feedback_intro:
       "Bir fikir paylaşın, hata bildirin veya Aster ekibine ne düşündüğünüzü söyleyin. Geri bildirim bir destek talebi oluşturmaz. Yardım veya yanıt almak için destekle iletişime geçin.",
     support_intro:

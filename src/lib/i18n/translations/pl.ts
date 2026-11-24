@@ -5071,6 +5071,8 @@ export const pl = {
     feedback_placeholder: "Opisz swój pomysł lub problem, który zauważyłeś",
     feedback_not_encrypted:
       "Opinie nie są szyfrowane metodą end-to-end, więc nie podawaj haseł, kodów odzyskiwania ani innych prywatnych informacji.",
+    feedback_support_notice:
+      "Opinie nie są sprawdzane pod kątem zgłoszeń do pomocy technicznej ani pytań. Aby uzyskać pomoc, skontaktuj się z zespołem pomocy technicznej pod adresem {{ email }}.",
     feedback_intro:
       "Podziel się pomysłem, zgłoś błąd lub powiedz zespołowi Aster, co myślisz. Opinia nie tworzy zgłoszenia do pomocy technicznej, więc aby uzyskać pomoc lub odpowiedź, skontaktuj się z pomocą techniczną.",
     support_intro:

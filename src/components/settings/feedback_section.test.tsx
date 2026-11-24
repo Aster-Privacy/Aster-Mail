@@ -35,7 +35,10 @@ const h = vi.hoisted(() => ({
 }));
 
 vi.mock("@/lib/i18n/context", () => ({
-  use_i18n: () => ({ t: (key: string) => key }),
+  use_i18n: () => ({
+    t: (key: string, params?: Record<string, string>) =>
+      params?.email === undefined ? key : `${key}[${params.email}]`,
+  }),
 }));
 
 vi.mock("@aster/ui", async (import_original) => ({
@@ -230,6 +233,44 @@ describe("FeedbackSection", () => {
       "https://astermail.org/help",
       "https://status.astermail.org",
     ]);
+  });
+
+  it("shows the support notice above the form with the address as a link", async () => {
+    await mount();
+
+    const notice = container.querySelector(
+      "[data-testid='feedback-support-notice']",
+    ) as HTMLElement;
+    const link = notice.querySelector("a") as HTMLAnchorElement;
+
+    expect(notice.textContent).toBe(
+      "settings.feedback_support_notice[hello@astermail.org]",
+    );
+    expect(link.getAttribute("href")).toBe("mailto:hello@astermail.org");
+    expect(
+      notice.compareDocumentPosition(
+        container.querySelector("textarea") as HTMLTextAreaElement,
+      ) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+  });
+
+  it("opens a message to support from the notice link", async () => {
+    await mount();
+    const listener = vi.fn();
+    const link = container.querySelector(
+      "[data-testid='feedback-support-notice'] a",
+    ) as HTMLAnchorElement;
+
+    window.addEventListener("aster:open-compose-prefilled", listener);
+    act(() => {
+      link.click();
+    });
+    window.removeEventListener("aster:open-compose-prefilled", listener);
+
+    expect(listener).toHaveBeenCalledTimes(1);
+    expect((listener.mock.calls[0][0] as CustomEvent).detail).toMatchObject({
+      to: ["hello@astermail.org"],
+    });
   });
 
   it("shows both support addresses", async () => {

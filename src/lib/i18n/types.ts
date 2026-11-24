@@ -5471,6 +5471,7 @@ export interface SettingsTranslations {
   your_feedback: string;
   feedback_placeholder: string;
   feedback_not_encrypted: string;
+  feedback_support_notice: string;
   feedback_intro: string;
   support_intro: string;
   support_email_label: string;

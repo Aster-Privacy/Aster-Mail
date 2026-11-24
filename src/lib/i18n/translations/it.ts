@@ -5811,6 +5811,8 @@ export const it = {
     feedback_placeholder: "Descrivi la tua idea o il problema che hai trovato",
     feedback_not_encrypted:
       "Il feedback non è crittografato end-to-end, quindi non includere password, codici di recupero o altre informazioni private.",
+    feedback_support_notice:
+      "Il feedback non viene monitorato per richieste di assistenza o domande. Per ricevere aiuto, contatta il team di assistenza all'indirizzo {{ email }}.",
     feedback_intro:
       "Condividi un'idea, segnala un bug o di' al team di Aster cosa ne pensi. Il feedback non apre una richiesta di assistenza, quindi per ricevere aiuto o una risposta contatta l'assistenza.",
     support_intro:

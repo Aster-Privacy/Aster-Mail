@@ -4435,6 +4435,8 @@ export const zh_CN = {
     feedback_placeholder: "描述你的想法或发现的问题",
     feedback_not_encrypted:
       "反馈未经端到端加密，因此请勿包含密码、恢复码或其他私人信息。",
+    feedback_support_notice:
+      "反馈渠道不处理支持请求或问题。如需帮助，请通过 {{ email }} 联系支持团队。",
     feedback_intro:
       "分享想法、报告错误，或告诉 Aster 团队你的看法。反馈不会创建支持请求，如需帮助或回复，请联系支持团队。",
     support_intro:
