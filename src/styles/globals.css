@@ -1683,10 +1683,10 @@
   --storage-blue: #3b82f6;
   --storage-violet: #8b5cf6;
   --storage-teal: #0d9488;
-  --storage-amber: #c07508;
+  --storage-amber: #b86f06;
   --storage-rose: #e11d48;
   --storage-fuchsia: #c026d3;
-  --storage-track: rgba(100, 116, 139, 0.12);
+  --storage-track: rgba(100, 116, 139, 0.08);
   --storage-emails: var(--storage-blue);
   --storage-attachments: var(--storage-violet);
   --storage-drafts: var(--storage-amber);
@@ -1699,6 +1699,7 @@
 }
 
 .dark {
+  --storage-blue: #4f8ff7;
   --storage-violet: #a78bfa;
   --storage-teal: #2dd4bf;
   --storage-amber: #fbbf24;
