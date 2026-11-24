@@ -6907,6 +6907,8 @@ export const ko = {
     plan_everything_in: "{{plan}}의 모든 기능에 더해",
     compare_features_show: "요금제별 기능 비교",
     compare_features_hide: "비교 숨기기",
+    plan_compare_included: "포함",
+    plan_compare_not_included: "포함되지 않음",
     compare_plans: "모든 플랜 비교",
     feature: "기능",
     manage_payment_methods: "결제 수단 관리",

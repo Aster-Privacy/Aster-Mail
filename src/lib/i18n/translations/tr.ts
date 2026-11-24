@@ -6850,6 +6850,8 @@ export const tr = {
     plan_everything_in: "{{plan}} planındaki her şey, ayrıca",
     compare_features_show: "Özellikleri plana göre karşılaştır",
     compare_features_hide: "Karşılaştırmayı gizle",
+    plan_compare_included: "Dahil",
+    plan_compare_not_included: "Dahil değil",
     compare_plans: "Tüm planları karşılaştır",
     feature: "Özellik",
     manage_payment_methods: "Ödeme Yöntemlerini Yönet",

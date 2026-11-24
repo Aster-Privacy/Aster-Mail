@@ -7569,6 +7569,8 @@ export interface SettingsTranslations {
   plan_everything_in: string;
   compare_features_show: string;
   compare_features_hide: string;
+  plan_compare_included: string;
+  plan_compare_not_included: string;
   compare_plans: string;
   feature: string;
   manage_payment_methods: string;

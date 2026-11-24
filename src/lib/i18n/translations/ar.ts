@@ -7014,6 +7014,8 @@ export const ar = {
     plan_everything_in: "كل مزايا {{plan}}، بالإضافة إلى",
     compare_features_show: "مقارنة الميزات حسب الخطة",
     compare_features_hide: "إخفاء المقارنة",
+    plan_compare_included: "مضمّن",
+    plan_compare_not_included: "غير مضمّن",
     compare_plans: "مقارنة جميع الخطط",
     feature: "الميزة",
     manage_payment_methods: "إدارة طرق الدفع",

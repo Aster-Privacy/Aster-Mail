@@ -6950,6 +6950,8 @@ export const nl = {
     plan_everything_in: "Alles uit {{plan}}, plus",
     compare_features_show: "Functies per abonnement vergelijken",
     compare_features_hide: "Vergelijking verbergen",
+    plan_compare_included: "Inbegrepen",
+    plan_compare_not_included: "Niet inbegrepen",
     compare_plans: "Alle abonnementen vergelijken",
     feature: "Functie",
     manage_payment_methods: "Betaalmethoden beheren",

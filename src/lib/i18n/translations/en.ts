@@ -5386,6 +5386,8 @@ export const en: Translations = {
     plan_everything_in: "Everything in {{plan}}, plus",
     compare_features_show: "Compare features by plan",
     compare_features_hide: "Hide comparison",
+    plan_compare_included: "Included",
+    plan_compare_not_included: "Not included",
     compare_plans: "Compare all plans",
     feature: "Feature",
     manage_payment_methods: "Manage Payment Methods",

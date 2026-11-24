@@ -5165,6 +5165,8 @@ export const it = {
     plan_everything_in: "Tutto di {{plan}}, più",
     compare_features_show: "Confronta le funzionalità per piano",
     compare_features_hide: "Nascondi il confronto",
+    plan_compare_included: "Incluso",
+    plan_compare_not_included: "Non incluso",
     compare_plans: "Confronta tutti i piani",
     feature: "Funzionalità",
     manage_payment_methods: "Gestisci metodi di pagamento",

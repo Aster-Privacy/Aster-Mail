@@ -20,14 +20,25 @@
 //
 import type { TranslationKey } from "@/lib/i18n/types";
 
-import { Fragment, useMemo } from "react";
-import { XCircleIcon } from "@heroicons/react/24/outline";
+import type { ComponentType, SVGProps } from "react";
+
+import { useMemo } from "react";
+import {
+  AtSymbolIcon,
+  EnvelopeIcon,
+  LifebuoyIcon,
+  LockClosedIcon,
+  NewspaperIcon,
+  ShieldCheckIcon,
+  Squares2X2Icon,
+  UserGroupIcon,
+  XCircleIcon,
+} from "@heroicons/react/24/outline";
 import { CheckCircleIcon } from "@heroicons/react/24/solid";
-import { Island } from "@aster/ui";
+import { IslandRow, IslandSection, IslandSections } from "@aster/ui";
 
 import { InfoPopover } from "@/components/ui/info_popover";
 import { use_i18n } from "@/lib/i18n/context";
-import mail_logo_url from "@/assets/mail_logo.webp";
 
 type TranslateFunction = (
   key: TranslationKey,
@@ -756,28 +767,89 @@ type ColumnKey = "free" | "star" | "nova" | "supernova";
 
 const COLUMNS: ColumnKey[] = ["free", "star", "nova", "supernova"];
 
-function render_cell(value: string) {
+type HeroIcon = ComponentType<SVGProps<SVGSVGElement>>;
+
+const CATEGORY_ICONS: [TranslationKey, HeroIcon][] = [
+  ["settings.plan_cat_general", Squares2X2Icon],
+  ["settings.plan_cat_mail", EnvelopeIcon],
+  ["settings.plan_cat_advanced_aliases", AtSymbolIcon],
+  ["settings.plan_cat_contacts", UserGroupIcon],
+  ["settings.plan_cat_security", ShieldCheckIcon],
+  ["settings.plan_cat_vanguard", LockClosedIcon],
+  ["settings.plan_cat_subscriptions", NewspaperIcon],
+  ["settings.plan_cat_support", LifebuoyIcon],
+];
+
+interface ComparisonGroup {
+  category: string;
+  rows: ComparisonRow[];
+}
+
+const ROW_CLASS =
+  "@max-xl:flex-wrap @max-xl:gap-y-2.5 [&>:last-child]:max-w-none [&>:last-child]:shrink-0 [&>:last-child]:basis-[58%] @max-xl:[&>:last-child]:basis-full";
+
+const VALUES_CLASS =
+  "grid w-full grid-cols-4 items-center gap-x-1.5 @max-md:-mx-2 @max-md:w-[calc(100%+1rem)] @max-md:gap-x-1";
+
+function group_rows(rows: ComparisonRow[]): ComparisonGroup[] {
+  return rows.reduce<ComparisonGroup[]>((groups, row) => {
+    const last = groups[groups.length - 1];
+
+    if (last && last.category === row.category) {
+      last.rows.push(row);
+    } else {
+      groups.push({ category: row.category, rows: [row] });
+    }
+
+    return groups;
+  }, []);
+}
+
+function ComparisonCell({
+  value,
+  plan_label,
+}: {
+  value: string;
+  plan_label: string;
+}) {
+  const { t } = use_i18n();
+
   if (value === "✓") {
     return (
-      <CheckCircleIcon
-        aria-hidden="true"
-        className="mx-auto block h-[22px] w-[22px]"
-        style={{ color: "var(--accent-blue)" }}
-      />
+      <>
+        <CheckCircleIcon
+          aria-hidden="true"
+          className="mx-auto block h-[22px] w-[22px]"
+          style={{ color: "var(--accent-blue)" }}
+        />
+        <span className="sr-only">
+          {plan_label}: {t("settings.plan_compare_included")}
+        </span>
+      </>
     );
   }
 
   if (value === "-") {
     return (
-      <XCircleIcon
-        aria-hidden="true"
-        className="mx-auto block h-[22px] w-[22px]"
-        style={{ color: "var(--color-danger)", strokeWidth: 1.8 }}
-      />
+      <>
+        <XCircleIcon
+          aria-hidden="true"
+          className="mx-auto block h-[22px] w-[22px]"
+          style={{ color: "var(--color-danger)", strokeWidth: 1.8 }}
+        />
+        <span className="sr-only">
+          {plan_label}: {t("settings.plan_compare_not_included")}
+        </span>
+      </>
     );
   }
 
-  return <span className="text-sm font-medium text-txt-primary">{value}</span>;
+  return (
+    <span className="block text-sm font-medium text-txt-primary @max-md:[font-size:calc(12px*var(--font-scale,1))]!">
+      <span className="sr-only">{plan_label}: </span>
+      {value}
+    </span>
+  );
 }
 
 function FeatureLabel({ label, tip }: { label: string; tip?: string }) {
@@ -804,11 +876,21 @@ function FeatureLabel({ label, tip }: { label: string; tip?: string }) {
 
 export function PlanComparisonTable({
   highlight_plan_code,
+  sticky_background = "var(--bg-primary)",
 }: {
   highlight_plan_code?: string | null;
+  sticky_background?: string;
 }) {
   const { t } = use_i18n();
   const rows = useMemo<ComparisonRow[]>(() => get_plan_comparison_rows(t), [t]);
+  const groups = useMemo(() => group_rows(rows), [rows]);
+  const category_icons = useMemo(
+    () =>
+      new Map<string, HeroIcon>(
+        CATEGORY_ICONS.map(([key, icon]) => [t(key), icon]),
+      ),
+    [t],
+  );
   const column_labels: Record<ColumnKey, string> = {
     free: t("settings.plan_free"),
     star: "Star",
@@ -819,70 +901,67 @@ export function PlanComparisonTable({
     COLUMNS.find((key) => key === highlight_plan_code) ?? null;
 
   return (
-    <Island className="overflow-x-auto">
-      <table className="w-full min-w-[640px] table-fixed border-separate border-spacing-0">
-        <thead>
-          <tr>
-            <th className="w-[200px] border-b border-[color:var(--aster-island-divider)]" />
+    <div className="@container">
+      <div
+        aria-hidden="true"
+        className="sticky top-0 z-[1] flex items-center gap-3 px-4 py-3"
+        style={{ backgroundColor: sticky_background }}
+      >
+        <span className="min-w-0 flex-1 @max-xl:hidden" />
+        <div className="shrink-0 basis-[58%] @max-xl:basis-full">
+          <div className={VALUES_CLASS}>
             {COLUMNS.map((key) => (
-              <th
+              <span
                 key={key}
-                className="border-b border-[color:var(--aster-island-divider)] px-4 py-4 text-center align-top"
-                scope="col"
+                className="truncate text-center text-[15px] font-semibold @max-md:[font-size:calc(12px*var(--font-scale,1))]!"
+                style={{
+                  color:
+                    active_column === key
+                      ? "var(--accent-blue)"
+                      : "var(--text-primary)",
+                }}
               >
-                <span
-                  className="text-base font-semibold"
-                  style={{
-                    color:
-                      active_column === key
-                        ? "var(--accent-blue)"
-                        : "var(--text-primary)",
-                  }}
-                >
-                  {column_labels[key]}
-                </span>
-              </th>
+                {column_labels[key]}
+              </span>
             ))}
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map((row, index) => (
-            <Fragment key={row.label}>
-              {(index === 0 || rows[index - 1].category !== row.category) && (
-                <tr>
-                  <td className="px-5 pb-2 pt-5" colSpan={COLUMNS.length + 1}>
-                    <span className="flex items-center gap-2.5 text-[15px] font-semibold text-txt-primary">
-                      <img
-                        alt=""
-                        aria-hidden="true"
-                        className="h-6 w-6 rounded-md"
-                        src={mail_logo_url}
-                      />
-                      {row.category}
-                    </span>
-                  </td>
-                </tr>
-              )}
-              <tr>
-                <th
-                  className="w-[200px] px-5 py-3 text-start text-sm font-normal text-txt-muted"
-                  scope="row"
-                >
-                  <FeatureLabel label={row.label} tip={row.tip} />
-                </th>
-                {COLUMNS.map((key) => (
-                  <td
-                    key={key}
-                    className="px-4 py-3 text-center align-middle tabular-nums"
-                  >
-                    {render_cell(row[key])}
-                  </td>
-                ))}
-              </tr>
-            </Fragment>
-          ))}
-        </tbody>
-      </table>
-    </Island>
+          </div>
+        </div>
+      </div>
+
+      <IslandSections className="pt-2">
+        {groups.map((group) => {
+          const Icon = category_icons.get(group.category);
+
+          return (
+            <IslandSection
+              key={group.category}
+              divided
+              icon={Icon ? <Icon aria-hidden="true" /> : undefined}
+              title={group.category}
+            >
+              {group.rows.map((row) => (
+                <IslandRow
+                  key={row.label}
+                  className={ROW_CLASS}
+                  label={<FeatureLabel label={row.label} tip={row.tip} />}
+                  trailing={
+                    <div className={VALUES_CLASS}>
+                      {COLUMNS.map((key) => (
+                        <div key={key} className="text-center tabular-nums">
+                          <ComparisonCell
+                            plan_label={column_labels[key]}
+                            value={row[key]}
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  }
+                />
+              ))}
+            </IslandSection>
+          );
+        })}
+      </IslandSections>
+    </div>
   );
 }

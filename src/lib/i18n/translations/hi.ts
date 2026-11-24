@@ -5481,6 +5481,8 @@ export const hi = {
     plan_everything_in: "{{plan}} की हर सुविधा, साथ में",
     compare_features_show: "प्लान के हिसाब से सुविधाओं की तुलना करें",
     compare_features_hide: "तुलना छिपाएं",
+    plan_compare_included: "शामिल",
+    plan_compare_not_included: "शामिल नहीं",
     compare_plans: "सभी प्लान की तुलना करें",
     feature: "सुविधा",
     manage_payment_methods: "भुगतान के तरीके प्रबंधित करें",
