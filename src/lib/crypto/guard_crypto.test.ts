@@ -20,8 +20,8 @@
 //
 import { describe, it, expect } from "vitest";
 import { ml_kem768 } from "@noble/post-quantum/ml-kem.js";
-import { x25519 } from "@noble/curves/ed25519";
-import { p256 } from "@noble/curves/p256";
+import { x25519 } from "@noble/curves/ed25519.js";
+import { p256 } from "@noble/curves/nist.js";
 import { gcm } from "@noble/ciphers/aes";
 import { sha256 } from "@noble/hashes/sha256";
 import { bytesToHex, randomBytes } from "@noble/hashes/utils";
@@ -209,7 +209,7 @@ describe("guard action messages", () => {
 
 describe("p256 compression", () => {
   it("compresses a raw point to the sec1 form", () => {
-    const sk = p256.utils.randomPrivateKey();
+    const sk = p256.utils.randomSecretKey();
     const raw = p256.getPublicKey(sk, false);
 
     expect(hex(compress_p256(raw))).toBe(hex(p256.getPublicKey(sk, true)));

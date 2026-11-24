@@ -20,7 +20,7 @@
 import type { EncryptedVault } from "./key_manager";
 
 import { describe, expect, it } from "vitest";
-import { p256 } from "@noble/curves/nist";
+import { p256 } from "@noble/curves/nist.js";
 
 import {
   address_entry_forms,
@@ -133,7 +133,7 @@ describe("address identity vectors", () => {
 
   it("rejects an entry whose signature was rewritten to its high S twin", () => {
     const signature = base64_to_array(expected.entry.signed_prekey_signature);
-    const order = p256.CURVE.n;
+    const order = p256.Point.Fn.ORDER;
     let s_value = 0n;
 
     for (const byte of signature.slice(32, 64)) {

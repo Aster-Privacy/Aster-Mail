@@ -20,8 +20,8 @@
 //
 import type { EncryptedVault } from "./key_manager";
 
-import { p256 } from "@noble/curves/nist";
-import { mapHashToField } from "@noble/curves/abstract/modular";
+import { p256 } from "@noble/curves/nist.js";
+import { mapHashToField } from "@noble/curves/abstract/modular.js";
 import { hkdf } from "@noble/hashes/hkdf";
 import { sha256 } from "@noble/hashes/sha256";
 
@@ -114,7 +114,7 @@ export function derive_address_key(
       new TextEncoder().encode(normalized),
       SCALAR_SEED_LEN,
     );
-    scalar = mapHashToField(seed, p256.CURVE.n);
+    scalar = mapHashToField(seed, p256.Point.Fn.ORDER);
 
     const point = p256.getPublicKey(scalar, false);
     const address_jwk: JsonWebKey = {

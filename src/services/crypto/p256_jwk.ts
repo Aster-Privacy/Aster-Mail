@@ -18,7 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { p256 } from "@noble/curves/nist";
+import { p256 } from "@noble/curves/nist.js";
 
 import { array_to_base64 } from "./base64";
 

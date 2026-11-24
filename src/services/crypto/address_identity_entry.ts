@@ -20,7 +20,7 @@
 //
 import type { EncryptedVault } from "./key_manager";
 
-import { p256 } from "@noble/curves/nist";
+import { p256 } from "@noble/curves/nist.js";
 import { hkdf } from "@noble/hashes/hkdf";
 import { sha256 } from "@noble/hashes/sha256";
 import { ml_kem768 } from "@noble/post-quantum/ml-kem.js";
@@ -357,7 +357,7 @@ function sign_digest(digest: Uint8Array, identity_jwk: string): Uint8Array {
 
     scalar = base64url_decode(jwk.d ?? "");
 
-    return p256.sign(digest, scalar, { lowS: true }).toCompactRawBytes();
+    return p256.sign(digest, scalar, { lowS: true, prehash: false });
   } finally {
     scalar?.fill(0);
   }
@@ -373,7 +373,7 @@ function verify_digest(
       signature,
       digest,
       public_key,
-      { lowS: true },
+      { lowS: true, prehash: false },
     );
   } catch {
     return false;

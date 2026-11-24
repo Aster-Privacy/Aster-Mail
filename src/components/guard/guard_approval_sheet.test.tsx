@@ -27,7 +27,7 @@ import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { ml_kem768 } from "@noble/post-quantum/ml-kem.js";
-import { x25519 } from "@noble/curves/ed25519";
+import { x25519 } from "@noble/curves/ed25519.js";
 
 import { base64url_encode } from "@/lib/crypto/device_envelope";
 import {
@@ -236,7 +236,7 @@ const USER_ID = "22222222-3333-4444-8555-666666666666";
 
 function new_device_keys() {
   const mlkem = ml_kem768.keygen();
-  const x_sk = x25519.utils.randomPrivateKey();
+  const x_sk = x25519.utils.randomSecretKey();
   const keys = {
     ed25519_pk: base64url_encode(new Uint8Array(32).fill(7)),
     mlkem_pk: base64url_encode(mlkem.publicKey),

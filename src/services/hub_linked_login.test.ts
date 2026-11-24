@@ -19,7 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { ed25519 } from "@noble/curves/ed25519";
+import { ed25519 } from "@noble/curves/ed25519.js";
 import { randomBytes } from "@noble/hashes/utils";
 
 import type { DevicePubkeys } from "@/native/desktop_device_auth";
