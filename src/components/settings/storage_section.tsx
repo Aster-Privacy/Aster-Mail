@@ -495,6 +495,8 @@ export function StorageSection() {
     [],
   );
 
+  const donut_gap = donut_segments.length > 1 ? 0.7 : 0;
+
   const percent_label =
     percentage > 0 && percentage < 1
       ? t("common.storage_under_one_percent")
@@ -657,7 +659,7 @@ export function StorageSection() {
                         opacity={dimmed ? 0.25 : 1}
                         r="15.915494"
                         stroke={segment.color}
-                        strokeDasharray={`${segment.share} ${Math.max(0, 100 - segment.share)}`}
+                        strokeDasharray={`${Math.max(0, segment.share - donut_gap)} ${Math.min(100, 100 - segment.share + donut_gap)}`}
                         strokeDashoffset={-segment.offset}
                         strokeLinecap="butt"
                         strokeWidth={active_category === segment.name ? 4.5 : 3}
@@ -718,17 +720,7 @@ export function StorageSection() {
                           })
                         : undefined
                     }
-                    icon={
-                      <Icon
-                        className="h-[22px] w-[22px]"
-                        style={{
-                          color:
-                            entry.bytes_used > 0
-                              ? style.color
-                              : "var(--text-muted)",
-                        }}
-                      />
-                    }
+                    icon={<Icon />}
                     label={t(style.label_key)}
                     style={{
                       opacity: dimmed ? 0.4 : 1,
@@ -761,7 +753,14 @@ export function StorageSection() {
                         >
                           {format_bytes(entry.bytes_used)}
                         </span>
-                        <span className="text-[12px] leading-4 tabular-nums text-txt-muted">
+                        <span className="flex items-center gap-1.5 text-[12px] leading-4 tabular-nums text-txt-muted">
+                          {entry.bytes_used > 0 && (
+                            <span
+                              aria-hidden="true"
+                              className="h-2 w-2 flex-shrink-0 rounded-full"
+                              style={{ backgroundColor: style.color }}
+                            />
+                          )}
                           {row_share > 0
                             ? `${format_decimal(row_share, row_share < 10 ? 1 : 0)}%`
                             : "0%"}
