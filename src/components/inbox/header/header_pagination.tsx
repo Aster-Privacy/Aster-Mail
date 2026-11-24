@@ -99,12 +99,12 @@ export function HeaderPagination({
       : true;
 
   return (
-    <div className="hidden select-none lg:flex items-center gap-0.5 text-xs text-[var(--text-muted)] ms-1">
+    <div className="hidden select-none lg:flex items-center gap-0.5 text-sm text-[var(--text-muted)] ms-1">
       <Tooltip tip={t("common.previous")}>
         <span className="inline-flex">
           <Button
             aria-disabled={prev_disabled}
-            className={`h-7 w-7 text-[var(--icon-secondary)] ${prev_disabled ? "opacity-40 pointer-events-none" : "hover:text-[var(--icon-active)]"}`}
+            className={`h-9 w-9 rounded-[10px] text-[var(--icon-secondary)] ${prev_disabled ? "opacity-40 pointer-events-none" : "hover:text-[var(--icon-active)]"}`}
             size="icon"
             tabIndex={prev_disabled ? -1 : undefined}
             variant="ghost"
@@ -118,13 +118,13 @@ export function HeaderPagination({
             }}
             onMouseDown={(e) => e.preventDefault()}
           >
-            <ChevronLeftIcon className="w-4 h-4 rtl:-scale-x-100" />
+            <ChevronLeftIcon className="w-5 h-5 rtl:-scale-x-100" />
           </Button>
         </span>
       </Tooltip>
       {is_message_mode ? (
         message_index_known && (
-          <span className="tabular-nums text-sm min-w-[3ch] text-center">
+          <span className="tabular-nums text-sm whitespace-nowrap min-w-[3ch] px-1 text-center @max-[420px]/listbar:hidden">
             {((current_email_index ?? 0) + 1).toLocaleString(app_locale())}
             {total_email_count > 0 && (
               <>
@@ -144,7 +144,7 @@ export function HeaderPagination({
         >
           <span
             aria-label={range_label}
-            className="tabular-nums text-[13px] whitespace-nowrap px-1 text-center"
+            className="tabular-nums text-sm whitespace-nowrap px-1 text-center @max-[420px]/listbar:hidden"
           >
             {range.start.toLocaleString(app_locale())}-
             {range.end.toLocaleString(app_locale())}
@@ -161,7 +161,7 @@ export function HeaderPagination({
         <span className="inline-flex">
           <Button
             aria-disabled={next_disabled}
-            className={`h-7 w-7 text-[var(--icon-secondary)] ${next_disabled ? "opacity-40 pointer-events-none" : "hover:text-[var(--icon-active)]"}`}
+            className={`h-9 w-9 rounded-[10px] text-[var(--icon-secondary)] ${next_disabled ? "opacity-40 pointer-events-none" : "hover:text-[var(--icon-active)]"}`}
             size="icon"
             tabIndex={next_disabled ? -1 : undefined}
             variant="ghost"
@@ -175,7 +175,7 @@ export function HeaderPagination({
             }}
             onMouseDown={(e) => e.preventDefault()}
           >
-            <ChevronRightIcon className="w-4 h-4 rtl:-scale-x-100" />
+            <ChevronRightIcon className="w-5 h-5 rtl:-scale-x-100" />
           </Button>
         </span>
       </Tooltip>

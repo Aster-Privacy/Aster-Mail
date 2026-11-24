@@ -9223,6 +9223,7 @@ export const en: Translations = {
     sidebar_move_section_down: "Move {{name}} down",
   },
   mail: {
+    resize_reading_pane: "Resize reading pane",
     image_size_prompt_title: "Reduce the size of images in this message?",
     image_size_prompt_description:
       "Smaller images send faster and stay within the size limits of other email providers. The original size keeps every detail.",

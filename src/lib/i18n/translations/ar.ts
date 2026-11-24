@@ -9302,6 +9302,7 @@ export const ar = {
     sidebar_move_section_down: "نقل {{name}} لأسفل",
   },
   mail: {
+    resize_reading_pane: "تغيير حجم جزء القراءة",
     image_size_prompt_title: "هل تريد تقليل حجم الصور في هذه الرسالة؟",
     image_size_prompt_description:
       "تُرسل الصور الأصغر بشكل أسرع وتبقى ضمن حدود الحجم لدى مزودي البريد الإلكتروني الآخرين. يحتفظ الحجم الأصلي بكل التفاصيل.",

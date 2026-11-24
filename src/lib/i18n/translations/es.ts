@@ -9463,6 +9463,7 @@ export const es = {
     sidebar_move_section_down: "Mover {{name}} hacia abajo",
   },
   mail: {
+    resize_reading_pane: "Cambiar el tamaño del panel de lectura",
     image_size_prompt_title:
       "¿Reducir el tamaño de las imágenes de este mensaje?",
     image_size_prompt_description:

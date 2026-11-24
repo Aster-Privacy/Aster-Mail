@@ -9434,6 +9434,7 @@ export const nl = {
     sidebar_move_section_down: "{{name}} omlaag verplaatsen",
   },
   mail: {
+    resize_reading_pane: "Formaat van leesvenster wijzigen",
     image_size_prompt_title:
       "Grootte van afbeeldingen in dit bericht verkleinen?",
     image_size_prompt_description:

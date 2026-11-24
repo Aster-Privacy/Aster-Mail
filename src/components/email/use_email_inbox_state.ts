@@ -915,7 +915,8 @@ export function use_email_inbox_state(props: EmailInboxProps) {
 
         return;
       }
-      if (!email.is_starred) void context_menu_actions.handle_toggle_star(email);
+      if (!email.is_starred)
+        void context_menu_actions.handle_toggle_star(email);
 
       return;
     }
@@ -1023,6 +1024,7 @@ export function use_email_inbox_state(props: EmailInboxProps) {
     is_split_view,
     is_bottom_pane,
     split_pane_width: preferences.split_pane_width,
+    split_pane_ratio: preferences.split_pane_ratio ?? 0,
     split_pane_height: preferences.split_pane_height,
     update_preference,
     on_split_close,

@@ -9217,6 +9217,7 @@ export const ja = {
     sidebar_move_section_down: "{{name}}を下に移動",
   },
   mail: {
+    resize_reading_pane: "閲覧ウィンドウのサイズを変更",
     image_size_prompt_title: "このメッセージの画像サイズを縮小しますか？",
     image_size_prompt_description:
       "小さい画像はより速く送信でき、他のメールプロバイダのサイズ制限内に収まります。元のサイズではすべての細部が保たれます。",

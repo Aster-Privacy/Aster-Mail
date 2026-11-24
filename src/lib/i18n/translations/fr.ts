@@ -9560,6 +9560,7 @@ export const fr = {
     sidebar_move_section_down: "Descendre {{name}}",
   },
   mail: {
+    resize_reading_pane: "Redimensionner le volet de lecture",
     image_size_prompt_title: "Réduire la taille des images de ce message ?",
     image_size_prompt_description:
       "Les images plus petites s’envoient plus vite et respectent les limites de taille des autres fournisseurs de messagerie. La taille d’origine conserve tous les détails.",

@@ -9058,6 +9058,7 @@ export const ko = {
     sidebar_move_section_down: "{{name}} 아래로 이동",
   },
   mail: {
+    resize_reading_pane: "읽기 창 크기 조정",
     image_size_prompt_title: "이 메시지의 이미지 크기를 줄일까요?",
     image_size_prompt_description:
       "작은 이미지는 더 빠르게 전송되며 다른 이메일 제공업체의 크기 제한을 넘지 않습니다. 원본 크기는 모든 세부 정보를 유지합니다.",

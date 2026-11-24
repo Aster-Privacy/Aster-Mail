@@ -9686,6 +9686,7 @@ export const pl = {
     sidebar_move_section_down: "Przenieś {{name}} w dół",
   },
   mail: {
+    resize_reading_pane: "Zmień rozmiar panelu odczytu",
     image_size_prompt_title: "Zmniejszyć rozmiar obrazów w tej wiadomości?",
     image_size_prompt_description:
       "Mniejsze obrazy wysyłają się szybciej i mieszczą się w limitach rozmiaru innych dostawców poczty. Oryginalny rozmiar zachowuje wszystkie szczegóły.",
