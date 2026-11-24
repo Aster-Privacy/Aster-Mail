@@ -5643,6 +5643,12 @@ export const en: Translations = {
       "Could not send the verification email. Please try again.",
     academic_copy_failed: "Could not copy the code.",
     academic_captcha_required: "Please complete the captcha challenge.",
+    academic_captcha_unavailable:
+      "Aster Mail can't verify your request right now. Try again later, or request the discount on the web.",
+    academic_too_many_attempts:
+      "You've sent too many verification requests. Try again later.",
+    academic_no_pending_request:
+      "Your verification request is no longer pending. Enter your academic email again.",
     academic_journalist_hint:
       "Journalist? Contact support with your press credentials to receive your code.",
     refer_a_friend: "Refer a Friend",

@@ -8675,6 +8675,12 @@ export const pt = {
       "Não foi possível enviar o e-mail de verificação. Tente novamente.",
     academic_copy_failed: "Não foi possível copiar o código.",
     academic_captcha_required: "Complete o desafio captcha.",
+    academic_captcha_unavailable:
+      "O Aster Mail não consegue verificar o seu pedido neste momento. Tente novamente mais tarde ou peça o desconto na web.",
+    academic_too_many_attempts:
+      "Enviou demasiados pedidos de verificação. Tente novamente mais tarde.",
+    academic_no_pending_request:
+      "O seu pedido de verificação já não está pendente. Introduza novamente o seu e-mail académico.",
     academic_journalist_hint:
       "Jornalista? Contacte o suporte com as suas credenciais de imprensa para receber o seu código.",
     refer_a_friend: "Indicar um amigo",

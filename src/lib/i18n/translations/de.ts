@@ -8823,6 +8823,12 @@ export const de = {
       "Die Verifizierungs-E-Mail konnte nicht gesendet werden. Bitte versuchen Sie es erneut.",
     academic_copy_failed: "Der Code konnte nicht kopiert werden.",
     academic_captcha_required: "Bitte schließen Sie die Captcha-Prüfung ab.",
+    academic_captcha_unavailable:
+      "Aster Mail kann Ihre Anfrage gerade nicht überprüfen. Versuchen Sie es später erneut, oder fordern Sie den Rabatt im Web an.",
+    academic_too_many_attempts:
+      "Sie haben zu viele Bestätigungsanfragen gesendet. Versuchen Sie es später erneut.",
+    academic_no_pending_request:
+      "Ihre Bestätigungsanfrage ist nicht mehr offen. Geben Sie Ihre akademische E-Mail-Adresse erneut ein.",
     academic_journalist_hint:
       "Sie sind Journalist? Wenden Sie sich mit Ihrem Presseausweis an den Support, um Ihren Code zu erhalten.",
     refer_a_friend: "Freund einladen",

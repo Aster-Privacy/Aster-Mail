@@ -8391,6 +8391,12 @@ export const ar = {
     academic_request_failed: "تعذّر إرسال بريد التحقق. حاول مرة أخرى.",
     academic_copy_failed: "تعذّر نسخ الرمز.",
     academic_captcha_required: "يرجى إكمال اختبار captcha.",
+    academic_captcha_unavailable:
+      "لا يمكن لـ Aster Mail التحقق من طلبك الآن. حاول مرة أخرى لاحقًا، أو اطلب الخصم من الويب.",
+    academic_too_many_attempts:
+      "لقد أرسلت عددًا كبيرًا جدًا من طلبات التحقق. حاول مرة أخرى لاحقًا.",
+    academic_no_pending_request:
+      "لم يعد طلب التحقق الخاص بك قيد الانتظار. أدخل بريدك الأكاديمي مرة أخرى.",
     academic_journalist_hint:
       "هل أنت صحفي؟ تواصل مع الدعم مع إثبات اعتمادك الصحفي للحصول على الرمز.",
     refer_a_friend: "أحِل صديقًا",

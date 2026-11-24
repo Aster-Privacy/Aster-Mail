@@ -8269,6 +8269,10 @@ export const ko = {
     academic_request_failed: "인증 메일을 보낼 수 없었습니다. 다시 시도하세요.",
     academic_copy_failed: "코드를 복사할 수 없었습니다.",
     academic_captcha_required: "캡차 인증을 완료해 주세요.",
+    academic_captcha_unavailable:
+      "Aster Mail에서 지금 요청을 확인할 수 없습니다. 나중에 다시 시도하거나 웹에서 할인을 요청하세요.",
+    academic_too_many_attempts: "인증 요청을 너무 많이 보냈습니다. 나중에 다시 시도하세요.",
+    academic_no_pending_request: "인증 요청이 더 이상 대기 중이 아닙니다. 학교 이메일을 다시 입력하세요.",
     academic_journalist_hint:
       "기자이신가요? 기자증과 함께 지원팀에 문의하면 코드를 받을 수 있습니다.",
     refer_a_friend: "친구 추천",

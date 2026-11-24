@@ -8504,6 +8504,12 @@ export const tr = {
       "Doğrulama e-postası gönderilemedi. Lütfen tekrar deneyin.",
     academic_copy_failed: "Kod kopyalanamadı.",
     academic_captcha_required: "Lütfen captcha doğrulamasını tamamlayın.",
+    academic_captcha_unavailable:
+      "Aster Mail şu anda isteğinizi doğrulayamıyor. Daha sonra tekrar deneyin veya indirimi web üzerinden isteyin.",
+    academic_too_many_attempts:
+      "Çok fazla doğrulama isteği gönderdiniz. Daha sonra tekrar deneyin.",
+    academic_no_pending_request:
+      "Doğrulama isteğiniz artık beklemede değil. Akademik e-posta adresinizi tekrar girin.",
     academic_journalist_hint:
       "Gazeteci misiniz? Kodunuzu almak için basın kartınızla destek ekibine ulaşın.",
     refer_a_friend: "Arkadaşını Davet Et",

@@ -8568,6 +8568,11 @@ export const ja = {
       "認証メールを送信できませんでした。もう一度お試しください。",
     academic_copy_failed: "コードをコピーできませんでした。",
     academic_captcha_required: "キャプチャ認証を完了してください。",
+    academic_captcha_unavailable:
+      "Aster Mail は現在リクエストを確認できません。しばらくしてからもう一度お試しいただくか、Web から割引をリクエストしてください。",
+    academic_too_many_attempts: "確認リクエストの送信回数が多すぎます。しばらくしてからもう一度お試しください。",
+    academic_no_pending_request:
+      "確認リクエストは保留中ではなくなりました。学術機関のメールアドレスをもう一度入力してください。",
     academic_journalist_hint:
       "ジャーナリストの方は、記者証を添えてサポートまでご連絡ください。",
     refer_a_friend: "友達を紹介",
