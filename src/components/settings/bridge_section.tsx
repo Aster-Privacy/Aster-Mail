@@ -982,8 +982,7 @@ export function BridgeSection() {
           devices.length > 1 ? (
             <Button
               disabled={revoking_all || revoking_id !== null}
-              className="text-red-500 hover:text-red-600"
-              variant="outline"
+              variant="depth_destructive"
               onClick={() => set_confirm_revoke_all(true)}
             >
               {t("settings.trusted_devices_revoke_all")}
@@ -1038,8 +1037,7 @@ export function BridgeSection() {
                   <Button
                     className="flex-shrink-0"
                     disabled={revoking_id === device.id || revoking_all}
-                    style={{ color: "var(--color-danger)" }}
-                    variant="secondary"
+                    variant="depth_destructive"
                     onClick={() => set_confirm_revoke_id(device.id)}
                   >
                     {t("settings.trusted_devices_revoke")}
