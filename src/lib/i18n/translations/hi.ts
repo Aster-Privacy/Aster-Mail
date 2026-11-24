@@ -1415,6 +1415,26 @@ export const hi = {
     search_labels: "लेबल खोजें",
     enter_label_name: "लेबल का नाम डालें",
     leaving_aster_mail: "Aster Mail छोड़ रहे हैं",
+    link_dialog_title: "यह लिंक खोलें?",
+    link_dialog_body: "यह लिंक Aster Mail के बाहर एक वेबपेज खोलता है।",
+    link_dialog_mail_title: "अपना ईमेल ऐप खोलें?",
+    link_dialog_mail_body:
+      "यह लिंक आपके डिवाइस के ईमेल ऐप में इस पते पर एक नया संदेश बनाता है।",
+    link_dialog_blocked_title: "यह लिंक नहीं खोला जा सकता",
+    link_dialog_blocked_body:
+      "Aster Mail इस तरह के लिंक नहीं खोलता, क्योंकि ये कोड चला सकते हैं या अपनी असली मंज़िल छिपा सकते हैं।",
+    link_dialog_show_full: "पूरा पता दिखाएँ",
+    link_dialog_copy: "लिंक कॉपी करें",
+    link_dialog_warnings_label: "खोलने से पहले जाँचें",
+    link_dialog_warning_http:
+      "यह वेबपेज सुरक्षित कनेक्शन का इस्तेमाल नहीं करता, इसलिए नेटवर्क पर दूसरे लोग आपकी भेजी जानकारी देख या बदल सकते हैं।",
+    link_dialog_warning_lookalike:
+      "यह पता {{host}} के रूप में भी दिख सकता है। इसमें अलग-अलग लिपियों के अक्षर मिले हुए हैं, जिससे यह किसी दूसरी वेबसाइट जैसा दिख सकता है।",
+    link_dialog_warning_mismatch:
+      "लिंक के टेक्स्ट में {{shown}} दिखता है, लेकिन लिंक {{site}} खोलता है।",
+    link_dialog_warning_ip:
+      "यह लिंक वेबसाइट के नाम की जगह एक संख्या वाला पता इस्तेमाल करता है, इसलिए यह पता लगाना मुश्किल है कि पेज कौन चलाता है।",
+    link_dialog_full_address: "पूरा पता",
     unlock_aster_mail: "Aster Mail अनलॉक करें",
     aster_mail_locked: "Aster Mail लॉक है",
     merge_contacts: "संपर्क मिलाएं",
@@ -11836,6 +11856,22 @@ export const hi = {
     panel_open_calendar: "कैलेंडर खोलें",
     panel_load_failed: "आपका कैलेंडर लोड नहीं हुआ।",
     panel_try_again: "फिर से कोशिश करें",
+    panel_signed_out: "अपना कैलेंडर देखने के लिए साइन इन करें।",
+    panel_keys_loading: "आपका खाता अनलॉक होने के बाद आपका कैलेंडर दिखाई देगा।",
+    panel_locked: "अपना कैलेंडर देखने के लिए Aster Mail अनलॉक करें।",
+    panel_no_calendars:
+      "आपके पास अभी कोई कैलेंडर नहीं है। कैलेंडर बनाने के लिए Aster Calendar खोलें।",
+    panel_unavailable: "Aster Calendar अभी उपलब्ध नहीं है।",
+    panel_refresh_failed:
+      "आपका कैलेंडर रीफ़्रेश नहीं हुआ। आप सहेजे गए इवेंट देख रहे हैं।",
+    panel_up_next: "आगे",
+    panel_up_next_now: "अभी",
+    panel_up_next_in_minutes: "{count} मिनट में",
+    panel_up_next_empty: "अगले 7 दिनों में कोई इवेंट नहीं",
+    panel_no_events: "कोई इवेंट नहीं",
+    panel_previous_month: "पिछला महीना",
+    panel_next_month: "अगला महीना",
+    panel_open_event: "कैलेंडर में खोलें",
     panel_set_up: "अपने इवेंट यहाँ देखने के लिए, Aster Calendar सेट अप करें।",
     beta_waitlist_start: "बीटा 1 नवंबर को शुरू होने की उम्मीद है।",
     beta_waitlist_features_title: "इसमें क्या शामिल है",

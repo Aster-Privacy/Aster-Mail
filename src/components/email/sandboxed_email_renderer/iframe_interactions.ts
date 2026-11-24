@@ -182,7 +182,11 @@ function activate_link(link: MessageLink, href: string): void {
 
   window.dispatchEvent(
     new CustomEvent("aster-external-link", {
-      detail: { url: resolve_link_url(link, href) },
+      detail: {
+        url: resolve_link_url(link, href),
+        link_text: link.textContent ?? "",
+        trigger: link,
+      },
     }),
   );
 }

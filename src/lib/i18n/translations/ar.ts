@@ -1270,6 +1270,26 @@ export const ar = {
     search_labels: "بحث في التصنيفات",
     enter_label_name: "أدخل اسم التصنيف",
     leaving_aster_mail: "مغادرة Aster Mail",
+    link_dialog_title: "هل تريد فتح هذا الرابط؟",
+    link_dialog_body: "يفتح هذا الرابط صفحة ويب خارج Aster Mail.",
+    link_dialog_mail_title: "هل تريد فتح تطبيق البريد؟",
+    link_dialog_mail_body:
+      "ينشئ هذا الرابط رسالة جديدة إلى هذا العنوان في تطبيق البريد على جهازك.",
+    link_dialog_blocked_title: "لا يمكن فتح هذا الرابط",
+    link_dialog_blocked_body:
+      "لا يفتح Aster Mail هذا النوع من الروابط لأنه قد يشغّل تعليمات برمجية أو يخفي وجهته.",
+    link_dialog_show_full: "إظهار العنوان الكامل",
+    link_dialog_copy: "نسخ الرابط",
+    link_dialog_warnings_label: "تحقق قبل الفتح",
+    link_dialog_warning_http:
+      "لا تستخدم صفحة الويب هذه اتصالاً آمناً، لذا يمكن لآخرين على الشبكة رؤية ما ترسله أو تغييره.",
+    link_dialog_warning_lookalike:
+      "قد يظهر هذا العنوان أيضاً بالشكل {{host}}. فهو يمزج أحرفاً من أبجديات مختلفة، مما قد يجعله يشبه موقع ويب آخر.",
+    link_dialog_warning_mismatch:
+      "يعرض نص الرابط {{shown}}، لكن الرابط يفتح {{site}}.",
+    link_dialog_warning_ip:
+      "يستخدم هذا الرابط عنواناً رقمياً بدلاً من اسم موقع ويب، لذا يصعب معرفة من يدير الصفحة.",
+    link_dialog_full_address: "العنوان الكامل",
     unlock_aster_mail: "إلغاء قفل Aster Mail",
     aster_mail_locked: "Aster Mail مقفل",
     merge_contacts: "دمج جهات الاتصال",
@@ -11825,6 +11845,21 @@ export const ar = {
     panel_open_calendar: "فتح التقويم",
     panel_load_failed: "لم يتم تحميل التقويم.",
     panel_try_again: "حاول مرة أخرى",
+    panel_signed_out: "لعرض التقويم، سجّل الدخول.",
+    panel_keys_loading: "يظهر التقويم بعد اكتمال فتح قفل حسابك.",
+    panel_locked: "لعرض التقويم، افتح قفل Aster Mail.",
+    panel_no_calendars:
+      "ليس لديك أي تقويمات بعد. لإنشاء تقويم، افتح Aster Calendar.",
+    panel_unavailable: "Aster Calendar غير متاح الآن.",
+    panel_refresh_failed: "لم يتم تحديث التقويم. أنت ترى الأحداث المحفوظة.",
+    panel_up_next: "التالي",
+    panel_up_next_now: "الآن",
+    panel_up_next_in_minutes: "بعد {count} د",
+    panel_up_next_empty: "لا توجد أحداث خلال الأيام السبعة القادمة",
+    panel_no_events: "لا توجد أحداث",
+    panel_previous_month: "الشهر السابق",
+    panel_next_month: "الشهر التالي",
+    panel_open_event: "فتح في التقويم",
     panel_set_up: "لعرض أحداثك هنا، قم بإعداد Aster Calendar.",
     beta_waitlist_start: "من المتوقع أن تبدأ النسخة التجريبية في 1 نوفمبر.",
     beta_waitlist_features_title: "ما الذي يتضمنه",

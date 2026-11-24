@@ -23,9 +23,14 @@ export const EXTERNAL_LINK_EVENT = "aster-external-link";
 export interface ExternalLinkRequestDetail {
   url: string;
   on_result?: (opened: boolean) => void;
+  link_text?: string | null;
+  trigger?: HTMLElement | null;
 }
 
-export function request_external_link(url: string): Promise<boolean> {
+export function request_external_link(
+  url: string,
+  link_text?: string | null,
+): Promise<boolean> {
   return new Promise((resolve) => {
     let settled = false;
     const on_result = (opened: boolean) => {
@@ -35,7 +40,7 @@ export function request_external_link(url: string): Promise<boolean> {
     };
     const unhandled = window.dispatchEvent(
       new CustomEvent<ExternalLinkRequestDetail>(EXTERNAL_LINK_EVENT, {
-        detail: { url, on_result },
+        detail: { url, on_result, link_text },
         cancelable: true,
       }),
     );

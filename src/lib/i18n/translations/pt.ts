@@ -1212,6 +1212,26 @@ export const pt = {
     search_labels: "Pesquisar etiquetas",
     enter_label_name: "Introduza o nome da etiqueta",
     leaving_aster_mail: "A sair do Aster Mail",
+    link_dialog_title: "Abrir esta ligação?",
+    link_dialog_body: "Esta ligação abre uma página web fora do Aster Mail.",
+    link_dialog_mail_title: "Abrir a app de email?",
+    link_dialog_mail_body:
+      "Esta ligação cria uma nova mensagem para este endereço na app de email do dispositivo.",
+    link_dialog_blocked_title: "Não é possível abrir esta ligação",
+    link_dialog_blocked_body:
+      "O Aster Mail não abre este tipo de ligação porque pode executar código ou ocultar o destino.",
+    link_dialog_show_full: "Mostrar endereço completo",
+    link_dialog_copy: "Copiar ligação",
+    link_dialog_warnings_label: "Verifique antes de abrir",
+    link_dialog_warning_http:
+      "Esta página web não usa uma ligação segura, por isso outras pessoas na rede podem ver ou alterar o que envia.",
+    link_dialog_warning_lookalike:
+      "Este endereço também pode aparecer como {{host}}. Mistura letras de alfabetos diferentes, o que o pode fazer parecer outro site.",
+    link_dialog_warning_mismatch:
+      "O texto da ligação mostra {{shown}}, mas a ligação abre {{site}}.",
+    link_dialog_warning_ip:
+      "Esta ligação usa um endereço numérico em vez do nome de um site, por isso é mais difícil saber quem gere a página.",
+    link_dialog_full_address: "Endereço completo",
     unlock_aster_mail: "Desbloquear Aster Mail",
     aster_mail_locked: "O Aster Mail está bloqueado",
     merge_contacts: "Combinar contactos",
@@ -12183,6 +12203,23 @@ export const pt = {
     panel_open_calendar: "Abrir Calendário",
     panel_load_failed: "A sua agenda não foi carregada.",
     panel_try_again: "Tentar novamente",
+    panel_signed_out: "Para ver o seu calendário, inicie sessão.",
+    panel_keys_loading:
+      "O seu calendário aparece quando a sua conta terminar de desbloquear.",
+    panel_locked: "Para ver o seu calendário, desbloqueie o Aster Mail.",
+    panel_no_calendars:
+      "Ainda não tem calendários. Para criar um, abra o Aster Calendar.",
+    panel_unavailable: "O Aster Calendar não está disponível neste momento.",
+    panel_refresh_failed:
+      "O seu calendário não foi atualizado. Está a ver eventos guardados.",
+    panel_up_next: "A seguir",
+    panel_up_next_now: "Agora",
+    panel_up_next_in_minutes: "Daqui a {count} min",
+    panel_up_next_empty: "Nenhum evento nos próximos 7 dias",
+    panel_no_events: "Nenhum evento",
+    panel_previous_month: "Mês anterior",
+    panel_next_month: "Mês seguinte",
+    panel_open_event: "Abrir no Calendário",
     panel_set_up: "Para ver os seus eventos aqui, configure o Aster Calendar.",
     beta_waitlist_start: "A beta deverá começar a 1 de novembro.",
     beta_waitlist_features_title: "O que está incluído",

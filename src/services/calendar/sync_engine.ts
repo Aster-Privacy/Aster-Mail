@@ -253,6 +253,7 @@ export class CalendarSyncEngine {
   private load_promise: Promise<void> | null = null;
   private pull_promise: Promise<boolean> | null = null;
   private pull_again = false;
+  private failure_status: number | null = null;
   private coalesce_timer: ReturnType<typeof setTimeout> | null = null;
   private horizon_timer: ReturnType<typeof setTimeout> | null = null;
   private own_session_id: string | null | undefined;
@@ -354,6 +355,10 @@ export class CalendarSyncEngine {
 
   calendar_count(): number {
     return this.calendar_rows.size;
+  }
+
+  last_failure_status(): number | null {
+    return this.failure_status;
   }
 
   get_calendar(id: string): DecryptedCalendar | undefined {
@@ -873,6 +878,7 @@ export class CalendarSyncEngine {
 
   private reset_memory(): void {
     this.generation += 1;
+    this.failure_status = null;
     reset_calendar_identity();
     if (this.horizon_timer) {
       clearTimeout(this.horizon_timer);
@@ -942,6 +948,7 @@ export class CalendarSyncEngine {
   }
 
   private async pull_with_retries(): Promise<boolean> {
+    this.failure_status = null;
     if (!this.account_id) return false;
     if (typeof navigator !== "undefined" && navigator.onLine === false) {
       return false;
@@ -1186,6 +1193,8 @@ export class CalendarSyncEngine {
     account_id: string,
     response: ApiResponse<unknown> | undefined,
   ): Promise<"retry" | "stop"> {
+    this.failure_status =
+      typeof response?.status === "number" ? response.status : null;
     if (is_retryable(response)) return "retry";
     if (response?.status === 401) return "retry";
     if (response?.status === 400) {

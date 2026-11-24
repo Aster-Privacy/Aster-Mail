@@ -1319,6 +1319,27 @@ export const ru = {
     search_labels: "Поиск меток",
     enter_label_name: "Введите название метки",
     leaving_aster_mail: "Выход из Aster Mail",
+    link_dialog_title: "Открыть ссылку?",
+    link_dialog_body:
+      "Эта ссылка открывает веб-страницу за пределами Aster Mail.",
+    link_dialog_mail_title: "Открыть почтовое приложение?",
+    link_dialog_mail_body:
+      "Эта ссылка создаст новое письмо на этот адрес в почтовом приложении устройства.",
+    link_dialog_blocked_title: "Эту ссылку нельзя открыть",
+    link_dialog_blocked_body:
+      "Aster Mail не открывает такие ссылки, потому что они могут запускать код или скрывать, куда ведут.",
+    link_dialog_show_full: "Показать полный адрес",
+    link_dialog_copy: "Копировать ссылку",
+    link_dialog_warnings_label: "Проверьте перед открытием",
+    link_dialog_warning_http:
+      "Эта страница не использует защищённое соединение, поэтому другие пользователи сети могут видеть или изменять отправляемые данные.",
+    link_dialog_warning_lookalike:
+      "Этот адрес также может отображаться как {{host}}. В нём смешаны буквы разных алфавитов, из-за чего он может выглядеть как другой сайт.",
+    link_dialog_warning_mismatch:
+      "В тексте ссылки указано {{shown}}, но ссылка открывает {{site}}.",
+    link_dialog_warning_ip:
+      "Эта ссылка использует числовой адрес вместо названия сайта, поэтому сложнее понять, кому принадлежит страница.",
+    link_dialog_full_address: "Полный адрес",
     unlock_aster_mail: "Разблокировать Aster Mail",
     aster_mail_locked: "Aster Mail заблокирован",
     merge_contacts: "Объединить контакты",
@@ -12267,6 +12288,23 @@ export const ru = {
     panel_open_calendar: "Открыть Календарь",
     panel_load_failed: "Не удалось загрузить календарь.",
     panel_try_again: "Повторить",
+    panel_signed_out: "Чтобы увидеть календарь, войдите в аккаунт.",
+    panel_keys_loading:
+      "Календарь появится, когда аккаунт будет разблокирован.",
+    panel_locked: "Чтобы увидеть календарь, разблокируйте Aster Mail.",
+    panel_no_calendars:
+      "У вас пока нет календарей. Чтобы создать календарь, откройте Aster Calendar.",
+    panel_unavailable: "Aster Calendar сейчас недоступен.",
+    panel_refresh_failed:
+      "Не удалось обновить календарь. Показаны сохраненные события.",
+    panel_up_next: "Далее",
+    panel_up_next_now: "Сейчас",
+    panel_up_next_in_minutes: "Через {count} мин",
+    panel_up_next_empty: "Нет событий в ближайшие 7 дней",
+    panel_no_events: "Нет событий",
+    panel_previous_month: "Предыдущий месяц",
+    panel_next_month: "Следующий месяц",
+    panel_open_event: "Открыть в Календаре",
     panel_set_up: "Чтобы видеть здесь свои события, настройте Aster Calendar.",
     beta_waitlist_start: "Бета-версия, как ожидается, начнётся 1 ноября.",
     beta_waitlist_features_title: "Что входит",

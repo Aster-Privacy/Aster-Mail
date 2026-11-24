@@ -1403,6 +1403,26 @@ export const en: Translations = {
     search_labels: "Search labels",
     enter_label_name: "Enter label name",
     leaving_aster_mail: "Leaving Aster Mail",
+    link_dialog_title: "Open this link?",
+    link_dialog_body: "This link opens a webpage outside Aster Mail.",
+    link_dialog_mail_title: "Open your email app?",
+    link_dialog_mail_body:
+      "This link starts a new message to this address in your device's email app.",
+    link_dialog_blocked_title: "This link can't be opened",
+    link_dialog_blocked_body:
+      "Aster Mail doesn't open this type of link because it can run code or hide where it leads.",
+    link_dialog_show_full: "Show full address",
+    link_dialog_copy: "Copy link",
+    link_dialog_warnings_label: "Check before you open",
+    link_dialog_warning_http:
+      "This webpage doesn't use a secure connection, so others on the network can see or change what you send.",
+    link_dialog_warning_lookalike:
+      "This address can also appear as {{host}}. It mixes letters from different alphabets, which can make it look like another website.",
+    link_dialog_warning_mismatch:
+      "The link text shows {{shown}}, but the link opens {{site}}.",
+    link_dialog_warning_ip:
+      "This link uses a numeric address instead of a website name, so it's harder to tell who runs the webpage.",
+    link_dialog_full_address: "Full address",
     unlock_aster_mail: "Unlock Aster Mail",
     aster_mail_locked: "Aster Mail is locked",
     merge_contacts: "Merge Contacts",
@@ -11783,6 +11803,23 @@ export const en: Translations = {
     panel_open_calendar: "Open Calendar",
     panel_load_failed: "Your calendar did not load.",
     panel_try_again: "Try again",
+    panel_signed_out: "To see your calendar, sign in.",
+    panel_keys_loading:
+      "Your calendar appears after your account finishes unlocking.",
+    panel_locked: "To see your calendar, unlock Aster Mail.",
+    panel_no_calendars:
+      "You do not have any calendars yet. To create one, open Aster Calendar.",
+    panel_unavailable: "Aster Calendar is not available right now.",
+    panel_refresh_failed:
+      "Your calendar did not refresh. You are seeing saved events.",
+    panel_up_next: "Up next",
+    panel_up_next_now: "Now",
+    panel_up_next_in_minutes: "In {count} min",
+    panel_up_next_empty: "No events in the next 7 days",
+    panel_no_events: "No events",
+    panel_previous_month: "Previous month",
+    panel_next_month: "Next month",
+    panel_open_event: "Open in Calendar",
     panel_set_up: "To see your events here, set up Aster Calendar.",
     beta_waitlist_start: "The beta is expected to start on November 1.",
     beta_waitlist_features_title: "What's included",

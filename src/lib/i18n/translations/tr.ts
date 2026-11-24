@@ -1309,6 +1309,26 @@ export const tr = {
     search_labels: "Etiketlerde ara",
     enter_label_name: "Etiket adını girin",
     leaving_aster_mail: "Aster Mail'den Ayrılıyorsunuz",
+    link_dialog_title: "Bu bağlantı açılsın mı?",
+    link_dialog_body: "Bu bağlantı, Aster Mail dışında bir web sayfası açar.",
+    link_dialog_mail_title: "E-posta uygulamanız açılsın mı?",
+    link_dialog_mail_body:
+      "Bu bağlantı, cihazınızın e-posta uygulamasında bu adrese yeni bir ileti oluşturur.",
+    link_dialog_blocked_title: "Bu bağlantı açılamıyor",
+    link_dialog_blocked_body:
+      "Aster Mail bu tür bağlantıları açmaz, çünkü kod çalıştırabilir veya nereye gittiklerini gizleyebilirler.",
+    link_dialog_show_full: "Tam adresi göster",
+    link_dialog_copy: "Bağlantıyı kopyala",
+    link_dialog_warnings_label: "Açmadan önce kontrol edin",
+    link_dialog_warning_http:
+      "Bu web sayfası güvenli bağlantı kullanmıyor, bu nedenle ağdaki başkaları gönderdiklerinizi görebilir veya değiştirebilir.",
+    link_dialog_warning_lookalike:
+      "Bu adres {{host}} olarak da görünebilir. Farklı alfabelerden harfleri karıştırdığı için başka bir web sitesine benzeyebilir.",
+    link_dialog_warning_mismatch:
+      "Bağlantı metni {{shown}} gösteriyor, ancak bağlantı {{site}} adresini açıyor.",
+    link_dialog_warning_ip:
+      "Bu bağlantı web sitesi adı yerine sayısal bir adres kullanıyor, bu nedenle sayfayı kimin yönettiğini anlamak daha zor.",
+    link_dialog_full_address: "Tam adres",
     unlock_aster_mail: "Aster Mail Kilidini Aç",
     aster_mail_locked: "Aster Mail kilitli",
     merge_contacts: "Kişileri Birleştir",
@@ -11927,6 +11947,22 @@ export const tr = {
     panel_open_calendar: "Takvimi aç",
     panel_load_failed: "Takviminiz yüklenemedi.",
     panel_try_again: "Tekrar dene",
+    panel_signed_out: "Takviminizi görmek için oturum açın.",
+    panel_keys_loading: "Hesabınızın kilidi açıldığında takviminiz görünür.",
+    panel_locked: "Takviminizi görmek için Aster Mail kilidini açın.",
+    panel_no_calendars:
+      "Henüz takviminiz yok. Takvim oluşturmak için Aster Calendar'ı açın.",
+    panel_unavailable: "Aster Calendar şu anda kullanılamıyor.",
+    panel_refresh_failed:
+      "Takviminiz yenilenemedi. Kaydedilmiş etkinlikleri görüyorsunuz.",
+    panel_up_next: "Sıradaki",
+    panel_up_next_now: "Şimdi",
+    panel_up_next_in_minutes: "{count} dk sonra",
+    panel_up_next_empty: "Önümüzdeki 7 gün içinde etkinlik yok",
+    panel_no_events: "Etkinlik yok",
+    panel_previous_month: "Önceki ay",
+    panel_next_month: "Sonraki ay",
+    panel_open_event: "Takvimde aç",
     panel_set_up: "Etkinliklerinizi burada görmek için Aster Calendar'ı kurun.",
     beta_waitlist_start: "Betanın 1 Kasım'da başlaması bekleniyor.",
     beta_waitlist_features_title: "Neler dahil",

@@ -1164,6 +1164,27 @@ export const de = {
     search_labels: "Labels suchen",
     enter_label_name: "Label-Namen eingeben",
     leaving_aster_mail: "Aster Mail verlassen",
+    link_dialog_title: "Diesen Link öffnen?",
+    link_dialog_body:
+      "Dieser Link öffnet eine Webseite außerhalb von Aster Mail.",
+    link_dialog_mail_title: "E-Mail-App öffnen?",
+    link_dialog_mail_body:
+      "Dieser Link erstellt in der E-Mail-App Ihres Geräts eine neue Nachricht an diese Adresse.",
+    link_dialog_blocked_title: "Dieser Link kann nicht geöffnet werden",
+    link_dialog_blocked_body:
+      "Aster Mail öffnet diese Art von Link nicht, da sie Code ausführen oder ihr Ziel verbergen kann.",
+    link_dialog_show_full: "Vollständige Adresse anzeigen",
+    link_dialog_copy: "Link kopieren",
+    link_dialog_warnings_label: "Vor dem Öffnen prüfen",
+    link_dialog_warning_http:
+      "Diese Webseite nutzt keine sichere Verbindung. Andere im Netzwerk können sehen oder ändern, was Sie senden.",
+    link_dialog_warning_lookalike:
+      "Diese Adresse kann auch als {{host}} erscheinen. Sie mischt Buchstaben aus verschiedenen Alphabeten und kann so wie eine andere Website aussehen.",
+    link_dialog_warning_mismatch:
+      "Der Linktext zeigt {{shown}}, aber der Link öffnet {{site}}.",
+    link_dialog_warning_ip:
+      "Dieser Link verwendet eine numerische Adresse statt eines Website-Namens. Dadurch ist schwerer zu erkennen, wer die Seite betreibt.",
+    link_dialog_full_address: "Vollständige Adresse",
     unlock_aster_mail: "Aster Mail entsperren",
     aster_mail_locked: "Aster Mail ist gesperrt",
     merge_contacts: "Kontakte zusammenführen",
@@ -12227,6 +12248,23 @@ export const de = {
     panel_open_calendar: "Kalender öffnen",
     panel_load_failed: "Dein Kalender wurde nicht geladen.",
     panel_try_again: "Erneut versuchen",
+    panel_signed_out: "Melde dich an, um deinen Kalender zu sehen.",
+    panel_keys_loading:
+      "Dein Kalender erscheint, sobald dein Konto entsperrt ist.",
+    panel_locked: "Entsperre Aster Mail, um deinen Kalender zu sehen.",
+    panel_no_calendars:
+      "Du hast noch keine Kalender. Öffne Aster Calendar, um einen zu erstellen.",
+    panel_unavailable: "Aster Calendar ist gerade nicht verfügbar.",
+    panel_refresh_failed:
+      "Dein Kalender wurde nicht aktualisiert. Du siehst gespeicherte Termine.",
+    panel_up_next: "Als Nächstes",
+    panel_up_next_now: "Jetzt",
+    panel_up_next_in_minutes: "In {count} Min.",
+    panel_up_next_empty: "Keine Termine in den nächsten 7 Tagen",
+    panel_no_events: "Keine Termine",
+    panel_previous_month: "Vorheriger Monat",
+    panel_next_month: "Nächster Monat",
+    panel_open_event: "In Kalender öffnen",
     panel_set_up: "Richte Aster Calendar ein, um deine Termine hier zu sehen.",
     beta_waitlist_start: "Die Beta startet voraussichtlich am 1. November.",
     beta_waitlist_features_title: "Das ist enthalten",

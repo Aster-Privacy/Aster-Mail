@@ -1346,6 +1346,26 @@ export const fr = {
     search_labels: "Rechercher des libellés",
     enter_label_name: "Saisir le nom du libellé",
     leaving_aster_mail: "Quitter Aster Mail",
+    link_dialog_title: "Ouvrir ce lien ?",
+    link_dialog_body: "Ce lien ouvre une page web en dehors d'Aster Mail.",
+    link_dialog_mail_title: "Ouvrir votre app de messagerie ?",
+    link_dialog_mail_body:
+      "Ce lien crée un nouveau message à cette adresse dans l'app de messagerie de votre appareil.",
+    link_dialog_blocked_title: "Impossible d'ouvrir ce lien",
+    link_dialog_blocked_body:
+      "Aster Mail n'ouvre pas ce type de lien, car il peut exécuter du code ou masquer sa destination.",
+    link_dialog_show_full: "Afficher l'adresse complète",
+    link_dialog_copy: "Copier le lien",
+    link_dialog_warnings_label: "À vérifier avant d'ouvrir",
+    link_dialog_warning_http:
+      "Cette page web n'utilise pas de connexion sécurisée : d'autres personnes sur le réseau peuvent voir ou modifier ce que vous envoyez.",
+    link_dialog_warning_lookalike:
+      "Cette adresse peut aussi s'afficher sous la forme {{host}}. Elle mélange des lettres de différents alphabets, ce qui peut la faire ressembler à un autre site web.",
+    link_dialog_warning_mismatch:
+      "Le texte du lien affiche {{shown}}, mais le lien ouvre {{site}}.",
+    link_dialog_warning_ip:
+      "Ce lien utilise une adresse numérique au lieu d'un nom de site web, il est donc plus difficile de savoir qui gère la page.",
+    link_dialog_full_address: "Adresse complète",
     unlock_aster_mail: "Déverrouiller Aster Mail",
     aster_mail_locked: "Aster Mail est verrouillé",
     merge_contacts: "Fusionner les contacts",
@@ -12211,6 +12231,23 @@ export const fr = {
     panel_open_calendar: "Ouvrir Calendrier",
     panel_load_failed: "Votre agenda ne s'est pas chargé.",
     panel_try_again: "Réessayer",
+    panel_signed_out: "Pour voir votre calendrier, connectez-vous.",
+    panel_keys_loading:
+      "Votre calendrier s'affiche une fois votre compte déverrouillé.",
+    panel_locked: "Pour voir votre calendrier, déverrouillez Aster Mail.",
+    panel_no_calendars:
+      "Vous n'avez encore aucun calendrier. Pour en créer un, ouvrez Aster Calendar.",
+    panel_unavailable: "Aster Calendar n'est pas disponible pour le moment.",
+    panel_refresh_failed:
+      "Votre calendrier n'a pas été actualisé. Vous voyez les événements enregistrés.",
+    panel_up_next: "À venir",
+    panel_up_next_now: "Maintenant",
+    panel_up_next_in_minutes: "Dans {count} min",
+    panel_up_next_empty: "Aucun événement dans les 7 prochains jours",
+    panel_no_events: "Aucun événement",
+    panel_previous_month: "Mois précédent",
+    panel_next_month: "Mois suivant",
+    panel_open_event: "Ouvrir dans Calendrier",
     panel_set_up: "Pour voir vos événements ici, configurez Aster Calendar.",
     beta_waitlist_start: "La bêta devrait commencer le 1er novembre.",
     beta_waitlist_features_title: "Ce qui est inclus",

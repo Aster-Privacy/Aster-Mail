@@ -776,7 +776,7 @@ export function domain_for_display(ascii_domain: string): string {
     .join(".");
 }
 
-function domain_unicode(ascii_domain: string): string {
+export function domain_unicode(ascii_domain: string): string {
   return ascii_domain.split(".").map(label_to_unicode).join(".");
 }
 
