@@ -22,6 +22,7 @@ import type { RelatedPersonEntry } from "@/types/contacts";
 import type { TranslationKey } from "@/lib/i18n";
 
 import { PlusIcon, XMarkIcon } from "@heroicons/react/24/outline";
+import { Tooltip } from "@aster/ui";
 
 import { FIELD_CLASS } from "./helpers";
 
@@ -128,15 +129,18 @@ export function RelationList({
               />
             )}
             {!disabled && (
-              <button
-                aria-label={t("common.remove_relation")}
-                className="flex-shrink-0 w-8 h-8 rounded-full hover:bg-[var(--aster-hover)] flex items-center justify-center transition-colors"
-                title={t("common.remove_relation")}
-                type="button"
-                onClick={() => on_change(entries.filter((_, i) => i !== index))}
-              >
-                <XMarkIcon className="w-4 h-4 text-txt-muted" />
-              </button>
+              <Tooltip tip={t("common.remove_relation")}>
+                <button
+                  aria-label={t("common.remove_relation")}
+                  className="contact_field_remove"
+                  type="button"
+                  onClick={() =>
+                    on_change(entries.filter((_, i) => i !== index))
+                  }
+                >
+                  <XMarkIcon className="w-4 h-4" />
+                </button>
+              </Tooltip>
             )}
           </div>
         );
