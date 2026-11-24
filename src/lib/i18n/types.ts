@@ -8481,7 +8481,6 @@ export interface SettingsTranslations {
   sending_blocks_description: string;
   sending_blocks_search_placeholder: string;
   sending_blocks_empty: string;
-  sending_blocks_no_results: string;
   sending_blocks_sending_allowed: string;
   sending_blocks_toggle_label: string;
   sending_blocks_update_failed: string;
