@@ -9801,14 +9801,12 @@ export const ko = {
     font: "글꼴",
     fonts: "글꼴",
     stylesheet: "스타일시트",
-    trash_auto_delete_notice:
-      "휴지통의 이메일은 {{ days }}일 후 자동으로 삭제됩니다.",
-    spam_auto_delete_notice:
-      "스팸의 이메일은 {{ days }}일 후 자동으로 삭제됩니다.",
+    trash_auto_delete_notice: "휴지통의 메시지는 {{ days }}일 후 삭제됩니다.",
+    spam_auto_delete_notice: "스팸의 메시지는 {{ days }}일 후 삭제됩니다.",
     trash_auto_delete_notice_family:
-      "휴지통의 항목은 {{ days }}일 후 자동으로 삭제됩니다(가족 관리자가 설정).",
+      "휴지통의 메시지는 가족 관리자 설정에 따라 {{ days }}일 후 삭제됩니다.",
     spam_auto_delete_notice_family:
-      "스팸의 항목은 {{ days }}일 후 자동으로 삭제됩니다(가족 관리자가 설정).",
+      "스팸의 메시지는 가족 관리자 설정에 따라 {{ days }}일 후 삭제됩니다.",
     insert_link_title: "링크 삽입",
     add_link_to_selection: '"{{text}}"에 링크 추가',
     url_label: "URL",

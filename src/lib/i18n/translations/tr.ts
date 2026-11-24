@@ -10120,13 +10120,13 @@ export const tr = {
     fonts: "yazı tipleri",
     stylesheet: "stil sayfası",
     trash_auto_delete_notice:
-      "Çöp kutusundaki öğeler {{ days }} gün sonra otomatik olarak silinecek.",
+      "Çöp Kutusu'ndaki iletiler {{ days }} gün sonra silinir.",
     spam_auto_delete_notice:
-      "Spam klasöründeki öğeler {{ days }} gün sonra otomatik olarak silinecek.",
+      "Önemsiz klasöründeki iletiler {{ days }} gün sonra silinir.",
     trash_auto_delete_notice_family:
-      "Çöp kutusundaki öğeler {{ days }} gün sonra otomatik olarak silinecektir (aile yöneticisi tarafından ayarlanmıştır).",
+      "Çöp Kutusu'ndaki iletiler, aile yöneticisinin ayarına göre {{ days }} gün sonra silinir.",
     spam_auto_delete_notice_family:
-      "Spam'deki öğeler {{ days }} gün sonra otomatik olarak silinecektir (aile yöneticisi tarafından ayarlanmıştır).",
+      "Önemsiz klasöründeki iletiler, aile yöneticisinin ayarına göre {{ days }} gün sonra silinir.",
     insert_link_title: "Bağlantı Ekle",
     add_link_to_selection: '"{{text}}" için bağlantı ekle',
     url_label: "URL",

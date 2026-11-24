@@ -10426,11 +10426,11 @@ export const es = {
     show_trimmed_content: "Mostrar contenido recortado",
     size_label: "Tamaño",
     spam_auto_delete_notice:
-      "Los elementos de spam se eliminarán automáticamente después de {{ days }} días.",
+      "Los mensajes de Spam se eliminan después de {{ days }} días.",
     trash_auto_delete_notice_family:
-      "Los elementos de la papelera se eliminarán automáticamente después de {{ days }} días (establecido por el administrador de familia).",
+      "Los mensajes de la Papelera se eliminan después de {{ days }} días, según lo establecido por el administrador de la familia.",
     spam_auto_delete_notice_family:
-      "Los elementos de spam se eliminarán automáticamente después de {{ days }} días (establecido por el administrador de familia).",
+      "Los mensajes de Spam se eliminan después de {{ days }} días, según lo establecido por el administrador de la familia.",
     spy_pixels_blocked: "Píxeles espía bloqueados",
     stylesheet: "Hoja de estilo",
     to_recipients_prefix: "para {{ recipients }}",
@@ -10443,7 +10443,7 @@ export const es = {
     trackers: "Rastreadores",
     tracking_protection: "Protección contra rastreo",
     trash_auto_delete_notice:
-      "Los elementos de la papelera se eliminarán automáticamente después de {{ days }} días.",
+      "Los mensajes de la Papelera se eliminan después de {{ days }} días.",
     try_adjusting_filters: "Intenta ajustar tus filtros",
     url_label: "URL",
     official_sender: "Dirección oficial de Aster",

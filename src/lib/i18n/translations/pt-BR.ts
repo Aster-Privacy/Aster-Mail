@@ -10242,13 +10242,13 @@ export const pt_br = {
     fonts: "fontes",
     stylesheet: "folha de estilo",
     trash_auto_delete_notice:
-      "Itens na lixeira serão excluídos automaticamente após {{ days }} dias.",
+      "As mensagens na Lixeira são excluídas após {{ days }} dias.",
     spam_auto_delete_notice:
-      "Itens no spam serão excluídos automaticamente após {{ days }} dias.",
+      "As mensagens no Spam são excluídas após {{ days }} dias.",
     trash_auto_delete_notice_family:
-      "Os itens na lixeira serão automaticamente excluídos após {{ days }} dias (definido pelo administrador da família).",
+      "As mensagens na Lixeira são excluídas após {{ days }} dias, conforme definido pelo administrador da família.",
     spam_auto_delete_notice_family:
-      "Os itens de spam serão automaticamente excluídos após {{ days }} dias (definido pelo administrador da família).",
+      "As mensagens no Spam são excluídas após {{ days }} dias, conforme definido pelo administrador da família.",
     insert_link_title: "Inserir link",
     add_link_to_selection: 'Adicionar um link a "{{text}}"',
     url_label: "URL",

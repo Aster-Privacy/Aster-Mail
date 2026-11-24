@@ -40,7 +40,7 @@ import { ErrorBoundary } from "@/components/ui/error_boundary";
 import { SplitEmailViewer } from "@/components/email/split_email_viewer";
 import { SplitScheduledViewer } from "@/components/scheduled/split_scheduled_viewer";
 import { FullEmailViewer } from "@/components/email/full_email_viewer";
-import { resolve_list_density } from "@/lib/list_density";
+import { is_compact_density, resolve_list_density } from "@/lib/list_density";
 import {
   get_view_title,
   get_search_context,
@@ -538,8 +538,15 @@ export function EmailInbox(props: EmailInboxProps): React.ReactElement {
 
             return effective_days !== null && effective_days > 0 ? (
               <TrashBanner
+                compact={is_compact_density(
+                  resolve_list_density(preferences.mail_list_density),
+                  preferences.compact_mode ?? false,
+                )}
                 family_enforced={banner_family_enforced}
                 retention_days={effective_days}
+                show_profile_pictures={
+                  preferences.show_profile_pictures !== false
+                }
                 view={current_view as "trash" | "spam"}
               />
             ) : null;
