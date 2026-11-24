@@ -279,8 +279,8 @@ function AppRailComponent({
             ) : (
               calendar_origin && (
                 <QuickCalendarPanel
-                is_open={is_calendar_open}
-                is_swapping={is_swapping}
+                  is_open={is_calendar_open}
+                  is_swapping={is_swapping}
                   origin={calendar_origin}
                   on_close={close_calendar}
                 />
