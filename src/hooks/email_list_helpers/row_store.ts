@@ -150,3 +150,35 @@ export function assemble_known_rows(
 
   return rows.length > 0 ? rows : null;
 }
+
+export function is_pending_row(row: InboxEmail): boolean {
+  return row.is_encrypted === true;
+}
+
+export function has_pending_rows(rows: readonly InboxEmail[]): boolean {
+  return rows.some(is_pending_row);
+}
+
+export function fill_pending_rows(
+  rows: readonly InboxEmail[],
+  sources: readonly ReadonlyMap<string, InboxEmail>[],
+): InboxEmail[] {
+  return rows.map((row) => {
+    if (!is_pending_row(row)) return row;
+
+    for (const source of sources) {
+      const known = source.get(row.id);
+
+      if (!known || known.id !== row.id || is_pending_row(known)) continue;
+
+      return {
+        ...known,
+        is_read: row.is_read,
+        is_starred: row.is_starred,
+        is_pinned: row.is_pinned,
+      };
+    }
+
+    return row;
+  });
+}
