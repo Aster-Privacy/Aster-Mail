@@ -5834,7 +5834,7 @@ export const en: Translations = {
     feedback_not_encrypted:
       "Feedback isn't end-to-end encrypted, so don't include passwords, recovery codes, or other private information.",
     feedback_support_notice:
-      "Feedback isn't monitored for support requests or questions. To get help, contact the support team at {{ email }}.",
+      "This form is for feedback, ideas, and bug reports. For questions or help with your account, email the support team at {{ email }} instead.",
     feedback_intro:
       "Share an idea, report a bug, or tell the Aster team what you think. Feedback doesn't open a support request, so to get help or a reply, contact support.",
     support_intro:
