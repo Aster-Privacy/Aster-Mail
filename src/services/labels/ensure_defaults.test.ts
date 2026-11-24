@@ -104,11 +104,68 @@ describe("ensure_default_labels", () => {
     expect(emit_folders_changed).not.toHaveBeenCalled();
   });
 
-  it("does not create folders when the list cannot be fetched", async () => {
+  it("retries the list and never creates folders when it keeps failing", async () => {
+    vi.useFakeTimers();
     list_folders.mockResolvedValue({ error: "network" });
 
-    await ensure_default_labels(vault);
+    const run = ensure_default_labels(vault).catch((e: Error) => e);
 
+    await vi.runAllTimersAsync();
+    const outcome = await run;
+
+    expect(outcome).toBeInstanceOf(Error);
+    expect(list_folders).toHaveBeenCalledTimes(3);
     expect(create_folder).not.toHaveBeenCalled();
+    vi.useRealTimers();
+  });
+
+  it("retries after a failed list and creates the missing folders", async () => {
+    vi.useFakeTimers();
+    list_folders
+      .mockResolvedValueOnce({ error: "network" })
+      .mockResolvedValue({ data: { folders: [] } });
+
+    const run = ensure_default_labels(vault);
+
+    await vi.runAllTimersAsync();
+    await run;
+
+    expect(list_folders).toHaveBeenCalledTimes(2);
+    expect(create_folder).toHaveBeenCalledTimes(6);
+    vi.useRealTimers();
+  });
+
+  it("retries only the system folders whose create failed", async () => {
+    vi.useFakeTimers();
+    list_folders
+      .mockResolvedValueOnce({ data: { folders: [] } })
+      .mockResolvedValue({
+        data: {
+          folders: ["sent", "drafts", "trash", "spam", "archive"].map((type) =>
+            folder(type),
+          ),
+        },
+      });
+    create_folder.mockImplementation(async (request: { folder_type: string }) =>
+      request.folder_type === "inbox" && create_folder.mock.calls.length <= 6
+        ? { error: "server" }
+        : { data: { id: "new" } },
+    );
+
+    const run = ensure_default_labels(vault);
+
+    await vi.runAllTimersAsync();
+    await run;
+
+    const created = create_folder.mock.calls.map((c) => c[0].folder_type);
+    expect(created.filter((type) => type === "inbox")).toHaveLength(2);
+    expect(created).toHaveLength(7);
+    vi.useRealTimers();
+  });
+
+  it("does nothing without an identity key", async () => {
+    await ensure_default_labels({ identity_key: "" } as never);
+
+    expect(list_folders).not.toHaveBeenCalled();
   });
 });
