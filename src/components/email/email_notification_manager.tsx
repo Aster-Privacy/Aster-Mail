@@ -19,6 +19,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type { NotificationType } from "@/services/notification_service";
+import type { MailItem } from "@/services/api/mail";
+import type { NotificationSenderPreview } from "@/services/notification_preview";
 
 import { useEffect, useRef } from "react";
 
@@ -44,6 +46,10 @@ import {
   has_protected_folders,
 } from "@/services/locked_folders";
 import { has_tauri_runtime } from "@/lib/tauri_runtime";
+import {
+  build_notification_content,
+  load_notification_preview,
+} from "@/services/notification_preview";
 
 const REPLY_STATE_TIMEOUT_MS = 1500;
 const ARRIVAL_BURST_WINDOW_MS = 1500;
@@ -53,6 +59,7 @@ interface PendingArrival {
   email_id: string;
   arrival_type: NotificationType;
   silent: boolean;
+  preview: NotificationSenderPreview | null;
 }
 const REPLY_STATE_POLL_MS = 150;
 const CATEGORY_TIMEOUT_MS = 1500;
@@ -118,16 +125,15 @@ async function is_category_muted(
   }
 }
 
-async function is_own_mail_item(email_id: string): Promise<boolean> {
-  if (!email_id) return false;
+async function load_arrival_item(email_id: string): Promise<MailItem | null> {
+  if (!email_id) return null;
 
   try {
     const response = await list_mail_items({ ids: [email_id] });
-    const item = response.data?.items?.find((entry) => entry.id === email_id);
 
-    return item !== undefined && item.item_type !== "received";
+    return response.data?.items?.find((entry) => entry.id === email_id) ?? null;
   } catch {
-    return false;
+    return null;
   }
 }
 
@@ -280,12 +286,16 @@ export function EmailNotificationManager() {
       const tag =
         batch.length === 1 ? `email-${newest.email_id}` : "email-burst";
       const silent = batch.every((item) => item.silent);
+      const content = build_notification_content(
+        batch.length === 1 ? newest.preview : null,
+        { title: t("common.aster_mail"), body },
+        preferences_ref.current,
+      );
 
       void show_notification(
         arrival_type,
         {
-          title: t("common.aster_mail"),
-          body,
+          ...content,
           tag,
           data: newest.email_id ? { email_id: newest.email_id } : undefined,
         },
@@ -323,9 +333,13 @@ export function EmailNotificationManager() {
       }
 
       void (async () => {
-        if (await is_own_mail_item(email_id)) {
+        const item = await load_arrival_item(email_id);
+
+        if (item && item.item_type !== "received") {
           return;
         }
+
+        const preview_promise = load_notification_preview(item);
 
         const suppressed = await is_email_notification_suppressed(
           email_id,
@@ -350,10 +364,13 @@ export function EmailNotificationManager() {
           preferences_ref.current.notify_new_email,
         );
 
+        const preview = await preview_promise;
+
         enqueue({
           email_id,
           arrival_type,
           silent: category_mute === "unknown",
+          preview,
         });
       })();
     };
