@@ -1179,6 +1179,11 @@ export const es = {
       "Tus claves privadas están bloqueadas en este dispositivo. Iniciar sesión de nuevo las desbloqueará. Tus claves en el servidor no han cambiado.",
     email_data_missing:
       "No pudimos cargar el contenido de este correo. Abrirlo de nuevo desde tu bandeja de entrada lo recuperará. Tu bandeja de entrada no ha cambiado.",
+    message_temporarily_unavailable:
+      "Este mensaje no está disponible temporalmente. Inténtalo de nuevo en un momento.",
+    attachment_temporarily_unavailable:
+      "Este archivo adjunto no está disponible temporalmente. Inténtalo de nuevo en un momento.",
+    unavailable_try_again: "Intentar de nuevo",
     later: "Más tarde",
     welcome_to_aster: "Bienvenido a Aster Mail",
     purchase_thank_you: "Gracias por tu compra. Tu suscripción ya está activa.",

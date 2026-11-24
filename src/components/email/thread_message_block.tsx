@@ -97,6 +97,10 @@ import { MessageDetailsModal } from "@/components/email/message_details_modal";
 import { MessageDetailCard } from "@/components/email/message_detail_card";
 import { SenderProfileTrigger } from "@/components/profile/sender_profile_trigger";
 import { PgpPasswordProtectedMessage } from "@/components/email/pgp_password_prompt";
+import {
+  emit_mail_soft_refresh,
+  emit_refresh_requested,
+} from "@/hooks/mail_events";
 import { request_external_link } from "@/utils/external_link_request";
 import { folder_option_indent } from "@/hooks/use_folders/tree";
 import { SenderLogoBoundary } from "@/contexts/sender_logo_context";
@@ -986,7 +990,24 @@ export function ThreadMessageBlock(
             />
           </div>
         )}
-        {password_protected ? (
+        {message.payload_unavailable ? (
+          <div className="mx-4 mb-3 rounded-[20px] bg-surf-primary px-4 py-3">
+            <p className="text-sm text-txt-muted">
+              {t("common.message_temporarily_unavailable")}
+            </p>
+            <button
+              className="mt-3 px-4 py-2 text-sm font-medium rounded-[14px] transition-colors bg-surf-secondary text-txt-primary"
+              type="button"
+              onClick={(event) => {
+                event.stopPropagation();
+                emit_refresh_requested();
+                emit_mail_soft_refresh();
+              }}
+            >
+              {t("common.unavailable_try_again")}
+            </button>
+          </div>
+        ) : password_protected ? (
           <PgpPasswordProtectedMessage
             body={message.body}
             className="px-4 py-3"

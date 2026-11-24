@@ -1155,6 +1155,11 @@ export const tr = {
       "Özel anahtarlarınız bu cihazda kilitli. Kilidi açmak için yeniden giriş yapın. Sunucudaki anahtarlarınız değişmedi.",
     email_data_missing:
       "Bu e-postanın içeriğini yükleyemedik. Gelen kutunuzdan tekrar açmak onu geri getirir. Gelen kutunuz olduğu gibi.",
+    message_temporarily_unavailable:
+      "Bu ileti geçici olarak kullanılamıyor. Birazdan tekrar deneyin.",
+    attachment_temporarily_unavailable:
+      "Bu ek geçici olarak kullanılamıyor. Birazdan tekrar deneyin.",
+    unavailable_try_again: "Tekrar dene",
     later: "Daha Sonra",
     welcome_to_aster: "Aster Mail'e Hoş Geldiniz",
     purchase_thank_you:

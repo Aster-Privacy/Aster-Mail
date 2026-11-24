@@ -414,7 +414,9 @@ export function EmailPopupViewer({
           request_spam(() => viewer.handle_per_message_report_phishing(msg))
         }
         on_per_message_trash={viewer.handle_per_message_trash}
+        on_retry={viewer.retry_load}
         on_toggle_message_read={viewer.handle_toggle_message_read}
+        payload_unavailable={viewer.payload_unavailable}
         pending_thread_count={viewer.pending_thread_count}
         snoozed_until={snoozed_until}
         t={viewer.t}

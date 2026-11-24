@@ -2433,7 +2433,9 @@ async function item_to_entry(
   const has_metadata = !!(item.encrypted_metadata && item.metadata_nonce);
 
   const [envelope, metadata] = await Promise.all([
-    decrypt_envelope(item.encrypted_envelope, item.envelope_nonce, item.id),
+    item.payload_unavailable === true
+      ? Promise.resolve(null)
+      : decrypt_envelope(item.encrypted_envelope, item.envelope_nonce, item.id),
     has_metadata
       ? decrypt_mail_metadata(
           item.encrypted_metadata!,

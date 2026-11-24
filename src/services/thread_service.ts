@@ -487,10 +487,13 @@ export async function fetch_and_decrypt_thread_messages(
   const cache_user = our_email ?? "";
 
   const decrypt_promises = messages_to_decrypt.map(async (msg) => {
+    const payload_unavailable = msg.payload_unavailable === true;
     const [content, decrypted_metadata] = await Promise.all([
-      decrypt_thread_content_cached(msg, thread_token, cache_user, () =>
-        decode_thread_envelope(msg, our_email),
-      ),
+      payload_unavailable
+        ? Promise.resolve(null)
+        : decrypt_thread_content_cached(msg, thread_token, cache_user, () =>
+            decode_thread_envelope(msg, our_email),
+          ),
       msg.encrypted_metadata && msg.metadata_nonce
         ? decrypt_thread_metadata_cached(msg, cache_user, () =>
             decrypt_mail_metadata(
@@ -508,8 +511,11 @@ export async function fetch_and_decrypt_thread_messages(
         item_type: msg.item_type as "received" | "sent" | "draft",
         sender_name: get_active_translations().common.unknown_sender,
         sender_email: "",
-        subject: get_active_translations().common.unable_to_decrypt,
+        subject: payload_unavailable
+          ? get_active_translations().common.message_temporarily_unavailable
+          : get_active_translations().common.unable_to_decrypt,
         body: "",
+        ...(payload_unavailable ? { payload_unavailable: true } : {}),
         html_content: undefined,
         timestamp: msg.created_at,
         is_read: decrypted_metadata?.is_read ?? false,
@@ -623,12 +629,15 @@ export async function fetch_and_decrypt_virtual_group(
   );
 
   const decrypt_promises = visible_items.map(async (item) => {
+    const payload_unavailable = item.payload_unavailable === true;
     const [envelope, decrypted_metadata] = await Promise.all([
-      decrypt_mail_envelope<DecryptedEnvelope>(
-        item.encrypted_envelope,
-        item.envelope_nonce,
-        item.id,
-      ),
+      payload_unavailable
+        ? Promise.resolve(null)
+        : decrypt_mail_envelope<DecryptedEnvelope>(
+            item.encrypted_envelope,
+            item.envelope_nonce,
+            item.id,
+          ),
       item.encrypted_metadata && item.metadata_nonce
         ? decrypt_mail_metadata(
             item.encrypted_metadata,
@@ -644,8 +653,11 @@ export async function fetch_and_decrypt_virtual_group(
         item_type: item.item_type as "received" | "sent" | "draft",
         sender_name: get_active_translations().common.unknown_sender,
         sender_email: "",
-        subject: get_active_translations().common.unable_to_decrypt,
+        subject: payload_unavailable
+          ? get_active_translations().common.message_temporarily_unavailable
+          : get_active_translations().common.unable_to_decrypt,
         body: "",
+        ...(payload_unavailable ? { payload_unavailable: true } : {}),
         html_content: undefined,
         timestamp: item.created_at,
         is_read: decrypted_metadata?.is_read ?? false,

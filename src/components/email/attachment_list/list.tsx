@@ -90,7 +90,19 @@ import {
   subscribe_decrypted_mime_attachments,
 } from "@/services/decrypted_mime_attachments";
 
+const UNAVAILABLE_TOAST_MS = 8000;
+
+class AttachmentTemporarilyUnavailableError extends Error {
+  constructor() {
+    super("attachment_temporarily_unavailable");
+    this.name = "AttachmentTemporarilyUnavailableError";
+  }
+}
+
 function attachment_error_key(error: unknown): TranslationKey {
+  if (error instanceof AttachmentTemporarilyUnavailableError) {
+    return "common.attachment_temporarily_unavailable";
+  }
   if (error instanceof AttachmentIntegrityError) {
     return "common.attachment_content_mismatch";
   }
@@ -394,6 +406,10 @@ function ServerAttachmentList({
 
       const response = await get_attachment(att.id, att.mail_item_id);
 
+      if (response.status === 503) {
+        throw new AttachmentTemporarilyUnavailableError();
+      }
+
       if (!response.data?.encrypted_data) {
         throw new Error("attachment_bytes_unavailable");
       }
@@ -684,6 +700,28 @@ function ServerAttachmentList({
     user_expanded,
   ]);
 
+  const handle_click_ref = useRef<
+    ((att: DecryptedAttachmentInfo) => void) | null
+  >(null);
+
+  const show_attachment_error = useCallback(
+    (error: unknown, on_retry: () => void) => {
+      if (error instanceof AttachmentTemporarilyUnavailableError) {
+        show_toast(
+          t("common.attachment_temporarily_unavailable"),
+          "error",
+          UNAVAILABLE_TOAST_MS,
+          { label: t("common.unavailable_try_again"), on_click: on_retry },
+        );
+
+        return;
+      }
+
+      show_toast(t(attachment_error_key(error)), "error");
+    },
+    [t],
+  );
+
   const handle_download = useCallback(
     async (att: DecryptedAttachmentInfo, e?: React.MouseEvent) => {
       if (e) {
@@ -712,12 +750,14 @@ function ServerAttachmentList({
         download_decrypted_attachment(data, meta.filename, meta.content_type);
       } catch (error) {
         if (import.meta.env.DEV) console.error(error);
-        show_toast(t(attachment_error_key(error)), "error");
+        show_attachment_error(error, () => {
+          void handle_download(att);
+        });
       } finally {
         set_downloading(null);
       }
     },
-    [t, ensure_attachment_bytes],
+    [show_attachment_error, ensure_attachment_bytes],
   );
 
   const handle_click = useCallback(
@@ -769,7 +809,7 @@ function ServerAttachmentList({
             });
           })
           .catch((error) => {
-            show_toast(t(attachment_error_key(error)), "error");
+            show_attachment_error(error, () => handle_click_ref.current?.(att));
           });
       } else if (is_previewable_pdf(att.content_type)) {
         ensure_attachment_bytes(att)
@@ -782,14 +822,18 @@ function ServerAttachmentList({
             });
           })
           .catch((error) => {
-            show_toast(t(attachment_error_key(error)), "error");
+            show_attachment_error(error, () => handle_click_ref.current?.(att));
           });
       } else {
         handle_download(att);
       }
     },
-    [handle_download, ensure_attachment_bytes, t],
+    [handle_download, ensure_attachment_bytes, show_attachment_error],
   );
+
+  useEffect(() => {
+    handle_click_ref.current = handle_click;
+  }, [handle_click]);
 
   const shown_attachments = useMemo(
     () => without_body_inline_images(attachments, inline_refs),

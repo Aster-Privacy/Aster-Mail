@@ -1177,6 +1177,11 @@ export const pl = {
       "Klucze prywatne są zablokowane na tym urządzeniu. Ponowne zalogowanie je odblokuje. Klucze na serwerze pozostają bez zmian.",
     email_data_missing:
       "Nie udało się załadować treści tej wiadomości. Ponowne otwarcie ze skrzynki odbiorczej powinno ją przywrócić. Skrzynka pozostaje bez zmian.",
+    message_temporarily_unavailable:
+      "Ta wiadomość jest chwilowo niedostępna. Spróbuj ponownie za chwilę.",
+    attachment_temporarily_unavailable:
+      "Ten załącznik jest chwilowo niedostępny. Spróbuj ponownie za chwilę.",
+    unavailable_try_again: "Spróbuj ponownie",
     later: "Później",
     welcome_to_aster: "Witamy w Aster Mail",
     purchase_thank_you:

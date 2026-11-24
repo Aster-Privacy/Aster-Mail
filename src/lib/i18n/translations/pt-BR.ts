@@ -1042,6 +1042,11 @@ export const pt_br = {
       "Suas chaves privadas estão bloqueadas neste dispositivo. Entrar novamente vai desbloqueá-las. Suas chaves no servidor permanecem inalteradas.",
     email_data_missing:
       "Não foi possível carregar o conteúdo deste e-mail. Abri-lo novamente a partir da caixa de entrada deve trazê-lo de volta. Sua caixa de entrada permanece inalterada.",
+    message_temporarily_unavailable:
+      "Esta mensagem está temporariamente indisponível. Tente novamente em instantes.",
+    attachment_temporarily_unavailable:
+      "Este anexo está temporariamente indisponível. Tente novamente em instantes.",
+    unavailable_try_again: "Tentar novamente",
     later: "Depois",
     welcome_to_aster: "Bem-vindo ao Aster Mail",
     purchase_thank_you: "Obrigado pela sua compra. Sua assinatura está ativa.",

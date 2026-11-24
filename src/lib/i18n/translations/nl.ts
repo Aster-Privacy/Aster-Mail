@@ -1143,6 +1143,11 @@ export const nl = {
       "Je privésleutels zijn op dit apparaat vergrendeld. Opnieuw aanmelden ontgrendelt ze. Je sleutels op de server zijn ongewijzigd.",
     email_data_missing:
       "We konden de inhoud van deze e-mail niet laden. Hem opnieuw openen vanuit je inbox zou hem moeten terugbrengen. Je inbox is ongewijzigd.",
+    message_temporarily_unavailable:
+      "Dit bericht is tijdelijk niet beschikbaar. Probeer het zo meteen opnieuw.",
+    attachment_temporarily_unavailable:
+      "Deze bijlage is tijdelijk niet beschikbaar. Probeer het zo meteen opnieuw.",
+    unavailable_try_again: "Opnieuw proberen",
     later: "Later",
     welcome_to_aster: "Welkom bij Aster Mail",
     purchase_thank_you: "Bedankt voor je aankoop. Je abonnement is nu actief.",
