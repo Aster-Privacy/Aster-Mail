@@ -4919,7 +4919,7 @@ export const es = {
     feedback_not_encrypted:
       "Los comentarios no tienen cifrado de extremo a extremo, así que no incluyas contraseñas, códigos de recuperación ni otra información privada.",
     feedback_support_notice:
-      "Los comentarios no se revisan para atender solicitudes de soporte ni preguntas. Para obtener ayuda, contacta con el equipo de soporte en {{ email }}.",
+      "Este formulario es para comentarios, ideas e informes de errores. Si tienes preguntas o necesitas ayuda con tu cuenta, escribe al equipo de soporte a {{ email }}.",
     feedback_intro:
       "Comparte una idea, informa de un error o cuéntale al equipo de Aster lo que piensas. Los comentarios no abren una solicitud de soporte, así que, para recibir ayuda o una respuesta, contacta con soporte.",
     support_intro:

@@ -4957,7 +4957,7 @@ export const fr = {
     feedback_not_encrypted:
       "Les commentaires ne sont pas chiffrés de bout en bout. N'y incluez donc pas de mots de passe, de codes de récupération ni d'autres informations privées.",
     feedback_support_notice:
-      "Les commentaires ne sont pas consultés pour les demandes d'assistance ou les questions. Pour obtenir de l'aide, contactez l'équipe d'assistance à l'adresse {{ email }}.",
+      "Ce formulaire est destiné aux commentaires, aux idées et aux signalements de bugs. Pour toute question ou aide concernant votre compte, écrivez plutôt à l'équipe d'assistance à l'adresse {{ email }}.",
     feedback_intro:
       "Partagez une idée, signalez un bug ou dites à l'équipe Aster ce que vous en pensez. Les commentaires n'ouvrent pas de demande d'assistance. Pour obtenir de l'aide ou une réponse, contactez l'assistance.",
     support_intro:

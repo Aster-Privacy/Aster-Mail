@@ -4961,7 +4961,7 @@ export const pt = {
     feedback_not_encrypted:
       "O feedback não é encriptado ponto a ponto, por isso não inclua palavras-passe, códigos de recuperação nem outras informações privadas.",
     feedback_support_notice:
-      "O feedback não é monitorizado para pedidos de suporte ou perguntas. Para obter ajuda, contacte a equipa de suporte através de {{ email }}.",
+      "Este formulário destina-se a feedback, ideias e relatórios de erros. Para questões ou ajuda com a sua conta, envie um e-mail à equipa de suporte para {{ email }}.",
     feedback_intro:
       "Partilhe uma ideia, comunique um erro ou diga à equipa da Aster o que pensa. O feedback não abre um pedido de suporte, por isso, para obter ajuda ou uma resposta, contacte o suporte.",
     support_intro:
