@@ -10962,6 +10962,9 @@ export const nl = {
     link_device_confirming: "Apparaat koppelen...",
     link_device_cancel: "Annuleren",
     link_device_desktop: "Nieuw apparaat",
+    link_device_extension: "Browserextensie",
+    link_device_extension_grant_notice:
+      "Door te koppelen krijgt Aster Companion op {{device}} toegang tot de adressen en aliassen van {{email}}, zodat het ze op websites kan invullen en nieuwe aliassen kan maken.",
     device_fingerprint: "Apparaatvingerafdruk",
     device_fingerprint_copy: "Apparaatvingerafdruk kopiëren",
     link_device_grant_notice:

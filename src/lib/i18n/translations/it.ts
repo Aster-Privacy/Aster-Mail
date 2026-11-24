@@ -11031,6 +11031,9 @@ export const it = {
       "Vuoi collegare questo dispositivo al tuo account?",
     link_device_confirming: "Collegamento dispositivo...",
     link_device_desktop: "Nuovo dispositivo",
+    link_device_extension: "Estensione del browser",
+    link_device_extension_grant_notice:
+      "Il collegamento dà ad Aster Companion su {{device}} accesso agli indirizzi e agli alias di {{email}}, così può inserirli nei siti web e creare nuovi alias.",
     device_fingerprint: "Impronta digitale del dispositivo",
     device_fingerprint_copy: "Copia impronta digitale del dispositivo",
     link_device_grant_notice:

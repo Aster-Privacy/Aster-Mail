@@ -10709,6 +10709,9 @@ export const ja = {
     link_device_confirming: "デバイスをリンク中...",
     link_device_cancel: "キャンセル",
     link_device_desktop: "新しいデバイス",
+    link_device_extension: "ブラウザ拡張機能",
+    link_device_extension_grant_notice:
+      "リンクすると、{{device}} の Aster Companion が {{email}} のアドレスとエイリアスにアクセスできるようになり、ウェブサイトへの入力や新しいエイリアスの作成ができます。",
     device_fingerprint: "デバイスのフィンガープリント",
     device_fingerprint_copy: "デバイスのフィンガープリントをコピー",
     link_device_grant_notice:

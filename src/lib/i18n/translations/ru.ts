@@ -11176,6 +11176,9 @@ export const ru = {
       "Хотите привязать это устройство к своему аккаунту?",
     link_device_confirming: "Привязка устройства...",
     link_device_desktop: "Новое устройство",
+    link_device_extension: "Расширение браузера",
+    link_device_extension_grant_notice:
+      "Привязка даёт Aster Companion на устройстве {{device}} доступ к адресам и псевдонимам {{email}}, чтобы он мог подставлять их на сайтах и создавать новые псевдонимы.",
     device_fingerprint: "Отпечаток устройства",
     device_fingerprint_copy: "Скопировать отпечаток устройства",
     link_device_grant_notice:

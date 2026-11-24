@@ -105,6 +105,12 @@ vi.mock("@/services/api/client", () => ({
 
 vi.mock("@/services/crypto/memory_key_store", () => ({
   get_passphrase_from_memory: () => "passphrase",
+  get_vault_from_memory: () => ({ data_kek: "vault" }),
+}));
+
+vi.mock("@/lib/crypto/extension_link_keys", () => ({
+  encode_extension_link_keys: (vault: { data_kek: string }) =>
+    new TextEncoder().encode(`alias-keys:${vault.data_kek}`),
 }));
 
 vi.mock("@/contexts/auth/session_passphrase", () => ({
@@ -556,6 +562,52 @@ describe("link device approval", () => {
 
     expect(h.confirm).toHaveBeenCalledTimes(1);
     expect(h.confirm.mock.calls[0]).toHaveLength(2);
+  });
+
+  function capture_sealed(): string[] {
+    const sealed: string[] = [];
+
+    h.seal.mockImplementation(async (secret: Uint8Array) => {
+      sealed.push(new TextDecoder().decode(secret));
+
+      return new Uint8Array([1, 2, 3]);
+    });
+
+    return sealed;
+  }
+
+  it("seals the passphrase for an app", async () => {
+    const sealed = capture_sealed();
+
+    await render_page();
+    await enter_code();
+    await enter_fingerprint(FINGERPRINT);
+    await approve();
+
+    expect(sealed).toEqual(["passphrase"]);
+    expect(h.seal.mock.calls[0]?.[0]).toEqual(new Uint8Array(10));
+  });
+
+  it("seals only the alias keys for the browser extension", async () => {
+    const sealed = capture_sealed();
+
+    h.verify.mockResolvedValue({
+      data: { ...valid_keys(), device_type: "extension" },
+    });
+    await render_page();
+    await enter_code();
+
+    expect(container.textContent).toContain("auth.link_device_extension");
+    expect(
+      container.querySelector('[data-testid="link_device_grant"]')?.textContent,
+    ).toBe("auth.link_device_extension_grant_notice");
+
+    await enter_fingerprint(FINGERPRINT);
+    await approve();
+
+    expect(sealed).toEqual(["alias-keys:vault"]);
+    expect(h.confirm).toHaveBeenCalledTimes(1);
+    expect(container.textContent).toContain("auth.link_device_success");
   });
 
   it.each([

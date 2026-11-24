@@ -10310,6 +10310,9 @@ export const en: Translations = {
     link_device_confirming: "Linking device...",
     link_device_cancel: "Cancel",
     link_device_desktop: "New device",
+    link_device_extension: "Browser extension",
+    link_device_extension_grant_notice:
+      "Linking gives Aster Companion on {{device}} access to the addresses and aliases on {{email}}, so it can fill them in on websites and create new aliases.",
     device_fingerprint: "Device fingerprint",
     device_fingerprint_copy: "Copy device fingerprint",
     link_device_grant_notice:

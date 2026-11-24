@@ -10861,6 +10861,9 @@ export const tr = {
     link_device_confirming: "Cihaz bağlanıyor...",
     link_device_cancel: "İptal",
     link_device_desktop: "Yeni cihaz",
+    link_device_extension: "Tarayıcı uzantısı",
+    link_device_extension_grant_notice:
+      "Bağlama işlemi, {{device}} üzerindeki Aster Companion'a {{email}} hesabının adreslerine ve takma adlarına erişim verir; böylece bunları sitelere girebilir ve yeni takma adlar oluşturabilir.",
     device_fingerprint: "Cihaz parmak izi",
     device_fingerprint_copy: "Cihaz parmak izini kopyala",
     link_device_grant_notice:
