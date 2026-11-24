@@ -90,6 +90,10 @@ updates:
     cooldown:
       default-days: 7
     open-pull-requests-limit: 3
+    groups:
+      codeql-action:
+        patterns:
+          - "github/codeql-action*"
     ignore:
       - dependency-name: signpath/github-action-submit-signing-request
         update-types:
