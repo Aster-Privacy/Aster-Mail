@@ -22,7 +22,7 @@ import type { SignedAction } from "./guard";
 
 import { api_client, ApiResponse } from "./client";
 
-export type DeviceType = "desktop" | "mobile" | "bridge";
+export type DeviceType = "desktop" | "mobile" | "bridge" | "extension";
 
 export interface Device {
   id: string;
@@ -73,6 +73,7 @@ export interface DeviceCodeVerifyResponse {
   mlkem_pk: string;
   x25519_pk: string;
   machine_name: string;
+  device_type?: string;
   envelope_versions?: number[];
   action_pk?: string | null;
   keys_digest?: string;

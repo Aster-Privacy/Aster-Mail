@@ -10953,6 +10953,9 @@ export const pt_br = {
     link_device_confirm_prompt: "Deseja vincular este dispositivo à sua conta?",
     link_device_confirming: "Vinculando dispositivo...",
     link_device_desktop: "Novo dispositivo",
+    link_device_extension: "Extensão do navegador",
+    link_device_extension_grant_notice:
+      "Ao vincular, o Aster Companion em {{device}} recebe acesso aos endereços e aliases de {{email}}, para preenchê-los em sites e criar novos aliases.",
     device_fingerprint: "Impressão digital do dispositivo",
     device_fingerprint_copy: "Copiar impressão digital do dispositivo",
     link_device_grant_notice:

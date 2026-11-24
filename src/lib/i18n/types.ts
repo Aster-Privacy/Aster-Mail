@@ -9649,6 +9649,8 @@ export interface AuthTranslations {
   link_device_confirming: string;
   link_device_cancel: string;
   link_device_desktop: string;
+  link_device_extension: string;
+  link_device_extension_grant_notice: string;
   device_fingerprint: string;
   device_fingerprint_copy: string;
   link_device_grant_notice: string;

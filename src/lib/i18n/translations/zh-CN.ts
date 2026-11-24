@@ -9802,6 +9802,9 @@ export const zh_CN = {
     link_device_confirming: "正在关联设备...",
     link_device_cancel: "取消",
     link_device_desktop: "新设备",
+    link_device_extension: "浏览器扩展",
+    link_device_extension_grant_notice:
+      "关联后，{{device}} 上的 Aster Companion 将可以访问 {{email}} 的地址和别名，以便在网站中填写它们并创建新别名。",
     device_fingerprint: "设备指纹",
     device_fingerprint_copy: "复制设备指纹",
     link_device_grant_notice:

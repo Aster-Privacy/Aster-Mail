@@ -11112,6 +11112,9 @@ export const de = {
       "Möchten Sie dieses Gerät mit Ihrem Konto verknüpfen?",
     link_device_confirming: "Gerät wird verknüpft...",
     link_device_desktop: "Neues Gerät",
+    link_device_extension: "Browsererweiterung",
+    link_device_extension_grant_notice:
+      "Durch das Verknüpfen erhält Aster Companion auf {{device}} Zugriff auf die Adressen und Aliase von {{email}}, damit es sie auf Websites eintragen und neue Aliase erstellen kann.",
     device_fingerprint: "Gerätefingerabdruck",
     device_fingerprint_copy: "Gerätefingerabdruck kopieren",
     link_device_grant_notice:

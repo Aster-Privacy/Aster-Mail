@@ -10992,6 +10992,9 @@ export const es = {
     link_device_confirm_prompt: "¿Confirmar la vinculación del dispositivo?",
     link_device_confirming: "Confirmando...",
     link_device_desktop: "Dispositivo nuevo",
+    link_device_extension: "Extensión del navegador",
+    link_device_extension_grant_notice:
+      "Al vincular, Aster Companion en {{device}} obtiene acceso a las direcciones y los alias de {{email}}, para que pueda rellenarlos en sitios web y crear alias nuevos.",
     device_fingerprint: "Huella digital del dispositivo",
     device_fingerprint_copy: "Copiar huella digital del dispositivo",
     link_device_grant_notice:

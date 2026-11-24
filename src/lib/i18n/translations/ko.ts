@@ -10528,6 +10528,9 @@ export const ko = {
     link_device_confirming: "연결 중...",
     link_device_cancel: "취소",
     link_device_desktop: "새 기기",
+    link_device_extension: "브라우저 확장 프로그램",
+    link_device_extension_grant_notice:
+      "연결하면 {{device}}의 Aster Companion이 {{email}}의 주소와 별칭에 접근할 수 있게 되어, 웹사이트에 입력하고 새 별칭을 만들 수 있습니다.",
     device_fingerprint: "기기 지문",
     device_fingerprint_copy: "기기 지문 복사",
     link_device_grant_notice:

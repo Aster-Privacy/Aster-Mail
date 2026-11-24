@@ -11207,6 +11207,9 @@ export const pl = {
     link_device_confirming: "Łączenie urządzenia...",
     link_device_cancel: "Anuluj",
     link_device_desktop: "Nowe urządzenie",
+    link_device_extension: "Rozszerzenie przeglądarki",
+    link_device_extension_grant_notice:
+      "Połączenie daje Aster Companion na urządzeniu {{device}} dostęp do adresów i aliasów konta {{email}}, aby mógł wpisywać je na stronach i tworzyć nowe aliasy.",
     device_fingerprint: "Odcisk urządzenia",
     device_fingerprint_copy: "Kopiuj odcisk urządzenia",
     link_device_grant_notice:

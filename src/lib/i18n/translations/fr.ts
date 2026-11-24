@@ -11116,6 +11116,9 @@ export const fr = {
     link_device_confirm_prompt: "Confirmer l'association de l'appareil ?",
     link_device_confirming: "Confirmation en cours...",
     link_device_desktop: "Nouvel appareil",
+    link_device_extension: "Extension de navigateur",
+    link_device_extension_grant_notice:
+      "L'association donne à Aster Companion sur {{device}} l'accès aux adresses et aux alias de {{email}}, afin qu'il puisse les saisir sur les sites web et créer de nouveaux alias.",
     device_fingerprint: "Empreinte de l'appareil",
     device_fingerprint_copy: "Copier l'empreinte de l'appareil",
     link_device_grant_notice:

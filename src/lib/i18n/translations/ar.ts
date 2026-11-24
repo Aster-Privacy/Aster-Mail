@@ -10780,6 +10780,9 @@ export const ar = {
     link_device_confirming: "جارٍ ربط الجهاز...",
     link_device_cancel: "إلغاء",
     link_device_desktop: "جهاز جديد",
+    link_device_extension: "إضافة المتصفح",
+    link_device_extension_grant_notice:
+      "يمنح الربط Aster Companion على {{device}} وصولاً إلى العناوين والأسماء المستعارة في {{email}}، حتى يتمكن من إدخالها في المواقع وإنشاء أسماء مستعارة جديدة.",
     device_fingerprint: "بصمة الجهاز",
     device_fingerprint_copy: "نسخ بصمة الجهاز",
     link_device_grant_notice:

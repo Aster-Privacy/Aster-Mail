@@ -10359,6 +10359,9 @@ export const hi = {
     link_device_confirming: "डिवाइस लिंक किया जा रहा है...",
     link_device_cancel: "रद्द करें",
     link_device_desktop: "नया डिवाइस",
+    link_device_extension: "ब्राउज़र एक्सटेंशन",
+    link_device_extension_grant_notice:
+      "लिंक करने से {{device}} पर Aster Companion को {{email}} के पतों और एलियास का ऐक्सेस मिल जाता है, ताकि वह उन्हें वेबसाइटों पर भर सके और नए एलियास बना सके।",
     hub_accounts_or_password: "या अपने पासवर्ड से साइन इन करें",
     hub_account_password_required: "पासवर्ड आवश्यक है",
     hub_account_link_failed:

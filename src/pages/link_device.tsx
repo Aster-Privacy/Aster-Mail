@@ -23,7 +23,11 @@ import type { StepUpProof } from "@/services/api/guard";
 
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { PlusIcon, ComputerDesktopIcon } from "@heroicons/react/24/outline";
+import {
+  PlusIcon,
+  ComputerDesktopIcon,
+  PuzzlePieceIcon,
+} from "@heroicons/react/24/outline";
 import { Button } from "@aster/ui";
 
 import { use_auth } from "@/contexts/auth_context";
@@ -46,7 +50,11 @@ import {
   normalize_fingerprint,
   read_link_commitment,
 } from "@/lib/device_link_commitment";
-import { get_passphrase_from_memory } from "@/services/crypto/memory_key_store";
+import {
+  get_passphrase_from_memory,
+  get_vault_from_memory,
+} from "@/services/crypto/memory_key_store";
+import { encode_extension_link_keys } from "@/lib/crypto/extension_link_keys";
 import { app_pathname } from "@/lib/account_index_url";
 import { show_toast } from "@/components/toast/simple_toast";
 import { ButtonSpinner, Spinner } from "@/components/ui/spinner";
@@ -81,9 +89,20 @@ interface DeviceInfo {
   ed25519_pk: string;
   mlkem_pk: string;
   x25519_pk: string;
+  device_type?: string;
   envelope_versions?: number[];
   action_pk?: string | null;
   keys_digest?: string;
+}
+
+function encode_passphrase_secret(): Uint8Array {
+  const passphrase = get_passphrase_from_memory();
+
+  if (!passphrase) {
+    throw new Error("vault_locked");
+  }
+
+  return new TextEncoder().encode(passphrase);
 }
 
 function LinkDeviceShell({
@@ -493,6 +512,7 @@ function LinkDeviceFlow({
       device_info ? fingerprint_of_encoded_device_keys(device_info) : null,
     [device_info],
   );
+  const is_extension = device_info?.device_type === "extension";
   const typed_fingerprint = normalize_fingerprint(fingerprint_input);
   const fingerprint_matches =
     device_fingerprint !== null && typed_fingerprint === device_fingerprint;
@@ -638,19 +658,15 @@ function LinkDeviceFlow({
         return;
       }
 
-      const passphrase = get_passphrase_from_memory();
-
-      if (!passphrase) {
-        throw new Error("vault_locked");
-      }
-
-      const passphrase_bytes = new TextEncoder().encode(passphrase);
+      const secret_bytes = is_extension
+        ? encode_extension_link_keys(get_vault_from_memory())
+        : encode_passphrase_secret();
 
       let envelope: Uint8Array;
 
       try {
         envelope = await seal_vault_key_for_device(
-          passphrase_bytes,
+          secret_bytes,
           {
             ed25519_pk: base64url_decode(device_info.ed25519_pk),
             mlkem_pk: base64url_decode(device_info.mlkem_pk),
@@ -659,7 +675,7 @@ function LinkDeviceFlow({
           choose_envelope_version(device_info.envelope_versions),
         );
       } finally {
-        passphrase_bytes.fill(0);
+        secret_bytes.fill(0);
       }
 
       const envelope_b64 = base64url_encode(envelope);
@@ -820,7 +836,11 @@ function LinkDeviceFlow({
           <div className="account_menu_card rounded-[18px] px-4 py-4">
             <div className="flex items-center gap-3.5">
               <span className="account_menu_tile_icon">
-                <ComputerDesktopIcon className="w-[18px] h-[18px]" />
+                {is_extension ? (
+                  <PuzzlePieceIcon className="w-[18px] h-[18px]" />
+                ) : (
+                  <ComputerDesktopIcon className="w-[18px] h-[18px]" />
+                )}
               </span>
               <div className="flex min-w-0 flex-1 flex-col gap-0.5">
                 <span
@@ -833,7 +853,11 @@ function LinkDeviceFlow({
                   className="text-[11px] leading-tight truncate"
                   style={{ color: "var(--text-muted)" }}
                 >
-                  {t("auth.link_device_desktop")}
+                  {t(
+                    is_extension
+                      ? "auth.link_device_extension"
+                      : "auth.link_device_desktop",
+                  )}
                 </span>
               </div>
             </div>
@@ -846,10 +870,15 @@ function LinkDeviceFlow({
                 data-testid="link_device_grant"
                 style={{ color: "var(--text-primary)" }}
               >
-                {t("auth.link_device_grant_notice", {
-                  device: device_info.machine_name,
-                  email: identity.display_email,
-                })}
+                {t(
+                  is_extension
+                    ? "auth.link_device_extension_grant_notice"
+                    : "auth.link_device_grant_notice",
+                  {
+                    device: device_info.machine_name,
+                    email: identity.display_email,
+                  },
+                )}
               </p>
               <p
                 className="mt-2 text-[11px] leading-relaxed"
