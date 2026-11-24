@@ -11803,6 +11803,23 @@ export const en: Translations = {
     panel_open_calendar: "Open Calendar",
     panel_load_failed: "Your calendar did not load.",
     panel_try_again: "Try again",
+    panel_signed_out: "To see your calendar, sign in.",
+    panel_keys_loading:
+      "Your calendar appears after your account finishes unlocking.",
+    panel_locked: "To see your calendar, unlock Aster Mail.",
+    panel_no_calendars:
+      "You do not have any calendars yet. To create one, open Aster Calendar.",
+    panel_unavailable: "Aster Calendar is not available right now.",
+    panel_refresh_failed:
+      "Your calendar did not refresh. You are seeing saved events.",
+    panel_up_next: "Up next",
+    panel_up_next_now: "Now",
+    panel_up_next_in_minutes: "In {count} min",
+    panel_up_next_empty: "No events in the next 7 days",
+    panel_no_events: "No events",
+    panel_previous_month: "Previous month",
+    panel_next_month: "Next month",
+    panel_open_event: "Open in Calendar",
     panel_set_up: "To see your events here, set up Aster Calendar.",
     beta_waitlist_start: "The beta is expected to start on November 1.",
     beta_waitlist_features_title: "What's included",

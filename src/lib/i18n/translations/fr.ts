@@ -12231,6 +12231,23 @@ export const fr = {
     panel_open_calendar: "Ouvrir Calendrier",
     panel_load_failed: "Votre agenda ne s'est pas chargé.",
     panel_try_again: "Réessayer",
+    panel_signed_out: "Pour voir votre calendrier, connectez-vous.",
+    panel_keys_loading:
+      "Votre calendrier s'affiche une fois votre compte déverrouillé.",
+    panel_locked: "Pour voir votre calendrier, déverrouillez Aster Mail.",
+    panel_no_calendars:
+      "Vous n'avez encore aucun calendrier. Pour en créer un, ouvrez Aster Calendar.",
+    panel_unavailable: "Aster Calendar n'est pas disponible pour le moment.",
+    panel_refresh_failed:
+      "Votre calendrier n'a pas été actualisé. Vous voyez les événements enregistrés.",
+    panel_up_next: "À venir",
+    panel_up_next_now: "Maintenant",
+    panel_up_next_in_minutes: "Dans {count} min",
+    panel_up_next_empty: "Aucun événement dans les 7 prochains jours",
+    panel_no_events: "Aucun événement",
+    panel_previous_month: "Mois précédent",
+    panel_next_month: "Mois suivant",
+    panel_open_event: "Ouvrir dans Calendrier",
     panel_set_up: "Pour voir vos événements ici, configurez Aster Calendar.",
     beta_waitlist_start: "La bêta devrait commencer le 1er novembre.",
     beta_waitlist_features_title: "Ce qui est inclus",

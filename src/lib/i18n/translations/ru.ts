@@ -12288,6 +12288,23 @@ export const ru = {
     panel_open_calendar: "Открыть Календарь",
     panel_load_failed: "Не удалось загрузить календарь.",
     panel_try_again: "Повторить",
+    panel_signed_out: "Чтобы увидеть календарь, войдите в аккаунт.",
+    panel_keys_loading:
+      "Календарь появится, когда аккаунт будет разблокирован.",
+    panel_locked: "Чтобы увидеть календарь, разблокируйте Aster Mail.",
+    panel_no_calendars:
+      "У вас пока нет календарей. Чтобы создать календарь, откройте Aster Calendar.",
+    panel_unavailable: "Aster Calendar сейчас недоступен.",
+    panel_refresh_failed:
+      "Не удалось обновить календарь. Показаны сохраненные события.",
+    panel_up_next: "Далее",
+    panel_up_next_now: "Сейчас",
+    panel_up_next_in_minutes: "Через {count} мин",
+    panel_up_next_empty: "Нет событий в ближайшие 7 дней",
+    panel_no_events: "Нет событий",
+    panel_previous_month: "Предыдущий месяц",
+    panel_next_month: "Следующий месяц",
+    panel_open_event: "Открыть в Календаре",
     panel_set_up: "Чтобы видеть здесь свои события, настройте Aster Calendar.",
     beta_waitlist_start: "Бета-версия, как ожидается, начнётся 1 ноября.",
     beta_waitlist_features_title: "Что входит",
