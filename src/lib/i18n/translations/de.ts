@@ -1164,6 +1164,27 @@ export const de = {
     search_labels: "Labels suchen",
     enter_label_name: "Label-Namen eingeben",
     leaving_aster_mail: "Aster Mail verlassen",
+    link_dialog_title: "Diesen Link öffnen?",
+    link_dialog_body:
+      "Dieser Link öffnet eine Webseite außerhalb von Aster Mail.",
+    link_dialog_mail_title: "E-Mail-App öffnen?",
+    link_dialog_mail_body:
+      "Dieser Link erstellt in der E-Mail-App Ihres Geräts eine neue Nachricht an diese Adresse.",
+    link_dialog_blocked_title: "Dieser Link kann nicht geöffnet werden",
+    link_dialog_blocked_body:
+      "Aster Mail öffnet diese Art von Link nicht, da sie Code ausführen oder ihr Ziel verbergen kann.",
+    link_dialog_show_full: "Vollständige Adresse anzeigen",
+    link_dialog_copy: "Link kopieren",
+    link_dialog_warnings_label: "Vor dem Öffnen prüfen",
+    link_dialog_warning_http:
+      "Diese Webseite nutzt keine sichere Verbindung. Andere im Netzwerk können sehen oder ändern, was Sie senden.",
+    link_dialog_warning_lookalike:
+      "Diese Adresse kann auch als {{host}} erscheinen. Sie mischt Buchstaben aus verschiedenen Alphabeten und kann so wie eine andere Website aussehen.",
+    link_dialog_warning_mismatch:
+      "Der Linktext zeigt {{shown}}, aber der Link öffnet {{site}}.",
+    link_dialog_warning_ip:
+      "Dieser Link verwendet eine numerische Adresse statt eines Website-Namens. Dadurch ist schwerer zu erkennen, wer die Seite betreibt.",
+    link_dialog_full_address: "Vollständige Adresse",
     unlock_aster_mail: "Aster Mail entsperren",
     aster_mail_locked: "Aster Mail ist gesperrt",
     merge_contacts: "Kontakte zusammenführen",

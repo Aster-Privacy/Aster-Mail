@@ -1286,6 +1286,26 @@ export const nl = {
     search_labels: "Labels zoeken",
     enter_label_name: "Voer labelnaam in",
     leaving_aster_mail: "Aster Mail verlaten",
+    link_dialog_title: "Deze link openen?",
+    link_dialog_body: "Deze link opent een webpagina buiten Aster Mail.",
+    link_dialog_mail_title: "Je e-mailapp openen?",
+    link_dialog_mail_body:
+      "Deze link maakt in de e-mailapp van je apparaat een nieuw bericht aan dit adres.",
+    link_dialog_blocked_title: "Deze link kan niet worden geopend",
+    link_dialog_blocked_body:
+      "Aster Mail opent dit type link niet, omdat het code kan uitvoeren of kan verbergen waar het naartoe leidt.",
+    link_dialog_show_full: "Volledig adres tonen",
+    link_dialog_copy: "Link kopiëren",
+    link_dialog_warnings_label: "Controleer dit voordat je opent",
+    link_dialog_warning_http:
+      "Deze webpagina gebruikt geen beveiligde verbinding, dus anderen op het netwerk kunnen zien of wijzigen wat je verstuurt.",
+    link_dialog_warning_lookalike:
+      "Dit adres kan ook verschijnen als {{host}}. Het mengt letters uit verschillende alfabetten, waardoor het op een andere website kan lijken.",
+    link_dialog_warning_mismatch:
+      "De linktekst toont {{shown}}, maar de link opent {{site}}.",
+    link_dialog_warning_ip:
+      "Deze link gebruikt een numeriek adres in plaats van een websitenaam, dus het is lastiger te zien wie de pagina beheert.",
+    link_dialog_full_address: "Volledig adres",
     unlock_aster_mail: "Aster Mail ontgrendelen",
     aster_mail_locked: "Aster Mail is vergrendeld",
     merge_contacts: "Contacten samenvoegen",

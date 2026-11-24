@@ -142,6 +142,8 @@ export function QuotedHtmlPreview({ html }: { html: string }) {
 
       handle_external_link(
         is_mailto_link(href) ? keep_safe_mailto_fields(href) : href,
+        undefined,
+        link.textContent,
       );
     };
 

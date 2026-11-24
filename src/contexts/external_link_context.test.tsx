@@ -62,7 +62,11 @@ vi.mock("@/components/modals/external_link_warning_modal", () => ({
     on_close: () => void;
   }) =>
     is_open ? (
-      <div data-testid="link_warning" data-url={url}>
+      <div
+        data-link-text={link_text ?? ""}
+        data-testid="link_warning"
+        data-url={url}
+      >
         <button type="button" data-action="confirm" onClick={on_confirm}>
           confirm
         </button>
@@ -73,9 +77,8 @@ vi.mock("@/components/modals/external_link_warning_modal", () => ({
     ) : null,
 }));
 
-const { ExternalLinkProvider, use_external_link } = await import(
-  "./external_link_context"
-);
+const { ExternalLinkProvider, use_external_link } =
+  await import("./external_link_context");
 
 declare global {
   var IS_REACT_ACT_ENVIRONMENT: boolean;
@@ -268,5 +271,46 @@ describe("ExternalLinkProvider results", () => {
     act(() => handle_external_link!(FIRST_URL));
 
     expect(h.open_external).toHaveBeenCalledWith(FIRST_URL);
+  });
+
+  it("opens exactly the href it was given", () => {
+    const href =
+      "https://click.example-mail.com/ls/click?upn=a%2Fb&utm_source=x#frag";
+
+    render_provider();
+    request(href);
+    click_warning("confirm");
+
+    expect(h.open_external).toHaveBeenCalledWith(href);
+  });
+
+  it("passes the link text from an event to the warning", () => {
+    render_provider();
+
+    act(() => {
+      window.dispatchEvent(
+        new CustomEvent("aster-external-link", {
+          detail: { url: FIRST_URL, link_text: "paypal.com" },
+        }),
+      );
+    });
+
+    expect(warning()?.dataset.linkText).toBe("paypal.com");
+  });
+
+  it("always shows the warning for a blocked link and never opens it", () => {
+    h.preferences.external_link_warning_dismissed = true;
+    h.trusted = true;
+    render_provider();
+
+    for (const url of ["javascript:alert(1)", "data:text/html,hi"]) {
+      const on_result = request(url);
+
+      expect(warning()?.dataset.url).toBe(url);
+      click_warning("confirm");
+
+      expect(h.open_external).not.toHaveBeenCalled();
+      expect(on_result).toHaveBeenCalledWith(false);
+    }
   });
 });
