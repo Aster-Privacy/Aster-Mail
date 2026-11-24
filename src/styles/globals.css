@@ -1680,83 +1680,51 @@
 }
 
 :root {
-  --storage-tone-brand: var(--accent-color);
-  --storage-tone-strong: color-mix(
-    in srgb,
-    var(--accent-color) 40%,
-    var(--text-primary)
-  );
-  --storage-tone-soft: color-mix(in srgb, var(--accent-color) 35%, var(--bg-card));
-  --storage-tone-neutral: color-mix(
-    in srgb,
-    var(--text-primary) 60%,
-    var(--bg-card)
-  );
-  --storage-tone-neutral-soft: color-mix(
-    in srgb,
-    var(--text-primary) 40%,
-    var(--bg-card)
-  );
-  --storage-emails: var(--storage-tone-brand);
-  --storage-attachments: var(--storage-tone-strong);
-  --storage-drafts: var(--storage-tone-soft);
-  --storage-spam: var(--storage-tone-neutral);
-  --storage-trash: var(--storage-tone-neutral-soft);
-  --storage-other: var(--storage-tone-neutral-soft);
-  --storage-track: rgba(100, 116, 139, 0.22);
-  --capacity-plan: var(--storage-tone-brand);
-  --capacity-addons: var(--storage-tone-strong);
-  --capacity-family: var(--storage-tone-soft);
+  --storage-blue: #3b82f6;
+  --storage-violet: #8b5cf6;
+  --storage-teal: #0d9488;
+  --storage-amber: #c07508;
+  --storage-rose: #e11d48;
+  --storage-fuchsia: #c026d3;
+  --storage-track: rgba(100, 116, 139, 0.12);
+  --storage-emails: var(--storage-blue);
+  --storage-attachments: var(--storage-violet);
+  --storage-drafts: var(--storage-amber);
+  --storage-spam: var(--storage-rose);
+  --storage-trash: var(--storage-fuchsia);
+  --storage-other: var(--storage-teal);
+  --capacity-plan: var(--storage-blue);
+  --capacity-addons: var(--storage-violet);
+  --capacity-family: var(--storage-teal);
 }
 
 .dark {
-  --storage-track: rgba(148, 163, 184, 0.26);
-}
-
-.theme-black {
-  --storage-tone-strong: color-mix(
-    in srgb,
-    var(--text-primary) 74%,
-    var(--bg-card)
-  );
-  --storage-tone-soft: color-mix(in srgb, var(--text-primary) 18%, var(--bg-card));
-  --storage-tone-neutral: color-mix(
-    in srgb,
-    var(--text-primary) 54%,
-    var(--bg-card)
-  );
-  --storage-tone-neutral-soft: color-mix(
-    in srgb,
-    var(--text-primary) 36%,
-    var(--bg-card)
-  );
-}
-
-.theme-slate {
-  --storage-tone-strong: color-mix(
-    in srgb,
-    var(--text-primary) 94%,
-    var(--bg-card)
-  );
-  --storage-tone-soft: color-mix(in srgb, var(--text-primary) 18%, var(--bg-card));
-  --storage-tone-neutral: color-mix(
-    in srgb,
-    var(--text-primary) 76%,
-    var(--bg-card)
-  );
-  --storage-tone-neutral-soft: color-mix(
-    in srgb,
-    var(--text-primary) 58%,
-    var(--bg-card)
-  );
+  --storage-violet: #a78bfa;
+  --storage-teal: #2dd4bf;
+  --storage-amber: #fbbf24;
+  --storage-rose: #fb7185;
+  --storage-fuchsia: #e879f9;
+  --storage-track: rgba(148, 163, 184, 0.16);
 }
 
 .high-contrast {
-  --storage-track: rgba(71, 85, 105, 0.35);
+  --storage-blue: #2563eb;
+  --storage-violet: #7c3aed;
+  --storage-teal: #0f766e;
+  --storage-amber: #b45309;
+  --storage-rose: #be123c;
+  --storage-fuchsia: #a21caf;
+  --storage-track: rgba(71, 85, 105, 0.22);
 }
 
 .dark.high-contrast {
-  --storage-track: rgba(203, 213, 225, 0.3);
+  --storage-blue: #60a5fa;
+  --storage-violet: #a78bfa;
+  --storage-teal: #2dd4bf;
+  --storage-amber: #fbbf24;
+  --storage-rose: #fb7185;
+  --storage-fuchsia: #e879f9;
+  --storage-track: rgba(203, 213, 225, 0.22);
 }
 
 .aster_cat_badge {
