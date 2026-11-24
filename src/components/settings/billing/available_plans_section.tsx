@@ -68,6 +68,8 @@ import {
   TOAST_DURATION_BILLING_MS,
 } from "@/components/toast/simple_toast";
 import { use_i18n } from "@/lib/i18n/context";
+import { has_tauri_runtime } from "@/lib/tauri_runtime";
+import { payment_url_or_throw } from "@/lib/payment_url";
 
 const TIER_DESCRIPTION_KEYS: Record<string, TranslationKey> = {
   star: "auth.plan_star_description",
@@ -180,8 +182,7 @@ export function AvailablePlansSection({
 
     set_family_loading(true);
     try {
-      const is_tauri =
-        typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
+      const is_tauri = has_tauri_runtime();
       const origin = is_tauri
         ? "https://app.astermail.org"
         : window.location.origin;
@@ -193,9 +194,7 @@ export function AvailablePlansSection({
       );
 
       if (res.data?.checkout_url) {
-        const parsed = new URL(res.data.checkout_url);
-
-        if (parsed.protocol !== "https:") throw new Error("invalid_protocol");
+        const parsed = new URL(payment_url_or_throw(res.data.checkout_url));
         if (is_tauri) {
           const core = await import("@tauri-apps/api/core");
 

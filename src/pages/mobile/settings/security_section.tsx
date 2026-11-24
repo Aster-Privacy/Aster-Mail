@@ -42,62 +42,18 @@ import {
 
 import { MobileExternalKeyGroup } from "./external_key_group";
 
-import { reprotect_vault_keys_for_password_change } from "@/services/crypto/identity_key_materials";
+import { GuardSection } from "@/components/guard/guard_section";
+
 import { use_auth } from "@/contexts/auth_context";
 import { use_preferences } from "@/contexts/preferences_context";
 import { show_toast } from "@/components/toast/simple_toast";
-import { generate_auth_salt, login_safety_error_key } from "@/services/crypto/auth_salt_guard";
 import { use_i18n } from "@/lib/i18n/context";
 import { clamp_password } from "@/services/sanitize";
 import { ButtonSpinner } from "@/components/ui/spinner";
 import { Input } from "@/components/ui/input";
 import { api_client } from "@/services/api/client";
-import {
-  derive_password_hash,
-  hash_email,
-  encrypt_vault,
-  decrypt_vault,
-} from "@/services/crypto/key_manager";
-import {
-  store_vault_in_memory,
-  get_vault_from_memory,
-  is_master_key_vault,
-  MASTER_KEY_VAULT_FORMAT,
-  get_storage_kdf_version,
-} from "@/services/crypto/memory_key_store";
-import { upgrade_vault_to_master_key } from "@/services/crypto/vault_master_key_upgrade";
-import { reset_vault_refresh_state } from "@/services/crypto/vault_refresh";
-import { refresh_recovery_backup } from "@/services/crypto/recovery_backup_refresh";
-import {
-  derive_kek_from_password,
-  keep_password_change_keks,
-} from "@/services/crypto/legacy_keks";
-import {
-  derive_preferences_key_raw,
-  derive_dev_mode_key_raw,
-} from "@/services/api/preferences";
-import { re_encrypt_user_data } from "@/services/crypto/password_change_reencrypt";
-import {
-  note_vault_written,
-  vault_write_iterations,
-  write_vault_at_level,
-} from "@/services/crypto/vault_level2";
-import { reencrypt_identity_scoped_password_change } from "@/services/crypto/recovery_reencrypt";
-import { reencrypt_all_sent_mail } from "@/services/send_queue_encryption";
-import { announce_sent_mail_resealed } from "@/services/sent_mail_reseal";
-import { kept_app_lock_field } from "@/services/app_lock_password_change";
-import {
-  convert_before_password_change,
-  sent_mail_needs_password_reseal,
-} from "@/services/account_data_conversion";
-import { write_locked_sent_mail } from "@/services/locked_sent_mail_store";
 import { get_totp_status, type TotpStatusResponse } from "@/services/api/totp";
-import {
-  get_login_alerts_status,
-  set_login_alerts,
-  change_password,
-  get_user_salt,
-} from "@/services/api/auth";
+import { get_login_alerts_status, set_login_alerts } from "@/services/api/auth";
 import { TotpSetupModal } from "@/components/settings/totp_setup_modal";
 import { TotpDisableModal } from "@/components/settings/totp_disable_modal";
 import { RegenerateBackupCodesModal } from "@/components/settings/regenerate_backup_codes_modal";
@@ -106,22 +62,11 @@ import { ConfirmationModal } from "@/components/modals/confirmation_modal";
 import { check_password_breach } from "@/services/breach_check";
 import { UpgradeGate } from "@/components/common/upgrade_gate";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
-import { ignore_error } from "@/lib/ignore_error";
 import {
-  derive_current_account_proof,
-  read_kdf_version,
-  record_current_account_login_salt,
-  user_hash_pin_key,
-} from "@/services/crypto/login_proof";
-
-function base64_to_array(base64: string): Uint8Array {
-  const binary = atob(base64);
-  const bytes = new Uint8Array(binary.length);
-
-  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
-
-  return bytes;
-}
+  append_password_notice,
+  password_change_failure_message,
+  run_password_change,
+} from "@/components/settings/hooks/use_security/run_password_change";
 
 export function SecuritySection({
   on_back,
@@ -273,8 +218,6 @@ export function SecuritySection({
     set_pw_success(false);
     set_pw_unreadable_notice("");
 
-    let unreadable_item_count = 0;
-
     if (!user?.email) {
       set_pw_error(t("settings.user_not_found"));
 
@@ -297,319 +240,32 @@ export function SecuritySection({
     }
     set_pw_loading(true);
     try {
-      const user_hash = await hash_email(user.email);
-      const salt_res = await get_user_salt({ user_hash });
-
-      if (salt_res.error || !salt_res.data) {
-        set_pw_error(salt_res.error || t("settings.failed_get_auth_data"));
-        set_pw_loading(false);
-
-        return;
-      }
-      const salt = base64_to_array(salt_res.data.salt);
-      const current_pw_hash = await derive_current_account_proof(
+      const result = await run_password_change({
+        user_id: user.id,
+        user_email: user.email,
         current_password,
-        salt,
-        read_kdf_version(salt_res.data.kdf_version),
-        [user_hash_pin_key(user_hash)],
-      );
-      let vault;
+        new_password,
+        preferences,
+        t,
+        on_background_notice: (message) =>
+          set_pw_unreadable_notice((prev) =>
+            append_password_notice(prev, message),
+          ),
+      });
 
-      try {
-        const stored_vault = localStorage.getItem(
-          `astermail_encrypted_vault_${user.id}`,
-        );
-        const stored_nonce = localStorage.getItem(
-          `astermail_vault_nonce_${user.id}`,
-        );
-
-        if (!stored_vault || !stored_nonce) {
-          set_pw_error(t("settings.session_expired_sign_in"));
-          set_pw_loading(false);
+      if (!result.ok) {
+        if (result.held) {
+          set_show_password_change(false);
+          set_current_password("");
+          set_new_password("");
+          set_confirm_password("");
 
           return;
         }
-        vault = await decrypt_vault(
-          stored_vault,
-          stored_nonce,
-          current_password,
-        );
-      } catch {
-        set_pw_error(t("settings.current_password_incorrect"));
-        set_pw_loading(false);
+
+        set_pw_error(result.error);
 
         return;
-      }
-      const memory_vault = get_vault_from_memory();
-
-      if (!is_master_key_vault(vault)) {
-        let healed_from_server = false;
-
-        try {
-          const server_vault_response = await api_client.get<{
-            encrypted_vault: string;
-            vault_nonce: string;
-          }>("/core/v1/auth/vault");
-
-          if (
-            !server_vault_response.error &&
-            server_vault_response.data?.encrypted_vault &&
-            server_vault_response.data.vault_nonce
-          ) {
-            const server_vault = await decrypt_vault(
-              server_vault_response.data.encrypted_vault,
-              server_vault_response.data.vault_nonce,
-              current_password,
-            );
-
-            if (is_master_key_vault(server_vault)) {
-              vault = server_vault;
-              healed_from_server = true;
-
-              try {
-                localStorage.setItem(
-                  `astermail_encrypted_vault_${user.id}`,
-                  server_vault_response.data.encrypted_vault,
-                );
-                localStorage.setItem(
-                  `astermail_vault_nonce_${user.id}`,
-                  server_vault_response.data.vault_nonce,
-                );
-              } catch (caught) {
-                ignore_error(
-                  "pages/mobile/settings/security_section:fetch_alerts",
-                  caught,
-                );
-              }
-            }
-          }
-        } catch (caught) {
-          ignore_error(
-            "pages/mobile/settings/security_section:fetch_alerts",
-            caught,
-          );
-        }
-
-        if (!healed_from_server && is_master_key_vault(memory_vault)) {
-          vault.data_kek = memory_vault?.data_kek;
-          vault.data_kek_random = memory_vault?.data_kek_random;
-          vault.storage_rekey = memory_vault?.storage_rekey;
-          vault.vault_format = memory_vault?.vault_format;
-          vault.mk_created_at = memory_vault?.mk_created_at;
-          vault.legacy_identity_keys = memory_vault?.legacy_identity_keys
-            ? [...memory_vault.legacy_identity_keys]
-            : vault.legacy_identity_keys;
-          vault.legacy_keks = memory_vault?.legacy_keks
-            ? [...memory_vault.legacy_keks]
-            : vault.legacy_keks;
-        }
-      }
-
-      const sent_mail_conversion = await convert_before_password_change({
-        identity_key: vault.identity_key,
-        passphrase: current_password,
-      });
-
-      await upgrade_vault_to_master_key(vault, current_password);
-
-      const master_key_mode = is_master_key_vault(vault);
-      const old_identity_key = vault.identity_key;
-
-      const old_prefs_key_raw =
-        await derive_preferences_key_raw(old_identity_key);
-      const old_dev_mode_key_raw =
-        await derive_dev_mode_key_raw(old_identity_key);
-
-      await reprotect_vault_keys_for_password_change(
-        vault,
-        current_password,
-        new_password,
-      );
-
-      const old_folder_material = new TextEncoder().encode(
-        old_identity_key + "astermail-labels-v1",
-      );
-      const old_folder_hash = new Uint8Array(
-        await crypto.subtle.digest("SHA-256", old_folder_material),
-      );
-      const old_tag_material = new TextEncoder().encode(
-        old_identity_key + "astermail-tags-v1",
-      );
-      const old_tag_hash = new Uint8Array(
-        await crypto.subtle.digest("SHA-256", old_tag_material),
-      );
-      const retired_raws = [await derive_kek_from_password(current_password)];
-
-      vault.legacy_keks = keep_password_change_keks(vault.legacy_keks, [
-        ...retired_raws,
-        old_prefs_key_raw,
-        old_dev_mode_key_raw,
-        old_folder_hash,
-        old_tag_hash,
-      ]);
-
-      const new_salt = generate_auth_salt();
-      const {
-        hash: new_pw_hash,
-        salt: new_pw_salt,
-        hash_v2: new_pw_hash_v2,
-      } = await derive_password_hash(new_password, new_salt);
-      const reencrypted = master_key_mode
-        ? null
-        : await re_encrypt_user_data(current_password, new_password, {
-            data_kek: vault.data_kek,
-            legacy_keks: vault.legacy_keks,
-            kdf_version: get_storage_kdf_version(vault),
-          });
-
-      if (reencrypted) {
-        const { skipped } = reencrypted;
-
-        unreadable_item_count =
-          skipped.alias_ids.length +
-          skipped.contact_ids.length +
-          skipped.domain_address_ids.length +
-          skipped.unreadable_field_count;
-      }
-
-      const written = await write_vault_at_level(
-        vault_write_iterations(),
-        (iterations) => encrypt_vault(vault, new_password, iterations),
-        (sealed, kdf_field) =>
-          reencrypted
-            ? change_password({
-                current_password_hash: current_pw_hash,
-                new_password_hash: new_pw_hash,
-                new_password_hash_v2: new_pw_hash_v2,
-                new_password_salt: new_pw_salt,
-                new_encrypted_vault: sealed.encrypted_vault,
-                new_vault_nonce: sealed.vault_nonce,
-                re_encrypted_aliases: reencrypted.re_encrypted_aliases,
-                re_encrypted_contacts: reencrypted.re_encrypted_contacts,
-                re_encrypted_pins: reencrypted.re_encrypted_pins,
-                re_encrypted_alias_contacts:
-                  reencrypted.re_encrypted_alias_contacts,
-                re_encrypted_destinations: reencrypted.re_encrypted_destinations,
-                re_encrypted_directories: reencrypted.re_encrypted_directories,
-                re_encrypted_domain_addresses:
-                  reencrypted.re_encrypted_domain_addresses,
-                ...kdf_field,
-                ...kept_app_lock_field(user.id),
-              })
-            : change_password({
-                current_password_hash: current_pw_hash,
-                new_password_hash: new_pw_hash,
-                new_password_hash_v2: new_pw_hash_v2,
-                new_password_salt: new_pw_salt,
-                new_encrypted_vault: sealed.encrypted_vault,
-                new_vault_nonce: sealed.vault_nonce,
-                vault_format: MASTER_KEY_VAULT_FORMAT,
-                ...kdf_field,
-                ...kept_app_lock_field(user.id),
-              }),
-      );
-      const res = written.response;
-      const new_enc_vault = written.sealed.encrypted_vault;
-      const new_v_nonce = written.sealed.vault_nonce;
-
-      if (!res.error) {
-        note_vault_written(written.sealed, written.iterations);
-      }
-
-      if (res.error) {
-        set_pw_error(res.error);
-        set_pw_loading(false);
-
-        return;
-      }
-
-      try {
-        localStorage.setItem(
-          `astermail_encrypted_vault_${user.id}`,
-          new_enc_vault,
-        );
-        localStorage.setItem(`astermail_vault_nonce_${user.id}`, new_v_nonce);
-      } catch (caught) {
-        ignore_error(
-          "pages/mobile/settings/security_section:fetch_alerts",
-          caught,
-        );
-      }
-
-      void record_current_account_login_salt(new_salt);
-      reset_vault_refresh_state();
-      await store_vault_in_memory(vault, new_password);
-      void refresh_recovery_backup(vault, new_password);
-
-      if (res.data?.csrf_token) {
-        api_client.set_csrf(res.data.csrf_token);
-      }
-      if (res.data?.access_token) {
-        api_client.set_dev_token(res.data.access_token, res.data.refresh_token);
-      }
-
-      sent_mail_needs_password_reseal(sent_mail_conversion)
-        .then((needed) =>
-          needed
-            ? reencrypt_all_sent_mail(current_password, new_password)
-            : null,
-        )
-        .then((summary) => {
-          if (!summary) return;
-
-          write_locked_sent_mail(user.id, summary.unreadable);
-          announce_sent_mail_resealed(summary);
-
-          if (summary.failed > 0) {
-            set_pw_unreadable_notice((prev) => {
-              const message = t(
-                "settings.password_change_background_reencrypt_failed",
-              );
-
-              return prev.includes(message)
-                ? prev
-                : prev
-                  ? `${prev} ${message}`
-                  : message;
-            });
-          }
-
-          if (summary.unreadable > 0) {
-            const message = t(
-              "settings.password_change_sent_mail_locked",
-            ).replace("{{count}}", String(summary.unreadable));
-
-            set_pw_unreadable_notice((prev) =>
-              prev ? `${prev} ${message}` : message,
-            );
-          }
-        })
-        .catch((caught) =>
-          ignore_error(
-            "pages/mobile/settings/security_section:reencrypt_all_sent_mail",
-            caught,
-          ),
-        );
-
-      if (master_key_mode) {
-        reencrypt_identity_scoped_password_change(
-          old_identity_key,
-          vault.identity_key,
-        ).catch((caught) =>
-          ignore_error(
-            "pages/mobile/settings/security_section:fetch_alerts",
-            caught,
-          ),
-        );
-      }
-
-      if (unreadable_item_count > 0) {
-        set_pw_unreadable_notice(
-          t("settings.password_changed_items_unreadable").replace(
-            "{{count}}",
-            String(unreadable_item_count),
-          ),
-        );
       }
 
       set_pw_success(true);
@@ -619,25 +275,11 @@ export function SecuritySection({
       set_new_password("");
       set_confirm_password("");
     } catch (err) {
-      const msg = err instanceof Error ? err.message : "";
-
-      if (msg.startsWith("alias_reencrypt_failed:")) {
-        set_pw_error(t("settings.alias_reencrypt_failed"));
-      } else if (msg.startsWith("contact_reencrypt_failed:")) {
-        set_pw_error(t("settings.contact_reencrypt_failed"));
-      } else {
-        const safety_key = login_safety_error_key(err);
-
-        set_pw_error(
-          safety_key
-            ? t(safety_key)
-            : msg || t("settings.failed_change_password"),
-        );
-      }
+      set_pw_error(password_change_failure_message(err, t));
     } finally {
       set_pw_loading(false);
     }
-  }, [user, current_password, new_password, confirm_password, t]);
+  }, [user, current_password, new_password, confirm_password, preferences, t]);
 
   const handle_logout_others = useCallback(async () => {
     set_logout_others_loading(true);
@@ -748,6 +390,10 @@ export function SecuritySection({
             </div>
           )}
         </SettingsGroup>
+
+        <div className="px-4 py-2">
+          <GuardSection />
+        </div>
 
         <SettingsGroup title={t("settings.login_alerts")}>
           <SettingsRow

@@ -20,6 +20,8 @@
 //
 import {
   AuthSaltCollisionError,
+  IncorrectCurrentPasswordError,
+  LOGIN_SALT_RECORDS_KEY,
   LegacyLoginSaltError,
   constant_time_equals,
   generate_auth_salt,
@@ -33,7 +35,11 @@ import {
   read_login_v3_flag,
   set_pending_login_v3,
 } from "./login_v3";
-import { is_stored_login_key, stored_login_key } from "./login_record_keys";
+import { stored_login_key } from "./login_record_keys";
+import {
+  read_session_login_salt,
+  store_session_login_salt,
+} from "./session_login_salt";
 
 import { api_client } from "@/services/api/client";
 
@@ -41,10 +47,8 @@ export type KdfVersion = 1 | 2;
 
 const PINNED_ACCOUNTS_KEY = "aster:login_v2_accounts";
 const MAX_PINNED_ACCOUNTS = 64;
-const LOGIN_SALT_RECORDS_KEY = "aster:login_salt_records";
 const MAX_LOGIN_SALT_RECORDS = 64;
-const KNOWN_LOGIN_ACCOUNTS_KEY = "aster:login_known_accounts";
-const MAX_KNOWN_LOGIN_ACCOUNTS = 64;
+const RETIRED_KNOWN_LOGIN_ACCOUNTS_KEY = "aster:login_known_accounts";
 
 export const MIN_V1_LOGIN_SALT_BYTES = 32;
 
@@ -265,6 +269,19 @@ export function forget_login_salt_records(pin_keys: readonly string[]): void {
 
 export type LoginSaltRecordMatch = "match" | "mismatch" | "none";
 
+export function recorded_login_salts(pin_keys: readonly string[]): string[] {
+  const wanted = stored_keys(pin_keys);
+  const salts: string[] = [];
+
+  for (const entry of read_login_salt_records()) {
+    if (wanted.includes(entry.key) && !salts.includes(entry.salt)) {
+      salts.push(entry.salt);
+    }
+  }
+
+  return salts;
+}
+
 export function match_login_salt_record(
   pin_keys: readonly string[],
   salt: Uint8Array,
@@ -297,72 +314,12 @@ export function match_login_salt_record(
   return matched ? "match" : "mismatch";
 }
 
-function known_account_key(user_hash: string): string {
-  return stored_login_key(user_hash_pin_key(user_hash));
-}
-
-function read_known_login_accounts(): string[] {
-  return read_converted_list(KNOWN_LOGIN_ACCOUNTS_KEY, (entry) =>
-    is_stored_login_key(entry) || entry.startsWith("h:")
-      ? stored_login_key(entry)
-      : known_account_key(entry),
-  );
-}
-
-export function remember_known_login_accounts(
-  user_hashes: readonly string[],
-): void {
-  const added = [
-    ...new Set(
-      user_hashes.filter((hash) => hash !== "").map(known_account_key),
-    ),
-  ];
-
-  if (added.length === 0) {
-    return;
-  }
-
-  const kept = read_known_login_accounts().filter(
-    (hash) => !added.includes(hash),
-  );
-
-  kept.push(...added);
-
-  try {
-    localStorage.setItem(
-      KNOWN_LOGIN_ACCOUNTS_KEY,
-      JSON.stringify(
-        kept.slice(Math.max(0, kept.length - MAX_KNOWN_LOGIN_ACCOUNTS)),
-      ),
-    );
-  } catch {
-    return;
-  }
-}
-
 export function convert_stored_login_records(): void {
   read_pinned_accounts();
   read_login_salt_records();
-  read_known_login_accounts();
-}
-
-export async function remember_saved_login_accounts(): Promise<void> {
-  convert_stored_login_records();
 
   try {
-    const { get_all_accounts } = await import("@/services/account_manager");
-    const accounts = await get_all_accounts();
-    const hashes: string[] = [];
-
-    for (const account of accounts) {
-      const email = account.user?.email;
-
-      if (email) {
-        hashes.push(await hash_email(email));
-      }
-    }
-
-    remember_known_login_accounts(hashes);
+    localStorage.removeItem(RETIRED_KNOWN_LOGIN_ACCOUNTS_KEY);
   } catch {
     return;
   }
@@ -379,66 +336,27 @@ async function current_account_user_hash(): Promise<string | undefined> {
   }
 }
 
-async function account_saved_on_device(user_hash: string): Promise<boolean> {
-  if (!user_hash) {
-    return false;
-  }
-
-  if (read_known_login_accounts().includes(known_account_key(user_hash))) {
-    return true;
-  }
-
-  try {
-    const { get_all_accounts } = await import("@/services/account_manager");
-    const accounts = await get_all_accounts();
-
-    for (const account of accounts) {
-      const email = account.user?.email;
-
-      if (email && (await hash_email(email)) === user_hash) {
-        return true;
-      }
-    }
-  } catch {
-    return false;
-  }
-
-  return false;
-}
-
 export interface LoginSaltGuardOptions {
   context: LegacyLoginSaltContext;
-  user_hash?: string;
+  record_keys?: readonly string[];
 }
 
 export function is_short_login_salt(salt: Uint8Array): boolean {
   return salt.length < MIN_V1_LOGIN_SALT_BYTES;
 }
 
-async function assert_v1_login_salt_trusted(
+function assert_v1_login_salt_trusted(
   salt: Uint8Array,
   pin_keys: readonly string[],
   options: LoginSaltGuardOptions,
-): Promise<void> {
+): void {
   if (!is_short_login_salt(salt)) {
     return;
   }
 
-  const record = match_login_salt_record(pin_keys, salt);
+  const record_keys = [...pin_keys, ...(options.record_keys ?? [])];
 
-  if (record === "match") {
-    return;
-  }
-
-  if (
-    record === "none" &&
-    options.user_hash &&
-    (await account_saved_on_device(options.user_hash))
-  ) {
-    if (options.context === "step_up") {
-      record_login_salt(pin_keys, salt);
-    }
-
+  if (match_login_salt_record(record_keys, salt) === "match") {
     return;
   }
 
@@ -470,7 +388,7 @@ export async function derive_account_proof(
   }
 
   if (kdf_version === 1) {
-    await assert_v1_login_salt_trusted(salt, pin_keys, guard);
+    assert_v1_login_salt_trusted(salt, pin_keys, guard);
   }
 
   const { hash, hash_v2 } = await derive_password_hash(password, salt);
@@ -522,8 +440,8 @@ export async function enroll_login_v2(
 
 interface LoginSaltRotation {
   new_salt: Uint8Array;
-  hash: string;
   hash_v2: string;
+  v1_proof: string;
 }
 
 async function prepare_login_salt_rotation(
@@ -533,9 +451,69 @@ async function prepare_login_salt_rotation(
     const new_salt = generate_auth_salt();
     const { hash, hash_v2 } = await derive_password_hash(password, new_salt);
 
-    return { new_salt, hash, hash_v2 };
+    return { new_salt, hash_v2, v1_proof: hash };
   } catch {
     return null;
+  }
+}
+
+function pinned_user_hash(pin_keys: readonly string[]): string | undefined {
+  const prefix = user_hash_pin_key("");
+
+  return pin_keys
+    .find((key) => key.startsWith(prefix) && key.length > prefix.length)
+    ?.slice(prefix.length);
+}
+
+const LOST_REPLY_CODES = new Set([
+  "NETWORK_ERROR",
+  "TIMEOUT_ERROR",
+  "SERVER_ERROR",
+]);
+
+function response_may_be_lost(response: {
+  status?: number;
+  code?: string;
+}): boolean {
+  return (
+    (typeof response.status === "number" && response.status >= 500) ||
+    (typeof response.code === "string" && LOST_REPLY_CODES.has(response.code))
+  );
+}
+
+function thrown_reply_may_be_lost(error: unknown): boolean {
+  return (
+    error instanceof TypeError ||
+    (error instanceof Error &&
+      (error.name === "AbortError" || error.name === "TimeoutError"))
+  );
+}
+
+async function server_kept_rotated_salt(
+  user_hash: string | undefined,
+  new_salt: Uint8Array,
+): Promise<boolean> {
+  if (!user_hash) {
+    return false;
+  }
+
+  try {
+    const response = await api_client.post<{
+      salt?: unknown;
+      kdf_version?: unknown;
+    }>("/core/v1/auth/salt", { user_hash });
+    const encoded = response.data?.salt;
+
+    if (
+      typeof encoded !== "string" ||
+      read_kdf_version(response.data?.kdf_version) !== 2
+    ) {
+      return false;
+    }
+
+    return constant_time_equals(base64_to_array(encoded), new_salt);
+  } catch {
+    return false;
   }
 }
 
@@ -543,10 +521,14 @@ async function rotate_login_salt(
   proof: AccountProof,
   rotation: LoginSaltRotation,
   pin_keys: readonly string[],
+  account_id: string,
 ): Promise<boolean> {
   if (proof.kdf_version !== 1 || !proof.hash_v1) {
     return false;
   }
+
+  let rotated = false;
+  let reply_lost = false;
 
   try {
     const response = await api_client.post<{ kdf_version?: number }>(
@@ -554,22 +536,34 @@ async function rotate_login_salt(
       {
         password_hash: proof.hash_v1,
         new_password_salt: array_to_base64(rotation.new_salt),
-        new_password_hash: rotation.hash,
         new_password_hash_v2: rotation.hash_v2,
       },
     );
 
-    if (response.data && read_kdf_version(response.data.kdf_version) === 2) {
-      pin_accounts(pin_keys);
-      record_login_salt(pin_keys, rotation.new_salt);
+    rotated = Boolean(
+      response.data && read_kdf_version(response.data.kdf_version) === 2,
+    );
+    reply_lost = !rotated && response_may_be_lost(response);
+  } catch (error) {
+    reply_lost = thrown_reply_may_be_lost(error);
+  }
 
-      return true;
-    }
-  } catch {
+  if (!rotated && reply_lost) {
+    rotated = await server_kept_rotated_salt(
+      pinned_user_hash(pin_keys),
+      rotation.new_salt,
+    );
+  }
+
+  if (!rotated) {
     return false;
   }
 
-  return false;
+  pin_accounts(pin_keys);
+  record_login_salt(pin_keys, rotation.new_salt);
+  store_session_login_salt(account_id, rotation.new_salt);
+
+  return true;
 }
 
 async function current_account_pin_keys(): Promise<string[]> {
@@ -590,13 +584,28 @@ export async function derive_current_account_proof(
   kdf_version: KdfVersion,
   extra_pin_keys: readonly string[] = [],
 ): Promise<string> {
+  await seed_login_salt_record_from_session();
+
   const pin_keys = [...(await current_account_pin_keys()), ...extra_pin_keys];
+  const record_keys = await current_account_record_keys();
+  const rotated = await rotate_untrusted_session_salt(
+    password,
+    salt,
+    kdf_version,
+    pin_keys,
+    record_keys,
+  );
+
+  if (rotated) {
+    return rotated;
+  }
+
   const proof = await derive_account_proof(
     password,
     salt,
     kdf_version,
     pin_keys,
-    { context: "step_up", user_hash: await current_account_user_hash() },
+    { context: "step_up", record_keys },
   );
 
   if (proof.kdf_version === 2) {
@@ -606,73 +615,183 @@ export async function derive_current_account_proof(
   return proof.password_hash;
 }
 
+type SessionPasswordCheck = "match" | "mismatch" | "unavailable";
+
+async function check_session_password(
+  password: string,
+): Promise<SessionPasswordCheck> {
+  try {
+    const { has_passphrase_in_memory, verify_passphrase_for_export } =
+      await import("./memory_key_store");
+
+    if (!has_passphrase_in_memory()) {
+      return "unavailable";
+    }
+
+    return (await verify_passphrase_for_export(password))
+      ? "match"
+      : "mismatch";
+  } catch {
+    return "unavailable";
+  }
+}
+
+async function current_salt_proof(
+  password: string,
+  salt: Uint8Array,
+): Promise<string | null> {
+  try {
+    const { hash } = await derive_password_hash(password, salt);
+
+    return hash;
+  } catch {
+    return null;
+  }
+}
+
+async function rotate_untrusted_session_salt(
+  password: string,
+  salt: Uint8Array,
+  kdf_version: KdfVersion,
+  pin_keys: readonly string[],
+  record_keys: readonly string[],
+): Promise<string | null> {
+  if (kdf_version !== 1 || !is_short_login_salt(salt)) {
+    return null;
+  }
+
+  if (!v1_proofs_allowed(pin_keys)) {
+    return null;
+  }
+
+  if (match_login_salt_record([...pin_keys, ...record_keys], salt) !== "none") {
+    return null;
+  }
+
+  const user_id = await current_account_id();
+
+  if (!user_id || read_session_login_salt(user_id)) {
+    return null;
+  }
+
+  const session_check = await check_session_password(password);
+
+  if (session_check === "mismatch") {
+    throw new IncorrectCurrentPasswordError();
+  }
+
+  if (session_check !== "match") {
+    throw new LegacyLoginSaltError("step_up");
+  }
+
+  const rotation = await prepare_login_salt_rotation(password);
+  const current_proof = rotation
+    ? await current_salt_proof(password, salt)
+    : null;
+
+  if (!rotation || !current_proof) {
+    throw new LegacyLoginSaltError("step_up");
+  }
+
+  let rotated = false;
+  let wrong_password = false;
+  let reply_lost = false;
+
+  try {
+    const response = await api_client.post<{ kdf_version?: number }>(
+      "/core/v1/auth/me/login-salt",
+      {
+        password_hash: current_proof,
+        new_password_salt: array_to_base64(rotation.new_salt),
+        new_password_hash_v2: rotation.hash_v2,
+      },
+    );
+
+    wrong_password = response.status === 401;
+    rotated = Boolean(
+      response.data && read_kdf_version(response.data.kdf_version) === 2,
+    );
+    reply_lost = !rotated && response_may_be_lost(response);
+  } catch (error) {
+    reply_lost = thrown_reply_may_be_lost(error);
+  }
+
+  if (wrong_password) {
+    throw new IncorrectCurrentPasswordError();
+  }
+
+  if (!rotated && reply_lost) {
+    rotated = await server_kept_rotated_salt(
+      await current_account_user_hash(),
+      rotation.new_salt,
+    );
+  }
+
+  if (!rotated) {
+    throw new LegacyLoginSaltError("step_up");
+  }
+
+  const all_keys = [...pin_keys, ...record_keys];
+
+  pin_accounts(pin_keys);
+  record_login_salt(all_keys, rotation.new_salt);
+  store_session_login_salt(user_id, rotation.new_salt);
+
+  return rotation.hash_v2;
+}
+
+async function current_account_record_keys(): Promise<string[]> {
+  const user_hash = await current_account_user_hash();
+
+  return [
+    ...(await current_account_pin_keys()),
+    ...(user_hash ? [user_hash_pin_key(user_hash)] : []),
+  ];
+}
+
 export async function record_current_account_login_salt(
   salt: Uint8Array,
 ): Promise<void> {
-  const user_hash = await current_account_user_hash();
+  record_login_salt(await current_account_record_keys(), salt);
 
-  record_login_salt(
-    [
-      ...(await current_account_pin_keys()),
-      ...(user_hash ? [user_hash_pin_key(user_hash)] : []),
-    ],
-    salt,
-  );
+  const user_id = await current_account_id();
+
+  if (user_id) {
+    store_session_login_salt(user_id, salt);
+  }
 }
 
-interface SessionSaltResponse {
-  salt?: string;
-}
-
-export async function seed_session_login_salt(
-  user_id: string,
-  email: string,
-): Promise<void> {
-  if (!user_id || !email) {
-    return;
-  }
-
-  const pin_keys = [
-    user_id_pin_key(user_id),
-    user_hash_pin_key(await hash_email(email)),
-  ];
-  const recorded = new Set(
-    read_login_salt_records().map((entry) => entry.key),
-  );
-  const missing = pin_keys.filter(
-    (key) => !recorded.has(stored_login_key(key)),
-  );
-
-  if (missing.length === 0) {
-    return;
-  }
-
+async function current_account_id(): Promise<string | null> {
   try {
-    const response = await api_client.get<SessionSaltResponse>(
-      "/crypto/v1/encryption/salt",
-      { skip_cache: true },
-    );
-
-    if (response.error || !response.data?.salt) {
-      return;
-    }
-
-    const salt = base64_to_array(response.data.salt);
     const { get_current_account_id } =
       await import("@/services/account_manager");
 
-    if ((await get_current_account_id()) !== user_id) {
-      return;
-    }
-
-    const still_missing = missing.filter(
-      (key) => match_login_salt_record([key], salt) === "none",
-    );
-
-    record_login_salt(still_missing, salt);
+    return (await get_current_account_id()) ?? null;
   } catch {
+    return null;
+  }
+}
+
+export async function seed_login_salt_record_from_session(): Promise<void> {
+  const user_id = await current_account_id();
+
+  if (!user_id) {
     return;
   }
+
+  const salt = read_session_login_salt(user_id);
+
+  if (!salt) {
+    return;
+  }
+
+  const record_keys = await current_account_record_keys();
+
+  if (match_login_salt_record(record_keys, salt) !== "none") {
+    return;
+  }
+
+  record_login_salt(record_keys, salt);
 }
 
 const PENDING_ENROLLMENT_TTL_MS = 15 * 60 * 1000;
@@ -722,7 +841,15 @@ export async function flush_pending_login_enrollment(
   const pin_keys = [...pending.pin_keys, user_id_pin_key(user_id)];
 
   if (pending.salt) {
+    const salt_trusted =
+      !is_short_login_salt(pending.salt) ||
+      match_login_salt_record(pin_keys, pending.salt) === "match";
+
     record_login_salt(pin_keys, pending.salt);
+
+    if (salt_trusted) {
+      store_session_login_salt(user_id, pending.salt);
+    }
   }
 
   let rotated: LoginSaltRotation | null = null;
@@ -732,7 +859,7 @@ export async function flush_pending_login_enrollment(
 
     if (
       rotation &&
-      (await rotate_login_salt(pending.proof, rotation, pin_keys))
+      (await rotate_login_salt(pending.proof, rotation, pin_keys, user_id))
     ) {
       rotated = rotation;
     }
@@ -744,7 +871,7 @@ export async function flush_pending_login_enrollment(
 
   if (pending.enroll_v3) {
     await enroll_login_v3(
-      rotated ? rotated.hash : pending.proof.v1_proof,
+      rotated ? rotated.v1_proof : pending.proof.v1_proof,
       rotated ? rotated.hash_v2 : pending.proof.password_hash,
     );
   }
@@ -761,20 +888,20 @@ export async function derive_sign_in_proof(
 ): Promise<string> {
   convert_stored_login_records();
 
+  const has_login_v3 = read_login_v3_flag(signals.login_v3);
+
   const pin_keys = [user_hash_pin_key(user_hash)];
   const proof = await derive_account_proof(
     password,
     salt,
     read_kdf_version(kdf_version_value),
     pin_keys,
-    { context: "sign_in", user_hash },
+    { context: "sign_in" },
   );
   const rotation =
     proof.kdf_version === 1 && is_short_login_salt(salt)
       ? prepare_login_salt_rotation(password)
       : null;
-
-  const has_login_v3 = read_login_v3_flag(signals.login_v3);
 
   set_pending_login_enrollment(
     proof,

@@ -29,6 +29,7 @@ vi.mock("./account_key_loader", () => ({
 import {
   store_vault_in_memory,
   clear_vault_from_memory,
+  get_vault_from_memory,
   verify_passphrase_for_export,
 } from "./memory_key_store";
 
@@ -89,5 +90,30 @@ describe("validate_passphrase constant-time comparison", () => {
 
   it("returns false when no vault is in memory", () => {
     expect(verify_passphrase_for_export("anything")).toBe(false);
+  });
+});
+
+describe("retired storage key hashes in memory", () => {
+  beforeEach(() => {
+    subtle_crypto_mock.importKey.mockResolvedValue({} as CryptoKey);
+    subtle_crypto_mock.deriveBits.mockResolvedValue(new Uint8Array(32).buffer);
+    subtle_crypto_mock.digest.mockResolvedValue(new Uint8Array(32).buffer);
+  });
+
+  afterEach(() => {
+    clear_vault_from_memory();
+  });
+
+  it("keeps its own copy of the retired hashes", async () => {
+    const hashes = ["retired-hash-one", "retired-hash-two"];
+    const vault = { ...build_vault(), retired_storage_key_hashes: hashes };
+
+    await store_vault_in_memory(vault, "correct horse battery staple");
+    hashes.length = 0;
+
+    expect(get_vault_from_memory()?.retired_storage_key_hashes).toEqual([
+      "retired-hash-one",
+      "retired-hash-two",
+    ]);
   });
 });

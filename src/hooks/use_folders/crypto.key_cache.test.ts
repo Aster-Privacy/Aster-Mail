@@ -160,13 +160,7 @@ describe("folder field key cache", () => {
 
     expect(decrypted?.name).toBe("Folder 1");
     expect(aes_imports(import_key)).toBe(2);
-    expect(
-      digest.mock.calls.filter((call) =>
-        new TextDecoder()
-          .decode(call[1] as Uint8Array)
-          .startsWith("folder_field_key\x00"),
-      ),
-    ).toHaveLength(2);
+    expect(key_derivations(digest)).toBe(2);
   });
 
   it("does not keep a key that finished deriving after the vault was cleared", async () => {
@@ -222,11 +216,13 @@ describe("folder field key cache", () => {
 
     const ids = map_set.mock.calls
       .map((call) => call[0])
-      .filter((id): id is string => typeof id === "string")
-      .filter((id) => id !== IDENTITY_A);
+      .filter((id): id is string => typeof id === "string");
 
     expect(ids.some((id) => id.startsWith("folder_field_key:"))).toBe(true);
     expect(ids.some((id) => id.includes("PRIVATE KEY"))).toBe(false);
     expect(ids.some((id) => id.includes(IDENTITY_A))).toBe(false);
+    expect(map_set.mock.calls.some((call) => call[0] === IDENTITY_A)).toBe(
+      false,
+    );
   });
 });

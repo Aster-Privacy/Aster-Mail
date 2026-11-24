@@ -276,10 +276,37 @@ export function clear_unconfirmed_sender_plaintext(
   clear_plaintext(unconfirmed_sender_plaintexts, plaintext, message_key);
 }
 
+function marked_for(
+  store: Map<string, Set<string>>,
+  plaintext: string | null | undefined,
+  message_key: string | undefined,
+): boolean {
+  if (!plaintext) return false;
+
+  const keys = store.get(plaintext);
+
+  if (!keys) return false;
+  if (!message_key) return true;
+
+  for (const key of keys) {
+    if (
+      key === "" ||
+      key === message_key ||
+      key.startsWith(`${message_key}:`) ||
+      message_key.startsWith(`${key}:`)
+    ) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
 export function is_unauthenticated_plaintext(
   plaintext: string | null | undefined,
+  message_key?: string,
 ): boolean {
-  return !!plaintext && unauthenticated_plaintexts.has(plaintext);
+  return marked_for(unauthenticated_plaintexts, plaintext, message_key);
 }
 
 export function mark_unconfirmed_sender_plaintext(
@@ -291,17 +318,19 @@ export function mark_unconfirmed_sender_plaintext(
 
 export function is_unconfirmed_sender_plaintext(
   plaintext: string | null | undefined,
+  message_key?: string,
 ): boolean {
-  return !!plaintext && unconfirmed_sender_plaintexts.has(plaintext);
+  return marked_for(unconfirmed_sender_plaintexts, plaintext, message_key);
 }
 
 export function is_trusted_ratchet_plaintext(
   plaintext: string | null | undefined,
+  message_key?: string,
 ): boolean {
   return (
     !!plaintext &&
-    !is_unauthenticated_plaintext(plaintext) &&
-    !is_unconfirmed_sender_plaintext(plaintext) &&
+    !is_unauthenticated_plaintext(plaintext, message_key) &&
+    !is_unconfirmed_sender_plaintext(plaintext, message_key) &&
     !was_evicted_untrusted(plaintext)
   );
 }

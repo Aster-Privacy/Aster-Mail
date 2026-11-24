@@ -48,6 +48,7 @@ vi.mock("@/contexts/auth/session_passphrase", () => ({
 }));
 
 vi.mock("@/services/api/webauthn", () => ({
+  initiate_hardware_key_registration: vi.fn(),
   list_hardware_keys: vi.fn(async () => ({ data: { keys: [] } })),
   remove_hardware_key: vi.fn(),
   HardwareKeyInfo: {},

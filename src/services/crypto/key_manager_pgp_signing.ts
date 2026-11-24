@@ -27,6 +27,20 @@ export async function verify_prekey_signature(
   signature: string,
   identity_public_key: string,
 ): Promise<boolean> {
+  return (
+    (await verify_prekey_signature_time(
+      prekey_public,
+      signature,
+      identity_public_key,
+    )) !== null
+  );
+}
+
+async function verify_prekey_signature_time(
+  prekey_public: string,
+  signature: string,
+  identity_public_key: string,
+): Promise<number | null> {
   const openpgp = await load_openpgp();
 
   try {
@@ -43,26 +57,31 @@ export async function verify_prekey_signature(
     });
 
     if (verification.signatures.length === 0) {
-      return false;
+      return null;
     }
 
-    for (const signature of verification.signatures) {
+    let signed_at = 0;
+
+    for (const entry of verification.signatures) {
       try {
-        if ((await signature.verified) !== true) return false;
+        if ((await entry.verified) !== true) return null;
+
+        const packet = (await entry.signature).packets[0];
+        const created = packet?.created?.getTime() ?? 0;
+
+        signed_at = Math.max(signed_at, created);
       } catch {
-        return false;
+        return null;
       }
     }
 
-    const extracted_text = signed_message.getText();
-
-    if (extracted_text !== prekey_public) {
-      return false;
+    if (signed_message.getText() !== prekey_public) {
+      return null;
     }
 
-    return true;
+    return signed_at;
   } catch {
-    return false;
+    return null;
   }
 }
 
@@ -171,6 +190,7 @@ export interface RatchetPrekeyVerification {
   verdict: RatchetPrekeyVerdict;
   format: RatchetPrekeySignatureFormat;
   strict: boolean;
+  signed_at?: number | null;
 }
 
 function classify_signed_text(
@@ -263,10 +283,10 @@ export async function verify_ratchet_prekey_bundle_detailed(
         )
       : build_ratchet_prekey_canonical(kem_identity_key, signed_prekey);
 
-  let signature_valid = false;
+  let signed_at: number | null = null;
 
   try {
-    signature_valid = await verify_prekey_signature(
+    signed_at = await verify_prekey_signature_time(
       expected_text,
       armored,
       owner_pgp_public_key,
@@ -275,7 +295,7 @@ export async function verify_ratchet_prekey_bundle_detailed(
     return { verdict: "tampered", format, strict: false };
   }
 
-  if (!signature_valid) {
+  if (signed_at === null) {
     return { verdict: "tampered", format, strict: false };
   }
 
@@ -288,6 +308,7 @@ export async function verify_ratchet_prekey_bundle_detailed(
     verdict: "verified",
     format,
     strict: signature_covers_published_material,
+    signed_at: signed_at > 0 ? signed_at : null,
   };
 }
 

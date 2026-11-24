@@ -21,6 +21,7 @@
 import type { DecryptedThreadMessage } from "@/types/thread";
 import type { ExternalContentReport } from "@/lib/html_sanitizer";
 
+import { quotable_source } from "@/lib/html_text";
 import {
   useState,
   useCallback,
@@ -61,6 +62,7 @@ import { update_item_metadata } from "@/services/crypto/mail_metadata";
 import { emit_mail_item_updated } from "@/hooks/mail_events";
 import { get_read_intent } from "@/services/read_intent";
 import { current_opened_mail_scope } from "@/services/user_opened_mail";
+import { resolve_menu_message } from "@/pages/mobile/menu_read_state";
 import { preload_email_detail } from "@/components/email/hooks/use_email_detail";
 import { haptic_impact } from "@/native/haptic_feedback";
 import { block_sender } from "@/services/api/blocked_senders";
@@ -588,6 +590,11 @@ export function use_mobile_mail_detail() {
     });
   }, [expanded_ids, message_ids_key, pending_thread_count]);
 
+  const live_menu_message = useMemo(
+    () => resolve_menu_message(menu_message, display_messages, read_ids),
+    [menu_message, display_messages, read_ids],
+  );
+
   const first_unread_id = useMemo(() => {
     const unread = display_messages.find(
       (m) => !m.is_read && !read_ids.has(m.id),
@@ -863,7 +870,7 @@ export function use_mobile_mail_detail() {
   const dispatch_compose = useCallback(
     (msg: DecryptedThreadMessage, mode: "reply" | "reply_all" | "forward") => {
       const subject = msg.subject || "";
-      const body = msg.body || "";
+      const body = quotable_source(msg);
       const escape_html = (text: string): string =>
         text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
       const quote_header =
@@ -1357,6 +1364,7 @@ export function use_mobile_mail_detail() {
     opened_message_ref,
     scroll_ref,
     display_messages,
+    live_menu_message,
     pending_thread_count,
     pending_row_count,
     first_unread_id,

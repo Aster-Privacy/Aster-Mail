@@ -204,19 +204,29 @@ fn aead_open(wrap_key: &[u8; 32], magic: &[u8; 8], data: &[u8]) -> Result<Vec<u8
         .map_err(|e| format!("aead open: {:?}", e))
 }
 
-fn keyring_wrap_key_load() -> Result<Option<[u8; 32]>, String> {
+type WrapKey = Zeroizing<[u8; 32]>;
+
+fn wrap_key_from_bytes(bytes: &[u8], wrong_size: &str) -> Result<WrapKey, String> {
+    if bytes.len() != 32 {
+        return Err(wrong_size.to_string());
+    }
+    let mut key = Zeroizing::new([0u8; 32]);
+    key.copy_from_slice(bytes);
+    Ok(key)
+}
+
+fn keyring_wrap_key_load() -> Result<Option<WrapKey>, String> {
     let entry = Entry::new(KEYRING_SERVICE, KEYRING_WRAP_USER)
         .map_err(|e| format!("keyring init: {}", e))?;
     match entry.get_password() {
         Ok(encoded) => {
-            let bytes = URL_SAFE_NO_PAD
-                .decode(encoded.as_bytes())
-                .map_err(|e| e.to_string())?;
-            let key: [u8; 32] = bytes
-                .as_slice()
-                .try_into()
-                .map_err(|_| "wrap key wrong size".to_string())?;
-            Ok(Some(key))
+            let encoded = Zeroizing::new(encoded);
+            let bytes = Zeroizing::new(
+                URL_SAFE_NO_PAD
+                    .decode(encoded.as_bytes())
+                    .map_err(|_| "wrap key is not valid base64".to_string())?,
+            );
+            wrap_key_from_bytes(&bytes, "wrap key wrong size").map(Some)
         }
         Err(keyring::Error::NoEntry) => Ok(None),
         Err(e) => Err(format!("keyring get wrap: {}", e)),
@@ -231,7 +241,7 @@ fn keyring_wrap_key_store(key: &[u8; 32]) -> Result<(), String> {
         .map_err(|e| format!("keyring set wrap: {}", e))
 }
 
-fn wrap_key_file_load() -> Result<Option<[u8; 32]>, String> {
+fn wrap_key_file_load() -> Result<Option<WrapKey>, String> {
     let path = wrap_key_file_path()?;
 
     if !path.exists() {
@@ -239,11 +249,7 @@ fn wrap_key_file_load() -> Result<Option<[u8; 32]>, String> {
     }
 
     let data = Zeroizing::new(std::fs::read(&path).map_err(|e| e.to_string())?);
-    let key: [u8; 32] = data
-        .as_slice()
-        .try_into()
-        .map_err(|_| "wrap key file wrong size".to_string())?;
-    Ok(Some(key))
+    wrap_key_from_bytes(&data, "wrap key file wrong size").map(Some)
 }
 
 fn wrap_key_file_delete() {
@@ -252,7 +258,7 @@ fn wrap_key_file_delete() {
     }
 }
 
-fn wrap_key_file_adopt() -> Option<[u8; 32]> {
+fn wrap_key_file_adopt() -> Option<WrapKey> {
     let path = wrap_key_file_path().ok()?;
 
     if !path.exists() {
@@ -277,7 +283,7 @@ fn wrap_key_file_adopt() -> Option<[u8; 32]> {
     Some(key)
 }
 
-fn wrap_key_load() -> Result<Option<[u8; 32]>, String> {
+fn wrap_key_load() -> Result<Option<WrapKey>, String> {
     match keyring_wrap_key_load() {
         Ok(Some(key)) => Ok(Some(key)),
         Ok(None) => Ok(wrap_key_file_adopt()),
@@ -295,7 +301,7 @@ fn keychain_unavailable_error(cause: &str) -> String {
     )
 }
 
-fn wrap_key_load_or_create() -> Result<[u8; 32], String> {
+fn wrap_key_load_or_create() -> Result<WrapKey, String> {
     match keyring_wrap_key_load() {
         Ok(Some(key)) => return Ok(key),
         Ok(None) => {
@@ -311,11 +317,10 @@ fn wrap_key_load_or_create() -> Result<[u8; 32], String> {
         }
     }
 
-    let mut key = [0u8; 32];
-    OsRng.fill_bytes(&mut key);
+    let mut key = Zeroizing::new([0u8; 32]);
+    OsRng.fill_bytes(&mut key[..]);
 
     if let Err(e) = keyring_wrap_key_store(&key) {
-        key.zeroize();
         return Err(format!(
             "{}: secure key storage is unavailable, so Aster Mail cannot protect this device's keys: {}. Turn on your system keychain (Credential Manager on Windows, Keychain on macOS, or a Secret Service provider such as GNOME Keyring or KeePassXC on Linux), then try again.",
             KEYCHAIN_STORE_FAILED_ERROR, e
@@ -915,7 +920,6 @@ fn challenge_signing_input(nonce: &[u8], signature_version: Option<u8>) -> Resul
 
     match signature_version {
         None => super::challenge::device_challenge_message(nonce),
-        Some(1) => Ok(nonce.to_vec()),
         Some(2) => Ok([DEVICE_LOGIN_SIGNATURE_CONTEXT, nonce].concat()),
         Some(_) => Err("unsupported challenge version".to_string()),
     }
@@ -1051,14 +1055,13 @@ pub fn device_unseal_vault_envelope(
     window: tauri::WebviewWindow,
     envelope_b64: String,
     device_id: Option<String>,
-) -> Result<String, String> {
+) -> Result<(), String> {
     require_primary_webview(&window)?;
     let target_device = resolve_passphrase_device(device_id)?;
     let data = b64url_decode(&envelope_b64)?;
     let id = get_or_create_device_identity()?;
     let plaintext = open_device_envelope(&data, &id)?;
 
-    let encoded = b64url(&plaintext);
     let path = match target_device {
         Some(id) => passphrase_file_path_for(id)?,
         None => passphrase_file_path()?,
@@ -1067,7 +1070,7 @@ pub fn device_unseal_vault_envelope(
     let blob = aead_seal(&wrap_key, MAGIC_PP, &plaintext)?;
     atomic_write(&path, &blob)?;
 
-    Ok(encoded)
+    Ok(())
 }
 
 fn reseal_legacy_passphrase(path: &std::path::Path, raw: &[u8]) {
@@ -1132,7 +1135,7 @@ fn pin_restore_passphrase_file(
 }
 
 fn read_passphrase_file(path: &std::path::Path) -> Result<Option<String>, String> {
-    let data = std::fs::read(path).map_err(|e| e.to_string())?;
+    let data = Zeroizing::new(std::fs::read(path).map_err(|e| e.to_string())?);
 
     if is_pin_sealed_blob(&data) {
         return Err(PIN_LOCKED_ERROR.to_string());
@@ -1153,10 +1156,13 @@ fn read_passphrase_file(path: &std::path::Path) -> Result<Option<String>, String
         }
     }
 
-    let s = std::str::from_utf8(&data).map_err(|e| e.to_string())?.to_string();
-    let raw = Zeroizing::new(b64url_decode(&s)?);
+    let text = std::str::from_utf8(&data)
+        .map_err(|_| "stored passphrase is not valid text".to_string())?;
+    let raw = Zeroizing::new(
+        b64url_decode(text).map_err(|_| "stored passphrase is not valid base64".to_string())?,
+    );
     reseal_legacy_passphrase(path, &raw);
-    Ok(Some(s))
+    Ok(Some(text.to_string()))
 }
 
 fn locate_passphrase_file(
@@ -1221,7 +1227,7 @@ pub fn device_pin_seal_stored_passphrase(
     };
     let wrap_key = wrap_key_load_or_create().ok();
 
-    pin_seal_passphrase_file(&path, wrap_key.as_ref(), record.as_bytes())
+    pin_seal_passphrase_file(&path, wrap_key.as_deref(), record.as_bytes())
 }
 
 #[tauri::command]
@@ -1263,7 +1269,7 @@ pub fn device_seal_local_secret(
 ) -> Result<String, String> {
     require_primary_webview(&window)?;
     let value = Zeroizing::new(b64url_decode(&value_b64)?);
-    let wrap_key = Zeroizing::new(wrap_key_load_or_create()?);
+    let wrap_key = wrap_key_load_or_create()?;
 
     Ok(b64url(&seal_local_secret(&wrap_key, &value)?))
 }
@@ -1278,7 +1284,6 @@ pub fn device_open_local_secret(
     let Some(wrap_key) = wrap_key_load()? else {
         return Ok(None);
     };
-    let wrap_key = Zeroizing::new(wrap_key);
     let value = Zeroizing::new(open_local_secret(&wrap_key, &sealed)?);
 
     Ok(Some(b64url(&value)))
@@ -1331,7 +1336,7 @@ pub fn device_refresh_token_set(
     }
 
     let _guard = REFRESH_STORE_LOCK.lock().map_err(|e| e.to_string())?;
-    let wrap_key = Zeroizing::new(wrap_key_load_or_create()?);
+    let wrap_key = wrap_key_load_or_create()?;
     let mut map = refresh_store_load(&wrap_key).unwrap_or_default();
 
     if let Some(mut previous) = map.insert(account_id, value) {
@@ -1360,7 +1365,7 @@ pub fn device_refresh_token_get(
         return Ok(None);
     }
     let wrap_key = match wrap_key_load()? {
-        Some(key) => Zeroizing::new(key),
+        Some(key) => key,
         None => return Ok(None),
     };
     let mut map = refresh_store_load(&wrap_key)?;
@@ -1388,7 +1393,7 @@ pub fn device_refresh_token_remove(
         return Ok(());
     }
     let wrap_key = match wrap_key_load()? {
-        Some(key) => Zeroizing::new(key),
+        Some(key) => key,
         None => return Ok(()),
     };
     let mut map = match refresh_store_load(&wrap_key) {
@@ -1763,9 +1768,191 @@ pub fn crypto_hmac_sign(
     Ok(mac.finalize().into_bytes().to_vec())
 }
 
+const GUARD_SEAL_VERSION: u8 = 0x01;
+const GUARD_SEAL_EPH_LEN: usize = 32;
+const GUARD_SEAL_MLKEM_CT_LEN: usize = 1088;
+const GUARD_SEAL_NONCE_LEN: usize = 12;
+const GUARD_SEAL_TAG_LEN: usize = 16;
+const GUARD_SEAL_HEADER_LEN: usize =
+    1 + GUARD_SEAL_EPH_LEN + GUARD_SEAL_MLKEM_CT_LEN + GUARD_SEAL_NONCE_LEN;
+const GUARD_SEAL_SALT: &[u8] = b"aster-guard-context-v1";
+
+fn guard_seal_key(
+    x25519_shared: &[u8],
+    mlkem_shared: &[u8],
+    eph: &[u8],
+    mlkem_ct: &[u8],
+    aad: &[u8],
+) -> Result<Zeroizing<[u8; 32]>, String> {
+    let mut ikm = Zeroizing::new(Vec::with_capacity(64));
+    ikm.extend_from_slice(x25519_shared);
+    ikm.extend_from_slice(mlkem_shared);
+    let mut info = Vec::with_capacity(eph.len() + mlkem_ct.len() + aad.len());
+    info.extend_from_slice(eph);
+    info.extend_from_slice(mlkem_ct);
+    info.extend_from_slice(aad);
+    let mut key = Zeroizing::new([0u8; 32]);
+    Hkdf::<Sha256>::new(Some(GUARD_SEAL_SALT), ikm.as_slice())
+        .expand(&info, key.as_mut_slice())
+        .map_err(|_| "guard seal key".to_string())?;
+    Ok(key)
+}
+
+fn open_guard_seal(
+    data: &[u8],
+    aad: &[u8],
+    id: &DeviceIdentity,
+) -> Result<Zeroizing<Vec<u8>>, String> {
+    use aes_gcm::{aead::{Aead, Payload}, Aes256Gcm, KeyInit as _, Nonce};
+    if data.len() < GUARD_SEAL_HEADER_LEN + GUARD_SEAL_TAG_LEN {
+        return Err("guard seal too short".to_string());
+    }
+    if data[0] != GUARD_SEAL_VERSION {
+        return Err("guard seal version".to_string());
+    }
+    let eph_end = 1 + GUARD_SEAL_EPH_LEN;
+    let ct_end = eph_end + GUARD_SEAL_MLKEM_CT_LEN;
+    let eph_bytes: [u8; GUARD_SEAL_EPH_LEN] =
+        data[1..eph_end].try_into().map_err(|_| "guard seal".to_string())?;
+    let mlkem_ct_bytes = &data[eph_end..ct_end];
+    let nonce_bytes = &data[ct_end..GUARD_SEAL_HEADER_LEN];
+    let ciphertext = &data[GUARD_SEAL_HEADER_LEN..];
+
+    let ct: Ciphertext<MlKem768> =
+        Array::try_from(mlkem_ct_bytes).map_err(|_| "guard seal".to_string())?;
+    let mut ss_pq = id
+        .mlkem_decaps_key
+        .decapsulate(&ct)
+        .map_err(|_| "guard seal".to_string())?;
+    let ss_cl = id
+        .x25519_static_secret
+        .diffie_hellman(&XPublicKey::from(eph_bytes));
+    let key = guard_seal_key(
+        ss_cl.as_bytes(),
+        ss_pq.as_slice(),
+        &eph_bytes,
+        mlkem_ct_bytes,
+        aad,
+    );
+    ss_pq.zeroize();
+    drop(ss_cl);
+    let key = key?;
+
+    let cipher = Aes256Gcm::new_from_slice(key.as_slice()).map_err(|_| "guard seal".to_string())?;
+    let nonce = Nonce::try_from(nonce_bytes).map_err(|_| "guard seal".to_string())?;
+    cipher
+        .decrypt(&nonce, Payload { msg: ciphertext, aad })
+        .map(Zeroizing::new)
+        .map_err(|_| "guard seal open failed".to_string())
+}
+
+const GUARD_CODE_SECRET_DOMAIN: &[u8] = b"aster-guard-code-secret-v1";
+
+fn guard_seal_aad_allowed(aad: &[u8]) -> bool {
+    aad.len() == GUARD_SEAL_SALT.len() + 32 && aad.starts_with(GUARD_SEAL_SALT)
+        || aad.len() == GUARD_CODE_SECRET_DOMAIN.len() + 16
+            && aad.starts_with(GUARD_CODE_SECRET_DOMAIN)
+}
+
+#[tauri::command]
+pub fn device_open_guard_seal(
+    window: tauri::WebviewWindow,
+    sealed_b64: String,
+    aad_b64: String,
+) -> Result<String, String> {
+    require_primary_webview(&window)?;
+    let data = b64url_decode(&sealed_b64).map_err(|_| "guard seal".to_string())?;
+    let aad = b64url_decode(&aad_b64).map_err(|_| "guard seal".to_string())?;
+    if !guard_seal_aad_allowed(&aad) {
+        return Err("guard seal".to_string());
+    }
+    let id = get_or_create_device_identity()?;
+    let plaintext = open_guard_seal(&data, &aad, &id)?;
+    Ok(b64url(&plaintext))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn guard_seal_aad_only_accepts_guard_shapes() {
+        let mut context = GUARD_SEAL_SALT.to_vec();
+        context.extend_from_slice(&[1u8; 32]);
+        assert!(guard_seal_aad_allowed(&context));
+        let mut code = GUARD_CODE_SECRET_DOMAIN.to_vec();
+        code.extend_from_slice(&[2u8; 16]);
+        assert!(guard_seal_aad_allowed(&code));
+        assert!(!guard_seal_aad_allowed(&context[..context.len() - 1]));
+        assert!(!guard_seal_aad_allowed(&code[..code.len() - 1]));
+        assert!(!guard_seal_aad_allowed(b""));
+        let mut other = b"aster-device-envelope-v1".to_vec();
+        other.extend_from_slice(&[3u8; 16]);
+        assert!(!guard_seal_aad_allowed(&other));
+        let mut wrong_len_code = GUARD_CODE_SECRET_DOMAIN.to_vec();
+        wrong_len_code.extend_from_slice(&[2u8; 32]);
+        assert!(!guard_seal_aad_allowed(&wrong_len_code));
+    }
+
+    fn guard_test_identity() -> DeviceIdentity {
+        let (dk, ek): (MlKemDecapKey, MlKemEncapKey) = MlKem768::generate(&mut OsRng);
+        let x25519_static_secret = StaticSecret::random_from_rng(&mut UnwrapErr(SysRng));
+        DeviceIdentity {
+            device_id: None,
+            ed25519_signing_key: SigningKey::from_bytes(&[7u8; 32]),
+            mlkem_decaps_key: dk,
+            mlkem_encaps_key_bytes: ek.as_bytes().to_vec(),
+            x25519_public_bytes: *XPublicKey::from(&x25519_static_secret).as_bytes(),
+            x25519_static_secret,
+        }
+    }
+
+    fn guard_test_seal(id: &DeviceIdentity, plaintext: &[u8], aad: &[u8]) -> Vec<u8> {
+        use aes_gcm::{aead::{Aead, Payload}, Aes256Gcm, KeyInit as _, Nonce};
+        use ml_kem::kem::Encapsulate;
+        let encoded =
+            ml_kem::Encoded::<MlKemEncapKey>::try_from(id.mlkem_encaps_key_bytes.as_slice()).unwrap();
+        let ek = MlKemEncapKey::from_bytes(&encoded);
+        let (ct, ss_pq) = ek.encapsulate(&mut OsRng).unwrap();
+        let eph_secret = StaticSecret::random_from_rng(&mut UnwrapErr(SysRng));
+        let eph = *XPublicKey::from(&eph_secret).as_bytes();
+        let ss_cl = eph_secret.diffie_hellman(&XPublicKey::from(id.x25519_public_bytes));
+        let key = guard_seal_key(ss_cl.as_bytes(), ss_pq.as_slice(), &eph, ct.as_slice(), aad).unwrap();
+        let nonce_bytes = [9u8; GUARD_SEAL_NONCE_LEN];
+        let cipher = Aes256Gcm::new_from_slice(key.as_slice()).unwrap();
+        let sealed = cipher
+            .encrypt(&Nonce::try_from(&nonce_bytes[..]).unwrap(), Payload { msg: plaintext, aad })
+            .unwrap();
+        let mut out = vec![GUARD_SEAL_VERSION];
+        out.extend_from_slice(&eph);
+        out.extend_from_slice(ct.as_slice());
+        out.extend_from_slice(&nonce_bytes);
+        out.extend_from_slice(&sealed);
+        out
+    }
+
+    #[test]
+    fn guard_seal_open_round_trip() {
+        let id = guard_test_identity();
+        let aad = b"aster-guard-code-secret-v1-test".to_vec();
+        let sealed = guard_test_seal(&id, b"guard code secret", &aad);
+        let opened = open_guard_seal(&sealed, &aad, &id).unwrap();
+        assert_eq!(opened.as_slice(), b"guard code secret");
+    }
+
+    #[test]
+    fn guard_seal_rejects_tampering() {
+        let id = guard_test_identity();
+        let aad = b"aad".to_vec();
+        let sealed = guard_test_seal(&id, b"secret", &aad);
+        assert!(open_guard_seal(&sealed, b"other", &id).is_err());
+        let mut wrong_version = sealed.clone();
+        wrong_version[0] = 0x02;
+        assert!(open_guard_seal(&wrong_version, &aad, &id).is_err());
+        assert!(open_guard_seal(&sealed[..GUARD_SEAL_HEADER_LEN], &aad, &id).is_err());
+        let other = guard_test_identity();
+        assert!(open_guard_seal(&sealed, &aad, &other).is_err());
+    }
 
     fn envelope_vector() -> HashMap<String, String> {
         include_str!("../../../src/lib/crypto/device_envelope_vector.txt")
@@ -2559,9 +2746,11 @@ mod challenge_signing_tests {
     }
 
     #[test]
-    fn keeps_the_older_server_format() {
+    fn never_signs_the_bare_nonce() {
         let nonce = fresh_nonce();
-        assert_eq!(challenge_signing_input(&nonce, Some(1)).unwrap(), nonce.to_vec());
+        assert!(challenge_signing_input(&nonce, Some(1)).is_err());
+        assert_ne!(challenge_signing_input(&nonce, None).unwrap(), nonce.to_vec());
+        assert_ne!(challenge_signing_input(&nonce, Some(2)).unwrap(), nonce.to_vec());
     }
 
     #[test]
@@ -2570,6 +2759,24 @@ mod challenge_signing_tests {
         assert_eq!(
             challenge_signing_input(&nonce, None).unwrap(),
             super::super::challenge::device_challenge_message(&nonce).unwrap()
+        );
+    }
+
+    #[test]
+    fn signs_the_bytes_the_server_verifies_without_a_version() {
+        let nonce = fresh_nonce();
+        assert_eq!(
+            challenge_signing_input(&nonce, None).unwrap(),
+            [b"aster-device-challenge-v1".as_slice(), nonce.as_slice()].concat()
+        );
+    }
+
+    #[test]
+    fn signs_the_bytes_the_server_verifies_for_version_two() {
+        let nonce = fresh_nonce();
+        assert_eq!(
+            challenge_signing_input(&nonce, Some(2)).unwrap(),
+            [b"astermail-device-login-v2\0".as_slice(), nonce.as_slice()].concat()
         );
     }
 
@@ -2616,5 +2823,98 @@ mod file_restriction_tests {
             .join("none.bin");
 
         assert!(set_file_permissions_restrictive(&missing).is_err());
+    }
+}
+
+#[cfg(test)]
+mod wrap_key_handling_tests {
+    use super::*;
+    use std::any::TypeId;
+
+    fn loaded_type<T: 'static>(_: fn() -> Result<Option<T>, String>) -> TypeId {
+        TypeId::of::<T>()
+    }
+
+    fn adopted_type<T: 'static>(_: fn() -> Option<T>) -> TypeId {
+        TypeId::of::<T>()
+    }
+
+    fn created_type<T: 'static>(_: fn() -> Result<T, String>) -> TypeId {
+        TypeId::of::<T>()
+    }
+
+    fn command_output_type<A, B, C, T: 'static>(_: fn(A, B, C) -> Result<T, String>) -> TypeId {
+        TypeId::of::<T>()
+    }
+
+    fn scratch_file(name: &str, contents: &[u8]) -> std::path::PathBuf {
+        let path = std::env::temp_dir().join(format!(
+            "aster_wrap_key_handling_{}_{}",
+            std::process::id(),
+            name
+        ));
+        std::fs::write(&path, contents).unwrap();
+        path
+    }
+
+    #[test]
+    fn every_wrap_key_loader_returns_a_key_cleared_on_drop() {
+        let cleared = TypeId::of::<Zeroizing<[u8; 32]>>();
+
+        assert_eq!(loaded_type(keyring_wrap_key_load), cleared, "keyring_wrap_key_load");
+        assert_eq!(loaded_type(wrap_key_file_load), cleared, "wrap_key_file_load");
+        assert_eq!(loaded_type(wrap_key_load), cleared, "wrap_key_load");
+        assert_eq!(adopted_type(wrap_key_file_adopt), cleared, "wrap_key_file_adopt");
+        assert_eq!(created_type(wrap_key_load_or_create), cleared, "wrap_key_load_or_create");
+    }
+
+    #[test]
+    fn unsealing_a_vault_envelope_returns_nothing_to_the_page() {
+        assert_eq!(
+            command_output_type(device_unseal_vault_envelope),
+            TypeId::of::<()>()
+        );
+    }
+
+    #[test]
+    fn a_malformed_legacy_passphrase_reports_no_decoder_detail() {
+        let path = scratch_file("bad_base64", b"abc!secret");
+        let result = read_passphrase_file(&path);
+        let _ = std::fs::remove_file(&path);
+
+        assert_eq!(result.unwrap_err(), "stored passphrase is not valid base64");
+    }
+
+    #[test]
+    fn a_non_text_legacy_passphrase_reports_no_decoder_detail() {
+        let path = scratch_file("bad_text", &[0x61, 0xff, 0xfe, 0x62]);
+        let result = read_passphrase_file(&path);
+        let _ = std::fs::remove_file(&path);
+
+        assert_eq!(result.unwrap_err(), "stored passphrase is not valid text");
+    }
+}
+
+#[cfg(test)]
+mod wrap_key_bytes_tests {
+    use super::*;
+
+    #[test]
+    fn copies_a_full_length_key() {
+        let key = wrap_key_from_bytes(&[7u8; 32], "wrong size").unwrap();
+
+        assert_eq!(*key, [7u8; 32]);
+    }
+
+    #[test]
+    fn refuses_a_key_of_the_wrong_length() {
+        assert_eq!(
+            wrap_key_from_bytes(&[7u8; 31], "wrong size").unwrap_err(),
+            "wrong size"
+        );
+        assert_eq!(
+            wrap_key_from_bytes(&[7u8; 33], "wrong size").unwrap_err(),
+            "wrong size"
+        );
     }
 }

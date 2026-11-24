@@ -21,6 +21,7 @@
 import { Capacitor } from "@capacitor/core";
 
 import { ignore_error } from "@/lib/ignore_error";
+import { has_tauri_runtime } from "@/lib/tauri_runtime";
 
 export const NATIVE_API_URL = "https://app.astermail.org/api";
 export const API_BASE_URL =
@@ -32,6 +33,8 @@ export const TAURI_AUTH_SLOT_ACCESS = "access_token";
 export const TAURI_AUTH_SLOT_CSRF = "csrf";
 
 export const ACCOUNTS_ROSTER_KEY = "astermail_accounts_v6";
+export const REFRESH_TOKEN_REVOKED_SERVER_CODE = "REFRESH_TOKEN_REVOKED";
+
 export const REFRESH_INTERVAL_MINUTES = 10;
 export const PROACTIVE_REFRESH_THRESHOLD_MINUTES = 25;
 export const REFRESH_FAILURE_BACKOFF_BASE_MS = 30_000;
@@ -57,10 +60,7 @@ export const TAURI_TOKEN_KEY = "aster_tauri_token";
 export const TAURI_CSRF_KEY = "aster_tauri_csrf";
 
 export function is_tauri_env(): boolean {
-  return (
-    typeof window !== "undefined" &&
-    ("__TAURI_INTERNALS__" in window || "__TAURI__" in window)
-  );
+  return has_tauri_runtime();
 }
 
 export const LAST_AUTH_MS_KEY = "aster_last_auth_ms";
@@ -184,6 +184,139 @@ export interface ApiResponse<T> {
   details?: Record<string, unknown>;
   retry_after_secs?: number;
   body?: Record<string, unknown>;
+  held?: GuardHeldInfo;
+}
+
+export const GUARD_HEADER = "X-Aster-Guard";
+export const GUARD_TOKEN_HEADER = "X-Aster-Guard-Token";
+export const GUARD_HELD_EVENT = "aster:guard_held";
+export const GUARD_REQUIRED_EVENT = "aster:guard_required";
+export const GUARD_DEVICE_PENDING_EVENT = "aster:guard_device_pending";
+
+export const GUARD_HOLD_KINDS = [
+  "forwarding_change",
+  "mail_rule_change",
+  "mail_app_activation",
+  "guard_device_remove",
+  "recovery_email_change",
+  "recovery_phone_change",
+  "password_change",
+  "second_factor_off",
+  "data_export",
+  "pgp_export",
+  "guard_switches_off",
+  "account_recovery",
+  "rescue",
+  "rescue_code_rotation",
+] as const;
+
+export type GuardHoldKind = (typeof GUARD_HOLD_KINDS)[number] | "unknown";
+
+const UNSKIPPABLE_HOLD_KINDS: readonly GuardHoldKind[] = [
+  "account_recovery",
+  "rescue",
+  "unknown",
+];
+
+export interface GuardHeldInfo {
+  id: string;
+  kind: GuardHoldKind;
+  apply_after: string;
+  skippable: boolean;
+}
+
+export interface GuardDevicePendingInfo {
+  device_id: string;
+  activates_at: string;
+  change_id: string | null;
+}
+
+export type GuardSignInMethod = "approve" | "code" | "rescue";
+
+export const ALL_GUARD_SIGN_IN_METHODS: readonly GuardSignInMethod[] = [
+  "approve",
+  "code",
+  "rescue",
+];
+
+export interface GuardRequiredInfo {
+  request_id: string;
+  guard_token: string;
+  expires_at: string;
+  user_id: string | null;
+  methods: GuardSignInMethod[];
+}
+
+export function to_guard_hold_kind(value: unknown): GuardHoldKind {
+  return typeof value === "string" &&
+    (GUARD_HOLD_KINDS as readonly string[]).includes(value)
+    ? (value as GuardHoldKind)
+    : "unknown";
+}
+
+export function is_guard_hold_skippable(kind: GuardHoldKind): boolean {
+  return !UNSKIPPABLE_HOLD_KINDS.includes(kind);
+}
+
+function read_string(
+  source: Record<string, unknown> | undefined,
+  key: string,
+): string | null {
+  const value = source?.[key];
+
+  return typeof value === "string" && value.length > 0 ? value : null;
+}
+
+export function parse_guard_held(
+  details: Record<string, unknown> | undefined,
+): GuardHeldInfo | null {
+  const id = read_string(details, "id");
+  const apply_after = read_string(details, "apply_after");
+
+  if (!id || !apply_after) return null;
+  const kind = to_guard_hold_kind(details?.kind);
+  const skippable =
+    typeof details?.skippable === "boolean"
+      ? details.skippable && is_guard_hold_skippable(kind)
+      : is_guard_hold_skippable(kind);
+
+  return { id, kind, apply_after, skippable };
+}
+
+export function parse_guard_device_pending(
+  details: Record<string, unknown> | undefined,
+): GuardDevicePendingInfo | null {
+  const device_id = read_string(details, "device_id");
+  const activates_at = read_string(details, "activates_at");
+
+  if (!device_id || !activates_at) return null;
+
+  return {
+    device_id,
+    activates_at,
+    change_id: read_string(details, "change_id"),
+  };
+}
+
+export function parse_guard_required(
+  details: Record<string, unknown> | undefined,
+): GuardRequiredInfo | null {
+  const request_id = read_string(details, "request_id");
+  const guard_token = read_string(details, "guard_token");
+  const expires_at = read_string(details, "expires_at");
+
+  if (!request_id || !guard_token || !expires_at) return null;
+  const raw_methods: unknown[] = Array.isArray(details?.methods)
+    ? details.methods
+    : [...ALL_GUARD_SIGN_IN_METHODS];
+  const methods = raw_methods.filter(
+    (m): m is GuardSignInMethod =>
+      m === "approve" || m === "code" || m === "rescue",
+  );
+
+  const user_id = read_string(details, "user_id") ?? null;
+
+  return { request_id, guard_token, expires_at, user_id, methods };
 }
 
 const MAX_RETRY_AFTER_HEADER_SECS = 86_400;

@@ -29,6 +29,7 @@ export interface CacheKeyParts {
   source: LanguageCode;
   target: LanguageCode;
   model_version: string;
+  source_hash: string;
 }
 
 interface CacheEntry {
@@ -40,7 +41,30 @@ const entries = new Map<string, CacheEntry>();
 let total_bytes = 0;
 
 export function cache_key(parts: CacheKeyParts): string {
-  return `${parts.account_id}|${parts.message_id}|${parts.source}|${parts.target}|${parts.model_version}`;
+  return `${parts.account_id}|${parts.message_id}|${parts.source}|${parts.target}|${parts.model_version}|${parts.source_hash}`;
+}
+
+export function source_text_hash(texts: readonly string[]): string {
+  let low = 0x811c9dc5;
+  let high = 0x01000193;
+
+  const feed = (code: number): void => {
+    low = Math.imul(low ^ code, 0x01000193) >>> 0;
+    high = Math.imul(high ^ code, 0x5bd1e995) >>> 0;
+    high = (high ^ (high >>> 15)) >>> 0;
+  };
+
+  for (const text of texts) {
+    for (const digit of String(text.length)) feed(digit.charCodeAt(0));
+    feed(0x3a);
+    for (let index = 0; index < text.length; index += 1) {
+      feed(text.charCodeAt(index));
+    }
+  }
+
+  return `${texts.length}.${high.toString(16).padStart(8, "0")}${low
+    .toString(16)
+    .padStart(8, "0")}`;
 }
 
 function measure(segments: readonly string[]): number {

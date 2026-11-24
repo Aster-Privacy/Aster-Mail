@@ -34,6 +34,8 @@ const recovery_email = vi.fn();
 const recovery_methods = vi.fn();
 const codes_status = vi.fn();
 const identity_key_status = vi.fn();
+const guard_status = vi.fn();
+const request_guard_setup = vi.fn();
 
 let preferences = {
   block_tracking_pixels: false,
@@ -104,6 +106,15 @@ let alias_cache: {
   is_enabled: boolean;
 }[] = [];
 
+vi.mock("@/services/api/guard", async (import_original) => ({
+  ...(await import_original<typeof import("@/services/api/guard")>()),
+  get_guard_status: () => guard_status(),
+}));
+
+vi.mock("@/services/guard/guard_setup_request", () => ({
+  request_guard_setup: () => request_guard_setup(),
+}));
+
 vi.mock("@/hooks/use_sidebar_aliases", () => ({
   subscribe_aliases: () => () => {},
   get_cached_aliases: () => alias_cache,
@@ -117,6 +128,30 @@ declare global {
   var IS_REACT_ACT_ENVIRONMENT: boolean;
 }
 globalThis.IS_REACT_ACT_ENVIRONMENT = true;
+
+function guard_body(switches: number, held_off: boolean) {
+  return {
+    switches,
+    hold_scopes: 0,
+    version: 1,
+    enrolled_at: "2026-11-01T10:00:00Z",
+    recovery_wait_effective: false,
+    paused_until: null,
+    has_rescue_code: true,
+    this_device: null,
+    devices: [],
+    pending_changes: held_off
+      ? [
+          {
+            id: "7c9e6679-7425-40de-944b-e07fc1f90ae7",
+            kind: "guard_switches_off",
+            apply_after: "2026-11-18T10:00:00Z",
+            created_at: "2026-11-15T10:00:00Z",
+          },
+        ]
+      : [],
+  };
+}
 
 describe("quick security panel", () => {
   let container: HTMLDivElement;
@@ -158,6 +193,7 @@ describe("quick security panel", () => {
     identity_key_status.mockResolvedValue({
       data: { key_fingerprint: "ab:cd:ef:12:34:56:78:9a" },
     });
+    guard_status.mockResolvedValue({ error: "not found", status: 404 });
     alias_cache = [];
     container = document.createElement("div");
     document.body.appendChild(container);
@@ -231,6 +267,43 @@ describe("quick security panel", () => {
     );
     expect(protected_items.join(" ")).toContain("settings.criterion_passkey");
     expect(container.textContent).toContain("25%");
+  });
+
+  it("adds an Aster Guard item that opens setup when it is off", async () => {
+    guard_status.mockResolvedValue({ data: guard_body(0, false) });
+    await render_panel();
+
+    const pending = container.querySelectorAll("ul")[0];
+    const row = Array.from(pending.querySelectorAll("button")).find((button) =>
+      button.textContent?.includes("guard.criterion_guard"),
+    );
+
+    expect(pending.querySelectorAll("li")).toHaveLength(9);
+    expect(row).toBeTruthy();
+    act(() => row!.click());
+    expect(request_guard_setup).toHaveBeenCalledTimes(1);
+  });
+
+  it("counts Aster Guard as protected with the second factor weight", async () => {
+    guard_status.mockResolvedValue({ data: guard_body(1, false) });
+    await render_panel();
+
+    const protected_items = container.querySelectorAll("ul")[1];
+
+    expect(protected_items.textContent).toContain("guard.criterion_guard");
+    expect(container.textContent).toContain("11%");
+  });
+
+  it("shows a held switch-off as turning off and still protected", async () => {
+    guard_status.mockResolvedValue({ data: guard_body(1, true) });
+    await render_panel();
+
+    const protected_items = container.querySelectorAll("ul")[1];
+
+    expect(protected_items.textContent).toContain(
+      "guard.criterion_guard_turning_off",
+    );
+    expect(container.textContent).toContain("11%");
   });
 
   it("previews enabled aliases first and counts the remainder", async () => {

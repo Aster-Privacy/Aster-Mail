@@ -26,7 +26,10 @@ import {
   decrypt_attachment_meta,
   decrypt_attachment_data,
 } from "@/services/crypto/attachment_crypto";
-import { listed_attachment_rows } from "@/services/crypto/inbound_attachment_keys";
+import {
+  attachment_keys_version,
+  listed_attachment_rows,
+} from "@/services/crypto/inbound_attachment_keys";
 import {
   is_previewable_image,
   build_previewable_image_blob,
@@ -50,6 +53,7 @@ const preview_urls = new Map<string, string>();
 const byte_maps = new Map<string, Map<string, AttachmentBytes>>();
 const record_fetches = new Map<string, Promise<MailAttachment[]>>();
 const record_lists = new Map<string, MailAttachment[]>();
+const record_versions = new Map<string, number>();
 
 function touch<T>(store: Map<string, T>, key: string, value: T): void {
   store.delete(key);
@@ -134,16 +138,25 @@ export function attachment_records_fetch_failed(mail_item_id: string): boolean {
 function fetch_records(mail_item_id: string): Promise<MailAttachment[]> {
   const cached = record_lists.get(mail_item_id);
 
-  if (cached) {
+  if (
+    cached &&
+    record_versions.get(mail_item_id) === attachment_keys_version(mail_item_id)
+  ) {
     touch(record_lists, mail_item_id, cached);
 
-    return Promise.resolve(cached);
+    return Promise.resolve(listed_attachment_rows(cached));
+  }
+
+  if (cached) {
+    record_lists.delete(mail_item_id);
+    record_versions.delete(mail_item_id);
   }
 
   const in_flight = record_fetches.get(mail_item_id);
 
   if (in_flight) return in_flight;
 
+  const keys_version = attachment_keys_version(mail_item_id);
   const task = (async () => {
     try {
       const response = await list_attachments(mail_item_id);
@@ -178,12 +191,14 @@ function fetch_records(mail_item_id: string): Promise<MailAttachment[]> {
 
       if (records.length > 0) {
         touch(record_lists, mail_item_id, records);
+        record_versions.set(mail_item_id, keys_version);
 
         while (record_lists.size > MAX_CACHED_BYTE_MAPS) {
           const oldest = record_lists.keys().next().value;
 
           if (oldest === undefined) break;
           record_lists.delete(oldest);
+          record_versions.delete(oldest);
         }
       }
 
@@ -266,6 +281,7 @@ export function clear_attachment_preview_cache(): void {
   preview_urls.clear();
   byte_maps.clear();
   record_lists.clear();
+  record_versions.clear();
   record_fetches.clear();
   record_fetch_failures.clear();
 }

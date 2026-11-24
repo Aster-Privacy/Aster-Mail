@@ -20,6 +20,8 @@
 //
 import type { AccountDataContext } from "./account_data_key";
 
+import { sha256 } from "@noble/hashes/sha256";
+
 import { array_to_base64, base64_to_array } from "./base64";
 
 const RETIRED_KEK_CONTEXTS: ReadonlyMap<string, AccountDataContext> = new Map<
@@ -104,6 +106,39 @@ export function retired_kek_values_for(
   }
 
   return values;
+}
+
+const PLACEHOLDER_KEK_MATERIALS = ["undefined", "null", ""] as const;
+const PUBLIC_MAIL_KEK_CONTEXTS = [
+  "astermail-envelope-v1",
+  "astermail-import-v1",
+] as const;
+
+let public_constant_keks: ReadonlySet<string> | null = null;
+
+function public_constant_kek_set(): ReadonlySet<string> {
+  if (public_constant_keks) return public_constant_keks;
+
+  const contexts = new Set<string>([
+    ...RETIRED_KEK_CONTEXTS.values(),
+    ...PUBLIC_MAIL_KEK_CONTEXTS,
+  ]);
+  const values = new Set<string>();
+
+  for (const material of PLACEHOLDER_KEK_MATERIALS) {
+    for (const context of contexts) {
+      values.add(
+        array_to_base64(sha256(new TextEncoder().encode(material + context))),
+      );
+    }
+  }
+  public_constant_keks = values;
+
+  return values;
+}
+
+export function is_public_constant_kek_raw(raw: Uint8Array): boolean {
+  return public_constant_kek_set().has(array_to_base64(raw));
 }
 
 export function all_retired_kek_values(): string[] {

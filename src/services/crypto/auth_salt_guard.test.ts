@@ -36,6 +36,7 @@ import {
   AUTH_SALT_BYTES,
   MIN_AUTH_SALT_BYTES,
   AuthSaltCollisionError,
+  LOGIN_SALT_RECORDS_KEY,
   VAULT_SALT_BYTES,
   assert_vault_salt_not_auth_salt,
   clear_auth_salt_session_state,
@@ -44,6 +45,7 @@ import {
   constant_time_equals,
   generate_auth_salt,
   is_auth_salt_collision,
+  is_known_login_salt,
   remember_salt_entry,
   require_usable_auth_salt,
   vault_salt_prefix,
@@ -203,5 +205,42 @@ describe("auth salt guard flow", () => {
     await expect(
       assert_vault_salt_not_auth_salt(bytes(7, 16)),
     ).resolves.toBeUndefined();
+  });
+});
+
+describe("known login salt lookups", () => {
+  beforeEach(() => {
+    localStorage.clear();
+    clear_auth_salt_session_state();
+  });
+
+  it("reads saved login salts once while storage is unchanged", () => {
+    localStorage.setItem(
+      LOGIN_SALT_RECORDS_KEY,
+      JSON.stringify([{ salt: array_to_base64(bytes(5, 32)) }]),
+    );
+
+    const parse = vi.spyOn(JSON, "parse");
+
+    try {
+      for (let round = 0; round < 20; round += 1) {
+        expect(is_known_login_salt(bytes(5, 32))).toBe(true);
+        expect(is_known_login_salt(bytes(6, 32))).toBe(false);
+      }
+      expect(parse.mock.calls.length).toBeLessThanOrEqual(2);
+    } finally {
+      parse.mockRestore();
+    }
+  });
+
+  it("sees a login salt saved after an earlier lookup", () => {
+    expect(is_known_login_salt(bytes(8, 32))).toBe(false);
+
+    localStorage.setItem(
+      LOGIN_SALT_RECORDS_KEY,
+      JSON.stringify([{ salt: array_to_base64(bytes(8, 32)) }]),
+    );
+
+    expect(is_known_login_salt(bytes(8, 32))).toBe(true);
   });
 });

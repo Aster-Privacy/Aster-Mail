@@ -20,7 +20,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import type { SettingsSection } from "@/components/settings/settings_content_helpers";
+import type { SettingsSection } from "@/lib/settings_section_names";
 
 export const SETTINGS_ANCHORS = {
   password: "sec-password",
@@ -33,6 +33,7 @@ export const SETTINGS_ANCHORS = {
   tracking: "sec-tracking",
   images: "sec-images",
   vanguard: "sec-vanguard",
+  guard: "sec-guard",
   recovery_email: "acct-recovery-email",
 } as const;
 

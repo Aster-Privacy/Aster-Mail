@@ -231,7 +231,6 @@ describe("RowUnsubscribeChip", () => {
       expect.objectContaining({
         unsubscribe_link: "https://example.com/unsub?u=1",
       }),
-      "manual",
     );
     expect(chip()).toBeNull();
   });

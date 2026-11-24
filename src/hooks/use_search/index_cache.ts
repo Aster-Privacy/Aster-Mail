@@ -292,6 +292,8 @@ export async function build_index_full(
       throw new Error("search_index_cancelled");
     }
 
+    index.pending_body = writer;
+
     const result = await run_index_pipeline({
       user_email,
       include_body,
@@ -325,6 +327,8 @@ export async function build_index_full(
         restamp_after_ms: SNAPSHOT_RESTAMP_MS,
         is_current,
       });
+
+      index.pending_body = null;
 
       if (meta) {
         apply_meta(index, meta);
@@ -385,6 +389,7 @@ export async function build_index_full(
       );
     throw error;
   } finally {
+    index.pending_body = null;
     building_indexes.delete(index);
   }
 }
@@ -1260,12 +1265,83 @@ export function patch_indexed_flags(
   }
 }
 
+export interface IndexedMembershipPatch {
+  tag_tokens?: string[];
+  add_tag_tokens?: string[];
+  remove_tag_tokens?: string[];
+  folders?: { folder_token: string; name: string; color?: string }[];
+  remove_folder_tokens?: string[];
+}
+
+export function patch_indexed_membership(
+  ids: string[],
+  patch: IndexedMembershipPatch,
+): void {
+  if (!cached_index || ids.length === 0) return;
+
+  const wanted = new Set(ids);
+  const removed_tags = new Set(patch.remove_tag_tokens ?? []);
+  const removed_folders = new Set(patch.remove_folder_tokens ?? []);
+
+  for (const item of cached_index.items) {
+    if (!wanted.has(item.id)) continue;
+
+    if (
+      patch.tag_tokens !== undefined ||
+      removed_tags.size > 0 ||
+      (patch.add_tag_tokens?.length ?? 0) > 0
+    ) {
+      const tokens = (patch.tag_tokens ?? item.tag_tokens ?? []).filter(
+        (token) => !removed_tags.has(token),
+      );
+
+      for (const token of patch.add_tag_tokens ?? []) {
+        if (!tokens.includes(token)) tokens.push(token);
+      }
+      item.tag_tokens = tokens;
+    }
+    if (patch.folders !== undefined) {
+      item.labels = patch.folders.map((folder) => ({
+        token: folder.folder_token,
+        name: folder.name,
+        color: folder.color ?? "",
+      }));
+      item.folders = [];
+    } else if (removed_folders.size > 0) {
+      item.labels = (item.labels ?? []).filter(
+        (label) => !removed_folders.has(label.token),
+      );
+      item.folders = (item.folders ?? []).filter(
+        (folder) => !removed_folders.has(folder.token),
+      );
+    }
+  }
+}
+
+async function existing_index_has_body(
+  user_email: string,
+): Promise<boolean | null> {
+  if (cached_index && cached_index.user_email === user_email) {
+    return cached_index.include_body;
+  }
+
+  const reader = await open_snapshot_reader(user_email);
+
+  if (!reader || reader.meta.chunk_ids.length === 0) return null;
+
+  return reader.meta.include_body;
+}
+
 export async function prewarm_search_index(
   user_email: string,
   include_body: boolean,
 ): Promise<void> {
   try {
-    await build_search_index(user_email, include_body);
+    const has_body = await existing_index_has_body(user_email);
+
+    if (has_body === null) return;
+
+    await build_search_index(user_email, include_body && has_body);
   } catch {
     return;
   }

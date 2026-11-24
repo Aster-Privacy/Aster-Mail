@@ -37,7 +37,7 @@ import {
 
 import { bulk_action_result } from "@/hooks/bulk_action_result";
 import { bulk_update_metadata_by_ids } from "@/services/crypto/mail_metadata";
-import { set_thread_trashed } from "@/services/trash_state";
+import { set_threads_trashed } from "@/services/trash_state";
 import { batched_archive, batched_unarchive } from "@/services/api/archive";
 import {
   adjust_stats_unread as adjust_unread_count,
@@ -234,26 +234,23 @@ export function use_email_list_bulk({
       const unique_thread_tokens = Array.from(
         new Set(threaded_emails.map((e) => e.thread_token as string)),
       );
-      const thread_outcomes = await Promise.all(
-        unique_thread_tokens.map(async (token) => {
-          try {
-            const result = await set_thread_trashed(
-              token,
-              threaded_emails
-                .filter((e) => e.thread_token === token)
-                .flatMap(expand_email_ids),
-              true,
-            );
+      let failed_tokens: Set<string>;
 
-            return { token, ok: !!result.data };
-          } catch {
-            return { token, ok: false };
-          }
-        }),
-      );
-      const failed_tokens = new Set(
-        thread_outcomes.filter((o) => !o.ok).map((o) => o.token),
-      );
+      try {
+        const thread_result = await set_threads_trashed(
+          unique_thread_tokens.map((token) => ({
+            thread_token: token,
+            known_ids: threaded_emails
+              .filter((e) => e.thread_token === token)
+              .flatMap(expand_email_ids),
+          })),
+          true,
+        );
+
+        failed_tokens = new Set(thread_result.failed_tokens);
+      } catch {
+        failed_tokens = new Set(unique_thread_tokens);
+      }
 
       for (const email of threaded_emails) {
         if (email.thread_token && failed_tokens.has(email.thread_token)) {

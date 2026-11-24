@@ -34,6 +34,7 @@ import {
 } from "./attachment_meta_v2";
 import {
   ENVELOPE_V2_NONCE,
+  ENVELOPE_V3_NONCE,
   encrypt_envelope_v2_bytes,
   envelope_sha256_hex,
   envelope_v2_write_key,
@@ -46,6 +47,7 @@ import {
   mark_level2_refused,
 } from "./vault_level2";
 import { zero_uint8_array } from "./secure_memory";
+import { stored_envelope_write_binding } from "./stored_envelope_write";
 
 export const ENVELOPE_V2_REKEY_RUN_LIMIT = 200;
 export const ENVELOPE_V2_REKEY_PAGE_SIZE = 50;
@@ -224,10 +226,11 @@ export async function rekey_envelope_item(
   if (plaintext === null) return "skipped";
 
   const bytes = new TextEncoder().encode(plaintext);
+  const binding = stored_envelope_write_binding(item.id);
   let encrypted: string;
 
   try {
-    encrypted = await encrypt_envelope_v2_bytes(bytes, kek);
+    encrypted = await encrypt_envelope_v2_bytes(bytes, kek, undefined, binding);
   } finally {
     zero_uint8_array(bytes);
   }
@@ -237,7 +240,7 @@ export async function rekey_envelope_item(
   try {
     response = await deps.update(item.id, {
       encrypted_envelope: encrypted,
-      envelope_nonce: ENVELOPE_V2_NONCE,
+      envelope_nonce: binding ? ENVELOPE_V3_NONCE : ENVELOPE_V2_NONCE,
       expected_envelope_sha256,
     });
   } catch {

@@ -31,6 +31,7 @@ import { payment_url_or_throw } from "@/lib/payment_url";
 import { mark_payment_navigation } from "@/lib/payment_navigation";
 import { public_web_origin } from "@/lib/public_origin";
 import { app_locale, get_display_time_zone } from "@/utils/date_format";
+import { has_tauri_runtime } from "@/lib/tauri_runtime";
 
 export interface PlanInfo {
   id: string;
@@ -271,7 +272,7 @@ export function billing_return_origin(): string {
 
 export function billing_return_path(): string {
   if (typeof window === "undefined") return "/";
-  if ("__TAURI_INTERNALS__" in window) return "/";
+  if (has_tauri_runtime()) return "/";
 
   const path = window.location.pathname;
 
@@ -394,7 +395,7 @@ export async function open_billing_portal(): Promise<{
 export async function open_payment_url(url: string): Promise<void> {
   const safe = payment_url_or_throw(url);
 
-  if (typeof window !== "undefined" && "__TAURI_INTERNALS__" in window) {
+  if (has_tauri_runtime()) {
     const core = await import("@tauri-apps/api/core");
 
     await core.invoke("open_external_url", { url: safe });

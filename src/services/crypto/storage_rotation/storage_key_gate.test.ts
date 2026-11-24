@@ -210,6 +210,7 @@ describe("storage key gate", () => {
   }, 120000);
 
   beforeEach(() => {
+    localStorage.clear();
     server.vault = null;
     server.online = true;
     server.conflicts = 0;

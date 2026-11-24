@@ -50,6 +50,7 @@ import {
 
 import { ContactAvatar } from "@/components/common/contacts/contact_avatar";
 import { show_toast } from "@/components/toast/simple_toast";
+import { cn } from "@/lib/utils";
 import { format_contact_date } from "@/utils/date_utils";
 import {
   decode_related_people,
@@ -303,41 +304,50 @@ export function ContactView({
             <div
               key={row.key}
               aria-label={row.title}
-              className="aster_island_row items-start"
+              className={cn(
+                "aster_island_row contact_view_row",
+                row.lines.length > 1 ? "items-start" : "items-center",
+              )}
               data-testid={`contact_view_row_${row.key}`}
               role={row.title ? "group" : undefined}
             >
-              <span className="aster_island_row_icon">{row.icon}</span>
-              <div className="flex min-w-0 flex-1 flex-col gap-1.5">
+              <span className="aster_island_row_icon contact_view_row_icon">
+                {row.icon}
+              </span>
+              <div className="flex min-w-0 flex-1 flex-col gap-2.5">
                 {row.lines.map((line) => (
-                  <div
-                    key={line.key}
-                    className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5"
-                  >
-                    {line.href ? (
-                      <a
-                        className="contact_view_link min-w-0 break-words select-text"
-                        draggable={false}
-                        href={line.href}
-                        rel={
-                          /^https?:/i.test(line.href)
-                            ? "noopener noreferrer"
-                            : undefined
-                        }
-                        target={
-                          /^https?:/i.test(line.href) ? "_blank" : undefined
-                        }
-                      >
-                        {line.text}
-                      </a>
-                    ) : (
-                      <span className="min-w-0 whitespace-pre-wrap break-words text-start text-[13.5px] text-txt-primary select-text">
-                        {line.text}
-                      </span>
-                    )}
+                  <div key={line.key} className="contact_view_line">
+                    <div className="flex min-w-0 flex-1 flex-col">
+                      {line.href ? (
+                        <a
+                          className="contact_view_link contact_view_value select-text"
+                          draggable={false}
+                          href={line.href}
+                          rel={
+                            /^https?:/i.test(line.href)
+                              ? "noopener noreferrer"
+                              : undefined
+                          }
+                          target={
+                            /^https?:/i.test(line.href) ? "_blank" : undefined
+                          }
+                        >
+                          {line.text}
+                        </a>
+                      ) : (
+                        <span className="contact_view_value whitespace-pre-wrap text-start text-txt-primary select-text">
+                          {line.text}
+                        </span>
+                      )}
+                      {line.label && (
+                        <span className="contact_view_line_label">
+                          {line.label}
+                        </span>
+                      )}
+                    </div>
                     <button
                       aria-label={t("common.copy_value")}
-                      className="flex-shrink-0 self-center inline-flex h-6 w-6 items-center justify-center rounded-md text-txt-muted opacity-60 transition-opacity hover:bg-[var(--aster-hover)] hover:opacity-100 focus-visible:opacity-100"
+                      className="contact_view_copy"
                       title={t("common.copy_value")}
                       type="button"
                       onClick={() =>
@@ -349,13 +359,8 @@ export function ContactView({
                         })
                       }
                     >
-                      <DocumentDuplicateIcon className="h-3.5 w-3.5" />
+                      <DocumentDuplicateIcon className="h-4 w-4" />
                     </button>
-                    {line.label && (
-                      <span className="flex-shrink-0 text-[12.5px] text-txt-muted">
-                        {"•"} {line.label}
-                      </span>
-                    )}
                   </div>
                 ))}
               </div>

@@ -40,6 +40,7 @@ export interface AuthContextType extends AuthState {
     encrypted_vault?: string,
     vault_nonce?: string,
     remember_on_device?: boolean,
+    vault_recovered_write_count?: number,
   ) => Promise<void>;
   logout: () => Promise<void>;
   logout_all: () => Promise<void>;
@@ -51,6 +52,7 @@ export interface AuthContextType extends AuthState {
     encrypted_vault?: string,
     vault_nonce?: string,
     remember_on_device?: boolean,
+    vault_recovered_write_count?: number,
   ) => Promise<{ success: boolean; error?: string }>;
   remove_account: (account_id: string) => Promise<void>;
   switch_to_account: (account_id: string) => Promise<void>;

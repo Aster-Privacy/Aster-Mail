@@ -48,10 +48,10 @@ import {
   is_html_content,
   has_rich_html,
   plain_text_to_html,
-  strip_html_tags_bounded,
   type ExternalContentReport,
   type SanitizeResult,
 } from "@/lib/html_sanitizer";
+import { html_to_preview_text } from "@/lib/html_text";
 import {
   extract_preview_html,
   move_leading_footer_to_end,
@@ -65,6 +65,10 @@ import {
 import { get_image_proxy_url } from "@/lib/image_proxy";
 import { MobileAttachmentRow } from "@/components/mobile/mobile_attachment_row";
 import { use_thread_message_attachments } from "@/pages/mobile/use_thread_message_attachments";
+import { EncryptionInfoDropdown } from "@/components/common/encryption_info_dropdown";
+import { stored_attachment_encryption } from "@/components/email/attachment_list/encryption_state";
+import { use_attachment_keys_version } from "@/hooks/use_attachment_keys_version";
+import { download_decrypted_attachment } from "@/services/crypto/attachment_crypto";
 import { show_toast } from "@/components/toast/simple_toast";
 import {
   attachment_error_key,
@@ -85,6 +89,7 @@ import {
   is_ratchet_envelope,
   is_password_protected_body,
 } from "@/utils/email_crypto";
+import { is_pending_decrypt_body } from "@/utils/undecryptable_body";
 import { PgpPasswordProtectedMessage } from "@/components/email/pgp_password_prompt";
 import {
   is_lockdown_enabled,
@@ -225,14 +230,17 @@ function MobileThreadMessageContent({
     return message.body;
   }, [message.body, message.html_content, password_unlocked_body]);
 
+  const is_decrypt_pending = is_pending_decrypt_body(message.body);
   const has_plaintext_body =
     !password_protected &&
+    !is_decrypt_pending &&
     !!message.body &&
     message.body !== RATCHET_UNDECRYPTABLE_SENTINEL &&
     message.body !== PGP_UNDECRYPTABLE_SENTINEL &&
     !is_ratchet_envelope(message.body);
   const is_ratchet_undecryptable =
     !has_plaintext_body &&
+    !is_decrypt_pending &&
     (message.body === RATCHET_UNDECRYPTABLE_SENTINEL ||
       message.body === PGP_UNDECRYPTABLE_SENTINEL ||
       is_ratchet_envelope(message.body) ||
@@ -267,6 +275,7 @@ function MobileThreadMessageContent({
     if (password_protected) {
       return t("mail.pgp_password_protected_title");
     }
+    if (is_decrypt_pending) return "";
 
     if (
       clean_body === RATCHET_UNDECRYPTABLE_SENTINEL ||
@@ -274,12 +283,12 @@ function MobileThreadMessageContent({
     ) {
       return t("mail.encrypted_message_unavailable");
     }
-    const plain = strip_html_tags_bounded(extract_preview_html(clean_body), 600)
+    const plain = html_to_preview_text(extract_preview_html(clean_body), 600)
       .replace(/\s+/g, " ")
       .trim();
 
     return clip_with_ellipsis(plain, 60);
-  }, [clean_body, password_protected, t]);
+  }, [clean_body, is_decrypt_pending, password_protected, t]);
 
   const is_system = is_system_email(message);
   const raw_sender_name = message.display_sender_name ?? message.sender_name;
@@ -446,16 +455,16 @@ function MobileThreadMessageContent({
     return content;
   }, [sanitize_job, deferred_content, is_body_visible, message.id]);
 
-  const is_sanitize_pending = ready_content === null;
+  const is_sanitize_pending = ready_content === null || is_decrypt_pending;
 
   useEffect(() => {
-    if (!is_sanitize_pending || !sanitize_job.run) return;
+    if (!is_sanitize_pending || is_decrypt_pending || !sanitize_job.run) return;
     const run = sanitize_job.run;
 
     return run_after_next_paint(() => {
       set_deferred_content({ job: sanitize_job, content: run() });
     });
-  }, [is_sanitize_pending, sanitize_job]);
+  }, [is_decrypt_pending, is_sanitize_pending, sanitize_job]);
 
   if (ready_content && is_body_visible) {
     shown_message_ref.current = message.id;
@@ -478,7 +487,21 @@ function MobileThreadMessageContent({
     message.is_sending !== true,
     t("common.encrypted_attachment"),
     plain_view || !has_rich_html(clean_body) ? undefined : sanitized_html,
+    message.decrypted_content_tag,
   );
+
+  use_attachment_keys_version(message.id);
+  const stored_files_encryption =
+    attachments.length > 0 && !attachments.some((att) => att.data)
+      ? stored_attachment_encryption({
+          mail_item_id: message.id,
+          is_external: message.is_external,
+          has_recipient_key: message.has_recipient_key,
+          e2e_verified: !!message.e2e_verified,
+          sent_encryption_scope: message.sent_encryption_scope,
+        })
+      : undefined;
+  const files_label = stored_files_encryption?.label;
   const [phishing_level, set_phishing_level] = useState<PhishingLevel>("safe");
   const [phishing_checked, set_phishing_checked] = useState(false);
 
@@ -777,6 +800,39 @@ function MobileThreadMessageContent({
 
       {attachments.length > 0 && (
         <div className="space-y-2 px-4 pb-3">
+          {(files_label === "outside" || files_label === "end_to_end") && (
+            <div
+              className="flex items-center text-[13px] text-txt-muted"
+              data-encrypted={files_label === "end_to_end"}
+              data-outside-encrypted={files_label === "outside"}
+            >
+              <EncryptionInfoDropdown
+                context="attachments"
+                description_key={
+                  files_label === "outside"
+                    ? "common.files_outside_encrypted"
+                    : undefined
+                }
+                e2e_verified={!!stored_files_encryption?.files_e2e_verified}
+                has_pq_protection={false}
+                has_recipient_key={message.has_recipient_key}
+                heading_key={
+                  files_label === "outside"
+                    ? "common.files_outside_encrypted_label"
+                    : undefined
+                }
+                is_external={message.is_external}
+                label={
+                  files_label === "outside"
+                    ? t("common.files_outside_encrypted_label")
+                    : t("common.end_to_end_encrypted_label")
+                }
+                sent_encryption_scope={message.sent_encryption_scope}
+                show_cipher={files_label === "end_to_end"}
+                size={13}
+              />
+            </div>
+          )}
           {attachments.map((att) => (
             <MobileAttachmentRow
               key={att.id}
@@ -785,6 +841,15 @@ function MobileThreadMessageContent({
               is_downloading={downloading_attachment_id === att.id}
               on_download={async () => {
                 if (downloading_attachment_id) return;
+                if (att.data) {
+                  download_decrypted_attachment(
+                    att.data,
+                    att.filename,
+                    att.content_type,
+                  );
+
+                  return;
+                }
                 set_downloading_attachment_id(att.id);
 
                 try {

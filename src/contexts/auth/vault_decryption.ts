@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type { EncryptedVault } from "@/services/crypto/key_manager";
+import type { MailLegacyRetiredMarker } from "@/services/crypto/key_manager_core";
 
 import { decrypt_vault, encrypt_vault } from "@/services/crypto/key_manager";
 import {
@@ -47,8 +48,10 @@ import {
   put_vault_with_expected_hash,
   vault_passphrase,
   vault_passphrase_bytes,
+  write_vault_merged,
 } from "@/services/crypto/vault_cas_write";
 import { collect_vault_key_fingerprints } from "@/services/crypto/vault_key_fingerprints";
+import { refuse_rolled_back_vault } from "@/services/crypto/vault_generation";
 import {
   reset_locked_folder_rekey,
   trigger_locked_folder_rekey,
@@ -71,15 +74,34 @@ import {
   type EnvelopeV2RekeyDeps,
 } from "@/services/crypto/envelope_v2_rekey";
 import {
+  get_mail_item,
   list_encrypted_mail_items,
   list_locked_folder_page,
+  rewrap_mail_item_envelope,
   update_mail_item,
 } from "@/services/api/mail";
+import { list_all_folders } from "@/services/api/folders";
+import {
+  get_stored_key_readiness,
+  reset_stored_key_readiness_cache,
+} from "@/services/api/stored_key_readiness";
+import {
+  run_mail_legacy_folder_pass,
+  start_mail_legacy_migration,
+  stop_mail_legacy_migration,
+  type MailLegacyMigrationDeps,
+} from "@/services/crypto/mail_legacy_migration";
+import { is_mail_legacy_retired } from "@/services/crypto/mail_legacy_retirement";
+import { with_vault_write_lock_bounded } from "@/services/crypto/vault_write_lock";
+import { VAULT_LOCK_WAIT_MS } from "@/services/crypto/storage_rotation/vault_step";
 import {
   batch_attachment_meta,
   update_attachment_meta,
 } from "@/services/api/attachments";
-import { load_storage_write_key_bytes } from "@/services/crypto/storage_write_key";
+import {
+  get_storage_write_crypto_key,
+  get_storage_write_key_bytes,
+} from "@/services/crypto/storage_write_key";
 import {
   auto_rekey_if_needed,
   reset_rekey_flag,
@@ -90,13 +112,13 @@ import {
   run_storage_key_maintenance,
 } from "@/services/crypto/storage_rotation/background";
 import { check_and_run_recovery_reencryption } from "@/services/crypto/recovery_reencrypt";
+import { check_recovery_backup_coverage } from "@/services/crypto/recovery_backup_refresh";
 import { ensure_ratchet_keys } from "@/services/crypto/ensure_ratchet_keys";
 import { ensure_pgp_key_published } from "@/services/crypto/ensure_pgp_key_published";
-import {
-  sync_all_ratchet_states,
-  derive_ratchet_encryption_key,
-} from "@/services/crypto/ratchet_sync";
+import { sync_all_ratchet_states } from "@/services/crypto/ratchet_sync";
+import { wait_for_sync_encryption_key } from "@/services/crypto/ratchet_conversation";
 import { backfill_pq_secrets_to_server } from "@/services/crypto/pq_prekey_store";
+import { start_prekey_seal_migration } from "@/services/crypto/prekey_seal_migration";
 import { reconcile_pq_secrets_with_server } from "@/services/crypto/pq_secret_reconciler";
 import { sync_escrow_to_cache } from "@/services/crypto/message_escrow";
 import { generate_and_upload_prekeys } from "@/services/crypto/prekey_service";
@@ -192,6 +214,66 @@ const locked_folder_rekey_deps: LockedFolderRekeyDeps = {
   get_user_id: () => get_last_vault_owner_id(),
 };
 
+async function protected_folder_tokens(): Promise<string[] | null> {
+  const response = await list_all_folders();
+
+  if (!response.data) return null;
+
+  return response.data.folders
+    .filter((folder) => folder.is_password_protected && folder.password_set)
+    .map((folder) => folder.folder_token);
+}
+
+async function write_mail_legacy_marker(
+  user_id: string,
+  marker: MailLegacyRetiredMarker,
+): Promise<boolean> {
+  return with_vault_write_lock_bounded(async () => {
+    const vault = get_vault_from_memory();
+
+    if (!vault || !has_vault_in_memory_for(user_id)) return false;
+
+    const result = await write_vault_merged({
+      next: { ...vault, mail_legacy_retired: marker },
+      user_id,
+    });
+
+    return result.status === "written";
+  }, VAULT_LOCK_WAIT_MS);
+}
+
+function mail_legacy_migration_deps(user_id: string): MailLegacyMigrationDeps {
+  return {
+    list: envelope_v2_rekey_deps.list,
+    get_item: (item_id) => get_mail_item(item_id),
+    rewrap: (item_id, data) => rewrap_mail_item_envelope(item_id, data),
+    update_metadata: (item_id, data) => update_mail_item(item_id, data),
+    batch_attachment_meta: (mail_ids) => batch_attachment_meta(mail_ids),
+    update_attachment_meta: (attachment_id, data) =>
+      update_attachment_meta(attachment_id, data),
+    get_storage_write_crypto_key: () => get_storage_write_crypto_key(),
+    protected_folder_tokens: () => protected_folder_tokens().catch(() => null),
+    get_vault: envelope_v2_rekey_deps.get_vault,
+    get_passphrase_bytes: envelope_v2_rekey_deps.get_passphrase_bytes,
+    get_metadata_key: () => {
+      try {
+        return get_storage_write_key_bytes();
+      } catch {
+        return null;
+      }
+    },
+    write_marker: (marker) => write_mail_legacy_marker(user_id, marker),
+    stored_keys_ready: () => {
+      reset_stored_key_readiness_cache();
+
+      return get_stored_key_readiness();
+    },
+    storage: envelope_v2_rekey_deps.storage,
+    now: envelope_v2_rekey_deps.now,
+    is_draft_busy: envelope_v2_rekey_deps.is_draft_busy,
+  };
+}
+
 function vault_work_factor_deps(user_id: string): VaultWorkFactorDeps {
   return {
     fetch_vault: () =>
@@ -220,12 +302,36 @@ function vault_work_factor_deps(user_id: string): VaultWorkFactorDeps {
   };
 }
 
+const mail_legacy_folder_runs = new Set<string>();
+
+function trigger_mail_legacy_folder_pass(folder_token: string): void {
+  const user_id = get_last_vault_owner_id();
+
+  if (!user_id || !folder_token || is_mail_legacy_retired()) return;
+  if (mail_legacy_folder_runs.has(folder_token)) return;
+  if (get_unlock_token(folder_token) === null) return;
+
+  mail_legacy_folder_runs.add(folder_token);
+  void run_mail_legacy_folder_pass(user_id, folder_token, {
+    ...mail_legacy_migration_deps(user_id),
+    list_page: (token, offset, limit, trashed) =>
+      list_locked_folder_page(token, offset, limit, trashed),
+    is_unlocked: (token) => get_unlock_token(token) !== null,
+  })
+    .catch(() => undefined)
+    .finally(() => {
+      mail_legacy_folder_runs.delete(folder_token);
+    });
+}
+
 on_locked_folder_listing((folder_token) => {
   void trigger_locked_folder_rekey(folder_token, locked_folder_rekey_deps);
+  trigger_mail_legacy_folder_pass(folder_token);
 });
 
 on_folder_unlock_change((folder_token) => {
   reset_locked_folder_rekey(folder_token);
+  if (folder_token) trigger_mail_legacy_folder_pass(folder_token);
 });
 
 async function current_data_kek_tag(): Promise<string | null> {
@@ -262,9 +368,26 @@ const level2_storage = create_level2_storage({
     ignore_error(`contexts/auth/vault_decryption:${scope}`, caught),
 });
 
-on_vault_cleared((event) => level2_storage.handle_cleared(event));
+on_vault_cleared((event) => {
+  level2_storage.handle_cleared(event);
+  if (!event.same_owner) stop_mail_legacy_migration();
+});
 
 on_vault_stored((event) => {
+  if (event.owner_id) {
+    start_mail_legacy_migration(
+      event.owner_id,
+      mail_legacy_migration_deps(event.owner_id),
+    );
+    import("@/services/api/scheduled")
+      .then((scheduled) => scheduled.snapshot_untagged_scheduled())
+      .catch((caught) =>
+        ignore_error(
+          "contexts/auth/vault_decryption:scheduled_snapshot",
+          caught,
+        ),
+      );
+  }
   level2_storage
     .handle_stored(event)
     .catch((caught) =>
@@ -313,6 +436,7 @@ export async function decrypt_vault_with_lock(
 
     const vault = await decrypt_vault(encrypted_vault, vault_nonce, passphrase);
 
+    refuse_rolled_back_vault(owner_user_id, vault);
     reset_rekey_flag();
     prepare_storage_key_gate();
     await store_vault_in_memory(vault, passphrase, owner_user_id);
@@ -357,24 +481,30 @@ export async function decrypt_vault_with_lock(
       ignore_error("contexts/auth/vault_decryption:reusable", caught),
     );
 
-    ensure_ratchet_keys()
+    const ratchet_keys_ready = ensure_ratchet_keys();
+
+    ratchet_keys_ready
+      .catch(() => false)
+      .then(() => check_recovery_backup_coverage())
+      .catch((caught) =>
+        ignore_error("contexts/auth/vault_decryption:reseal", caught),
+      );
+
+    ratchet_keys_ready
       .then(async () => {
         await ensure_pq_prekeys_available();
 
-        const master_key = await load_storage_write_key_bytes();
+        const sync_key = await wait_for_sync_encryption_key();
 
-        if (!master_key) return;
+        if (!sync_key) return;
 
         try {
-          const sync_key = await derive_ratchet_encryption_key(master_key);
-
           await sync_all_ratchet_states(sync_key);
         } catch {
           /* best-effort */
-        } finally {
-          master_key.fill(0);
         }
 
+        start_prekey_seal_migration();
         await backfill_pq_secrets_to_server();
         await reconcile_pq_secrets_with_server();
         sync_escrow_to_cache().catch((caught) =>

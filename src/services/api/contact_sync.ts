@@ -327,6 +327,7 @@ const VCARD_PHONE_TYPES: Record<string, PhoneEntryType> = {
   cell: "mobile",
   mobile: "mobile",
   home: "home",
+  personal: "personal",
   work: "work",
   fax: "fax",
   pager: "pager",

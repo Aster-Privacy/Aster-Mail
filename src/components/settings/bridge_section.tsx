@@ -24,10 +24,11 @@ import { useState, useEffect, useCallback, useMemo } from "react";
 import {
   ArrowDownTrayIcon,
   ArrowTopRightOnSquareIcon,
-  CheckIcon,
   ChevronDownIcon,
   ClipboardDocumentIcon,
+  CommandLineIcon,
   ComputerDesktopIcon,
+  EnvelopeIcon,
   LockClosedIcon,
   QuestionMarkCircleIcon,
   LinkSlashIcon,
@@ -63,12 +64,17 @@ import { use_delayed_flag } from "@/hooks/use_delayed_flag";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ButtonSpinner } from "@/components/ui/spinner";
 import { show_toast } from "@/components/toast/simple_toast";
+import { guard_error_text_or_null } from "@/components/guard/guard_error_text";
+import { PlanBadge } from "@/components/common/plan_badge";
 import { SmtpTokensSection } from "@/components/settings/smtp_tokens_section";
 import { LoadFailedNotice } from "@/components/settings/load_failed_notice";
 import { app_locale, get_display_time_zone } from "@/utils/date_format";
 import { detect_platform } from "@/lib/utils";
 
-const DL = "/api/bridge/v1/download";
+import {
+  bridge_download_url,
+  open_bridge_download,
+} from "@/components/settings/bridge_download";
 
 const CLI_DOCS_URL = "https://astermail.org/bridge/docs/command-line";
 
@@ -228,7 +234,10 @@ interface CliVariant {
   id: DesktopPlatform;
   name_key: TranslationKey;
   hint_key: TranslationKey;
+  shell_key: TranslationKey;
+  prompt: string;
   download_platform: string;
+  download_key: TranslationKey;
   commands: string;
   arch_link?: FormatLink;
 }
@@ -238,7 +247,10 @@ const CLI_VARIANTS: CliVariant[] = [
     id: "windows",
     name_key: "settings.bridge_cli_windows_link",
     hint_key: "settings.bridge_cli_install_hint_windows",
+    shell_key: "settings.bridge_cli_shell_powershell",
+    prompt: "PS>",
     download_platform: "cli-windows",
+    download_key: "settings.bridge_cli_download_windows",
     commands: [
       "Expand-Archive aster-bridge-cli-*.zip -DestinationPath $HOME\\aster-bridge",
       "Move-Item $HOME\\aster-bridge\\aster-bridge-cli-*\\aster-bridge.exe $HOME\\aster-bridge",
@@ -249,7 +261,10 @@ const CLI_VARIANTS: CliVariant[] = [
     id: "macos",
     name_key: "settings.bridge_cli_macos_link",
     hint_key: "settings.bridge_cli_install_hint",
+    shell_key: "settings.bridge_cli_shell_terminal",
+    prompt: "$",
     download_platform: "cli-macos",
+    download_key: "settings.bridge_cli_download_macos",
     commands: [
       "tar -xzf aster-bridge-cli-*.tar.gz",
       "sudo install -m 755 aster-bridge-cli-*/aster-bridge /usr/local/bin/",
@@ -259,7 +274,10 @@ const CLI_VARIANTS: CliVariant[] = [
     id: "linux",
     name_key: "settings.bridge_cli_linux_link",
     hint_key: "settings.bridge_cli_install_hint",
+    shell_key: "settings.bridge_cli_shell_terminal",
+    prompt: "$",
     download_platform: "cli-linux-x64",
+    download_key: "settings.bridge_cli_download_linux",
     commands: [
       "tar -xzf aster-bridge-cli-*.tar.gz",
       "mkdir -p ~/.local/bin",
@@ -281,6 +299,12 @@ function current_desktop_platform(): DesktopPlatform {
   return "windows";
 }
 
+function open_billing_settings() {
+  window.dispatchEvent(
+    new CustomEvent("navigate-settings", { detail: "billing" }),
+  );
+}
+
 async function start_bridge_download(
   platform: string,
   is_locked: boolean,
@@ -291,7 +315,7 @@ async function start_bridge_download(
 
   if (is_locked) return;
 
-  const url = `${DL}/${platform}`;
+  const url = bridge_download_url(platform);
 
   try {
     const res = await fetch(url, { method: "HEAD", redirect: "manual" });
@@ -306,7 +330,7 @@ async function start_bridge_download(
   }
 
   show_toast(t("settings.bridge_download_started"), "success");
-  window.location.href = url;
+  open_bridge_download(url);
 }
 
 interface BridgeDownloadLinkProps {
@@ -330,9 +354,11 @@ function BridgeDownloadLink({
   if (is_locked) {
     return (
       <button
-        disabled
-        className={`${DOWNLOAD_BTN_BASE} aster_btn_outline cursor-not-allowed text-txt-muted`}
+        className={`${DOWNLOAD_BTN_BASE} aster_btn_outline text-txt-muted`}
+        data-testid="bridge-locked-download"
+        title={t("settings.desktop_bridge_upgrade_cta")}
         type="button"
+        onClick={open_billing_settings}
       >
         <LockClosedIcon className="w-3.5 h-3.5 flex-shrink-0" />
         {label}
@@ -345,7 +371,7 @@ function BridgeDownloadLink({
       className={`${DOWNLOAD_BTN_BASE} ${
         is_primary ? "aster_btn_depth" : "aster_btn_outline"
       }`}
-      href={`${DL}/${platform}`}
+      href={bridge_download_url(platform)}
       onClick={(event) =>
         void start_bridge_download(platform, is_locked, t, event)
       }
@@ -398,7 +424,7 @@ function DownloadFormatMenu({
                 className="items-start gap-2.5 py-2"
               >
                 <a
-                  href={`${DL}/${link.platform}`}
+                  href={bridge_download_url(link.platform)}
                   onClick={(event) =>
                     void start_bridge_download(
                       link.platform,
@@ -432,10 +458,18 @@ function DownloadFormatMenu({
 interface CommandBlockProps {
   commands: string;
   copy_label: string;
+  prompt: string;
+  shell_label: string;
 }
 
-function CommandBlock({ commands, copy_label }: CommandBlockProps) {
+function CommandBlock({
+  commands,
+  copy_label,
+  prompt,
+  shell_label,
+}: CommandBlockProps) {
   const { t } = use_i18n();
+  const lines = useMemo(() => commands.split("\n"), [commands]);
   const copy_command = useCallback(async () => {
     try {
       await copy_text_or_throw(commands);
@@ -446,21 +480,31 @@ function CommandBlock({ commands, copy_label }: CommandBlockProps) {
   }, [commands, t]);
 
   return (
-    <div className="group relative rounded-md bg-surf-secondary">
-      <div className="overflow-x-auto px-3.5 py-3 pe-12">
-        <pre className="font-mono text-xs leading-6 text-txt-primary">
-          {commands}
-        </pre>
+    <div className="bridge_cli_block">
+      <div className="bridge_cli_header">
+        <span className="text-[12px] font-medium text-txt-muted">
+          {shell_label}
+        </span>
+        <button
+          aria-label={copy_label}
+          className="bridge_cli_copy"
+          type="button"
+          onClick={copy_command}
+        >
+          <ClipboardDocumentIcon className="h-3.5 w-3.5" strokeWidth={1.75} />
+          <span>{t("common.copy")}</span>
+        </button>
       </div>
-      <button
-        aria-label={copy_label}
-        className="absolute end-2 top-2 flex h-7 w-7 items-center justify-center rounded-[var(--aster-radius-control)] text-txt-muted transition-colors hover:bg-surf-hover hover:text-txt-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color-mix(in_srgb,var(--accent-color)_50%,transparent)]"
-        title={t("common.copy")}
-        type="button"
-        onClick={copy_command}
-      >
-        <ClipboardDocumentIcon className="w-4 h-4" />
-      </button>
+      <pre className="bridge_cli_code" data-testid="bridge-cli-code">
+        {lines.map((line, index) => (
+          <span key={`${index}-${line}`} className="bridge_cli_line">
+            <span aria-hidden="true" className="bridge_cli_prompt">
+              {prompt}
+            </span>
+            {line}
+          </span>
+        ))}
+      </pre>
     </div>
   );
 }
@@ -469,11 +513,17 @@ interface BridgeUpgradeCardProps {
   on_upgrade: () => void;
 }
 
-const UPGRADE_BENEFIT_KEYS: TranslationKey[] = [
-  "settings.bridge_upgrade_benefit_clients",
-  "settings.bridge_upgrade_benefit_local",
-  "settings.bridge_upgrade_benefit_platforms",
-  "settings.bridge_upgrade_benefit_cli",
+const UPGRADE_BENEFITS: {
+  key: TranslationKey;
+  icon: typeof EnvelopeIcon;
+}[] = [
+  { key: "settings.bridge_upgrade_benefit_clients", icon: EnvelopeIcon },
+  { key: "settings.bridge_upgrade_benefit_local", icon: LockClosedIcon },
+  {
+    key: "settings.bridge_upgrade_benefit_platforms",
+    icon: ComputerDesktopIcon,
+  },
+  { key: "settings.bridge_upgrade_benefit_cli", icon: CommandLineIcon },
 ];
 
 function BridgeUpgradeCard({ on_upgrade }: BridgeUpgradeCardProps) {
@@ -481,30 +531,19 @@ function BridgeUpgradeCard({ on_upgrade }: BridgeUpgradeCardProps) {
 
   return (
     <Island padding="lg">
-      <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between sm:gap-8">
+      <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between sm:gap-8">
         <div className="min-w-0 flex-1">
-          <h3 className="text-[17px] font-semibold leading-6 text-txt-primary">
-            {t("settings.desktop_bridge_upgrade_title")}
-          </h3>
-          <p className="mt-1 max-w-[52ch] text-sm leading-5 text-txt-secondary">
-            {t("settings.desktop_bridge_upgrade_description")}
+          <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1.5">
+            <h3 className="text-[17px] font-semibold leading-6 text-txt-primary">
+              {t("settings.desktop_bridge_upgrade_title")}
+            </h3>
+            <PlanBadge plan_code="star" />
+          </div>
+          <p className="mt-1.5 max-w-[56ch] text-sm leading-5 text-txt-secondary">
+            {t("settings.bridge_upgrade_summary")}
           </p>
-          <ul className="mt-4 grid grid-cols-1 gap-x-6 gap-y-2 md:grid-cols-2">
-            {UPGRADE_BENEFIT_KEYS.map((key) => (
-              <li
-                key={key}
-                className="flex items-start gap-2.5 text-sm leading-5 text-txt-primary"
-              >
-                <CheckIcon
-                  className="mt-0.5 h-4 w-4 flex-shrink-0 text-brand"
-                  strokeWidth={2.5}
-                />
-                {t(key)}
-              </li>
-            ))}
-          </ul>
         </div>
-        <div className="flex-shrink-0 sm:pt-0.5">
+        <div className="flex-shrink-0">
           <Button
             className="w-full sm:w-auto"
             size="md"
@@ -515,6 +554,23 @@ function BridgeUpgradeCard({ on_upgrade }: BridgeUpgradeCardProps) {
           </Button>
         </div>
       </div>
+      <ul className="bridge_upgrade_benefits mt-6 grid grid-cols-1 gap-x-8 gap-y-4 pt-6 sm:grid-cols-2 lg:grid-cols-4 lg:gap-y-0">
+        {UPGRADE_BENEFITS.map(({ key, icon: Icon }) => (
+          <li
+            key={key}
+            className="flex items-start gap-3 lg:flex-col lg:gap-2.5"
+          >
+            <Icon
+              aria-hidden="true"
+              className="h-5 w-5 flex-shrink-0 text-txt-secondary"
+              strokeWidth={1.5}
+            />
+            <span className="text-[13px] leading-5 text-txt-primary">
+              {t(key)}
+            </span>
+          </li>
+        ))}
+      </ul>
     </Island>
   );
 }
@@ -587,28 +643,22 @@ function BridgeCliCard({ is_locked }: BridgeCliCardProps) {
         </div>
         <BridgeDownloadLink
           is_locked={is_locked}
-          label={t("settings.bridge_cli_download")}
+          label={t(variant.download_key)}
           platform={variant.download_platform}
         />
       </div>
 
-      <div className="mt-3 ps-10">
+      <div className="mt-4 sm:ps-10">
         <div
           aria-label={t("settings.bridge_all_platforms")}
-          className="flex items-center gap-5"
-          role="tablist"
+          className="aster_segmented w-full sm:inline-grid sm:w-auto"
+          role="group"
         >
           {CLI_VARIANTS.map((item) => (
             <button
               key={item.id}
-              aria-selected={item.id === active_id}
-              className={`-mb-px border-b-2 pb-2 text-xs font-medium whitespace-nowrap transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color-mix(in_srgb,var(--accent-color)_50%,transparent)] ${
-                item.id === active_id
-                  ? "border-current text-brand"
-                  : "border-transparent text-txt-muted hover:text-txt-secondary"
-              }`}
-              role="tab"
-              tabIndex={item.id === active_id ? 0 : -1}
+              aria-pressed={item.id === active_id}
+              className="aster_segmented_option whitespace-nowrap"
               type="button"
               onClick={() => set_active_id(item.id)}
             >
@@ -621,40 +671,42 @@ function BridgeCliCard({ is_locked }: BridgeCliCardProps) {
           <CommandBlock
             commands={variant.commands}
             copy_label={t("settings.bridge_cli_copy_command")}
+            prompt={variant.prompt}
+            shell_label={t(variant.shell_key)}
           />
         </div>
 
-        <p className="mt-2.5 text-xs leading-relaxed text-txt-muted">
-          {t(variant.hint_key)}{" "}
+        <p className="mt-3 text-[13px] leading-5 text-txt-muted">
+          {t(variant.hint_key)}
+        </p>
+        <div className="mt-2 flex flex-wrap items-center gap-x-5 gap-y-1.5">
           {variant.arch_link && !is_locked && (
-            <>
-              <a
-                className="font-medium text-brand hover:underline"
-                href={`${DL}/${variant.arch_link.platform}`}
-                onClick={(event) =>
-                  variant.arch_link &&
-                  void start_bridge_download(
-                    variant.arch_link.platform,
-                    is_locked,
-                    t,
-                    event,
-                  )
-                }
-              >
-                {t(variant.arch_link.label_key)}
-              </a>{" "}
-            </>
+            <a
+              className="text-[13px] font-medium leading-5 text-brand hover:underline"
+              href={bridge_download_url(variant.arch_link.platform)}
+              onClick={(event) =>
+                variant.arch_link &&
+                void start_bridge_download(
+                  variant.arch_link.platform,
+                  is_locked,
+                  t,
+                  event,
+                )
+              }
+            >
+              {t(variant.arch_link.label_key)}
+            </a>
           )}
           <a
-            className="font-medium text-brand hover:underline"
+            className="inline-flex items-center gap-1 text-[13px] font-medium leading-5 text-brand hover:underline"
             href={CLI_DOCS_URL}
             rel="noopener noreferrer"
             target="_blank"
           >
             {t("settings.bridge_cli_docs_link")}
-            <ArrowTopRightOnSquareIcon className="ms-1 inline w-3 h-3 align-[-1px]" />
+            <ArrowTopRightOnSquareIcon className="h-3.5 w-3.5 rtl:-scale-x-100" />
           </a>
-        </p>
+        </div>
       </div>
     </div>
   );
@@ -846,7 +898,8 @@ export function BridgeSection() {
 
       if (result.error) {
         show_toast(
-          result.error || t("common.something_went_wrong_try_again"),
+          guard_error_text_or_null(t, result) ??
+            (result.error || t("common.something_went_wrong_try_again")),
           "error",
         );
 
@@ -870,7 +923,8 @@ export function BridgeSection() {
 
       if (failure) {
         show_toast(
-          failure.error || t("common.something_went_wrong_try_again"),
+          guard_error_text_or_null(t, failure) ??
+            (failure.error || t("common.something_went_wrong_try_again")),
           "error",
         );
       }
@@ -887,18 +941,14 @@ export function BridgeSection() {
       {plan_load_failed && !limits && (
         <LoadFailedNotice on_retry={() => void refresh_plan_limits(true)} />
       )}
-      {is_locked && (
-        <BridgeUpgradeCard
-          on_upgrade={() =>
-            window.dispatchEvent(
-              new CustomEvent("navigate-settings", { detail: "billing" }),
-            )
-          }
-        />
-      )}
+      {is_locked && <BridgeUpgradeCard on_upgrade={open_billing_settings} />}
 
       <IslandSection
-        description={t("settings.desktop_bridge_description")}
+        description={
+          is_locked
+            ? t("settings.desktop_bridge_description_short")
+            : t("settings.desktop_bridge_description")
+        }
         icon={<ArrowDownTrayIcon />}
         title={
           <span className="inline-flex items-center gap-1.5">

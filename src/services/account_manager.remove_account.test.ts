@@ -60,6 +60,11 @@ vi.mock("@/services/contact_email_index", () => ({
   invalidate_contact_email_index: vi.fn(() => undefined),
 }));
 
+vi.mock("@/services/crypto/guard_key_store", () => ({
+  delete_guard_record: vi.fn(async () => undefined),
+  delete_guard_hints_for: vi.fn(async () => undefined),
+}));
+
 vi.mock("@/services/api/client", () => ({
   api_client: {
     can_persist_session: () => true,

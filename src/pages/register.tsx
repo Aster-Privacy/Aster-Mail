@@ -38,6 +38,7 @@ import { RegisterStepNotifications } from "@/components/register/register_step_n
 import { RegisterStepAddresses } from "@/components/register/register_step_addresses";
 import { RegisterStepCustomDomain } from "@/components/register/register_step_custom_domain";
 import { RegisterStepImportMail } from "@/components/register/register_step_import_mail";
+import { RegisterStepInstallLimit } from "@/components/register/register_step_install_limit";
 import { DesktopSignUpHandoff } from "@/pages/desktop_sign_up_handoff";
 import { is_tauri } from "@/native/desktop_device_auth";
 
@@ -72,6 +73,8 @@ function BrowserRegisterPage() {
         return <RegisterStepRecoveryEmailVerification reg={reg} />;
       case "recovery_email_gate":
         return <RegisterStepRecoveryEmailGate reg={reg} />;
+      case "install_limit":
+        return <RegisterStepInstallLimit reg={reg} />;
       case "academic_offer":
         return <RegisterStepAcademicOffer reg={reg} />;
       case "plan_selection":

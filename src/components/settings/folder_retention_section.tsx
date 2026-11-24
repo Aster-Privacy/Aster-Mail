@@ -50,7 +50,6 @@ import { use_i18n } from "@/lib/i18n/context";
 import { use_folders } from "@/hooks/use_folders";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
 import { show_toast } from "@/components/toast/simple_toast";
-import { use_register_search_items } from "@/components/settings/search_context";
 import { ConfirmationModal } from "@/components/modals/confirmation_modal";
 import { LoadFailedNotice } from "@/components/settings/load_failed_notice";
 import {
@@ -344,20 +343,6 @@ export function FolderRetentionSection() {
   const r = use_folder_retention();
   const [confirm_delete_policy, set_confirm_delete_policy] =
     React.useState<RetentionPolicy | null>(null);
-
-  use_register_search_items("mail_rules", [
-    {
-      label: t("folder_retention.title"),
-      breadcrumb: `${t("mail_rules.title")} > ${t("folder_retention.title")}`,
-      keywords: [
-        "auto delete",
-        "retention",
-        "expire",
-        "clean folder",
-        "older than",
-      ],
-    },
-  ]);
 
   return (
     <div>

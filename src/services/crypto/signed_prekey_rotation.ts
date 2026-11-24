@@ -154,3 +154,44 @@ export async function rotate_signed_prekey_if_due(
     return "failed";
   }
 }
+
+export async function replace_signed_prekey(): Promise<boolean> {
+  const [
+    { get_vault_from_memory },
+    { write_vault_merged },
+    { with_vault_write_lock },
+    { upload_prekey_bundle },
+  ] = await Promise.all([
+    import("./memory_key_store"),
+    import("./vault_cas_write"),
+    import("./vault_write_lock"),
+    import("./ratchet_prekey_bundle"),
+  ]);
+
+  const outcome = await rotate_signed_prekey_if_due({
+    enabled: true,
+    now: () => Date.now(),
+    last_rotated_at: () => null,
+    vault: () => {
+      try {
+        return get_vault_from_memory();
+      } catch {
+        return null;
+      }
+    },
+    persist: (next, base) =>
+      with_vault_write_lock(async () => {
+        const result = await write_vault_merged({
+          next,
+          base,
+          preserve_pq_prekeys: true,
+        });
+
+        return result.status === "written" ? result.vault : null;
+      }),
+    publish: (vault) => upload_prekey_bundle(vault),
+    record_rotation: () => undefined,
+  });
+
+  return outcome === "rotated";
+}

@@ -206,6 +206,37 @@ describe("pinned sync socket", () => {
     expect(socket.readyState).toBe(WebSocket.CLOSED);
   });
 
+  it("reports a close even when the native side never confirms it", async () => {
+    invoke.mockImplementation(async (command: string) =>
+      command === "sync_socket_open" ? 11 : undefined,
+    );
+
+    const socket = open_sync_socket(URL_OK);
+    const closed = vi.fn();
+
+    socket.onclose = closed;
+    await settle();
+    expect(socket.readyState).toBe(WebSocket.OPEN);
+
+    vi.useFakeTimers();
+    try {
+      socket.close();
+      expect(socket.readyState).toBe(WebSocket.CLOSING);
+      await vi.advanceTimersByTimeAsync(4_000);
+      expect(closed).not.toHaveBeenCalled();
+      await vi.advanceTimersByTimeAsync(2_000);
+    } finally {
+      vi.useRealTimers();
+    }
+
+    expect(socket.readyState).toBe(WebSocket.CLOSED);
+    expect(closed).toHaveBeenCalledTimes(1);
+    expect(unlisten).toHaveBeenCalledTimes(1);
+
+    deliver?.({ payload: { id: 11, kind: "close", data: null } });
+    expect(closed).toHaveBeenCalledTimes(1);
+  });
+
   it("refuses to send before the socket is open", () => {
     invoke.mockImplementation(() => new Promise(() => undefined));
 

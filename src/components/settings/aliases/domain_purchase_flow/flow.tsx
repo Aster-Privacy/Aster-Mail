@@ -85,7 +85,7 @@ import {
   type DomainOrder,
 } from "@/services/api/domains";
 import type {} from "@/services/api/client";
-import { is_https_payment_url } from "@/lib/payment_url";
+import { checked_payment_url } from "@/lib/payment_url";
 import { open_payment_url } from "@/services/api/billing";
 import { open_external } from "@/utils/open_link";
 import { is_tauri_env } from "@/services/api/client/helpers";
@@ -414,7 +414,11 @@ export function DomainPurchaseFlow({
         auto_renew,
       );
 
-      if (response.data && is_https_payment_url(response.data.checkout_url)) {
+      const next_checkout_url = checked_payment_url(
+        response.data?.checkout_url,
+      );
+
+      if (response.data && next_checkout_url) {
         write_checkout_draft(null);
         try {
           sessionStorage.setItem(
@@ -428,17 +432,14 @@ export function DomainPurchaseFlow({
             caught,
           );
         }
+        await open_payment_url(next_checkout_url);
         if (is_tauri_env()) {
-          await open_payment_url(response.data.checkout_url);
-          set_checkout_url(response.data.checkout_url);
+          set_checkout_url(next_checkout_url);
           set_order_id(response.data.order_id);
           set_order(null);
           set_view("progress");
           set_buying(false);
-
-          return;
         }
-        window.location.href = response.data.checkout_url;
       } else {
         set_error(t(checkout_error_key(response.code, response.server_code)));
         set_captcha_token(null);

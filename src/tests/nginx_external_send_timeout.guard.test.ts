@@ -44,7 +44,7 @@ function client_external_send_timeout_ms(): number {
 function proxy_timeout_ms(directive: string): number {
   const nginx = read("nginx.conf");
   const block = nginx.match(
-    /location = \/api\/mail\/v1\/external_accounts\/send \{([^}]*)\}/,
+    /location = \/api\/mail\/v1\/external_accounts\/send \{([\s\S]*?)\n\s*\}\n/,
   );
 
   expect(block).not.toBeNull();

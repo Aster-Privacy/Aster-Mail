@@ -44,4 +44,31 @@ describe("hosted_pay_url", () => {
     expect(hosted_pay_url("javascript:alert(1)")).toBeNull();
     expect(hosted_pay_url("not a url")).toBeNull();
   });
+
+  it("rejects a link with a port or user info", () => {
+    expect(
+      hosted_pay_url("https://invoice.stripe.com:8443/i/acct_1/test_abc"),
+    ).toBeNull();
+    expect(
+      hosted_pay_url("https://user:pass@invoice.stripe.com/i/acct_1/test_abc"),
+    ).toBeNull();
+    expect(
+      hosted_pay_url("https://user@invoice.stripe.com/i/acct_1/test_abc"),
+    ).toBeNull();
+  });
+
+  it("rejects checkout and billing hosts", () => {
+    expect(
+      hosted_pay_url("https://checkout.stripe.com/c/pay/cs_live_a1b2c3"),
+    ).toBeNull();
+    expect(
+      hosted_pay_url("https://billing.stripe.com/p/session/live_abc"),
+    ).toBeNull();
+  });
+
+  it("matches the invoice host regardless of case", () => {
+    expect(hosted_pay_url("https://INVOICE.STRIPE.COM/i/acct_1/test_abc")).toBe(
+      "https://invoice.stripe.com/i/acct_1/test_abc",
+    );
+  });
 });

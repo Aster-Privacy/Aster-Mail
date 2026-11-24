@@ -21,6 +21,7 @@
 import type { DecryptedThreadMessage } from "@/types/thread";
 import type { MailItemMetadata } from "@/types/email";
 import type { ThreadMessageItem } from "./api/mail_threads";
+import type { ThreadContentField } from "./thread_content_fields";
 
 import { on_vault_cleared } from "./crypto/memory_key_store";
 import {
@@ -28,6 +29,7 @@ import {
   register_sealed_attachment_manifest,
 } from "./crypto/inbound_attachment_keys";
 import { LOCKDOWN_CHANGED_EVENT } from "./lockdown_store";
+import { were_decrypted_mime_attachments_evicted } from "./decrypted_mime_attachments";
 
 const MAX_CONTENT_ENTRIES = 100;
 const MAX_CONTENT_CHARS = 8_000_000;
@@ -42,23 +44,7 @@ export const HIDDEN_PAGE_PURGE_MS = 180_000;
 
 export type ThreadMessageContent = Pick<
   DecryptedThreadMessage,
-  | "sender_name"
-  | "sender_email"
-  | "display_sender_name"
-  | "display_sender_email"
-  | "forwarding_service"
-  | "subject"
-  | "body"
-  | "html_content"
-  | "text_part"
-  | "e2e_verified"
-  | "e2e_sender_bound"
-  | "e2e_details_sealed"
-  | "sent_encryption_scope"
-  | "to_recipients"
-  | "cc_recipients"
-  | "bcc_recipients"
-  | "raw_headers"
+  ThreadContentField
 > & {
   sent_at?: string;
   attachment_keys?: unknown;
@@ -428,9 +414,12 @@ export async function decrypt_thread_content_cached(
   const key = content_key(msg, user_email);
   const hit = content_cache.get(msg.id, key, thread_token);
 
-  if (hit !== null) {
-    register_sealed_attachment_manifest(msg.id, hit.sealed_attachment_manifest);
+  if (
+    hit !== null &&
+    !were_decrypted_mime_attachments_evicted(msg.id, hit.decrypted_content_tag)
+  ) {
     register_envelope_attachment_keys(msg.id, hit);
+    register_sealed_attachment_manifest(msg.id, hit.sealed_attachment_manifest);
 
     return hit;
   }

@@ -64,10 +64,6 @@ vi.mock("@/hooks/use_tags", () => ({
   }),
 }));
 
-vi.mock("@/components/settings/search_context", () => ({
-  use_register_search_items: vi.fn(),
-}));
-
 vi.mock("@/components/modals/rule_editor_modal", () => ({
   RuleEditorModal: () => null,
 }));

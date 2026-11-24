@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { ignore_error } from "@/lib/ignore_error";
+import { has_tauri_runtime } from "@/lib/tauri_runtime";
 
 export const WEB_SANDBOX_NOTICE_KEY = "aster_web_sandbox_notice_dismissed";
 
@@ -54,15 +55,6 @@ export function dismiss_web_sandbox_notice(): void {
   }
 }
 
-function in_tauri(): boolean {
-  if (typeof window === "undefined") return false;
-
-  return Boolean(
-    (window as unknown as { __TAURI_INTERNALS__?: unknown })
-      .__TAURI_INTERNALS__,
-  );
-}
-
 function parse_status(value: unknown): WebSandboxStatus | null {
   if (!value || typeof value !== "object") return null;
   const record = value as Record<string, unknown>;
@@ -74,7 +66,7 @@ function parse_status(value: unknown): WebSandboxStatus | null {
 }
 
 export async function fetch_web_sandbox_status(): Promise<WebSandboxStatus | null> {
-  if (!in_tauri()) return null;
+  if (!has_tauri_runtime()) return null;
   try {
     const core = await import("@tauri-apps/api/core");
 

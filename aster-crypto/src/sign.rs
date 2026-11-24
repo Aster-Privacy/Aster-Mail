@@ -27,13 +27,12 @@ use pgp::crypto::hash::HashAlgorithm;
 use pgp::packet::{Signature, SignatureType};
 use rand::rngs::OsRng;
 
+use crate::decrypt::{inflate_within_cap, within_ciphertext_limit};
 use crate::error::{CryptoError, Result};
 use crate::keys::{KeyPair, PublicKey, PublicKeyInner};
 
 fn primary_is_revoked(spk: &SignedPublicKey) -> bool {
-    spk.details.revocation_signatures.iter().any(|s| {
-        matches!(s.typ(), SignatureType::KeyRevocation) && s.verify_key(&spk.primary_key).is_ok()
-    })
+    crate::key_selection::primary_revoked(spk)
 }
 
 fn primary_is_expired(spk: &SignedPublicKey, now: DateTime<Utc>) -> bool {
@@ -51,11 +50,12 @@ fn newest_verified_binding<'a>(
     spk: &SignedPublicKey,
     sub: &'a SignedPublicSubKey,
 ) -> Option<&'a Signature> {
-    sub.signatures
-        .iter()
-        .filter(|s| matches!(s.typ(), SignatureType::SubkeyBinding))
-        .filter(|s| s.verify_key_binding(&spk.primary_key, &sub.key).is_ok())
-        .max_by_key(|s| s.created().copied())
+    crate::key_selection::newest_signature(
+        sub.signatures
+            .iter()
+            .filter(|s| matches!(s.typ(), SignatureType::SubkeyBinding))
+            .filter(|s| s.verify_key_binding(&spk.primary_key, &sub.key).is_ok()),
+    )
 }
 
 pub(crate) fn binding_has_backsig(
@@ -88,11 +88,9 @@ fn subkey_signing_bound(
     if !binding.key_flags().sign() || !binding_has_backsig(spk, sub, binding) {
         return false;
     }
-    let created = *pgp::types::PublicKeyTrait::created_at(&sub.key);
-    match binding.key_expiration_time() {
-        Some(duration) if !duration.is_zero() => created + *duration > now,
-        _ => true,
-    }
+    crate::key_selection::binding_expires_at(sub, binding)
+        .map(|expiry| expiry > now)
+        .unwrap_or(true)
 }
 
 pub(crate) fn signing_identity_valid(spk: &SignedPublicKey, now: DateTime<Utc>) -> bool {
@@ -293,9 +291,17 @@ pub(crate) fn message_signed_by_public_key(
     }
 }
 
+fn no_valid_signature() -> CryptoError {
+    CryptoError::SignatureVerification("No valid signature found".into())
+}
+
 pub fn verify_signature(signed_message: &[u8], signer_keys: &[&PublicKey]) -> Result<Vec<u8>> {
-    let (msg, _) = Message::from_armor_single(signed_message)
-        .map_err(|e| CryptoError::SignatureVerification(e.to_string()))?;
+    if !within_ciphertext_limit(signed_message) {
+        return Err(no_valid_signature());
+    }
+    let (msg, _) =
+        Message::from_armor_single(signed_message).map_err(|_| no_valid_signature())?;
+    let msg = inflate_within_cap(msg).ok_or_else(no_valid_signature)?;
 
     let now = Utc::now();
     for pk in signer_keys {
@@ -306,9 +312,7 @@ pub fn verify_signature(signed_message: &[u8], signer_keys: &[&PublicKey]) -> Re
         }
     }
 
-    Err(CryptoError::SignatureVerification(
-        "No valid signature found".into(),
-    ))
+    Err(no_valid_signature())
 }
 
 #[cfg(test)]
@@ -443,6 +447,109 @@ mod tests {
 
     fn cleartext_sign(signer: &KeyPair, text: &str) -> String {
         sign_cleartext_message(text, signer).unwrap()
+    }
+
+    fn signed_literal(signer: &KeyPair, data: &[u8]) -> Message {
+        Message::new_literal_bytes("", data)
+            .sign(
+                &mut OsRng,
+                signer.secret_key(),
+                || "".to_string(),
+                HashAlgorithm::SHA2_512,
+            )
+            .unwrap()
+    }
+
+    fn armored_message(msg: &Message) -> Vec<u8> {
+        msg.to_armored_bytes(None.into()).unwrap()
+    }
+
+    fn is_generic_signature_error(result: &Result<Vec<u8>>) -> bool {
+        matches!(
+            result,
+            Err(CryptoError::SignatureVerification(text)) if text == "No valid signature found"
+        )
+    }
+
+    #[test]
+    fn verifies_signed_then_compressed_message() {
+        use pgp::types::CompressionAlgorithm;
+
+        let signer = generate_keypair("Signer", "signer@astermail.com").unwrap();
+        let public = signer.public_key();
+        let plaintext = b"signed, then compressed";
+
+        for alg in [CompressionAlgorithm::ZLIB, CompressionAlgorithm::ZIP] {
+            let message = signed_literal(&signer, plaintext).compress(alg).unwrap();
+            let verified = verify_signature(&armored_message(&message), &[&public]).ok();
+
+            assert_eq!(verified.as_deref(), Some(plaintext.as_slice()));
+        }
+    }
+
+    #[test]
+    fn refuses_compressed_signed_message_beyond_plaintext_cap() {
+        use crate::decrypt::{MAX_CIPHERTEXT_BYTES, MAX_PLAINTEXT_BYTES};
+        use pgp::types::CompressionAlgorithm;
+
+        let signer = generate_keypair("Signer", "signer@astermail.com").unwrap();
+        let public = signer.public_key();
+        let oversized = vec![0u8; MAX_PLAINTEXT_BYTES + 1];
+        let message = signed_literal(&signer, &oversized)
+            .compress(CompressionAlgorithm::ZLIB)
+            .unwrap();
+        let armored = armored_message(&message);
+
+        assert!(armored.len() < MAX_CIPHERTEXT_BYTES);
+        assert!(is_generic_signature_error(&verify_signature(
+            &armored,
+            &[&public]
+        )));
+    }
+
+    #[test]
+    fn refuses_nested_compressed_signed_message() {
+        use pgp::types::CompressionAlgorithm;
+
+        let signer = generate_keypair("Signer", "signer@astermail.com").unwrap();
+        let public = signer.public_key();
+        let message = signed_literal(&signer, b"nested")
+            .compress(CompressionAlgorithm::ZLIB)
+            .unwrap()
+            .compress(CompressionAlgorithm::ZIP)
+            .unwrap();
+
+        assert!(is_generic_signature_error(&verify_signature(
+            &armored_message(&message),
+            &[&public]
+        )));
+    }
+
+    #[test]
+    fn refuses_signed_message_beyond_ciphertext_limit() {
+        use crate::decrypt::MAX_CIPHERTEXT_BYTES;
+
+        let signer = generate_keypair("Signer", "signer@astermail.com").unwrap();
+        let public = signer.public_key();
+        let payload = vec![7u8; MAX_CIPHERTEXT_BYTES];
+        let armored = armored_message(&signed_literal(&signer, &payload));
+
+        assert!(armored.len() > MAX_CIPHERTEXT_BYTES);
+        assert!(is_generic_signature_error(&verify_signature(
+            &armored,
+            &[&public]
+        )));
+    }
+
+    #[test]
+    fn returns_one_generic_error_for_unreadable_input() {
+        let signer = generate_keypair("Signer", "signer@astermail.com").unwrap();
+        let public = signer.public_key();
+
+        assert!(is_generic_signature_error(&verify_signature(
+            b"not an armored message",
+            &[&public]
+        )));
     }
 
     #[test]

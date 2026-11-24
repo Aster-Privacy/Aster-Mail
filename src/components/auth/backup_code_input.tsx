@@ -29,6 +29,7 @@ import {
   verify_backup_code_login,
   TotpVerifyResponse,
 } from "@/services/api/totp";
+import { default_guard_device_name } from "@/services/guard/guard_device_label";
 
 const BACKUP_CODE_LENGTH = 12;
 const LEGACY_BACKUP_CODE_LENGTH = 8;
@@ -114,6 +115,7 @@ export function BackupCodeInput({
       code: format_backup_code(normalized),
       pending_login_token,
       trust_device,
+      device_label: default_guard_device_name(),
       remember_me,
     });
 

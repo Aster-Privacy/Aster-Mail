@@ -115,13 +115,6 @@ async function decrypt_entry_with_legacy_storage_keys(
   );
 }
 
-async function derive_storage_key_from_crypto_key(
-  _master_key: CryptoKey,
-  purpose: string,
-): Promise<CryptoKey> {
-  return derive_current_storage_key(purpose);
-}
-
 async function derive_current_storage_key(
   purpose: string,
 ): Promise<CryptoKey> {
@@ -161,13 +154,9 @@ async function derive_current_storage_key(
 async function seal_entry(
   key: string,
   value: unknown,
-  encryption_key: CryptoKey,
   timestamp: number = Date.now(),
 ): Promise<EncryptedEntry> {
-  const storage_key = await derive_storage_key_from_crypto_key(
-    encryption_key,
-    key,
-  );
+  const storage_key = await derive_current_storage_key(key);
 
   const encoder = new TextEncoder();
   const plaintext = encoder.encode(JSON.stringify(value));
@@ -242,7 +231,6 @@ async function decrypt_entry_buffer(
 async function open_entry<T>(
   key: string,
   entry: EncryptedEntry,
-  decryption_key: CryptoKey,
 ): Promise<T | null> {
   if (entry.version > CURRENT_VERSION) {
     throw new Error(
@@ -250,10 +238,7 @@ async function open_entry<T>(
     );
   }
 
-  const storage_key = await derive_storage_key_from_crypto_key(
-    decryption_key,
-    key,
-  );
+  const storage_key = await derive_current_storage_key(key);
 
   try {
     const decrypted_buffer = await decrypt_entry_buffer(
@@ -281,10 +266,10 @@ async function open_entry<T>(
 export async function encrypted_set(
   key: string,
   value: unknown,
-  encryption_key: CryptoKey,
+  _storage_key: CryptoKey,
 ): Promise<void> {
   const db = await open_database();
-  const entry = await seal_entry(key, value, encryption_key);
+  const entry = await seal_entry(key, value);
 
   return put_entry(db, key, entry);
 }
@@ -292,14 +277,11 @@ export async function encrypted_set(
 export async function encrypted_set_plaintext(
   key: string,
   plaintext: Uint8Array,
-  encryption_key: CryptoKey,
+  _storage_key: CryptoKey,
 ): Promise<void> {
   try {
     const db = await open_database();
-    const storage_key = await derive_storage_key_from_crypto_key(
-      encryption_key,
-      key,
-    );
+    const storage_key = await derive_current_storage_key(key);
     const entry = await seal_with_storage_key(
       storage_key,
       plaintext,
@@ -329,7 +311,7 @@ function put_entry(
 
 export async function encrypted_get<T>(
   key: string,
-  decryption_key: CryptoKey,
+  _storage_key: CryptoKey,
 ): Promise<T | null> {
   const db_entry = await read_raw_entry(key);
 
@@ -337,7 +319,7 @@ export async function encrypted_get<T>(
     return null;
   }
 
-  return open_entry<T>(key, db_entry, decryption_key);
+  return open_entry<T>(key, db_entry);
 }
 
 export async function encrypted_has(key: string): Promise<boolean> {
@@ -365,7 +347,7 @@ type MoveStep = EncryptedMoveOutcome | "changed";
 export async function encrypted_move(
   from_key: string,
   to_key: string,
-  encryption_key: CryptoKey,
+  _storage_key: CryptoKey,
 ): Promise<EncryptedMoveOutcome> {
   if (from_key === to_key) return "kept_existing";
 
@@ -376,16 +358,11 @@ export async function encrypted_move(
 
     if (!source) return "missing";
 
-    const value = await open_entry<unknown>(from_key, source, encryption_key);
+    const value = await open_entry<unknown>(from_key, source);
 
     if (value === null) return "unreadable";
 
-    const sealed = await seal_entry(
-      to_key,
-      value,
-      encryption_key,
-      source.timestamp,
-    );
+    const sealed = await seal_entry(to_key, value, source.timestamp);
 
     const step = await new Promise<MoveStep>((resolve, reject) => {
       const transaction = db.transaction(STORE_NAME, "readwrite");
@@ -441,10 +418,10 @@ export async function encrypted_move(
 export async function encrypted_set_if_absent(
   key: string,
   value: unknown,
-  encryption_key: CryptoKey,
+  _storage_key: CryptoKey,
 ): Promise<boolean> {
   const db = await open_database();
-  const entry = await seal_entry(key, value, encryption_key);
+  const entry = await seal_entry(key, value);
 
   return new Promise<boolean>((resolve, reject) => {
     const transaction = db.transaction(STORE_NAME, "readwrite");

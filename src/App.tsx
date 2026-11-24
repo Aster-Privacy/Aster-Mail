@@ -18,8 +18,8 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { Suspense, useEffect, useRef, useState } from "react";
-import { Navigate, Route, Routes } from "react-router-dom";
+import { Suspense, useEffect, useRef, useState, type ReactNode } from "react";
+import { Navigate, Route, Routes, useLocation } from "react-router-dom";
 
 import { CalendarBillingReturn } from "@/components/calendar_billing_return";
 import {
@@ -46,7 +46,12 @@ import {
 import { use_i18n } from "@/lib/i18n/context";
 import { use_auth } from "@/contexts/auth_context";
 import { ProtectedRoute } from "@/components/common/protected_route";
-import { SuspendedAccountGate } from "@/components/common/suspended_account_gate";
+import {
+  SuspendedPage,
+  SuspensionStatusWatcher,
+} from "@/components/common/suspended_account_gate";
+import { SUSPENDED_PATH } from "@/lib/suspension_state";
+import { MailKeyUpgradeGate } from "@/components/common/mail_key_upgrade_gate";
 import { Family2faDialog } from "@/components/common/family_2fa_dialog";
 import { PendingDeletionDialog } from "@/components/common/pending_deletion_dialog";
 import { DesktopPairGate } from "@/components/common/desktop_pair_gate";
@@ -56,7 +61,10 @@ import { ActionToast } from "@/components/toast/action_toast";
 import { SimpleToast } from "@/components/toast/simple_toast";
 import { DesktopDownloadNotifier } from "@/native/desktop_download_bridge";
 import { KeyTrustChangePrompt } from "@/components/compose/key_trust_change_prompt";
+import { GuardApprovalHost } from "@/components/guard/guard_approval_sheet";
+import { TotpRequirementWarmup } from "@/hooks/use_totp_required";
 import { PostQuantumSendPrompt } from "@/components/compose/post_quantum_send_prompt";
+import { CreationTokenPrompt } from "@/components/auth/creation_token_prompt";
 import { UnsubscribeConfirmationModal } from "@/components/modals/unsubscribe_confirmation_modal";
 import {
   show_checkout_cancelled_upgrade,
@@ -98,6 +106,9 @@ const RegisterPage = lazy_with_retry(() => import("@/pages/register"));
 const InvitePage = lazy_with_retry(() => import("@/pages/invite"));
 const ForgotPasswordPage = lazy_with_retry(
   () => import("@/pages/forgot_password"),
+);
+const GuardVetoPage = lazy_with_retry(
+  () => import("@/pages/guard/guard_veto_page"),
 );
 const PublicCancelPage = lazy_with_retry(
   () => import("@/pages/public_cancel"),
@@ -427,7 +438,23 @@ function BillingSuccessHandler() {
   );
 }
 
+function OverlayBoundary({
+  children,
+  reset_key,
+}: {
+  children: ReactNode;
+  reset_key: string;
+}) {
+  return (
+    <ErrorBoundary fallback={null} reset_key={reset_key}>
+      {children}
+    </ErrorBoundary>
+  );
+}
+
 function App() {
+  const { pathname } = useLocation();
+
   useEffect(() => install_global_autoscroll(), []);
 
   use_upgrade_prompt_events();
@@ -451,11 +478,15 @@ function App() {
         <BillingSuccessHandler />
       </ErrorBoundary>
       <CheckoutReturnHandler />
-      <SuspendedAccountGate />
+      <SuspensionStatusWatcher />
       <PendingDeletionDialog />
       <Family2faDialog />
-      <UpdateBanner />
-      <WebSandboxNotice />
+      <OverlayBoundary reset_key={pathname}>
+        <UpdateBanner />
+      </OverlayBoundary>
+      <OverlayBoundary reset_key={pathname}>
+        <WebSandboxNotice />
+      </OverlayBoundary>
       <ErrorBoundary>
         <DesktopPairGate>
           <Suspense fallback={<FullPageLoader />}>
@@ -564,11 +595,13 @@ function App() {
                 }
                 path="/alias/:alias_address"
               />
+              <Route element={<SuspendedPage />} path={SUSPENDED_PATH} />
               <Route element={<SignInPage />} path="/sign-in" />
               <Route element={<RegisterPage />} path="/register" />
               <Route element={<InvitePage />} path="/invite/:code" />
               <Route element={<RegisterPage />} path="/signup" />
               <Route element={<ForgotPasswordPage />} path="/forgot-password" />
+              <Route element={<GuardVetoPage />} path="/guard/veto" />
               {PUBLIC_CANCEL_ENABLED && (
                 <Route element={<PublicCancelPage />} path="/cancel" />
               )}
@@ -657,26 +690,50 @@ function App() {
           </Suspense>
         </DesktopPairGate>
       </ErrorBoundary>
-      <ActionToast />
-      <SimpleToast />
-      <DesktopDownloadNotifier />
-      <UnsubscribeConfirmationModal />
+      <OverlayBoundary reset_key={pathname}>
+        <ActionToast />
+      </OverlayBoundary>
+      <OverlayBoundary reset_key={pathname}>
+        <SimpleToast />
+      </OverlayBoundary>
+      <OverlayBoundary reset_key={pathname}>
+        <DesktopDownloadNotifier />
+      </OverlayBoundary>
+      <OverlayBoundary reset_key={pathname}>
+        <UnsubscribeConfirmationModal />
+      </OverlayBoundary>
       <KeyTrustChangePrompt />
       <PostQuantumSendPrompt />
+      <CreationTokenPrompt />
+      <ErrorBoundary fallback={null}>
+        <GuardApprovalHost />
+        <TotpRequirementWarmup />
+      </ErrorBoundary>
       <ErrorBoundary fallback={null}>
         <UpgradeModalHost />
         <AliasCapUpsellModalHost />
       </ErrorBoundary>
-      <ProfilePictureDialog />
+      <OverlayBoundary reset_key={pathname}>
+        <ProfilePictureDialog />
+      </OverlayBoundary>
       <ErrorBoundary fallback={null}>
         <SpecialOfferModalHost />
         <OfferModalHost />
       </ErrorBoundary>
-      <UndoSendContainer max_visible={3} position="bottom-center" />
-      <UndoSendPreviewModal />
-      <EmailNotificationManager />
+      <OverlayBoundary reset_key={pathname}>
+        <UndoSendContainer max_visible={3} position="bottom-center" />
+      </OverlayBoundary>
+      <OverlayBoundary reset_key={pathname}>
+        <UndoSendPreviewModal />
+      </OverlayBoundary>
+      <OverlayBoundary reset_key={pathname}>
+        <EmailNotificationManager />
+      </OverlayBoundary>
       <FolderUnlockPrompt />
-      <OfflineIndicator position="top" />
+      <MailKeyUpgradeGate />
+      <OverlayBoundary reset_key={pathname}>
+        <OfflineIndicator position="top" />
+      </OverlayBoundary>
     </AppLock>
   );
 }

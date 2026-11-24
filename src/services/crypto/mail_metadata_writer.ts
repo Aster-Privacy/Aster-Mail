@@ -38,6 +38,7 @@ import {
   peek_read_ticket,
   pick_flag_intents,
 } from "@/services/read_intent";
+import { with_rate_limit_retry } from "@/services/api/rate_limit_retry";
 
 type UpdateResult = MetadataWriteResult;
 
@@ -342,6 +343,9 @@ export async function update_item_metadata(
   }
 }
 
+const WRITE_CRYPTO_CONCURRENCY = 8;
+const BULK_FETCH_CONCURRENCY = 4;
+
 export async function bulk_update_items_metadata(
   items: Array<{
     id: string;
@@ -398,101 +402,127 @@ export async function bulk_update_items_metadata(
   const blob_only_fields = blob_only_update_fields(updates);
   const now = new Date().toISOString();
 
-  for (const item of items) {
-    if (options?.signal?.aborted) {
-      failed_ids.push(item.id);
-      continue;
-    }
+  const prepared: Array<
+    | { kind: "failed"; undecryptable: boolean }
+    | { kind: "flags"; metadata: MailItemMetadata }
+    | {
+        kind: "blob";
+        metadata: MailItemMetadata;
+        encrypted_metadata: string;
+        metadata_nonce: string;
+      }
+  > = new Array(items.length);
 
-    let current_metadata: MailItemMetadata | null = null;
+  await run_limited(
+    items.map((_, index) => index),
+    WRITE_CRYPTO_CONCURRENCY,
+    async (index) => {
+      const item = items[index];
 
-    if (item.encrypted_metadata && item.metadata_nonce) {
-      current_metadata = await decrypt_mail_metadata(
-        item.encrypted_metadata,
-        item.metadata_nonce,
-        item.metadata_version,
-      );
-    }
+      if (options?.signal?.aborted) {
+        prepared[index] = { kind: "failed", undecryptable: false };
 
-    const is_undecryptable =
-      !current_metadata && !!item.encrypted_metadata && !!item.metadata_nonce;
+        return;
+      }
 
-    if (is_undecryptable && blob_only_fields.length > 0) {
-      failed_ids.push(item.id);
-      undecryptable_ids.push(item.id);
-      continue;
-    }
+      let current_metadata: MailItemMetadata | null = null;
 
-    if (!current_metadata) {
-      current_metadata = create_default_metadata();
-    }
+      if (item.encrypted_metadata && item.metadata_nonce) {
+        current_metadata = await decrypt_mail_metadata(
+          item.encrypted_metadata,
+          item.metadata_nonce,
+          item.metadata_version,
+        );
+      }
 
-    const updated_metadata: MailItemMetadata = {
-      ...current_metadata,
-      ...updates,
-      updated_at: now,
+      const is_undecryptable =
+        !current_metadata && !!item.encrypted_metadata && !!item.metadata_nonce;
+
+      if (is_undecryptable && blob_only_fields.length > 0) {
+        prepared[index] = { kind: "failed", undecryptable: true };
+
+        return;
+      }
+
+      const updated_metadata: MailItemMetadata = {
+        ...(current_metadata ?? create_default_metadata()),
+        ...updates,
+        updated_at: now,
+      };
+
+      if (updates.is_trashed === true && !updated_metadata.trashed_at) {
+        updated_metadata.trashed_at = now;
+      } else if (updates.is_trashed === false) {
+        updated_metadata.trashed_at = undefined;
+      }
+
+      if (is_undecryptable) {
+        prepared[index] = { kind: "flags", metadata: updated_metadata };
+
+        return;
+      }
+
+      const encrypted = await encrypt_mail_metadata(updated_metadata);
+
+      prepared[index] = encrypted
+        ? {
+            kind: "blob",
+            metadata: updated_metadata,
+            encrypted_metadata: encrypted.encrypted_metadata,
+            metadata_nonce: encrypted.metadata_nonce,
+          }
+        : { kind: "failed", undecryptable: false };
+    },
+  );
+
+  items.forEach((item, index) => {
+    const outcome = prepared[index] ?? {
+      kind: "failed" as const,
+      undecryptable: false,
     };
 
-    if (updates.is_trashed === true && !updated_metadata.trashed_at) {
-      updated_metadata.trashed_at = now;
-    } else if (updates.is_trashed === false) {
-      updated_metadata.trashed_at = undefined;
-    }
-
-    const encrypted = is_undecryptable
-      ? null
-      : await encrypt_mail_metadata(updated_metadata);
-
-    if (is_undecryptable) {
-      flag_only_items.push({
-        id: item.id,
-        ...(updates.is_read !== undefined && {
-          is_read: updated_metadata.is_read,
-        }),
-        ...(updates.is_starred !== undefined && {
-          is_starred: updated_metadata.is_starred,
-        }),
-        ...(updates.is_pinned !== undefined && {
-          is_pinned: updated_metadata.is_pinned,
-        }),
-        ...(updates.is_trashed !== undefined && {
-          is_trashed: updated_metadata.is_trashed,
-        }),
-        ...(updates.is_archived !== undefined && {
-          is_archived: updated_metadata.is_archived,
-        }),
-        ...(updates.is_spam !== undefined && {
-          is_spam: updated_metadata.is_spam,
-        }),
-      });
-    } else if (encrypted) {
-      bulk_items.push({
-        id: item.id,
-        encrypted_metadata: encrypted.encrypted_metadata,
-        metadata_nonce: encrypted.metadata_nonce,
-        ...(updates.is_read !== undefined && {
-          is_read: updated_metadata.is_read,
-        }),
-        ...(updates.is_starred !== undefined && {
-          is_starred: updated_metadata.is_starred,
-        }),
-        ...(updates.is_pinned !== undefined && {
-          is_pinned: updated_metadata.is_pinned,
-        }),
-        ...(updates.is_trashed !== undefined && {
-          is_trashed: updated_metadata.is_trashed,
-        }),
-        ...(updates.is_archived !== undefined && {
-          is_archived: updated_metadata.is_archived,
-        }),
-        ...(updates.is_spam !== undefined && {
-          is_spam: updated_metadata.is_spam,
-        }),
-      });
-    } else {
+    if (outcome.kind === "failed") {
       failed_ids.push(item.id);
+      if (outcome.undecryptable) undecryptable_ids.push(item.id);
+
+      return;
     }
-  }
+
+    const updated_metadata = outcome.metadata;
+    const flags = {
+      ...(updates.is_read !== undefined && {
+        is_read: updated_metadata.is_read,
+      }),
+      ...(updates.is_starred !== undefined && {
+        is_starred: updated_metadata.is_starred,
+      }),
+      ...(updates.is_pinned !== undefined && {
+        is_pinned: updated_metadata.is_pinned,
+      }),
+      ...(updates.is_trashed !== undefined && {
+        is_trashed: updated_metadata.is_trashed,
+      }),
+      ...(updates.is_archived !== undefined && {
+        is_archived: updated_metadata.is_archived,
+      }),
+      ...(updates.is_spam !== undefined && {
+        is_spam: updated_metadata.is_spam,
+      }),
+    };
+
+    if (outcome.kind === "flags") {
+      flag_only_items.push({ id: item.id, ...flags });
+
+      return;
+    }
+
+    bulk_items.push({
+      id: item.id,
+      encrypted_metadata: outcome.encrypted_metadata,
+      metadata_nonce: outcome.metadata_nonce,
+      ...flags,
+    });
+  });
 
   const encrypted_by_id = new Map<
     string,
@@ -573,13 +603,33 @@ export async function bulk_update_metadata_by_ids(
   }> = [];
   const failed_fetch: string[] = [];
 
-  for (let i = 0; i < unique_ids.length; i += BATCH_FETCH_SIZE) {
-    const slice = unique_ids.slice(i, i + BATCH_FETCH_SIZE);
-    const response = await list_mail_items({ ids: slice });
+  const slices: string[][] = [];
 
-    if (!response.data) {
+  for (let i = 0; i < unique_ids.length; i += BATCH_FETCH_SIZE) {
+    slices.push(unique_ids.slice(i, i + BATCH_FETCH_SIZE));
+  }
+
+  const responses = new Array<Awaited<ReturnType<typeof list_mail_items>>>(
+    slices.length,
+  );
+
+  await run_limited(
+    slices.map((_, index) => index),
+    BULK_FETCH_CONCURRENCY,
+    async (index) => {
+      responses[index] = await with_rate_limit_retry(() =>
+        list_mail_items({ ids: slices[index] }),
+      );
+    },
+  );
+
+  slices.forEach((slice, index) => {
+    const response = responses[index];
+
+    if (!response?.data) {
       failed_fetch.push(...slice);
-      continue;
+
+      return;
     }
     const got = new Set<string>();
 
@@ -595,7 +645,7 @@ export async function bulk_update_metadata_by_ids(
     for (const sid of slice) {
       if (!got.has(sid)) failed_fetch.push(sid);
     }
-  }
+  });
 
   if (fetched.length === 0) {
     clear_flag_intents(failed_fetch, intent);
@@ -618,4 +668,273 @@ export async function bulk_update_metadata_by_ids(
     failed_ids: [...failed_fetch, ...result.failed_ids],
     undecryptable_ids: result.undecryptable_ids,
   };
+}
+
+export interface ItemMetadataWrite {
+  id: string;
+  current: MetadataUpdateOptions;
+  updates: Partial<MailItemMetadata>;
+}
+
+const WRITE_FETCH_CHUNK = 100;
+
+async function run_limited<T>(
+  items: readonly T[],
+  limit: number,
+  worker: (item: T) => Promise<void>,
+): Promise<void> {
+  let cursor = 0;
+  const next = async (): Promise<void> => {
+    while (cursor < items.length) {
+      const item = items[cursor];
+
+      cursor += 1;
+      await worker(item);
+    }
+  };
+
+  await Promise.all(
+    Array.from({ length: Math.min(limit, items.length) }, next),
+  );
+}
+
+function forget_single_write_state(item_id: string): void {
+  last_issued_key_by_item.delete(item_id);
+  const item_prefix = `${item_id}|`;
+
+  for (const key of recently_completed.keys()) {
+    if (key.startsWith(item_prefix)) recently_completed.delete(key);
+  }
+}
+
+async function settled_base(
+  item_id: string,
+  current: MetadataUpdateOptions,
+  pending: Promise<UpdateResult> | undefined,
+): Promise<MetadataUpdateOptions> {
+  let base = current;
+
+  if (pending) {
+    const prev = await pending;
+
+    if (prev.success && prev.encrypted) {
+      base = {
+        encrypted_metadata: prev.encrypted.encrypted_metadata,
+        metadata_nonce: prev.encrypted.metadata_nonce,
+        metadata_version: prev.written_version,
+      };
+    }
+  }
+
+  const last_written = get_last_written(item_id);
+
+  if (last_written && (base.metadata_version ?? 0) < last_written.version) {
+    base = {
+      encrypted_metadata: last_written.encrypted.encrypted_metadata,
+      metadata_nonce: last_written.encrypted.metadata_nonce,
+      metadata_version: last_written.version,
+    };
+  }
+
+  return base;
+}
+
+export async function write_items_metadata(
+  writes: readonly ItemMetadataWrite[],
+): Promise<Map<string, UpdateResult>> {
+  const results = new Map<string, UpdateResult>();
+  const unique = new Map<string, ItemMetadataWrite>();
+
+  for (const write of writes) unique.set(write.id, write);
+  if (unique.size === 0) return results;
+
+  cleanup_completed_cache();
+
+  const prior = new Map<string, Promise<UpdateResult> | undefined>();
+
+  for (const id of unique.keys()) {
+    prior.set(id, item_chains.get(id));
+    forget_single_write_state(id);
+  }
+
+  const run = execute_items_write(unique, prior, results);
+
+  for (const id of unique.keys()) {
+    const chained = run.then(
+      (done) => done.get(id) ?? ({ success: false } as UpdateResult),
+      () => ({ success: false }) as UpdateResult,
+    );
+
+    item_chains.set(id, chained);
+    void chained.then(() => {
+      if (item_chains.get(id) === chained) item_chains.delete(id);
+    });
+  }
+
+  return run;
+}
+
+async function execute_items_write(
+  unique: Map<string, ItemMetadataWrite>,
+  prior: Map<string, Promise<UpdateResult> | undefined>,
+  results: Map<string, UpdateResult>,
+): Promise<Map<string, UpdateResult>> {
+  const { batched_bulk_patch_metadata, list_mail_items } =
+    await import("@/services/api/mail");
+  const bases = new Map<string, MetadataUpdateOptions>();
+
+  await Promise.all(
+    [...unique.values()].map(async (write) => {
+      bases.set(
+        write.id,
+        await settled_base(write.id, write.current, prior.get(write.id)),
+      );
+    }),
+  );
+
+  const missing = [...unique.keys()].filter((id) => {
+    const base = bases.get(id);
+
+    return !base?.encrypted_metadata || !base.metadata_nonce;
+  });
+  const unfetchable = new Set<string>();
+  const chunks: string[][] = [];
+
+  for (let i = 0; i < missing.length; i += WRITE_FETCH_CHUNK) {
+    chunks.push(missing.slice(i, i + WRITE_FETCH_CHUNK));
+  }
+
+  await Promise.all(
+    chunks.map(async (chunk) => {
+      const response = await with_rate_limit_retry(() =>
+        list_mail_items({ ids: chunk }),
+      ).catch(() => null);
+
+      if (!response?.data) {
+        for (const id of chunk) unfetchable.add(id);
+
+        return;
+      }
+
+      const got = new Set<string>();
+
+      for (const item of response.data.items) {
+        got.add(item.id);
+        if (item.encrypted_metadata && item.metadata_nonce) {
+          bases.set(item.id, {
+            encrypted_metadata: item.encrypted_metadata,
+            metadata_nonce: item.metadata_nonce,
+            metadata_version: item.metadata_version,
+          });
+        }
+      }
+      for (const id of chunk) {
+        if (!got.has(id)) unfetchable.add(id);
+      }
+    }),
+  );
+
+  const prepared = new Map<
+    string,
+    {
+      payload: {
+        id: string;
+        encrypted_metadata: string;
+        metadata_nonce: string;
+      };
+      result: UpdateResult;
+    }
+  >();
+  const now = new Date().toISOString();
+
+  await run_limited(
+    [...unique.values()],
+    WRITE_CRYPTO_CONCURRENCY,
+    async (write) => {
+      if (unfetchable.has(write.id)) {
+        results.set(write.id, { success: false });
+
+        return;
+      }
+
+      const base = bases.get(write.id) ?? {};
+      let current_metadata: MailItemMetadata | null = null;
+
+      if (base.encrypted_metadata && base.metadata_nonce) {
+        current_metadata = await decrypt_mail_metadata(
+          base.encrypted_metadata,
+          base.metadata_nonce,
+          base.metadata_version,
+        ).catch(() => null);
+
+        if (!current_metadata) {
+          results.set(write.id, {
+            success: false,
+            undecryptable: true,
+            unapplied_fields: blob_only_update_fields(write.updates),
+            written_version: base.metadata_version,
+          });
+
+          return;
+        }
+      }
+
+      const metadata = current_metadata ?? create_default_metadata();
+      const encrypted = await encrypt_mail_metadata({
+        ...metadata,
+        ...write.updates,
+        updated_at: now,
+      }).catch(() => null);
+
+      if (!encrypted) {
+        results.set(write.id, { success: false });
+
+        return;
+      }
+
+      prepared.set(write.id, {
+        payload: {
+          id: write.id,
+          encrypted_metadata: encrypted.encrypted_metadata,
+          metadata_nonce: encrypted.metadata_nonce,
+        },
+        result: {
+          success: true,
+          encrypted,
+          written_version: (base.metadata_version ?? 0) + 1,
+          previous: {
+            category: metadata.category,
+            category_pinned: metadata.category_pinned === true,
+          },
+        },
+      });
+    },
+  );
+
+  if (prepared.size === 0) return results;
+
+  const outcome = await batched_bulk_patch_metadata(
+    [...prepared.values()].map((entry) => entry.payload),
+  ).catch(() => null);
+  const failed = new Set(
+    outcome ? outcome.failed_ids : [...prepared.keys()],
+  );
+  const written_at = Date.now();
+
+  for (const [id, entry] of prepared) {
+    if (failed.has(id)) {
+      results.set(id, { success: false });
+      continue;
+    }
+    results.set(id, entry.result);
+    if (entry.result.encrypted) {
+      last_written_by_item.set(id, {
+        version: entry.result.written_version ?? 1,
+        encrypted: entry.result.encrypted,
+        timestamp: written_at,
+      });
+    }
+  }
+
+  return results;
 }

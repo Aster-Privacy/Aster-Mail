@@ -19,16 +19,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { useState, useRef, useEffect, useCallback } from "react";
-import {
-  ArrowDownTrayIcon,
-  ClipboardDocumentIcon,
-  ExclamationTriangleIcon,
-  ShieldCheckIcon,
-} from "@heroicons/react/24/outline";
 import { Button } from "@/components/ui/button";
 
-import { trigger_download } from "@/utils/download_blob";
-import { show_toast } from "@/components/toast/simple_toast";
 import {
   Modal,
   ModalHeader,
@@ -42,8 +34,13 @@ import {
   classify_totp_error,
   regenerate_backup_codes,
 } from "@/services/api/totp";
+import { BackupCodesPanel } from "@/components/settings/security/backup_codes_panel";
+import { derive_step_up_credentials } from "@/services/api/step_up";
+import { login_safety_error_key } from "@/services/crypto/auth_salt_guard";
 import { use_i18n } from "@/lib/i18n/context";
-import { copy_text } from "@/utils/copy_text";
+import { held_of } from "@/services/guard/held_outcome";
+import { clamp_password } from "@/services/sanitize";
+import { user_facing_error } from "@/utils/user_facing_error";
 
 interface RegenerateBackupCodesModalProps {
   is_open: boolean;
@@ -58,15 +55,18 @@ export function RegenerateBackupCodesModal({
 }: RegenerateBackupCodesModalProps) {
   const { t } = use_i18n();
   const [code, set_code] = useState("");
+  const [password, set_password] = useState("");
   const [backup_codes, set_backup_codes] = useState<string[]>([]);
   const [is_loading, set_is_loading] = useState(false);
   const [error, set_error] = useState("");
   const input_ref = useRef<HTMLInputElement>(null);
+  const code_ref = useRef<HTMLInputElement>(null);
   const verifying_ref = useRef(false);
 
   useEffect(() => {
     if (is_open) {
       set_code("");
+      set_password("");
       set_backup_codes([]);
       set_error("");
       set_is_loading(false);
@@ -79,29 +79,59 @@ export function RegenerateBackupCodesModal({
     if (error) set_error("");
   };
 
+  const can_submit = code.length === 6 && !!password && !is_loading;
+
+  const fail = (message: string) => {
+    set_error(message);
+    verifying_ref.current = false;
+    set_is_loading(false);
+  };
+
   const handle_regenerate = async () => {
-    if (code.length !== 6 || verifying_ref.current) return;
+    if (code.length !== 6 || !password || verifying_ref.current) return;
 
     verifying_ref.current = true;
     set_is_loading(true);
     set_error("");
 
-    const response = await regenerate_backup_codes({ code });
+    let password_hash: string;
+
+    try {
+      ({ password_hash } = await derive_step_up_credentials(password));
+    } catch (err) {
+      const safety_key = login_safety_error_key(err);
+
+      fail(
+        safety_key
+          ? t(safety_key)
+          : user_facing_error(err, t("common.step_up_error")),
+      );
+
+      return;
+    }
+
+    const response = await regenerate_backup_codes({ code, password_hash });
+
+    if (held_of(response)) {
+      verifying_ref.current = false;
+      set_is_loading(false);
+      on_close();
+
+      return;
+    }
 
     if (response.error) {
       const kind = classify_totp_error(response);
 
-      set_error(
+      fail(
         kind === "locked"
           ? t("auth.two_fa_temporarily_locked")
           : kind === "replayed"
             ? t("auth.two_fa_code_already_used")
             : response.error,
       );
-      verifying_ref.current = false;
-      set_is_loading(false);
-      input_ref.current?.focus();
-      input_ref.current?.select();
+      code_ref.current?.focus();
+      code_ref.current?.select();
 
       return;
     }
@@ -113,22 +143,6 @@ export function RegenerateBackupCodesModal({
 
     verifying_ref.current = false;
     set_is_loading(false);
-  };
-
-  const copy_single_code = async (single_code: string) => {
-    if (await copy_text(single_code)) {
-      show_toast(t("common.copied_to_clipboard"), "success");
-    } else {
-      show_toast(t("common.failed_to_copy"), "error");
-    }
-  };
-
-  const copy_backup_codes = async () => {
-    if (await copy_text(backup_codes.join("\n"))) {
-      show_toast(t("common.copied_to_clipboard"), "success");
-    } else {
-      show_toast(t("common.failed_to_copy"), "error");
-    }
   };
 
   const handle_modal_close = useCallback(() => {
@@ -158,12 +172,36 @@ export function RegenerateBackupCodesModal({
               <div>
                 <label
                   className="text-sm font-medium block mb-2 text-txt-primary"
+                  htmlFor="regen-password"
+                >
+                  {t("settings.password")}
+                </label>
+                <Input
+                  ref={input_ref}
+                  autoComplete="current-password"
+                  disabled={is_loading}
+                  id="regen-password"
+                  maxLength={128}
+                  name="password"
+                  placeholder={t("settings.enter_your_password_placeholder")}
+                  status={error ? "error" : "default"}
+                  type="password"
+                  value={password}
+                  onChange={(e) => {
+                    set_password(clamp_password(e.target.value));
+                    if (error) set_error("");
+                  }}
+                />
+              </div>
+              <div>
+                <label
+                  className="text-sm font-medium block mb-2 text-txt-primary"
                   htmlFor="regen-totp-code"
                 >
                   {t("settings.authenticator_code")}
                 </label>
                 <Input
-                  ref={input_ref}
+                  ref={code_ref}
                   autoComplete="one-time-code"
                   className="text-center text-2xl font-semibold tracking-[0.5em]"
                   disabled={is_loading}
@@ -192,7 +230,7 @@ export function RegenerateBackupCodesModal({
               {t("common.cancel")}
             </Button>
             <Button
-              disabled={code.length !== 6 || is_loading}
+              disabled={!can_submit}
               is_loading={is_loading}
               variant="depth"
               onClick={handle_regenerate}
@@ -204,66 +242,13 @@ export function RegenerateBackupCodesModal({
       ) : (
         <>
           <ModalHeader>
-            <div className="flex items-center gap-3">
-              <ShieldCheckIcon className="w-6 h-6 text-txt-primary flex-shrink-0" />
-              <ModalTitle>{t("settings.backup_codes_regenerated")}</ModalTitle>
-            </div>
+            <ModalTitle>{t("settings.backup_codes_regenerated")}</ModalTitle>
             <ModalDescription>
               {t("settings.save_backup_codes_description")}
             </ModalDescription>
           </ModalHeader>
           <ModalBody>
-            <div className="space-y-4">
-              <div className="p-4 rounded-lg border bg-surf-tertiary border-edge-secondary">
-                <div className="grid grid-cols-2 gap-2">
-                  {backup_codes.map((backup_code, index) => (
-                    <button
-                      key={index}
-                      className="px-3 py-2 text-sm font-mono text-center rounded cursor-pointer transition-colors hover:opacity-80 bg-surf-secondary text-txt-primary"
-                      type="button"
-                      onClick={() => copy_single_code(backup_code)}
-                    >
-                      {backup_code}
-                    </button>
-                  ))}
-                </div>
-              </div>
-              <div className="flex justify-center gap-2">
-                <Button variant="secondary" onClick={copy_backup_codes}>
-                  <ClipboardDocumentIcon className="w-4 h-4 me-2" />
-                  {t("settings.copy_all_codes")}
-                </Button>
-                <Button
-                  variant="secondary"
-                  onClick={() => {
-                    trigger_download(
-                      new Blob([backup_codes.join("\n")], {
-                        type: "application/octet-stream",
-                      }),
-                      "aster-backup-codes.txt",
-                    );
-                  }}
-                >
-                  <ArrowDownTrayIcon className="w-4 h-4 me-2" />
-                  {t("common.download")}
-                </Button>
-              </div>
-              <div
-                className="flex items-center gap-2 p-3 rounded-lg"
-                style={{
-                  backgroundColor: "var(--accent-color-hover)",
-                  color: "var(--accent-fg, #ffffff)",
-                }}
-              >
-                <ExclamationTriangleIcon
-                  className="w-5 h-5 flex-shrink-0"
-                  style={{ color: "var(--accent-fg, #ffffff)" }}
-                />
-                <p className="text-xs" style={{ color: "#fff" }}>
-                  {t("settings.backup_code_security_note")}
-                </p>
-              </div>
-            </div>
+            <BackupCodesPanel backup_codes={backup_codes} />
           </ModalBody>
           <ModalFooter>
             <Button variant="depth" onClick={on_close}>

@@ -25,7 +25,8 @@ export {
   skin_tones,
   skin_tone_modifiers,
   skin_tone_swatches,
-  tone_capable_emoji,
+  is_skin_tone,
+  normalize_skin_tone,
   is_tone_capable,
   apply_skin_tone,
 } from "./skin_tones";

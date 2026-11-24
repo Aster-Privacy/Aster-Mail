@@ -1,0 +1,74 @@
+#!/bin/sh
+aster_mounted_conf=/etc/nginx/conf.d/default.conf
+
+aster_conf_is_mounted() {
+    awk -v target="$aster_mounted_conf" '$5 == target { found = 1 } END { exit found ? 0 : 1 }' /proc/self/mountinfo 2>/dev/null
+}
+
+aster_use_mounted_conf() {
+    if [ ! -r "$aster_mounted_conf" ] || [ ! -s "$aster_mounted_conf" ]; then
+        echo "aster-mail: $aster_mounted_conf exists but is empty or unreadable." >&2
+        exit 1
+    fi
+    if [ -w "$aster_mounted_conf" ] && ! aster_conf_is_mounted; then
+        echo "aster-mail: $aster_mounted_conf is neither mounted nor read-only, so it is not a usable mounted config." >&2
+        exit 1
+    fi
+    echo "aster-mail: using the mounted nginx config at $aster_mounted_conf." >&2
+    NGINX_ENVSUBST_TEMPLATE_DIR=/nonexistent/aster-mail-templates
+    export NGINX_ENVSUBST_TEMPLATE_DIR
+}
+
+aster_require_backend_env() {
+    for required_name in BACKEND_SERVICE_HOST BACKEND_SERVICE_PORT; do
+        eval "required_value=\${$required_name:-}"
+        if [ -z "$required_value" ]; then
+            echo "aster-mail: $required_name is not set. The pod needs the environment Kubernetes adds for the backend Service." >&2
+            exit 1
+        fi
+    done
+
+    backend_host_rejected() {
+        echo "aster-mail: BACKEND_SERVICE_HOST must be a hostname, an IPv4 address, or an IPv6 address." >&2
+        exit 1
+    }
+
+    case "$BACKEND_SERVICE_HOST" in
+        *[!A-Za-z0-9.-]*)
+            backend_host_body=$BACKEND_SERVICE_HOST
+            case "$backend_host_body" in
+                \[*\])
+                    backend_host_body=${backend_host_body#\[}
+                    backend_host_body=${backend_host_body%\]}
+                    ;;
+            esac
+            case "$backend_host_body" in
+                *:*) ;;
+                *) backend_host_rejected ;;
+            esac
+            case "$backend_host_body" in
+                *[!0-9A-Fa-f:.]*) backend_host_rejected ;;
+            esac
+            BACKEND_SERVICE_HOST="[$backend_host_body]"
+            export BACKEND_SERVICE_HOST
+            ;;
+    esac
+
+    backend_port_rejected() {
+        echo "aster-mail: BACKEND_SERVICE_PORT must be a whole number from 1 to 65535." >&2
+        exit 1
+    }
+
+    case "$BACKEND_SERVICE_PORT" in
+        *[!0-9]*) backend_port_rejected ;;
+    esac
+    if [ "${#BACKEND_SERVICE_PORT}" -gt 5 ] || [ "$BACKEND_SERVICE_PORT" -lt 1 ] || [ "$BACKEND_SERVICE_PORT" -gt 65535 ]; then
+        backend_port_rejected
+    fi
+}
+
+if [ -e "$aster_mounted_conf" ]; then
+    aster_use_mounted_conf
+else
+    aster_require_backend_env
+fi

@@ -46,7 +46,6 @@ const h = vi.hoisted(() => ({
   calendar_absent: false,
   calendar_page_size: 100,
   system_labels_writable: false,
-  replace_supported: true,
   preferences: {} as Record<string, unknown>,
   dev_mode: {} as Record<string, unknown>,
   subscriptions: {} as Record<string, unknown>,
@@ -330,7 +329,7 @@ function fake_patch(path: string, body: Row): FakeResponse {
   const envelope = body.envelope as Row | undefined;
 
   if (!row) return { error: "missing", status: 404 };
-  if (!envelope || !h.replace_supported) {
+  if (!envelope) {
     return { error: "must provide a change", status: 400 };
   }
   if (row.status !== "pending" && row.status !== "failed") {
@@ -426,12 +425,7 @@ import {
 import { write_vault_merged } from "./vault_cas_write";
 
 import { decrypt_calendar_payload } from "@/services/calendar/calendar_crypto";
-import {
-  begin_draft_write,
-  end_draft_write,
-  register_open_draft_check,
-  reset_draft_activity,
-} from "@/services/draft_activity";
+import { reset_draft_activity } from "@/services/draft_activity";
 
 const ACCOUNT = "account-1";
 const OTHER_ACCOUNT = "account-2";
@@ -766,7 +760,6 @@ beforeEach(async () => {
   h.calendar_absent = false;
   h.calendar_page_size = 100;
   h.system_labels_writable = false;
-  h.replace_supported = true;
   h.preferences = {
     encrypted_preferences: null,
     preferences_nonce: null,
@@ -1350,9 +1343,9 @@ describe("run_retired_key_rewrap", () => {
 
     clock = START + RETIRED_REWRAP_HELD_MS;
     await run_retired_key_rewrap(ACCOUNT, () => clock);
-    expect(
-      h.calls.filter((call) => call.path === RECOVERY_PATH),
-    ).toHaveLength(1);
+    expect(h.calls.filter((call) => call.path === RECOVERY_PATH)).toHaveLength(
+      1,
+    );
     expect(held_contexts()).toContain(RECOVERY);
   });
 
@@ -1645,9 +1638,10 @@ describe("run_retired_key_rewrap", () => {
     expect(held_contexts()).toContain(PREFERENCES);
   });
 
-  it("rewrites a draft against the version it read", async () => {
+  it("never reseals a draft that opens only under a retired key", async () => {
     const context: AccountDataContext = "astermail-draft-v2";
     const sealed = await seal(await retired_key(context), '"draft body"');
+    let clock = START;
 
     await affected_vault();
     h.drafts = [
@@ -1661,21 +1655,29 @@ describe("run_retired_key_rewrap", () => {
       },
     ];
 
-    const summary = await run_retired_key_rewrap(ACCOUNT);
-    const write = h.calls.find((call) => call.method === "PUT");
-    const body = write?.body as Row;
+    const before = { ...h.drafts[0] };
+    const summary = await run_retired_key_rewrap(ACCOUNT, () => clock);
 
-    expect(body.version).toBe(3);
-    expect(body.has_attachments).toBe(true);
-    expect(body.attachment_count).toBe(2);
+    expect(puts()).toEqual([]);
+    expect(summary?.rewrapped).toBe(0);
+    expect(summary?.pending).toContain(context);
+    expect(h.drafts[0]).toEqual(before);
     expect(
       await open(
         await identity_key(context),
         h.drafts[0].encrypted_content,
         h.drafts[0].content_nonce,
       ),
-    ).toBe('"draft body"');
-    expect(summary?.confirming).toContain(context);
+    ).toBeNull();
+
+    clock += RETIRED_REWRAP_CONFIRM_MS + 1;
+    await run_retired_key_rewrap(ACCOUNT, () => clock);
+    clock += RETIRED_REWRAP_RESCAN_MS + 1;
+    await run_retired_key_rewrap(ACCOUNT, () => clock);
+
+    expect(puts()).toEqual([]);
+    expect(h.drafts[0]).toEqual(before);
+    expect(held_contexts()).toContain(context);
   });
 
   it("only reports a recovery address it has no way to write back", async () => {
@@ -1700,74 +1702,65 @@ describe("run_retired_key_rewrap", () => {
     expect(h.recovery.encrypted_email).toBe(recovery.encrypted);
   });
 
-  it("moves a waiting scheduled message to the current key", async () => {
+  it("never reseals a waiting scheduled message that opens only under a retired key", async () => {
     const old_key = await retired_key(SCHEDULED);
     const new_key = await identity_key(SCHEDULED);
+    let clock = START;
 
     await affected_vault();
     h.scheduled = [await scheduled_row("s1", old_key, "pending", "queued")];
 
     const before = { ...h.scheduled[0] };
-    const first = await run_retired_key_rewrap(ACCOUNT, () => START);
-    const write = h.calls.find((call) => call.method === "PATCH");
-    const body = (write?.body as Row).envelope as Row;
+    const first = await run_retired_key_rewrap(ACCOUNT, () => clock);
 
-    expect(writes("PATCH")).toEqual([`${SCHEDULED_PATH}/s1`]);
+    expect(writes("PATCH")).toEqual([]);
     expect(writes("DELETE")).toEqual([]);
-    expect(body.expected_envelope_nonce).toBe(before.envelope_nonce);
-    expect(first?.rewrapped).toBe(1);
-    expect(first?.confirming).toContain(SCHEDULED);
+    expect(first?.rewrapped).toBe(0);
+    expect(first?.pending).toContain(SCHEDULED);
+    expect(h.scheduled[0]).toEqual(before);
     expect(
       await open(
         new_key,
-        h.scheduled[0].encrypted_envelope,
-        h.scheduled[0].envelope_nonce,
-      ),
-    ).toBe('"queued"');
-    expect(
-      await open(
-        new_key,
-        h.scheduled[0].encrypted_recipients,
-        h.scheduled[0].recipients_nonce,
-      ),
-    ).toBe('"to:queued"');
-    expect(
-      await open(
-        old_key,
         h.scheduled[0].encrypted_envelope,
         h.scheduled[0].envelope_nonce,
       ),
     ).toBeNull();
     expect(held_contexts()).toContain(SCHEDULED);
 
-    await run_retired_key_rewrap(
-      ACCOUNT,
-      () => START + RETIRED_REWRAP_CONFIRM_MS + 1,
-    );
-    expect(held_contexts()).toEqual([]);
-    expect(h.scheduled).toHaveLength(1);
+    clock += RETIRED_REWRAP_CONFIRM_MS + 1;
+    await run_retired_key_rewrap(ACCOUNT, () => clock);
+    clock += RETIRED_REWRAP_RESCAN_MS + 1;
+    await run_retired_key_rewrap(ACCOUNT, () => clock);
+
+    expect(writes("PATCH")).toEqual([]);
+    expect(h.scheduled[0]).toEqual(before);
+    expect(held_contexts()).toContain(SCHEDULED);
   });
 
-  it("writes a scheduled message under the account key when there is one", async () => {
+  it("keeps a failed scheduled message under a retired key out of the account key", async () => {
     h.account_key = await aes_key(new Uint8Array(32).fill(9));
     await single_vault(SCHEDULED);
     h.scheduled = [
       await scheduled_row("s1", await retired_key(SCHEDULED), "failed", "late"),
     ];
 
+    const before = { ...h.scheduled[0] };
     const summary = await run_retired_key_rewrap(ACCOUNT, () => START);
 
-    expect(summary?.rewrapped).toBe(1);
+    expect(summary?.rewrapped).toBe(0);
+    expect(summary?.pending).toEqual([SCHEDULED]);
+    expect(writes("PATCH")).toEqual([]);
+    expect(h.scheduled[0]).toEqual(before);
     expect(
       await open(
         h.account_key,
         h.scheduled[0].encrypted_envelope,
         h.scheduled[0].envelope_nonce,
       ),
-    ).toBe('"late"');
+    ).toBeNull();
   });
 
-  it("keeps a part of a scheduled message that is already current", async () => {
+  it("leaves a scheduled message with one part under a retired key untouched", async () => {
     const old_key = await retired_key(SCHEDULED);
     const new_key = await identity_key(SCHEDULED);
     const row = await scheduled_row("s1", new_key, "pending", "queued");
@@ -1776,22 +1769,16 @@ describe("run_retired_key_rewrap", () => {
     row.encrypted_recipients = recipients.encrypted;
     row.recipients_nonce = recipients.nonce;
 
-    const envelope = row.encrypted_envelope;
-
     await single_vault(SCHEDULED);
     h.scheduled = [row];
 
+    const before = { ...row };
     const summary = await run_retired_key_rewrap(ACCOUNT, () => START);
 
-    expect(summary?.rewrapped).toBe(1);
-    expect(h.scheduled[0].encrypted_envelope).toBe(envelope);
-    expect(
-      await open(
-        new_key,
-        h.scheduled[0].encrypted_recipients,
-        h.scheduled[0].recipients_nonce,
-      ),
-    ).toBe('"to:queued"');
+    expect(summary?.rewrapped).toBe(0);
+    expect(writes("PATCH")).toEqual([]);
+    expect(h.scheduled[0]).toEqual(before);
+    expect(held_contexts()).toEqual([SCHEDULED]);
   });
 
   it("removes finished scheduled messages still under a retired key", async () => {
@@ -1851,43 +1838,6 @@ describe("run_retired_key_rewrap", () => {
     expect(h.scheduled).toEqual(before);
   });
 
-  it("keeps a waiting scheduled message when it cannot be replaced yet", async () => {
-    const old_key = await retired_key(SCHEDULED);
-    let clock = START;
-
-    await single_vault(SCHEDULED);
-    h.scheduled = [await scheduled_row("s1", old_key, "pending", "queued")];
-    h.replace_supported = false;
-
-    const before = { ...h.scheduled[0] };
-    const first = await run_retired_key_rewrap(ACCOUNT, () => clock);
-
-    expect(first?.pending).toEqual([SCHEDULED]);
-    expect(first?.rewrapped).toBe(0);
-    expect(writes("DELETE")).toEqual([]);
-    expect(h.scheduled[0]).toEqual(before);
-
-    clock += RETIRED_REWRAP_CONFIRM_MS + 1;
-    await run_retired_key_rewrap(ACCOUNT, () => clock);
-    expect(held_contexts()).toEqual([SCHEDULED]);
-    expect(h.scheduled[0]).toEqual(before);
-
-    h.replace_supported = true;
-    clock += RETIRED_REWRAP_RESCAN_MS + 1;
-
-    const later = await run_retired_key_rewrap(ACCOUNT, () => clock);
-
-    expect(later?.rewrapped).toBe(1);
-    expect(later?.confirming).toEqual([SCHEDULED]);
-    expect(
-      await open(
-        await identity_key(SCHEDULED),
-        h.scheduled[0].encrypted_envelope,
-        h.scheduled[0].envelope_nonce,
-      ),
-    ).toBe('"queued"');
-  });
-
   it("waits for a scheduled message that is being sent", async () => {
     const old_key = await retired_key(SCHEDULED);
 
@@ -1942,23 +1892,21 @@ describe("run_retired_key_rewrap", () => {
 
   it("resumes scheduled messages after an interrupted run", async () => {
     const old_key = await retired_key(SCHEDULED);
-    const new_key = await identity_key(SCHEDULED);
     let clock = START;
 
     await single_vault(SCHEDULED);
     h.scheduled = [
       await scheduled_row("s1", old_key, "pending", "one"),
-      await scheduled_row("s2", old_key, "pending", "two"),
-      await scheduled_row("s3", old_key, "sent", "three"),
+      await scheduled_row("s2", old_key, "sent", "two"),
+      await scheduled_row("s3", old_key, "cancelled", "three"),
     ];
     h.fail_get = [`${SCHEDULED_PATH}/s2`];
 
-    const kept = { ...h.scheduled[1] };
+    const waiting = { ...h.scheduled[0] };
     const first = await run_retired_key_rewrap(ACCOUNT, () => clock);
 
-    expect(first?.rewrapped).toBe(1);
+    expect(first?.rewrapped).toBe(0);
     expect(first?.pending).toEqual([SCHEDULED]);
-    expect(h.scheduled[1]).toEqual(kept);
     expect(h.scheduled).toHaveLength(3);
     expect(held_contexts()).toEqual([SCHEDULED]);
 
@@ -1968,24 +1916,15 @@ describe("run_retired_key_rewrap", () => {
 
     const second = await run_retired_key_rewrap(ACCOUNT, () => clock);
 
-    expect(writes("PATCH")).toEqual([`${SCHEDULED_PATH}/s2`]);
-    expect(writes("DELETE")).toEqual([`${SCHEDULED_PATH}/s3`]);
+    expect(writes("PATCH")).toEqual([]);
+    expect(writes("DELETE")).toEqual([
+      `${SCHEDULED_PATH}/s2`,
+      `${SCHEDULED_PATH}/s3`,
+    ]);
     expect(second?.rewrapped).toBe(2);
-    expect(second?.confirming).toEqual([SCHEDULED]);
-
-    const texts: string[] = [];
-
-    for (const row of h.scheduled) {
-      texts.push(
-        (await open(new_key, row.encrypted_envelope, row.envelope_nonce)) ?? "",
-      );
-    }
-
-    expect(texts).toEqual(['"one"', '"two"']);
-
-    clock += RETIRED_REWRAP_CONFIRM_MS + 1;
-    await run_retired_key_rewrap(ACCOUNT, () => clock);
-    expect(held_contexts()).toEqual([]);
+    expect(second?.pending).toEqual([SCHEDULED]);
+    expect(h.scheduled).toEqual([waiting]);
+    expect(held_contexts()).toEqual([SCHEDULED]);
   });
 
   it("keeps a scheduled message whose write was refused", async () => {
@@ -2043,7 +1982,7 @@ describe("run_retired_key_rewrap", () => {
     expect(held_contexts()).toEqual([SCHEDULED]);
   });
 
-  it("moves a draft in the short format to the current draft key", async () => {
+  it("keeps a short format draft unsealed and holds its key", async () => {
     const sealed = await seal(await retired_key(SHORT_DRAFTS), '"slot"');
     let clock = START;
 
@@ -2059,25 +1998,19 @@ describe("run_retired_key_rewrap", () => {
 
     const first = await run_retired_key_rewrap(ACCOUNT, () => clock);
 
-    expect(puts()).toEqual(["/mail/v1/drafts/d1"]);
-    expect(first?.rewrapped).toBe(1);
-    expect(first?.confirming).toEqual([SHORT_DRAFTS]);
-    expect(
-      await open(
-        await identity_key(DRAFTS),
-        h.drafts[0].encrypted_content,
-        h.drafts[0].content_nonce,
-      ),
-    ).toBe('"slot"');
-    expect(held_contexts()).toEqual([SHORT_DRAFTS]);
+    expect(puts()).toEqual([]);
+    expect(first?.rewrapped).toBe(0);
+    expect(first?.pending).toEqual([SHORT_DRAFTS]);
+    expect(h.drafts[0].encrypted_content).toBe(sealed.encrypted);
 
     clock += RETIRED_REWRAP_CONFIRM_MS + 1;
 
     const summary = await run_retired_key_rewrap(ACCOUNT, () => clock);
 
-    expect(summary?.dropped).toEqual([SHORT_DRAFTS]);
-    expect(held_contexts()).toEqual([]);
-    expect(get_retired_context_key(SHORT_DRAFTS)).toBeNull();
+    expect(summary?.dropped ?? []).toEqual([]);
+    expect(puts()).toEqual([]);
+    expect(held_contexts()).toEqual([SHORT_DRAFTS]);
+    expect(get_retired_context_key(SHORT_DRAFTS)).not.toBeNull();
   });
 
   it("drops the short draft key once the server holds nothing under it", async () => {
@@ -2107,35 +2040,6 @@ describe("run_retired_key_rewrap", () => {
     expect(summary?.dropped).toEqual([SHORT_DRAFTS]);
     expect(h.drafts[0].encrypted_content).toBe(current.encrypted);
     expect(held_contexts()).toEqual([]);
-  });
-
-  it("keeps a short format draft and its key when the write fails", async () => {
-    const sealed = await seal(await retired_key(SHORT_DRAFTS), '"slot"');
-    let clock = START;
-
-    await single_vault(SHORT_DRAFTS);
-    h.drafts = [
-      {
-        id: "d1",
-        encrypted_content: sealed.encrypted,
-        content_nonce: sealed.nonce,
-        version: 1,
-      },
-    ];
-    h.fail_put = ["/mail/v1/drafts/"];
-
-    const first = await run_retired_key_rewrap(ACCOUNT, () => clock);
-
-    expect(first?.pending).toEqual([SHORT_DRAFTS]);
-    expect(h.drafts[0].encrypted_content).toBe(sealed.encrypted);
-
-    h.fail_put = [];
-    clock += RETIRED_REWRAP_RETRY_MS;
-
-    const second = await run_retired_key_rewrap(ACCOUNT, () => clock);
-
-    expect(second?.rewrapped).toBe(1);
-    expect(second?.confirming).toEqual([SHORT_DRAFTS]);
   });
 
   it("keeps the short draft key while drafts cannot be listed", async () => {
@@ -2259,59 +2163,6 @@ describe("run_retired_key_rewrap", () => {
       () => START + RETIRED_REWRAP_CONFIRM_MS + 1,
     );
     expect(held_contexts()).toEqual([CALENDAR]);
-  });
-
-  it("leaves a draft alone while it is being saved or is open here", async () => {
-    const context: AccountDataContext = "astermail-draft-v2";
-    const sealed = await seal(await retired_key(context), '"draft body"');
-    let clock = START;
-
-    await affected_vault();
-    h.drafts = [
-      {
-        id: "d1",
-        encrypted_content: sealed.encrypted,
-        content_nonce: sealed.nonce,
-        version: 3,
-      },
-    ];
-    begin_draft_write("d1", Date.now());
-
-    const first = await run_retired_key_rewrap(ACCOUNT, () => clock);
-
-    expect(puts()).toEqual([]);
-    expect(first?.pending).toEqual([context]);
-    expect(h.drafts[0].version).toBe(3);
-    expect(h.drafts[0].encrypted_content).toBe(sealed.encrypted);
-
-    end_draft_write("d1", Date.now());
-    reset_draft_activity();
-
-    const close = register_open_draft_check((id) => id === "d1");
-
-    clock += RETIRED_REWRAP_RETRY_MS;
-
-    const second = await run_retired_key_rewrap(ACCOUNT, () => clock);
-
-    expect(puts()).toEqual([]);
-    expect(second?.pending).toEqual([context]);
-    expect(h.drafts[0].version).toBe(3);
-
-    close();
-    clock += RETIRED_REWRAP_RESCAN_MS;
-
-    const third = await run_retired_key_rewrap(ACCOUNT, () => clock);
-
-    expect(puts()).toEqual(["/mail/v1/drafts/d1"]);
-    expect(third?.rewrapped).toBe(1);
-    expect(h.drafts[0].version).toBe(4);
-    expect(
-      await open(
-        await identity_key(context),
-        h.drafts[0].encrypted_content,
-        h.drafts[0].content_nonce,
-      ),
-    ).toBe('"draft body"');
   });
 
   for (const setting of SETTINGS) {
@@ -2922,7 +2773,7 @@ describe("run_retired_key_rewrap", () => {
     ).toBe("Two");
   });
 
-  it("converts everything an account wrote before it had an identity key", async () => {
+  it("converts what an account wrote before it had an identity key, except drafts", async () => {
     const preferences = await seal(
       await retired_key(PREFERENCES),
       '{"theme":"dark"}',
@@ -2988,18 +2839,24 @@ describe("run_retired_key_rewrap", () => {
     await load_account_key();
     expect(held_contexts()).toHaveLength(11);
 
+    const waiting = { ...h.scheduled[0] };
+    const drafts_before = JSON.stringify(h.drafts);
     const first = await run_retired_key_rewrap(ACCOUNT, () => clock);
 
-    expect(first?.held).toBe(0);
-    expect(first?.pending).toEqual([]);
-    expect(first?.rewrapped).toBe(11);
+    expect(first?.held).toBe(3);
+    expect([...(first?.pending ?? [])].sort()).toEqual(
+      [SCHEDULED, DRAFTS, SHORT_DRAFTS].sort(),
+    );
+    expect(first?.rewrapped).toBe(8);
 
     clock += RETIRED_REWRAP_CONFIRM_MS + 1;
 
     const last = await run_retired_key_rewrap(ACCOUNT, () => clock);
 
     expect(last?.rewrapped).toBe(0);
-    expect(held_contexts()).toEqual([]);
+    expect(held_contexts()).toEqual([SCHEDULED, DRAFTS, SHORT_DRAFTS].sort());
+    expect(h.scheduled[0]).toEqual(waiting);
+    expect(JSON.stringify(h.drafts)).toBe(drafts_before);
     expect(
       await open(
         await identity_key(TAGS),
@@ -3020,7 +2877,7 @@ describe("run_retired_key_rewrap", () => {
         h.scheduled[0].encrypted_envelope,
         h.scheduled[0].envelope_nonce,
       ),
-    ).toBe('"queued"');
+    ).toBeNull();
     expect(
       await open(
         await identity_key(PREFERENCES),
@@ -3035,7 +2892,7 @@ describe("run_retired_key_rewrap", () => {
           row.encrypted_content,
           row.content_nonce,
         ),
-      ).not.toBeNull();
+      ).toBeNull();
     }
     for (const setting of SETTINGS) {
       expect(
@@ -3056,9 +2913,9 @@ describe("run_retired_key_rewrap", () => {
     await affected_vault();
 
     expect(retired_read_allowed(TAGS)).toBe(true);
-    expect(
-      await read_with_fallback(TAGS, sealed.encrypted, sealed.nonce),
-    ).toBe("Travel");
+    expect(await read_with_fallback(TAGS, sealed.encrypted, sealed.nonce)).toBe(
+      "Travel",
+    );
   });
 
   it("refuses a retired key after a clean scan and converts the row at once", async () => {
@@ -3122,9 +2979,9 @@ describe("run_retired_key_rewrap", () => {
 
       expect(forced?.rewrapped).toBe(0);
       expect(forced?.pending).toContain(TAGS);
-      expect(
-        await read_with_fallback(TAGS, local.encrypted, local.nonce),
-      ).toBe("Local");
+      expect(await read_with_fallback(TAGS, local.encrypted, local.nonce)).toBe(
+        "Local",
+      );
 
       clock += RETIRED_REWRAP_CONFIRM_MS - 1;
 
@@ -3133,9 +2990,9 @@ describe("run_retired_key_rewrap", () => {
       expect(later?.pending).toContain(TAGS);
       expect(later?.dropped).not.toContain(TAGS);
       expect(held_contexts()).toContain(TAGS);
-      expect(
-        await read_with_fallback(TAGS, local.encrypted, local.nonce),
-      ).toBe("Local");
+      expect(await read_with_fallback(TAGS, local.encrypted, local.nonce)).toBe(
+        "Local",
+      );
     } finally {
       await release_rescans();
     }
@@ -3151,11 +3008,7 @@ describe("run_retired_key_rewrap", () => {
     h.tags = [await tag_row("late", old_key, "Late")];
 
     await expect(
-      read_with_fallback(
-        TAGS,
-        h.tags[0].encrypted_name,
-        h.tags[0].name_nonce,
-      ),
+      read_with_fallback(TAGS, h.tags[0].encrypted_name, h.tags[0].name_nonce),
     ).rejects.toThrow();
 
     await vi.waitFor(

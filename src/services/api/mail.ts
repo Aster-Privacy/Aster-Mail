@@ -494,6 +494,22 @@ export async function reencrypt_mail_item_envelope(
   );
 }
 
+export interface RewrapMailItemEnvelopeRequest {
+  encrypted_envelope: string;
+  envelope_nonce: string;
+  expected_envelope_sha256: string;
+}
+
+export async function rewrap_mail_item_envelope(
+  item_id: string,
+  data: RewrapMailItemEnvelopeRequest,
+): Promise<ApiResponse<{ success: boolean }>> {
+  return api_client.put<{ success: boolean }>(
+    `/mail/v1/messages/${item_id}/envelope-rewrap`,
+    data,
+  );
+}
+
 export async function delete_mail_item(
   item_id: string,
 ): Promise<ApiResponse<{ status: string }>> {

@@ -9,6 +9,24 @@ vi.stubGlobal("localStorage", {
   clear: () => store.clear(),
 });
 
+const limits_store = new Map<string, unknown>();
+
+vi.mock("@/services/crypto/pq_reconciler_limits", () => ({
+  read_reconciler_limits: async (uid: string | null) =>
+    structuredClone(
+      limits_store.get(uid ?? "") ?? {
+        ran_at: 0,
+        self_heal_at: 0,
+        self_heal_keys: {},
+      },
+    ),
+  write_reconciler_limits: async (uid: string | null, limits: unknown) => {
+    limits_store.set(uid ?? "", structuredClone(limits));
+
+    return true;
+  },
+}));
+
 const generate_and_upload_prekeys_mock = vi.fn();
 
 vi.mock("@/services/crypto/prekey_service", () => ({
@@ -39,6 +57,7 @@ import { handle_missing_pq_secret } from "./pq_secret_reconciler";
 describe("handle_missing_pq_secret concurrency (494-request storm fix)", () => {
   beforeEach(() => {
     store.clear();
+    limits_store.clear();
     generate_and_upload_prekeys_mock.mockReset();
     generate_and_upload_prekeys_mock.mockImplementation(async () => {
       await new Promise((r) => setTimeout(r, 5));
@@ -64,6 +83,23 @@ describe("handle_missing_pq_secret concurrency (494-request storm fix)", () => {
 
   it("respects the 10-minute cooldown for a second isolated failure right after the first", async () => {
     await handle_missing_pq_secret();
+    await handle_missing_pq_secret();
+
+    expect(generate_and_upload_prekeys_mock).toHaveBeenCalledTimes(1);
+  });
+
+  it("keeps the self-heal limits out of localStorage", async () => {
+    await handle_missing_pq_secret(41);
+
+    expect(generate_and_upload_prekeys_mock).toHaveBeenCalledTimes(1);
+    expect(
+      [...store.keys()].filter((k) => k.startsWith("astermail_pq_self_heal")),
+    ).toEqual([]);
+  });
+
+  it("ignores a cooldown planted in localStorage", async () => {
+    store.set("astermail_pq_self_heal_at_u1", String(Date.now()));
+
     await handle_missing_pq_secret();
 
     expect(generate_and_upload_prekeys_mock).toHaveBeenCalledTimes(1);

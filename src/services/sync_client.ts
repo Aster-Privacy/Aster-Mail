@@ -30,7 +30,15 @@ import { TorUnavailableError } from "./routing/tor_unavailable_error";
 
 import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
 import { HASH_ALG } from "@/services/crypto/constants";
+import {
+  IdentityKeyMissingError,
+  is_usable_identity_key,
+} from "@/services/crypto/identity_key_required";
 import { is_onion_host } from "@/lib/onion_host";
+import {
+  get_suspension_state,
+  subscribe_suspension_state,
+} from "@/lib/suspension_state";
 import {
   is_any_lockdown_active,
   LOCKDOWN_CHANGED_EVENT,
@@ -50,7 +58,15 @@ import { mark_view_stale } from "@/hooks/email_list_cache";
 import { is_low_network } from "@/services/low_network_state";
 import { sync_recent } from "@/services/category_index";
 import { ignore_error } from "@/lib/ignore_error";
-import { CATCH_UP_WHILE_LIVE_MS } from "@/services/sync_timing";
+import {
+  CATCH_UP_WHILE_LIVE_MS,
+  HIDDEN_CATCH_UP_MS,
+  HIDDEN_CATCH_UP_WHILE_LIVE_MS,
+} from "@/services/sync_timing";
+import {
+  receive_guard_frame,
+  request_guard_requests_refresh,
+} from "@/services/guard/guard_events";
 import {
   begin_live_sync_session,
   set_sync_live_probe,
@@ -87,6 +103,7 @@ type ServerMessageType =
   | "folders_changed"
   | "tags_changed"
   | "mail_mutation"
+  | "guard"
   | "ping"
   | "pong";
 
@@ -103,12 +120,36 @@ interface ServerMessage {
   action?: string;
   item_ids?: string[];
   origin_device?: string | null;
+  id?: string;
+  account_id?: string;
 }
 
 const HEARTBEAT_INTERVAL_MS = 30000;
 const LIVENESS_TIMEOUT_MS = 75000;
 const CATCH_UP_TICK_MS = 60000;
+const SUSPEND_GAP_MS = CATCH_UP_TICK_MS * 3;
 const DEFINITIONS_REFRESH_MIN_MS = 30000;
+
+export const FIRST_RECONNECT_SPREAD_MS = 20000;
+
+export function compute_reconnect_delay(
+  attempt: number,
+  low_network: boolean,
+  random_fraction: number,
+): number {
+  const base_delay = low_network ? 10000 : 3000;
+  const max_delay = low_network ? 300000 : 60000;
+
+  if (attempt === 0) {
+    return base_delay + Math.floor(random_fraction * FIRST_RECONNECT_SPREAD_MS);
+  }
+
+  const backoff = Math.min(base_delay * Math.pow(2, attempt), max_delay);
+  const jitter = 1 + (random_fraction * 0.5 - 0.25);
+
+  return Math.max(base_delay, Math.min(backoff * jitter, max_delay));
+}
+
 export const PUSH_ARRIVED_MESSAGE = "aster_push_arrived";
 const MUTATION_REFRESH_DEBOUNCE_MS = 600;
 const ECHO_RECONCILE_MS = 30000;
@@ -129,6 +170,12 @@ interface PendingRequest {
   timeout_id: ReturnType<typeof setTimeout>;
 }
 
+function is_page_hidden(): boolean {
+  return (
+    typeof document !== "undefined" && document.visibilityState === "hidden"
+  );
+}
+
 class SyncClient {
   private socket: WebSocket | null = null;
   private authenticated = false;
@@ -143,6 +190,7 @@ class SyncClient {
   private last_catch_up_at = 0;
   private last_definitions_refresh_at = 0;
   private catch_up_timer: ReturnType<typeof setInterval> | null = null;
+  private last_catch_up_tick_at = 0;
   private pending_connect_reject: ((err: Error) => void) | null = null;
   private heartbeat_timer: ReturnType<typeof setInterval> | null = null;
   private last_message_at = 0;
@@ -151,13 +199,10 @@ class SyncClient {
   private last_soft_refresh_at = 0;
   private socket_url: string | null = null;
   private observed_route: string | null | undefined = undefined;
+  private held_for_suspension = false;
 
   private close_socket(): void {
-    if (
-      this.socket &&
-      (this.socket.readyState === WebSocket.OPEN ||
-        this.socket.readyState === WebSocket.CONNECTING)
-    ) {
+    if (this.socket && this.socket.readyState !== WebSocket.CLOSED) {
       this.socket.onclose = null;
       this.socket.onerror = null;
       this.socket.onmessage = null;
@@ -211,6 +256,13 @@ class SyncClient {
       this.should_reconnect = false;
       this.close_socket();
       throw new Error("WebSocket sync is disabled in Lockdown Mode");
+    }
+
+    if (get_suspension_state() === "suspended") {
+      this.hold_for_suspension();
+      throw new Error(
+        "WebSocket sync is disabled while the account is suspended",
+      );
     }
 
     this.should_reconnect = true;
@@ -325,6 +377,7 @@ class SyncClient {
               new CustomEvent(MAIL_EVENTS.MAIL_SOFT_REFRESH),
             );
             this.refresh_definitions();
+            request_guard_requests_refresh();
           }
           settle_resolve();
         } else if (data.type === "auth_error") {
@@ -375,8 +428,8 @@ class SyncClient {
   catch_up_now(): void {
     if (!this.should_reconnect) return;
     if (
-      typeof document !== "undefined" &&
-      document.visibilityState === "hidden"
+      is_page_hidden() &&
+      Date.now() - this.last_catch_up_at < CATCH_UP_TICK_MS
     ) {
       return;
     }
@@ -389,22 +442,42 @@ class SyncClient {
   private start_catch_up_timer(): void {
     if (this.catch_up_timer) return;
 
+    this.last_catch_up_tick_at = Date.now();
     this.catch_up_timer = setInterval(() => {
+      const now = Date.now();
+      const tick_gap = now - this.last_catch_up_tick_at;
+
+      this.last_catch_up_tick_at = now;
       if (!this.should_reconnect) return;
-      if (
-        typeof document !== "undefined" &&
-        document.visibilityState === "hidden"
-      ) {
+
+      if (tick_gap >= SUSPEND_GAP_MS) {
+        this.on_wake();
+
         return;
       }
+
       const socket_live =
         this.authenticated && this.socket?.readyState === WebSocket.OPEN;
-      const since_last = Date.now() - this.last_catch_up_at;
-      const due = socket_live
-        ? since_last >= CATCH_UP_WHILE_LIVE_MS
-        : since_last >= CATCH_UP_TICK_MS;
 
-      if (due) this.catch_up_now();
+      if (
+        !socket_live &&
+        !this.reconnect_timeout &&
+        this.socket?.readyState !== WebSocket.OPEN &&
+        this.socket?.readyState !== WebSocket.CONNECTING
+      ) {
+        this.schedule_reconnect();
+      }
+
+      const hidden = is_page_hidden();
+      const since_last = now - this.last_catch_up_at;
+      const live_gap = hidden
+        ? HIDDEN_CATCH_UP_WHILE_LIVE_MS
+        : CATCH_UP_WHILE_LIVE_MS;
+      const down_gap = hidden ? HIDDEN_CATCH_UP_MS : CATCH_UP_TICK_MS;
+
+      if (since_last >= (socket_live ? live_gap : down_gap)) {
+        this.catch_up_now();
+      }
     }, CATCH_UP_TICK_MS);
   }
 
@@ -435,10 +508,7 @@ class SyncClient {
   }
 
   private refresh_definitions(): void {
-    if (
-      typeof document !== "undefined" &&
-      document.visibilityState === "hidden"
-    ) {
+    if (is_page_hidden()) {
       return;
     }
     this.last_definitions_refresh_at = Date.now();
@@ -478,15 +548,17 @@ class SyncClient {
 
   private schedule_reconnect(): void {
     if (this.reconnect_timeout || !this.should_reconnect) return;
+    if (get_suspension_state() === "suspended") {
+      this.hold_for_suspension();
 
-    const base_delay = is_low_network() ? 10000 : 3000;
-    const max_delay = is_low_network() ? 300000 : 60000;
-    const backoff = Math.min(
-      base_delay * Math.pow(2, this.reconnect_attempt),
-      max_delay,
+      return;
+    }
+
+    const delay = compute_reconnect_delay(
+      this.reconnect_attempt,
+      is_low_network(),
+      Math.random(),
     );
-    const jitter = 1 + (Math.random() * 0.5 - 0.25);
-    const delay = Math.max(base_delay, Math.min(backoff * jitter, max_delay));
 
     this.reconnect_attempt++;
 
@@ -631,6 +703,12 @@ class SyncClient {
 
     if (data.type === "mail_mutation") {
       this.handle_mail_mutation(data);
+
+      return;
+    }
+
+    if (data.type === "guard") {
+      void receive_guard_frame(data);
 
       return;
     }
@@ -806,7 +884,29 @@ class SyncClient {
     return response.success === true;
   }
 
+  private hold_for_suspension(): void {
+    this.disconnect();
+    this.held_for_suspension = true;
+  }
+
+  on_suspension_change(): void {
+    if (get_suspension_state() === "suspended") {
+      if (this.should_reconnect || this.socket) this.hold_for_suspension();
+
+      return;
+    }
+    if (get_suspension_state() !== "active" || !this.held_for_suspension) {
+      return;
+    }
+    this.held_for_suspension = false;
+    if (!api_client.is_authenticated()) return;
+    this.connect().catch((caught) =>
+      ignore_error("services/sync_client:suspension_lifted", caught),
+    );
+  }
+
   disconnect(): void {
+    this.held_for_suspension = false;
     this.should_reconnect = false;
     this.last_auth_error = false;
     this.auth_error_count = 0;
@@ -917,6 +1017,7 @@ set_sync_live_probe(() => sync_client.is_connected());
 if (typeof window !== "undefined") {
   sync_client.on_route_change();
   connection_store.subscribe(() => sync_client.on_route_change());
+  subscribe_suspension_state(() => sync_client.on_suspension_change());
   window.addEventListener("beforeunload", () => {
     sync_client.disconnect();
   });
@@ -958,6 +1059,10 @@ async function derive_key(
   vault: EncryptedVault,
   context: string,
 ): Promise<CryptoKey> {
+  if (!is_usable_identity_key(vault.identity_key)) {
+    throw new IdentityKeyMissingError();
+  }
+
   const encoder = new TextEncoder();
   const raw_key = encoder.encode(vault.identity_key);
 

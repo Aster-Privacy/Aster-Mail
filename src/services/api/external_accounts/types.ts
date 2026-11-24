@@ -48,11 +48,26 @@ export interface ExternalAccountResponse {
   protocol: string;
   is_enabled: boolean;
   is_verified: boolean;
+  mode?: ExternalAccountMode;
+  paused_reason?: string | null;
   last_sync_at: string | null;
   last_sync_status: string | null;
   email_count: number;
   created_at: string;
   updated_at: string;
+}
+
+export type ExternalAccountMode =
+  "server_sync" | "two_way" | "send_only" | "device";
+
+export interface SendOnlyCredentials {
+  smtp_host: string;
+  smtp_port: number;
+  smtp_username: string;
+  smtp_password: string;
+  from_address: string;
+  from_name: string;
+  use_tls: boolean;
 }
 
 export interface DecryptedExternalAccount {
@@ -66,6 +81,8 @@ export interface DecryptedExternalAccount {
   oauth_provider: string | null;
   is_enabled: boolean;
   is_verified: boolean;
+  mode?: ExternalAccountMode;
+  paused_reason?: string | null;
   last_sync_at: string | null;
   last_sync_status: string | null;
   last_sync_error: string | null;
@@ -84,6 +101,69 @@ export interface ExternalAccountSyncSettings {
   sync_folders: string[];
   max_messages_per_sync: number;
   sync_since_date: string | null;
+  mode?: ExternalSyncMode;
+}
+
+export type ExternalSyncMode = "server_sync" | "two_way";
+
+export interface UpdateSyncSettingsResult {
+  success: boolean;
+  mode?: ExternalSyncMode;
+  backfill_job_id?: string | null;
+}
+
+export interface WritebackStatus {
+  mode: string;
+  pending: number;
+  failing: number;
+  last_error_code: string | null;
+  last_success_at: string | null;
+  backfill_state: string | null;
+  backfill_mapped: number;
+}
+
+export type CleanupAfterDays = 7 | 30 | 90;
+
+export interface CleanupSettings {
+  after_days: CleanupAfterDays | null;
+  confirmed: boolean;
+  paused_reason: string | null;
+}
+
+export interface CleanupPreview {
+  preview_run_id: string;
+  eligible_count: number;
+  oldest: string | null;
+  folders: string[];
+  skipped_reasons: Record<string, number>;
+}
+
+export interface CleanupRun {
+  id: string;
+  kind: string;
+  started_at: string;
+  finished_at: string | null;
+  eligible_count: number;
+  moved_count: number;
+  skipped_count: number;
+  skipped_reasons: Record<string, number>;
+  oldest_internaldate: string | null;
+  folders: string[];
+}
+
+export interface ForwardingEntry {
+  id: string;
+  account_id: string | null;
+  encrypted_label: string | null;
+  label_nonce: string | null;
+  tag_token: string | null;
+  created_at: string;
+  last_received_at: string | null;
+}
+
+export interface ForwardingCreated {
+  address: string;
+  forwarding: ForwardingEntry;
 }
 
 export interface ExternalAccountFolder {
@@ -167,6 +247,35 @@ export interface SyncResult {
   duplicate_count: number;
   folders_synced: string[];
   duration_ms: number;
+}
+
+export type ExternalFolderSpecialUse =
+  "inbox" | "sent" | "drafts" | "trash" | "junk" | "archive" | "all";
+
+export type ExternalFolderTarget =
+  "inbox" | "sent" | "drafts" | "trash" | "spam" | "archive" | "custom";
+
+export interface ExternalFolderLink {
+  remote_name: string;
+  special_use?: ExternalFolderSpecialUse;
+  aster_target: ExternalFolderTarget;
+  folder_token?: string;
+}
+
+export type ExternalSourceKind = "external" | "device" | "forwarding";
+
+export interface ExternalSource {
+  source_id: string;
+  kind: ExternalSourceKind;
+  account_token?: string;
+  tag_token?: string;
+}
+
+export type SourceNotifyChoice = "all" | "none";
+
+export interface SourceNotifySetting {
+  source_id: string;
+  notify: SourceNotifyChoice;
 }
 
 export interface DeduplicationRecord {

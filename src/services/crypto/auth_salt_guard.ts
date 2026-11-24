@@ -24,13 +24,16 @@ export const VAULT_SALT_BYTES = 16;
 export const AUTH_SALT_BYTES = 32;
 export const MIN_AUTH_SALT_BYTES = 16;
 export const MAX_REMEMBERED_VAULT_SALTS = 32;
+export const ENVELOPE_SALT_BYTES = 16;
+export const MAX_KNOWN_LOGIN_SALTS = 32;
+export const LOGIN_SALT_RECORDS_KEY = "aster:login_salt_records";
 export const AUTH_SALT_COLLISION_TRANSLATION_KEY = "errors.auth_salt_collision";
 export const LEGACY_LOGIN_SALT_NEW_DEVICE_TRANSLATION_KEY =
   "errors.legacy_login_salt_new_device";
-export const LEGACY_LOGIN_SALT_SIGN_IN_AGAIN_TRANSLATION_KEY =
-  "errors.legacy_login_salt_sign_in_again";
+export const INCORRECT_PASSWORD_TRANSLATION_KEY = "errors.incorrect_password";
 
 const REMEMBERED_VAULT_SALTS_KEY = "aster:auth_salt_guard:vault_salts";
+const KNOWN_LOGIN_SALTS_KEY = "aster:auth_salt_guard:login_salts";
 
 const auth_salts_used_this_session = new Set<string>();
 
@@ -57,17 +60,20 @@ export function is_auth_salt_collision(
 export type LegacyLoginSaltContext = "sign_in" | "step_up";
 
 export class LegacyLoginSaltError extends Error {
-  readonly translation_key:
-    | typeof LEGACY_LOGIN_SALT_NEW_DEVICE_TRANSLATION_KEY
-    | typeof LEGACY_LOGIN_SALT_SIGN_IN_AGAIN_TRANSLATION_KEY;
+  readonly translation_key = LEGACY_LOGIN_SALT_NEW_DEVICE_TRANSLATION_KEY;
 
   constructor(readonly context: LegacyLoginSaltContext) {
     super(`legacy_login_salt_${context}`);
     this.name = "LegacyLoginSaltError";
-    this.translation_key =
-      context === "sign_in"
-        ? LEGACY_LOGIN_SALT_NEW_DEVICE_TRANSLATION_KEY
-        : LEGACY_LOGIN_SALT_SIGN_IN_AGAIN_TRANSLATION_KEY;
+  }
+}
+
+export class IncorrectCurrentPasswordError extends Error {
+  readonly translation_key = INCORRECT_PASSWORD_TRANSLATION_KEY;
+
+  constructor() {
+    super("incorrect_current_password");
+    this.name = "IncorrectCurrentPasswordError";
   }
 }
 
@@ -82,9 +88,13 @@ export function login_safety_error_key(
 ):
   | typeof AUTH_SALT_COLLISION_TRANSLATION_KEY
   | typeof LEGACY_LOGIN_SALT_NEW_DEVICE_TRANSLATION_KEY
-  | typeof LEGACY_LOGIN_SALT_SIGN_IN_AGAIN_TRANSLATION_KEY
+  | typeof INCORRECT_PASSWORD_TRANSLATION_KEY
   | null {
   if (is_legacy_login_salt_error(error)) {
+    return error.translation_key;
+  }
+
+  if (error instanceof IncorrectCurrentPasswordError) {
     return error.translation_key;
   }
 
@@ -217,18 +227,133 @@ function save_remembered_vault_salts(entries: string[]): void {
 
   void import("./secure_storage")
     .then(({ device_store }) =>
-      device_store(REMEMBERED_VAULT_SALTS_KEY, entries, (public_salts) => public_salts),
+      device_store(
+        REMEMBERED_VAULT_SALTS_KEY,
+        entries,
+        (public_salts) => public_salts,
+      ),
     )
     .catch(() => undefined);
 }
 
+function read_local_json(key: string): unknown {
+  if (!has_local_storage()) {
+    return null;
+  }
+
+  try {
+    const raw = localStorage.getItem(key);
+
+    return raw ? (JSON.parse(raw) as unknown) : null;
+  } catch {
+    return null;
+  }
+}
+
+function read_known_login_salts(): string[] {
+  const parsed = read_local_json(KNOWN_LOGIN_SALTS_KEY);
+
+  return Array.isArray(parsed)
+    ? parsed.filter((entry): entry is string => typeof entry === "string")
+    : [];
+}
+
+function read_recorded_login_salts(): string[] {
+  const parsed = read_local_json(LOGIN_SALT_RECORDS_KEY);
+
+  if (!Array.isArray(parsed)) {
+    return [];
+  }
+
+  return parsed.flatMap((entry: unknown) => {
+    const salt =
+      typeof entry === "object" && entry !== null
+        ? (entry as { salt?: unknown }).salt
+        : undefined;
+
+    return typeof salt === "string" ? [salt] : [];
+  });
+}
+
+function remember_known_login_salt(auth_salt: Uint8Array): void {
+  if (auth_salt.length !== ENVELOPE_SALT_BYTES || !has_local_storage()) {
+    return;
+  }
+
+  try {
+    localStorage.setItem(
+      KNOWN_LOGIN_SALTS_KEY,
+      JSON.stringify(
+        remember_salt_entry(
+          read_known_login_salts(),
+          auth_salt,
+          MAX_KNOWN_LOGIN_SALTS,
+        ),
+      ),
+    );
+  } catch {
+    return;
+  }
+}
+
 export function note_auth_salt_used(auth_salt: Uint8Array): void {
   auth_salts_used_this_session.add(array_to_base64(auth_salt));
+  remember_known_login_salt(auth_salt);
+}
+
+let stored_login_salts_cache: {
+  known_raw: string | null;
+  recorded_raw: string | null;
+  salts: string[];
+} | null = null;
+
+function read_raw(key: string): string | null {
+  if (!has_local_storage()) return null;
+
+  try {
+    return localStorage.getItem(key);
+  } catch {
+    return null;
+  }
+}
+
+function stored_login_salts(): string[] {
+  const known_raw = read_raw(KNOWN_LOGIN_SALTS_KEY);
+  const recorded_raw = read_raw(LOGIN_SALT_RECORDS_KEY);
+
+  if (
+    stored_login_salts_cache &&
+    stored_login_salts_cache.known_raw === known_raw &&
+    stored_login_salts_cache.recorded_raw === recorded_raw
+  ) {
+    return stored_login_salts_cache.salts;
+  }
+
+  const salts = [...read_known_login_salts(), ...read_recorded_login_salts()];
+
+  stored_login_salts_cache = { known_raw, recorded_raw, salts };
+
+  return salts;
+}
+
+export function is_known_login_salt(salt: Uint8Array): boolean {
+  if (auth_salts_used_this_session.has(array_to_base64(salt))) {
+    return true;
+  }
+
+  return collides_with_remembered_salts(salt, stored_login_salts());
+}
+
+export function list_known_login_salts(): string[] {
+  return [
+    ...new Set([...auth_salts_used_this_session, ...stored_login_salts()]),
+  ];
 }
 
 export function clear_auth_salt_session_state(): void {
   auth_salts_used_this_session.clear();
   remembered_vault_salts_cache = null;
+  stored_login_salts_cache = null;
 }
 
 export async function require_usable_auth_salt(

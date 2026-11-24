@@ -74,6 +74,7 @@ import {
   CURRENCY_STORAGE_KEY,
 } from "@/components/settings/billing/billing_constants";
 import { use_currency_rates } from "@/components/settings/billing/use_currency_rates";
+import { has_tauri_runtime } from "@/lib/tauri_runtime";
 
 const TIER_DESCRIPTION_KEYS: Record<string, TranslationKey> = {
   star: "auth.plan_star_description",
@@ -238,7 +239,7 @@ export function PlanUpgradeSelection({
       // overlay is torn down with the page. On desktop, checkout opens in an
       // external browser and this window stays put, so clear the overlay here
       // instead of leaving it spinning forever.
-      if (typeof window !== "undefined" && "__TAURI_INTERNALS__" in window) {
+      if (has_tauri_runtime()) {
         set_is_finalizing(false);
       }
     },
@@ -282,10 +283,7 @@ export function PlanUpgradeSelection({
         try {
           await open_payment_url(res.data.checkout_url);
 
-          if (
-            typeof window !== "undefined" &&
-            "__TAURI_INTERNALS__" in window
-          ) {
+          if (has_tauri_runtime()) {
             set_is_finalizing(false);
           }
         } catch {

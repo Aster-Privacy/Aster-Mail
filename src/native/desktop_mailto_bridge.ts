@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { type MailtoDraft, parse_mailto_link } from "@/lib/mailto_link";
+import { has_tauri_runtime } from "@/lib/tauri_runtime";
 
 const MAILTO_ACTIVATED_EVENT = "aster://mailto-activated";
 const MAX_QUEUED_DRAFTS = 8;
@@ -29,7 +30,11 @@ let active_listener: MailtoListener | null = null;
 let queued_drafts: MailtoDraft[] = [];
 
 function is_desktop(): boolean {
-  return typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
+  return has_tauri_runtime();
+}
+
+export function has_mailto_listener(): boolean {
+  return active_listener !== null;
 }
 
 export function deliver_mailto_link(raw_link: string): void {
@@ -37,6 +42,10 @@ export function deliver_mailto_link(raw_link: string): void {
 
   if (!draft) return;
 
+  deliver_mailto_draft(draft);
+}
+
+export function deliver_mailto_draft(draft: MailtoDraft): void {
   if (active_listener) {
     active_listener(draft);
 

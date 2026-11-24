@@ -18,6 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import type { OutgoingPriority } from "@/services/mail_priority";
 import type { TranslationKey } from "@/lib/i18n/types";
 import type {
   Attachment,
@@ -407,6 +408,7 @@ export async function execute_internal_send(
     attachments?: Attachment[];
     allow_non_post_quantum?: boolean;
     is_plain_text?: boolean;
+    priority?: OutgoingPriority;
     thread_id?: string;
   },
 ): Promise<boolean> {
@@ -541,6 +543,7 @@ export async function execute_mixed_send(
     expires_at?: string;
     attachments?: Attachment[];
     allow_non_post_quantum?: boolean;
+    priority?: OutgoingPriority;
     thread_id?: string;
     pgp_recipients?: string[];
   },
@@ -654,6 +657,7 @@ export async function execute_external_email_send(
     secure_external?: boolean;
     attachments?: Attachment[];
     is_plain_text?: boolean;
+    priority?: OutgoingPriority;
     thread_id?: string;
     pgp_recipients?: string[];
   },

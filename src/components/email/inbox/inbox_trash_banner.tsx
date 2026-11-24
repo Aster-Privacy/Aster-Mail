@@ -18,20 +18,26 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { InformationCircleIcon } from "@heroicons/react/24/outline";
+import { ClockIcon } from "@heroicons/react/24/outline";
 
 import { use_i18n } from "@/lib/i18n/context";
+import { list_select_slot_class } from "@/lib/list_density";
+import { cn } from "@/lib/utils";
 
 interface TrashBannerProps {
   retention_days?: number;
   view?: "trash" | "spam";
   family_enforced?: boolean;
+  compact?: boolean;
+  show_profile_pictures?: boolean;
 }
 
 export function TrashBanner({
   retention_days = 30,
   view = "trash",
   family_enforced = false,
+  compact = true,
+  show_profile_pictures = true,
 }: TrashBannerProps) {
   const { t } = use_i18n();
 
@@ -46,14 +52,25 @@ export function TrashBanner({
 
   return (
     <div
-      className="mx-3 mt-2 mb-2 px-4 py-2.5 rounded-lg flex items-center gap-3"
-      style={{
-        backgroundColor: "var(--bg-tertiary)",
-        color: "var(--text-muted)",
-      }}
+      className={cn(
+        "flex items-center gap-2 sm:gap-3 px-3 sm:px-4 border-b border-edge-secondary text-sm text-txt-muted shrink-0",
+        compact ? "py-2" : "py-2.5",
+      )}
+      data-testid="retention-notice"
+      role="note"
     >
-      <InformationCircleIcon className="w-5 h-5 flex-shrink-0" />
-      <p className="text-xs">{t(message_key, { days: retention_days })}</p>
+      <span
+        className={cn(
+          "flex flex-shrink-0 items-center justify-center",
+          list_select_slot_class(compact, show_profile_pictures),
+          "h-auto",
+        )}
+      >
+        <ClockIcon aria-hidden="true" className="w-4 h-4" />
+      </span>
+      <span className="min-w-0 text-pretty">
+        {t(message_key, { days: retention_days })}
+      </span>
     </div>
   );
 }

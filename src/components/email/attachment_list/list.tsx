@@ -21,7 +21,14 @@
 import type { TranslationKey } from "@/lib/i18n/types";
 import type { PendingSendAttachment } from "@/services/pending_send_attachments";
 
-import { useState, useCallback, useEffect, useMemo, useRef } from "react";
+import {
+  useState,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useSyncExternalStore,
+} from "react";
 import { AnimatePresence } from "framer-motion";
 
 import { AttachmentCard } from "./card";
@@ -54,9 +61,8 @@ import {
   AttachmentKeyUnavailableError,
 } from "@/services/crypto/attachment_crypto";
 import { get_cached_attachment_meta } from "@/services/attachment_meta_cache";
-import { shows_end_to_end as shows_end_to_end_badge } from "@/services/crypto/sent_encryption_evidence";
+import { stored_attachment_encryption } from "./encryption_state";
 import {
-  has_sealed_attachment_manifest,
   is_attachment_row_listed,
   listed_attachment_rows,
 } from "@/services/crypto/inbound_attachment_keys";
@@ -78,6 +84,11 @@ import { format_bytes } from "@/lib/utils";
 import { without_body_inline_images } from "@/lib/cid_resolver";
 import { UNDO_SEND_PREVIEW_ID } from "@/components/email/email_viewer_types";
 import { get_pending_send_attachments } from "@/services/pending_send_attachments";
+import {
+  get_shown_decrypted_mime_attachments,
+  mime_attachment_bytes,
+  subscribe_decrypted_mime_attachments,
+} from "@/services/decrypted_mime_attachments";
 
 function attachment_error_key(error: unknown): TranslationKey {
   if (error instanceof AttachmentIntegrityError) {
@@ -89,10 +100,38 @@ function attachment_error_key(error: unknown): TranslationKey {
     : "common.download_failed";
 }
 
+function use_decrypted_mime_files(
+  mail_item_id: string,
+  content_tag: string | undefined,
+  inline_refs: AttachmentListProps["inline_refs"],
+): PendingSendAttachment[] {
+  const parts = useSyncExternalStore(
+    subscribe_decrypted_mime_attachments,
+    () => get_shown_decrypted_mime_attachments(mail_item_id, content_tag),
+  );
+
+  return useMemo(
+    () =>
+      without_body_inline_images(parts, inline_refs).map((part, index) => ({
+        id: `${mail_item_id}:mime:${index}`,
+        filename: part.filename,
+        content_type: part.content_type,
+        size_bytes: part.data.byteLength,
+        data: mime_attachment_bytes(part),
+      })),
+    [parts, inline_refs, mail_item_id],
+  );
+}
+
 export function AttachmentList(
   props: AttachmentListProps,
 ): React.ReactElement | null {
   const { mail_item_id } = props;
+  const decrypted_files = use_decrypted_mime_files(
+    mail_item_id,
+    props.decrypted_content_tag,
+    props.inline_refs,
+  );
   const kept_ref = useRef<{
     mail_item_id: string;
     files: PendingSendAttachment[];
@@ -114,6 +153,15 @@ export function AttachmentList(
     return <PendingAttachmentList files={files} mail_item_id={mail_item_id} />;
   }
 
+  if (decrypted_files.length > 0) {
+    return (
+      <PendingAttachmentList
+        files={decrypted_files}
+        mail_item_id={mail_item_id}
+      />
+    );
+  }
+
   return <ServerAttachmentList {...props} />;
 }
 
@@ -130,17 +178,18 @@ function ServerAttachmentList({
   const { t } = use_i18n();
 
   use_attachment_keys_version(mail_item_id);
-  const files_e2e_verified =
-    e2e_verified &&
-    (is_external ||
-      sent_encryption_scope !== undefined ||
-      has_sealed_attachment_manifest(mail_item_id));
-  const shows_end_to_end = shows_end_to_end_badge({
+  const {
+    files_e2e_verified,
+    files_outside_encrypted,
+    label: files_label,
+  } = stored_attachment_encryption({
+    mail_item_id,
     is_external,
     has_recipient_key,
-    e2e_verified: files_e2e_verified,
+    e2e_verified,
     sent_encryption_scope,
   });
+  const shows_end_to_end = files_label === "end_to_end";
   const { preferences } = use_preferences();
   const reduce_motion = use_should_reduce_motion();
   const [attachments, set_attachments] = useState<DecryptedAttachmentInfo[]>(
@@ -887,18 +936,32 @@ function ServerAttachmentList({
           <span
             className="message_attachments_encryption inline-flex"
             data-encrypted={shows_end_to_end}
+            data-outside-encrypted={files_outside_encrypted}
           >
             <EncryptionInfoDropdown
               context="attachments"
+              description_key={
+                files_outside_encrypted
+                  ? "common.files_outside_encrypted"
+                  : undefined
+              }
               e2e_verified={files_e2e_verified}
+              heading_key={
+                files_outside_encrypted
+                  ? "common.files_outside_encrypted_label"
+                  : undefined
+              }
               sent_encryption_scope={sent_encryption_scope}
+              show_cipher={!files_outside_encrypted}
               has_pq_protection={false}
               has_recipient_key={has_recipient_key}
               is_external={is_external}
               label={
-                shows_end_to_end
-                  ? t("common.end_to_end_encrypted_label")
-                  : t("common.protected_in_transit")
+                files_outside_encrypted
+                  ? t("common.files_outside_encrypted_label")
+                  : shows_end_to_end
+                    ? t("common.end_to_end_encrypted_label")
+                    : t("common.protected_in_transit")
               }
               size={13}
             />

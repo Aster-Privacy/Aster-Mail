@@ -128,4 +128,4 @@ export interface EmailPopupViewerProps {
 export type PopupSize = "default" | "expanded" | "fullscreen";
 
 export const POPUP_MARGIN = 16;
-export const FULLSCREEN_MARGIN = 64;
+export const FULLSCREEN_MARGIN = 32;

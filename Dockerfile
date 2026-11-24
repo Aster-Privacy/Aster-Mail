@@ -16,16 +16,20 @@ RUN sed -i 's|worker_connections  1024;|worker_connections  8192;|' /etc/nginx/n
 RUN grep -q webmanifest /etc/nginx/mime.types || \
     sed -i 's|application/json  *json;|application/json                       json;\n    application/manifest+json             webmanifest;|' /etc/nginx/mime.types
 
-RUN mkdir -p /etc/nginx/secret && \
-    printf 'map $is_onion $onion_auth_header { default ""; }\n' > /etc/nginx/secret/onion_secret_map.conf && \
-    chown -R appuser:appgroup /etc/nginx/secret
+ENV NGINX_ENVSUBST_FILTER="^BACKEND_SERVICE_(HOST|PORT)$"
 
-COPY nginx.conf /etc/nginx/conf.d/default.conf
-COPY dist /usr/share/nginx/html
+RUN rm -f /etc/nginx/conf.d/default.conf && \
+    chown appuser:appgroup /etc/nginx/conf.d
+
+COPY nginx_entrypoint/15_require_backend_env.envsh /docker-entrypoint.d/15_require_backend_env.envsh
+
+RUN chmod 0755 /docker-entrypoint.d/15_require_backend_env.envsh
+
+COPY nginx.conf /etc/nginx/templates/default.conf.template
+COPY --chown=appuser:appgroup dist /usr/share/nginx/html
 
 RUN find /usr/share/nginx/html -name '*.map' -type f -delete
 
-RUN chown -R appuser:appgroup /usr/share/nginx/html
 
 USER appuser
 

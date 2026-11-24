@@ -78,6 +78,7 @@ type MobileSignInHandlerParams = Pick<
   | "set_pending_login_token"
   | "set_available_2fa_methods"
   | "set_active_2fa_method"
+  | "guard_gate"
 >;
 
 export function build_mobile_sign_in_handlers(
@@ -110,6 +111,7 @@ export function build_mobile_sign_in_handlers(
     set_pending_login_token,
     set_available_2fa_methods,
     set_active_2fa_method,
+    guard_gate,
   } = params;
 
   const cancel_return_path = get_safe_next_path();
@@ -210,6 +212,8 @@ export function build_mobile_sign_in_handlers(
     try {
       const user_hash = await hash_email(email);
 
+      guard_gate.set_guard_user_hash(user_hash);
+
       set_status(t("auth.fetching_auth_data"));
       const salt_response = await get_user_salt({ user_hash });
 
@@ -282,6 +286,8 @@ export function build_mobile_sign_in_handlers(
           const time_str = minutes > 0 ? `${minutes}m` : t("errors.try_again");
 
           set_error(t("errors.ip_blocked", { time: time_str }));
+        } else if (response.server_code === "GUARD_REQUIRED") {
+          if (signed_in_password !== password) set_password(signed_in_password);
         } else {
           set_error(response.error);
         }
@@ -385,6 +391,7 @@ export function build_mobile_sign_in_handlers(
             response.data.encrypted_vault,
             response.data.vault_nonce,
             remember_me,
+            response.data.vault_recovered_write_count,
           ),
         );
 
@@ -405,6 +412,7 @@ export function build_mobile_sign_in_handlers(
             response.data.encrypted_vault,
             response.data.vault_nonce,
             remember_me,
+            response.data.vault_recovered_write_count,
           ),
         );
       }

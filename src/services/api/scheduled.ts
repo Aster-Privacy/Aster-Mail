@@ -26,10 +26,7 @@ import {
   is_internal_recipient,
 } from "../recipient_classification";
 
-import {
-  decrypt_account_context_with_fallback,
-  decrypt_aes_gcm_with_fallback,
-} from "@/services/crypto/legacy_keks";
+import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
 import { account_data_write_key } from "@/services/crypto/account_data_writer";
 import { encrypt_with_private_bcc } from "@/services/send_private_bcc";
 import { plain_text_to_html } from "@/services/send_queue_recipients";
@@ -41,7 +38,20 @@ import { exceeds_sealed_schedule_window } from "@/lib/schedule_window";
 import { is_future_instant } from "@/utils/schedule_targets";
 import { sanitize_header_value } from "@/services/pgp_protected_mime";
 import { HASH_ALG } from "@/services/crypto/constants";
-import { with_identity_key } from "@/services/crypto/identity_key_required";
+import {
+  is_usable_identity_key,
+  with_identity_key,
+} from "@/services/crypto/identity_key_required";
+import {
+  SCHEDULED_TAG_FIELD,
+  compute_scheduled_content_tag,
+  verify_scheduled_content_tag,
+} from "@/services/crypto/scheduled_content_tag";
+import { ensure_untagged_snapshot } from "@/services/crypto/scheduled_untagged_allowlist";
+import {
+  has_untagged_snapshot,
+  untagged_open_allowed,
+} from "@/services/crypto/scheduled_untagged_snapshot";
 import { invalidate_mail_stats } from "@/hooks/use_mail_stats";
 import { get_active_translations } from "@/lib/i18n/translations";
 
@@ -75,6 +85,12 @@ export interface ScheduledEmail {
 
 export interface ScheduledEmailWithContent extends ScheduledEmail {
   content: ScheduledEmailContent;
+  content_verified?: boolean;
+}
+
+export interface ScheduledEmailResponse
+  extends ApiResponse<ScheduledEmailWithContent | null> {
+  unreadable?: boolean;
 }
 
 export type ScheduledEmailStatus =
@@ -335,15 +351,16 @@ async function decrypt_scheduled_content(
   nonce: string,
   vault: EncryptedVault,
 ): Promise<ScheduledEmailContent> {
-  const key = await derive_scheduled_encryption_key(vault);
+  const key = is_usable_identity_key(vault.identity_key)
+    ? await derive_scheduled_encryption_key(vault)
+    : null;
   const ciphertext = base64_to_uint8_array(encrypted);
   const nonce_bytes = base64_to_uint8_array(nonce);
 
   let plaintext_buffer: ArrayBuffer;
 
   try {
-    plaintext_buffer = await decrypt_account_context_with_fallback(
-      "astermail-scheduled-v1",
+    plaintext_buffer = await decrypt_aes_gcm_with_fallback(
       key,
       ciphertext,
       nonce_bytes,
@@ -369,7 +386,12 @@ async function decrypt_with_ephemeral_key(
   encrypted: string,
   nonce: string,
   ephemeral_key_b64: string,
-): Promise<ScheduledEmailContent> {
+  vault: EncryptedVault,
+): Promise<{
+  content: ScheduledEmailContent;
+  verified: boolean;
+  untagged: boolean;
+}> {
   const raw_key = base64_to_uint8_array(ephemeral_key_b64);
 
   const key = await crypto.subtle.importKey(
@@ -403,8 +425,27 @@ async function decrypt_with_ephemeral_key(
 
   try {
     const decoded = new TextDecoder().decode(plaintext);
+    const { [SCHEDULED_TAG_FIELD]: tag, ...content } = JSON.parse(
+      decoded,
+    ) as ScheduledEmailContent & { [SCHEDULED_TAG_FIELD]?: unknown };
 
-    return JSON.parse(decoded) as ScheduledEmailContent;
+    if (tag === undefined) {
+      return { content, verified: false, untagged: true };
+    }
+
+    const verified = await verify_scheduled_content_tag(
+      [vault.identity_key, ...(vault.previous_keys ?? [])],
+      content,
+      tag,
+    );
+
+    if (!verified) {
+      throw new ScheduledDecryptionError(
+        get_active_translations().errors.load_failed,
+      );
+    }
+
+    return { content, verified: true, untagged: false };
   } finally {
     secure_clear_array(plaintext);
   }
@@ -412,6 +453,7 @@ async function decrypt_with_ephemeral_key(
 
 async function encrypt_with_ephemeral_key(
   content: ScheduledEmailContent,
+  vault: EncryptedVault,
 ): Promise<{
   encrypted_envelope: string;
   envelope_nonce: string;
@@ -429,7 +471,13 @@ async function encrypt_with_ephemeral_key(
   const envelope_nonce = crypto.getRandomValues(new Uint8Array(NONCE_LENGTH));
   const recipients_nonce = crypto.getRandomValues(new Uint8Array(NONCE_LENGTH));
 
-  const envelope_data = scheduled_envelope_data(content);
+  const envelope_data = {
+    ...scheduled_envelope_data(content),
+    [SCHEDULED_TAG_FIELD]: await compute_scheduled_content_tag(
+      with_identity_key(vault).identity_key,
+      content,
+    ),
+  };
 
   const envelope_plaintext = new TextEncoder().encode(
     JSON.stringify(envelope_data),
@@ -543,10 +591,58 @@ interface ScheduledEmailApiFullResponse {
   base_nonce: string | null;
 }
 
+const SNAPSHOT_PAGE_SIZE = 100;
+const SNAPSHOT_MAX_PAGES = 50;
+
+async function list_all_scheduled_ids(): Promise<string[] | null> {
+  const ids: string[] = [];
+
+  for (let page = 0; page < SNAPSHOT_MAX_PAGES; page++) {
+    const response = await list_scheduled_emails(
+      SNAPSHOT_PAGE_SIZE,
+      page * SNAPSHOT_PAGE_SIZE,
+    );
+
+    if (response.error || !response.data) return null;
+
+    ids.push(...response.data.emails.map((email) => email.id));
+
+    if (!response.data.has_more) return ids;
+  }
+
+  return null;
+}
+
+export function snapshot_untagged_scheduled(): Promise<boolean> {
+  return ensure_untagged_snapshot({ list_ids: list_all_scheduled_ids }).then(
+    (snapshot) => snapshot !== null,
+  );
+}
+
+async function untagged_scheduled_open_allowed(
+  email_id: string,
+  updated_at: unknown,
+  vault: EncryptedVault,
+): Promise<boolean> {
+  if (has_untagged_snapshot(vault)) {
+    return untagged_open_allowed(vault, email_id, updated_at);
+  }
+
+  const snapshot = await ensure_untagged_snapshot({
+    list_ids: list_all_scheduled_ids,
+  });
+
+  return untagged_open_allowed(
+    { scheduled_untagged: snapshot ?? undefined },
+    email_id,
+    updated_at,
+  );
+}
+
 export async function get_scheduled_email(
   email_id: string,
   vault: EncryptedVault,
-): Promise<ApiResponse<ScheduledEmailWithContent | null>> {
+): Promise<ScheduledEmailResponse> {
   const response = await api_client.get<ScheduledEmailApiFullResponse>(
     `/mail/v1/scheduled/${email_id}`,
   );
@@ -561,13 +657,31 @@ export async function get_scheduled_email(
 
   try {
     let content: ScheduledEmailContent;
+    let content_verified = true;
 
     if (response.data.ephemeral_key) {
-      content = await decrypt_with_ephemeral_key(
+      const opened = await decrypt_with_ephemeral_key(
         response.data.encrypted_envelope,
         response.data.envelope_nonce,
         response.data.ephemeral_key,
+        vault,
       );
+
+      if (
+        opened.untagged &&
+        !(await untagged_scheduled_open_allowed(
+          response.data.id,
+          response.data.updated_at,
+          vault,
+        ))
+      ) {
+        throw new ScheduledDecryptionError(
+          get_active_translations().errors.load_failed,
+        );
+      }
+
+      content = opened.content;
+      content_verified = opened.verified;
     } else {
       content = await decrypt_scheduled_content(
         response.data.encrypted_envelope,
@@ -584,6 +698,7 @@ export async function get_scheduled_email(
         created_at: response.data.created_at,
         updated_at: response.data.updated_at,
         content: { ...content, scheduled_at: response.data.scheduled_at },
+        content_verified,
       },
     };
   } catch (error) {
@@ -592,8 +707,24 @@ export async function get_scheduled_email(
         ? error.message
         : get_active_translations().errors.load_failed;
 
-    return { data: null, error: message };
+    return { data: null, error: message, unreadable: true };
   }
+}
+
+export async function get_scheduled_email_for_edit(
+  email_id: string,
+  vault: EncryptedVault,
+): Promise<ApiResponse<ScheduledEmailWithContent | null>> {
+  const response = await get_scheduled_email(email_id, vault);
+
+  if (response.data && response.data.content_verified === false) {
+    return {
+      data: null,
+      error: get_active_translations().errors.scheduled_unverifiable,
+    };
+  }
+
+  return response;
 }
 
 export async function cancel_scheduled_email(
@@ -723,7 +854,7 @@ export async function create_scheduled_email(
     ephemeral_key?: string;
     base_nonce?: string;
   } = has_external
-    ? await encrypt_with_ephemeral_key(server_readable_content(content))
+    ? await encrypt_with_ephemeral_key(server_readable_content(content), vault)
     : await encrypt_with_local_key(content, vault);
 
   const request: CreateScheduledRequest = {

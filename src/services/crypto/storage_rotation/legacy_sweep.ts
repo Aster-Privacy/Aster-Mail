@@ -34,7 +34,10 @@ const MARKER_DOMAIN = "astermail_legacy_key_sweep_v1";
 
 type SweepVault = Pick<
   EncryptedVault,
-  "data_kek" | "legacy_keks" | "storage_rekey" | "data_kek_random"
+  | "data_kek"
+  | "legacy_keks"
+  | "storage_rekey"
+  | "data_kek_random"
 >;
 
 export type LegacySweepOptions = Omit<ResealRunOptions, "finish" | "vault"> & {
@@ -44,8 +47,12 @@ export type LegacySweepOptions = Omit<ResealRunOptions, "finish" | "vault"> & {
 function has_old_keys(
   vault: SweepVault,
   extra: Uint8Array[] | undefined,
+  untrusted: Uint8Array[] | undefined,
 ): boolean {
-  const raws = collect_old_storage_raws(vault, extra);
+  const raws = collect_old_storage_raws(vault, [
+    ...(extra ?? []),
+    ...(untrusted ?? []),
+  ]);
   const found = raws.length > 0;
 
   raws.forEach(zero_uint8_array);
@@ -61,19 +68,27 @@ export async function run_legacy_key_sweep(
     vault.data_kek_random === true &&
     !!vault.data_kek &&
     vault.storage_rekey?.state !== "pending" &&
-    has_old_keys(vault, options.key_options?.extra_old_raws);
+    has_old_keys(
+      vault,
+      options.key_options?.extra_old_raws,
+      options.key_options?.untrusted_old_raws,
+    );
 
   if (!wanted) return { status: "not_needed", counts: empty_counts() };
 
   return run_reseal_steps({ ...options, finish: async () => "done" });
 }
 
-export async function legacy_sweep_marker(vault: SweepVault): Promise<string> {
+export async function legacy_sweep_marker(
+  vault: SweepVault,
+  untrusted_ids: string[] = [],
+): Promise<string> {
   const legacy = [
     ...new Set((vault.legacy_keks ?? []).map((entry) => entry.k)),
   ].sort();
+  const untrusted = [...new Set(untrusted_ids)].sort();
   const input = new TextEncoder().encode(
-    [MARKER_DOMAIN, vault.data_kek ?? "", ...legacy].join("\n"),
+    [MARKER_DOMAIN, vault.data_kek ?? "", ...legacy, ...untrusted].join("\n"),
   );
 
   try {

@@ -38,19 +38,23 @@ import {
   SyncErrorDetail,
   SyncStatusIndicator,
 } from "@/components/settings/external_accounts/sync_status";
+import { is_paused_by_plan, is_send_only } from "@/lib/external_account_modes";
+import { request_settings_tab } from "@/components/settings/settings_content_helpers";
 
 const PROTOCOL_LABELS: Record<string, string> = {
+  smtp: "SMTP",
   imap: "IMAP",
-  oauth_imap: "IMAP",
+  oauth_imap: "OAuth",
   jmap: "JMAP",
   pop3: "POP3",
 };
 
 const PROTOCOL_TOOLTIP_KEYS: Record<string, TranslationKey> = {
   imap: "settings.protocol_tooltip_imap",
-  oauth_imap: "settings.protocol_tooltip_imap",
+  oauth_imap: "settings.ext_v2_protocol_tooltip_oauth",
   jmap: "settings.protocol_tooltip_jmap",
   pop3: "settings.protocol_tooltip_pop3",
+  smtp: "settings.ext_v2_protocol_tooltip_smtp",
 };
 
 export function protocol_label(protocol: string) {
@@ -88,6 +92,9 @@ export function AccountCard({
   set_purge_target,
   t,
 }: AccountCardProps) {
+  const send_only = is_send_only(account);
+  const plan_paused = is_paused_by_plan(account);
+
   return (
     <div
       className={
@@ -101,7 +108,11 @@ export function AccountCard({
           use_domain_logo
           className="mt-0.5 @lg:mt-0"
           email={account.email}
-          name={account.display_name || account.email}
+          name={
+            account.protocol === "oauth_imap"
+              ? account.email
+              : account.display_name || account.email
+          }
           size="sm"
         />
 
@@ -129,23 +140,41 @@ export function AccountCard({
                   {protocol_label(account.protocol)}
                 </span>
               </Tooltip>
-              <Tooltip
-                tip={
-                  account.is_enabled
-                    ? t("settings.account_enabled_tooltip")
-                    : t("settings.account_paused_tooltip")
-                }
-              >
-                <span
-                  className={
+              {!plan_paused && (
+                <Tooltip
+                  tip={
                     account.is_enabled
-                      ? "account_menu_badge"
-                      : "account_menu_badge account_menu_badge_muted"
+                      ? t("settings.account_enabled_tooltip")
+                      : t("settings.account_paused_tooltip")
                   }
                 >
-                  {account.is_enabled ? t("common.active") : t("common.paused")}
-                </span>
-              </Tooltip>
+                  <span
+                    className={
+                      account.is_enabled
+                        ? "account_menu_badge"
+                        : "account_menu_badge account_menu_badge_muted"
+                    }
+                  >
+                    {account.is_enabled
+                      ? t("common.active")
+                      : t("common.paused")}
+                  </span>
+                </Tooltip>
+              )}
+              {send_only && (
+                <Tooltip tip={t("settings.ext_v2_send_only_tooltip")}>
+                  <span className="account_menu_badge">
+                    {t("settings.ext_v2_send_only_badge")}
+                  </span>
+                </Tooltip>
+              )}
+              {plan_paused && (
+                <Tooltip tip={t("settings.ext_v2_plan_paused_tooltip")}>
+                  <span className="account_menu_badge account_menu_badge_muted">
+                    {t("settings.ext_v2_plan_paused_badge")}
+                  </span>
+                </Tooltip>
+              )}
               {account.email_count > 0 && (
                 <span className="text-[11px] text-txt-muted">
                   {t("settings.email_count", {
@@ -154,13 +183,15 @@ export function AccountCard({
                 </span>
               )}
             </div>
-            <SyncStatusIndicator
-              account={account}
-              expanded_error_ids={expanded_error_ids}
-              format_sync_time={format_sync_time}
-              t={t}
-              toggle_error_expand={toggle_error_expand}
-            />
+            {!send_only && (
+              <SyncStatusIndicator
+                account={account}
+                expanded_error_ids={expanded_error_ids}
+                format_sync_time={format_sync_time}
+                t={t}
+                toggle_error_expand={toggle_error_expand}
+              />
+            )}
           </div>
           <div className="flex items-center gap-1.5 flex-shrink-0">
             {account.needs_reauth && account.protocol === "oauth_imap" ? (
@@ -169,6 +200,7 @@ export function AccountCard({
                 size="sm"
                 variant="depth"
                 onClick={() => {
+                  request_settings_tab("import");
                   window.dispatchEvent(
                     new CustomEvent("astermail:navigate-settings-section", {
                       detail: "import",
@@ -182,36 +214,43 @@ export function AccountCard({
               <>
                 <Tooltip
                   tip={
-                    account.is_enabled
-                      ? t("settings.account_pause_tooltip")
-                      : t("settings.account_resume_tooltip")
+                    plan_paused
+                      ? t("settings.ext_v2_plan_paused_tooltip")
+                      : account.is_enabled
+                        ? t("settings.account_pause_tooltip")
+                        : t("settings.account_resume_tooltip")
                   }
                 >
                   <Switch
-                    aria-label={`${account.is_enabled ? t("common.disable") : t("common.enable")} ${account.email}`}
-                    checked={account.is_enabled}
+                    aria-label={`${account.is_enabled && !plan_paused ? t("common.disable") : t("common.enable")} ${account.email}`}
+                    checked={account.is_enabled && !plan_paused}
+                    disabled={plan_paused}
                     size="lg"
                     onCheckedChange={() => handle_toggle(account)}
                   />
                 </Tooltip>
-                <Tooltip tip={t("settings.sync_now_tooltip")}>
-                  <Button
-                    aria-label={`${t("common.sync")} ${account.email}`}
-                    className="rounded-full w-10 h-10 p-0"
-                    disabled={
-                      check_is_syncing(account.id) || !account.is_enabled
-                    }
-                    size="md"
-                    variant="ghost"
-                    onClick={() => handle_sync(account)}
-                  >
-                    {check_is_syncing(account.id) ? (
-                      <Spinner size="md" />
-                    ) : (
-                      <ArrowPathIcon className="w-5 h-5" />
-                    )}
-                  </Button>
-                </Tooltip>
+                {!send_only && (
+                  <Tooltip tip={t("settings.sync_now_tooltip")}>
+                    <Button
+                      aria-label={`${t("common.sync")} ${account.email}`}
+                      className="rounded-full w-10 h-10 p-0"
+                      disabled={
+                        check_is_syncing(account.id) ||
+                        !account.is_enabled ||
+                        plan_paused
+                      }
+                      size="md"
+                      variant="ghost"
+                      onClick={() => handle_sync(account)}
+                    >
+                      {check_is_syncing(account.id) ? (
+                        <Spinner size="md" />
+                      ) : (
+                        <ArrowPathIcon className="w-5 h-5" />
+                      )}
+                    </Button>
+                  </Tooltip>
+                )}
               </>
             )}
             <Tooltip tip={t("settings.edit_account_tooltip")}>
@@ -239,7 +278,8 @@ export function AccountCard({
           </div>
         </div>
       </div>
-      {account.last_sync_status === "error" &&
+      {!send_only &&
+        account.last_sync_status === "error" &&
         expanded_error_ids.has(account.id) && (
           <SyncErrorDetail
             account={account}

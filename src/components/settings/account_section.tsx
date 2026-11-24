@@ -92,6 +92,7 @@ import {
 import { get_badge_visual } from "@/components/ui/badge_registry";
 import { set_my_badge_prefs } from "@/stores/my_badge_prefs_store";
 import { format_date } from "@/utils/date_format";
+import { is_reauth_required } from "@/services/api/step_up";
 import {
   get_recovery_email,
   save_recovery_email,
@@ -524,7 +525,8 @@ export function AccountSection() {
 
     const r = await save_recovery_email(normalized, vault);
 
-    if (r.code === "STEP_UP_REQUIRED" || r.code === "TOTP_REQUIRED") {
+    if (r.held) return;
+    if (is_reauth_required(r.server_code)) {
       request_recovery_step_up(normalized);
 
       return;
@@ -581,6 +583,11 @@ export function AccountSection() {
         credentials,
       );
 
+      if (r.held) {
+        set_show_step_up(false);
+
+        return;
+      }
       if (r.code === "CONFLICT") {
         throw new Error(t("common.recovery_conflict"));
       }
@@ -601,6 +608,12 @@ export function AccountSection() {
       set_show_step_up(false);
     } else {
       const r = await remove_recovery_email(credentials);
+
+      if (r.held) {
+        set_show_step_up(false);
+
+        return;
+      }
 
       if (!r.data.success) {
         throw new Error(r.error || t("common.step_up_error"));

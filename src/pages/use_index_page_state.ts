@@ -50,7 +50,10 @@ import { use_subscriptions } from "@/hooks/use_subscriptions";
 import { use_document_title } from "@/hooks/use_document_title";
 import { use_keyboard_shortcuts } from "@/hooks/use_keyboard_shortcuts";
 import { use_key_rotation } from "@/hooks/use_key_rotation";
-import { lock_all_folders } from "@/hooks/use_protected_folder";
+import {
+  lock_all_folders,
+  lock_folder_left_behind,
+} from "@/hooks/use_protected_folder";
 import {
   MAIL_EVENTS,
   emit_folders_changed,
@@ -91,10 +94,17 @@ import { subscribe_mailto_drafts } from "@/native/desktop_mailto_bridge";
 import { subscribe_notification_opens } from "@/native/desktop_notification_bridge";
 import { open_message_in_view_mode } from "@/components/toast/toast_action_router";
 import { on_user_opened_mail } from "@/services/user_opened_mail";
+import { resolve_welcome_auto_open } from "@/lib/stale_open_email";
+import {
+  FORWARD_AS_ATTACHMENT_EVENT,
+  type ForwardAsAttachmentDetail,
+} from "@/services/forward_as_attachment";
 import {
   build_alias_view,
   parse_alias_direction,
 } from "@/hooks/email_list_helpers/alias_view";
+import { OAUTH_EXTERNAL_LIMIT_REASON } from "@/lib/external_account_modes";
+import { show_plan_limit_upgrade } from "@/stores/upgrade_store";
 
 export interface ForwardData {
   sender_name: string;
@@ -273,6 +283,11 @@ export function use_index_page_state() {
       }, 600);
 
       return;
+    } else if (
+      oauth_status === "error" &&
+      raw_reason === OAUTH_EXTERNAL_LIMIT_REASON
+    ) {
+      show_plan_limit_upgrade({ resource: "external accounts" });
     } else if (oauth_status === "error") {
       const reason_key_map: Record<string, string> = {
         provider_denied: "settings.oauth_reason_provider_denied",
@@ -610,18 +625,23 @@ export function use_index_page_state() {
 
     if (!should_open) return;
     if (location.hash.startsWith("#")) return;
-    if (Object.keys(email_subject_map).length === 0) return;
 
-    const welcome_entry = Object.entries(email_subject_map).find(
-      ([, subject]) => subject.toLowerCase().includes("welcome to aster"),
-    );
+    const welcome = resolve_welcome_auto_open(email_subject_map);
 
-    if (welcome_entry) {
-      has_auto_opened_welcome.current = true;
-      localStorage.removeItem("show_onboarding");
-      handle_navigate_to(welcome_entry[0]);
+    if (welcome.kind === "wait") return;
+
+    has_auto_opened_welcome.current = true;
+    localStorage.removeItem("show_onboarding");
+
+    if (welcome.kind !== "open") return;
+
+    set_preview_local_email(null);
+    if (use_popup_mode) {
+      set_popup_email_id(welcome.email_id);
+    } else {
+      set_split_email_id(welcome.email_id);
     }
-  }, [email_subject_map, handle_navigate_to, location.hash]);
+  }, [email_subject_map, location.hash, use_popup_mode]);
 
   const handle_email_click = useCallback(
     (id: string) => {
@@ -1265,6 +1285,30 @@ export function use_index_page_state() {
   }, [is_mobile, open_compose_instance, t]);
 
   useEffect(() => {
+    const handle_forward_as_attachment = (e: Event) => {
+      const detail = (e as CustomEvent<ForwardAsAttachmentDetail>).detail;
+
+      if (!detail?.files?.length) return;
+      close_settings();
+      open_compose_instance(null, undefined, undefined, {
+        initial_attachments: detail.files,
+        initial_subject: detail.subject,
+      });
+    };
+
+    window.addEventListener(
+      FORWARD_AS_ATTACHMENT_EVENT,
+      handle_forward_as_attachment,
+    );
+
+    return () =>
+      window.removeEventListener(
+        FORWARD_AS_ATTACHMENT_EVENT,
+        handle_forward_as_attachment,
+      );
+  }, [close_settings, open_compose_instance]);
+
+  useEffect(() => {
     const handle_prefilled_compose = (e: Event) => {
       const detail = (e as CustomEvent).detail as {
         to: string[];
@@ -1738,6 +1782,11 @@ export function use_index_page_state() {
       },
       on_command_palette: () => set_is_command_palette_open((open) => !open),
       on_show_shortcuts: () => set_is_shortcuts_open(true),
+      on_lock_folders: () => {
+        if (lock_all_folders() > 0) {
+          show_toast(t("common.folders_locked_notice"), "success");
+        }
+      },
     },
   });
 
@@ -1766,17 +1815,14 @@ export function use_index_page_state() {
   }, [current_view, location.state]);
 
   useEffect(() => {
-    const was_folder = previous_view.current.startsWith("folder-");
-    const is_folder = current_view.startsWith("folder-");
+    const left_view = previous_view.current;
 
     previous_view.current = current_view;
 
     if (
-      was_folder &&
-      !is_folder &&
-      preferences.protected_folder_lock_mode === "on_leave"
+      preferences.protected_folder_lock_mode === "on_leave" &&
+      lock_folder_left_behind(left_view, current_view)
     ) {
-      lock_all_folders();
       emit_folders_changed();
     }
   }, [current_view, preferences.protected_folder_lock_mode]);

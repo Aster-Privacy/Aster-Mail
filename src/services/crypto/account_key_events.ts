@@ -18,6 +18,8 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { note_decrypt_key_change } from "@/services/crypto/decrypt_readiness";
+
 const account_keys_added_listeners: Set<() => void> = new Set();
 
 export function on_account_keys_added(callback: () => void): () => void {
@@ -29,6 +31,7 @@ export function on_account_keys_added(callback: () => void): () => void {
 }
 
 export function notify_account_keys_added(): void {
+  note_decrypt_key_change();
   account_keys_added_listeners.forEach((callback) => {
     try {
       callback();

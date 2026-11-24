@@ -84,6 +84,7 @@ import {
 } from "@/components/toast/simple_toast";
 import { addon_return_url } from "@/lib/addon_return_url";
 import { use_i18n } from "@/lib/i18n/context";
+import { payment_url_or_throw } from "@/lib/payment_url";
 import { use_auth } from "@/contexts/auth/use_auth_hook";
 import { safe_local_set } from "@/lib/safe_storage";
 import {
@@ -135,6 +136,11 @@ import { CryptoAddonTermModal } from "@/components/settings/billing/crypto_addon
 import { CryptoTermModal } from "@/components/settings/billing/crypto_term_modal";
 import { SettingsSkeleton } from "@/components/settings/settings_skeleton";
 import {
+  initial_requested_plan,
+  should_open_requested_plan,
+  strip_requested_plan,
+} from "@/components/settings/billing/requested_plan";
+import {
   SKELETON_MIN_VISIBLE_MS,
   use_delayed_flag,
 } from "@/hooks/use_delayed_flag";
@@ -144,6 +150,7 @@ import {
   get_cancel_password_hash,
 } from "@/components/settings/billing/cancel_password";
 import { use_plan_features } from "@/components/settings/billing/use_plan_features";
+import { has_tauri_runtime } from "@/lib/tauri_runtime";
 
 interface BillingCache {
   user_id: string | null;
@@ -357,6 +364,7 @@ export function BillingSection() {
   >(null);
   const [plan_method_target, set_plan_method_target] =
     useState<AvailablePlan | null>(null);
+  const requested_plan_ref = useRef<string | null>(initial_requested_plan());
   const [crypto_back_plan, set_crypto_back_plan] =
     useState<AvailablePlan | null>(null);
   const [crypto_back_addon, set_crypto_back_addon] =
@@ -417,6 +425,22 @@ export function BillingSection() {
     );
     set_plan_method_target(plan);
   }, [plans, resume_tick]);
+
+  useEffect(() => {
+    strip_requested_plan();
+  }, []);
+
+  useEffect(() => {
+    const requested = requested_plan_ref.current;
+
+    if (!requested || is_initial_load || plans.length === 0) return;
+    requested_plan_ref.current = null;
+    if (!should_open_requested_plan(requested, subscription?.plan.code)) return;
+
+    const plan = plans.find((entry) => entry.code === requested);
+
+    if (plan) set_plan_method_target(plan);
+  }, [plans, is_initial_load, subscription]);
 
   useEffect(() => {
     if (!window.location.pathname.endsWith("/settings/credits")) return;
@@ -765,8 +789,7 @@ export function BillingSection() {
   ) => {
     if (is_action_loading) return;
 
-    const is_tauri =
-      typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
+    const is_tauri = has_tauri_runtime();
 
     if (is_tauri && !has_card_subscription) {
       set_is_action_loading(true);
@@ -830,8 +853,7 @@ export function BillingSection() {
     const checkout_interval =
       term === "yearly" ? "year" : term === "biennial" ? "biennial" : "month";
 
-    const is_tauri =
-      typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
+    const is_tauri = has_tauri_runtime();
 
     if (has_card_subscription) {
       set_plan_change_confirm_target({ plan, interval: checkout_interval });
@@ -957,8 +979,7 @@ export function BillingSection() {
     if (!plan_change_confirm_target) return;
     const { plan, interval } = plan_change_confirm_target;
 
-    const is_tauri =
-      typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
+    const is_tauri = has_tauri_runtime();
 
     set_is_action_loading(true);
     try {
@@ -1045,12 +1066,13 @@ export function BillingSection() {
         addon_return_url("cancelled"),
         addon.billing_interval,
       );
-      const url = response.data?.url;
+      const url = response.data?.url
+        ? payment_url_or_throw(response.data.url)
+        : undefined;
 
       if (url) {
         remember_addon_target(addon.id);
-        const is_tauri =
-          typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
+        const is_tauri = has_tauri_runtime();
 
         if (is_tauri) {
           const core = await import("@tauri-apps/api/core");

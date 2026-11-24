@@ -42,6 +42,7 @@ import {
   InboxStackIcon,
   MagnifyingGlassIcon,
   EyeIcon,
+  LockClosedIcon,
 } from "@heroicons/react/24/outline";
 
 import { ButtonSpinner } from "@/components/ui/spinner";
@@ -56,6 +57,8 @@ import { show_action_toast } from "@/components/toast/action_toast";
 import { show_toast } from "@/components/toast/simple_toast";
 import { ConfirmationModal } from "@/components/modals/confirmation_modal";
 import { has_protected_folder_label } from "@/hooks/use_folders";
+import { lock_all_folders } from "@/hooks/use_protected_folder";
+import { use_unlocked_folder_count } from "@/hooks/use_folder_unlock_state";
 import { use_should_reduce_motion } from "@/provider";
 import { use_i18n } from "@/lib/i18n/context";
 import {
@@ -128,6 +131,7 @@ export function CommandPalette({
   on_close_ref.current = on_close;
 
   const close_palette = useCallback(() => on_close_ref.current(), []);
+  const has_unlocked_folders = use_unlocked_folder_count() > 0;
 
   const go_to = useCallback(
     (route: string) => {
@@ -669,6 +673,25 @@ export function CommandPalette({
           close_palette();
         },
       },
+      ...(has_unlocked_folders
+        ? [
+            {
+              id: "lock_all_folders",
+              label: t("common.lock_all_folders"),
+              description: t("common.lock_all_folders_description"),
+              icon: LockClosedIcon,
+              shortcut: "⇧ L",
+              category: "actions" as const,
+              keywords: ["lock", "folder", "protected", "password"],
+              action: () => {
+                if (lock_all_folders() > 0) {
+                  show_toast(t("common.folders_locked_notice"), "success");
+                }
+                close_palette();
+              },
+            },
+          ]
+        : []),
       {
         id: "toggle_theme",
         label:
@@ -744,6 +767,7 @@ export function CommandPalette({
       logout,
       execute_metadata_action,
       execute_archive_action,
+      has_unlocked_folders,
     ],
   );
 

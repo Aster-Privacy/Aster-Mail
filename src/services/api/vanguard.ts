@@ -18,6 +18,8 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import type { StepUpHardwareKeyAssertion } from "./webauthn";
+
 import { api_client, ApiResponse } from "./client";
 
 export interface VanguardStatusResponse {
@@ -52,6 +54,7 @@ export async function disable_vanguard(): Promise<
 export interface VerifyCredentialsRequest {
   password_hash: string;
   totp_code?: string;
+  hardware_key_assertion?: StepUpHardwareKeyAssertion;
   for_export?: boolean;
   captcha_token?: string;
 }

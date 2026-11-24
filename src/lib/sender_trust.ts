@@ -52,6 +52,7 @@ export interface SenderTrustInput {
   sender_verified?: boolean | null;
   sender_verified_domain?: string | null;
   is_internal?: boolean;
+  internal_route?: boolean;
   own_addresses?: string[];
   contacts?: SenderTrustContact[];
 }
@@ -1637,6 +1638,7 @@ function find_warning(
   parsed: ParsedAddress,
   auth_state: SenderAuthState,
   personal: PersonalContext,
+  internal_route = false,
 ): SenderWarning | null {
   const trusted_auth =
     auth_state === "internal" || auth_state === "authenticated";
@@ -1747,7 +1749,8 @@ function find_warning(
     home &&
     (reads_as_lookalike(home, claim) || home.solo || claim.has_home_generic)
   ) {
-    const trusted = is_official_home_address(parsed) && trusted_auth;
+    const trusted =
+      is_official_home_address(parsed) && (trusted_auth || internal_route);
 
     return trusted
       ? null
@@ -1940,13 +1943,25 @@ export function evaluate_sender_trust(input: SenderTrustInput): SenderTrust {
   const whole_name = name_is_address
     ? ""
     : capped_display_name(input.name, MAX_NAME_LENGTH + MAX_ADDRESS_LENGTH);
-  let warning = find_warning(base_name, parsed, auth_state, personal);
+  let warning = find_warning(
+    base_name,
+    parsed,
+    auth_state,
+    personal,
+    input.internal_route === true,
+  );
   const checked = [base_name];
 
   for (const other of [whole_name, enclosed_plain(whole_name)]) {
     if (warning !== null || checked.includes(other)) continue;
     checked.push(other);
-    warning = find_warning(other, parsed, auth_state, personal);
+    warning = find_warning(
+      other,
+      parsed,
+      auth_state,
+      personal,
+      input.internal_route === true,
+    );
   }
   const hide_name =
     warning !== null &&

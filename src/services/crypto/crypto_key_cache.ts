@@ -55,7 +55,6 @@ let cleanup_timer: ReturnType<typeof setInterval> | null = null;
 let session_start_time: number | null = null;
 let cache_generation = 0;
 const pending_keys: Map<string, Promise<CryptoKey>> = new Map();
-const secret_cache_ids: Map<string, Map<string, Promise<string>>> = new Map();
 
 if (import.meta.hot) {
   const hmr_data = import.meta.hot.data as
@@ -199,23 +198,9 @@ export function get_secret_cache_id(
   label: string,
   secret: string,
 ): Promise<string> {
-  const known = secret_cache_ids.get(label)?.get(secret);
-
-  if (known) return known;
-
-  const id = compute_hash(
-    new TextEncoder().encode(`${label}\x00${secret}`),
-  ).then((hash) => `${label}:${hash}`);
-
-  if (session_start_time === null) return id;
-
-  const ids = secret_cache_ids.get(label) ?? new Map<string, Promise<string>>();
-
-  if (ids.size >= cache_config.max_entries) ids.clear();
-  ids.set(secret, id);
-  secret_cache_ids.set(label, ids);
-
-  return id;
+  return compute_hash(new TextEncoder().encode(`${label}\x00${secret}`)).then(
+    (hash) => `${label}:${hash}`,
+  );
 }
 
 export async function get_or_create_key(
@@ -279,7 +264,6 @@ export function remove_key(id: string): boolean {
 export function clear_all_keys(): void {
   key_cache.clear();
   pending_keys.clear();
-  secret_cache_ids.clear();
   cache_generation += 1;
   session_start_time = null;
   stop_cleanup_timer();

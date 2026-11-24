@@ -5,6 +5,7 @@ const account = {
 };
 
 let current_passphrase: string | null = "correct horse battery staple";
+let current_vault: { server_known_swept_ids?: string[] } | null = null;
 
 vi.mock("@/services/account_manager", () => ({
   get_current_account: async () => account,
@@ -44,13 +45,20 @@ vi.mock("@/services/crypto/memory_key_store", async (import_original) => ({
     typeof import("@/services/crypto/memory_key_store")
   >()),
   get_passphrase_from_memory: () => current_passphrase,
+  get_vault_from_memory: () => current_vault,
 }));
 
 import {
   decrypt_legacy_ios_envelope,
+  decrypt_legacy_ios_mail_envelope,
   clear_legacy_ios_envelope_key,
   LEGACY_KEY_RETRY_DELAY_MS,
 } from "./legacy_ios_envelope";
+import { server_known_kek_id } from "./server_known_keys";
+import {
+  reset_mail_legacy_retirement,
+  sync_mail_legacy_retirement,
+} from "./mail_legacy_retirement";
 
 async function derive_ios_key_material(
   password: string,
@@ -96,6 +104,7 @@ async function seal_like_ios(
 describe("decrypt_legacy_ios_envelope", () => {
   beforeEach(() => {
     current_passphrase = "correct horse battery staple";
+    current_vault = null;
     salt_lookup.mode = "ok";
     salt_lookup.calls = 0;
     salt_lookup.current = null;
@@ -138,6 +147,7 @@ describe("decrypt_legacy_ios_envelope", () => {
       expect(salt_lookup.calls).toBe(2);
       expect(JSON.parse(new TextDecoder().decode(plaintext!))).toEqual({
         subject: "Still here",
+        legacy_unverified: true,
       });
     }, 30000);
   }
@@ -160,7 +170,31 @@ describe("decrypt_legacy_ios_envelope", () => {
     expect(JSON.parse(new TextDecoder().decode(plaintext!))).toEqual({
       subject: "Hello from my phone",
       body_text: "This used to be invisible everywhere else.",
+      legacy_unverified: true,
     });
+  }, 30000);
+
+  it("keeps opening old-client envelopes under a swept login key", async () => {
+    const key_material = await derive_ios_key_material(
+      "correct horse battery staple",
+      salt_bytes,
+    );
+    const nonce = new Uint8Array(12).fill(3);
+    const ciphertext = await seal_like_ios(
+      JSON.stringify({ subject: "planted" }),
+      key_material,
+      nonce,
+    );
+
+    current_vault = {
+      server_known_swept_ids: [server_known_kek_id(key_material)],
+    };
+
+    expect(await decrypt_legacy_ios_envelope(ciphertext, nonce)).not.toBeNull();
+
+    current_vault = { server_known_swept_ids: [] };
+
+    expect(await decrypt_legacy_ios_envelope(ciphertext, nonce)).not.toBeNull();
   }, 30000);
 
   it("opens an older envelope after the login salt was rotated", async () => {
@@ -182,6 +216,7 @@ describe("decrypt_legacy_ios_envelope", () => {
 
     expect(JSON.parse(new TextDecoder().decode(plaintext!))).toEqual({
       subject: "Before rotation",
+      legacy_unverified: true,
     });
   }, 60000);
 
@@ -203,6 +238,7 @@ describe("decrypt_legacy_ios_envelope", () => {
 
     expect(JSON.parse(new TextDecoder().decode(plaintext!))).toEqual({
       subject: "Current",
+      legacy_unverified: true,
     });
   }, 30000);
 
@@ -231,5 +267,89 @@ describe("decrypt_legacy_ios_envelope", () => {
     const ciphertext = await seal_like_ios("{}", key_material, nonce);
 
     expect(await decrypt_legacy_ios_envelope(ciphertext, nonce)).toBeNull();
+  }, 30000);
+});
+
+describe("decrypt_legacy_ios_mail_envelope gate", () => {
+  const sealed_text = JSON.stringify({ subject: "Gate check" });
+  const nonce = new Uint8Array(12).fill(9);
+
+  async function seal_under_login_key(): Promise<Uint8Array> {
+    const key_material = await derive_ios_key_material(
+      "correct horse battery staple",
+      salt_bytes,
+    );
+
+    return seal_like_ios(sealed_text, key_material, nonce);
+  }
+
+  beforeEach(() => {
+    current_passphrase = "correct horse battery staple";
+    salt_lookup.mode = "ok";
+    salt_lookup.calls = 0;
+    salt_lookup.current = null;
+    salt_lookup.retired = [];
+    salt_lookup.retired_mode = "ok";
+    clear_legacy_ios_envelope_key();
+    reset_mail_legacy_retirement();
+    localStorage.clear();
+  });
+
+  afterEach(() => {
+    reset_mail_legacy_retirement();
+    localStorage.clear();
+  });
+
+  it("opens a login-key envelope while old keys are allowed", async () => {
+    const ciphertext = await seal_under_login_key();
+
+    const plaintext = await decrypt_legacy_ios_mail_envelope(
+      ciphertext,
+      nonce,
+      { allow_legacy_keys: true },
+    );
+
+    expect(JSON.parse(new TextDecoder().decode(plaintext!))).toEqual({
+      ...JSON.parse(sealed_text),
+      legacy_unverified: true,
+    });
+  }, 30000);
+
+  it("refuses a login-key envelope when old keys are not allowed", async () => {
+    const ciphertext = await seal_under_login_key();
+
+    const plaintext = await decrypt_legacy_ios_mail_envelope(
+      ciphertext,
+      nonce,
+      { allow_legacy_keys: false },
+    );
+
+    expect(plaintext).toBeNull();
+    expect(salt_lookup.calls).toBe(0);
+  }, 30000);
+
+  it("refuses a login-key envelope by default once the account is retired", async () => {
+    const ciphertext = await seal_under_login_key();
+
+    sync_mail_legacy_retirement(
+      { mail_legacy_retired: { v: 1, at: "2026-11-17T00:00:00.000Z" } },
+      "user-1",
+    );
+
+    expect(
+      await decrypt_legacy_ios_mail_envelope(ciphertext, nonce),
+    ).toBeNull();
+    expect(salt_lookup.calls).toBe(0);
+  }, 30000);
+
+  it("opens a login-key envelope by default before retirement", async () => {
+    const ciphertext = await seal_under_login_key();
+
+    const plaintext = await decrypt_legacy_ios_mail_envelope(ciphertext, nonce);
+
+    expect(JSON.parse(new TextDecoder().decode(plaintext!))).toEqual({
+      ...JSON.parse(sealed_text),
+      legacy_unverified: true,
+    });
   }, 30000);
 });

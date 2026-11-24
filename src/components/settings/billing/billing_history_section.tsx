@@ -28,6 +28,7 @@ import {
   type BillingHistoryItem,
 } from "@/services/api/billing";
 import { use_i18n } from "@/lib/i18n/context";
+import { checked_invoice_pdf_url } from "@/lib/payment_url";
 import { LoadFailedNotice } from "@/components/settings/load_failed_notice";
 import {
   BillingMoreRow,
@@ -84,14 +85,18 @@ export function BillingHistorySection({
         <li>
           <IslandRow
             description={format_date(item.created_at)}
-            href={item.invoice_pdf_url || undefined}
+            href={checked_invoice_pdf_url(item.invoice_pdf_url) ?? undefined}
             label={
               describe_billing_entry(item.description, t) ||
               item.plan_name ||
               t("settings.payment")
             }
             rel="noopener noreferrer"
-            target={item.invoice_pdf_url ? "_blank" : undefined}
+            target={
+              checked_invoice_pdf_url(item.invoice_pdf_url)
+                ? "_blank"
+                : undefined
+            }
             value={
               <span className="flex flex-col items-end gap-0.5">
                 <span className="text-[15px] font-semibold tabular-nums text-txt-primary">

@@ -66,6 +66,11 @@ vi.mock("@/services/api/auth", () => ({
   get_user_info: vi.fn(),
 }));
 
+vi.mock("@/native/desktop_guard_keys", () => ({
+  prepare_pairing_action_pk: vi.fn(async () => null),
+  adopt_pairing_guard_device: vi.fn(async () => undefined),
+}));
+
 const { DesktopSignUpHandoff } = await import("./desktop_sign_up_handoff");
 const { DesktopCodeSignIn } =
   await import("@/components/common/desktop_code_sign_in");

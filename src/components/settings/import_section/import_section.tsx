@@ -23,6 +23,7 @@ import type { TranslationKey } from "@/lib/i18n/types";
 import { useState, useEffect, useCallback, useRef } from "react";
 import {
   ArrowDownTrayIcon,
+  ChatBubbleLeftRightIcon,
   InformationCircleIcon,
 } from "@heroicons/react/24/outline";
 import {
@@ -77,8 +78,11 @@ import {
 import { stop_sync_polling } from "@/services/sync_manager";
 import { is_job_running } from "@/services/import/job_state";
 import { use_folders } from "@/hooks/use_folders";
-import { get_vault_from_memory } from "@/services/crypto/memory_key_store";
-import { mirror_external_account_folders } from "@/services/external_folder_mirror";
+import { apply_oauth_folder_selection } from "@/services/external_account_setup";
+import {
+  OAuthFolderPickerModal,
+  type OAuthFolderPickerResult,
+} from "@/components/settings/oauth_folder_picker_modal";
 import { ignore_error } from "@/lib/ignore_error";
 import {
   emit_folders_changed,
@@ -86,6 +90,8 @@ import {
   emit_refresh_requested,
 } from "@/hooks/mail_events";
 import { note_bulk_mail_removed } from "@/services/search/index_removals";
+import { regroup_conversations } from "@/services/import/repair_threads";
+import { invalidate_mail_cache } from "@/hooks/email_list_cache";
 
 export function ImportSection() {
   const { t } = use_i18n();
@@ -124,8 +130,35 @@ export function ImportSection() {
   const [oauth_setup_token, set_oauth_setup_token] = useState<string | null>(
     null,
   );
+  const [picker_token, set_picker_token] = useState<string | null>(null);
 
   const deleted_job_ids_ref = useRef<Set<string>>(new Set());
+  const [is_regrouping, set_is_regrouping] = useState(false);
+
+  const handle_regroup = useCallback(async () => {
+    set_is_regrouping(true);
+
+    try {
+      const result = await regroup_conversations();
+
+      if (result.status === "locked") {
+        show_toast(t("settings.regroup_conversations_failed"), "error");
+
+        return;
+      }
+
+      if (result.linked > 0) {
+        invalidate_mail_cache();
+        emit_mail_changed();
+      }
+
+      show_toast(t("settings.regroup_conversations_done"), "success");
+    } catch {
+      show_toast(t("settings.regroup_conversations_failed"), "error");
+    } finally {
+      set_is_regrouping(false);
+    }
+  }, [t]);
 
   const load_jobs = useCallback(async (silent = false) => {
     if (!silent) set_is_loading_jobs(true);
@@ -231,20 +264,20 @@ export function ImportSection() {
     [clear_syncing_account],
   );
 
-  const setup_oauth_folders = useCallback(
-    async (account_token: string) => {
+  const setup_oauth_folders = useCallback(async (account_token: string) => {
+    if (setup_account_tokens_ref.current.has(account_token)) return;
+
+    set_picker_token(account_token);
+  }, []);
+
+  const handle_picker_confirm = useCallback(
+    async (selection: OAuthFolderPickerResult) => {
+      const account_token = picker_token;
+
+      if (!account_token) return;
       if (setup_account_tokens_ref.current.has(account_token)) return;
 
-      const vault = get_vault_from_memory();
-
-      if (!vault?.identity_key) {
-        set_syncing_accounts((prev) => new Set(prev).add(account_token));
-        await run_sync(account_token);
-        load_connected_accounts();
-
-        return;
-      }
-
+      set_picker_token(null);
       setup_account_tokens_ref.current.add(account_token);
       oauth_cancelled_ref.current = false;
       set_oauth_setup_token(account_token);
@@ -252,17 +285,27 @@ export function ImportSection() {
       set_syncing_accounts((prev) => new Set(prev).add(account_token));
 
       try {
-        const outcome = await mirror_external_account_folders(
+        const outcome = await apply_oauth_folder_selection({
           account_token,
-          folders_state.folders,
+          selected_folders: selection.selected_folders,
+          import_existing: selection.import_existing,
+          existing_folders: folders_state.folders,
+          listed: selection.listed,
           t,
-          () => oauth_cancelled_ref.current,
-        );
+          is_cancelled: () => oauth_cancelled_ref.current,
+        });
 
         if (outcome.status === "cancelled") return;
 
         if (outcome.status === "error") {
           show_toast(t("settings.oauth_folders_error"), "error");
+          set_folder_setup_status("idle");
+          set_oauth_setup_token(null);
+          clear_syncing_account(account_token);
+          setup_account_tokens_ref.current.delete(account_token);
+          load_connected_accounts();
+
+          return;
         } else if (outcome.status === "ok" && outcome.failures > 0) {
           show_toast(
             t("settings.oauth_folders_partial", { count: outcome.failures }),
@@ -279,18 +322,20 @@ export function ImportSection() {
         set_oauth_setup_token(null);
         if (oauth_cancelled_ref.current) return;
         show_toast(t("settings.oauth_folders_error"), "error");
-
-        await run_sync(account_token).catch((caught) =>
-          ignore_error(
-            "components/settings/import_section/import_section:ImportSection",
-            caught,
-          ),
-        );
+        clear_syncing_account(account_token);
+        setup_account_tokens_ref.current.delete(account_token);
       }
 
       load_connected_accounts();
     },
-    [t, load_connected_accounts, folders_state, run_sync],
+    [
+      t,
+      picker_token,
+      load_connected_accounts,
+      folders_state,
+      run_sync,
+      clear_syncing_account,
+    ],
   );
 
   const stop_sync = useCallback(
@@ -836,6 +881,25 @@ export function ImportSection() {
         </IslandSection>
       )}
 
+      <IslandSection title={t("settings.regroup_conversations_title")}>
+        <IslandRow
+          description={t("settings.regroup_conversations_description")}
+          icon={<ChatBubbleLeftRightIcon />}
+          label={t("settings.regroup_conversations_label")}
+          trailing={
+            <Button
+              disabled={is_regrouping}
+              is_loading={is_regrouping}
+              size="sm"
+              variant="outline"
+              onClick={() => void handle_regroup()}
+            >
+              {t("settings.regroup_conversations_button")}
+            </Button>
+          }
+        />
+      </IslandSection>
+
       <IslandSection
         icon={<InformationCircleIcon />}
         island_class_name="space-y-3"
@@ -886,6 +950,12 @@ export function ImportSection() {
         provider={selected_provider}
       />
 
+      <OAuthFolderPickerModal
+        for_import
+        account_token={picker_token}
+        on_cancel={() => set_picker_token(null)}
+        on_confirm={handle_picker_confirm}
+      />
       <ConnectProviderModal
         on_close={() => {
           set_connect_provider(null);

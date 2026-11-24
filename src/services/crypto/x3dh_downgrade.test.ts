@@ -71,13 +71,13 @@ describe("post-quantum downgrade detection", () => {
     expect(bundle_is_downgraded(bundle)).toBe(true);
   });
 
-  it("does not flag a capable peer that still carries a one-time prekey", () => {
+  it("does not flag a capable peer that only carries a one-time prekey", () => {
     const bundle = base_bundle({
       pq_capable: true,
       pq_prekey: { key_id: 4, public_key: kem_key() },
     });
 
-    expect(bundle_supports_pq(bundle)).toBe(true);
+    expect(bundle_supports_pq(bundle)).toBe(false);
     expect(bundle_is_downgraded(bundle)).toBe(false);
   });
 

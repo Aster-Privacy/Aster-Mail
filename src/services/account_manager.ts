@@ -29,6 +29,7 @@ import { get_active_translations } from "@/lib/i18n/translations";
 import { ignore_error } from "@/lib/ignore_error";
 import { clear_expanded_folders } from "@/services/expanded_folders_store";
 import { clear_expanded_tags } from "@/services/expanded_tags_store";
+import { forget_totp_required } from "@/services/api/step_up_cache";
 import {
   safe_local_get,
   safe_local_keys,
@@ -762,6 +763,7 @@ export async function switch_account(
   if (!account) return null;
 
   data.current_account_id = account_id;
+  forget_totp_required();
   await save_accounts_data(data);
   await clear_offline_email_cache();
   await clear_account_scoped_preferences_cache();
@@ -779,6 +781,17 @@ async function clear_account_key_storage(account_id: string): Promise<void> {
     await delete_account_storage(account_id);
   } catch (caught) {
     ignore_error("services/account_manager:clear_account_key_storage", caught);
+  }
+
+  try {
+    const { delete_guard_hints_for, delete_guard_record } = await import(
+      "@/services/crypto/guard_key_store"
+    );
+
+    await delete_guard_record(account_id);
+    await delete_guard_hints_for(account_id);
+  } catch (caught) {
+    ignore_error("services/account_manager:clear_guard_record", caught);
   }
 }
 
@@ -963,6 +976,7 @@ export async function update_account_user(
 }
 
 export async function logout_all(): Promise<void> {
+  forget_totp_required();
   cached_data = null;
   storage_initialized = false;
   safe_local_remove(ACCOUNTS_KEY);

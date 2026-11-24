@@ -19,8 +19,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type { Action } from "@/services/api/mail_rules";
+import type { DecryptedFolder } from "@/hooks/use_folders";
 
 import * as React from "react";
+import { createPortal } from "react-dom";
 import {
   FolderIcon,
   TagIcon,
@@ -39,9 +41,11 @@ import { ChipPill, ChipSegment, use_chip_layout } from "./chip_pill";
 import { ActionTargetDropdown } from "./dropdowns/action_target_dropdown";
 
 import { PinIcon } from "@/components/common/icons";
+import { CreateFolderModal } from "@/components/folders/create_folder_modal";
 import {
   is_missing_rule_folder,
   rule_folder_name,
+  with_created_rule_folder,
 } from "@/components/mail_rules/rule_folders";
 import { rule_category_label_key } from "@/data/category_catalog";
 import { use_folders } from "@/hooks/use_folders";
@@ -53,6 +57,7 @@ interface ActionChipProps {
   action: Action;
   on_change: (action: Action) => void;
   on_remove: () => void;
+  on_folder_created?: (folder: DecryptedFolder) => void;
   read_only?: boolean;
 }
 
@@ -60,6 +65,7 @@ export function ActionChip({
   action,
   on_change,
   on_remove,
+  on_folder_created,
   read_only,
 }: ActionChipProps) {
   const { t } = use_i18n();
@@ -70,6 +76,30 @@ export function ActionChip({
   const pill_ref = React.useRef<HTMLDivElement | null>(null);
   const trigger_ref = React.useRef<HTMLButtonElement | null>(null);
   const [align_offset, set_align_offset] = React.useState<number>(0);
+  const [is_create_folder_open, set_is_create_folder_open] =
+    React.useState(false);
+  const [created_folder, set_created_folder] =
+    React.useState<DecryptedFolder | null>(null);
+  const known_folders = with_created_rule_folder(
+    folders_state.folders,
+    created_folder,
+  );
+
+  const open_create_folder = () => {
+    set_open(false);
+    set_is_create_folder_open(true);
+  };
+
+  const close_create_folder = () => {
+    set_is_create_folder_open(false);
+    requestAnimationFrame(() => trigger_ref.current?.focus());
+  };
+
+  const handle_folder_created = (folder: DecryptedFolder) => {
+    set_created_folder(folder);
+    on_folder_created?.(folder);
+    on_change({ type: "move_to", folder_token: folder.folder_token });
+  };
 
   React.useLayoutEffect(() => {
     if (!open || is_row) return;
@@ -136,7 +166,7 @@ export function ActionChip({
       case "move_to": {
         if (!action.folder_token) return t("mail_rules.none");
         return (
-          rule_folder_name(folders_state.folders, action.folder_token, t) ??
+          rule_folder_name(known_folders, action.folder_token, t) ??
           t("mail_rules.none")
         );
       }
@@ -184,10 +214,7 @@ export function ActionChip({
   const is_target_placeholder = (() => {
     switch (action.type) {
       case "move_to":
-        return is_missing_rule_folder(
-          folders_state.folders,
-          action.folder_token,
-        );
+        return is_missing_rule_folder(known_folders, action.folder_token);
       case "apply_labels":
         return action.label_tokens.length === 0;
       case "forward":
@@ -232,9 +259,7 @@ export function ActionChip({
 
   const target_color =
     action.type === "move_to" && action.folder_token
-      ? folders_state.folders.find(
-          (f) => f.folder_token === action.folder_token,
-        )?.color
+      ? known_folders.find((f) => f.folder_token === action.folder_token)?.color
       : undefined;
 
   return (
@@ -244,10 +269,12 @@ export function ActionChip({
         <ActionTargetDropdown
           action_type="move_to"
           align_offset={align_offset}
+          created_folder={created_folder}
           on_commit={(a) => {
             on_change(a);
             set_open(false);
           }}
+          on_create_folder={read_only ? undefined : open_create_folder}
           on_open_change={set_open}
           open={open}
           trigger={
@@ -272,6 +299,17 @@ export function ActionChip({
           value={action.folder_token}
         />
       )}
+      {action.type === "move_to" &&
+        !read_only &&
+        typeof document !== "undefined" &&
+        createPortal(
+          <CreateFolderModal
+            is_open={is_create_folder_open}
+            on_close={close_create_folder}
+            on_created={handle_folder_created}
+          />,
+          document.body,
+        )}
       {action.type === "apply_labels" && (
         <ActionTargetDropdown
           action_type="apply_labels"

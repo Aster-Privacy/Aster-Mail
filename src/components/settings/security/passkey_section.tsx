@@ -47,6 +47,7 @@ import { use_i18n } from "@/lib/i18n/context";
 import { is_desktop } from "@/native/invoke_bridge";
 import { open_external } from "@/utils/open_link";
 import { show_toast } from "@/components/toast/simple_toast";
+import { held_of } from "@/services/guard/held_outcome";
 import { use_auth } from "@/contexts/auth_context";
 import { use_settings_cache } from "@/contexts/settings_cache_context";
 import { get_session_passphrase } from "@/contexts/auth/session_passphrase";
@@ -61,7 +62,9 @@ import {
 } from "@/services/api/webauthn";
 import {
   STEP_UP_REQUIRED_CODE,
+  is_reauth_required,
   to_reauth_proof,
+  type ReauthProof,
   type StepUpCredentials,
 } from "@/services/api/step_up";
 import {
@@ -274,12 +277,18 @@ export function PasskeySection() {
   const handle_remove = useCallback(
     async (
       key_id: string,
-      credentials?: { password_hash: string; totp_code?: string },
+      credentials?: ReauthProof,
     ) => {
       set_pending_delete(null);
       set_removing_id(key_id);
       try {
         const resp = await remove_hardware_key(key_id, credentials);
+
+        if (held_of(resp)) {
+          set_step_up_key_id(null);
+
+          return;
+        }
 
         if (resp.data?.success) {
           set_keys((prev) => prev.filter((k) => k.id !== key_id));
@@ -307,7 +316,7 @@ export function PasskeySection() {
           return;
         }
 
-        if (resp.server_code === "STEP_UP_REQUIRED") {
+        if (!credentials && is_reauth_required(resp.server_code)) {
           set_step_up_key_id(key_id);
 
           return;
@@ -613,18 +622,12 @@ export function PasskeySection() {
         on_close={() => set_step_up_key_id(null)}
         on_confirm={async (credentials) => {
           if (!step_up_key_id) return;
-          await handle_remove(step_up_key_id, {
-            password_hash: credentials.password_hash,
-            ...(credentials.totp_code
-              ? { totp_code: credentials.totp_code }
-              : {}),
-          });
+          await handle_remove(step_up_key_id, to_reauth_proof(credentials));
         }}
         title={t("passkeys.remove_last_key_step_up_title")}
       />
 
       <StepUpModal
-        password_only
         confirm_label={t("common.continue")}
         description={t("common.step_up_description")}
         is_open={!!step_up_add}

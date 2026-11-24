@@ -134,6 +134,12 @@ vi.mock("./use_sign_in_page", () => ({
     set_active_2fa_method: vi.fn(),
     handle_totp_success: vi.fn(),
     handle_resend_pending: vi.fn(),
+    handle_guard_complete: vi.fn(),
+    guard_gate: {
+      guard_start: null,
+      set_guard_user_hash: vi.fn(),
+      clear_guard: vi.fn(),
+    },
   }),
 }));
 
@@ -253,6 +259,8 @@ describe("SignInPage on the desktop app", () => {
       "pass",
       "ev",
       "nonce",
+      true,
+      undefined,
     );
     expect(add_account_mock).not.toHaveBeenCalled();
     expect(update_account_device_id_mock).toHaveBeenCalledWith(
@@ -281,6 +289,8 @@ describe("SignInPage on the desktop app", () => {
       "pass",
       "ev",
       "nonce",
+      true,
+      undefined,
     );
     expect(login_mock).not.toHaveBeenCalled();
     expect(update_account_device_id_mock).toHaveBeenCalledWith(

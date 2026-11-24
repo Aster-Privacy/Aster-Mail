@@ -1807,8 +1807,7 @@
 }
 
 .aster_search_bar_slide {
-  animation: aster_search_bar_slide 1.6s cubic-bezier(0.65, 0, 0.35, 1)
-    infinite;
+  animation: aster_search_bar_slide 1.6s cubic-bezier(0.65, 0, 0.35, 1) infinite;
 }
 
 @keyframes aster_search_state_in {
@@ -2869,6 +2868,239 @@ html:not([data-input-modality="keyboard"])
   color: var(--text-primary);
 }
 
+.contact_list_notice {
+  gap: 12px;
+  min-height: 0;
+  padding: 10px 12px 10px 14px;
+}
+
+.contact_list_notice_icon {
+  display: inline-flex;
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+}
+
+.contact_list_notice_icon > svg {
+  width: 20px;
+  height: 20px;
+}
+
+.contact_list_notice_title {
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 18px;
+  color: var(--text-primary);
+}
+
+.contact_list_notice_text {
+  margin-top: 1px;
+  font-size: 12px;
+  line-height: 17px;
+  color: var(--text-muted);
+}
+
+.contact_list_icon_button {
+  display: inline-flex;
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  color: var(--text-muted);
+  transition:
+    background-color 0.14s ease,
+    color 0.14s ease,
+    transform 0.12s ease-out;
+}
+
+.contact_list_icon_button:hover {
+  background-color: var(--aster-hover);
+  color: var(--text-primary);
+}
+
+.contact_list_icon_button:active {
+  transform: scale(0.96);
+}
+
+.contact_list_icon_button:focus-visible {
+  outline: 2px solid var(--accent-color);
+  outline-offset: 1px;
+}
+
+.contact_list_icon_button[data-tone="danger"]:hover {
+  background-color: color-mix(in srgb, var(--color-danger) 10%, transparent);
+  color: var(--color-danger);
+}
+
+.contact_list_header {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 12px;
+  min-height: 44px;
+  margin: 4px 8px 0;
+  padding: 4px 6px 4px 12px;
+  border-bottom: 1px solid var(--border-secondary);
+}
+
+.contact_list_header_label {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: pointer;
+  font-size: 12.5px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-muted);
+}
+
+.contact_list_header[data-selecting="true"] .contact_list_header_label {
+  color: var(--text-primary);
+}
+
+.contact_list_header_rule {
+  width: 1px;
+  height: 16px;
+  margin: 0 4px;
+  background-color: var(--border-secondary);
+}
+
+.contact_list_title_row {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 8px;
+  padding: 16px 16px 10px;
+}
+
+.contact_list_title {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 6px;
+}
+
+.contact_list_title_lock {
+  display: inline-flex;
+  color: var(--text-muted);
+}
+
+.contact_list_toolbar {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 2px;
+  margin-inline-start: auto;
+}
+
+.contact_list_toolbar_button {
+  display: inline-flex;
+  height: 32px;
+  min-width: 32px;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding-inline: 7px;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+  color: var(--text-secondary);
+  transition:
+    background-color 0.14s ease,
+    color 0.14s ease,
+    transform 0.12s ease-out;
+}
+
+.contact_list_toolbar_button:hover:not(:disabled) {
+  background-color: var(--aster-hover);
+  color: var(--text-primary);
+}
+
+.contact_list_toolbar_button:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+.contact_list_toolbar_button:disabled {
+  opacity: 0.45;
+}
+
+.contact_list_toolbar_button:focus-visible {
+  outline: 2px solid var(--accent-color);
+  outline-offset: 1px;
+}
+
+.contact_list_toolbar_button[aria-pressed="true"] {
+  background-color: color-mix(in srgb, var(--text-primary) 7%, transparent);
+  color: var(--text-primary);
+}
+
+.contact_list_toolbar_divider {
+  width: 1px;
+  height: 18px;
+  margin-inline: 6px;
+  background-color: var(--border-secondary);
+}
+
+.contact_list_tabs {
+  display: flex;
+  max-width: 100%;
+  align-items: center;
+  gap: 2px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.contact_list_tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.contact_list_tab {
+  display: inline-flex;
+  height: 32px;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 6px;
+  padding-inline: 12px;
+  border-radius: 12px;
+  font-size: 13.5px;
+  font-weight: 500;
+  white-space: nowrap;
+  color: var(--text-secondary);
+  transition:
+    background-color 0.14s ease,
+    color 0.14s ease;
+}
+
+.contact_list_tab:hover {
+  background-color: var(--aster-hover);
+  color: var(--text-primary);
+}
+
+.contact_list_tab[aria-selected="true"] {
+  background-color: color-mix(in srgb, var(--text-primary) 7%, transparent);
+  color: var(--text-primary);
+}
+
+.contact_list_tab:focus-visible {
+  outline: 2px solid var(--accent-color);
+  outline-offset: 1px;
+}
+
+.contact_list_tab_count {
+  font-size: 11.5px;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-muted);
+}
+
 .contact_import_stat[data-tone="success"] {
   background-color: var(--color-success);
   border-color: var(--color-success);
@@ -3480,6 +3712,19 @@ html {
   text-decoration: underline !important;
 }
 
+html.hide-scrollbars,
+html.hide-scrollbars * {
+  -ms-overflow-style: none !important;
+  scrollbar-width: none !important;
+}
+
+html.hide-scrollbars::-webkit-scrollbar,
+html.hide-scrollbars *::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
 .dyslexia-font,
 .dyslexia-font *:not(code):not(pre):not(kbd):not(samp) {
   font-family:
@@ -3964,14 +4209,10 @@ html:not(.dark) .sender_logo_light > img {
   font-weight: 500;
   line-height: 1.45;
   letter-spacing: 0.01em;
-  background-color: color-mix(
-    in srgb,
-    var(--accent-color) 72%,
-    var(--dropdown-bg)
-  );
-  color: color-mix(in srgb, var(--accent-fg, #ffffff) 92%, var(--accent-color));
+  background-color: color-mix(in srgb, var(--accent-color) 14%, transparent);
+  color: color-mix(in srgb, var(--accent-color) 72%, var(--text-primary));
   box-shadow: inset 0 0 0 1px
-    color-mix(in srgb, var(--accent-color) 45%, transparent);
+    color-mix(in srgb, var(--accent-color) 30%, transparent);
 }
 
 .account_menu_badge_muted {
@@ -3987,12 +4228,13 @@ html:not(.dark) .sender_logo_light > img {
   align-items: center;
   flex-shrink: 0;
   max-width: 100%;
-  padding: 0.16em 0.62em 0.2em;
+  justify-content: center;
+  padding: 0.24em 0.62em;
   border-radius: 999px;
   font-size: 0.72rem;
   font-weight: 650;
   letter-spacing: 0.012em;
-  line-height: 1.35;
+  line-height: 1;
   white-space: nowrap;
   color: #fff;
   background:
@@ -4007,6 +4249,10 @@ html:not(.dark) .sender_logo_light > img {
       color-mix(in srgb, var(--plan_badge_accent) 74%, #05070f 26%) 100%
     );
   box-shadow: inset 0 0.5px 0 color-mix(in srgb, #ffffff 46%, transparent);
+}
+
+.account_menu_card span:has(> .plan_badge) > span.flex-1 {
+  flex: 0 1 auto;
 }
 
 .plan_galaxy {
@@ -4352,13 +4598,130 @@ html:not(.dark) .sender_logo_light > img {
 }
 
 .contact_group_member_row {
-  border-radius: 12px;
+  border-radius: var(--aster-radius-item, 8px);
   background-color: transparent;
-  transition: background-color 0.15s ease;
+  color: var(--text-primary);
+  transition: background-color 150ms ease;
 }
 
-.contact_group_member_row:hover {
-  background-color: var(--bg-hover);
+@media (hover: hover) {
+  .contact_group_member_row:hover {
+    background-color: var(--aster-floating-hover, var(--aster-hover));
+  }
+}
+
+.contact_group_member_row[data-active="true"],
+.contact_group_member_row[data-active="true"]:hover {
+  background-color: var(--aster-selected, var(--bg-hover));
+}
+
+.contact_group_avatar {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  color: #ffffff;
+  background-color: var(--group-tint);
+}
+
+.contact_group_icon_button {
+  display: inline-flex;
+  height: 2rem;
+  width: 2rem;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  color: var(--icon-secondary);
+  transition:
+    background-color 150ms ease,
+    color 150ms ease,
+    opacity 150ms ease,
+    transform 120ms ease-out;
+}
+
+.contact_group_icon_button:active:not(:disabled) {
+  transform: scale(0.94);
+}
+
+.contact_group_icon_button[data-tone="danger"] {
+  color: var(--text-muted);
+}
+
+@media (hover: hover) {
+  .contact_group_icon_button:hover:not(:disabled) {
+    background-color: var(--aster-floating-hover, var(--aster-hover));
+    color: var(--icon-active);
+  }
+
+  .contact_group_icon_button[data-tone="danger"]:hover:not(:disabled) {
+    color: var(--color-danger);
+  }
+}
+
+.contact_group_reveal {
+  opacity: 0;
+}
+
+.contact_group_reveal:focus-visible,
+.contact_group_row:hover .contact_group_reveal,
+.contact_group_row:focus-within .contact_group_reveal,
+.contact_group_member_row:hover .contact_group_reveal,
+.contact_group_member_row:focus-within .contact_group_reveal {
+  opacity: 1;
+}
+
+@media (hover: none) {
+  .contact_group_reveal {
+    opacity: 1;
+  }
+}
+
+.contact_group_picker {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: var(--aster-floating-pad, 6px);
+  border-radius: var(--aster-radius-control, 16px);
+  background-color: color-mix(in srgb, var(--text-primary) 4%, transparent);
+  box-shadow: inset 0 0 0 1px
+    var(
+      --aster-floating-divider,
+      color-mix(in srgb, var(--text-primary) 8%, transparent)
+    );
+}
+
+.contact_group_option {
+  display: flex;
+  min-height: 48px;
+  cursor: pointer;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.375rem 0.625rem;
+  border-radius: var(--aster-radius-item, 8px);
+  transition: background-color 150ms ease;
+}
+
+@media (hover: hover) {
+  .contact_group_option:hover {
+    background-color: var(--aster-floating-hover, var(--aster-hover));
+  }
+}
+
+.contact_group_option[data-checked="true"] {
+  background-color: color-mix(in srgb, var(--accent-color) 12%, transparent);
+}
+
+@media (hover: hover) {
+  .contact_group_option[data-checked="true"]:hover {
+    background-color: color-mix(in srgb, var(--accent-color) 17%, transparent);
+  }
+}
+
+.contact_group_option:has(:focus-visible) {
+  outline: 2px solid var(--accent-color);
+  outline-offset: -2px;
 }
 
 .contact_view_card {
@@ -4386,6 +4749,80 @@ html:not(.dark) .sender_logo_light > img {
 
 .contact_view_link:hover {
   text-decoration: underline;
+}
+
+.contact_view_row {
+  gap: 14px;
+  padding-top: 12px;
+  padding-bottom: 12px;
+}
+
+.contact_view_row.items-start .contact_view_row_icon {
+  margin-top: 1px;
+}
+
+.contact_view_line {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 8px;
+}
+
+.contact_view_value {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.contact_view_line_label {
+  margin-top: 1px;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--text-muted);
+}
+
+.contact_view_copy {
+  display: inline-flex;
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  color: var(--text-muted);
+  opacity: 0;
+  transition:
+    opacity 0.14s ease,
+    background-color 0.14s ease,
+    color 0.14s ease;
+}
+
+.contact_view_line:hover .contact_view_copy,
+.contact_view_copy:focus-visible {
+  opacity: 1;
+}
+
+.contact_view_copy:hover {
+  background-color: var(--aster-hover);
+  color: var(--text-primary);
+}
+
+.contact_view_copy:focus-visible {
+  outline: 2px solid var(--accent-color);
+  outline-offset: 1px;
+}
+
+@media (hover: none) {
+  .contact_view_copy {
+    opacity: 0.7;
+  }
+}
+
+.contact_detail_more_button {
+  aspect-ratio: 1 / 1;
+  justify-content: center;
+  padding-inline: 0;
 }
 
 .contact_tab_strip {
@@ -4752,6 +5189,13 @@ html:not(.dark) .sender_logo_light > img {
   animation: aster_tip_fade_in 120ms ease-out;
 }
 
+.aster_tip_portal {
+  max-width: min(320px, calc(100vw - 24px));
+  white-space: normal;
+  overflow-wrap: break-word;
+  text-wrap: pretty;
+}
+
 .profile_avatar_edit {
   outline: none;
   box-shadow: 0 0 0 4px var(--aster-island-fill, var(--bg-primary));
@@ -5023,10 +5467,13 @@ html[data-input-modality="keyboard"]
     flex: 1 1 0%;
   }
 
+  .aster_island_row_stacked > .aster_island_row_text {
+    min-width: min(100%, 14rem);
+  }
+
   .aster_island_row_stacked > .aster_island_row_trailing {
-    flex-basis: 100%;
     flex-wrap: wrap;
-    justify-content: flex-start;
+    margin-inline-start: auto;
     max-width: 100%;
   }
 
@@ -5034,24 +5481,15 @@ html[data-input-modality="keyboard"]
     max-width: 100%;
   }
 
-  .aster_island_row_stacked:has(
-      > .aster_island_row_trailing
-        > .aster_island_row_control
-        > .aster_select_trigger
-    ) {
-    container: aster_select_row / inline-size;
-  }
-
   .aster_island_row_stacked
     > .aster_island_row_trailing:has(
       > .aster_island_row_control > .aster_select_trigger
     ) {
-    flex-basis: auto;
-    justify-content: flex-end;
     max-width: 50%;
   }
 
-  @container aster_select_row (max-width: 559px) {
+  @media (max-width: 767px) {
+    .aster_island_row_stacked > .aster_island_row_trailing,
     .aster_island_row_stacked
       > .aster_island_row_trailing:has(
         > .aster_island_row_control > .aster_select_trigger
@@ -5416,4 +5854,207 @@ html[data-input-modality="keyboard"]
     min-width: 3rem !important;
     height: 3rem !important;
   }
+}
+
+.guard_tree {
+  --guard_tree_line: color-mix(in srgb, var(--text-tertiary) 85%, transparent);
+  --guard_tree_indent: 34px;
+  --guard_tree_w: 2.5px;
+  --guard_tree_x: calc(var(--aster-island-row-pad-x, 16px) + 10px);
+}
+
+.guard_tree_parent {
+  position: relative;
+}
+
+.guard_tree_parent::after {
+  content: "";
+  position: absolute;
+  inset-inline-start: var(--guard_tree_x);
+  top: calc(50% + 15px);
+  bottom: 0;
+  border-inline-start: var(--guard_tree_w) solid var(--guard_tree_line);
+  pointer-events: none;
+}
+
+.guard_tree_child > .aster_island_row {
+  padding-inline-start: calc(
+    var(--aster-island-row-pad-x, 16px) + var(--guard_tree_indent)
+  );
+}
+
+.guard_tree_child {
+  position: relative;
+}
+
+.guard_tree_child::before {
+  content: "";
+  position: absolute;
+  inset-inline-start: var(--guard_tree_x);
+  top: 0;
+  height: calc(50% + 1px);
+  width: calc(var(--guard_tree_indent) - 13px);
+  border-inline-start: var(--guard_tree_w) solid var(--guard_tree_line);
+  border-bottom: var(--guard_tree_w) solid var(--guard_tree_line);
+  border-end-start-radius: 8px;
+  pointer-events: none;
+}
+
+.guard_tree_child::after {
+  content: "";
+  position: absolute;
+  inset-inline-start: calc(var(--guard_tree_x) + 13.5px);
+  top: calc(50% - 4px);
+  width: 8px;
+  height: 8px;
+  border-start-end-radius: 1px;
+  border-top: var(--guard_tree_w) solid var(--guard_tree_line);
+  border-inline-end: var(--guard_tree_w) solid var(--guard_tree_line);
+  transform: rotate(45deg);
+  pointer-events: none;
+}
+
+[dir="rtl"] .guard_tree_child::after {
+  transform: rotate(-45deg);
+}
+
+.guard_tree_child:not(:last-child) > .guard_tree_trunk {
+  position: absolute;
+  inset-inline-start: var(--guard_tree_x);
+  top: 50%;
+  bottom: 0;
+  border-inline-start: var(--guard_tree_w) solid var(--guard_tree_line);
+  pointer-events: none;
+}
+
+.bridge_upgrade_benefits {
+  border-top: 1px solid color-mix(in srgb, var(--text-primary) 8%, transparent);
+}
+
+.bridge_cli_block {
+  overflow: hidden;
+  border-radius: 12px;
+  background-color: var(--bg-primary);
+  box-shadow: inset 0 0 0 1px
+    color-mix(in srgb, var(--text-primary) 9%, transparent);
+}
+
+.bridge_cli_header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 40px;
+  padding: 0 6px 0 16px;
+  border-bottom: 1px solid
+    color-mix(in srgb, var(--text-primary) 7%, transparent);
+}
+
+.bridge_cli_copy {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 28px;
+  padding: 0 10px;
+  border-radius: 8px;
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 500;
+  transition:
+    background-color 150ms ease,
+    color 150ms ease,
+    transform 120ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.bridge_cli_copy:hover {
+  background-color: var(--aster-hover);
+  color: var(--text-primary);
+}
+
+.bridge_cli_copy:active {
+  transform: scale(0.97);
+}
+
+.bridge_cli_copy:focus-visible {
+  outline: 2px solid var(--accent-color);
+  outline-offset: 1px;
+}
+
+.bridge_cli_code {
+  margin: 0;
+  padding: 14px 16px 16px;
+  overflow-x: auto;
+  white-space: pre;
+  direction: ltr;
+  text-align: left;
+  color: var(--text-primary);
+  font-size: 12.5px;
+  line-height: 1.85;
+  tab-size: 2;
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--text-primary) 18%, transparent)
+    transparent;
+}
+
+.bridge_cli_code,
+.bridge_cli_code * {
+  font-family:
+    ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono",
+    monospace;
+  font-variant-ligatures: none;
+}
+
+.bridge_cli_line {
+  display: block;
+}
+
+.bridge_cli_prompt {
+  display: inline-block;
+  margin-inline-end: 1ch;
+  color: var(--text-muted);
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bridge_cli_copy {
+    transition: none;
+  }
+
+  .bridge_cli_copy:active {
+    transform: none;
+  }
+}
+
+.contact_group_row,
+.contact_group_member_row {
+  position: relative;
+}
+
+.contact_group_row + .contact_group_row::before,
+.contact_group_member_row + .contact_group_member_row::before {
+  content: "";
+  position: absolute;
+  inset-inline: 64px 12px;
+  top: 0;
+  height: 1px;
+  background-color: var(--aster-floating-divider);
+  pointer-events: none;
+  transition: opacity 0.15s ease;
+}
+
+.contact_group_member_row + .contact_group_member_row::before {
+  inset-inline: 62px 10px;
+}
+
+.contact_group_row:hover::before,
+.contact_group_row:hover + .contact_group_row::before,
+.contact_group_row[data-active="true"]::before,
+.contact_group_row[data-active="true"] + .contact_group_row::before,
+.contact_group_member_row:hover::before,
+.contact_group_member_row:hover + .contact_group_member_row::before,
+.contact_group_member_row[data-active="true"]::before,
+.contact_group_member_row[data-active="true"]
+  + .contact_group_member_row::before {
+  opacity: 0;
 }

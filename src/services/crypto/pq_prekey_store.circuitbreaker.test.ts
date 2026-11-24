@@ -13,6 +13,10 @@ const post_mock = vi.fn();
 const get_mock = vi.fn();
 const delete_mock = vi.fn();
 
+vi.mock("@/services/api/account_key", () => ({
+  get_account_key_capabilities: async () => ({ bound_prekey_writes: true }),
+}));
+
 vi.mock("@/services/api/client", () => ({
   api_client: {
     get: (...args: unknown[]) => get_mock(...args),
@@ -30,7 +34,10 @@ vi.mock("../api/client", () => ({
 }));
 
 vi.mock("./memory_key_store", () => {
-  const vault = { data_kek: btoa(String.fromCharCode(...new Uint8Array(32))) };
+  const vault = {
+    data_kek: btoa(String.fromCharCode(...new Uint8Array(32))),
+    prekey_seal_key: btoa(String.fromCharCode(...new Uint8Array(32).fill(9))),
+  };
 
   return {
     has_vault_in_memory: () => true,

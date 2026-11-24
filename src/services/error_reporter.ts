@@ -31,10 +31,16 @@ import {
   get_effective_base_url,
   routed_fetch,
 } from "@/services/routing/routing_provider";
+import { has_tauri_runtime } from "@/lib/tauri_runtime";
 
 const SURFACE = "mail_app";
 const MAX_REPORTS_PER_SESSION = 40;
 const DEDUPE_WINDOW_MS = 60_000;
+const REPORT_PAUSE_MIN_MS = 60_000;
+const REPORT_PAUSE_MAX_MS = 15 * 60_000;
+const BUDGET_STORAGE_KEY = "aster_error_report_budget";
+const SIGNED_OUT_STATUS = 401;
+const TRANSPORT_SUFFIXES: readonly string[] = ["_network", "_timeout"];
 const SLUG_PATTERN = /^[a-z0-9_.-]{1,64}$/;
 const ID_SEGMENT = /^[0-9]+$|^[0-9a-f]{8,}$|-/i;
 
@@ -169,8 +175,82 @@ function severity_of_kind(kind: string): Severity {
   return BENIGN_KINDS.includes(kind) ? "warn" : "error";
 }
 
-let reports_sent = 0;
+interface ReportBudget {
+  sent: number;
+  paused_until: number;
+}
+
+let budget: ReportBudget | null = null;
 const last_seen = new Map<string, number>();
+
+function read_budget(): ReportBudget {
+  if (budget) {
+    return budget;
+  }
+  let stored: ReportBudget | null = null;
+
+  try {
+    const raw = window.sessionStorage.getItem(BUDGET_STORAGE_KEY);
+    const parsed: unknown = raw ? JSON.parse(raw) : null;
+
+    if (parsed && typeof parsed === "object") {
+      const { sent, paused_until } = parsed as Record<string, unknown>;
+
+      if (Number.isFinite(sent) && Number.isFinite(paused_until)) {
+        stored = { sent: sent as number, paused_until: paused_until as number };
+      }
+    }
+  } catch {
+    stored = null;
+  }
+  budget = stored ?? { sent: 0, paused_until: 0 };
+
+  return budget;
+}
+
+function save_budget(): void {
+  try {
+    window.sessionStorage.setItem(BUDGET_STORAGE_KEY, JSON.stringify(budget));
+  } catch {
+    return;
+  }
+}
+
+export function report_pause_ms(retry_after: string | null): number {
+  const seconds = retry_after === null ? NaN : Number(retry_after.trim());
+
+  if (!Number.isFinite(seconds) || seconds <= 0) {
+    return REPORT_PAUSE_MIN_MS;
+  }
+
+  return Math.min(
+    Math.max(seconds * 1000, REPORT_PAUSE_MIN_MS),
+    REPORT_PAUSE_MAX_MS,
+  );
+}
+
+function pause_reports(ms: number): void {
+  const current = read_budget();
+
+  current.paused_until = Math.max(current.paused_until, Date.now() + ms);
+  save_budget();
+}
+
+export function report_dedupe_key(
+  error_code: string,
+  feature: string,
+  status: number | undefined,
+): string {
+  const transport = TRANSPORT_SUFFIXES.find((suffix) =>
+    error_code.endsWith(suffix),
+  );
+
+  if (transport && status === undefined) {
+    return `transport|${transport}`;
+  }
+
+  return `${feature}|${error_code}|${status ?? 0}`;
+}
 
 export type Severity = "warn" | "error";
 
@@ -183,7 +263,7 @@ export interface ClientErrorInput {
 
 function platform(): string {
   try {
-    if (typeof window !== "undefined" && "__TAURI_INTERNALS__" in window) {
+    if (has_tauri_runtime()) {
       return "desktop";
     }
     if (Capacitor.isNativePlatform()) {
@@ -279,17 +359,23 @@ export function is_error_reporting_allowed(): boolean {
 }
 
 function should_send(key: string): boolean {
-  if (reports_sent >= MAX_REPORTS_PER_SESSION) {
+  const current = read_budget();
+  const now = Date.now();
+
+  if (now < current.paused_until) {
     return false;
   }
-  const now = Date.now();
+  if (current.sent >= MAX_REPORTS_PER_SESSION) {
+    return false;
+  }
   const previous = last_seen.get(key);
 
   if (previous !== undefined && now - previous < DEDUPE_WINDOW_MS) {
     return false;
   }
   last_seen.set(key, now);
-  reports_sent += 1;
+  current.sent += 1;
+  save_budget();
 
   return true;
 }
@@ -317,7 +403,11 @@ export function report_client_error(input: ClientErrorInput): void {
         ? input.http_status
         : undefined;
 
-    const key = `${input.feature}|${input.error_code}|${status ?? 0}`;
+    if (status === SIGNED_OUT_STATUS) {
+      return;
+    }
+
+    const key = report_dedupe_key(input.error_code, input.feature, status);
 
     if (!should_send(key)) {
       return;
@@ -348,6 +438,11 @@ export function report_client_error(input: ClientErrorInput): void {
       credentials: "omit",
       signal: controller.signal,
     })
+      .then((response) => {
+        if (response.status === 429 || response.status >= 500) {
+          pause_reports(report_pause_ms(response.headers.get("Retry-After")));
+        }
+      })
       .catch(() => undefined)
       .finally(() => {
         in_flight_reports.delete(controller);

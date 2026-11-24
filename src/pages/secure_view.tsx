@@ -35,6 +35,7 @@ import { cn } from "@/lib/utils";
 import { sanitize_download_filename } from "@/lib/attachment_utils";
 import { use_i18n } from "@/lib/i18n/context";
 import { sanitize_html } from "@/lib/html_sanitizer";
+import { SECURE_VIEW_SANITIZE_OPTIONS } from "@/lib/secure_view_sanitize_options";
 import { inline_secure_view_images } from "@/lib/secure_view_inline_images";
 import { build_email_body_css } from "@/lib/email_body_styles";
 import { EMAIL_INLINE_FONT_FACE_CSS } from "@/lib/email_inline_fonts";
@@ -132,11 +133,6 @@ function SecureMessageBody({ html, title }: { html: string; title: string }) {
 
   useEffect(() => {
     const handler = (e: MessageEvent) => {
-      // The body renders in a sandbox without allow-same-origin, so it has the
-      // opaque "null" origin and broadcasts its height with targetOrigin "*".
-      // The parent is the trust boundary: reject any non-"null" origin, verify
-      // the message came from this exact frame, and clamp the height so a forged
-      // value cannot blow out the layout.
       if (e.origin !== "null") return;
       if (e.source !== frame_ref.current?.contentWindow) return;
       if (
@@ -311,16 +307,7 @@ export default function SecureViewPage() {
       decrypted.attachments,
     );
 
-    return sanitize_html(with_inline_images, {
-      sandbox_mode: false,
-      external_content_mode: "never",
-      content_blocking: {
-        block_remote_images: true,
-        block_remote_fonts: true,
-        block_remote_css: true,
-        block_tracking_pixels: true,
-      },
-    }).html;
+    return sanitize_html(with_inline_images, SECURE_VIEW_SANITIZE_OPTIONS).html;
   }, [decrypted]);
 
   const handle_open_without_password = async () => {
@@ -401,7 +388,11 @@ export default function SecureViewPage() {
       let proof: string;
 
       if (mode.kind === "zero_knowledge") {
-        proof = await derive_auth_proof(password, mode.kdf_salt);
+        proof = await derive_auth_proof(
+          password,
+          mode.kdf_salt,
+          mode.kdf_version,
+        );
       } else {
         let password_kdf = metadata.password_kdf;
 
@@ -468,7 +459,11 @@ export default function SecureViewPage() {
       if (
         !content.encrypted_subject ||
         !content.encrypted_body ||
-        (content.kdf_salt !== undefined && content.kdf_salt !== mode.kdf_salt)
+        (content.kdf_salt !== undefined &&
+          content.kdf_salt !== mode.kdf_salt) ||
+        (content.kdf_version !== undefined &&
+          content.kdf_version !== null &&
+          content.kdf_version !== mode.kdf_version)
       ) {
         set_error(sv("secure_view.decrypt_failed"));
 
@@ -488,6 +483,7 @@ export default function SecureViewPage() {
             kem_seed_nonce: content.kem_seed_nonce,
             encrypted_attachments_bundle: content.encrypted_attachments_bundle,
           },
+          mode.kdf_version,
         );
 
         set_decrypted(result);

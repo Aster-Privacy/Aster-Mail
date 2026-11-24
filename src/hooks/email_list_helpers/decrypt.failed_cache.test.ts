@@ -91,7 +91,7 @@ vi.mock("@/services/crypto/envelope", async (importOriginal) => {
 });
 
 vi.mock("@/services/crypto/legacy_ios_envelope", () => ({
-  decrypt_legacy_ios_envelope: vi.fn(async () => {
+  decrypt_legacy_ios_mail_envelope: vi.fn(async () => {
     h.legacy_attempts += 1;
 
     return null;

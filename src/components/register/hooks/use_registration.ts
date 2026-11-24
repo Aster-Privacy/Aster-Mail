@@ -70,6 +70,7 @@ import {
   clear_recovery_key,
 } from "@/services/crypto/recovery_key";
 import { build_backup_vault } from "@/services/crypto/backup_unlocked_keys";
+import { backup_key_fingerprints_of } from "@/services/crypto/recovery_backup_coverage";
 import { array_to_base64 } from "@/services/crypto/key_manager_core";
 import { MASTER_KEY_VAULT_FORMAT } from "@/services/crypto/memory_key_store";
 import { register_user } from "@/services/api/auth";
@@ -110,6 +111,7 @@ import { use_i18n } from "@/lib/i18n/context";
 import { open_external } from "@/utils/open_link";
 import { user_facing_error } from "@/utils/user_facing_error";
 import { get_safe_next_path } from "@/pages/sign_in_helpers";
+import { has_tauri_runtime } from "@/lib/tauri_runtime";
 
 export class RatchetKeyGenerationError extends Error {
   constructor() {
@@ -195,6 +197,7 @@ const PRE_CREATION_STEPS: ReadonlySet<RegistrationStep> = new Set([
   "email",
   "password",
   "generating",
+  "install_limit",
 ]);
 
 const RESUMABLE_STEPS: ReadonlySet<RegistrationStep> = new Set([
@@ -239,6 +242,15 @@ interface RegistrationResumeState {
   plan_step_shown: boolean;
   finish_path: string;
   open_domain_purchase: boolean;
+  invite_return_path: string | null;
+}
+
+const INVITE_RETURN_PATH_REGEX = /^\/join\/family\?token=[A-Za-z0-9_-]{16,128}$/;
+
+function to_invite_return_path(path: unknown): string | null {
+  return typeof path === "string" && INVITE_RETURN_PATH_REGEX.test(path)
+    ? path
+    : null;
 }
 
 function read_url_username(search: string): string {
@@ -285,6 +297,7 @@ function read_resume_state(): RegistrationResumeState | null {
           ? parsed.finish_path
           : "/",
       open_domain_purchase: parsed.open_domain_purchase === true,
+      invite_return_path: to_invite_return_path(parsed.invite_return_path),
     };
   } catch {
     return null;
@@ -371,6 +384,38 @@ function is_abuse_block_response(response: {
 }
 
 export type RegistrationSessionIssue = "login_failed" | "no_session";
+
+export const INSTALL_LIMIT_CODE = "INSTALL_ACCOUNT_LIMIT";
+
+const UPGRADE_PLAN_PATTERN = /^[a-z][a-z0-9_]{0,31}$/;
+
+export function is_install_limit_response(response: {
+  code?: string;
+  server_code?: string;
+}): boolean {
+  return (
+    response.code === INSTALL_LIMIT_CODE ||
+    response.server_code === INSTALL_LIMIT_CODE
+  );
+}
+
+export function read_upgrade_plan(
+  details?: Record<string, unknown>,
+): string | null {
+  const plan = details?.upgrade_plan;
+
+  return typeof plan === "string" && UPGRADE_PLAN_PATTERN.test(plan)
+    ? plan
+    : null;
+}
+
+export function install_limit_upgrade_path(plan: string | null): string {
+  const billing_path = plan
+    ? `/settings/billing?plan=${encodeURIComponent(plan)}`
+    : "/settings/billing";
+
+  return `/sign-in?next=${encodeURIComponent(billing_path)}`;
+}
 
 function read_abuse_block(details?: Record<string, unknown>): AbuseBlock {
   const kind = details?.kind;
@@ -471,6 +516,9 @@ export function use_registration(options?: RegistrationClaimOptions) {
   const [error, set_error] = useState("");
   const [is_abuse_blocked, set_is_abuse_blocked] = useState(false);
   const [abuse_block, set_abuse_block] = useState<AbuseBlock | null>(null);
+  const [install_limit_plan, set_install_limit_plan] = useState<
+    string | null
+  >(null);
   const [session_issue, set_session_issue] =
     useState<RegistrationSessionIssue | null>(null);
   const [password_breach_warning, set_password_breach_warning] =
@@ -511,6 +559,10 @@ export function use_registration(options?: RegistrationClaimOptions) {
   const complete_registration_ref = useRef<() => Promise<void>>();
   const plan_step_shown_ref = useRef(false);
   const finish_path_ref = useRef(resume_state_ref.current?.finish_path ?? "/");
+  const invite_return_path_ref = useRef<string | null>(
+    resume_state_ref.current?.invite_return_path ??
+      to_invite_return_path(get_safe_next_path()),
+  );
   const open_domain_purchase_ref = useRef(
     resume_state_ref.current?.open_domain_purchase ?? false,
   );
@@ -554,6 +606,7 @@ export function use_registration(options?: RegistrationClaimOptions) {
       plan_step_shown: plan_step_shown_ref.current,
       finish_path: finish_path_ref.current,
       open_domain_purchase: open_domain_purchase_ref.current,
+      invite_return_path: invite_return_path_ref.current,
     };
 
     safe_session_set(REGISTRATION_RESUME_KEY, JSON.stringify(state));
@@ -775,9 +828,7 @@ export function use_registration(options?: RegistrationClaimOptions) {
     "recovery_email"
   > | null>(null);
   const pending_vault_data_ref = useRef<EncryptedVault | null>(null);
-  const post_create_sign_in_ref = useRef<(() => Promise<boolean>) | null>(
-    null,
-  );
+  const post_create_sign_in_ref = useRef<(() => Promise<boolean>) | null>(null);
   const retrying_sign_in_ref = useRef(false);
   const prekey_publish_ref = useRef<Promise<boolean> | null>(null);
 
@@ -846,6 +897,22 @@ export function use_registration(options?: RegistrationClaimOptions) {
     vault,
     set_is_completing_registration,
   ]);
+
+  const show_install_limit = (details?: Record<string, unknown>) => {
+    pending_register_params_ref.current = null;
+    pending_vault_data_ref.current = null;
+    set_error("");
+    set_install_limit_plan(read_upgrade_plan(details));
+    set_step("install_limit");
+  };
+
+  const handle_install_limit_sign_in = () => {
+    navigate("/sign-in");
+  };
+
+  const handle_install_limit_upgrade = () => {
+    navigate(install_limit_upgrade_path(install_limit_plan));
+  };
 
   const handle_password_next = async () => {
     set_error("");
@@ -940,6 +1007,9 @@ export function use_registration(options?: RegistrationClaimOptions) {
 
       clear_recovery_key(recovery_key);
 
+      const backup_key_fingerprints =
+        await backup_key_fingerprints_of(vault_data);
+
       set_generation_status(t("auth.preparing_pgp_key"));
       await yield_to_ui();
       const pgp_key_data = await prepare_pgp_key_data(
@@ -971,6 +1041,7 @@ export function use_registration(options?: RegistrationClaimOptions) {
         vault_backup_nonce: vault_backup.nonce,
         recovery_key_salt: vault_backup.salt,
         recovery_shares,
+        ...(backup_key_fingerprints.length ? { backup_key_fingerprints } : {}),
         pgp_key: pgp_key_data,
         captcha_token: captcha_token || undefined,
         client_platform: import.meta.env.DEV ? "desktop" : undefined,
@@ -992,6 +1063,12 @@ export function use_registration(options?: RegistrationClaimOptions) {
         }
         await timing_safe_delay();
         rearm_captcha();
+        if (is_install_limit_response(response)) {
+          show_install_limit(response.details);
+          registration_promise_ref.current = null;
+
+          return;
+        }
         if (is_abuse_block_response(response)) {
           const block = read_abuse_block(response.details);
 
@@ -1174,7 +1251,8 @@ export function use_registration(options?: RegistrationClaimOptions) {
   const finalize_registration = async (target_path?: string) => {
     await persist_registration_state();
 
-    const destination = target_path ?? finish_path_ref.current;
+    const destination =
+      invite_return_path_ref.current ?? target_path ?? finish_path_ref.current;
 
     if (open_domain_purchase_ref.current) {
       safe_session_set("alias_domains_purchase_open", "1");
@@ -1192,7 +1270,7 @@ export function use_registration(options?: RegistrationClaimOptions) {
   ) => {
     finish_path_ref.current = finish_path;
     open_domain_purchase_ref.current = open_domain_purchase;
-    if (is_claim) {
+    if (is_claim || invite_return_path_ref.current) {
       await finalize_registration();
 
       return;
@@ -1223,7 +1301,7 @@ export function use_registration(options?: RegistrationClaimOptions) {
   };
 
   const show_sample_notification = () => {
-    if ("__TAURI_INTERNALS__" in window) return;
+    if (has_tauri_runtime()) return;
     try {
       const sample = new Notification(t("auth.notifications_turned_on"), {
         body: t("auth.notifications_sample_body"),
@@ -1555,6 +1633,11 @@ export function use_registration(options?: RegistrationClaimOptions) {
       }
       await timing_safe_delay();
       rearm_captcha();
+      if (is_install_limit_response(response)) {
+        show_install_limit(response.details);
+
+        return;
+      }
       if (is_abuse_block_response(response)) {
         const block = read_abuse_block(response.details);
 
@@ -1693,6 +1776,7 @@ export function use_registration(options?: RegistrationClaimOptions) {
     set_error,
     is_abuse_blocked,
     abuse_block,
+    install_limit_plan,
     session_issue,
     password_breach_warning,
     handle_password_blur,
@@ -1729,6 +1813,8 @@ export function use_registration(options?: RegistrationClaimOptions) {
     handle_recovery_email_continue,
     handle_recovery_email_skip,
     handle_recovery_email_gate_submit,
+    handle_install_limit_sign_in,
+    handle_install_limit_upgrade,
     handle_advance_from_recovery_key,
     handle_open_download,
     handle_download_apps_continue,

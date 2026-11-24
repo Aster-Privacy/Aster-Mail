@@ -50,6 +50,9 @@ pub enum CryptoError {
     #[error("no valid recipient key")]
     NoValidRecipient,
 
+    #[error("recipient key cannot be used for encryption: {0}")]
+    UnusableRecipientKey(RecipientKeyProblem),
+
     #[error("no valid signer key")]
     NoValidSigner,
 
@@ -67,6 +70,22 @@ pub enum CryptoError {
 
     #[error("io error: {0}")]
     Io(#[from] std::io::Error),
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Error)]
+#[non_exhaustive]
+pub enum RecipientKeyProblem {
+    #[error("the key is revoked")]
+    Revoked,
+
+    #[error("the key has expired")]
+    Expired,
+
+    #[error("the key is not valid yet")]
+    NotYetValid,
+
+    #[error("the key has no usable encryption subkey")]
+    NoEncryptionSubkey,
 }
 
 pub type Result<T> = std::result::Result<T, CryptoError>;

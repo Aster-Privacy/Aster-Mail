@@ -23,6 +23,8 @@ import { Capacitor } from "@capacitor/core";
 import { connection_store } from "@/services/routing/connection_store";
 import { is_any_lockdown_active } from "@/services/lockdown_store";
 import { is_icon_failed } from "@/lib/icon_cache";
+import { has_tauri_runtime } from "@/lib/tauri_runtime";
+import { are_sender_logos_enabled } from "@/services/sender_logos_state";
 
 const NATIVE_BASE = "https://app.astermail.org/api/images/v1/favicon";
 const WEB_BASE = "/api/images/v1/favicon";
@@ -33,10 +35,12 @@ const FAILED_FAVICON = "data:,";
 export const PENDING_FAVICON_SRC = EMPTY_FAVICON;
 export const FAILED_FAVICON_SRC = FAILED_FAVICON;
 
-export function same_origin_favicon_domain(url: string): string | null {
-  const prefix = `${WEB_BASE}/`;
+export function api_favicon_domain(url: string): string | null {
+  const prefix = [`${WEB_BASE}/`, `${NATIVE_BASE}/`].find((base) =>
+    url.startsWith(base),
+  );
 
-  if (!url.startsWith(prefix)) return null;
+  if (!prefix) return null;
   try {
     const domain = decodeURIComponent(url.slice(prefix.length));
 
@@ -63,7 +67,7 @@ export function get_favicon_url(domain: string): string {
     return EMPTY_FAVICON;
   }
 
-  if (is_any_lockdown_active()) {
+  if (!are_sender_logos_enabled() || is_any_lockdown_active()) {
     return EMPTY_FAVICON;
   }
 
@@ -77,9 +81,7 @@ export function get_favicon_url(domain: string): string {
     return EMPTY_FAVICON;
   }
 
-  const is_native =
-    Capacitor.isNativePlatform() ||
-    (typeof window !== "undefined" && "__TAURI_INTERNALS__" in window);
+  const is_native = Capacitor.isNativePlatform() || has_tauri_runtime();
   const base = is_native ? NATIVE_BASE : WEB_BASE;
 
   return `${base}/${encodeURIComponent(trimmed)}`;

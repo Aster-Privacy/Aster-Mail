@@ -18,12 +18,18 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import {
+  get_active_language,
+  get_translations_async,
+} from "@/lib/i18n/translations";
+
 const CHANNEL = "aster_account_link";
 const DEV_HUB_ORIGIN = "http://localhost:5173";
 const BRIDGE_PATH = "/bridge.html";
 const FRAME_READY_TIMEOUT_MS = 30_000;
 const ACCOUNTS_TIMEOUT_MS = 10_000;
-const LINK_TIMEOUT_MS = 20_000;
+const LINK_TIMEOUT_MS = 140_000;
+const OVERLAY_Z_INDEX = "2147483647";
 const SIGN_OUT_TIMEOUT_MS = 8_000;
 const SET_CURRENT_TIMEOUT_MS = 5_000;
 const MAX_ACCOUNTS = 20;
@@ -214,6 +220,72 @@ function attach_push_listener(origin: string, frame: HTMLIFrameElement) {
   window.addEventListener("message", push_listener);
 }
 
+function hide_frame(frame: HTMLIFrameElement): void {
+  frame.hidden = true;
+  frame.tabIndex = -1;
+  frame.setAttribute("aria-hidden", "true");
+  frame.removeAttribute("style");
+}
+
+async function show_link_confirmation(
+  frame: HTMLIFrameElement,
+  fingerprint: string,
+): Promise<HTMLElement> {
+  const t = await get_translations_async(get_active_language());
+  const banner = document.createElement("div");
+  const title = document.createElement("p");
+  const value = document.createElement("p");
+  const hint = document.createElement("p");
+
+  title.textContent = t.auth.device_fingerprint;
+  title.style.margin = "0 0 4px";
+  title.style.fontWeight = "600";
+  value.textContent = fingerprint;
+  value.style.margin = "0 0 4px";
+  value.style.fontFamily = "ui-monospace, monospace";
+  value.style.fontSize = "18px";
+  value.style.letterSpacing = "0.05em";
+  hint.textContent = t.auth.device_code_fingerprint_required_hint;
+  hint.style.margin = "0";
+  hint.style.fontSize = "14px";
+
+  banner.setAttribute("role", "status");
+  banner.setAttribute("data-hub-link-fingerprint", "");
+  Object.assign(banner.style, {
+    position: "fixed",
+    top: "0",
+    left: "0",
+    right: "0",
+    zIndex: OVERLAY_Z_INDEX,
+    padding: "16px",
+    background: "#ffffff",
+    color: "#111111",
+    borderBottom: "1px solid #d4d4d8",
+    textAlign: "center",
+    fontFamily: "system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif",
+  });
+  banner.append(title, value, hint);
+  document.body.appendChild(banner);
+
+  frame.hidden = false;
+  frame.tabIndex = 0;
+  frame.removeAttribute("aria-hidden");
+  Object.assign(frame.style, {
+    position: "fixed",
+    top: `${banner.offsetHeight}px`,
+    left: "0",
+    width: "100%",
+    height: `calc(100% - ${banner.offsetHeight}px)`,
+    border: "0",
+    zIndex: OVERLAY_Z_INDEX,
+    background: "#ffffff",
+    colorScheme: "light",
+  });
+  frame.focus();
+
+  return banner;
+}
+
 function ensure_frame(origin: string): Promise<HTMLIFrameElement> {
   if (frame_promise) return frame_promise;
 
@@ -241,9 +313,7 @@ function ensure_frame(origin: string): Promise<HTMLIFrameElement> {
 
     const timer = window.setTimeout(fail, FRAME_READY_TIMEOUT_MS);
 
-    frame.hidden = true;
-    frame.tabIndex = -1;
-    frame.setAttribute("aria-hidden", "true");
+    hide_frame(frame);
     frame.setAttribute("sandbox", "allow-scripts allow-same-origin");
     frame.setAttribute("referrerpolicy", "no-referrer");
     window.addEventListener("message", on_ready);
@@ -335,11 +405,24 @@ export async function confirm_hub_link(
     throw new HubAccountError("fingerprint_required");
   }
 
-  const reply = await call(
-    "link",
-    { code, account_id, fingerprint },
-    LINK_TIMEOUT_MS,
-  );
+  const origin = account_hub_origin();
+
+  if (!origin) throw new HubAccountError("unavailable");
+
+  const frame = await ensure_frame(origin);
+  const banner = await show_link_confirmation(frame, fingerprint);
+  let reply: hub_reply;
+
+  try {
+    reply = await call(
+      "link",
+      { code, account_id, fingerprint },
+      LINK_TIMEOUT_MS,
+    );
+  } finally {
+    banner.remove();
+    hide_frame(frame);
+  }
 
   if (reply.ok !== true) throw reply_error(reply);
 }

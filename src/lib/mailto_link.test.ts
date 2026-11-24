@@ -20,7 +20,12 @@
 //
 import { describe, expect, it } from "vitest";
 
-import { escape_mailto_body, parse_mailto_link } from "./mailto_link";
+import {
+  escape_mailto_body,
+  is_mailto_link,
+  parse_mailto_link,
+  keep_safe_mailto_fields,
+} from "./mailto_link";
 
 describe("parse_mailto_link", () => {
   it("reads a single recipient", () => {
@@ -156,5 +161,63 @@ describe("escape_mailto_body", () => {
     ).toBe(
       "&lt;img src=x onerror=alert(1)&gt;<br>Tom &amp; &quot;Jerry&#39;s&quot;<br>end",
     );
+  });
+});
+
+describe("keep_safe_mailto_fields", () => {
+  it("keeps only recipients, subject, and body", () => {
+    expect(
+      keep_safe_mailto_fields(
+        "mailto:ada@example.com?to=bob@example.com&cc=grace@example.com&subject=Hi&body=Text&attach=/etc/passwd&attachment=C:%5Ckey.pem&X-Header=1&in-reply-to=x",
+      ),
+    ).toBe(
+      "mailto:ada@example.com?to=bob@example.com&cc=grace@example.com&subject=Hi&body=Text",
+    );
+  });
+
+  it("treats semicolons as field separators", () => {
+    expect(
+      keep_safe_mailto_fields(
+        "mailto:ada@example.com?subject=Hi;attach=/etc/passwd;bcc=ken@example.com&body=Text",
+      ),
+    ).toBe("mailto:ada@example.com?subject=Hi&body=Text");
+  });
+
+  it("drops encoded attachment field names", () => {
+    expect(
+      keep_safe_mailto_fields(
+        "mailto:ada@example.com?%61ttach=/etc/passwd&%41TTACHMENT=x&subject=Hi",
+      ),
+    ).toBe("mailto:ada@example.com?subject=Hi");
+  });
+
+  it("drops every blind copy field and keeps the rest", () => {
+    expect(
+      keep_safe_mailto_fields(
+        "mailto:ada@example.com?BCC=ken@example.com&subject=Hi&%62cc=x@example.com&body=Text",
+      ),
+    ).toBe("mailto:ada@example.com?subject=Hi&body=Text");
+  });
+
+  it("leaves a link without a query unchanged", () => {
+    expect(keep_safe_mailto_fields("mailto:ada@example.com")).toBe(
+      "mailto:ada@example.com",
+    );
+  });
+
+  it("removes the query when only a blind copy was present", () => {
+    const link = keep_safe_mailto_fields(
+      "mailto:ada@example.com?bcc=ken@example.com#top",
+    );
+
+    expect(link).toBe("mailto:ada@example.com");
+    expect(parse_mailto_link(link)?.bcc).toEqual([]);
+  });
+});
+
+describe("is_mailto_link", () => {
+  it("matches the scheme in any case", () => {
+    expect(is_mailto_link(" MailTo:ada@example.com")).toBe(true);
+    expect(is_mailto_link("https://example.com/mailto:")).toBe(false);
   });
 });

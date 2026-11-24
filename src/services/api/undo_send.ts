@@ -18,6 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import type { OutgoingPriority } from "@/services/mail_priority";
 import { api_client, type ApiResponse } from "./client";
 import { is_session_failure, with_session_recovery } from "./session_recovery";
 import { upload_timeout_ms } from "./upload_timeout";
@@ -73,6 +74,7 @@ export interface QueueEmailRequest {
   external_pgp_bodies?: Record<string, string>;
   client_send_id?: string;
   plain_text?: boolean;
+  priority?: OutgoingPriority;
   obscure_subject?: boolean;
 }
 

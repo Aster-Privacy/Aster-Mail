@@ -67,6 +67,7 @@ import {
   ReportSpamIcon,
 } from "@/components/email/spam_action_icons";
 import { use_i18n } from "@/lib/i18n/context";
+import { custom_forward_via_domain } from "@/utils/forwarding_alias";
 import { strip_preview_filler } from "@/utils/preview_text";
 import { detect_verification_code } from "@/utils/verification_code";
 import {
@@ -125,6 +126,7 @@ import mail_logo_url from "@/assets/mail_logo.webp";
 import { use_shown_thread_count } from "@/hooks/pending_thread_replies";
 import { use_has_unseen_reaction } from "@/services/unseen_reactions";
 import { is_list_email_in_trash } from "@/components/email/viewer_shared/trash_placement";
+import { resolve_mail_location } from "@/lib/system_move_targets";
 
 export const InboxEmailListItem = memo(
   forwardRef<HTMLDivElement, InboxEmailListItemProps>(
@@ -206,6 +208,13 @@ export const InboxEmailListItem = memo(
         raw_list_name,
         t("common.unknown_sender"),
       );
+      const list_participant_names = sender_trust
+        ? undefined
+        : email.thread_participant_names;
+      const via_domain =
+        outgoing_names || (list_participant_names?.length ?? 0) > 1
+          ? null
+          : custom_forward_via_domain(email);
       const peer_badge = peer_profile?.active_badge ?? null;
       const show_sender_badge =
         (peer_profile?.show_badge_profile ?? false) &&
@@ -386,6 +395,22 @@ export const InboxEmailListItem = memo(
             ? snapshot.tag_tokens
             : (email.tags || []).map((t) => t.id),
           is_scope,
+          source_id: email.id,
+          is_selection: is_multi,
+          location:
+            email.item_type === "draft" ||
+            email.item_type === "scheduled" ||
+            (is_multi && snapshot.has_unmovable)
+              ? "drafts"
+              : resolve_mail_location({
+                  current_view,
+                  is_trashed: email.is_trashed,
+                  is_spam: email.is_spam,
+                  is_archived: email.is_archived,
+                  in_custom_folder: (email.folders ?? []).length > 0,
+                  is_sent_item: email.item_type === "sent",
+                }),
+          all_starred: is_multi ? snapshot.all_starred : email.is_starred,
         });
         set_is_dragging(true);
         begin_category_drag();
@@ -608,13 +633,20 @@ export const InboxEmailListItem = memo(
               >
                 {resolve_list_display_name({
                   outgoing_names,
-                  thread_participant_names: sender_trust
-                    ? undefined
-                    : email.thread_participant_names,
+                  thread_participant_names: list_participant_names,
                   fallback_name: list_sender_name,
                   to_prefix: t("mail.to"),
                 })}
               </span>
+
+              {via_domain && (
+                <span
+                  className="flex-shrink-0 truncate text-[13px] font-normal text-txt-muted"
+                  dir="auto"
+                >
+                  {t("mail.forwarded_via", { address: via_domain })}
+                </span>
+              )}
 
               {!sender_trust?.warning && !marks_hidden && (
                 <OfficialBadge
@@ -719,7 +751,7 @@ export const InboxEmailListItem = memo(
                   />
                 )}
 
-              {email.is_trashed && (
+              {email.is_trashed && !is_trash_view && (
                 <EmailTag
                   className="flex-shrink-0 hidden sm:inline-flex"
                   label={t("mail.trashed_label")}
@@ -728,7 +760,7 @@ export const InboxEmailListItem = memo(
                 />
               )}
 
-              {email.is_spam && (
+              {email.is_spam && !is_spam_view && (
                 <EmailTag
                   className="flex-shrink-0 hidden sm:inline-flex"
                   label={t("mail.spam_label")}

@@ -28,7 +28,7 @@ import {
   sign_address_entry,
   verify_address_entry,
 } from "./address_identity_entry";
-import { array_to_base64 } from "./base64";
+import { array_to_base64, base64_to_array } from "./base64";
 import expected from "./address_identity_vectors.json";
 
 function base64url(bytes: Uint8Array): string {
@@ -129,5 +129,32 @@ describe("address identity vectors", () => {
     expect(
       verify_address_entry("someone.else@example.org", expected.entry).valid,
     ).toBe(false);
+  });
+
+  it("rejects an entry whose signature was rewritten to its high S twin", () => {
+    const signature = base64_to_array(expected.entry.signed_prekey_signature);
+    const order = p256.CURVE.n;
+    let s_value = 0n;
+
+    for (const byte of signature.slice(32, 64)) {
+      s_value = (s_value << 8n) | BigInt(byte);
+    }
+
+    let high_s = order - s_value;
+
+    for (let i = 63; i >= 32; i -= 1) {
+      signature[i] = Number(high_s & 0xffn);
+      high_s >>= 8n;
+    }
+
+    const twin = {
+      ...expected.entry,
+      signed_prekey_signature: array_to_base64(signature),
+    };
+
+    expect(verify_address_entry(expected.address, expected.entry).valid).toBe(
+      true,
+    );
+    expect(verify_address_entry(expected.address, twin).valid).toBe(false);
   });
 });

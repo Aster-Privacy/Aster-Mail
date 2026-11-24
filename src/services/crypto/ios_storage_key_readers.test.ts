@@ -295,7 +295,7 @@ describe("iOS attachment meta readers", () => {
 
 describe("iOS external account readers", () => {
   it(
-    "reads the combined format sealed with the login key material",
+    "refuses a combined row sealed with the login key material",
     LONG_TEST,
     async () => {
       await store_vault_in_memory(
@@ -304,9 +304,9 @@ describe("iOS external account readers", () => {
         USER_ID,
       );
 
-      expect(await reads_external_account(await ios_key_material())).toBe(
-        "imap@example.test",
-      );
+      await expect(
+        reads_external_account(await ios_key_material()),
+      ).rejects.toThrow();
     },
   );
 

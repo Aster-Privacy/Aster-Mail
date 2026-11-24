@@ -63,6 +63,24 @@ export interface TurnstileWidgetRef {
 
 const REFRESH_TIMEOUT_MS = 15000;
 
+export type CreationTokenSource = () => Promise<string | null>;
+
+let creation_token_source: CreationTokenSource | null = null;
+
+export function set_creation_token_source(
+  source: CreationTokenSource | null,
+): void {
+  creation_token_source = source;
+}
+
+export async function request_creation_token(): Promise<
+  string | null | undefined
+> {
+  if (!creation_token_source) return undefined;
+
+  return creation_token_source();
+}
+
 declare global {
   interface Window {
     turnstile?: {

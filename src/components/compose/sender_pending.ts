@@ -25,21 +25,37 @@ export interface pending_sender_input {
   chosen_by_user: boolean;
   draft_from?: string | null;
   selected_email?: string | null;
+  thread_bound?: boolean;
+  resolution_ready?: boolean;
+  expected_email?: string | null;
+}
+
+function same_sender(left: string, right: string): boolean {
+  return (
+    normalize_address_ignoring_dots(left) ===
+    normalize_address_ignoring_dots(right)
+  );
 }
 
 export function sender_is_pending(input: pending_sender_input): boolean {
-  if (!input.loading || input.chosen_by_user) return false;
+  if (input.chosen_by_user) return false;
+  if (input.loading && input.thread_bound) return true;
+  if (input.resolution_ready === false) return true;
 
   const selected = input.selected_email?.trim();
+  const expected = input.expected_email?.trim();
 
+  if (expected) {
+    if (!selected) return true;
+    if (!same_sender(selected, expected)) return true;
+  }
+
+  if (!input.loading) return false;
   if (!selected) return true;
 
   const draft_from = input.draft_from?.trim();
 
   if (!draft_from) return false;
 
-  return (
-    normalize_address_ignoring_dots(selected) !==
-    normalize_address_ignoring_dots(draft_from)
-  );
+  return !same_sender(selected, draft_from);
 }

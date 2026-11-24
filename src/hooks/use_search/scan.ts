@@ -29,7 +29,10 @@ import {
 } from "./types";
 
 import { type MailItem } from "@/services/api/mail";
-import { open_snapshot_reader } from "@/services/search_index_store";
+import {
+  open_snapshot_reader,
+  type SnapshotReader,
+} from "@/services/search_index_store";
 import {
   is_expired_mail,
   note_purged_mail,
@@ -96,6 +99,39 @@ async function scan_index_entries(
   options?: ScanOptions,
 ): Promise<boolean> {
   const clock = { yielded_at: Date.now() };
+  const probe = options?.body_probe ?? null;
+  let reader: SnapshotReader | null = null;
+
+  if (probe && index.meta) {
+    reader = await open_snapshot_reader(index.user_email);
+
+    const disk = new Set(index.disk_chunk_ids);
+
+    for (const chunk_id of index.meta.chunk_ids) {
+      if (!reader || is_aborted()) break;
+      if (disk.has(chunk_id)) continue;
+
+      await probe.load_chunk(reader, chunk_id, null);
+    }
+
+    if (is_aborted()) return true;
+  }
+
+  const pending = probe ? (index.pending_body ?? null) : null;
+
+  if (probe && pending) {
+    const loaded = new Set([
+      ...index.disk_chunk_ids,
+      ...(reader ? (index.meta?.chunk_ids ?? []) : []),
+    ]);
+
+    for (const chunk_id of pending.written_chunk_ids()) {
+      if (is_aborted()) return true;
+      if (loaded.has(chunk_id)) continue;
+
+      await probe.load_chunk(pending, chunk_id, null);
+    }
+  }
 
   const hot = await visit_in_slices(
     index.items,
@@ -112,7 +148,7 @@ async function scan_index_entries(
 
   if (index.disk_chunk_ids.length === 0) return false;
 
-  const reader = await open_snapshot_reader(index.user_email);
+  reader ??= await open_snapshot_reader(index.user_email);
 
   if (!reader) {
     options?.on_unreadable_chunk?.();
@@ -141,7 +177,20 @@ async function scan_index_entries(
       if (summary && skip!.skip_by_summary(summary)) continue;
     }
 
-    if (skip?.uses_grams) {
+    if (probe) {
+      const header = await reader.read_grams(chunk_id);
+
+      if (header && skip?.uses_grams && skip.skip_by_grams(header)) continue;
+
+      const verdict = await probe.load_chunk(reader, chunk_id, header);
+
+      if (is_aborted()) return true;
+
+      if (verdict === "skip") {
+        settle(chunk_id);
+        continue;
+      }
+    } else if (skip?.uses_grams) {
       const filter = await reader.read_grams(chunk_id);
 
       if (filter && skip.skip_by_grams(filter)) continue;

@@ -25,6 +25,7 @@ import { use_auth } from "@/contexts/auth_context";
 import { use_preferences } from "@/contexts/preferences_context";
 import { FullPageLoader } from "@/components/common/full_page_loader";
 import { take_support_return } from "@/lib/support_return";
+import { SUSPENDED_PATH, use_suspension_state } from "@/lib/suspension_state";
 
 function dispatch_app_ready() {
   window.dispatchEvent(new CustomEvent("astermail:app-ready"));
@@ -36,6 +37,7 @@ export function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { is_loading: preferences_loading } = use_preferences();
   const location = useLocation();
   const dispatched = useRef(false);
+  const suspension_state = use_suspension_state();
 
   const is_ready = !is_loading && (!is_authenticated || !preferences_loading);
 
@@ -74,6 +76,10 @@ export function ProtectedRoute({ children }: { children: React.ReactNode }) {
         to={"/sign-in?next=" + next_path}
       />
     );
+  }
+
+  if (suspension_state === "suspended") {
+    return <Navigate replace to={SUSPENDED_PATH} />;
   }
 
   return <>{children}</>;

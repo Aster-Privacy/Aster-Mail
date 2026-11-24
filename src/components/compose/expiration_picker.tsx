@@ -293,7 +293,7 @@ export function ExpirationPicker({
             <PopoverTrigger asChild>
               {has_protection ? (
                 <button
-                  className="flex items-center gap-1.5 px-2 py-1 rounded-md text-xs font-medium disabled:opacity-50"
+                  className="flex items-center gap-1.5 px-2 py-1 rounded-md text-xs font-medium disabled:cursor-not-allowed disabled:opacity-50"
                   disabled={is_disabled}
                   style={{
                     backgroundColor: "var(--cat-rose-solid)",
@@ -317,7 +317,7 @@ export function ExpirationPicker({
               ) : (
                 <button
                   aria-label={t("mail.self_destruct")}
-                  className="press_scale w-9 h-9 p-0 inline-flex items-center justify-center flex-shrink-0 rounded-full transition-transform duration-150 hover:bg-[var(--aster-hover)] text-txt-tertiary hover:text-txt-primary disabled:opacity-50"
+                  className="press_scale w-9 h-9 p-0 inline-flex items-center justify-center flex-shrink-0 rounded-full transition-transform duration-150 hover:bg-[var(--aster-hover)] text-txt-tertiary hover:text-txt-primary disabled:cursor-not-allowed disabled:opacity-50"
                   disabled={is_disabled}
                   type="button"
                 >
@@ -329,7 +329,7 @@ export function ExpirationPicker({
           {has_protection && (
             <button
               aria-label={t("common.clear")}
-              className="hover:bg-red-500/20 rounded p-0.5 transition-colors text-danger disabled:opacity-50"
+              className="hover:bg-red-500/20 rounded p-0.5 transition-colors text-danger disabled:cursor-not-allowed disabled:opacity-50"
               disabled={disabled}
               type="button"
               onClick={handle_clear}

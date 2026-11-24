@@ -19,3 +19,5 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 export const CATCH_UP_WHILE_LIVE_MS = 180000;
+export const HIDDEN_CATCH_UP_MS = 300000;
+export const HIDDEN_CATCH_UP_WHILE_LIVE_MS = 900000;

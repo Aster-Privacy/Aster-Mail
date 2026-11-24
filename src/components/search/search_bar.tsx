@@ -67,9 +67,15 @@ import { is_page_search_route, set_page_search } from "@/hooks/use_page_search";
 import { use_i18n } from "@/lib/i18n/context";
 import { has_open_overlay_layer } from "@/lib/overlay_layer_stack";
 import { use_preferences } from "@/contexts/preferences_context";
+import { use_folders } from "@/hooks/use_folders";
+import { use_tags } from "@/hooks/use_tags";
 import {
+  build_label_name_to_tokens,
   meets_min_search_length,
   scope_search_query,
+  scope_search_query_to_list,
+  search_list_scope_for_path,
+  search_list_scope_name,
   search_placeholder_label_key,
   search_view_for_path,
 } from "@/utils/search_query";
@@ -114,6 +120,25 @@ export function SearchBar({
   const location = useLocation();
   const scope_view = search_view_for_path(location.pathname);
   const scope_label_key = search_placeholder_label_key(scope_view);
+  const { state: folders_state } = use_folders();
+  const { state: tags_state } = use_tags();
+  const list_scope = useMemo(
+    () => search_list_scope_for_path(location.pathname),
+    [location.pathname],
+  );
+  const list_scope_name = useMemo(
+    () =>
+      search_list_scope_name(
+        list_scope,
+        folders_state.folders,
+        tags_state.tags,
+      ),
+    [list_scope, folders_state.folders, tags_state.tags],
+  );
+  const label_name_to_tokens = useMemo(
+    () => build_label_name_to_tokens(folders_state.folders, tags_state.tags),
+    [folders_state.folders, tags_state.tags],
+  );
   const is_page_filter = is_page_search_route(location.pathname);
   const page_filter_placeholder = `${t("mail.search_in")} ${
     location.pathname === "/contacts"
@@ -160,8 +185,14 @@ export function SearchBar({
   const is_view_scoped = !is_page_filter && !search_context;
   const scope_query = useCallback(
     (raw: string) =>
-      is_view_scoped ? scope_search_query(raw, scope_view) : raw.trim(),
-    [is_view_scoped, scope_view],
+      is_view_scoped
+        ? scope_search_query_to_list(
+            scope_search_query(raw, scope_view),
+            list_scope,
+            list_scope_name,
+          )
+        : raw.trim(),
+    [is_view_scoped, scope_view, list_scope, list_scope_name],
   );
 
   const close = useCallback(() => {
@@ -395,6 +426,7 @@ export function SearchBar({
     const timer = setTimeout(() => {
       void search(preview_search_query, {
         search_body: content_search_enabled,
+        label_name_to_tokens,
       });
     }, PREVIEW_DEBOUNCE_MS);
 
@@ -534,9 +566,11 @@ export function SearchBar({
             placeholder={
               is_page_filter
                 ? page_filter_placeholder
-                : scope_label_key
-                  ? `${t("mail.search_in")} ${t(scope_label_key)}`
-                  : t("common.search")
+                : list_scope_name
+                  ? `${t("mail.search_in")} ${list_scope_name}`
+                  : scope_label_key
+                    ? `${t("mail.search_in")} ${t(scope_label_key)}`
+                    : t("common.search")
             }
             role={is_page_filter ? undefined : "combobox"}
             type="text"

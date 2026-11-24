@@ -35,6 +35,7 @@ const server = vi.hoisted(() => ({
   fail_call: -1,
   failing_details: new Set<string>(),
   gone_details: new Set<string>(),
+  unreadable_details: new Set<string>(),
   details_in_flight: 0,
   max_details_in_flight: 0,
   on_list: null as null | ((call: number) => void),
@@ -85,6 +86,9 @@ vi.mock("@/services/api/scheduled", () => ({
     }
     if (!item || server.gone_details.has(id))
       return { data: null, error: "not found", code: "NOT_FOUND" };
+    if (server.unreadable_details.has(id)) {
+      return { data: null, error: "Could not open", unreadable: true };
+    }
 
     return {
       data: {
@@ -209,6 +213,7 @@ describe("use_scheduled_emails paging", () => {
     server.fail_call = -1;
     server.failing_details = new Set();
     server.gone_details = new Set();
+    server.unreadable_details = new Set();
     server.details_in_flight = 0;
     server.max_details_in_flight = 0;
   });
@@ -476,6 +481,39 @@ describe("use_scheduled_emails paging", () => {
     expect(ids(latest())).toEqual(["s000", "s001"]);
     expect(latest().state.has_more).toBe(true);
     expect(latest().state.error).toBe("common.failed_to_load_scheduled_emails");
+
+    act(() => root.unmount());
+  });
+
+  it("lists a message it cannot open so it can still be cancelled", async () => {
+    server.items = make_items(3);
+    server.unreadable_details = new Set(["s001"]);
+    const { latest, root } = render_hook();
+
+    await flush();
+
+    expect(ids(latest())).toEqual(["s000", "s001", "s002"]);
+    expect(latest().state.error).toBeNull();
+
+    const row = latest().state.emails.find((e) => e.id === "s001")!;
+
+    expect(row.subject).toBe("common.unable_to_decrypt");
+    expect(row.to_recipients).toEqual([]);
+    expect(row.full_body).toBe("");
+    expect(row.content_verified).toBe(false);
+    expect(
+      latest().state.emails.find((e) => e.id === "s000")!.content_verified,
+    ).toBe(true);
+
+    let cancelled = false;
+
+    await act(async () => {
+      cancelled = await latest().cancel_email("s001");
+    });
+    await flush();
+
+    expect(cancelled).toBe(true);
+    expect(ids(latest())).toEqual(["s000", "s002"]);
 
     act(() => root.unmount());
   });

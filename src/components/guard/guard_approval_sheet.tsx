@@ -1,0 +1,714 @@
+//
+// Aster Communications Inc.
+//
+// Copyright (c) 2026 Aster Communications Inc.
+//
+// This file is part of this project.
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the AGPLv3 as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// AGPLv3 for more details.
+//
+// You should have received a copy of the AGPLv3
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+//
+import type { GuardDevice } from "@/services/guard/guard_device";
+import type {
+  GuardApproveOutcome,
+  GuardFailure,
+  GuardRequestView,
+} from "@/services/guard/guard_approval";
+
+import { useCallback, useEffect, useRef, useState } from "react";
+import { motion } from "framer-motion";
+import {
+  ClockIcon,
+  MapPinIcon,
+  QuestionMarkCircleIcon,
+} from "@heroicons/react/24/outline";
+
+import {
+  GuardHeldToast,
+  GuardPanicHost,
+} from "@/components/guard/guard_held_toast";
+import { open_guard_panic } from "@/components/guard/guard_panic_dialog";
+import {
+  GuardRescueBanner,
+  GuardSetupAfterRescue,
+} from "@/components/guard/guard_rescue_banner";
+import {
+  format_guard_countdown,
+  format_guard_relative,
+  GuardBrowserIcon,
+  GuardChip,
+  GuardDetailRow,
+  GuardFlag,
+  GuardLogo,
+  GuardOsIcon,
+  GuardResultView,
+  use_guard_now,
+} from "@/components/guard/guard_visuals";
+import { guard_error_text } from "@/components/guard/guard_error_text";
+import { format_guard_time } from "@/components/guard/guard_waiting_screen";
+import { use_guard_requests } from "@/components/guard/use_guard_requests";
+import { use_guard_step_up } from "@/components/guard/use_guard_step_up";
+import { show_toast } from "@/components/toast/simple_toast";
+import { ConfirmationModal } from "@/components/modals/confirmation_modal";
+import { Button } from "@/components/ui/button";
+import {
+  Modal,
+  ModalBody,
+  ModalDescription,
+  ModalHeader,
+  ModalTitle,
+} from "@/components/ui/modal";
+import { OtpInput } from "@/components/ui/otp_input";
+import { use_auth } from "@/contexts/auth_context";
+import { use_i18n } from "@/lib/i18n/context";
+import { server_now } from "@/lib/server_clock";
+import { SETTINGS_ANCHORS, open_settings_target } from "@/lib/settings_links";
+import { use_should_reduce_motion } from "@/provider";
+import { sweep_pending_guard_records } from "@/services/crypto/guard_key_store";
+import {
+  get_passphrase_from_memory,
+  on_vault_stored,
+} from "@/services/crypto/memory_key_store";
+import {
+  approve_guard_sign_in,
+  deny_guard_sign_in,
+} from "@/services/guard/guard_approval";
+import {
+  close_guard_notifications,
+  on_guard_event,
+  request_guard_requests_refresh,
+  set_guard_event_account,
+  start_guard_event_bridge,
+} from "@/services/guard/guard_events";
+
+type SheetMessage =
+  | "wrong_number"
+  | "number_rejected"
+  | "request_ended"
+  | "unlock_first"
+  | "keys_changed"
+  | "error"
+  | null;
+
+const MESSAGE_KEYS = {
+  wrong_number: "guard.approve_wrong_number",
+  number_rejected: "guard.approve_number_rejected",
+  request_ended: "guard.approve_request_ended",
+  unlock_first: "guard.approve_unlock_first",
+  keys_changed: "guard.approve_keys_changed",
+  error: "guard.approve_error",
+} as const;
+
+const UNKNOWN_VALUES = new Set([
+  "",
+  "unknown",
+  "unknown device",
+  "other",
+  "none",
+  "null",
+]);
+
+export function known_guard_value(value: string | null | undefined): string {
+  const trimmed = (value ?? "").trim();
+
+  return UNKNOWN_VALUES.has(trimmed.toLowerCase()) ? "" : trimmed;
+}
+
+export function clean_guard_number_input(value: string): string {
+  return value.replace(/\D/g, "").slice(0, 2);
+}
+
+interface GuardApprovalSheetProps {
+  view: GuardRequestView;
+  user_id: string;
+  device: GuardDevice;
+  on_done: (request_id: string) => void;
+  on_settled?: (view: GuardRequestView) => void;
+  finish_delay_ms?: number;
+}
+
+function ContextDetails({
+  view,
+  now,
+}: {
+  view: GuardRequestView;
+  now: number;
+}) {
+  const { t } = use_i18n();
+  const context = view.context;
+  const named = known_guard_value(view.summary.new_device?.name);
+
+  if (!context) {
+    return (
+      <dl
+        aria-label={t("guard.approve_request_label")}
+        className="px-1"
+        data-testid="guard_request_context"
+      >
+        <GuardDetailRow
+          icon={<QuestionMarkCircleIcon />}
+          label={t("guard.approve_device_label")}
+          primary={named || t("guard.approve_unknown_device")}
+        />
+      </dl>
+    );
+  }
+
+  const browser = known_guard_value(context.browser);
+  const os = known_guard_value(context.os);
+  const device_name = known_guard_value(context.device_name);
+  const device =
+    browser && os
+      ? t("guard.approve_device", { browser, os })
+      : browser || os || t("guard.approve_unknown_device");
+  const device_label = device_name || named;
+  const device_label_text =
+    device_label && device_label !== device
+      ? t("guard.approve_device_named", { name: device_label })
+      : "";
+  const country = known_guard_value(context.country);
+  const place = [known_guard_value(context.city), country]
+    .filter(Boolean)
+    .join(", ");
+  const requested_at = context.requested_at || view.summary.created_at;
+  const time = format_guard_time(requested_at);
+
+  return (
+    <dl
+      aria-label={t("guard.approve_request_label")}
+      className="flex flex-col gap-5 px-1"
+      data-testid="guard_request_context"
+    >
+      <GuardDetailRow
+        icon={<GuardOsIcon device_type={context.device_type} os={os} />}
+        label={t("guard.approve_device_label")}
+        primary={
+          <>
+            {browser && <GuardBrowserIcon browser={browser} />}
+            <span className="truncate">{device}</span>
+          </>
+        }
+        secondary={device_label_text || undefined}
+        test_id="guard_request_device"
+      />
+      {place && (
+        <GuardDetailRow
+          icon={<MapPinIcon />}
+          label={t("guard.approve_location_label")}
+          primary={
+            <>
+              {country && <GuardFlag code={context.country_code} />}
+              <span className="truncate">{place}</span>
+            </>
+          }
+        />
+      )}
+      {time && (
+        <GuardDetailRow
+          icon={<ClockIcon />}
+          label={t("guard.approve_time_label")}
+          primary={
+            <span className="truncate">
+              {format_guard_relative(requested_at, now)}
+            </span>
+          }
+          secondary={time}
+        />
+      )}
+    </dl>
+  );
+}
+
+function ExpiryChip({ expires_at, now }: { expires_at: string; now: number }) {
+  const { t } = use_i18n();
+  const left = Date.parse(expires_at) - now;
+
+  if (Number.isNaN(left)) return null;
+  if (left <= 0) {
+    return (
+      <GuardChip test_id="guard_approve_expiry" tone="danger">
+        {t("guard.approve_expired_chip")}
+      </GuardChip>
+    );
+  }
+
+  return (
+    <GuardChip
+      icon={<ClockIcon aria-hidden className="h-3.5 w-3.5" />}
+      test_id="guard_approve_expiry"
+      tone={left < 60_000 ? "warning" : "neutral"}
+    >
+      {t("guard.approve_expires_in", { time: format_guard_countdown(left) })}
+    </GuardChip>
+  );
+}
+
+function SheetResult({
+  kind,
+  on_close,
+}: {
+  kind: "approved" | "denied";
+  on_close: () => void;
+}) {
+  const { t } = use_i18n();
+  const approved = kind === "approved";
+
+  const change_password = () => {
+    on_close();
+    open_settings_target({
+      section: "security",
+      anchor: SETTINGS_ANCHORS.password,
+    });
+  };
+
+  return (
+    <GuardResultView
+      live
+      actions={
+        approved ? (
+          <Button className="w-full" size="lg" variant="depth" onClick={on_close}>
+            {t("common.done")}
+          </Button>
+        ) : (
+          <>
+            <Button
+              className="w-full"
+              data-testid="guard_approve_change_password"
+              size="lg"
+              variant="depth"
+              onClick={change_password}
+            >
+              {t("guard.panic_change_password")}
+            </Button>
+            <Button className="w-full" size="lg" variant="outline" onClick={on_close}>
+              {t("common.done")}
+            </Button>
+          </>
+        )
+      }
+      body={t(
+        approved ? "guard.approve_approved_body" : "guard.approve_denied_body",
+      )}
+      className="px-6 pb-6 pt-8"
+      test_id={`guard_approve_result_${kind}`}
+      title={t(approved ? "guard.approve_approved" : "guard.approve_denied")}
+    />
+  );
+}
+
+export function GuardApprovalSheet({
+  view,
+  user_id,
+  device,
+  on_done,
+  on_settled,
+  finish_delay_ms = 2400,
+}: GuardApprovalSheetProps) {
+  const { t } = use_i18n();
+  const reduce_motion = use_should_reduce_motion();
+  const step_up = use_guard_step_up();
+  const now = use_guard_now();
+  const [number, set_number] = useState("");
+  const [message, set_message] = useState<SheetMessage>(null);
+  const [failure, set_failure] = useState<GuardFailure | null>(null);
+  const [busy, set_busy] = useState<"approve" | "deny" | null>(null);
+  const [result, set_result] = useState<"approved" | "denied" | null>(null);
+  const [shake, set_shake] = useState(0);
+  const [ended, set_ended] = useState(false);
+  const request_id = view.summary.id;
+
+  useEffect(() => {
+    void close_guard_notifications(request_id, user_id);
+  }, [request_id, user_id]);
+
+  useEffect(() => {
+    if (result || ended) on_settled?.(view);
+  }, [result, ended, on_settled, view]);
+
+  useEffect(() => {
+    if (message !== "unlock_first") return;
+
+    return on_vault_stored(() => set_message(null));
+  }, [message]);
+
+  useEffect(() => {
+    if (!result) return;
+    if (finish_delay_ms <= 0) {
+      on_done(request_id);
+
+      return;
+    }
+    if (result === "denied") return;
+    const timer = window.setTimeout(() => on_done(request_id), finish_delay_ms);
+
+    return () => window.clearTimeout(timer);
+  }, [result, finish_delay_ms, on_done, request_id]);
+
+  const handle_outcome = (outcome: GuardApproveOutcome) => {
+    switch (outcome.kind) {
+      case "approved":
+        set_result("approved");
+
+        return;
+      case "wrong_number":
+        set_message("wrong_number");
+        set_shake((count) => count + 1);
+
+        return;
+      case "number_rejected":
+        set_ended(true);
+        set_message("number_rejected");
+        set_shake((count) => count + 1);
+
+        return;
+      case "gone":
+        show_toast(t("guard.approve_request_ended"), "info");
+        on_done(request_id);
+
+        return;
+      case "locked":
+        set_message("unlock_first");
+
+        return;
+      case "keys_changed":
+        set_message("keys_changed");
+
+        return;
+      case "canceled":
+        return;
+      default:
+        set_failure(outcome);
+        set_message("error");
+    }
+  };
+
+  const expired = Date.parse(view.summary.expires_at) <= now;
+
+  const approve = async (value = number) => {
+    if (busy || ended || value.length !== 2) return;
+    if (Date.parse(view.summary.expires_at) <= server_now()) return;
+    set_busy("approve");
+    set_message(null);
+    try {
+      handle_outcome(
+        await approve_guard_sign_in({
+          request: view.summary,
+          number: Number(value),
+          user_id,
+          device,
+          request_proof: step_up.request_proof,
+          read_passphrase: get_passphrase_from_memory,
+        }),
+      );
+    } finally {
+      set_busy(null);
+    }
+  };
+
+  const deny = async (then_panic = false) => {
+    if (busy) return;
+    set_busy("deny");
+    if (!ended) set_message(null);
+    try {
+      const outcome = await deny_guard_sign_in(
+        view.summary,
+        user_id,
+        device,
+        step_up.request_proof,
+      );
+
+      if (outcome.kind === "canceled") return;
+
+      if (
+        then_panic &&
+        (outcome.kind === "denied" || outcome.kind === "gone")
+      ) {
+        on_done(request_id);
+        open_guard_panic();
+      } else if (outcome.kind === "denied") {
+        set_result("denied");
+      } else if (outcome.kind === "gone") {
+        show_toast(t("guard.approve_request_ended"), "info");
+        on_done(request_id);
+      } else {
+        set_failure(outcome);
+        set_message("error");
+      }
+    } finally {
+      set_busy(null);
+    }
+  };
+
+  const can_close = busy === null;
+
+  return (
+    <>
+      <Modal
+        close_on_escape={can_close}
+        close_on_overlay={false}
+        is_open
+        on_close={() => on_done(request_id)}
+        show_close_button={false}
+        size="md"
+      >
+        <div data-testid="guard_approval_sheet">
+          {result ? (
+            <SheetResult kind={result} on_close={() => on_done(request_id)} />
+          ) : (
+            <>
+              <ModalHeader className="items-center pe-6 text-center">
+                <GuardLogo className="mb-5" />
+                <ModalTitle className="text-center">
+                  {t("guard.approve_title")}
+                </ModalTitle>
+                <ModalDescription className="text-center">
+                  {t("guard.approve_description")}
+                </ModalDescription>
+                <div className="mt-3 flex justify-center">
+                  <ExpiryChip expires_at={view.summary.expires_at} now={now} />
+                </div>
+              </ModalHeader>
+              <ModalBody>
+                <div className="space-y-5 pb-2">
+                  <ContextDetails now={now} view={view} />
+                  <div className="space-y-3">
+                    <p
+                      className="text-center text-sm font-medium text-txt-primary"
+                      id="guard_approve_number_label"
+                    >
+                      {t("guard.approve_number_label")}
+                    </p>
+                    <motion.div
+                      key={shake}
+                      animate={
+                        shake > 0 && !reduce_motion
+                          ? { x: [0, -12, 12, -8, 8, -4, 4, 0] }
+                          : { x: 0 }
+                      }
+                      aria-labelledby="guard_approve_number_label"
+                      data-testid="guard_approve_digits"
+                      role="group"
+                      transition={{ duration: 0.45, ease: "easeInOut" }}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") void approve();
+                      }}
+                    >
+                      <OtpInput
+                        autofocus
+                        aria_label={t("guard.approve_number_label")}
+                        disabled={busy !== null || ended}
+                        id_prefix="guard_approve_digit"
+                        length={2}
+                        size="lg"
+                        status={
+                          message === "wrong_number" ||
+                          message === "number_rejected"
+                            ? "error"
+                            : "default"
+                        }
+                        value={number}
+                        onChange={(value) => {
+                          set_number(clean_guard_number_input(value));
+                          if (message === "wrong_number") set_message(null);
+                        }}
+                      />
+                    </motion.div>
+                  </div>
+                  {message && (
+                    <p
+                      className="rounded-xl bg-red-500/10 px-3 py-2 text-center text-sm text-red-600 dark:text-red-400"
+                      role="alert"
+                    >
+                      {message === "error"
+                        ? guard_error_text(t, failure, MESSAGE_KEYS.error)
+                        : t(MESSAGE_KEYS[message])}
+                    </p>
+                  )}
+                </div>
+              </ModalBody>
+              <div className="flex flex-col gap-2 px-6 pb-5 pt-2">
+                <Button
+                  className="w-full"
+                  disabled={
+                    busy !== null || ended || expired || number.length !== 2
+                  }
+                  is_loading={busy === "approve"}
+                  size="lg"
+                  variant="depth"
+                  onClick={() => void approve()}
+                >
+                  {t("guard.approve_confirm")}
+                </Button>
+                <Button
+                  className="w-full"
+                  disabled={busy !== null}
+                  is_loading={busy === "deny"}
+                  size="lg"
+                  variant="depth_destructive"
+                  onClick={() => void deny()}
+                >
+                  {t("guard.approve_deny")}
+                </Button>
+                <Button
+                  className="w-full"
+                  data-testid="guard_approve_not_me"
+                  disabled={busy !== null}
+                  size="lg"
+                  variant="depth_destructive"
+                  onClick={() => void deny(true)}
+                >
+                  {t("guard.not_me")}
+                </Button>
+              </div>
+            </>
+          )}
+        </div>
+      </Modal>
+      {step_up.step_up_modal}
+    </>
+  );
+}
+
+const REFRESH_EVENTS = new Set([
+  "sign_in_request",
+  "sign_in_approved",
+  "sign_in_denied",
+  "sign_in_expired",
+  "guard_enabled",
+  "guard_disabled",
+  "rescue_completed",
+  "panic",
+]);
+
+const ENDED_EVENTS = new Set<string>([
+  "sign_in_approved",
+  "sign_in_denied",
+  "sign_in_expired",
+]);
+
+export function GuardApprovalHost({
+  show_rescue_banner = false,
+}: {
+  show_rescue_banner?: boolean;
+} = {}) {
+  const { t } = use_i18n();
+  const { user, accounts, switch_to_account } = use_auth();
+  const user_id = user?.id ?? null;
+  const { requests, device, dismiss } = use_guard_requests(user_id);
+  const [settled, set_settled] = useState<GuardRequestView | null>(null);
+  const [switch_target, set_switch_target] = useState<{
+    account_id: string;
+    request_id: string;
+  } | null>(null);
+  const prompted_ref = useRef(new Set<string>());
+  const switch_account = switch_target
+    ? accounts.find((account) => account.id === switch_target.account_id)
+    : undefined;
+
+  useEffect(() => {
+    void sweep_pending_guard_records().catch(() => undefined);
+  }, []);
+
+  useEffect(() => {
+    set_guard_event_account(user_id);
+    const stop_bridge = start_guard_event_bridge();
+    const stop_listening = on_guard_event((event) => {
+      if (event.account_id !== user_id) {
+        if (event.event === "sign_in_request") {
+          if (prompted_ref.current.has(event.id)) return;
+          prompted_ref.current.add(event.id);
+          set_switch_target({
+            account_id: event.account_id,
+            request_id: event.id,
+          });
+        } else if (ENDED_EVENTS.has(event.event)) {
+          prompted_ref.current.add(event.id);
+          set_switch_target((target) =>
+            target && target.request_id === event.id ? null : target,
+          );
+        }
+
+        return;
+      }
+      if (ENDED_EVENTS.has(event.event)) {
+        void close_guard_notifications(event.id, event.account_id);
+      }
+      if (REFRESH_EVENTS.has(event.event)) request_guard_requests_refresh();
+    });
+
+    return () => {
+      stop_listening();
+      stop_bridge();
+      set_guard_event_account(null);
+    };
+  }, [user_id]);
+
+  useEffect(() => {
+    set_switch_target(null);
+    set_settled(null);
+  }, [user_id]);
+  const current = settled ?? requests[0];
+
+  const finish = useCallback(
+    (request_id: string) => {
+      set_settled(null);
+      dismiss(request_id);
+      if (user_id) void close_guard_notifications(request_id, user_id);
+    },
+    [dismiss, user_id],
+  );
+
+  const confirm_switch = () => {
+    const target = switch_target;
+
+    set_switch_target(null);
+    if (target) {
+      void switch_to_account(target.account_id).catch(() => undefined);
+    }
+  };
+
+  return (
+    <>
+      <GuardHeldToast />
+      <GuardPanicHost user_id={user_id} />
+      {show_rescue_banner && (
+        <div className="fixed inset-x-0 top-0 z-[60]">
+          <GuardRescueBanner user_id={user_id} />
+        </div>
+      )}
+      <GuardSetupAfterRescue user_id={user_id} />
+      <ConfirmationModal
+        cancel_text={t("common.not_now")}
+        confirm_text={t("guard.switch_account_confirm")}
+        is_open={!!switch_account}
+        message={t("guard.switch_account_message", {
+          email: switch_account?.user.email ?? "",
+        })}
+        title={t("guard.switch_account_title")}
+        variant="info"
+        on_cancel={() => set_switch_target(null)}
+        on_confirm={confirm_switch}
+      />
+      {current && device && user_id && (
+        <GuardApprovalSheet
+          key={current.summary.id}
+          device={device}
+          user_id={user_id}
+          view={current}
+          on_done={finish}
+          on_settled={set_settled}
+        />
+      )}
+    </>
+  );
+}

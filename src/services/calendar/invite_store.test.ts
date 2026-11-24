@@ -52,8 +52,9 @@ vi.mock("@/services/calendar/sync_engine", () => ({
     ensure_loaded: (...args: unknown[]) => ensure_loaded(...args),
     get_events: (...args: unknown[]) => cached_events(...args),
     get_bound_event: (id: string) =>
-      (cached_events() as DecryptedCalendarEvent[]).find((event) => event.id === id) ??
-      made_events.get(id),
+      (cached_events() as DecryptedCalendarEvent[]).find(
+        (event) => event.id === id,
+      ) ?? made_events.get(id),
   },
 }));
 
@@ -71,6 +72,7 @@ const {
   organizer_differs_from_sender,
   remove_event,
   save_request_response,
+  sends_for_organizer,
   set_own_response,
   update_from_organizer,
 } = await import("@/services/calendar/invite_store");
@@ -106,7 +108,12 @@ function build_event(
     status: "confirmed",
     attendees: [
       { ...HOST, response: "accepted", is_organizer: true },
-      { email: SELF, display_name: null, response: "needs_action", is_organizer: false },
+      {
+        email: SELF,
+        display_name: null,
+        response: "needs_action",
+        is_organizer: false,
+      },
     ],
     tags: ["work"],
     reminder_minutes: 15,
@@ -156,8 +163,18 @@ function make_message(overrides: Partial<ItipMessage> = {}): ItipMessage {
       recurrence_id: null,
     },
     attendees: [
-      { email: "Me@Example.com", display_name: "Me", response: "needs_action", is_organizer: false },
-      { email: "other@example.com", display_name: null, response: "tentative", is_organizer: false },
+      {
+        email: "Me@Example.com",
+        display_name: "Me",
+        response: "needs_action",
+        is_organizer: false,
+      },
+      {
+        email: "other@example.com",
+        display_name: null,
+        response: "tentative",
+        is_organizer: false,
+      },
     ],
     organizer: { ...HOST, response: "accepted", is_organizer: true },
     sequence: 2,
@@ -199,7 +216,11 @@ describe("find_event_by_uid", () => {
       make_event({ id: "gone", trashed_at: "2026-03-01T00:00:00.000Z" }),
     ]);
 
-    const found = await find_event_by_uid("uid-1", null, "2026-03-04T09:00:00.000Z");
+    const found = await find_event_by_uid(
+      "uid-1",
+      null,
+      "2026-03-04T09:00:00.000Z",
+    );
 
     expect(found?.id).toBe("master");
     expect(ensure_loaded).toHaveBeenCalledTimes(1);
@@ -213,10 +234,18 @@ describe("find_event_by_uid", () => {
     ]);
 
     expect(
-      (await find_event_by_uid("uid-1", "2026-03-11T09:00:00.000Z", "2026-03-04T09:00:00.000Z"))?.id,
+      (
+        await find_event_by_uid(
+          "uid-1",
+          "2026-03-11T09:00:00.000Z",
+          "2026-03-04T09:00:00.000Z",
+        )
+      )?.id,
     ).toBe("a");
     expect(await find_event_by_uid("uid-1", null, "not a date")).toBeNull();
-    expect(await find_event_by_uid("missing", null, "2026-03-04T09:00:00.000Z")).toBeNull();
+    expect(
+      await find_event_by_uid("missing", null, "2026-03-04T09:00:00.000Z"),
+    ).toBeNull();
   });
 
   it("looks up the event behind a message only when it carries a uid", async () => {
@@ -231,7 +260,10 @@ describe("find_event_by_uid", () => {
 describe("default_calendar_id", () => {
   it("prefers the default calendar and falls back to the first", async () => {
     list_calendars.mockResolvedValueOnce({
-      data: [{ id: "cal-2", is_default: false }, { id: "cal-1", is_default: true }],
+      data: [
+        { id: "cal-2", is_default: false },
+        { id: "cal-1", is_default: true },
+      ],
     });
     expect(await default_calendar_id()).toBe("cal-1");
 
@@ -271,7 +303,12 @@ describe("message_attendees", () => {
 
 describe("message_to_draft", () => {
   it("keeps local-only fields from the previous copy", () => {
-    const draft = message_to_draft(make_message(), "cal-fallback", [], make_event());
+    const draft = message_to_draft(
+      make_message(),
+      "cal-fallback",
+      [],
+      make_event(),
+    );
 
     expect(draft).toMatchObject({
       calendar_id: "cal-1",
@@ -307,23 +344,52 @@ describe("message_to_draft", () => {
 
   it("does not store an organizer from an unverified message", () => {
     const forged = make_message({
-      organizer: { email: SELF, display_name: null, response: "accepted", is_organizer: true },
+      organizer: {
+        email: SELF,
+        display_name: null,
+        response: "accepted",
+        is_organizer: true,
+      },
     });
     const attendees = message_attendees(forged, SELF, null);
-    const draft = message_to_draft(forged, "cal-1", attendees, null, false, SELF);
+    const draft = message_to_draft(
+      forged,
+      "cal-1",
+      attendees,
+      null,
+      false,
+      SELF,
+    );
 
     expect(draft.organizer_email).toBeNull();
-    expect(draft.attendees.some((attendee) => attendee.is_organizer)).toBe(false);
+    expect(draft.attendees.some((attendee) => attendee.is_organizer)).toBe(
+      false,
+    );
 
-    const trusted = message_to_draft(forged, "cal-1", attendees, null, true, SELF);
+    const trusted = message_to_draft(
+      forged,
+      "cal-1",
+      attendees,
+      null,
+      true,
+      SELF,
+    );
 
     expect(trusted.organizer_email).toBe(SELF);
   });
 
   it("creates an unverified invite without an organizer address", async () => {
-    list_calendars.mockResolvedValue({ data: [{ id: "cal-d", is_default: true }] });
+    list_calendars.mockResolvedValue({
+      data: [{ id: "cal-d", is_default: true }],
+    });
 
-    await save_request_response(make_message({ uid: "uid-fresh" }), SELF, null, null, undefined);
+    await save_request_response(
+      make_message({ uid: "uid-fresh" }),
+      SELF,
+      null,
+      null,
+      undefined,
+    );
 
     expect(create_event.mock.calls[0][0].organizer_email).toBeNull();
   });
@@ -405,7 +471,9 @@ describe("recurring instances", () => {
   it("cancels one occurrence by adding an exception to the series", async () => {
     const message = make_message({ method: "CANCEL", recurrence_id: RID });
 
-    expect(await apply_cancel(message, series(), "guest@example.com")).toBeNull();
+    expect(
+      await apply_cancel(message, series(), "guest@example.com"),
+    ).toBeNull();
     expect(update_event).not.toHaveBeenCalled();
 
     await apply_cancel(message, series(), HOST.email);
@@ -423,14 +491,25 @@ describe("round 16 invite hardening", () => {
       method: "REPLY",
       sequence,
       attendees: [
-        { email: SELF, display_name: null, response: "declined", is_organizer: false },
+        {
+          email: SELF,
+          display_name: null,
+          response: "declined",
+          is_organizer: false,
+        },
       ],
     });
   const answered = (responded_at: string) =>
     make_event({
       attendees: [
         { ...HOST, response: "accepted", is_organizer: true },
-        { email: SELF, display_name: null, response: "accepted", is_organizer: false, responded_at },
+        {
+          email: SELF,
+          display_name: null,
+          response: "accepted",
+          is_organizer: false,
+          responded_at,
+        },
       ],
     });
 
@@ -438,7 +517,13 @@ describe("round 16 invite hardening", () => {
     const event = answered("2026-03-06T00:00:00.000Z");
 
     expect(
-      await apply_reply(reply(), event, SELF, HOST.email, "2026-03-05T00:00:00.000Z"),
+      await apply_reply(
+        reply(),
+        event,
+        SELF,
+        HOST.email,
+        "2026-03-05T00:00:00.000Z",
+      ),
     ).toBe(event);
     expect(update_event).not.toHaveBeenCalled();
 
@@ -459,8 +544,12 @@ describe("round 16 invite hardening", () => {
     const event = make_event();
 
     expect(await apply_reply(reply(), event, SELF, SELF, REPLY_AT)).toBe(event);
-    expect(await apply_reply(reply(), event, SELF, HOST.email, null)).toBe(event);
-    expect(await apply_reply(reply(0), event, SELF, HOST.email, REPLY_AT)).toBe(event);
+    expect(await apply_reply(reply(), event, SELF, HOST.email, null)).toBe(
+      event,
+    );
+    expect(await apply_reply(reply(0), event, SELF, HOST.email, REPLY_AT)).toBe(
+      event,
+    );
     expect(update_event).not.toHaveBeenCalled();
   });
 
@@ -472,18 +561,37 @@ describe("round 16 invite hardening", () => {
       created_at: REPLY_AT,
     };
 
-    expect(mail_item_provenance(item)).toEqual({ trusted: true, received_at: REPLY_AT });
-    expect(mail_item_provenance({ ...item, dmarc_result: "fail" }).trusted).toBe(false);
-    expect(mail_item_provenance({ ...item, dmarc_result: undefined }).trusted).toBe(false);
-    expect(mail_item_provenance({ ...item, dmarc_result: "none" }).trusted).toBe(false);
+    expect(mail_item_provenance(item)).toEqual({
+      trusted: true,
+      received_at: REPLY_AT,
+    });
     expect(
-      mail_item_provenance({ ...item, is_external: false, dmarc_result: undefined }).trusted,
-    ).toBe(true);
-    expect(mail_item_provenance({ ...item, item_type: "sent" }).trusted).toBe(false);
-    expect(
-      mail_item_provenance({ ...item, is_external: false, system_origin: true }).trusted,
+      mail_item_provenance({ ...item, dmarc_result: "fail" }).trusted,
     ).toBe(false);
-    expect(mail_item_provenance(null)).toEqual({ trusted: false, received_at: null });
+    expect(
+      mail_item_provenance({ ...item, dmarc_result: undefined }).trusted,
+    ).toBe(false);
+    expect(
+      mail_item_provenance({ ...item, dmarc_result: "none" }).trusted,
+    ).toBe(false);
+    expect(
+      mail_item_provenance({
+        ...item,
+        is_external: false,
+        dmarc_result: undefined,
+      }).trusted,
+    ).toBe(true);
+    expect(mail_item_provenance({ ...item, item_type: "sent" }).trusted).toBe(
+      false,
+    );
+    expect(
+      mail_item_provenance({ ...item, is_external: false, system_origin: true })
+        .trusted,
+    ).toBe(false);
+    expect(mail_item_provenance(null)).toEqual({
+      trusted: false,
+      received_at: null,
+    });
   });
 
   it("refuses an instance override when the series has no room for another exception", async () => {
@@ -602,14 +710,19 @@ describe("round 16 invite hardening", () => {
       series,
     );
 
-    expect(draft.recurrence_exceptions).toEqual(["2026-03-25T09:00:00.000Z", RID]);
+    expect(draft.recurrence_exceptions).toEqual([
+      "2026-03-25T09:00:00.000Z",
+      RID,
+    ]);
   });
 
   it("refuses a new invite whose uid belongs to an event with no organizer", async () => {
     cached_events.mockReturnValue([
       make_event({ id: "evt-imported", organizer_email: null, attendees: [] }),
     ]);
-    list_calendars.mockResolvedValue({ data: [{ id: "cal-d", is_default: true }] });
+    list_calendars.mockResolvedValue({
+      data: [{ id: "cal-d", is_default: true }],
+    });
 
     expect(
       await save_request_response(
@@ -646,7 +759,14 @@ describe("round 16 invite hardening", () => {
     const draft = message_to_draft(
       make_message(),
       "cal-1",
-      [{ email: SELF, display_name: null, response: "needs_action", is_organizer: false }],
+      [
+        {
+          email: SELF,
+          display_name: null,
+          response: "needs_action",
+          is_organizer: false,
+        },
+      ],
       answered("2026-03-06T00:00:00.000Z"),
     );
 
@@ -657,7 +777,9 @@ describe("round 16 invite hardening", () => {
     cached_events.mockReturnValue([
       make_event({ id: "evt-taken", organizer_email: "someone@example.com" }),
     ]);
-    list_calendars.mockResolvedValue({ data: [{ id: "cal-d", is_default: true }] });
+    list_calendars.mockResolvedValue({
+      data: [{ id: "cal-d", is_default: true }],
+    });
 
     expect(
       await save_request_response(
@@ -673,7 +795,11 @@ describe("round 16 invite hardening", () => {
 
   it("matches an empty stored organizer through the organizer attendee", () => {
     expect(
-      update_from_organizer(make_message(), make_event({ organizer_email: "" }), HOST.email),
+      update_from_organizer(
+        make_message(),
+        make_event({ organizer_email: "" }),
+        HOST.email,
+      ),
     ).toBe(true);
   });
 });
@@ -683,13 +809,21 @@ describe("round 18 invite hardening", () => {
 
   it("refuses a new invite reusing a uid unless the organizer is proven", async () => {
     cached_events.mockReturnValue([make_event({ id: "evt-held" })]);
-    list_calendars.mockResolvedValue({ data: [{ id: "cal-d", is_default: true }] });
+    list_calendars.mockResolvedValue({
+      data: [{ id: "cal-d", is_default: true }],
+    });
 
     expect(
       await save_request_response(make_message(), SELF, null, null, undefined),
     ).toBeNull();
     expect(
-      await save_request_response(make_message(), SELF, null, null, "guest@example.com"),
+      await save_request_response(
+        make_message(),
+        SELF,
+        null,
+        null,
+        "guest@example.com",
+      ),
     ).toBeNull();
     expect(create_event).not.toHaveBeenCalled();
 
@@ -706,7 +840,13 @@ describe("round 18 invite hardening", () => {
       attendees: [{ ...HOST, response: "accepted", is_organizer: true }],
     });
 
-    await save_request_response(make_message(), SELF, "accepted", existing, HOST.email);
+    await save_request_response(
+      make_message(),
+      SELF,
+      "accepted",
+      existing,
+      HOST.email,
+    );
 
     const draft = update_event.mock.calls[0][1];
     const own = draft.attendees.find(
@@ -731,19 +871,32 @@ describe("round 18 invite hardening", () => {
       make_message({ method: "CANCEL", recurrence_id });
 
     expect(await apply_cancel(cancel(RID), full, HOST.email)).toBeNull();
-    expect(await apply_cancel(cancel(exceptions[0]), full, HOST.email)).toBe(full);
+    expect(await apply_cancel(cancel(exceptions[0]), full, HOST.email)).toBe(
+      full,
+    );
     expect(update_event).not.toHaveBeenCalled();
   });
 
   it("prefers the organizer's copy and then the newest sequence for a shared uid", async () => {
     cached_events.mockReturnValue([
-      make_event({ id: "foreign", organizer_email: "other@example.com", sequence: 9 }),
+      make_event({
+        id: "foreign",
+        organizer_email: "other@example.com",
+        sequence: 9,
+      }),
       make_event({ id: "own-old", sequence: 1 }),
       make_event({ id: "own-new", sequence: 4 }),
     ]);
 
     expect(
-      (await find_event_by_uid("uid-1", null, "2026-03-04T09:00:00.000Z", HOST.email))?.id,
+      (
+        await find_event_by_uid(
+          "uid-1",
+          null,
+          "2026-03-04T09:00:00.000Z",
+          HOST.email,
+        )
+      )?.id,
     ).toBe("own-new");
     expect(
       (await find_event_by_uid("uid-1", null, "2026-03-04T09:00:00.000Z"))?.id,
@@ -757,7 +910,10 @@ describe("round 19 fresh event reads", () => {
 
   it("checks staleness against the newest synced copy, not the card snapshot", async () => {
     const snapshot = make_event({ sequence: 1 });
-    const newer = make_event({ sequence: 3, starts_at: "2026-03-04T12:00:00.000Z" });
+    const newer = make_event({
+      sequence: 3,
+      starts_at: "2026-03-04T12:00:00.000Z",
+    });
 
     cached_events.mockReturnValue([newer]);
 
@@ -783,9 +939,21 @@ describe("round 19 fresh event reads", () => {
     ]);
 
     expect(
-      await save_request_response(make_message(), SELF, "accepted", snapshot, HOST.email),
+      await save_request_response(
+        make_message(),
+        SELF,
+        "accepted",
+        snapshot,
+        HOST.email,
+      ),
     ).toBeNull();
-    expect(await apply_cancel(make_message({ method: "CANCEL" }), snapshot, HOST.email)).toBeNull();
+    expect(
+      await apply_cancel(
+        make_message({ method: "CANCEL" }),
+        snapshot,
+        HOST.email,
+      ),
+    ).toBeNull();
     expect(await set_own_response(snapshot, SELF, "accepted")).toBeNull();
     expect(update_event).not.toHaveBeenCalled();
   });
@@ -821,10 +989,18 @@ describe("round 20 bound event reads", () => {
   it("refuses to write a card copy the sync engine no longer holds", async () => {
     const gone = build_event({ id: "evt-gone" });
 
-    expect(await apply_cancel(make_message({ method: "CANCEL" }), gone, HOST.email)).toBeNull();
+    expect(
+      await apply_cancel(make_message({ method: "CANCEL" }), gone, HOST.email),
+    ).toBeNull();
     expect(await set_own_response(gone, SELF, "accepted")).toBeNull();
     expect(
-      await save_request_response(make_message(), SELF, "accepted", gone, HOST.email),
+      await save_request_response(
+        make_message(),
+        SELF,
+        "accepted",
+        gone,
+        HOST.email,
+      ),
     ).toBeNull();
     expect(update_event).not.toHaveBeenCalled();
   });
@@ -849,15 +1025,21 @@ describe("round 20 bound event reads", () => {
 
 describe("update_from_organizer", () => {
   it("accepts only the organizer of the stored event", () => {
-    expect(update_from_organizer(make_message(), make_event(), "Host@Example.com")).toBe(
-      true,
-    );
-    expect(update_from_organizer(make_message(), make_event(), "guest@example.com")).toBe(
+    expect(
+      update_from_organizer(make_message(), make_event(), "Host@Example.com"),
+    ).toBe(true);
+    expect(
+      update_from_organizer(make_message(), make_event(), "guest@example.com"),
+    ).toBe(false);
+    expect(update_from_organizer(make_message(), make_event(), undefined)).toBe(
       false,
     );
-    expect(update_from_organizer(make_message(), make_event(), undefined)).toBe(false);
     expect(
-      update_from_organizer(make_message({ organizer: null }), make_event(), HOST.email),
+      update_from_organizer(
+        make_message({ organizer: null }),
+        make_event(),
+        HOST.email,
+      ),
     ).toBe(false);
   });
 
@@ -871,7 +1053,9 @@ describe("update_from_organizer", () => {
       },
     });
 
-    expect(update_from_organizer(forged, make_event(), "guest@example.com")).toBe(false);
+    expect(
+      update_from_organizer(forged, make_event(), "guest@example.com"),
+    ).toBe(false);
   });
 
   it("falls back to the organizer attendee when no organizer address is stored", () => {
@@ -910,10 +1094,12 @@ describe("save_request_response", () => {
 
     expect(update_event).toHaveBeenCalledTimes(1);
     expect(update_event.mock.calls[0][0]).toBe("evt-1");
-    expect(update_event.mock.calls[0][1]).toMatchObject({ title: "Planning v2" });
-    expect(result?.attendees.find((a) => a.email === "Me@Example.com")?.response).toBe(
-      "accepted",
-    );
+    expect(update_event.mock.calls[0][1]).toMatchObject({
+      title: "Planning v2",
+    });
+    expect(
+      result?.attendees.find((a) => a.email === "Me@Example.com")?.response,
+    ).toBe("accepted");
   });
 
   it("keeps the local copy when the message is stale and only records the reply", async () => {
@@ -928,13 +1114,16 @@ describe("save_request_response", () => {
     const draft = update_event.mock.calls[0][1];
 
     expect(draft.title).toBe("Planning");
-    expect(draft.attendees.find((a: { email: string }) => a.email === SELF)?.response).toBe(
-      "declined",
-    );
+    expect(
+      draft.attendees.find((a: { email: string }) => a.email === SELF)
+        ?.response,
+    ).toBe("declined");
   });
 
   it("creates a copy in the default calendar when nothing matches", async () => {
-    list_calendars.mockResolvedValue({ data: [{ id: "cal-d", is_default: true }] });
+    list_calendars.mockResolvedValue({
+      data: [{ id: "cal-d", is_default: true }],
+    });
 
     const result = await save_request_response(
       make_message(),
@@ -945,7 +1134,9 @@ describe("save_request_response", () => {
     );
 
     expect(create_event).toHaveBeenCalledTimes(1);
-    expect(create_event.mock.calls[0][0]).toMatchObject({ calendar_id: "cal-d" });
+    expect(create_event.mock.calls[0][0]).toMatchObject({
+      calendar_id: "cal-d",
+    });
     expect(result?.id).toBe("evt-new");
   });
 
@@ -967,7 +1158,9 @@ describe("cancel, reply, and own response", () => {
       HOST.email,
     );
 
-    expect(update_event.mock.calls[0][1]).toMatchObject({ status: "cancelled" });
+    expect(update_event.mock.calls[0][1]).toMatchObject({
+      status: "cancelled",
+    });
   });
 
   it("ignores a cancel older than the stored sequence", async () => {
@@ -976,7 +1169,11 @@ describe("cancel, reply, and own response", () => {
     cached_events.mockReturnValue([current]);
 
     expect(
-      await apply_cancel(make_message({ method: "CANCEL" }), current, HOST.email),
+      await apply_cancel(
+        make_message({ method: "CANCEL" }),
+        current,
+        HOST.email,
+      ),
     ).toMatchObject({ id: current.id, sequence: 5 });
     expect(update_event).not.toHaveBeenCalled();
   });
@@ -992,7 +1189,9 @@ describe("cancel, reply, and own response", () => {
       },
     });
 
-    expect(await apply_cancel(forged, make_event(), "guest@example.com")).toBeNull();
+    expect(
+      await apply_cancel(forged, make_event(), "guest@example.com"),
+    ).toBeNull();
     expect(
       await apply_cancel(
         make_message({ method: "CANCEL" }),
@@ -1008,7 +1207,12 @@ describe("cancel, reply, and own response", () => {
       make_message({
         method: "REPLY",
         attendees: [
-          { email: "ME@example.com", display_name: null, response: "accepted", is_organizer: false },
+          {
+            email: "ME@example.com",
+            display_name: null,
+            response: "accepted",
+            is_organizer: false,
+          },
         ],
       }),
       make_event(),
@@ -1028,13 +1232,26 @@ describe("cancel, reply, and own response", () => {
     const message = make_message({
       method: "REPLY",
       attendees: [
-        { email: SELF, display_name: null, response: "declined", is_organizer: false },
+        {
+          email: SELF,
+          display_name: null,
+          response: "declined",
+          is_organizer: false,
+        },
       ],
     });
 
-    expect(reply_from_sender(message, event, "attacker@example.com")).toBeNull();
     expect(
-      await apply_reply(message, event, "attacker@example.com", HOST.email, REPLY_AT),
+      reply_from_sender(message, event, "attacker@example.com"),
+    ).toBeNull();
+    expect(
+      await apply_reply(
+        message,
+        event,
+        "attacker@example.com",
+        HOST.email,
+        REPLY_AT,
+      ),
     ).toBe(event);
     expect(update_event).not.toHaveBeenCalled();
   });
@@ -1044,14 +1261,29 @@ describe("cancel, reply, and own response", () => {
     const several = make_message({
       method: "REPLY",
       attendees: [
-        { email: SELF, display_name: null, response: "accepted", is_organizer: false },
-        { email: "new@example.com", display_name: "New", response: "declined", is_organizer: false },
+        {
+          email: SELF,
+          display_name: null,
+          response: "accepted",
+          is_organizer: false,
+        },
+        {
+          email: "new@example.com",
+          display_name: "New",
+          response: "declined",
+          is_organizer: false,
+        },
       ],
     });
     const stranger = make_message({
       method: "REPLY",
       attendees: [
-        { email: "new@example.com", display_name: "New", response: "accepted", is_organizer: false },
+        {
+          email: "new@example.com",
+          display_name: "New",
+          response: "accepted",
+          is_organizer: false,
+        },
       ],
     });
     const organizer = make_message({
@@ -1073,13 +1305,23 @@ describe("cancel, reply, and own response", () => {
   it("sets or adds the own response", async () => {
     await set_own_response(make_event(), SELF, "tentative");
     expect(
-      update_event.mock.calls[0][1].attendees.find((a: { email: string }) => a.email === SELF)
-        ?.response,
+      update_event.mock.calls[0][1].attendees.find(
+        (a: { email: string }) => a.email === SELF,
+      )?.response,
     ).toBe("tentative");
 
-    await set_own_response(make_event({ id: "evt-2", attendees: [] }), SELF, "accepted");
+    await set_own_response(
+      make_event({ id: "evt-2", attendees: [] }),
+      SELF,
+      "accepted",
+    );
     expect(update_event.mock.calls[1][1].attendees).toEqual([
-      { email: SELF, display_name: null, response: "accepted", is_organizer: false },
+      {
+        email: SELF,
+        display_name: null,
+        response: "accepted",
+        is_organizer: false,
+      },
     ]);
   });
 
@@ -1096,24 +1338,41 @@ describe("organizer and sender checks", () => {
   it("flags an organizer that is not the sender", () => {
     const message = make_message();
 
-    expect(organizer_differs_from_sender(message, "Host@Example.com ", SELF)).toBe(false);
-    expect(organizer_differs_from_sender(message, "someone@example.net", SELF)).toBe(true);
+    expect(
+      organizer_differs_from_sender(message, "Host@Example.com ", SELF),
+    ).toBe(false);
+    expect(
+      organizer_differs_from_sender(message, "someone@example.net", SELF),
+    ).toBe(true);
     expect(organizer_differs_from_sender(message, undefined, SELF)).toBe(false);
     expect(
-      organizer_differs_from_sender(make_message({ organizer: null }), "someone@example.net", SELF),
+      organizer_differs_from_sender(
+        make_message({ organizer: null }),
+        "someone@example.net",
+        SELF,
+      ),
     ).toBe(false);
   });
 
   it("accepts an organizer and sender that are both your own addresses", () => {
     const message = make_message({
-      organizer: { email: SELF, display_name: null, response: "accepted", is_organizer: true },
+      organizer: {
+        email: SELF,
+        display_name: null,
+        response: "accepted",
+        is_organizer: true,
+      },
     });
 
-    expect(organizer_differs_from_sender(message, "ME@example.com", SELF)).toBe(false);
+    expect(organizer_differs_from_sender(message, "ME@example.com", SELF)).toBe(
+      false,
+    );
   });
 
   it("keeps the organizer for a delegated invite you confirmed", async () => {
-    list_calendars.mockResolvedValue({ data: [{ id: "cal-d", is_default: true }] });
+    list_calendars.mockResolvedValue({
+      data: [{ id: "cal-d", is_default: true }],
+    });
 
     const result = await save_request_response(
       make_message({ uid: "uid-delegated" }),
@@ -1128,12 +1387,19 @@ describe("organizer and sender checks", () => {
   });
 
   it("stores no organizer when someone else names you as the organizer", async () => {
-    list_calendars.mockResolvedValue({ data: [{ id: "cal-d", is_default: true }] });
+    list_calendars.mockResolvedValue({
+      data: [{ id: "cal-d", is_default: true }],
+    });
 
     await save_request_response(
       make_message({
         uid: "uid-claimed",
-        organizer: { email: SELF, display_name: null, response: "accepted", is_organizer: true },
+        organizer: {
+          email: SELF,
+          display_name: null,
+          response: "accepted",
+          is_organizer: true,
+        },
       }),
       SELF,
       "accepted",
@@ -1145,7 +1411,9 @@ describe("organizer and sender checks", () => {
   });
 
   it("keeps the organizer for a new invite the organizer sent", async () => {
-    list_calendars.mockResolvedValue({ data: [{ id: "cal-d", is_default: true }] });
+    list_calendars.mockResolvedValue({
+      data: [{ id: "cal-d", is_default: true }],
+    });
 
     await save_request_response(
       make_message({ uid: "uid-direct" }),
@@ -1171,5 +1439,114 @@ describe("organizer and sender checks", () => {
     });
     expect(mail_item_provenance(item, "unverified").trusted).toBe(true);
     expect(mail_item_provenance(item, "verified").trusted).toBe(true);
+  });
+});
+
+describe("calendar relay senders", () => {
+  const RELAY = "2_abcdef@imip.me.com";
+  const RELAY_SENDER = "noreply@email.apple.com";
+  const relay_message = () =>
+    make_message({
+      organizer: {
+        email: RELAY,
+        display_name: "Host",
+        response: "accepted",
+        is_organizer: true,
+      },
+    });
+
+  it("treats a relay sender as the organizer only for its own relay domain", () => {
+    expect(sends_for_organizer(RELAY, RELAY_SENDER)).toBe(true);
+    expect(sends_for_organizer(RELAY, "NoReply@Email.Apple.com")).toBe(true);
+    expect(sends_for_organizer(RELAY, "someone@example.net")).toBe(false);
+    expect(sends_for_organizer(HOST.email, RELAY_SENDER)).toBe(false);
+    expect(
+      sends_for_organizer("host@imip.me.com.example.net", RELAY_SENDER),
+    ).toBe(false);
+    expect(sends_for_organizer(RELAY, "noreply@mail.email.apple.com")).toBe(
+      false,
+    );
+  });
+
+  it("does not ask to confirm a relayed organizer", () => {
+    expect(
+      organizer_differs_from_sender(relay_message(), RELAY_SENDER, SELF),
+    ).toBe(false);
+    expect(
+      organizer_differs_from_sender(
+        relay_message(),
+        "someone@example.net",
+        SELF,
+      ),
+    ).toBe(true);
+  });
+
+  it("accepts updates from the relay for an event it organized", () => {
+    const event = make_event({ organizer_email: RELAY });
+
+    expect(update_from_organizer(relay_message(), event, RELAY_SENDER)).toBe(
+      true,
+    );
+    expect(
+      update_from_organizer(relay_message(), make_event(), RELAY_SENDER),
+    ).toBe(false);
+  });
+
+  it("adds a relayed invite to the calendar on the first accept", async () => {
+    list_calendars.mockResolvedValue({
+      data: [{ id: "cal-d", is_default: true }],
+    });
+
+    const result = await save_request_response(
+      make_message({
+        uid: "uid-relay",
+        organizer: {
+          email: RELAY,
+          display_name: "Host",
+          response: "accepted",
+          is_organizer: true,
+        },
+      }),
+      SELF,
+      "accepted",
+      null,
+      RELAY_SENDER,
+    );
+
+    expect(result?.id).toBe("evt-new");
+    expect(create_event).toHaveBeenCalledTimes(1);
+    expect(create_event.mock.calls[0][0].organizer_email).toBe(RELAY);
+  });
+
+  it("updates a relayed event that is already on the calendar", async () => {
+    cached_events.mockReturnValue([
+      make_event({
+        id: "evt-relay",
+        uid: "uid-relay-2",
+        organizer_email: RELAY,
+      }),
+    ]);
+    list_calendars.mockResolvedValue({
+      data: [{ id: "cal-d", is_default: true }],
+    });
+
+    const result = await save_request_response(
+      make_message({
+        uid: "uid-relay-2",
+        organizer: {
+          email: RELAY,
+          display_name: "Host",
+          response: "accepted",
+          is_organizer: true,
+        },
+      }),
+      SELF,
+      "accepted",
+      null,
+      RELAY_SENDER,
+    );
+
+    expect(result).not.toBeNull();
+    expect(create_event).not.toHaveBeenCalled();
   });
 });

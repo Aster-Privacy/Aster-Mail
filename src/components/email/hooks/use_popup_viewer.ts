@@ -28,6 +28,7 @@ import { use_guarded_trash_actions } from "@/components/email/use_permanent_dele
 import { use_popup_drag_resize } from "@/components/email/hooks/popup_viewer_drag";
 import { REPLY_ARRIVAL_POLL_DELAYS_MS } from "@/components/email/use_email_viewer";
 import { get_mail_item, type MailItem } from "@/services/api/mail";
+import { is_missing_mail_item } from "@/lib/stale_open_email";
 import { ignore_error } from "@/lib/ignore_error";
 import {
   get_draft_by_thread,
@@ -46,9 +47,7 @@ import {
   type ThreadReplyOptimisticEventDetail,
   type ThreadReplyCancelledEventDetail,
 } from "@/hooks/mail_events";
-import {
-  get_external_content_mode,
-} from "@/components/email/viewer_shared";
+import { get_external_content_mode } from "@/components/email/viewer_shared";
 import { use_auth } from "@/contexts/auth_context";
 import { use_preferences } from "@/contexts/preferences_context";
 import { use_remote_content_grants } from "@/hooks/use_remote_content_grants";
@@ -82,13 +81,23 @@ import {
   fetch_and_decrypt_virtual_group,
 } from "@/services/thread_service";
 import { decrypt_mail_envelope } from "@/components/email/shared/decrypt_envelope";
+import {
+  capture_decrypt_readiness,
+  on_pending_decrypt_retry,
+  settle_decrypt_failure,
+  settle_decrypt_success,
+} from "@/services/crypto/decrypt_readiness";
+import { is_pending_decrypt_body } from "@/utils/undecryptable_body";
 import { is_crypto_module_load_error } from "@/services/crypto/openpgp_loader";
 import {
   include_opened_message,
   keep_unchanged_messages,
 } from "@/components/email/thread_message_merge";
 import { has_passphrase_in_memory } from "@/services/crypto/memory_key_store";
-import { await_preloaded_email } from "@/components/email/hooks/preload_cache";
+import {
+  await_preloaded_email,
+  delete_preloaded_email,
+} from "@/components/email/hooks/preload_cache";
 import { get_recipient_hint } from "@/stores/recipient_hint_store";
 import {
   type DecryptedEmail,
@@ -102,11 +111,13 @@ import { use_pending_reply_messages } from "@/hooks/pending_reply_messages";
 import { use_reactions_seen } from "@/hooks/use_reactions_seen";
 import { use_thread_decrypt_hold } from "@/hooks/use_thread_decrypt_hold";
 import { UNDO_SEND_PREVIEW_ID } from "@/components/email/email_viewer_types";
+import { with_message_read } from "@/components/email/hooks/detail_read_state";
 import {
   claim_auto_read,
   is_read_ticket_current,
   peek_read_ticket,
 } from "@/services/read_intent";
+import { use_close_when_folder_locked } from "@/hooks/use_folder_unlock_state";
 
 export type {
   EmailRecipient,
@@ -141,6 +152,10 @@ export function use_popup_viewer({
   | "snoozed_until"
   | "grouped_email_ids"
 >) {
+  const on_close_ref = useRef(on_close);
+
+  on_close_ref.current = on_close;
+
   const local_email =
     email_id === UNDO_SEND_PREVIEW_ID ? incoming_local_email : undefined;
   const { user } = use_auth();
@@ -149,6 +164,8 @@ export function use_popup_viewer({
   const { format_email_detail, format_email_popup } = use_date_format();
   const [email, set_email] = useState<DecryptedEmail | null>(null);
   const [mail_item, set_mail_item] = useState<MailItem | null>(null);
+
+  use_close_when_folder_locked(mail_item, () => on_close_ref.current());
   const [error, set_error] = useState<string | null>(null);
   const [decrypt_failure, set_decrypt_failure] = useState<{
     id: string;
@@ -160,7 +177,7 @@ export function use_popup_viewer({
   const [is_spam_loading, set_is_spam_loading] = useState(false);
   const [is_trash_loading, set_is_trash_loading] = useState(false);
   const [is_pin_loading, set_is_pin_loading] = useState(false);
-  const drag = use_popup_drag_resize();
+  const drag = use_popup_drag_resize(preferences.open_popup_maximized === true);
   const [thread_messages, set_thread_messages] = useState<
     DecryptedThreadMessage[]
   >([]);
@@ -417,6 +434,9 @@ export function use_popup_viewer({
 
         if (result.success) {
           if (still_open) set_is_read(true);
+          set_thread_messages((prev) =>
+            with_message_read(prev, current_email_id, true),
+          );
           if (result.encrypted && still_open) {
             set_mail_item((prev) =>
               prev
@@ -531,7 +551,7 @@ export function use_popup_viewer({
 
       set_email(decrypted);
       set_mail_item(preloaded.mail_item);
-      set_is_read(pe.is_read);
+      set_is_read(get_read_intent(preloaded.mail_item.id) ?? pe.is_read);
       set_is_pinned(preloaded.mail_item.metadata?.is_pinned ?? false);
       set_thread_messages(preloaded.thread_messages);
       set_pending_thread_count(0);
@@ -574,6 +594,12 @@ export function use_popup_viewer({
     if (response.error) {
       requested_email_id_ref.current = null;
       if (!is_same_email) revert_user_opened_mail(email_id);
+      if (is_missing_mail_item(response)) {
+        on_close_ref.current();
+
+        return;
+      }
+
       set_error(response.error);
 
       return;
@@ -624,9 +650,10 @@ export function use_popup_viewer({
         response.data.is_read ?? decrypted_metadata?.is_read ?? false;
 
       set_mail_item(item_with_metadata);
-      set_is_read(is_read_on_server);
+      set_is_read(get_read_intent(response.data.id) ?? is_read_on_server);
       set_is_pinned(decrypted_metadata?.is_pinned ?? false);
 
+      const readiness_before = capture_decrypt_readiness();
       const envelope = await decrypt_mail_envelope(
         response.data.encrypted_envelope,
         response.data.envelope_nonce,
@@ -634,6 +661,13 @@ export function use_popup_viewer({
       );
 
       if (fetch_seq !== fetch_seq_ref.current) return;
+
+      if (
+        !envelope &&
+        settle_decrypt_failure(response.data.id, readiness_before) === "pending"
+      ) {
+        return;
+      }
 
       if (!envelope && !is_same_email) {
         requested_email_id_ref.current = null;
@@ -659,6 +693,7 @@ export function use_popup_viewer({
           e2e_sender_bound,
           e2e_details_sealed,
           sent_encryption_scope,
+          decrypted_content_tag,
         } = await process_envelope_body(
           envelope,
           user?.email,
@@ -667,6 +702,8 @@ export function use_popup_viewer({
         );
 
         if (fetch_seq !== fetch_seq_ref.current) return;
+        if (is_pending_decrypt_body(body_text)) return;
+        settle_decrypt_success(response.data.id);
 
         const decrypted: DecryptedEmail = {
           id: response.data.id,
@@ -724,6 +761,7 @@ export function use_popup_viewer({
           sent_encryption_scope,
           e2e_sender_bound,
           e2e_details_sealed,
+          decrypted_content_tag,
         );
 
         if (should_load_thread) {
@@ -913,6 +951,16 @@ export function use_popup_viewer({
     const handle_mail_item_updated = (event: Event) => {
       const detail = (event as CustomEvent<MailItemUpdatedEventDetail>).detail;
 
+      if (!detail) return;
+
+      if (detail.is_read !== undefined) {
+        const next_read = detail.is_read;
+
+        set_thread_messages((prev) =>
+          with_message_read(prev, detail.id, next_read),
+        );
+      }
+
       if (detail.id !== email_id) return;
 
       if (detail.is_read !== undefined) {
@@ -954,6 +1002,28 @@ export function use_popup_viewer({
       }
     };
   }, [fetch_email]);
+
+  const thread_message_ids_ref = useRef<string[]>([]);
+
+  useEffect(() => {
+    thread_message_ids_ref.current = thread_messages.map(
+      (message) => message.id,
+    );
+  }, [thread_messages]);
+
+  useEffect(() => {
+    if (!email_id || local_email) return;
+
+    return on_pending_decrypt_retry((ids) => {
+      const affected =
+        ids.has(email_id) ||
+        thread_message_ids_ref.current.some((id) => ids.has(id));
+
+      if (!affected) return;
+      delete_preloaded_email(email_id);
+      fetch_email();
+    });
+  }, [email_id, fetch_email, local_email]);
 
   useEffect(() => {
     const handle_refresh = () => {

@@ -68,12 +68,54 @@ async function run_with_software_aes_kw<T>(
   }
 }
 
+async function runtime_aes_kw_works(): Promise<boolean> {
+  const subtle = globalThis.crypto?.subtle;
+
+  if (!subtle?.importKey) {
+    return false;
+  }
+
+  try {
+    const wrapping_key = await subtle.importKey(
+      "raw",
+      new Uint8Array(32).fill(7),
+      { name: AES_KW },
+      false,
+      ["wrapKey", "unwrapKey"],
+    );
+    const payload = new Uint8Array(32).fill(9);
+    const hmac = { name: "HMAC", hash: "SHA-256" };
+    const inner = await subtle.importKey("raw", payload, hmac, true, ["sign"]);
+    const wrapped = await subtle.wrapKey("raw", inner, wrapping_key, {
+      name: AES_KW,
+    });
+    const unwrapped = await subtle.unwrapKey(
+      "raw",
+      wrapped,
+      wrapping_key,
+      { name: AES_KW },
+      hmac,
+      true,
+      ["sign"],
+    );
+    const raw = new Uint8Array(await subtle.exportKey("raw", unwrapped));
+
+    return raw.length === payload.length && raw.every((b, i) => b === payload[i]);
+  } catch {
+    return false;
+  }
+}
+
 export async function with_aes_kw_fallback<T>(
   operation: () => Promise<T>,
 ): Promise<T> {
   try {
     return await operation();
   } catch (first_error) {
+    if (await runtime_aes_kw_works()) {
+      throw first_error;
+    }
+
     const attempt = serialized
       .catch(() => undefined)
       .then(() => run_with_software_aes_kw(operation));

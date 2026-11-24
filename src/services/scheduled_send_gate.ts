@@ -107,8 +107,13 @@ export async function check_scheduled_send(
 
   const consent = await ensure_post_quantum_consent(internal, sender_email);
 
-  if (!consent.proceed)
-    return { proceed: false, blocked_by: consent.blocked_by };
+  if (!consent.proceed) {
+    return {
+      proceed: false,
+      blocked_by: consent.blocked_by,
+      message: consent.message,
+    };
+  }
 
   if (!is_future_instant(scheduled_at)) {
     return { proceed: false, blocked_by: "mail_rules.snooze_needs_future" };

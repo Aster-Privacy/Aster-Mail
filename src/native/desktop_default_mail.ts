@@ -18,6 +18,8 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+
+import { has_tauri_runtime } from "@/lib/tauri_runtime";
 export interface DefaultMailStatus {
   supported: boolean;
   is_default: boolean;
@@ -31,7 +33,7 @@ const UNSUPPORTED_STATUS: DefaultMailStatus = {
 };
 
 function is_desktop(): boolean {
-  return typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
+  return has_tauri_runtime();
 }
 
 export async function get_default_mail_status(): Promise<DefaultMailStatus> {

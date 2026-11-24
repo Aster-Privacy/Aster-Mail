@@ -29,8 +29,11 @@ import {
   end_category_drag,
   is_email_drag,
   read_email_drag,
+  active_email_drag,
   register_scope_drag_handler,
+  register_system_drop_handler,
   run_scope_drop,
+  run_system_drop,
   write_email_drag,
 } from "./category_drag";
 import { empty_selection_snapshot } from "./selection_snapshot";
@@ -155,5 +158,48 @@ describe("email drag payload", () => {
     vi.runAllTimers();
 
     expect(is_email_drag(null)).toBe(false);
+  });
+});
+
+describe("system folder drop registry", () => {
+  it("exposes the drag only to a list that owns the dragged mail", () => {
+    const { transfer } = make_transfer();
+    const run = vi.fn();
+    const unregister = register_system_drop_handler({
+      owns: (payload) => payload.source_id === "m1",
+      run,
+    });
+
+    write_email_drag(transfer, { ...PAYLOAD, source_id: "m1" });
+    expect(active_email_drag()?.source_id).toBe("m1");
+    expect(run_system_drop("archive")).toBe(true);
+    expect(run).toHaveBeenCalledWith(
+      "archive",
+      expect.objectContaining({ ids: ["m1", "m2"], source_id: "m1" }),
+    );
+
+    write_email_drag(transfer, { ...PAYLOAD, source_id: "other" });
+    expect(active_email_drag()).toBeNull();
+    expect(run_system_drop("trash")).toBe(false);
+    expect(run).toHaveBeenCalledTimes(1);
+
+    unregister();
+  });
+
+  it("runs nothing once the list unregisters or the drag ends", () => {
+    const { transfer } = make_transfer();
+    const run = vi.fn();
+    const unregister = register_system_drop_handler({ owns: () => true, run });
+
+    write_email_drag(transfer, { ...PAYLOAD, source_id: "m1" });
+    unregister();
+    expect(run_system_drop("spam")).toBe(false);
+
+    const second = register_system_drop_handler({ owns: () => true, run });
+
+    end_category_drag();
+    expect(run_system_drop("spam")).toBe(false);
+    expect(run).not.toHaveBeenCalled();
+    second();
   });
 });

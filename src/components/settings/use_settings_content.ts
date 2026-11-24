@@ -18,6 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import type { SearchEntry } from "@/components/settings/search_registry";
 import type {
   NavItem,
   NavItems,
@@ -52,16 +53,22 @@ import {
 } from "./settings_content_helpers";
 
 import { safe_local_set } from "@/lib/safe_storage";
-import { fold_search_text } from "@/utils/search_fold";
 import {
   consume_pending_settings_anchor,
   scroll_to_settings_anchor,
   set_pending_settings_anchor,
 } from "@/lib/settings_anchor";
 import { read_settings_navigation } from "@/lib/settings_links";
-import { start_scroll_seek } from "@/components/settings/settings_scroll_target";
-import { SETTINGS_SEARCH_REGISTRY } from "@/components/settings/search_registry";
-import { use_search_registry } from "@/components/settings/search_context";
+import {
+  highlight_settings_target,
+  start_scroll_seek,
+} from "@/components/settings/settings_scroll_target";
+import {
+  prepare_search_fields,
+  score_search_fields,
+  is_searchable_query,
+} from "@/components/settings/settings_search_match";
+import { use_settings_search } from "@/components/settings/use_settings_search";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_preferences } from "@/contexts/preferences_context";
 import { use_mail_stats } from "@/hooks/use_mail_stats";
@@ -483,87 +490,64 @@ export function use_settings_content(props: SettingsContentProps) {
 
   const is_searching = search_query.trim().length > 0;
 
+  const flat_nav_items = useMemo(
+    () => flatten_nav_items(nav_items),
+    [nav_items],
+  );
+
   const search_results = useMemo(() => {
-    const q = fold_search_text(search_query.trim());
+    if (!is_searchable_query(search_query)) return [] as NavItem[];
 
-    if (!q) return [] as NavItem[];
-    const match = (item: NavItem) =>
-      fold_search_text(item.label).includes(q) ||
-      fold_search_text(item.description).includes(q) ||
-      item.keywords.some((kw) => fold_search_text(kw).includes(q));
+    return flat_nav_items
+      .map((item) => ({
+        item,
+        score: score_search_fields(
+          search_query,
+          prepare_search_fields({
+            labels: [item.label],
+            keywords: item.keywords,
+            context: [],
+            descriptions: [item.description],
+          }),
+        ),
+      }))
+      .filter(({ score }) => score > 0)
+      .sort((a, b) => b.score - a.score)
+      .map(({ item }) => item);
+  }, [search_query, flat_nav_items]);
 
-    return flatten_nav_items(nav_items).filter(match);
-  }, [search_query, nav_items]);
+  const nav_labels = useMemo(
+    () => new Map(flat_nav_items.map((item) => [item.id, item.label])),
+    [flat_nav_items],
+  );
 
-  const { dynamic_entries } = use_search_registry();
+  const is_search_entry_available = useCallback(
+    (entry: SearchEntry) => {
+      const target = resolve_nav_target(entry.section);
 
-  const registry_results = useMemo(() => {
-    const q = fold_search_text(search_query.trim());
+      if (!nav_labels.has(target.section)) return false;
 
-    if (q.length < 2) return [];
-    const flat_items = flatten_nav_items(nav_items);
-    const visible_sections = new Set(flat_items.map((i) => i.id));
-    const section_labels = new Map(flat_items.map((i) => [i.id, i.label]));
-    const all = [...SETTINGS_SEARCH_REGISTRY, ...dynamic_entries].map(
-      (entry) => {
-        const target = resolve_nav_target(entry.section);
-        const section_label = section_labels.get(target.section);
-        const separator = entry.breadcrumb.indexOf(" > ");
+      return is_settings_tab_available(target.tab, {
+        show_developer: dev_mode_enabled,
+        show_updates: is_desktop_runtime(),
+        is_family_plan,
+        has_devices,
+      });
+    },
+    [nav_labels, dev_mode_enabled, is_family_plan, has_devices],
+  );
 
-        return {
-          ...entry,
-          section: target.section,
-          tab: target.tab,
-          english_label: entry.label,
-          english_breadcrumb: entry.breadcrumb,
-          label: entry.label_key ? t(entry.label_key) : entry.label,
-          breadcrumb: !section_label
-            ? entry.breadcrumb
-            : separator === -1
-              ? section_label
-              : `${section_label} > ${entry.crumb_key ? t(entry.crumb_key) : entry.breadcrumb.slice(separator + 3)}`,
-        };
-      },
-    );
-    const seen = new Set<string>();
-    const tab_availability = {
-      show_developer: dev_mode_enabled,
-      show_updates: is_desktop_runtime(),
-      is_family_plan,
-      has_devices,
-    };
+  const search_section_label = useCallback(
+    (entry: SearchEntry) =>
+      nav_labels.get(resolve_nav_target(entry.section).section),
+    [nav_labels],
+  );
 
-    return all
-      .filter((entry) => {
-        if (!visible_sections.has(entry.section)) return false;
-        if (!is_settings_tab_available(entry.tab, tab_availability)) {
-          return false;
-        }
-        const matches =
-          fold_search_text(entry.label).includes(q) ||
-          fold_search_text(entry.english_label).includes(q) ||
-          fold_search_text(entry.breadcrumb).includes(q) ||
-          fold_search_text(entry.english_breadcrumb).includes(q) ||
-          entry.keywords?.some((kw) => fold_search_text(kw).includes(q));
-
-        if (!matches) return false;
-        const key = `${entry.section}::${entry.label}`;
-
-        if (seen.has(key)) return false;
-        seen.add(key);
-
-        return true;
-      })
-      .slice(0, 12);
-  }, [
-    search_query,
-    nav_items,
-    dynamic_entries,
-    t,
-    dev_mode_enabled,
-    is_family_plan,
-    has_devices,
-  ]);
+  const registry_results = use_settings_search(search_query, {
+    platform: "desktop",
+    is_available: is_search_entry_available,
+    section_label: search_section_label,
+  });
 
   useEffect(() => {
     if (!scroll_target) return;
@@ -574,6 +558,7 @@ export function use_settings_content(props: SettingsContentProps) {
     return start_scroll_seek(container, scroll_target, (target) => {
       if (target) {
         target.scrollIntoView({ behavior: "smooth", block: "center" });
+        highlight_settings_target(target);
       }
       set_scroll_target(null);
     });

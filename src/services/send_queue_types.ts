@@ -18,9 +18,15 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import type {
+  OutgoingPriority,
+  PriorityHeader,
+} from "@/services/mail_priority";
 import type { SentEncryptionEvidence } from "./crypto/sent_encryption_evidence";
 import type { RecipientKeyResult } from "@/utils/email_crypto";
 import type { PendingSend } from "./undo_send_manager";
+
+import { get_active_translations } from "@/lib/i18n/translations";
 
 export type SendErrorType =
   | "vault_unavailable"
@@ -75,6 +81,32 @@ export function create_error(
   return new SendError(message, type, status);
 }
 
+export function recipient_keys_unavailable_error(
+  recipients: string[],
+): SendError {
+  return create_error(
+    "encryption_failed",
+    get_active_translations().errors.recipient_keys_unavailable.replace(
+      "{{recipients}}",
+      recipients.join(", "),
+    ),
+  );
+}
+
+export function recipient_not_on_aster_message(recipients: string[]): string {
+  return get_active_translations().errors.recipient_not_on_aster.replace(
+    "{{recipients}}",
+    recipients.join(", "),
+  );
+}
+
+export function recipient_not_on_aster_error(recipients: string[]): SendError {
+  return create_error(
+    "encryption_failed",
+    recipient_not_on_aster_message(recipients),
+  );
+}
+
 export function format_time_remaining(resets_at: string): string {
   const reset_time = new Date(resets_at).getTime();
   const now = Date.now();
@@ -121,6 +153,7 @@ export interface EmailParams {
   allow_non_post_quantum?: boolean;
   client_send_id?: string;
   is_plain_text?: boolean;
+  priority?: OutgoingPriority;
 }
 
 export interface QueueCallbacks {
@@ -156,6 +189,7 @@ export interface MailEnvelope {
   bcc: { name: string; email: string }[];
   sent_at: string;
   sent_encryption?: SentEncryptionEvidence;
+  raw_headers?: PriorityHeader[];
 }
 
 export interface EncryptionResult {

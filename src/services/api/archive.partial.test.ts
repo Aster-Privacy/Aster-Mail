@@ -87,6 +87,35 @@ describe("batched_archive", () => {
     expect(result.succeeded_ids).toEqual([]);
     expect(result.failed_ids).toEqual([]);
   });
+
+  it("sends a rate limited batch again after waiting", async () => {
+    vi.useFakeTimers();
+
+    try {
+      post
+        .mockResolvedValueOnce({
+          error: "Too many requests",
+          code: "RATE_LIMIT_EXCEEDED",
+          status: 429,
+          retry_after_secs: 5,
+        })
+        .mockResolvedValueOnce({
+          data: { success: true, archived_count: 2, total_size_bytes: 10 },
+        });
+
+      const pending = batched_archive(["a", "b"]);
+
+      await vi.advanceTimersByTimeAsync(5_000);
+
+      const result = await pending;
+
+      expect(post).toHaveBeenCalledTimes(2);
+      expect(result.succeeded_ids).toEqual(["a", "b"]);
+      expect(result.failed_ids).toEqual([]);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
 });
 
 describe("batched_unarchive", () => {

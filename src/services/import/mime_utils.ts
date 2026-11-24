@@ -410,26 +410,224 @@ function estimate_decoded_size(
   return part_body.length;
 }
 
-// Imported mail is stored envelope-only: attachment bytes are never persisted,
-// so we record metadata (filename, type, size) without decoding the payload to
-// avoid holding large binary buffers in memory during bulk imports.
-function attachment_metadata(
-  filename: string,
-  content_type: string,
+export const MAX_IMPORT_ATTACHMENT_BYTES = 25 * 1024 * 1024;
+export const MAX_IMPORT_ATTACHMENTS_TOTAL_BYTES = 60 * 1024 * 1024;
+export const MAX_IMPORT_ATTACHMENTS_PER_EMAIL = 50;
+
+export interface MultipartOptions {
+  attachment_content?: boolean;
+}
+
+interface AttachmentBudget {
+  remaining: number;
+  count: number;
+}
+
+function strip_part_terminator(part_body: string): string {
+  return part_body.replace(/\r?\n$/, "");
+}
+
+export function decode_part_bytes(
   part_body: string,
   encoding: string | undefined,
+): Uint8Array {
+  const enc = encoding?.toLowerCase().trim();
+
+  if (enc === "base64") {
+    return binary_string_to_bytes(decode_base64_safe(part_body));
+  }
+
+  if (enc === "quoted-printable") {
+    return decode_quoted_printable_bytes(part_body);
+  }
+
+  return binary_string_to_bytes(strip_part_terminator(part_body));
+}
+
+function header_param(header: string, name: string): string | null {
+  const pattern = new RegExp(
+    `(?:^|;)\\s*${name}\\s*=\\s*(?:"((?:[^"\\\\]|\\\\.)*)"|([^;]*))`,
+    "i",
+  );
+  const match = header.match(pattern);
+
+  if (!match) return null;
+
+  const value =
+    match[1] !== undefined ? match[1].replace(/\\(.)/g, "$1") : match[2];
+
+  return value.trim() || null;
+}
+
+function decode_rfc2231_value(value: string, encoded: boolean): string {
+  if (!encoded) return value;
+
+  const quote = value.match(/^([^']*)'[^']*'(.*)$/);
+  const charset = quote ? quote[1] || "utf-8" : "utf-8";
+  const payload = quote ? quote[2] : value;
+  const bytes: number[] = [];
+
+  for (let i = 0; i < payload.length; i++) {
+    if (
+      payload[i] === "%" &&
+      /^[0-9A-Fa-f]{2}$/.test(payload.slice(i + 1, i + 3))
+    ) {
+      bytes.push(parseInt(payload.slice(i + 1, i + 3), 16));
+      i += 2;
+    } else {
+      bytes.push(payload.charCodeAt(i) & 0xff);
+    }
+  }
+
+  return decode_charset(new Uint8Array(bytes), charset);
+}
+
+function rfc2231_param(header: string, name: string): string | null {
+  const single = header.match(
+    new RegExp(`(?:^|;)\\s*${name}\\*\\s*=\\s*"?([^";]*)"?`, "i"),
+  );
+
+  if (single) return decode_rfc2231_value(single[1].trim(), true);
+
+  const sections = new Map<number, { value: string; encoded: boolean }>();
+  const section_pattern = new RegExp(
+    `(?:^|;)\\s*${name}\\*(\\d+)(\\*?)\\s*=\\s*(?:"([^"]*)"|([^;]*))`,
+    "gi",
+  );
+
+  for (const match of header.matchAll(section_pattern)) {
+    sections.set(Number(match[1]), {
+      value: match[3] ?? (match[4] ?? "").trim(),
+      encoded: match[2] === "*",
+    });
+  }
+
+  if (sections.size === 0) return null;
+
+  const ordered = [...sections.entries()].sort((a, b) => a[0] - b[0]);
+  const first_encoded = ordered[0][1].encoded;
+
+  if (first_encoded) {
+    const joined = ordered
+      .map(([index, section]) =>
+        section.encoded || index === 0
+          ? section.value
+          : encodeURIComponent(section.value),
+      )
+      .join("");
+
+    return decode_rfc2231_value(joined, true);
+  }
+
+  return ordered.map(([, section]) => section.value).join("");
+}
+
+export function extract_part_filename(
+  disposition: string,
+  content_type: string,
+): string | null {
+  const raw =
+    rfc2231_param(disposition, "filename") ??
+    header_param(disposition, "filename") ??
+    rfc2231_param(content_type, "name") ??
+    header_param(content_type, "name");
+
+  if (!raw) return null;
+
+  const decoded = decode_header(raw)
+    .replace(/[\u0000-\u001f\u007f]/g, "")
+    .trim();
+
+  return decoded || null;
+}
+
+function content_id_of(
+  part_headers: Record<string, string>,
+): string | undefined {
+  const value = part_headers["content-id"]?.trim();
+
+  if (!value) return undefined;
+
+  return value.replace(/^<|>$/g, "").trim() || undefined;
+}
+
+function build_attachment(
+  part_headers: Record<string, string>,
+  content_type: string,
+  disposition: string,
+  part_body: string,
+  encoding: string | undefined,
+  options: MultipartOptions,
+  budget: AttachmentBudget,
 ): ParsedAttachment {
-  return {
+  const mime_type = content_type.split(";")[0].trim().toLowerCase();
+  const is_message = mime_type === "message/rfc822";
+  const filename =
+    extract_part_filename(disposition, content_type) ??
+    (is_message ? "message.eml" : "attachment");
+  const content_id = content_id_of(part_headers);
+  const is_inline =
+    /^\s*inline/i.test(disposition) || (!disposition && !!content_id);
+  const estimated = estimate_decoded_size(part_body, encoding);
+  const base: ParsedAttachment = {
     filename,
-    content_type: content_type.split(";")[0].trim(),
+    content_type: mime_type || "application/octet-stream",
     content: new Uint8Array(0),
-    size: estimate_decoded_size(part_body, encoding),
+    size: estimated,
+    ...(content_id ? { content_id } : {}),
+    ...(is_inline ? { is_inline: true } : {}),
   };
+
+  budget.count += 1;
+
+  if (
+    !options.attachment_content ||
+    budget.count > MAX_IMPORT_ATTACHMENTS_PER_EMAIL ||
+    estimated > MAX_IMPORT_ATTACHMENT_BYTES ||
+    estimated > budget.remaining
+  ) {
+    return base;
+  }
+
+  const content = decode_part_bytes(part_body, encoding);
+
+  if (
+    content.length === 0 ||
+    content.length > MAX_IMPORT_ATTACHMENT_BYTES ||
+    content.length > budget.remaining
+  ) {
+    return base;
+  }
+
+  budget.remaining -= content.length;
+
+  return { ...base, content, size: content.length };
+}
+
+function is_body_part(disposition: string): boolean {
+  return !/attachment/i.test(disposition) && !/filename/i.test(disposition);
+}
+
+export function may_carry_attachments(
+  content_type: string | undefined,
+): boolean {
+  if (!content_type) return false;
+
+  const mime_type = content_type.split(";")[0].trim().toLowerCase();
+
+  if (!mime_type || mime_type.startsWith("text/")) return false;
+
+  return mime_type !== "multipart/alternative";
 }
 
 export function parse_multipart(
   body: string,
   boundary: string,
+  options: MultipartOptions = {},
+  budget: AttachmentBudget = {
+    remaining: MAX_IMPORT_ATTACHMENTS_TOTAL_BYTES,
+    count: 0,
+  },
 ): {
   html: string | null;
   text: string | null;
@@ -453,47 +651,50 @@ export function parse_multipart(
     const content_type = part_headers["content-type"] || "text/plain";
     const encoding = part_headers["content-transfer-encoding"];
     const disposition = part_headers["content-disposition"] || "";
+    const lower_type = content_type.toLowerCase();
 
-    if (
-      disposition.includes("attachment") ||
-      disposition.includes("filename")
-    ) {
-      const filename_match =
-        disposition.match(/filename=["']?([^"';\n]+)["']?/i) ||
-        content_type.match(/name=["']?([^"';\n]+)["']?/i);
-
-      const filename = filename_match
-        ? decode_header(filename_match[1].trim())
-        : "attachment";
-
+    if (!is_body_part(disposition)) {
       attachments.push(
-        attachment_metadata(filename, content_type, part_body, encoding),
+        build_attachment(
+          part_headers,
+          content_type,
+          disposition,
+          part_body,
+          encoding,
+          options,
+          budget,
+        ),
       );
-    } else if (content_type.includes("text/html") && !html) {
+    } else if (lower_type.includes("text/html") && !html) {
       html = decode_body(part_body, encoding, extract_charset(content_type));
-    } else if (content_type.includes("text/plain") && !text) {
+    } else if (lower_type.includes("text/plain") && !text) {
       text = decode_text_part(part_body, encoding, content_type);
-    } else if (content_type.includes("multipart/")) {
+    } else if (lower_type.includes("multipart/")) {
       const nested_boundary = extract_boundary(content_type);
 
       if (nested_boundary) {
-        const nested = parse_multipart(part_body, nested_boundary);
+        const nested = parse_multipart(
+          part_body,
+          nested_boundary,
+          options,
+          budget,
+        );
 
         if (!html && nested.html) html = nested.html;
         if (!text && nested.text) text = nested.text;
         attachments.push(...nested.attachments);
       }
-    } else if (!content_type.includes("text/") && part_body.trim().length > 0) {
-      const filename_match =
-        disposition.match(/filename=["']?([^"';\n]+)["']?/i) ||
-        content_type.match(/name=["']?([^"';\n]+)["']?/i);
-
-      const filename = filename_match
-        ? decode_header(filename_match[1].trim())
-        : "attachment";
-
+    } else if (!lower_type.includes("text/") && part_body.trim().length > 0) {
       attachments.push(
-        attachment_metadata(filename, content_type, part_body, encoding),
+        build_attachment(
+          part_headers,
+          content_type,
+          disposition,
+          part_body,
+          encoding,
+          options,
+          budget,
+        ),
       );
     }
   }

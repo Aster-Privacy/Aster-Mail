@@ -18,6 +18,10 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import {
+  outgoing_priority,
+  type MailPriority,
+} from "@/services/mail_priority";
 import type { DecryptedContact } from "@/types/contacts";
 import type { SenderOption } from "@/hooks/use_sender_aliases";
 
@@ -107,6 +111,7 @@ export interface UseComposeSendOptions {
   subject: string;
   message: string;
   is_plain_text?: boolean;
+  priority?: MailPriority;
   attachments: Attachment[];
   is_loading_forward_attachments?: boolean;
   has_pending_attachment_reads?: () => boolean;
@@ -147,6 +152,7 @@ export function use_compose_send({
   subject,
   message,
   is_plain_text = false,
+  priority = "normal",
   attachments,
   is_loading_forward_attachments,
   has_pending_attachment_reads,
@@ -310,6 +316,12 @@ export function use_compose_send({
 
     if (is_sender_pending?.()) {
       show_toast(t("common.loading"), "info");
+
+      return;
+    }
+
+    if (selected_sender?.sending_disabled) {
+      show_toast(t("errors.alias_sending_disabled"), "error");
 
       return;
     }
@@ -705,6 +717,7 @@ export function use_compose_send({
         secure_external: expiry_password ? true : undefined,
         attachments: attachments.length > 0 ? attachments : undefined,
         is_plain_text: is_plain_text || undefined,
+        priority: outgoing_priority(priority),
       };
 
       const all_recipients = [
@@ -867,7 +880,10 @@ export function use_compose_send({
           forget_send(send_fingerprint);
 
           if (mixed_consent.blocked_by)
-            show_toast(t(mixed_consent.blocked_by), "error");
+            show_toast(
+              mixed_consent.message ?? t(mixed_consent.blocked_by),
+              "error",
+            );
 
           return;
         }
@@ -938,7 +954,9 @@ export function use_compose_send({
         last_send_time_ref.current = 0;
         forget_send(send_fingerprint);
 
-        if (consent.blocked_by) show_toast(t(consent.blocked_by), "error");
+        if (consent.blocked_by) {
+          show_toast(consent.message ?? t(consent.blocked_by), "error");
+        }
 
         return;
       }
@@ -981,6 +999,7 @@ export function use_compose_send({
     subject,
     message,
     is_plain_text,
+    priority,
     user,
     contacts,
     clear_all_errors,
@@ -1041,6 +1060,12 @@ export function use_compose_send({
 
     if (is_sender_pending?.()) {
       show_toast(t("common.loading"), "info");
+
+      return;
+    }
+
+    if (selected_sender?.sending_disabled) {
+      show_toast(t("errors.alias_sending_disabled"), "error");
 
       return;
     }

@@ -308,9 +308,11 @@ mod platform {
             return;
         }
 
-        if let Err(error) = register_capabilities() {
-            tracing::warn!(%error, "mail client registration failed");
-        }
+        std::thread::spawn(|| {
+            if let Err(error) = register_capabilities() {
+                tracing::warn!(%error, "mail client registration failed");
+            }
+        });
     }
 }
 

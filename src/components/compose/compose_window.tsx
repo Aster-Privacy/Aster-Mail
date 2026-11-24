@@ -54,6 +54,7 @@ import {
   ComposeToolbar,
   type EditDraftData,
 } from "@/components/compose/compose_shared";
+import { use_mail_drop_attach } from "@/components/compose/use_forward_as_attachment";
 
 interface ComposeWindowProps {
   instance_id: string;
@@ -65,6 +66,8 @@ interface ComposeWindowProps {
   initial_to?: string;
   initial_ghost_mode?: boolean;
   initial_from_alias?: string | null;
+  initial_attachments?: File[];
+  initial_subject?: string;
 }
 
 const RESIZE_MIN_WIDTH = 420;
@@ -80,9 +83,12 @@ export function ComposeWindow({
   initial_to,
   initial_ghost_mode,
   initial_from_alias,
+  initial_attachments,
+  initial_subject,
 }: ComposeWindowProps) {
   const reduce_motion = use_should_reduce_motion();
   const { t } = use_i18n();
+  const attach_dropped_mail = use_mail_drop_attach();
   const { preferences } = use_preferences();
   const [is_expanded, set_is_expanded] = useState(
     () => (preferences.compose_window_mode ?? "default") === "fullscreen",
@@ -193,6 +199,8 @@ export function ComposeWindow({
     edit_draft,
     on_draft_cleared,
     initial_to,
+    initial_attachments,
+    initial_subject,
     selected_alias: initial_from_alias,
     session_storage_key: compose_instance_storage_key(instance_id),
     enable_offline_queue: true,
@@ -359,6 +367,8 @@ export function ComposeWindow({
 
           if (files.length > 0) {
             compose.handle_files_drop(files);
+          } else {
+            attach_dropped_mail(e.dataTransfer, compose.handle_files_drop);
           }
         }}
       >
@@ -472,6 +482,7 @@ export function ComposeWindow({
                     is_creating_ghost={compose.ghost_mode.is_creating}
                     on_create_ghost={compose.ghost_mode.toggle_ghost_mode}
                     on_select={compose.set_selected_sender}
+                    on_select_typed={compose.select_typed_sender}
                     on_set_ghost_expiry={
                       compose.ghost_mode.set_ghost_expiry_days
                     }

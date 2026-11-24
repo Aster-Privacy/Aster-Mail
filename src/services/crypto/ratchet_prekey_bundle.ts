@@ -344,10 +344,7 @@ export async function upload_prekey_bundle_result(
         vault.ratchet_pq_identity_public ?? null,
       );
     } catch {
-      signature = await legacy_prekey_signature(
-        vault.ratchet_identity_public,
-        vault.ratchet_signed_prekey_public,
-      );
+      return { ok: false, code: "signing_failed" };
     }
   } else {
     signature = await legacy_prekey_signature(

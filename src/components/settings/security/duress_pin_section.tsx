@@ -41,8 +41,10 @@ import { use_i18n } from "@/lib/i18n/context";
 import { clamp_password } from "@/services/sanitize";
 import { use_auth_safe } from "@/contexts/auth_context";
 import { cn } from "@/lib/utils";
+import { peek_totp_required } from "@/services/api/step_up_cache";
 import { fetch_step_up_requirements } from "@/services/api/step_up";
 import { verify_vanguard_credentials } from "@/services/api/vanguard";
+import { step_up_key_assertion_if_enrolled } from "@/services/api/webauthn";
 import { ignore_error } from "@/lib/ignore_error";
 import {
   get_app_lock_config,
@@ -220,7 +222,9 @@ function SetupDuressPinModal({
   const [password, set_password] = useState("");
   const [show_password, set_show_password] = useState(false);
   const [totp_code, set_totp_code] = useState("");
-  const [totp_required, set_totp_required] = useState(false);
+  const [totp_required, set_totp_required] = useState(
+    () => peek_totp_required() === true,
+  );
   const [totp_loading, set_totp_loading] = useState(false);
   const [verifying_creds, set_verifying_creds] = useState(false);
   const [creds_error, set_creds_error] = useState<string | null>(null);
@@ -242,7 +246,7 @@ function SetupDuressPinModal({
     set_password("");
     set_show_password(false);
     set_totp_code("");
-    set_totp_required(false);
+    set_totp_required(peek_totp_required() === true);
     set_creds_error(null);
     set_verifying_creds(false);
     set_first_pin("");
@@ -313,9 +317,13 @@ function SetupDuressPinModal({
         requirements.salt,
         requirements.kdf_version,
       );
+      const hardware_key_assertion = await step_up_key_assertion_if_enrolled(
+        requirements.totp_required,
+      );
       const res = await verify_vanguard_credentials({
         password_hash,
         totp_code: requirements.totp_required ? totp_code : undefined,
+        hardware_key_assertion,
       });
 
       if (res.error || !res.data?.valid) {

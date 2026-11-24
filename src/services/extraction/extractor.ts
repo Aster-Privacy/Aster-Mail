@@ -32,6 +32,15 @@ import { CARRIER_TRACKING_URLS, CARRIER_NAMES } from "./types";
 
 import { get_active_translations } from "@/lib/i18n/translations";
 import { app_locale } from "@/utils/date_format";
+
+import {
+  MONEY_TOKEN,
+  REQUIRED_MONEY_TOKEN,
+  build_currency_context,
+  format_amount,
+  parse_amount,
+  type CurrencyContext,
+} from "./money";
 import {
   html_to_readable_plain_text,
   is_html_content,
@@ -144,50 +153,6 @@ function trim_trailing_punctuation(
   return value.slice(0, end);
 }
 
-const CURRENCY_SYMBOLS: Record<string, string> = {
-  $: "USD",
-  "€": "EUR",
-  "£": "GBP",
-  "¥": "JPY",
-  "₹": "INR",
-  C$: "CAD",
-  A$: "AUD",
-  R$: "BRL",
-};
-
-const CURRENCY_TO_SYMBOL: Record<string, string> = {
-  USD: "$",
-  EUR: "€",
-  GBP: "£",
-  JPY: "¥",
-  INR: "₹",
-  CAD: "C$",
-  AUD: "A$",
-  BRL: "R$",
-};
-
-function currency_symbol(currency: string): string {
-  return CURRENCY_TO_SYMBOL[currency] ?? currency;
-}
-
-function format_amount(value: number, currency: string): string {
-  const locale = app_locale();
-
-  try {
-    return new Intl.NumberFormat(locale, {
-      style: "currency",
-      currency,
-    }).format(value);
-  } catch {
-    const digits = value.toLocaleString(locale, {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    });
-
-    return `${currency_symbol(currency)}${digits}`;
-  }
-}
-
 function escape_regex(value: string): string {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
@@ -219,13 +184,6 @@ const CONFIRMATION_NUMBER_PATTERN = labelled_id(
 
 const TRANSACTION_ID_PATTERN = labelled_id("transaction");
 
-const CURRENCY_TOKEN = "C\\$|A\\$|R\\$|[$€£¥₹]|USD|EUR|GBP|JPY|INR|CAD|AUD|CHF";
-
-const PLAIN_NUMBER_TOKEN = "[0-9][0-9,]*(?:\\.[0-9]{1,2})?(?![0-9])";
-
-const GROUPED_DECIMAL_COMMA_TOKEN =
-  "(?<![0-9][.\\u00a0\\u202f]?)[0-9]{1,3}(?:[.\\u00a0\\u202f][0-9]{3})+,[0-9]{1,2}(?![0-9])";
-
 function supports_regex(source: string): boolean {
   try {
     new RegExp(source);
@@ -236,22 +194,12 @@ function supports_regex(source: string): boolean {
   }
 }
 
-const NUMBER_TOKEN = supports_regex(GROUPED_DECIMAL_COMMA_TOKEN)
-  ? `${GROUPED_DECIMAL_COMMA_TOKEN}|${PLAIN_NUMBER_TOKEN}`
-  : PLAIN_NUMBER_TOKEN;
-
 const LOOKBEHIND_TOTAL_LABEL =
   "(?<!\\bnet\\s)(?<!\\bsub\\s)(?<!\\bitems?\\s)\\btotals?\\b";
 
 const TOTAL_LABEL = supports_regex(LOOKBEHIND_TOTAL_LABEL)
   ? LOOKBEHIND_TOTAL_LABEL
   : "\\btotals?\\b";
-
-const MONEY_TOKEN = `(?:(?:${CURRENCY_TOKEN})\\s*)?(?:${NUMBER_TOKEN})(?:\\s*(?:${CURRENCY_TOKEN}))?`;
-
-const AMOUNT_PATTERN = new RegExp(
-  `(${CURRENCY_TOKEN})?\\s*(${NUMBER_TOKEN})\\s*(${CURRENCY_TOKEN})?`,
-);
 
 const TAX_RATE = "(?:\\s*\\(?\\d{1,2}(?:[.,]\\d+)?\\s*%\\)?)?";
 
@@ -315,43 +263,6 @@ const CARRIER_NAME_MAP: Record<string, ShippingCarrier> = {
   lasership: "lasership",
 };
 
-function parse_number(value_str: string): number {
-  const digits = value_str.replace(/[\u00a0\u202f]/g, "").replace(/,+$/, "");
-  const decimal_comma = digits.match(/^([0-9.,]*),([0-9]{1,2})$/);
-
-  if (decimal_comma) {
-    return parseFloat(
-      `${decimal_comma[1].replace(/[.,]/g, "")}.${decimal_comma[2]}`,
-    );
-  }
-
-  return parseFloat(digits.replace(/,/g, ""));
-}
-
-function parse_amount(
-  text: string,
-  fallback_currency = "USD",
-): ExtractedAmount | null {
-  const match = text.match(AMOUNT_PATTERN);
-
-  if (!match) return null;
-
-  const [, prefix_symbol, value_str, suffix_symbol] = match;
-  const symbol = (prefix_symbol || suffix_symbol || "").toUpperCase();
-  const currency = symbol
-    ? (CURRENCY_SYMBOLS[symbol] ?? symbol)
-    : fallback_currency;
-  const value = parse_number(value_str);
-
-  if (isNaN(value)) return null;
-
-  return {
-    value,
-    currency,
-    formatted: format_amount(value, currency),
-  };
-}
-
 function clean_identifier(value: string | undefined): string | null {
   const cleaned = clean_text_field(value);
 
@@ -404,37 +315,10 @@ function reconcile_amounts(amounts: PurchaseAmounts): PurchaseAmounts {
   return amounts;
 }
 
-function detect_dominant_currency(text: string): string {
-  const matches = text.match(new RegExp(CURRENCY_TOKEN, "gi"));
-
-  if (!matches) return "USD";
-
-  const counts = new Map<string, number>();
-
-  for (const raw of matches) {
-    const symbol = raw.toUpperCase();
-    const currency = CURRENCY_SYMBOLS[symbol] ?? symbol;
-
-    counts.set(currency, (counts.get(currency) ?? 0) + 1);
-  }
-
-  let winner = "USD";
-  let best = 0;
-
-  for (const [currency, count] of counts) {
-    if (count > best) {
-      winner = currency;
-      best = count;
-    }
-  }
-
-  return winner;
-}
-
 function extract_amount_from_line(
   text: string,
   patterns: RegExp[],
-  fallback_currency = "USD",
+  context: CurrencyContext,
 ): ExtractedAmount | null {
   for (const pattern of patterns) {
     const match = text.match(pattern);
@@ -442,7 +326,7 @@ function extract_amount_from_line(
     if (match) {
       const amount_str = match[1] || match[0];
 
-      return parse_amount(amount_str, fallback_currency);
+      return parse_amount(amount_str, context, app_locale());
     }
   }
 
@@ -804,16 +688,28 @@ function collapse_whitespace_runs(text: string): string {
 
 function extract_items_from_body(
   raw_body: string,
-  fallback_currency = "USD",
+  context: CurrencyContext,
 ): ExtractedItem[] {
   const items: ExtractedItem[] = [];
   const body = collapse_whitespace_runs(raw_body);
 
   const item_patterns = [
-    /(?:^|\D)(\d+)\s*x\s+([^\n]{1,160}?)\s*[-–]\s*([\$€£¥₹]?\s*[\d,.]+)/gi,
-    /([^\n]{1,160}?)\s*\(Qty:\s*(\d+)\)\s*([\$€£¥₹]?\s*[\d,.]+)/gi,
-    /Item:\s*([^\n]{1,160}?)(?:\s*Qty:\s*(\d+))?\s*Price:\s*([\$€£¥₹]?\s*[\d,.]+)/gi,
-    /(?:^|\n)[ \t]*([^\n$€£¥₹]{2,160}?)\s+[×x]\s*(\d{1,3})\s+([\$€£¥₹]\s*[\d,.]+)[ \t]*(?=\n|$)/gi,
+    new RegExp(
+      `(?:^|\\D)(\\d+)\\s*x\\s+([^\\n]{1,160}?)\\s*[-–]\\s*(${MONEY_TOKEN})`,
+      "gi",
+    ),
+    new RegExp(
+      `([^\\n]{1,160}?)\\s*\\(Qty:\\s*(\\d+)\\)\\s*(${MONEY_TOKEN})`,
+      "gi",
+    ),
+    new RegExp(
+      `Item:\\s*([^\\n]{1,160}?)(?:\\s*Qty:\\s*(\\d+))?\\s*Price:\\s*(${MONEY_TOKEN})`,
+      "gi",
+    ),
+    new RegExp(
+      `(?:^|\\n)[ \\t]*([^\\n$€£¥₹]{2,160}?)\\s+[×x]\\s*(\\d{1,3})\\s+(${REQUIRED_MONEY_TOKEN})[ \\t]*(?=\\n|$)`,
+      "gi",
+    ),
   ];
 
   const summary_word =
@@ -832,7 +728,7 @@ function extract_items_from_body(
       const quantity = is_qty_first
         ? parseInt(qty_or_name, 10)
         : parseInt(name_or_qty ?? "", 10) || 1;
-      const unit_price = parse_amount(price_str, fallback_currency);
+      const unit_price = parse_amount(price_str, context, app_locale());
 
       if (
         item_name &&
@@ -851,6 +747,7 @@ function extract_items_from_body(
                 formatted: format_amount(
                   unit_price.value * quantity,
                   unit_price.currency,
+                  app_locale(),
                 ),
               }
             : null,
@@ -1308,7 +1205,11 @@ export function extract_purchase_details(
     }
   }
 
-  const currency = detect_dominant_currency(combined);
+  const currency = build_currency_context(
+    combined,
+    forwarded?.from_email ?? from_email,
+    app_locale(),
+  );
 
   const total = extract_amount_from_line(
     combined,

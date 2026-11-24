@@ -78,12 +78,14 @@ import {
 } from "@/components/common/desktop_code_sign_in";
 import { ignore_error } from "@/lib/ignore_error";
 import { set_post_switch_path } from "@/lib/post_switch_path";
+import { GuardSignInPanel } from "@/components/guard/guard_sign_in_gate";
 import { user_facing_error } from "@/utils/user_facing_error";
 import { is_crypto_module_load_error } from "@/services/crypto/openpgp_loader";
 import { login_safety_error_key } from "@/services/crypto/auth_salt_guard";
 import { api_client } from "@/services/api/client";
 import { same_address_ignoring_dots } from "@/utils/address_dots";
 import { SignInAppsRow } from "@/components/layout/sign_in_apps_row";
+import { SiblingSessionButton } from "@/pages/sign_in/sibling_session_button";
 import {
   clear_pending_login_enrollment,
   derive_sign_in_proof,
@@ -150,6 +152,8 @@ export default function SignInPage() {
     active_2fa_method,
     set_active_2fa_method,
     handle_totp_success,
+    guard_gate,
+    handle_guard_complete,
     handle_resend_pending,
     hub_accounts,
     hub_signing_in_id,
@@ -256,6 +260,8 @@ export default function SignInPage() {
             session.passphrase,
             session.encrypted_vault,
             session.vault_nonce,
+            true,
+            session.vault_recovered_write_count,
           );
 
           if (!add_result.success) {
@@ -268,6 +274,8 @@ export default function SignInPage() {
             session.passphrase,
             session.encrypted_vault,
             session.vault_nonce,
+            true,
+            session.vault_recovered_write_count,
           );
         }
       } catch (err) {
@@ -416,6 +424,7 @@ export default function SignInPage() {
         }
         email = `${clean_username}@${candidate}`;
         user_hash = await hash_email(email);
+        guard_gate.set_guard_user_hash(user_hash);
 
         set_status(t("auth.fetching_auth_data"));
         const salt_response = await get_user_salt({ user_hash });
@@ -537,6 +546,8 @@ export default function SignInPage() {
           set_error(t("errors.pending_email_verification"));
           set_pending_verification_hash(user_hash);
           reset_resend_cooldown();
+        } else if (response.server_code === "GUARD_REQUIRED") {
+          if (signed_in_password !== password) set_password(signed_in_password);
         } else {
           set_error(response.error);
         }
@@ -637,6 +648,7 @@ export default function SignInPage() {
             response.data.encrypted_vault,
             response.data.vault_nonce,
             remember_me,
+            response.data.vault_recovered_write_count,
           ),
         );
 
@@ -657,6 +669,7 @@ export default function SignInPage() {
             response.data.encrypted_vault,
             response.data.vault_nonce,
             remember_me,
+            response.data.vault_recovered_write_count,
           ),
         );
       }
@@ -697,6 +710,20 @@ export default function SignInPage() {
       turnstile_ref.current?.reset();
     }
   };
+
+  if (guard_gate.guard_start && !is_loading) {
+    return (
+      <div className="fixed inset-0 overflow-y-auto transition-colors duration-200 bg-surf-primary">
+        <div className="flex min-h-full items-center justify-center px-4 py-8">
+          <GuardSignInPanel
+            start={guard_gate.guard_start}
+            on_back={guard_gate.clear_guard}
+            on_complete={handle_guard_complete}
+          />
+        </div>
+      </div>
+    );
+  }
 
   if (totp_required) {
     return (
@@ -1170,6 +1197,7 @@ export default function SignInPage() {
               {t("auth.create_account")}
             </Button>
 
+            {!is_adding_account && <SiblingSessionButton />}
             {!is_adding_account && <SignInAppsRow />}
           </motion.div>
         </AnimatePresence>

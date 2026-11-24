@@ -97,6 +97,29 @@ const PREFETCH_PANELS: SettingsPanelName[] = [
 
 const PREFETCH_CONCURRENCY = 4;
 
+const FOREGROUND_RETRY_DELAYS_MS = [1_000, 3_000];
+
+const TRANSIENT_CODES = new Set([
+  "NETWORK_ERROR",
+  "TIMEOUT_ERROR",
+  "RATE_LIMIT_EXCEEDED",
+]);
+
+function is_transient_envelope(value: unknown): boolean {
+  if (!value || typeof value !== "object") return true;
+
+  const { code, status } = value as { code?: unknown; status?: unknown };
+
+  if (typeof code === "string" && TRANSIENT_CODES.has(code)) return true;
+  if (typeof status !== "number") return typeof code !== "string";
+
+  return status === 408 || status === 429 || status >= 500;
+}
+
+function wait(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 const revalidate_tokens = new Map<SettingsPanelName, number>();
 
 function next_revalidate_token(panel: SettingsPanelName): number {
@@ -155,7 +178,7 @@ export function use_settings_prefetch(is_active: boolean) {
           if (failure) {
             cache.set_entry(panel, {
               data: existing?.data ?? null,
-              error: failure,
+              error: null,
               fetched_at: existing?.fetched_at ?? 0,
               is_loading: false,
             });
@@ -172,7 +195,7 @@ export function use_settings_prefetch(is_active: boolean) {
         } catch (error) {
           cache.set_entry(panel, {
             data: existing?.data ?? null,
-            error,
+            error: null,
             fetched_at: existing?.fetched_at ?? 0,
             is_loading: false,
           });
@@ -226,6 +249,10 @@ export function use_settings_panel_data<T = unknown>(panel: SettingsPanelName) {
     cache.get_entry<T>(panel),
   );
 
+  const attempted_ref = useRef<SettingsPanelName | null>(null);
+  const entry_loading = entry?.is_loading ?? false;
+  const fresh = cache.is_fresh(panel);
+
   const revalidate = useCallback(async () => {
     const fetcher = PANEL_FETCHERS[panel];
     const previous = cache.get_entry<T>(panel);
@@ -238,62 +265,82 @@ export function use_settings_panel_data<T = unknown>(panel: SettingsPanelName) {
       is_loading: true,
     });
 
-    try {
-      const data = (await fetcher()) as T;
+    for (let attempt = 0; ; attempt += 1) {
+      let data: T | undefined;
+      let failure: unknown = null;
+      let thrown = false;
+      let transient = false;
 
-      if (!is_current_revalidate(panel, token)) return data;
+      try {
+        data = (await fetcher()) as T;
+        failure = envelope_error(data);
+        transient = failure !== null && is_transient_envelope(data);
+      } catch (error) {
+        failure = error;
+        thrown = true;
+        transient = true;
+      }
 
-      const failure = envelope_error(data);
+      if (!is_current_revalidate(panel, token)) {
+        if (thrown) throw failure;
 
-      if (failure) {
+        return data as T;
+      }
+
+      if (failure === null) {
         cache.set_entry<T>(panel, {
-          data: previous?.data ?? null,
-          error: failure,
-          fetched_at: previous?.fetched_at ?? 0,
+          data: data ?? null,
+          error: null,
+          fetched_at: Date.now(),
           is_loading: false,
         });
 
-        return data;
+        return data as T;
+      }
+
+      if (transient && attempt < FOREGROUND_RETRY_DELAYS_MS.length) {
+        await wait(FOREGROUND_RETRY_DELAYS_MS[attempt]);
+        if (!is_current_revalidate(panel, token)) return data as T;
+        continue;
       }
 
       cache.set_entry<T>(panel, {
-        data,
-        error: null,
-        fetched_at: Date.now(),
+        data: previous?.data ?? null,
+        error: failure,
+        fetched_at: previous?.fetched_at ?? 0,
         is_loading: false,
       });
 
-      return data;
-    } catch (error) {
-      if (is_current_revalidate(panel, token)) {
-        cache.set_entry<T>(panel, {
-          data: previous?.data ?? null,
-          error,
-          fetched_at: previous?.fetched_at ?? 0,
-          is_loading: false,
-        });
-      }
+      if (thrown) throw failure;
 
-      throw error;
+      return data as T;
     }
   }, [cache, panel]);
 
   useEffect(() => {
-    if (cache.is_fresh(panel)) return;
+    if (attempted_ref.current === panel) return;
+    if (cache.is_fresh(panel)) {
+      attempted_ref.current = panel;
+
+      return;
+    }
     if (cache.get_entry(panel)?.is_loading) return;
+    attempted_ref.current = panel;
     void revalidate().catch((caught) =>
       ignore_error(
         "components/settings/hooks/use_settings_prefetch:use_settings_panel_data",
         caught,
       ),
     );
-  }, [cache, panel, revalidate]);
+  }, [cache, panel, revalidate, entry_loading]);
+
+  const awaiting_foreground = attempted_ref.current !== panel && !fresh;
 
   return {
     data: (entry?.data ?? null) as T | null,
     error: entry?.error ?? null,
-    is_loading: entry?.is_loading ?? false,
-    is_fresh: cache.is_fresh(panel),
+    is_loading: entry_loading || awaiting_foreground,
+    is_fresh: fresh,
     revalidate,
   };
 }

@@ -77,6 +77,7 @@ const EXTENSION_MIME_MAP: Record<string, string> = {
   "7z": "application/x-7z-compressed",
   txt: "text/plain",
   csv: "text/csv",
+  eml: "message/rfc822",
   html: "text/html",
   css: "text/css",
   js: "text/javascript",

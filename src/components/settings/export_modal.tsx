@@ -49,15 +49,18 @@ import {
   TURNSTILE_SITE_KEY,
   type TurnstileWidgetRef,
 } from "@/components/auth/turnstile_widget";
+import { peek_totp_required } from "@/services/api/step_up_cache";
 import { use_i18n } from "@/lib/i18n/context";
 import { ButtonSpinner, Spinner } from "@/components/ui/spinner";
 import { show_toast } from "@/components/toast/simple_toast";
+import { held_of } from "@/services/guard/held_outcome";
 import { clamp_password } from "@/services/sanitize";
 import {
   derive_step_up_credentials,
   fetch_step_up_requirements,
 } from "@/services/api/step_up";
 import { verify_vanguard_credentials } from "@/services/api/vanguard";
+import { step_up_key_assertion_if_enrolled } from "@/services/api/webauthn";
 import {
   verify_passphrase_for_export,
   issue_export_token,
@@ -112,7 +115,9 @@ export function ExportModal({ is_open, on_close }: ExportModalProps) {
 
   const [verify_password, set_verify_password] = useState("");
   const [verify_code, set_verify_code] = useState("");
-  const [verify_totp_required, set_verify_totp_required] = useState(false);
+  const [verify_totp_required, set_verify_totp_required] = useState(
+    () => peek_totp_required() === true,
+  );
   const [verify_requirements_error, set_verify_requirements_error] =
     useState(false);
   const [verify_show_password, set_verify_show_password] = useState(false);
@@ -156,7 +161,7 @@ export function ExportModal({ is_open, on_close }: ExportModalProps) {
     set_token(null);
     set_verify_password("");
     set_verify_code("");
-    set_verify_totp_required(false);
+    set_verify_totp_required(peek_totp_required() === true);
     set_verify_requirements_error(false);
     set_verify_show_password(false);
     set_verify_loading(false);
@@ -241,12 +246,24 @@ export function ExportModal({ is_open, on_close }: ExportModalProps) {
         verify_password,
         verify_totp_required ? verify_code : undefined,
       );
+      const hardware_key_assertion =
+        await step_up_key_assertion_if_enrolled(verify_totp_required);
       const res = await verify_vanguard_credentials({
         ...credentials,
+        hardware_key_assertion,
         for_export: true,
         captcha_token: captcha_token ?? undefined,
       });
 
+      if (held_of(res)) {
+        set_verify_password("");
+        set_verify_code("");
+        set_captcha_token(null);
+        reset();
+        on_close();
+
+        return;
+      }
       if (res.error || !res.data?.valid) {
         set_verify_error(t("common.step_up_error"));
         set_captcha_token(null);
@@ -280,6 +297,8 @@ export function ExportModal({ is_open, on_close }: ExportModalProps) {
     verify_password,
     verify_totp_required,
     captcha_token,
+    reset,
+    on_close,
   ]);
 
   const handle_warning_continue = useCallback(() => {

@@ -82,7 +82,7 @@ function in_date_range(iso: string, scope: ExportScope): boolean {
   return true;
 }
 
-async function build_attachments(
+export async function build_attachments(
   mail_id: string,
   has_attachments?: boolean,
   report_error?: (e: ExportError) => void,
