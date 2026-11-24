@@ -100,6 +100,44 @@ export function lazy_with_retry<T extends { default: ComponentType<any> }>(
   return lazy(() => import_with_retry(import_fn, retries, delay));
 }
 
+export type PreloadableComponent<P> = ((props: P) => ReactElement) & {
+  preload: () => Promise<void>;
+};
+
+export function lazy_preloadable<T extends { default: ComponentType<any> }>(
+  import_fn: () => Promise<T>,
+  retries = DEFAULT_RETRIES,
+  delay = DEFAULT_DELAY_MS,
+): PreloadableComponent<ComponentProps<T["default"]>> {
+  let loaded: ComponentType<any> | null = null;
+
+  const remember = (module: T): T => {
+    loaded = module.default;
+
+    return module;
+  };
+
+  const Lazy = lazy(() =>
+    import_with_retry(import_fn, retries, delay).then(remember),
+  );
+
+  function Preloadable(props: ComponentProps<T["default"]>): ReactElement {
+    const [loaded_at_mount] = useState(() => loaded);
+
+    return createElement(loaded_at_mount ?? Lazy, props);
+  }
+
+  return Object.assign(Preloadable, {
+    preload: () =>
+      retry_import(import_fn, retries, delay).then(
+        (module) => {
+          remember(module);
+        },
+        () => undefined,
+      ),
+  });
+}
+
 export type OnDemandComponent<P> = ((props: P) => ReactElement) & {
   preload: () => Promise<void>;
 };

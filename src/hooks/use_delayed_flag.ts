@@ -32,7 +32,15 @@ export function use_delayed_flag(
   const [shown, set_shown] = useState(false);
   const shown_at_ref = useRef(0);
 
+  const immediate = delay_ms <= 0 && min_visible_ms <= 0;
+
   useEffect(() => {
+    if (immediate) {
+      shown_at_ref.current = 0;
+      set_shown(false);
+
+      return;
+    }
     if (active) {
       const timer = setTimeout(() => {
         shown_at_ref.current = Date.now();
@@ -54,7 +62,9 @@ export function use_delayed_flag(
     const timer = setTimeout(() => set_shown(false), remaining);
 
     return () => clearTimeout(timer);
-  }, [active, delay_ms, min_visible_ms]);
+  }, [active, delay_ms, min_visible_ms, immediate]);
+
+  if (immediate) return active;
 
   return shown;
 }

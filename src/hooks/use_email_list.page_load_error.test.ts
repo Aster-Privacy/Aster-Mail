@@ -133,6 +133,12 @@ vi.mock("@capacitor/core", () => ({
   Capacitor: { isNativePlatform: () => false },
 }));
 
+vi.mock("@/hooks/view_prefetch", () => ({
+  PREFETCH_VIEWS: [],
+  prefetch_views_when_idle: () => () => {},
+  set_view_prefetch_context: () => {},
+}));
+
 import { use_email_list } from "@/hooks/use_email_list";
 
 const PAGE_SIZE = 50;

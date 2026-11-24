@@ -319,6 +319,32 @@ describe("use_category_inbox instant category switch", () => {
     act(() => root.unmount());
   });
 
+  it("settles an empty tab on the switch render without a loading pass", async () => {
+    mocks.page_ids.set("social", []);
+
+    const { states, root, set_category } = make_harness();
+
+    await flush();
+
+    const switched_at = states.length;
+
+    set_category("social");
+
+    const after = states.slice(switched_at);
+
+    expect(after.length).toBeGreaterThan(0);
+    for (const seen of after) {
+      expect(seen).toEqual({ emails: [], is_loading: false });
+    }
+
+    await flush();
+
+    for (const seen of states.slice(switched_at)) {
+      expect(seen.is_loading).toBe(false);
+    }
+    act(() => root.unmount());
+  });
+
   it("drops the decrypted rows when the mail cache is cleared", async () => {
     const first = make_harness();
 

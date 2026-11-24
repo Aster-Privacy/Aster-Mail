@@ -18,7 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { useEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 
 export const EMPTY_COMMIT_GRACE_MS = 400;
 
@@ -34,6 +34,14 @@ export function use_settled_empty_state({
   is_settled,
 }: SettledEmptyStateParams): boolean {
   const [committed_key, set_committed_key] = useState<string | null>(null);
+  const rows_seen_key_ref = useRef<string | null>(null);
+
+  useLayoutEffect(() => {
+    if (!is_empty) rows_seen_key_ref.current = view_key;
+  }, [is_empty, view_key]);
+
+  const settled_without_rows =
+    is_empty && is_settled && rows_seen_key_ref.current !== view_key;
 
   useEffect(() => {
     if (!is_empty) {
@@ -42,13 +50,18 @@ export function use_settled_empty_state({
       return;
     }
     if (!is_settled || committed_key === view_key) return;
+    if (settled_without_rows) {
+      set_committed_key(view_key);
+
+      return;
+    }
 
     const timer = setTimeout(() => {
       set_committed_key(view_key);
     }, EMPTY_COMMIT_GRACE_MS);
 
     return () => clearTimeout(timer);
-  }, [view_key, is_empty, is_settled, committed_key]);
+  }, [view_key, is_empty, is_settled, committed_key, settled_without_rows]);
 
-  return committed_key === view_key && is_empty;
+  return is_empty && (committed_key === view_key || settled_without_rows);
 }

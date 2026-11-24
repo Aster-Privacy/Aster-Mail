@@ -768,6 +768,31 @@ export function use_drafts_list(is_active: boolean): UseDraftsListReturn {
     };
   }, [is_active, has_keys, refresh, update_draft_in_list]);
 
+  const prefetch_wanted =
+    !is_active &&
+    !auth_loading &&
+    has_keys &&
+    is_authenticated &&
+    !preferences.low_network_mode;
+
+  useEffect(() => {
+    if (!prefetch_wanted || has_loaded_ref.current) return;
+
+    const run = () => {
+      if (!has_loaded_ref.current && get_vault_from_memory()) fetch_drafts();
+    };
+
+    if (typeof window.requestIdleCallback === "function") {
+      const handle = window.requestIdleCallback(run, { timeout: 6000 });
+
+      return () => window.cancelIdleCallback(handle);
+    }
+
+    const timer = window.setTimeout(run, 3000);
+
+    return () => window.clearTimeout(timer);
+  }, [prefetch_wanted, fetch_drafts]);
+
   const visible_drafts = useMemo(
     () =>
       suppressed_ids.size > 0 || queued_ids.size > 0
