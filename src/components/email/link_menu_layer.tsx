@@ -20,8 +20,11 @@
 //
 import { useEffect, useState } from "react";
 import {
+  ArrowDownTrayIcon,
   ArrowTopRightOnSquareIcon,
+  DocumentDuplicateIcon,
   LinkIcon,
+  MagnifyingGlassPlusIcon,
 } from "@heroicons/react/24/outline";
 
 import {
@@ -36,13 +39,17 @@ import { use_i18n } from "@/lib/i18n/context";
 import { show_toast } from "@/components/toast/simple_toast";
 import { copy_text } from "@/utils/copy_text";
 import {
+  copy_viewer_image,
+  save_viewer_image,
+} from "@/lib/email_image_actions";
+import {
   LINK_MENU_EVENT,
   link_menu_host,
   type LinkMenuDetail,
 } from "@/lib/link_menu_event";
 
 interface LinkMenuState extends LinkMenuDetail {
-  host: string;
+  host: string | null;
 }
 
 export function LinkMenuLayer() {
@@ -53,10 +60,13 @@ export function LinkMenuLayer() {
   useEffect(() => {
     const handle_open = (e: Event) => {
       const detail = (e as CustomEvent<LinkMenuDetail>).detail;
-      const host = detail ? link_menu_host(detail.url) : null;
 
-      if (!detail || !host) return;
-      set_menu({ ...detail, host });
+      if (!detail) return;
+
+      const host = detail.url ? link_menu_host(detail.url) : null;
+
+      if (!host && !detail.image) return;
+      set_menu({ ...detail, url: host ? detail.url : undefined, host });
     };
 
     window.addEventListener(LINK_MENU_EVENT, handle_open);
@@ -65,7 +75,7 @@ export function LinkMenuLayer() {
   }, []);
 
   const handle_copy = async () => {
-    if (!menu) return;
+    if (!menu?.url) return;
     const copied = await copy_text(menu.url);
 
     show_toast(
@@ -73,6 +83,26 @@ export function LinkMenuLayer() {
       copied ? "success" : "error",
     );
   };
+
+  const handle_copy_image = async (src: string) => {
+    try {
+      await copy_viewer_image(src);
+      show_toast(t("mail.image_copied"), "success");
+    } catch {
+      show_toast(t("mail.image_copy_failed"), "error");
+    }
+  };
+
+  const handle_save_image = async (src: string) => {
+    try {
+      await save_viewer_image(src);
+    } catch {
+      show_toast(t("mail.image_save_failed"), "error");
+    }
+  };
+
+  const image = menu?.image;
+  const url = menu?.url;
 
   return (
     <DropdownMenu
@@ -93,32 +123,65 @@ export function LinkMenuLayer() {
         align="start"
         className="w-80"
         collisionPadding={8}
-        data-testid="link_menu"
+        data-testid={image ? "image_menu" : "link_menu"}
         side="bottom"
       >
-        {menu && (
-          <div className="px-2 pb-2 pt-1.5" data-testid="link_menu_preview">
-            <p className="truncate text-sm font-medium text-txt-primary">
-              {menu.host}
-            </p>
-            <p className="mt-0.5 line-clamp-4 break-all text-xs text-txt-muted">
-              {menu.url}
-            </p>
-          </div>
+        {image && (
+          <DropdownMenuItem
+            data-testid="image_menu_view"
+            onSelect={() => image.on_view()}
+          >
+            <MagnifyingGlassPlusIcon className="me-2 h-4 w-4" />
+            {t("mail.image_menu_view")}
+          </DropdownMenuItem>
         )}
-        <DropdownMenuSeparator />
-        <DropdownMenuItem
-          onSelect={() => {
-            if (menu) handle_external_link(menu.url);
-          }}
-        >
-          <ArrowTopRightOnSquareIcon className="me-2 h-4 w-4" />
-          {t("mail.link_menu_open")}
-        </DropdownMenuItem>
-        <DropdownMenuItem onSelect={handle_copy}>
-          <LinkIcon className="me-2 h-4 w-4" />
-          {t("mail.link_menu_copy")}
-        </DropdownMenuItem>
+        {url && !image && menu && (
+          <>
+            <div className="px-2 pb-2 pt-1.5" data-testid="link_menu_preview">
+              <p className="truncate text-sm font-medium text-txt-primary">
+                {menu.host}
+              </p>
+              <p className="mt-0.5 line-clamp-4 break-all text-xs text-txt-muted">
+                {url}
+              </p>
+            </div>
+            <DropdownMenuSeparator />
+          </>
+        )}
+        {url && (
+          <DropdownMenuItem
+            data-testid="link_menu_open"
+            onSelect={() => handle_external_link(url)}
+          >
+            <ArrowTopRightOnSquareIcon className="me-2 h-4 w-4" />
+            {t("mail.link_menu_open")}
+          </DropdownMenuItem>
+        )}
+        {url && (
+          <DropdownMenuItem data-testid="link_menu_copy" onSelect={handle_copy}>
+            <LinkIcon className="me-2 h-4 w-4" />
+            {image ? t("mail.image_menu_copy_link") : t("mail.link_menu_copy")}
+          </DropdownMenuItem>
+        )}
+        {image && (
+          <>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              data-testid="image_menu_copy"
+              onSelect={() => void handle_copy_image(image.src)}
+            >
+              <DocumentDuplicateIcon className="me-2 h-4 w-4" />
+              {t("mail.image_menu_copy")}
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              data-testid="image_menu_save"
+              onSelect={() => void handle_save_image(image.src)}
+            >
+              <ArrowDownTrayIcon className="me-2 h-4 w-4" />
+              {t("mail.image_menu_save")}
+            </DropdownMenuItem>
+          </>
+        )}
       </DropdownMenuContent>
     </DropdownMenu>
   );

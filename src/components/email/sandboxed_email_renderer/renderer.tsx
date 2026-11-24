@@ -18,7 +18,10 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import type { ImageViewerRequest } from "@/lib/email_image_viewer";
+
 import { useRef, useEffect, useState, useCallback, useMemo } from "react";
+import { AnimatePresence } from "framer-motion";
 
 import * as dom_cleanup from "./dom_cleanup";
 import { build_measurement_controls } from "./measurement_controls";
@@ -99,6 +102,7 @@ import {
   normalize_font_size_scale,
 } from "@/contexts/preferences_context";
 import { use_i18n } from "@/lib/i18n/context";
+import { EmailImageViewer } from "@/components/email/email_image_viewer_modal";
 import { connection_store } from "@/services/routing/connection_store";
 import { is_any_lockdown_active } from "@/services/lockdown_store";
 import { reveal_on_fonts_ready } from "@/components/email/reveal_on_fonts_ready";
@@ -144,11 +148,15 @@ export function SandboxedEmailRenderer({
   const email_zoom = (
     normalize_font_size_scale(preferences.font_size_scale) / FONT_SIZE_DEFAULT
   ).toFixed(3);
-  const [zoomed_image, set_zoomed_image] = useState<string | null>(null);
-  const zoom_fn_ref = useRef<((src: string | null) => void) | null>(null);
+  const [image_viewer, set_image_viewer] = useState<ImageViewerRequest | null>(
+    null,
+  );
+  const viewer_fn_ref = useRef<((request: ImageViewerRequest) => void) | null>(
+    null,
+  );
   const base_zoom_ref = useRef(1);
 
-  zoom_fn_ref.current = set_zoomed_image;
+  viewer_fn_ref.current = set_image_viewer;
   base_zoom_ref.current = parseFloat(email_zoom) || 1;
   const cached_height = email_id
     ? get_cached_iframe_height(email_id)
@@ -205,7 +213,7 @@ export function SandboxedEmailRenderer({
     prev_email_id_ref.current = email_id;
     if (internal_cid_html !== null) set_internal_cid_html(null);
     stable_cid_html_ref.current = null;
-    if (zoomed_image !== null) set_zoomed_image(null);
+    if (image_viewer !== null) set_image_viewer(null);
   }
 
   useEffect(() => {
@@ -593,7 +601,7 @@ ${forced_canvas_css ? `<style>${forced_canvas_css}</style>` : ""}
 ${link_underline_css ? `<style>${link_underline_css}</style>` : ""}
 ${preferences.hide_scrollbars === true ? `<style>html, body { scrollbar-width: none !important; } html::-webkit-scrollbar, body::-webkit-scrollbar { display: none !important; width: 0 !important; height: 0 !important; }</style>` : ""}
 <style>${link_hover_css}</style>
-<style>img:not([data-blocked='true']) { cursor: zoom-in !important; } a img { cursor: pointer !important; } img[data-blocked='true'] { cursor: default !important; pointer-events: none !important; } a img[data-blocked='true'] { cursor: pointer !important; pointer-events: auto !important; }</style>
+<style>a img { cursor: pointer !important; } img[data-aster-viewable]:not([data-blocked='true']) { cursor: zoom-in !important; } img[data-blocked='true'] { cursor: default !important; pointer-events: none !important; } a img[data-blocked='true'] { cursor: pointer !important; pointer-events: auto !important; }</style>
 </head>
 <body style="${is_html_email ? html_body_style : plain_body_style}">${strip_unresolved_cid_references(display_html)}${email_font_override_css ? `<style>${email_font_override_css}</style>` : ""}</body>
 </html>`;
@@ -810,7 +818,7 @@ ${preferences.hide_scrollbars === true ? `<style>html, body { scrollbar-width: n
       iframe.contentDocument,
       iframe.contentDocument.body,
       update_height_if_deferred,
-      zoom_fn_ref,
+      viewer_fn_ref,
     );
   }, [
     collapse_forwarded_content,
@@ -862,21 +870,6 @@ ${preferences.hide_scrollbars === true ? `<style>html, body { scrollbar-width: n
       document_ready_cleanup_ref.current = null;
     };
   }, []);
-
-  useEffect(() => {
-    if (!zoomed_image) return;
-    const handle_key = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        e.preventDefault();
-        e.stopPropagation();
-        set_zoomed_image(null);
-      }
-    };
-
-    window.addEventListener("keydown", handle_key, true);
-
-    return () => window.removeEventListener("keydown", handle_key, true);
-  }, [zoomed_image]);
 
   const effective_bg = is_html_email ? html_bg : plain_bg;
   const frame_bg =
@@ -988,67 +981,15 @@ ${preferences.hide_scrollbars === true ? `<style>html, body { scrollbar-width: n
 
   return (
     <>
-      {zoomed_image && (
-        <div
-          aria-label={t("common.close")}
-          role="button"
-          style={{
-            position: "fixed",
-            inset: 0,
-            zIndex: 9999,
-            backgroundColor: "rgba(0,0,0,0.88)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            cursor: "zoom-out",
-          }}
-          tabIndex={0}
-          onClick={() => set_zoomed_image(null)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" || e.key === " ") set_zoomed_image(null);
-          }}
-        >
-          <button
-            aria-label={t("common.close")}
-            style={{
-              position: "absolute",
-              top: 16,
-              right: 16,
-              background: "rgba(255,255,255,0.12)",
-              border: "none",
-              borderRadius: "50%",
-              width: 36,
-              height: 36,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              cursor: "pointer",
-              color: "#fff",
-              fontSize: 20,
-              lineHeight: 1,
-            }}
-            onClick={() => set_zoomed_image(null)}
-          >
-            &#x2715;
-          </button>
-          <div
-            style={{ cursor: "default" }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <img
-              alt=""
-              src={zoomed_image}
-              style={{
-                maxWidth: "90vw",
-                maxHeight: "90vh",
-                objectFit: "contain",
-                borderRadius: 4,
-                display: "block",
-              }}
-            />
-          </div>
-        </div>
-      )}
+      <AnimatePresence>
+        {image_viewer && image_viewer.items[image_viewer.index] && (
+          <EmailImageViewer
+            request={image_viewer}
+            t={t}
+            on_change={set_image_viewer}
+          />
+        )}
+      </AnimatePresence>
       <div
         className={`email-frame-container ${frame_bg && frame_bg !== "transparent" ? "email-frame-canvas" : ""} ${class_name || ""}`}
         style={{

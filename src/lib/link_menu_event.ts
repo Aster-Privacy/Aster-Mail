@@ -20,10 +20,16 @@
 //
 export const LINK_MENU_EVENT = "aster-link-menu";
 
+export interface LinkMenuImage {
+  src: string;
+  on_view: () => void;
+}
+
 export interface LinkMenuDetail {
-  url: string;
+  url?: string;
   x: number;
   y: number;
+  image?: LinkMenuImage;
 }
 
 export function link_menu_host(url: string): string | null {

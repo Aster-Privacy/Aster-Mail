@@ -1718,6 +1718,9 @@ export interface CommonTranslations {
   web_sandbox_off_body: string;
   load_content: string;
   open_link: string;
+  zoom_in: string;
+  zoom_out: string;
+  zoom_to_fit: string;
   no_icon: string;
   icon_group_essentials: string;
   icon_group_mail: string;
@@ -8670,6 +8673,14 @@ export interface MailTranslations {
   image_size_original: string;
   link_menu_open: string;
   link_menu_copy: string;
+  image_viewer_title: string;
+  image_menu_view: string;
+  image_menu_copy_link: string;
+  image_menu_copy: string;
+  image_menu_save: string;
+  image_copied: string;
+  image_copy_failed: string;
+  image_save_failed: string;
   alias_view_sent: string;
   alias_direction_label: string;
   alias_direction_all: string;
