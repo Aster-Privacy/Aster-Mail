@@ -63,6 +63,7 @@ import {
   has_passphrase_in_memory,
   on_keys_ready,
 } from "@/services/crypto/memory_key_store";
+import { on_pending_decrypt_retry } from "@/services/crypto/decrypt_readiness";
 import { use_auth } from "@/contexts/auth_context";
 import { use_preferences } from "@/contexts/preferences_context";
 import { clear_preload_cache } from "@/components/email/hooks/preload_cache_store";
@@ -1305,6 +1306,19 @@ export function use_email_list(
       fetch_page_ref.current?.(0, page_size, { force: true });
     });
   }, [has_keys, is_mail_view, page_size]);
+
+  useEffect(() => {
+    if (!is_mail_view) return;
+
+    return on_pending_decrypt_retry((ids) => {
+      const has_pending_row = loaded_emails_ref.current.some((email) =>
+        ids.has(email.id),
+      );
+
+      if (!has_pending_row) return;
+      fetch_page_ref.current?.(0, page_size, { force: true });
+    });
+  }, [is_mail_view, page_size]);
 
   const update_email = useCallback(
     (id: string, updates: Partial<InboxEmail>): void => {

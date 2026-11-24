@@ -58,6 +58,7 @@ import {
   decrypt_body_text_with_bundle,
   is_ratchet_envelope,
 } from "@/utils/email_crypto";
+import { is_pending_decrypt_body } from "@/utils/undecryptable_body";
 import { settle_bundle_subject } from "@/services/crypto/sealed_message_fields";
 import { is_expired_mail } from "@/services/search/index_removals";
 import {
@@ -275,6 +276,21 @@ export async function run_index_pipeline(
           sender_email,
           item.id,
         );
+
+        if (is_pending_decrypt_body(bundle.body)) {
+          return {
+            id: item.id,
+            entry: prior_entry ?? {
+              envelope: null,
+              metadata: null,
+              search_body_text: "",
+              meta_fp,
+              has_body: include_body,
+              ...(include_body ? { index_terms: [] } : {}),
+            },
+            fresh: false,
+          };
+        }
 
         settle_bundle_subject(envelope, bundle);
         envelope.body_text = include_body ? bundle.body : "";

@@ -182,6 +182,7 @@ export function ThreadMessageBlock(
     load_remote_content,
     sanitized_content,
     is_sanitize_pending,
+    is_decrypt_pending,
     effective_html,
     inline_refs,
     show_as_text,
@@ -505,7 +506,9 @@ export function ThreadMessageBlock(
                         className={btn_class}
                         onClick={(e) => {
                           e.stopPropagation();
-                          on_load_external_content(message.id, ["tracking_pixel"]);
+                          on_load_external_content(message.id, [
+                            "tracking_pixel",
+                          ]);
                         }}
                       >
                         {`${t("mail.load_external_content")} (${tracker_count} ${tracker_count === 1 ? t("mail.tracker") : t("mail.trackers")})`}
@@ -993,7 +996,7 @@ export function ThreadMessageBlock(
           <p className="mx-4 mb-3 rounded-[20px] bg-surf-primary px-4 py-3 text-sm italic text-txt-muted">
             {t("mail.encrypted_message_unavailable")}
           </p>
-        ) : is_sanitize_pending && !show_as_text ? (
+        ) : (is_sanitize_pending && !show_as_text) || is_decrypt_pending ? (
           <div
             aria-hidden="true"
             style={{

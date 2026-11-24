@@ -24,6 +24,7 @@ import type { PrivateKey } from "openpgp";
 import { ml_kem768 } from "@noble/post-quantum/ml-kem.js";
 
 import { vault_identity_key_materials } from "@/services/crypto/identity_key_materials";
+import { note_if_transient_error } from "@/services/crypto/decrypt_readiness";
 import { register_envelope_attachment_keys } from "@/services/crypto/inbound_attachment_keys";
 import { with_cached_envelope_key } from "@/services/crypto/envelope_key_cache";
 import { array_to_base64 } from "@/services/crypto/base64";
@@ -690,6 +691,7 @@ export async function decrypt_mail_envelope<T = DecryptedEnvelope>(
       return null;
     } catch (error) {
       if (is_crypto_module_load_error(error)) throw error;
+      note_if_transient_error(error);
 
       if (import.meta.env.DEV) console.error(error);
 
@@ -884,6 +886,7 @@ export async function decrypt_mail_envelope<T = DecryptedEnvelope>(
   } catch (error) {
     if (import.meta.env.DEV) console.error(error);
     zero_uint8_array(passphrase_bytes);
+    note_if_transient_error(error);
 
     return null;
   }

@@ -35,6 +35,7 @@ import { mark_unconfirmed_sender_plaintext } from "./ratchet_verification_status
 import { ignore_error } from "@/lib/ignore_error";
 import { api_client } from "@/services/api/client";
 import { HASH_ALG } from "@/services/crypto/constants";
+import { note_transient_failure } from "@/services/crypto/decrypt_readiness";
 
 const API_BASE = "/crypto/v1/ratchet";
 const MAX_ESCROW_PLAINTEXT_BYTES = 100 * 1024;
@@ -475,6 +476,7 @@ export class EscrowUnavailableError extends Error {
   constructor() {
     super("escrow lookup unavailable");
     this.name = "EscrowUnavailableError";
+    note_transient_failure();
   }
 }
 

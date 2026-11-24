@@ -47,6 +47,7 @@ import { use_auth } from "@/contexts/auth_context";
 import { use_preferences } from "@/contexts/preferences_context";
 import { use_i18n } from "@/lib/i18n/context";
 import { decrypt_body_text_with_bundle } from "@/utils/email_crypto";
+import { is_pending_decrypt_body } from "@/utils/undecryptable_body";
 import { settle_bundle_subject } from "@/services/crypto/sealed_message_fields";
 import {
   format_email_list_timestamp,
@@ -311,6 +312,8 @@ export function use_snoozed_emails(): UseSnoozedEmailsReturn {
               : Promise.resolve(null),
           ]);
 
+          let body_pending = false;
+
           if (envelope?.body_text) {
             const bundle = await decrypt_body_text_with_bundle(
               envelope.body_text,
@@ -319,6 +322,7 @@ export function use_snoozed_emails(): UseSnoozedEmailsReturn {
               item.id,
             );
 
+            body_pending = is_pending_decrypt_body(bundle.body);
             envelope.body_text = bundle.body;
             settle_bundle_subject(envelope, bundle);
           }
@@ -327,7 +331,7 @@ export function use_snoozed_emails(): UseSnoozedEmailsReturn {
 
           return mail_to_email(
             item,
-            envelope,
+            body_pending ? null : envelope,
             metadata,
             format_options,
             t("mail.no_subject"),

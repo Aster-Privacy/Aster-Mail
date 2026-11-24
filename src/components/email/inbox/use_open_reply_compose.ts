@@ -42,6 +42,7 @@ import {
   PGP_UNDECRYPTABLE_SENTINEL,
   is_password_protected_body,
 } from "@/utils/email_crypto";
+import { is_pending_decrypt_body } from "@/utils/undecryptable_body";
 import {
   await_preloaded_email,
   get_preloaded_email,
@@ -155,6 +156,7 @@ export function use_open_reply_compose(
       const is_sentinel = (value: string | undefined): boolean =>
         value === RATCHET_UNDECRYPTABLE_SENTINEL ||
         value === PGP_UNDECRYPTABLE_SENTINEL ||
+        is_pending_decrypt_body(value) ||
         is_password_protected_body(value ?? "");
       const fallback_body =
         (is_sentinel(email.body_html) ? "" : email.body_html) ||
@@ -172,11 +174,9 @@ export function use_open_reply_compose(
           try {
             await preload_email_detail(email.id, user_email);
 
-            const preloaded = await await_preloaded_email(
-              email.id,
-              undefined,
-              { user_email },
-            );
+            const preloaded = await await_preloaded_email(email.id, undefined, {
+              user_email,
+            });
             const body = preloaded ? quotable_source(preloaded.email) : "";
 
             resolved_headers = preloaded?.email.raw_headers;

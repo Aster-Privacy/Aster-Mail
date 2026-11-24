@@ -52,6 +52,7 @@ import {
   is_password_protected_body,
   is_ratchet_verified_body,
 } from "@/utils/email_crypto";
+import { is_pending_decrypt_body } from "@/utils/undecryptable_body";
 import {
   get_vault_from_memory,
   wait_for_keys_ready,
@@ -549,6 +550,8 @@ export async function preload_email_detail(
           )
         : resolved_text;
 
+      if (is_pending_decrypt_body(body_text)) return;
+
       const sent_encryption_scope = sent_copy_encryption_scope(envelope);
       const ratchet_sealed = is_ratchet_verified_body(
         resolved_text,
@@ -865,6 +868,16 @@ export async function preload_email_detail(
       if (
         get_preload_generation() !== started_generation ||
         get_preload_account_epoch() !== started_account_epoch
+      ) {
+        if (cid_resolved) revoke_cid_blob_urls(cid_resolved.blob_urls);
+        for (const resolved of thread_cid_resolved.values())
+          revoke_cid_blob_urls(resolved.blob_urls);
+
+        return;
+      }
+
+      if (
+        thread_messages.some((message) => is_pending_decrypt_body(message.body))
       ) {
         if (cid_resolved) revoke_cid_blob_urls(cid_resolved.blob_urls);
         for (const resolved of thread_cid_resolved.values())
