@@ -2065,6 +2065,13 @@ html[data-input-modality="keyboard"] :focus-visible {
   outline-offset: 2px;
 }
 
+html[data-input-modality="keyboard"]
+  .aster_checkbox_input:focus-visible
+  + .aster_checkbox_box {
+  outline: 2px solid var(--accent-color);
+  outline-offset: 2px;
+}
+
 html:not([data-input-modality="keyboard"]) :focus,
 html:not([data-input-modality="keyboard"]) :focus-visible {
   outline: none;

@@ -1415,6 +1415,26 @@ export const hi = {
     search_labels: "लेबल खोजें",
     enter_label_name: "लेबल का नाम डालें",
     leaving_aster_mail: "Aster Mail छोड़ रहे हैं",
+    link_dialog_title: "यह लिंक खोलें?",
+    link_dialog_body: "यह लिंक Aster Mail के बाहर एक वेबपेज खोलता है।",
+    link_dialog_mail_title: "अपना ईमेल ऐप खोलें?",
+    link_dialog_mail_body:
+      "यह लिंक आपके डिवाइस के ईमेल ऐप में इस पते पर एक नया संदेश बनाता है।",
+    link_dialog_blocked_title: "यह लिंक नहीं खोला जा सकता",
+    link_dialog_blocked_body:
+      "Aster Mail इस तरह के लिंक नहीं खोलता, क्योंकि ये कोड चला सकते हैं या अपनी असली मंज़िल छिपा सकते हैं।",
+    link_dialog_show_full: "पूरा पता दिखाएँ",
+    link_dialog_copy: "लिंक कॉपी करें",
+    link_dialog_warnings_label: "खोलने से पहले जाँचें",
+    link_dialog_warning_http:
+      "यह वेबपेज सुरक्षित कनेक्शन का इस्तेमाल नहीं करता, इसलिए नेटवर्क पर दूसरे लोग आपकी भेजी जानकारी देख या बदल सकते हैं।",
+    link_dialog_warning_lookalike:
+      "यह पता {{host}} के रूप में भी दिख सकता है। इसमें अलग-अलग लिपियों के अक्षर मिले हुए हैं, जिससे यह किसी दूसरी वेबसाइट जैसा दिख सकता है।",
+    link_dialog_warning_mismatch:
+      "लिंक के टेक्स्ट में {{shown}} दिखता है, लेकिन लिंक {{site}} खोलता है।",
+    link_dialog_warning_ip:
+      "यह लिंक वेबसाइट के नाम की जगह एक संख्या वाला पता इस्तेमाल करता है, इसलिए यह पता लगाना मुश्किल है कि पेज कौन चलाता है।",
+    link_dialog_full_address: "पूरा पता",
     unlock_aster_mail: "Aster Mail अनलॉक करें",
     aster_mail_locked: "Aster Mail लॉक है",
     merge_contacts: "संपर्क मिलाएं",

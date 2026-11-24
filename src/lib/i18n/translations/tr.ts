@@ -1309,6 +1309,26 @@ export const tr = {
     search_labels: "Etiketlerde ara",
     enter_label_name: "Etiket adını girin",
     leaving_aster_mail: "Aster Mail'den Ayrılıyorsunuz",
+    link_dialog_title: "Bu bağlantı açılsın mı?",
+    link_dialog_body: "Bu bağlantı, Aster Mail dışında bir web sayfası açar.",
+    link_dialog_mail_title: "E-posta uygulamanız açılsın mı?",
+    link_dialog_mail_body:
+      "Bu bağlantı, cihazınızın e-posta uygulamasında bu adrese yeni bir ileti oluşturur.",
+    link_dialog_blocked_title: "Bu bağlantı açılamıyor",
+    link_dialog_blocked_body:
+      "Aster Mail bu tür bağlantıları açmaz, çünkü kod çalıştırabilir veya nereye gittiklerini gizleyebilirler.",
+    link_dialog_show_full: "Tam adresi göster",
+    link_dialog_copy: "Bağlantıyı kopyala",
+    link_dialog_warnings_label: "Açmadan önce kontrol edin",
+    link_dialog_warning_http:
+      "Bu web sayfası güvenli bağlantı kullanmıyor, bu nedenle ağdaki başkaları gönderdiklerinizi görebilir veya değiştirebilir.",
+    link_dialog_warning_lookalike:
+      "Bu adres {{host}} olarak da görünebilir. Farklı alfabelerden harfleri karıştırdığı için başka bir web sitesine benzeyebilir.",
+    link_dialog_warning_mismatch:
+      "Bağlantı metni {{shown}} gösteriyor, ancak bağlantı {{site}} adresini açıyor.",
+    link_dialog_warning_ip:
+      "Bu bağlantı web sitesi adı yerine sayısal bir adres kullanıyor, bu nedenle sayfayı kimin yönettiğini anlamak daha zor.",
+    link_dialog_full_address: "Tam adres",
     unlock_aster_mail: "Aster Mail Kilidini Aç",
     aster_mail_locked: "Aster Mail kilitli",
     merge_contacts: "Kişileri Birleştir",

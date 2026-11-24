@@ -1270,6 +1270,26 @@ export const ar = {
     search_labels: "بحث في التصنيفات",
     enter_label_name: "أدخل اسم التصنيف",
     leaving_aster_mail: "مغادرة Aster Mail",
+    link_dialog_title: "هل تريد فتح هذا الرابط؟",
+    link_dialog_body: "يفتح هذا الرابط صفحة ويب خارج Aster Mail.",
+    link_dialog_mail_title: "هل تريد فتح تطبيق البريد؟",
+    link_dialog_mail_body:
+      "ينشئ هذا الرابط رسالة جديدة إلى هذا العنوان في تطبيق البريد على جهازك.",
+    link_dialog_blocked_title: "لا يمكن فتح هذا الرابط",
+    link_dialog_blocked_body:
+      "لا يفتح Aster Mail هذا النوع من الروابط لأنه قد يشغّل تعليمات برمجية أو يخفي وجهته.",
+    link_dialog_show_full: "إظهار العنوان الكامل",
+    link_dialog_copy: "نسخ الرابط",
+    link_dialog_warnings_label: "تحقق قبل الفتح",
+    link_dialog_warning_http:
+      "لا تستخدم صفحة الويب هذه اتصالاً آمناً، لذا يمكن لآخرين على الشبكة رؤية ما ترسله أو تغييره.",
+    link_dialog_warning_lookalike:
+      "قد يظهر هذا العنوان أيضاً بالشكل {{host}}. فهو يمزج أحرفاً من أبجديات مختلفة، مما قد يجعله يشبه موقع ويب آخر.",
+    link_dialog_warning_mismatch:
+      "يعرض نص الرابط {{shown}}، لكن الرابط يفتح {{site}}.",
+    link_dialog_warning_ip:
+      "يستخدم هذا الرابط عنواناً رقمياً بدلاً من اسم موقع ويب، لذا يصعب معرفة من يدير الصفحة.",
+    link_dialog_full_address: "العنوان الكامل",
     unlock_aster_mail: "إلغاء قفل Aster Mail",
     aster_mail_locked: "Aster Mail مقفل",
     merge_contacts: "دمج جهات الاتصال",
