@@ -10535,11 +10535,11 @@ export const fr = {
     show_trimmed_content: "Afficher le contenu tronqué",
     size_label: "Taille",
     spam_auto_delete_notice:
-      "Les éléments du spam seront automatiquement supprimés après {{ days }} jours.",
+      "Les messages du dossier Indésirables sont supprimés après {{ days }} jours.",
     trash_auto_delete_notice_family:
-      "Les éléments de la corbeille seront automatiquement supprimés après {{ days }} jours (défini par l'administrateur de la famille).",
+      "Les messages de la Corbeille sont supprimés après {{ days }} jours, selon le réglage de l'administrateur de la famille.",
     spam_auto_delete_notice_family:
-      "Les éléments du dossier spam seront automatiquement supprimés après {{ days }} jours (défini par l'administrateur de la famille).",
+      "Les messages du dossier Indésirables sont supprimés après {{ days }} jours, selon le réglage de l'administrateur de la famille.",
     spy_pixels_blocked: "Pixels espions bloqués",
     stylesheet: "Feuille de style",
     to_recipients_prefix: "à {{ recipients }}",
@@ -10552,7 +10552,7 @@ export const fr = {
     trackers: "Traqueurs",
     tracking_protection: "Protection contre le suivi",
     trash_auto_delete_notice:
-      "Les éléments de la corbeille seront automatiquement supprimés après {{ days }} jours.",
+      "Les messages de la Corbeille sont supprimés après {{ days }} jours.",
     try_adjusting_filters: "Essayez d'ajuster vos filtres",
     url_label: "URL",
     official_sender: "Adresse officielle Aster",

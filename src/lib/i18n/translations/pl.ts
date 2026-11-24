@@ -10463,13 +10463,13 @@ export const pl = {
     fonts: "czcionki",
     stylesheet: "arkusz stylów",
     trash_auto_delete_notice:
-      "Elementy w koszu zostaną automatycznie usunięte po {{ days }} dniach.",
+      "Wiadomości w Koszu są usuwane po {{ days }} dniach.",
     spam_auto_delete_notice:
-      "Elementy w spamie zostaną automatycznie usunięte po {{ days }} dniach.",
+      "Wiadomości w folderze Spam są usuwane po {{ days }} dniach.",
     trash_auto_delete_notice_family:
-      "Elementy w koszu będą automatycznie usuwane po {{ days }} dniach (ustawione przez administratora rodziny).",
+      "Wiadomości w Koszu są usuwane po {{ days }} dniach, zgodnie z ustawieniem administratora rodziny.",
     spam_auto_delete_notice_family:
-      "Elementy w spamie będą automatycznie usuwane po {{ days }} dniach (ustawione przez administratora rodziny).",
+      "Wiadomości w folderze Spam są usuwane po {{ days }} dniach, zgodnie z ustawieniem administratora rodziny.",
     insert_link_title: "Wstaw link",
     add_link_to_selection: 'Dodaj link do "{{text}}"',
     url_label: "URL",

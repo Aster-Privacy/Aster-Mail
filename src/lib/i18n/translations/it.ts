@@ -10280,13 +10280,13 @@ export const it = {
     fonts: "font",
     stylesheet: "foglio di stile",
     trash_auto_delete_notice:
-      "Gli elementi nel cestino verranno eliminati automaticamente dopo {{ days }} giorni.",
+      "I messaggi nel Cestino vengono eliminati dopo {{ days }} giorni.",
     spam_auto_delete_notice:
-      "Gli elementi nello spam verranno eliminati automaticamente dopo {{ days }} giorni.",
+      "I messaggi nello Spam vengono eliminati dopo {{ days }} giorni.",
     trash_auto_delete_notice_family:
-      "Gli elementi nel cestino verranno eliminati automaticamente dopo {{ days }} giorni (impostato dall'amministratore della famiglia).",
+      "I messaggi nel Cestino vengono eliminati dopo {{ days }} giorni, come impostato dall'amministratore della famiglia.",
     spam_auto_delete_notice_family:
-      "Gli elementi nello spam verranno eliminati automaticamente dopo {{ days }} giorni (impostato dall'amministratore della famiglia).",
+      "I messaggi nello Spam vengono eliminati dopo {{ days }} giorni, come impostato dall'amministratore della famiglia.",
     insert_link_title: "Inserisci link",
     add_link_to_selection: 'Aggiungi un link a "{{text}}"',
     url_label: "URL",

@@ -10514,11 +10514,11 @@ export const de = {
     show_trimmed_content: "Gekürzten Inhalt anzeigen",
     size_label: "Größe:",
     spam_auto_delete_notice:
-      "Elemente im Spam werden nach {{ days }} Tagen automatisch gelöscht.",
+      "Nachrichten im Spam-Ordner werden nach {{ days }} Tagen gelöscht.",
     trash_auto_delete_notice_family:
-      "Elemente im Papierkorb werden nach {{ days }} Tagen automatisch gelöscht (vom Familienadministrator festgelegt).",
+      "Nachrichten im Papierkorb werden nach {{ days }} Tagen gelöscht, wie vom Familienadministrator festgelegt.",
     spam_auto_delete_notice_family:
-      "Elemente im Spam werden nach {{ days }} Tagen automatisch gelöscht (vom Familienadministrator festgelegt).",
+      "Nachrichten im Spam-Ordner werden nach {{ days }} Tagen gelöscht, wie vom Familienadministrator festgelegt.",
     spy_pixels_blocked: "Spionage-Pixel blockiert",
     stylesheet: "Stylesheet",
     to_recipients_prefix: "an {{ recipients }}",
@@ -10531,7 +10531,7 @@ export const de = {
     trackers: "Tracker",
     tracking_protection: "Tracking-Schutz",
     trash_auto_delete_notice:
-      "Elemente im Papierkorb werden nach {{ days }} Tagen automatisch gelöscht.",
+      "Nachrichten im Papierkorb werden nach {{ days }} Tagen gelöscht.",
     try_adjusting_filters:
       "Passen Sie Ihre Filter an oder suchen Sie nach etwas anderem",
     url_label: "URL",

@@ -9511,13 +9511,13 @@ export const en: Translations = {
     archive_subtitle: "Archive emails to keep your inbox clean",
     trash_subtitle: "Deleted emails will appear here",
     trash_auto_delete_notice:
-      "Items in trash will be automatically deleted after {{ days }} days.",
+      "Messages in Trash are deleted after {{ days }} days.",
     spam_auto_delete_notice:
-      "Items in spam will be automatically deleted after {{ days }} days.",
+      "Messages in Spam are deleted after {{ days }} days.",
     trash_auto_delete_notice_family:
-      "Items in trash will be automatically deleted after {{ days }} days (set by family admin).",
+      "Messages in Trash are deleted after {{ days }} days, as set by your family admin.",
     spam_auto_delete_notice_family:
-      "Items in spam will be automatically deleted after {{ days }} days (set by family admin).",
+      "Messages in Spam are deleted after {{ days }} days, as set by your family admin.",
     compose_email: "Compose email",
     one_hour_option: "1 hour",
     twenty_four_hours_option: "24 hours",

@@ -9955,13 +9955,13 @@ export const ja = {
     forwarded_by_label: "転送元",
     new_reaction: "新しいリアクション",
     trash_auto_delete_notice:
-      "ゴミ箱のアイテムは {{ days }} 日後に自動的に削除されます。",
+      "ゴミ箱のメッセージは {{ days }} 日後に削除されます。",
     spam_auto_delete_notice:
-      "スパムのアイテムは {{ days }} 日後に自動的に削除されます。",
+      "スパムのメッセージは {{ days }} 日後に削除されます。",
     trash_auto_delete_notice_family:
-      "ゴミ箱内のアイテムは {{ days }} 日後に自動的に削除されます（ファミリー管理者が設定）。",
+      "ゴミ箱のメッセージは、ファミリー管理者の設定により {{ days }} 日後に削除されます。",
     spam_auto_delete_notice_family:
-      "スパム内のアイテムは {{ days }} 日後に自動的に削除されます（ファミリー管理者が設定）。",
+      "スパムのメッセージは、ファミリー管理者の設定により {{ days }} 日後に削除されます。",
     insert_link_title: "リンクを挿入",
     add_link_to_selection: "「{{text}}」にリンクを追加",
     url_label: "URL",

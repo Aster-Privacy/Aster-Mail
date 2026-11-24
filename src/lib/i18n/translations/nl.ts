@@ -10200,13 +10200,13 @@ export const nl = {
     forwarded_by_label: "Doorgestuurd door",
     new_reaction: "Nieuwe reactie",
     trash_auto_delete_notice:
-      "Items in de prullenbak worden na {{ days }} dagen automatisch verwijderd.",
+      "Berichten in de Prullenbak worden na {{ days }} dagen verwijderd.",
     spam_auto_delete_notice:
-      "Items in spam worden na {{ days }} dagen automatisch verwijderd.",
+      "Berichten in Spam worden na {{ days }} dagen verwijderd.",
     trash_auto_delete_notice_family:
-      "Items in de prullenbak worden na {{ days }} dagen automatisch verwijderd (ingesteld door de familiebeheerder).",
+      "Berichten in de Prullenbak worden na {{ days }} dagen verwijderd, zoals ingesteld door de familiebeheerder.",
     spam_auto_delete_notice_family:
-      "Items in spam worden na {{ days }} dagen automatisch verwijderd (ingesteld door de familiebeheerder).",
+      "Berichten in Spam worden na {{ days }} dagen verwijderd, zoals ingesteld door de familiebeheerder.",
     insert_link_title: "Link invoegen",
     add_link_to_selection: 'Een link toevoegen aan "{{text}}"',
     url_label: "URL",

@@ -734,7 +734,7 @@ export const InboxEmailListItem = memo(
                   />
                 )}
 
-              {email.is_trashed && (
+              {email.is_trashed && !is_trash_view && (
                 <EmailTag
                   className="flex-shrink-0 hidden sm:inline-flex"
                   label={t("mail.trashed_label")}
@@ -743,7 +743,7 @@ export const InboxEmailListItem = memo(
                 />
               )}
 
-              {email.is_spam && (
+              {email.is_spam && !is_spam_view && (
                 <EmailTag
                   className="flex-shrink-0 hidden sm:inline-flex"
                   label={t("mail.spam_label")}

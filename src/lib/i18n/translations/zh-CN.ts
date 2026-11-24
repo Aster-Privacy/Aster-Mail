@@ -9104,12 +9104,12 @@ export const zh_CN = {
     add_link_to_selection: '为"{{text}}"添加链接',
     url_label: "URL",
     link_text_optional: "链接文字（可选）",
-    trash_auto_delete_notice: "回收站中的内容将在 {{ days }} 天后自动删除。",
-    spam_auto_delete_notice: "垃圾邮件中的内容将在 {{ days }} 天后自动删除。",
+    trash_auto_delete_notice: "回收站中的邮件将在 {{ days }} 天后删除。",
+    spam_auto_delete_notice: "垃圾邮件文件夹中的邮件将在 {{ days }} 天后删除。",
     trash_auto_delete_notice_family:
-      "回收站中的项目将在 {{ days }} 天后自动删除（由家庭管理员设置）。",
+      "根据家庭管理员的设置，回收站中的邮件将在 {{ days }} 天后删除。",
     spam_auto_delete_notice_family:
-      "垃圾邮件中的项目将在 {{ days }} 天后自动删除（由家庭管理员设置）。",
+      "根据家庭管理员的设置，垃圾邮件文件夹中的邮件将在 {{ days }} 天后删除。",
     advanced_search: "高级搜索",
     tracking_protection: "跟踪保护",
     spy_pixels_blocked: "已屏蔽跟踪像素",
