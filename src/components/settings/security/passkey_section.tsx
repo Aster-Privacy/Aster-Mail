@@ -47,6 +47,7 @@ import { use_i18n } from "@/lib/i18n/context";
 import { is_desktop } from "@/native/invoke_bridge";
 import { open_external } from "@/utils/open_link";
 import { show_toast } from "@/components/toast/simple_toast";
+import { held_of } from "@/services/guard/held_outcome";
 import { use_auth } from "@/contexts/auth_context";
 import { use_settings_cache } from "@/contexts/settings_cache_context";
 import { get_session_passphrase } from "@/contexts/auth/session_passphrase";
@@ -282,6 +283,12 @@ export function PasskeySection() {
       set_removing_id(key_id);
       try {
         const resp = await remove_hardware_key(key_id, credentials);
+
+        if (held_of(resp)) {
+          set_step_up_key_id(null);
+
+          return;
+        }
 
         if (resp.data?.success) {
           set_keys((prev) => prev.filter((k) => k.id !== key_id));

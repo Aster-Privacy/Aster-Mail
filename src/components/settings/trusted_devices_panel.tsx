@@ -46,9 +46,11 @@ import {
   type ListDevicesResponse,
 } from "@/services/api/devices";
 import { dismiss_toast, show_toast } from "@/components/toast/simple_toast";
+import { guard_error_text_or_null } from "@/components/guard/guard_error_text";
 import { use_settings_panel_data } from "@/components/settings/hooks/use_settings_prefetch";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
 import { ignore_error } from "@/lib/ignore_error";
+import { held_of } from "@/services/guard/held_outcome";
 import {
   clear_plan_cache,
   get_current_plan_code,
@@ -193,8 +195,13 @@ export function TrustedDevicesPanel() {
     set_revoking_id(device.id);
     const response = await revoke_device(device.id);
 
-    if (response.error) {
-      show_toast(response.error, "error");
+    if (held_of(response)) {
+      await revalidate();
+    } else if (response.error) {
+      show_toast(
+        guard_error_text_or_null(t, response) ?? response.error,
+        "error",
+      );
     } else {
       await revalidate();
     }
@@ -208,11 +215,17 @@ export function TrustedDevicesPanel() {
       devices.map((device) => revoke_device(device.id)),
     );
 
-    const failed = responses.filter((r) => r.error);
+    const failed = responses.filter((r) => r.error && !held_of(r));
+    const any_held = responses.some((r) => held_of(r));
 
     if (failed.length > 0) {
-      show_toast(failed[0].error ?? t("common.something_went_wrong"), "error");
-    } else {
+      show_toast(
+        guard_error_text_or_null(t, failed[0]) ??
+          failed[0].error ??
+          t("common.something_went_wrong"),
+        "error",
+      );
+    } else if (!any_held) {
       show_toast(t("settings.trusted_devices_revoked_all_toast"), "success");
     }
     await revalidate();

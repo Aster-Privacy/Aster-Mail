@@ -33,6 +33,7 @@ export const SETTINGS_ANCHORS = {
   tracking: "sec-tracking",
   images: "sec-images",
   vanguard: "sec-vanguard",
+  guard: "sec-guard",
   recovery_email: "acct-recovery-email",
 } as const;
 

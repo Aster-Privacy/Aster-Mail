@@ -26,7 +26,10 @@ import { summarize_list_body, type ListBodySummary } from "./mapping";
 import { on_vault_cleared } from "@/services/crypto/memory_key_store";
 import { register_envelope_attachment_keys } from "@/services/crypto/inbound_attachment_keys";
 import { is_reaction_payload_body } from "@/lib/reaction_payload";
-import { is_undecryptable_body } from "@/utils/undecryptable_body";
+import {
+  is_pending_decrypt_body,
+  is_undecryptable_body,
+} from "@/utils/undecryptable_body";
 
 const MAX_ENTRIES = 2000;
 const MAX_CACHED_CHARS = 8_000_000;
@@ -213,6 +216,8 @@ function store(item: MailItem, user_email: string, result: DecryptedListItem) {
   if (
     is_undecryptable_body(envelope.body_text) ||
     is_undecryptable_body(envelope.text_body) ||
+    is_pending_decrypt_body(envelope.body_text) ||
+    is_pending_decrypt_body(envelope.text_body) ||
     is_reaction_payload_body(envelope.body_text) ||
     is_reaction_payload_body(envelope.text_body)
   ) {

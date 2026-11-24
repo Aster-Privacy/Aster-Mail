@@ -372,6 +372,9 @@ describe("QuotedHtmlPreview mailto links", () => {
     expect(event.defaultPrevented).toBe(true);
     expect(h.handle_external_link).toHaveBeenCalledWith(
       "mailto:ada@example.com?subject=Hi",
+      undefined,
+      "Mail",
+      link,
     );
   });
 });

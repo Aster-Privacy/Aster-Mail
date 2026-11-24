@@ -47,7 +47,14 @@ export type ConditionField =
   | "date_received"
   | "dkim_result"
   | "spf_result"
-  | "dmarc_result";
+  | "dmarc_result"
+  | "source";
+
+export type SourceOperator = "is" | "is_not";
+
+export { SOURCE_ASTER_VALUE } from "@/services/external_sources";
+
+export const SOURCE_MAX_VALUES = 50;
 
 export type AddressOperator =
   | "is"
@@ -132,6 +139,11 @@ export type LeafCondition =
   | {
       type: "dkim_result" | "spf_result" | "dmarc_result";
       value: AuthResultValue;
+    }
+  | {
+      type: "source";
+      operator: SourceOperator;
+      values: string[];
     };
 
 export type Condition =
@@ -449,6 +461,8 @@ function condition_to_wire(c: Condition): Record<string, unknown> {
     case "spf_result":
     case "dmarc_result":
       return { field: c.type, value: c.value };
+    case "source":
+      return { field: "source", op: c.operator, values: c.values };
     case "and":
       return { field: "and", conditions: c.conditions.map(condition_to_wire) };
     case "or":
@@ -558,9 +572,33 @@ function condition_from_wire(w: unknown): Condition | null {
     case "spf_result":
     case "dmarc_result":
       return { type: field, value: o.value as AuthResultValue };
+    case "source":
+      return {
+        type: "source",
+        operator: o.op === "is_not" ? "is_not" : "is",
+        values: source_values_from_wire(o.values ?? o.value),
+      };
     default:
       return null;
   }
+}
+
+function source_values_from_wire(raw: unknown): string[] {
+  const list = Array.isArray(raw)
+    ? raw
+    : typeof raw === "string"
+      ? raw.split(",")
+      : [];
+  const values: string[] = [];
+
+  for (const item of list) {
+    if (typeof item !== "string") continue;
+    const value = item.trim();
+
+    if (value && !values.includes(value)) values.push(value);
+  }
+
+  return values;
 }
 
 function action_to_wire(a: Action): Record<string, unknown> | null {

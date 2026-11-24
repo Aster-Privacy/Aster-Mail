@@ -37,6 +37,7 @@ import {
   DocumentTextIcon,
   FlagIcon,
   HashtagIcon,
+  InboxArrowDownIcon,
   NewspaperIcon,
   PaperClipIcon,
   ScaleIcon,
@@ -53,6 +54,7 @@ import {
   has_operator_picker,
   type AnyOperator,
 } from "./dropdowns/operator_dropdown";
+import { SourceValueDropdown } from "./dropdowns/source_value_dropdown";
 import {
   ValueDropdown,
   pick_unit_for_bytes,
@@ -110,6 +112,7 @@ const FIELD_ICONS: Record<ConditionField, React.ElementType> = {
   dkim_result: ShieldCheckIcon,
   spf_result: ShieldCheckIcon,
   dmarc_result: ShieldCheckIcon,
+  source: InboxArrowDownIcon,
 };
 
 export function ConditionChip({
@@ -442,6 +445,30 @@ export function ConditionChip({
       }
     />
   ) : null;
+
+  if (condition.type === "source") {
+    return (
+      <ChipPill on_remove={remove}>
+        <FieldDropdown
+          allowed_fields={allowed_fields}
+          on_open_change={make_segment_open_handler("field")}
+          on_pick={handle_field_change}
+          open={open_segment === "field"}
+          trigger={field_trigger}
+        />
+        {operator_segment_node}
+        <SourceValueDropdown
+          on_change={(values) => on_change({ ...condition, values })}
+          on_open={() => set_open_segment("value")}
+          on_open_change={make_segment_open_handler("value")}
+          open={open_segment === "value"}
+          read_only={read_only}
+          should_ignore_outside={should_ignore_outside_now}
+          values={condition.values}
+        />
+      </ChipPill>
+    );
+  }
 
   const needs_value =
     !("operator" in condition) || condition.operator !== "is_empty";

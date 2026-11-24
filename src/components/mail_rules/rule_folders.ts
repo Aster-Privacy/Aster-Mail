@@ -122,6 +122,18 @@ export function rule_folder_name(
     : folder.name;
 }
 
+export function with_created_rule_folder(
+  folders: DecryptedFolder[],
+  created: DecryptedFolder | null,
+): DecryptedFolder[] {
+  if (!created) return folders;
+  if (folders.some((f) => f.folder_token === created.folder_token)) {
+    return folders;
+  }
+
+  return [...folders, created];
+}
+
 export function is_missing_rule_folder(
   folders: DecryptedFolder[],
   token: string | null | undefined,

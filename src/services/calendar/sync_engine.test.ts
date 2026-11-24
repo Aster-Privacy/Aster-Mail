@@ -1027,3 +1027,50 @@ describe("calendar sync engine revision ledger", () => {
     expect(JSON.parse(second.encrypted_blob).rev_at).toBe(future + 2);
   });
 });
+
+describe("calendar sync engine failure status", () => {
+  it("reports the status of a pull the server refused", async () => {
+    get.mockImplementation(async () => ({
+      data: null,
+      error: "Not found",
+      status: 404,
+    }));
+
+    await calendar_sync_engine.ensure_loaded();
+
+    expect(await calendar_sync_engine.pull_delta()).toBe(false);
+    expect(calendar_sync_engine.last_failure_status()).toBe(404);
+  });
+
+  it("clears the status once a pull succeeds", async () => {
+    get.mockImplementationOnce(async () => ({
+      data: null,
+      error: "Not found",
+      status: 404,
+    }));
+    get.mockImplementation(async (url: string) =>
+      url.includes("/events")
+        ? ok({
+            events: [],
+            total: 0,
+            server_time: "2026-10-09T12:00:00.000Z",
+            has_more: false,
+          })
+        : empty_calendars(),
+    );
+
+    await calendar_sync_engine.ensure_loaded();
+
+    expect(await calendar_sync_engine.pull_delta()).toBe(true);
+    expect(calendar_sync_engine.last_failure_status()).toBeNull();
+  });
+
+  it("reports no status when the device is offline", async () => {
+    get.mockImplementation(async () => empty_calendars());
+    await calendar_sync_engine.ensure_loaded();
+    set_online(false);
+
+    expect(await calendar_sync_engine.pull_delta()).toBe(false);
+    expect(calendar_sync_engine.last_failure_status()).toBeNull();
+  });
+});

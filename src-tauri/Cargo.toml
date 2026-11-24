@@ -1,6 +1,6 @@
 [package]
 name = "aster-mail-desktop"
-version = "1.4.87"
+version = "1.4.89"
 edition = "2021"
 license = "AGPL-3.0-or-later"
 
@@ -24,7 +24,7 @@ tauri-plugin-dialog = "2"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 tokio = { version = "1", features = ["full"] }
-tokio-tungstenite = { version = "0.28", default-features = false, features = ["connect", "handshake", "rustls-tls-webpki-roots"] }
+tokio-tungstenite = { version = "0.30", default-features = false, features = ["connect", "handshake", "rustls-tls-webpki-roots"] }
 futures-util = "0.3"
 dirs = "7"
 libsqlite3-sys = { version = "0.39", features = ["bundled"] }
@@ -63,7 +63,7 @@ core-foundation = "0.10"
 [target.'cfg(windows)'.dependencies]
 webview2-com = "0.39"
 windows-core = "0.62"
-rfd = "0.17"
+rfd = "0.18"
 windows-registry = "0.100"
 windows = { version = "0.62", features = ["Data_Xml_Dom", "UI_Notifications", "Win32_Foundation", "Win32_System_Threading", "Win32_UI_WindowsAndMessaging"] }
 

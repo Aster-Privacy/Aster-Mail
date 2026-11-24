@@ -170,7 +170,7 @@ export function ScheduledPopupViewer({
     handle_drag_start,
     toggle_size,
     handle_fullscreen,
-  } = use_popup_drag_resize();
+  } = use_popup_drag_resize(preferences.open_popup_maximized === true);
   const [show_details, set_show_details] = useState(false);
   const [show_cancel_confirm, set_show_cancel_confirm] = useState(false);
   const [is_cancelling, set_is_cancelling] = useState(false);

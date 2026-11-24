@@ -120,6 +120,66 @@ export function catch_all_sender_options(
   return options;
 }
 
+const MAX_TYPED_SUGGESTIONS = 5;
+
+export interface TypedCatchAllResult {
+  options: SenderOption[];
+  invalid_domain: string | null;
+}
+
+export function typed_catch_all_domains(): string[] {
+  if (!is_catch_all_sending_enabled()) return [];
+
+  return context_domains
+    .filter((d) => d.status === "active" && d.catch_all_enabled && !d.is_shared)
+    .map((d) => d.domain_name.toLowerCase());
+}
+
+export function typed_catch_all_options(
+  query: string,
+  existing: SenderOption[],
+): TypedCatchAllResult {
+  const empty: TypedCatchAllResult = { options: [], invalid_domain: null };
+  const domains = typed_catch_all_domains();
+  const typed = query.trim().toLowerCase();
+
+  if (domains.length === 0 || !typed) return empty;
+
+  const at = typed.indexOf("@");
+  const local = at === -1 ? typed : typed.slice(0, at);
+  const partial = at === -1 ? "" : typed.slice(at + 1);
+  const matching = domains.filter((name) =>
+    at === -1 ? true : name.startsWith(partial),
+  );
+
+  if (matching.length === 0) return empty;
+
+  const candidates = matching
+    .slice(0, MAX_TYPED_SUGGESTIONS)
+    .map((name) => `${local}@${name}`);
+  const known = [...existing.map((o) => o.email), ...context_known];
+  const options = catch_all_sender_options(
+    context_domains,
+    candidates,
+    existing,
+    [...context_known],
+  );
+
+  if (options.length > 0) return { options, invalid_domain: null };
+
+  const is_known = candidates.some((c) =>
+    known.some(
+      (k) =>
+        normalize_address_ignoring_dots(k) ===
+        normalize_address_ignoring_dots(c),
+    ),
+  );
+
+  if (is_known || at === -1 || !matching.includes(partial)) return empty;
+
+  return { options: [], invalid_domain: partial };
+}
+
 export function catch_all_reply_address(
   raw_headers: { name: string; value: string }[] | undefined,
   visible: (string | null | undefined)[],

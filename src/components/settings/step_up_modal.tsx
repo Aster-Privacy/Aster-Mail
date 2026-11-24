@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type { StepUpCredentials } from "@/services/api/step_up";
+import type { StepUpProof } from "@/services/api/guard";
 
 import { useState, useRef, useEffect, useCallback } from "react";
 import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
@@ -35,14 +36,19 @@ import {
 } from "@/components/ui/modal";
 import { Input } from "@/components/ui/input";
 import { ButtonSpinner } from "@/components/ui/spinner";
-import {
-  derive_step_up_credentials,
-  fetch_step_up_requirements,
-} from "@/services/api/step_up";
+import { derive_step_up_credentials } from "@/services/api/step_up";
+import { use_totp_required } from "@/hooks/use_totp_required";
 import {
   list_hardware_keys,
   perform_step_up_webauthn_assertion,
 } from "@/services/api/webauthn";
+import {
+  build_step_up_proof,
+  passkey_step_up_proof,
+} from "@/services/guard/sign_action";
+import { is_passkey_supported } from "@/services/api/passkeys";
+import { is_desktop } from "@/native/invoke_bridge";
+import { open_external } from "@/utils/open_link";
 import { use_i18n } from "@/lib/i18n/context";
 import { clamp_password } from "@/services/sanitize";
 import { ignore_error } from "@/lib/ignore_error";
@@ -51,27 +57,34 @@ import { user_facing_error } from "@/utils/user_facing_error";
 interface StepUpModalProps {
   is_open: boolean;
   on_close: () => void;
-  on_confirm: (credentials: StepUpCredentials) => Promise<void>;
+  on_confirm?: (credentials: StepUpCredentials) => Promise<void>;
+  on_proof?: (proof: StepUpProof) => Promise<void>;
+  allow_passkey?: boolean;
   title: string;
   description: string;
   confirm_label: string;
   destructive?: boolean;
+  security_key_hint?: string;
 }
 
 export function StepUpModal({
   is_open,
   on_close,
   on_confirm,
+  on_proof,
+  allow_passkey = false,
   title,
   description,
   confirm_label,
   destructive = false,
+  security_key_hint,
 }: StepUpModalProps) {
   const { t } = use_i18n();
   const [password, set_password] = useState("");
   const [code, set_code] = useState("");
-  const [totp_required, set_totp_required] = useState(false);
-  const [totp_optional, set_totp_optional] = useState(false);
+  const { totp_required, totp_unknown, totp_failed } =
+    use_totp_required(is_open);
+  const totp_optional = totp_failed;
   const [has_hardware_keys, set_has_hardware_keys] = useState(false);
   const [show_password, set_show_password] = useState(false);
   const [is_loading, set_is_loading] = useState(false);
@@ -104,29 +117,25 @@ export function StepUpModal({
     set_code("");
     set_error("");
     set_show_password(false);
-    set_totp_required(false);
-    set_totp_optional(false);
     set_has_hardware_keys(false);
     set_keys_error(false);
     setTimeout(() => input_ref.current?.focus(), 100);
 
-    fetch_step_up_requirements()
-      .then((requirements) => {
-        set_totp_required(requirements.totp_required);
-      })
-      .catch((caught) => {
-        set_totp_optional(true);
-        ignore_error("components/settings/step_up_modal:StepUpModal", caught);
-      });
-
     void load_hardware_keys();
   }, [is_open, load_hardware_keys]);
 
+  const passkeys_work = !is_desktop() && is_passkey_supported();
+  const key_needs_browser = !totp_required && has_hardware_keys && !passkeys_work;
   const can_submit =
-    !!password && (!totp_required || code.length === 6) && !is_loading;
+    !!password &&
+    !totp_unknown &&
+    (!totp_required || code.length === 6) &&
+    !key_needs_browser &&
+    !is_loading;
 
   const handle_confirm = async () => {
     if (!password || submitting_ref.current) return;
+    if (totp_unknown || key_needs_browser) return;
     if (totp_required && code.length !== 6) return;
 
     submitting_ref.current = true;
@@ -144,7 +153,11 @@ export function StepUpModal({
           await perform_step_up_webauthn_assertion();
       }
 
-      await on_confirm(credentials);
+      if (on_proof) {
+        await on_proof(build_step_up_proof(credentials));
+      } else if (on_confirm) {
+        await on_confirm(credentials);
+      }
     } catch (err) {
       const safety_key = login_safety_error_key(err);
 
@@ -153,6 +166,23 @@ export function StepUpModal({
           ? t(safety_key)
           : user_facing_error(err, t("common.step_up_error")),
       );
+    } finally {
+      submitting_ref.current = false;
+      set_is_loading(false);
+    }
+  };
+
+  const handle_passkey = async () => {
+    if (!on_proof || submitting_ref.current) return;
+
+    submitting_ref.current = true;
+    set_is_loading(true);
+    set_error("");
+
+    try {
+      await on_proof(await passkey_step_up_proof());
+    } catch (err) {
+      set_error(user_facing_error(err, t("common.step_up_error")));
     } finally {
       submitting_ref.current = false;
       set_is_loading(false);
@@ -240,10 +270,26 @@ export function StepUpModal({
             </div>
           )}
 
-          {!totp_required && has_hardware_keys && (
-            <p className="text-sm text-txt-tertiary">
-              {t("common.step_up_security_key_hint")}
-            </p>
+          {key_needs_browser ? (
+            <div className="flex flex-col items-start gap-2">
+              <p className="text-sm text-txt-tertiary">
+                {t("common.step_up_key_needs_browser")}
+              </p>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => open_external("/settings/security")}
+              >
+                {t("settings.passkeys_open_in_browser")}
+              </Button>
+            </div>
+          ) : (
+            !totp_required &&
+            has_hardware_keys && (
+              <p className="text-sm text-txt-tertiary">
+                {security_key_hint ?? t("common.step_up_security_key_hint")}
+              </p>
+            )
           )}
 
           {keys_error && (
@@ -259,6 +305,18 @@ export function StepUpModal({
                 {t("settings.try_again")}
               </Button>
             </div>
+          )}
+
+          {on_proof && allow_passkey && passkeys_work && (
+            <Button
+              className="w-full"
+              disabled={is_loading}
+              size="sm"
+              variant="ghost"
+              onClick={() => void handle_passkey()}
+            >
+              {t("guard.step_up_use_passkey")}
+            </Button>
           )}
 
           {error && <p className="text-sm text-center text-red-500">{error}</p>}

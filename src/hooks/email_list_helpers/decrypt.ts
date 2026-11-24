@@ -56,6 +56,13 @@ import { register_envelope_attachment_keys } from "@/services/crypto/inbound_att
 import { decrypt_legacy_ios_mail_envelope } from "@/services/crypto/legacy_ios_envelope";
 import { load_openpgp } from "@/services/crypto/openpgp_loader";
 import { drop_sender_verification } from "@/services/crypto/sender_verification";
+import {
+  capture_decrypt_readiness,
+  note_if_transient_error,
+  settle_decrypt_failure,
+  settle_decrypt_success,
+  type DecryptReadiness,
+} from "@/services/crypto/decrypt_readiness";
 
 export async function try_decrypt_with_identity_key(
   encrypted: string | Uint8Array,
@@ -103,6 +110,10 @@ const envelope_cache_sizes = new Map<string, number>();
 let envelope_cache_chars = 0;
 const failed_envelopes = new Map<string, number>();
 const pending_generations = new WeakMap<Promise<EnvelopeAttempt>, number>();
+const pending_readiness = new WeakMap<
+  Promise<EnvelopeAttempt>,
+  DecryptReadiness
+>();
 let key_generation = 0;
 let envelope_cache_armed = false;
 
@@ -202,8 +213,14 @@ export async function decrypt_envelope(
   const key = envelope_cache_key(encrypted, nonce, mail_item_id);
 
   if (key === null) {
+    const before = capture_decrypt_readiness();
     const { envelope } = await open_envelope(encrypted, nonce, mail_item_id);
 
+    if (envelope) {
+      settle_decrypt_success(mail_item_id);
+    } else {
+      settle_decrypt_failure(mail_item_id, before);
+    }
     register_envelope_attachment_keys(mail_item_id, envelope);
 
     return envelope;
@@ -218,8 +235,11 @@ export async function decrypt_envelope(
     envelope_cache.delete(key);
     envelope_cache.set(key, pending);
   } else {
+    const before = capture_decrypt_readiness();
+
     pending = open_envelope(encrypted, nonce, mail_item_id);
     pending_generations.set(pending, key_generation);
+    pending_readiness.set(pending, before);
     store_cached_envelope(key, pending, encrypted.length);
   }
 
@@ -236,7 +256,16 @@ export async function decrypt_envelope(
 
   if (!envelope) {
     if (envelope_cache.get(key) === pending) drop_cached_envelope(key);
+    const outcome = settle_decrypt_failure(
+      mail_item_id,
+      pending_readiness.get(pending) ?? {
+        ...capture_decrypt_readiness(),
+        keys_settled: false,
+      },
+    );
+
     if (
+      outcome === "failed" &&
       attempt.exhausted &&
       pending_generations.get(pending) === key_generation
     ) {
@@ -246,6 +275,7 @@ export async function decrypt_envelope(
     return null;
   }
 
+  settle_decrypt_success(mail_item_id);
   register_envelope_attachment_keys(mail_item_id, envelope);
 
   return { ...envelope };
@@ -290,7 +320,9 @@ async function open_envelope(
           );
 
           return JSON.parse(decrypted) as DecryptedEnvelope;
-        } catch {
+        } catch (caught) {
+          note_if_transient_error(caught);
+
           return null;
         }
       };
@@ -324,7 +356,11 @@ async function open_envelope(
       }
 
       const recovered_keys = keys_added_by_recovery(
-        await recover_pgp_keys_from_history().catch(() => null),
+        await recover_pgp_keys_from_history().catch((caught: unknown) => {
+          note_if_transient_error(caught);
+
+          return null;
+        }),
         pgp_keys,
       );
 
@@ -335,7 +371,9 @@ async function open_envelope(
       }
 
       return EXHAUSTED_ATTEMPT;
-    } catch {
+    } catch (caught) {
+      note_if_transient_error(caught);
+
       return UNRESOLVED_ATTEMPT;
     }
   }
@@ -454,8 +492,9 @@ async function open_envelope(
     }
 
     return refreshed ? EXHAUSTED_ATTEMPT : UNRESOLVED_ATTEMPT;
-  } catch {
+  } catch (caught) {
     zero_uint8_array(passphrase);
+    note_if_transient_error(caught);
 
     return UNRESOLVED_ATTEMPT;
   }

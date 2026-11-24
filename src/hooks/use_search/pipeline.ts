@@ -51,13 +51,14 @@ import {
   extract_metadata_from_server,
 } from "@/services/crypto/mail_metadata";
 import { filter_locked_mail_items } from "@/services/locked_folders";
-import { strip_html_tags_bounded } from "@/lib/html_sanitizer";
+import { html_to_preview_text } from "@/lib/html_text";
 import { yield_to_next_paint } from "@/lib/scheduling";
 import { create_work_slicer } from "@/lib/work_slicer";
 import {
   decrypt_body_text_with_bundle,
   is_ratchet_envelope,
 } from "@/utils/email_crypto";
+import { is_pending_decrypt_body } from "@/utils/undecryptable_body";
 import { settle_bundle_subject } from "@/services/crypto/sealed_message_fields";
 import { is_expired_mail } from "@/services/search/index_removals";
 import {
@@ -276,6 +277,21 @@ export async function run_index_pipeline(
           item.id,
         );
 
+        if (is_pending_decrypt_body(bundle.body)) {
+          return {
+            id: item.id,
+            entry: prior_entry ?? {
+              envelope: null,
+              metadata: null,
+              search_body_text: "",
+              meta_fp,
+              has_body: include_body,
+              ...(include_body ? { index_terms: [] } : {}),
+            },
+            fresh: false,
+          };
+        }
+
         settle_bundle_subject(envelope, bundle);
         envelope.body_text = include_body ? bundle.body : "";
       } else {
@@ -291,7 +307,7 @@ export async function run_index_pipeline(
 
     return slicer.run(() => {
       const stripped_body = envelope
-        ? strip_html_tags_bounded(
+        ? html_to_preview_text(
             searchable_body_source(envelope),
             MAX_INDEX_BODY_CHARS,
           )

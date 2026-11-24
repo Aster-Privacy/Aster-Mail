@@ -35,10 +35,14 @@ import {
   is_chunk_load_error,
   trigger_chunk_recovery,
 } from "@/lib/chunk_recovery";
+import { error_kind, report_client_error } from "@/services/error_reporter";
+
+const RENDER_ERROR_FEATURE = "react_render";
 
 interface ErrorBoundaryProps {
   children: ReactNode;
   fallback?: ReactNode;
+  reset_key?: unknown;
   on_error?: (error: Error, error_info: React.ErrorInfo) => void;
 }
 
@@ -64,9 +68,24 @@ export class ErrorBoundary extends Component<
   componentDidCatch(error: Error, error_info: React.ErrorInfo): void {
     if (is_chunk_load_error(error_message_of(error))) {
       if (trigger_chunk_recovery()) this.setState({ is_recovering: true });
+    } else {
+      report_client_error({
+        feature: RENDER_ERROR_FEATURE,
+        error_code: error_kind(error),
+      });
     }
 
     this.props.on_error?.(error, error_info);
+  }
+
+  componentDidUpdate(previous_props: ErrorBoundaryProps): void {
+    if (
+      this.state.has_error &&
+      !this.state.is_recovering &&
+      !Object.is(previous_props.reset_key, this.props.reset_key)
+    ) {
+      this.setState({ has_error: false, error: null, is_recovering: false });
+    }
   }
 
   render(): ReactNode {

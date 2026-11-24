@@ -60,13 +60,18 @@ import { VanguardSection } from "@/components/settings/security/vanguard_section
 import { SessionSection } from "@/components/settings/security/session_section";
 import { TrustedDevicesSection } from "@/components/settings/security/trusted_devices_section";
 import { AccountRecoverySection } from "@/components/settings/security/account_recovery_section";
+import { GuardSection } from "@/components/guard/guard_section";
+import { request_guard_setup } from "@/services/guard/guard_setup_request";
 import { AccountProtectionScore } from "@/components/settings/security/account_protection_score";
 import { use_security } from "@/components/settings/hooks/use_security";
 import { use_recovery_status } from "@/hooks/use_recovery_status";
+import { use_guard_status } from "@/hooks/use_guard_status";
 import { show_toast } from "@/components/toast/simple_toast";
 import { use_i18n } from "@/lib/i18n/context";
 import {
-  SECURITY_CRITERION_IDS,
+  guard_criterion_met,
+  guard_protection_state,
+  security_criterion_ids,
   SECURITY_CRITERION_TARGETS,
 } from "@/lib/security_criteria";
 import { open_settings_target, SETTINGS_ANCHORS } from "@/lib/settings_links";
@@ -101,6 +106,10 @@ export function SecuritySection({
 }: SecuritySectionProps) {
   const security = use_security();
   const recovery = use_recovery_status(true);
+  const guard_status = use_guard_status(true);
+  const guard_enabled = guard_criterion_met(
+    guard_protection_state(guard_status.status),
+  );
   const { t } = use_i18n();
   const { preferences, update_preference, update_preferences } =
     use_preferences();
@@ -202,8 +211,12 @@ export function SecuritySection({
             lockdown_active || blocks_tracking_pixels(preferences)
           }
           login_alerts_enabled={security.login_alerts_enabled}
-          on_criterion_click={SECURITY_CRITERION_IDS.map(
-            (id) => () => open_settings_target(SECURITY_CRITERION_TARGETS[id]),
+          guard_enabled={guard_enabled}
+          on_criterion_click={security_criterion_ids({ guard_enabled }).map(
+            (id) => () => {
+              open_settings_target(SECURITY_CRITERION_TARGETS[id]);
+              if (id === "guard_enabled") request_guard_setup();
+            },
           )}
           passkey_registered={passkey_registered}
           recovery_codes_saved={recovery.has_codes}
@@ -267,6 +280,8 @@ export function SecuritySection({
       <div id={SETTINGS_ANCHORS.passkeys}>
         <PasskeySection />
       </div>
+
+      <GuardSection />
 
       <div id={SETTINGS_ANCHORS.sessions}>
         <SessionSection

@@ -100,7 +100,7 @@ function render(email: InboxEmail): void {
   act(() => {
     root!.render(
       <InboxEmailListItem
-        current_view="spam"
+        current_view="search"
         density="comfortable"
         email={email}
         show_email_preview={true}

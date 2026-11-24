@@ -57,6 +57,8 @@ import { HASH_ALG } from "@/services/crypto/constants";
 import {
   try_extract_mime_body,
   RATCHET_UNDECRYPTABLE_SENTINEL,
+  RATCHET_PENDING_SENTINEL,
+  settle_ratchet_attempt,
   extract_subject_bundle,
   unwrap_bundle_html,
   is_ratchet_envelope,
@@ -70,6 +72,10 @@ import { resolve_forwarding_display } from "@/utils/forwarding_alias";
 import { is_reaction_payload_body } from "@/lib/reaction_payload";
 import { compare_timestamps_asc } from "@/utils/email_timestamp";
 import { has_readable_body } from "@/components/email/thread_message_merge";
+import {
+  capture_decrypt_readiness,
+  settle_decrypt_failure,
+} from "@/services/crypto/decrypt_readiness";
 import { is_trusted_ratchet_plaintext } from "@/services/crypto/ratchet_verification_status";
 import {
   has_sealed_details,
@@ -281,6 +287,7 @@ async function decode_thread_envelope(
     const ratchet_env = parse_ratchet_envelope(body_content);
 
     if (ratchet_env) {
+      const readiness_before = capture_decrypt_readiness();
       let vault = get_vault_from_memory();
 
       if (!vault) {
@@ -289,29 +296,38 @@ async function decode_thread_envelope(
       }
 
       if (vault) {
-        try {
-          const decrypted = await decrypt_ratchet_message(
-            our_email,
-            envelope.from.email,
-            ratchet_env,
-            vault,
-            msg.id,
-          );
+        const ratchet_vault = vault;
+        const decrypted = await settle_ratchet_attempt(
+          msg.id,
+          readiness_before,
+          () =>
+            decrypt_ratchet_message(
+              our_email,
+              envelope.from.email,
+              ratchet_env,
+              ratchet_vault,
+              msg.id,
+            ),
+        );
 
-          if (decrypted) {
-            body_content = decrypted;
-            body_decrypted = true;
-            e2e_verified = is_trusted_ratchet_plaintext(decrypted, msg.id);
-            ratchet_sealed = e2e_verified;
-          } else {
-            body_content = RATCHET_UNDECRYPTABLE_SENTINEL;
-          }
-        } catch (error) {
-          if (import.meta.env.DEV) console.error(error);
-          body_content = RATCHET_UNDECRYPTABLE_SENTINEL;
+        if (
+          decrypted &&
+          decrypted !== RATCHET_PENDING_SENTINEL &&
+          decrypted !== RATCHET_UNDECRYPTABLE_SENTINEL
+        ) {
+          body_content = decrypted;
+          body_decrypted = true;
+          e2e_verified = is_trusted_ratchet_plaintext(decrypted, msg.id);
+          ratchet_sealed = e2e_verified;
+        } else {
+          body_content = decrypted || RATCHET_UNDECRYPTABLE_SENTINEL;
         }
       } else {
-        body_content = RATCHET_UNDECRYPTABLE_SENTINEL;
+        settle_decrypt_failure(msg.id, {
+          ...readiness_before,
+          keys_settled: false,
+        });
+        body_content = RATCHET_PENDING_SENTINEL;
       }
     }
   }
@@ -422,6 +438,7 @@ async function decode_thread_envelope(
   const cacheable =
     !pgp_unresolved &&
     body_content !== RATCHET_UNDECRYPTABLE_SENTINEL &&
+    body_content !== RATCHET_PENDING_SENTINEL &&
     has_readable_body(value);
 
   return { value, cacheable };
@@ -684,6 +701,7 @@ export async function fetch_and_decrypt_virtual_group(
       const ratchet_env = parse_ratchet_envelope(body_content);
 
       if (ratchet_env) {
+        const readiness_before = capture_decrypt_readiness();
         let vault = get_vault_from_memory();
 
         if (!vault) {
@@ -692,32 +710,38 @@ export async function fetch_and_decrypt_virtual_group(
         }
 
         if (vault) {
-          try {
-            const decrypted = await decrypt_ratchet_message(
-              our_email,
-              envelope.from.email,
-              ratchet_env,
-              vault,
-              item.id,
-            );
-
-            if (decrypted) {
-              body_content = decrypted;
-              body_decrypted = true;
-              e2e_verified = is_trusted_ratchet_plaintext(
-                decrypted,
+          const ratchet_vault = vault;
+          const decrypted = await settle_ratchet_attempt(
+            item.id,
+            readiness_before,
+            () =>
+              decrypt_ratchet_message(
+                our_email,
+                envelope.from.email,
+                ratchet_env,
+                ratchet_vault,
                 item.id,
-              );
-              ratchet_sealed = e2e_verified;
-            } else {
-              body_content = RATCHET_UNDECRYPTABLE_SENTINEL;
-            }
-          } catch (error) {
-            if (import.meta.env.DEV) console.error(error);
-            body_content = RATCHET_UNDECRYPTABLE_SENTINEL;
+              ),
+          );
+
+          if (
+            decrypted &&
+            decrypted !== RATCHET_PENDING_SENTINEL &&
+            decrypted !== RATCHET_UNDECRYPTABLE_SENTINEL
+          ) {
+            body_content = decrypted;
+            body_decrypted = true;
+            e2e_verified = is_trusted_ratchet_plaintext(decrypted, item.id);
+            ratchet_sealed = e2e_verified;
+          } else {
+            body_content = decrypted || RATCHET_UNDECRYPTABLE_SENTINEL;
           }
         } else {
-          body_content = RATCHET_UNDECRYPTABLE_SENTINEL;
+          settle_decrypt_failure(item.id, {
+            ...readiness_before,
+            keys_settled: false,
+          });
+          body_content = RATCHET_PENDING_SENTINEL;
         }
       }
     }

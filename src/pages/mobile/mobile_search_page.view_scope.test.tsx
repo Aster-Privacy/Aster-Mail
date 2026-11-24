@@ -37,6 +37,23 @@ vi.mock("@/contexts/preferences_context", () => ({
   use_preferences: () => ({ preferences: {}, update_preference: vi.fn() }),
 }));
 
+vi.mock("@/hooks/use_folders", () => ({
+  use_folders: () => ({
+    state: {
+      folders: [
+        { folder_token: "bills-token", name: "Tax Bills", is_system: false },
+        { folder_token: "quoted-token", name: 'My "Odd" Folder' },
+      ],
+    },
+  }),
+}));
+
+vi.mock("@/hooks/use_tags", () => ({
+  use_tags: () => ({
+    state: { tags: [{ tag_token: "receipts-token", name: "Receipts" }] },
+  }),
+}));
+
 vi.mock("@/hooks/use_email_actions", () => ({
   use_email_actions: () => ({ toggle_star: vi.fn() }),
 }));
@@ -57,7 +74,7 @@ vi.mock("@/hooks/use_search", () => ({
       index_building: false,
       error: null,
     },
-    search: search_mock,
+    search: (query: string) => search_mock(query),
     clear_results: vi.fn(),
   }),
 }));
@@ -176,8 +193,32 @@ describe("MobileSearchPage folder scope", () => {
     expect(search_mock).toHaveBeenLastCalledWith("janedoe in:all");
   });
 
-  it("keeps searches from custom folders unscoped", () => {
+  it("keeps searches from an unknown folder unscoped", () => {
     submit(render_page("folder-abc"), "janedoe");
     expect(search_mock).toHaveBeenLastCalledWith("janedoe");
+  });
+
+  it("searches inside the folder the search was opened from", () => {
+    const input = render_page("folder-bills-token");
+
+    expect(input.placeholder).toBe("mail.search_in Tax Bills");
+    submit(input, "janedoe");
+
+    expect(search_mock).toHaveBeenLastCalledWith('janedoe folder:"Tax Bills"');
+    expect(input.value).toBe('janedoe folder:"Tax Bills"');
+  });
+
+  it("searches inside the label the search was opened from", () => {
+    submit(render_page("tag-receipts-token"), "janedoe");
+    expect(search_mock).toHaveBeenLastCalledWith('janedoe label:"Receipts"');
+  });
+
+  it("lets an explicit operator override the folder", () => {
+    const input = render_page("folder-bills-token");
+
+    submit(input, "janedoe in:all");
+    expect(search_mock).toHaveBeenLastCalledWith("janedoe in:all");
+    submit(input, "janedoe folder:work");
+    expect(search_mock).toHaveBeenLastCalledWith("janedoe folder:work");
   });
 });

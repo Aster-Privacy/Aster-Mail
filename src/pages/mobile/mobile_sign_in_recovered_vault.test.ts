@@ -154,6 +154,11 @@ function build(is_adding_account: boolean) {
     set_pending_login_token: vi.fn(),
     set_available_2fa_methods: vi.fn(),
     set_active_2fa_method: vi.fn(),
+    guard_gate: {
+      guard_start: null,
+      set_guard_user_hash: vi.fn(),
+      clear_guard: vi.fn(),
+    },
   } as unknown as Parameters<typeof build_mobile_sign_in_handlers>[0]);
 
   return { handlers, navigate, set_error, login, add_account };

@@ -48,10 +48,10 @@ import {
   is_html_content,
   has_rich_html,
   plain_text_to_html,
-  strip_html_tags_bounded,
   type ExternalContentReport,
   type SanitizeResult,
 } from "@/lib/html_sanitizer";
+import { html_to_preview_text } from "@/lib/html_text";
 import {
   extract_preview_html,
   move_leading_footer_to_end,
@@ -89,6 +89,7 @@ import {
   is_ratchet_envelope,
   is_password_protected_body,
 } from "@/utils/email_crypto";
+import { is_pending_decrypt_body } from "@/utils/undecryptable_body";
 import { PgpPasswordProtectedMessage } from "@/components/email/pgp_password_prompt";
 import {
   is_lockdown_enabled,
@@ -229,14 +230,17 @@ function MobileThreadMessageContent({
     return message.body;
   }, [message.body, message.html_content, password_unlocked_body]);
 
+  const is_decrypt_pending = is_pending_decrypt_body(message.body);
   const has_plaintext_body =
     !password_protected &&
+    !is_decrypt_pending &&
     !!message.body &&
     message.body !== RATCHET_UNDECRYPTABLE_SENTINEL &&
     message.body !== PGP_UNDECRYPTABLE_SENTINEL &&
     !is_ratchet_envelope(message.body);
   const is_ratchet_undecryptable =
     !has_plaintext_body &&
+    !is_decrypt_pending &&
     (message.body === RATCHET_UNDECRYPTABLE_SENTINEL ||
       message.body === PGP_UNDECRYPTABLE_SENTINEL ||
       is_ratchet_envelope(message.body) ||
@@ -271,6 +275,7 @@ function MobileThreadMessageContent({
     if (password_protected) {
       return t("mail.pgp_password_protected_title");
     }
+    if (is_decrypt_pending) return "";
 
     if (
       clean_body === RATCHET_UNDECRYPTABLE_SENTINEL ||
@@ -278,12 +283,12 @@ function MobileThreadMessageContent({
     ) {
       return t("mail.encrypted_message_unavailable");
     }
-    const plain = strip_html_tags_bounded(extract_preview_html(clean_body), 600)
+    const plain = html_to_preview_text(extract_preview_html(clean_body), 600)
       .replace(/\s+/g, " ")
       .trim();
 
     return clip_with_ellipsis(plain, 60);
-  }, [clean_body, password_protected, t]);
+  }, [clean_body, is_decrypt_pending, password_protected, t]);
 
   const is_system = is_system_email(message);
   const raw_sender_name = message.display_sender_name ?? message.sender_name;
@@ -450,16 +455,16 @@ function MobileThreadMessageContent({
     return content;
   }, [sanitize_job, deferred_content, is_body_visible, message.id]);
 
-  const is_sanitize_pending = ready_content === null;
+  const is_sanitize_pending = ready_content === null || is_decrypt_pending;
 
   useEffect(() => {
-    if (!is_sanitize_pending || !sanitize_job.run) return;
+    if (!is_sanitize_pending || is_decrypt_pending || !sanitize_job.run) return;
     const run = sanitize_job.run;
 
     return run_after_next_paint(() => {
       set_deferred_content({ job: sanitize_job, content: run() });
     });
-  }, [is_sanitize_pending, sanitize_job]);
+  }, [is_decrypt_pending, is_sanitize_pending, sanitize_job]);
 
   if (ready_content && is_body_visible) {
     shown_message_ref.current = message.id;

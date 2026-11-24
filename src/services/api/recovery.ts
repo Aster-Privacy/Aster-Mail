@@ -66,6 +66,7 @@ export interface CodesStatus {
   used: UsedCode[];
   verifier_salts?: (string | null)[];
   code_hash_optional?: boolean;
+  backup_covers_published_keys?: boolean | null;
 }
 
 export interface VerifierCandidate {
@@ -169,6 +170,7 @@ export async function complete_recovery(
   new_password_hash_v2?: string,
   vault_generation?: number,
   vault_kdf_iterations?: number,
+  backup_key_fingerprints?: string[],
 ): Promise<ApiResponse<CompleteRecoveryResponse>> {
   return api_client.post<CompleteRecoveryResponse>(
     "/core/v1/recovery/complete",
@@ -193,6 +195,7 @@ export async function complete_recovery(
       new_password_hash_v2,
       vault_generation,
       vault_kdf_iterations,
+      ...(backup_key_fingerprints?.length ? { backup_key_fingerprints } : {}),
     },
   );
 }
@@ -230,6 +233,7 @@ export async function reset_password_with_token(
   previous_vault_carried?: boolean,
   new_password_hash_v2?: string,
   vault_kdf_iterations?: number,
+  backup_key_fingerprints?: string[],
 ): Promise<ApiResponse<ResetPasswordResponse>> {
   return api_client.post<ResetPasswordResponse>(
     "/core/v1/recovery/reset-password",
@@ -253,6 +257,7 @@ export async function reset_password_with_token(
       previous_vault_carried,
       new_password_hash_v2,
       vault_kdf_iterations,
+      ...(backup_key_fingerprints?.length ? { backup_key_fingerprints } : {}),
     },
   );
 }
@@ -283,6 +288,7 @@ export interface SaveRecoveryBackupOptions {
   vault_format?: number;
   expected_vault_sha256?: string;
   vault_kdf_iterations?: number;
+  backup_key_fingerprints?: string[];
 }
 
 export interface ResetSecondFactorStatus {

@@ -232,6 +232,19 @@ export async function purge_locked_folder_local_caches(): Promise<void> {
   }
 
   try {
+    const { clear_preload_cache } = await import(
+      "@/components/email/hooks/preload_cache_store"
+    );
+
+    clear_preload_cache();
+  } catch (caught) {
+    ignore_error(
+      "services/locked_folders:purge_locked_folder_local_caches",
+      caught,
+    );
+  }
+
+  try {
     const { clear_mail_cache } = await import("@/hooks/email_list_cache");
 
     tasks.push(clear_mail_cache());

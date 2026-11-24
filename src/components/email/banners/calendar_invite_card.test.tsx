@@ -181,13 +181,11 @@ function request(uid: string, extra: string[] = []): string {
 
 const { CalendarInviteCard } = await import("./calendar_invite_card");
 const { EXTERNAL_LINK_EVENT } = await import("@/utils/external_link_request");
-const { record_message_sender_identity } = await import(
-  "@/services/crypto/ratchet_verification_status"
-);
+const { record_message_sender_identity } =
+  await import("@/services/crypto/ratchet_verification_status");
 const { get_mail_item } = await import("@/services/api/mail");
-const { mail_item_provenance } = await import(
-  "@/services/calendar/invite_store"
-);
+const { mail_item_provenance } =
+  await import("@/services/calendar/invite_store");
 
 declare global {
   var IS_REACT_ACT_ENVIRONMENT: boolean;
@@ -437,6 +435,10 @@ describe("CalendarInviteCard", () => {
     expect(response_button(view, "accepted").getAttribute("aria-pressed")).toBe(
       "true",
     );
+    expect(show_toast).toHaveBeenLastCalledWith(
+      "calendar.invite_card_calendar_failed",
+      "error",
+    );
   });
 
   it("links only http and https meeting addresses", async () => {
@@ -567,7 +569,9 @@ describe("CalendarInviteCard", () => {
     try {
       const view = await render(
         <CalendarInviteCard
-          body={request("uid-20", ["LOCATION:https://meet.example.com/abc-def"])}
+          body={request("uid-20", [
+            "LOCATION:https://meet.example.com/abc-def",
+          ])}
           email_id="mail-20"
         />,
       );

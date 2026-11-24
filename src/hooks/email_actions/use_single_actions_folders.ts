@@ -62,6 +62,7 @@ import {
 } from "@/hooks/use_stat_helpers";
 import { user_facing_error } from "@/utils/user_facing_error";
 import { get_cached_folders } from "@/hooks/use_folders/cache";
+import { plan_folder_move_undo } from "./folder_move_undo";
 
 type SingleActionsFolderParams = Pick<
   ReturnType<typeof use_single_actions_core>,
@@ -415,12 +416,48 @@ export function use_single_actions_folders(params: SingleActionsFolderParams) {
         emit_mail_action("move", [email.id]);
         config.on_success?.("move", email.id);
 
+        const undo_plan = plan_folder_move_undo(
+          current_folders.map((folder) => folder.folder_token),
+          folder_token,
+          from_folder_token,
+        );
+
         show_action_toast({
           message: t("common.moved_to_folder", {
             folder: resolve_folder_name(email, folder_token),
           }),
           action_type: "folder",
           email_ids: [email.id],
+          on_undo: async () => {
+            if (undo_plan.remove_token) {
+              const removed = await remove_mail_item_folder(
+                email.id,
+                undo_plan.remove_token,
+                scope,
+              );
+
+              if (removed.error) throw new Error("undo folder move failed");
+            }
+            if (undo_plan.restore_token) {
+              const restored = await add_mail_item_folder(
+                email.id,
+                { folder_token: undo_plan.restore_token },
+                scope,
+              );
+
+              if (restored.error) throw new Error("undo folder move failed");
+            }
+            emit_mail_item_updated({
+              id: email.id,
+              folders: current_folders.map((folder) => ({
+                folder_token: folder.folder_token,
+                name: folder.name,
+                color: folder.color,
+              })),
+            });
+            emit_mail_changed();
+            emit_mail_soft_refresh();
+          },
         });
 
         return true;

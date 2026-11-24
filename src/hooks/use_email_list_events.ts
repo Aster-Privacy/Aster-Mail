@@ -46,6 +46,7 @@ import { has_passphrase_in_memory } from "@/services/crypto/memory_key_store";
 import { request_cache } from "@/services/api/request_cache";
 import { forget_removed_ids } from "@/services/removed_items";
 import { sync_client } from "@/services/sync_client";
+import { filter_locked_folder_emails } from "@/services/locked_folders";
 import {
   CATCH_UP_WHILE_LIVE_MS,
   HIDDEN_CATCH_UP_MS,
@@ -236,6 +237,17 @@ export function use_email_list_events({
       fetch_page_ref.current?.(0, page_size);
     };
 
+    const folder_locked_handler = () => {
+      set_state((prev) => {
+        const visible = filter_locked_folder_emails(prev.emails);
+
+        return visible.length === prev.emails.length
+          ? prev
+          : { ...prev, emails: visible };
+      });
+      full_fetch_handler();
+    };
+
     const handle_soft_refresh = () => {
       if (has_keys && has_passphrase_in_memory()) {
         request_cache.invalidate("GET:/mail/v1/messages");
@@ -323,7 +335,7 @@ export function use_email_list_events({
       full_fetch_handler,
     );
     window.addEventListener(MAIL_EVENTS.REFRESH_REQUESTED, force_fetch_handler);
-    window.addEventListener("astermail:folder-locked", full_fetch_handler);
+    window.addEventListener("astermail:folder-locked", folder_locked_handler);
     document.addEventListener("visibilitychange", handle_visibility_change);
     window.addEventListener("focus", handle_focus);
 
@@ -354,7 +366,10 @@ export function use_email_list_events({
         MAIL_EVENTS.REFRESH_REQUESTED,
         force_fetch_handler,
       );
-      window.removeEventListener("astermail:folder-locked", full_fetch_handler);
+      window.removeEventListener(
+        "astermail:folder-locked",
+        folder_locked_handler,
+      );
       document.removeEventListener(
         "visibilitychange",
         handle_visibility_change,

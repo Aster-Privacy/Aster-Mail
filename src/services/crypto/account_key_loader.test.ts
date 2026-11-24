@@ -29,10 +29,12 @@ import {
   load_account_keys_for_session,
 } from "./account_key_loader";
 import {
+  build_account_key_token_payload,
   open_account_key_token,
   seal_account_key_token,
 } from "./account_key_token";
 import { array_to_base64 } from "./base64";
+import { encrypt_message } from "./key_manager_pgp_messages";
 import {
   clear_account_key_derived_keks,
   decrypt_aes_gcm_with_fallback,
@@ -541,7 +543,7 @@ describe("load_account_keys_for_session", () => {
       expect(api.put_account_key_token_if_absent).not.toHaveBeenCalled();
     });
 
-    it("needs the retired copy to open a token signed before the reformat", async () => {
+    it("opens a token signed before the reformat with or without the retired copy", async () => {
       const me = await make_key();
       const token = await seal_account_key_token(
         new Uint8Array(32).fill(7),
@@ -552,10 +554,39 @@ describe("load_account_keys_for_session", () => {
 
       await expect(
         open_account_key_token(token, [reformatted], PASS),
-      ).resolves.toBeNull();
+      ).resolves.toHaveLength(32);
       await expect(
         open_account_key_token(token, [reformatted, me.privateKey], PASS),
       ).resolves.toHaveLength(32);
+    });
+
+    it("still refuses a token signed by a key the account does not hold", async () => {
+      const me = await make_key();
+      const other = await make_key();
+      const me_public = (
+        await openpgp.readPrivateKey({ armoredKey: me.privateKey })
+      )
+        .toPublic()
+        .armor();
+      const fingerprint = (
+        await openpgp.readPrivateKey({ armoredKey: me.privateKey })
+      )
+        .getFingerprint()
+        .toLowerCase();
+      const forged = await encrypt_message(
+        build_account_key_token_payload(
+          new Uint8Array(32).fill(7),
+          fingerprint,
+          1,
+        ),
+        me_public,
+        { armored_secret_key: other.privateKey, passphrase: PASS },
+      );
+      const reformatted = await reformat_later(me.privateKey);
+
+      await expect(
+        open_account_key_token(forged, [reformatted], PASS),
+      ).resolves.toBeNull();
     });
 
     it("trusts only retired copies of a key the vault still holds", async () => {

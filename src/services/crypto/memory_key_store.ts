@@ -74,6 +74,10 @@ import {
 import { clear_preview_memo } from "@/utils/preview_text";
 import { HASH_ALG } from "@/services/crypto/constants";
 import { get_active_translations } from "@/lib/i18n/translations";
+import {
+  note_decrypt_key_change,
+  register_keys_settled_probe,
+} from "@/services/crypto/decrypt_readiness";
 
 export const MASTER_KEY_VAULT_FORMAT = 2;
 
@@ -804,6 +808,7 @@ export function clear_vault_from_memory(
 
   if (!event.same_owner) vault_account_epoch += 1;
 
+  note_decrypt_key_change();
   vault_cleared_listeners.forEach((callback) => {
     try {
       callback(event);
@@ -854,6 +859,8 @@ export function on_keys_ready(callback: () => void): () => void {
   };
 }
 
+register_keys_settled_probe(() => are_keys_ready() && vault_in_memory !== null);
+
 const KEYS_READY_WAIT_MS = 15000;
 
 export function wait_for_keys_ready(
@@ -891,6 +898,7 @@ export function wait_for_keys_ready(
 
 function notify_keys_ready(): void {
   keys_ready_seen = false;
+  note_decrypt_key_change();
   keys_ready_listeners.forEach((callback) => {
     try {
       callback();

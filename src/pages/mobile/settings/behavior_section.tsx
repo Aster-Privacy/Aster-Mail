@@ -914,6 +914,17 @@ export function BehaviorSection({
             }
           />
           <SettingsRow
+            label={t("settings.confirm_permanent_delete")}
+            trailing={
+              <Switch
+                checked={preferences.confirm_before_permanent_delete !== false}
+                onCheckedChange={(v) =>
+                  update_preference("confirm_before_permanent_delete", v, true)
+                }
+              />
+            }
+          />
+          <SettingsRow
             label={t("settings.confirm_archive")}
             trailing={
               <Switch
@@ -1176,7 +1187,7 @@ export function BehaviorSection({
                     )}
                     <span className="min-w-0 flex-1 text-[15px] text-[var(--text-primary)]">
                       {def
-                        ? t(def.label_key as "mail.archive")
+                        ? t((def.settings_label_key ?? def.label_key) as "mail.archive")
                         : t("settings.swipe_none")}
                     </span>
                     {preferences.swipe_left_action === id && (
@@ -1210,7 +1221,7 @@ export function BehaviorSection({
                     )}
                     <span className="min-w-0 flex-1 text-[15px] text-[var(--text-primary)]">
                       {def
-                        ? t(def.label_key as "mail.archive")
+                        ? t((def.settings_label_key ?? def.label_key) as "mail.archive")
                         : t("settings.swipe_none")}
                     </span>
                     {preferences.swipe_right_action === id && (

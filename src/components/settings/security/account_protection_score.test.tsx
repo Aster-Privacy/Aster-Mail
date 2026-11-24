@@ -142,6 +142,35 @@ describe("AccountProtectionScore", () => {
     expect(handlers.filter((h) => h.mock.calls.length > 0)).toHaveLength(1);
   });
 
+  it("adds Aster Guard last with the second factor weight", async () => {
+    const handlers = build_security_criteria({
+      ...NONE,
+      guard_enabled: false,
+    }).map(() => vi.fn());
+
+    await render_card({ guard_enabled: false, on_criterion_click: handlers });
+    await open_breakdown();
+
+    const buttons = Array.from(
+      document.querySelectorAll<HTMLButtonElement>("li > button"),
+    );
+
+    expect(buttons).toHaveLength(9);
+    expect(buttons[8].textContent).toContain("guard.criterion_guard");
+    expect(buttons[8].textContent).toContain("+1");
+    expect(buttons[0].textContent).toContain("+1");
+    await act(async () => {
+      buttons[8].click();
+    });
+    expect(handlers[8]).toHaveBeenCalledTimes(1);
+  });
+
+  it("raises the score when Aster Guard is on", async () => {
+    await render_card({ guard_enabled: true });
+
+    expect(container.textContent).toContain('"percent":11');
+  });
+
   it("shows a skeleton until the security status loads", async () => {
     await render_card({ security_loaded: false });
 

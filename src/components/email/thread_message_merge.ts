@@ -24,6 +24,7 @@ import type { ThreadContentField } from "@/services/thread_content_fields";
 import {
   PGP_UNDECRYPTABLE_SENTINEL,
   RATCHET_UNDECRYPTABLE_SENTINEL,
+  RATCHET_PENDING_SENTINEL,
   is_ratchet_envelope,
 } from "@/utils/email_crypto";
 import { compare_timestamps_asc } from "@/utils/email_timestamp";
@@ -37,6 +38,7 @@ export function has_readable_body(message: BodyFields): boolean {
   if (!content || !content.trim()) return false;
   if (
     content === RATCHET_UNDECRYPTABLE_SENTINEL ||
+    content === RATCHET_PENDING_SENTINEL ||
     content === PGP_UNDECRYPTABLE_SENTINEL
   ) {
     return false;

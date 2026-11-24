@@ -54,10 +54,13 @@ import {
 } from "@/components/settings/security/security_lock_icon";
 import {
   build_security_criteria,
+  guard_criterion_met,
   security_percent,
 } from "@/lib/security_criteria";
+import { request_guard_setup } from "@/services/guard/guard_setup_request";
 import { resolve_remote_content_preferences } from "@/lib/remote_content_policy";
 import { AsterSecurityMark } from "@/components/icons/aster_security_mark";
+import { GuardMarkIcon } from "@/components/guard/guard_visuals";
 import {
   format_key_fingerprint,
   use_security_overview,
@@ -111,6 +114,7 @@ const CRITERION_ICONS: Record<SecurityCriterionId, PanelIcon> = {
   tracking_pixels: EyeSlashIcon,
   remote_images: PhotoIcon,
   strip_exif: DocumentMinusIcon,
+  guard_enabled: GuardMarkIcon,
 };
 
 function SecurityScoreRing({
@@ -218,7 +222,12 @@ export function QuickSecurityPanel({
     [on_close],
   );
   const go_to_criterion = useCallback(
-    (criterion: SecurityCriterion) => go_to_settings(criterion.target),
+    (criterion: SecurityCriterion) => {
+      go_to_settings(criterion.target);
+      if (criterion.id === "guard_enabled" && !criterion.met) {
+        request_guard_setup();
+      }
+    },
     [go_to_settings],
   );
 
@@ -239,6 +248,7 @@ export function QuickSecurityPanel({
         block_tracking_pixels: remote_content.block_tracking_pixels,
         block_remote_images: remote_content.block_remote_images,
         strip_exif_on_compose: preferences.strip_exif_on_compose,
+        guard_enabled: guard_criterion_met(overview.guard_state),
       }),
     [
       overview.totp_enabled,
@@ -249,6 +259,7 @@ export function QuickSecurityPanel({
       remote_content.block_tracking_pixels,
       remote_content.block_remote_images,
       preferences.strip_exif_on_compose,
+      overview.guard_state,
     ],
   );
 
@@ -272,12 +283,16 @@ export function QuickSecurityPanel({
   const done = criteria.filter((item) => item.met);
   const state_label = (value: boolean) =>
     value ? t("common.enabled") : t("common.disabled");
-  const criterion_state = (item: SecurityCriterion) =>
-    item.id === "recovery_email"
-      ? item.met
-        ? t("common.verified")
-        : t("common.not_verified")
-      : state_label(item.met);
+  const criterion_state = (item: SecurityCriterion) => {
+    if (item.id === "recovery_email") {
+      return item.met ? t("common.verified") : t("common.not_verified");
+    }
+    if (item.id === "guard_enabled" && overview.guard_state === "held_off") {
+      return t("guard.criterion_guard_turning_off");
+    }
+
+    return state_label(item.met);
+  };
 
   const alias_value = overview.alias_max
     ? `${overview.alias_count}/${overview.alias_max}`
@@ -584,11 +599,20 @@ export function QuickSecurityPanel({
                             {t(item.label_key)}
                           </span>
                         </span>
-                        <span className="sr-only">{criterion_state(item)}</span>
-                        <CheckCircleIcon
-                          aria-hidden="true"
-                          className="h-[18px] w-[18px] flex-shrink-0 text-[var(--color-success)]"
-                        />
+                        {item.id === "guard_enabled" &&
+                        overview.guard_state === "held_off" ? (
+                          <Badge color="amber">{criterion_state(item)}</Badge>
+                        ) : (
+                          <>
+                            <span className="sr-only">
+                              {criterion_state(item)}
+                            </span>
+                            <CheckCircleIcon
+                              aria-hidden="true"
+                              className="h-[18px] w-[18px] flex-shrink-0 text-[var(--color-success)]"
+                            />
+                          </>
+                        )}
                       </button>
                     </li>
                   );

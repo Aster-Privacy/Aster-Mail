@@ -29,6 +29,7 @@ import {
   verify_totp_login,
   TotpVerifyResponse,
 } from "@/services/api/totp";
+import { default_guard_device_name } from "@/services/guard/guard_device_label";
 
 const TOTP_CODE_LENGTH = 6;
 
@@ -68,6 +69,7 @@ export function TotpVerification({
       code,
       pending_login_token,
       trust_device,
+      device_label: default_guard_device_name(),
       remember_me,
     });
 

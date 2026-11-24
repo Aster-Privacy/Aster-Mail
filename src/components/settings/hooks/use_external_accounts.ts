@@ -20,12 +20,15 @@
 //
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 
+import type { OAuthFolderPickerResult } from "@/components/settings/oauth_folder_picker_modal";
+
 import { use_i18n } from "@/lib/i18n/context";
 import { show_toast } from "@/components/toast/simple_toast";
 import { invalidate_mail_stats } from "@/hooks/use_mail_stats";
 import { use_tags } from "@/hooks/use_tags";
 import { use_folders } from "@/hooks/use_folders";
 import { mirror_external_account_folders } from "@/services/external_folder_mirror";
+import { apply_oauth_folder_selection } from "@/services/external_account_setup";
 import {
   list_external_accounts,
   create_external_account,
@@ -53,6 +56,11 @@ import {
   resolve_sync_since_date,
   sanitize_display_text,
 } from "@/components/settings/hooks/external_accounts_utils";
+import { show_plan_limit_upgrade } from "@/stores/upgrade_store";
+import {
+  parse_external_limit_error,
+  upgrade_resource_for,
+} from "@/lib/external_account_modes";
 import { use_external_accounts_form } from "@/components/settings/hooks/use_external_accounts_form";
 import {
   emit_folders_changed,
@@ -61,6 +69,7 @@ import {
 } from "@/hooks/mail_events";
 import { app_locale, get_display_time_zone } from "@/utils/date_format";
 import { note_bulk_mail_removed } from "@/services/search/index_removals";
+import { reset_external_sources_cache } from "@/hooks/use_external_sources";
 
 export type { TlsMethod, I18nTranslate };
 export {
@@ -76,6 +85,9 @@ export {
   is_system_folder,
   get_folder_depth,
 } from "@/components/settings/hooks/external_accounts_utils";
+
+const OAUTH_ACCOUNT_POLL_MS = 2000;
+const OAUTH_ACCOUNT_POLL_ATTEMPTS = 90;
 
 export function use_external_accounts() {
   const { t } = use_i18n();
@@ -136,6 +148,12 @@ export function use_external_accounts() {
   );
 
   const [load_error, set_load_error] = useState(false);
+  const [picker_account, set_picker_account] =
+    useState<DecryptedExternalAccount | null>(null);
+  const [is_applying_selection, set_is_applying_selection] = useState(false);
+  const [connect_microsoft_open, set_connect_microsoft_open] = useState(false);
+  const oauth_snapshot_ref = useRef<Set<string>>(new Set());
+  const oauth_poll_ref = useRef<number | null>(null);
 
   const fetch_accounts = useCallback(async () => {
     try {
@@ -146,6 +164,7 @@ export function use_external_accounts() {
       if (!form.is_mounted_ref.current) return;
 
       if (result.data) {
+        reset_external_sources_cache();
         set_accounts(result.data);
         set_load_error(false);
       } else {
@@ -369,6 +388,17 @@ export function use_external_accounts() {
             }
           });
         } else {
+          const limit_error = parse_external_limit_error(result);
+
+          if (limit_error) {
+            form.close_form();
+            show_plan_limit_upgrade({
+              resource: upgrade_resource_for(limit_error.cap_class),
+            });
+
+            return;
+          }
+
           show_toast(
             sanitize_display_text(
               result.error || t("settings.failed_add_account"),
@@ -466,6 +496,17 @@ export function use_external_accounts() {
     async (account: DecryptedExternalAccount) => {
       if (check_is_syncing(account.id)) return;
 
+      if (
+        account.protocol === "oauth_imap" &&
+        account.has_folder_mapping === false &&
+        !account.last_sync_at &&
+        !mirrored_accounts_ref.current.has(account.id)
+      ) {
+        set_picker_account(account);
+
+        return;
+      }
+
       try {
         if (
           account.has_folder_mapping === false &&
@@ -493,6 +534,128 @@ export function use_external_accounts() {
     },
     [t, mirror_folders],
   );
+
+  const handle_picker_confirm = useCallback(
+    async (selection: OAuthFolderPickerResult) => {
+      const account = picker_account;
+
+      if (!account || is_applying_selection) return;
+
+      set_is_applying_selection(true);
+      try {
+        const outcome = await apply_oauth_folder_selection({
+          account_token: account.account_token,
+          selected_folders: selection.selected_folders,
+          import_existing: selection.import_existing,
+          existing_folders: folders_ref.current,
+          listed: selection.listed,
+          t,
+        });
+
+        if (outcome.status !== "ok") {
+          show_toast(t("settings.oauth_folders_error"), "error");
+
+          return;
+        }
+        if (outcome.failures > 0) {
+          show_toast(
+            t("settings.oauth_folders_partial", { count: outcome.failures }),
+            "warning",
+          );
+        }
+
+        mirrored_accounts_ref.current.add(account.id);
+        set_picker_account(null);
+
+        const result = await trigger_sync(account.account_token);
+
+        if (result.data?.success) {
+          global_start_sync_polling(account.id, account.account_token);
+        } else {
+          show_toast(
+            sanitize_display_text(result.error || t("settings.failed_sync")),
+            "error",
+          );
+        }
+        fetch_accounts();
+      } catch (error) {
+        if (import.meta.env.DEV) console.error(error);
+        show_toast(t("settings.oauth_folders_error"), "error");
+      } finally {
+        if (form.is_mounted_ref.current) set_is_applying_selection(false);
+      }
+    },
+    [t, picker_account, is_applying_selection, fetch_accounts],
+  );
+
+  const close_picker = useCallback(() => {
+    if (is_applying_selection) return;
+    set_picker_account(null);
+  }, [is_applying_selection]);
+
+  const stop_oauth_account_poll = useCallback(() => {
+    if (oauth_poll_ref.current !== null) {
+      window.clearInterval(oauth_poll_ref.current);
+      oauth_poll_ref.current = null;
+    }
+  }, []);
+
+  useEffect(() => () => stop_oauth_account_poll(), [stop_oauth_account_poll]);
+
+  const open_microsoft_connect = useCallback(() => {
+    oauth_snapshot_ref.current = new Set(accounts.map((a) => a.account_token));
+    set_connect_microsoft_open(true);
+  }, [accounts]);
+
+  const close_microsoft_connect = useCallback(() => {
+    set_connect_microsoft_open(false);
+  }, []);
+
+  const handle_microsoft_connected = useCallback(() => {
+    set_connect_microsoft_open(false);
+    stop_oauth_account_poll();
+
+    const snapshot = oauth_snapshot_ref.current;
+    let attempts = 0;
+    let in_flight = false;
+
+    const poll = async () => {
+      if (in_flight) return;
+      in_flight = true;
+      attempts += 1;
+      try {
+        const result = await list_external_accounts(
+          t("settings.connected_accounts_fallback_name"),
+        );
+
+        if (!form.is_mounted_ref.current) {
+          stop_oauth_account_poll();
+
+          return;
+        }
+        if (result.data) {
+          set_accounts(result.data);
+          const added = result.data.find(
+            (a) =>
+              a.protocol === "oauth_imap" && !snapshot.has(a.account_token),
+          );
+
+          if (added) {
+            stop_oauth_account_poll();
+            if (!added.last_sync_at) set_picker_account(added);
+
+            return;
+          }
+        }
+        if (attempts >= OAUTH_ACCOUNT_POLL_ATTEMPTS) stop_oauth_account_poll();
+      } finally {
+        in_flight = false;
+      }
+    };
+
+    oauth_poll_ref.current = window.setInterval(poll, OAUTH_ACCOUNT_POLL_MS);
+    poll();
+  }, [t, stop_oauth_account_poll]);
 
   const handle_purge_confirm = useCallback(async () => {
     if (!purge_target || is_purging) return;
@@ -558,6 +721,7 @@ export function use_external_accounts() {
       if (delete_result.error) {
         show_toast(sanitize_display_text(delete_result.error), "error");
       } else {
+        reset_external_sources_cache();
         set_accounts((prev) => prev.filter((a) => a.id !== target.id));
         if (also_delete && purged_count > 0) {
           show_toast(
@@ -627,6 +791,13 @@ export function use_external_accounts() {
     },
     [t],
   );
+
+  const close_form = useCallback(() => {
+    const was_editing = form.editing_account !== null;
+
+    form.close_form();
+    if (was_editing) void fetch_accounts();
+  }, [form.editing_account, form.close_form, fetch_accounts]);
 
   return {
     t,
@@ -700,7 +871,7 @@ export function use_external_accounts() {
     is_form_busy: form.is_form_busy,
     truncated_folders: form.truncated_folders,
     open_add_form: form.open_add_form,
-    close_form: form.close_form,
+    close_form,
     handle_protocol_change: form.handle_protocol_change,
     handle_email_change: form.handle_email_change,
     active_preset: form.active_preset,
@@ -722,6 +893,14 @@ export function use_external_accounts() {
     handle_toggle,
     handle_sync,
     handle_purge_confirm,
+    picker_account,
+    is_applying_selection,
+    handle_picker_confirm,
+    close_picker,
+    connect_microsoft_open,
+    open_microsoft_connect,
+    close_microsoft_connect,
+    handle_microsoft_connected,
     handle_edit: form.handle_edit,
     toggle_error_expand,
     format_sync_time,

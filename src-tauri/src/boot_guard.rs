@@ -44,7 +44,8 @@ const BOOT_LOG_FILE: &str = "boot.log";
 const BOOT_LOG_MAX_BYTES: u64 = 65_536;
 const BOOT_TIMEOUT: Duration = Duration::from_secs(25);
 const POLL_INTERVAL: Duration = Duration::from_millis(500);
-const WATCHDOG_GIVE_UP: Duration = Duration::from_secs(600);
+#[cfg(windows)]
+const WEBVIEW_RESTART_MIN_UPTIME: Duration = Duration::from_secs(30);
 #[cfg(windows)]
 pub const COMPAT_BROWSER_ARGS: &str =
     "--disable-gpu --disable-gpu-compositing --disable-software-rasterizer";
@@ -86,6 +87,9 @@ pub struct BootState {
     painted: AtomicBool,
     stage: AtomicU8,
     created: Instant,
+    started_hidden: AtomicBool,
+    shown_after_hidden_start: AtomicBool,
+    watchdog_running: AtomicBool,
 }
 
 impl BootState {
@@ -95,7 +99,34 @@ impl BootState {
             painted: AtomicBool::new(false),
             stage: AtomicU8::new(SetupStage::Starting as u8),
             created: Instant::now(),
+            started_hidden: AtomicBool::new(false),
+            shown_after_hidden_start: AtomicBool::new(false),
+            watchdog_running: AtomicBool::new(false),
         }
+    }
+
+    pub fn mark_started_hidden(&self) {
+        if !self.started_hidden.swap(true, Ordering::SeqCst) {
+            log_line("window started hidden");
+        }
+    }
+
+    pub fn started_hidden(&self) -> bool {
+        self.started_hidden.load(Ordering::SeqCst)
+    }
+
+    fn take_first_show_after_hidden_start(&self) -> bool {
+        self.started_hidden() && !self.shown_after_hidden_start.swap(true, Ordering::SeqCst)
+    }
+
+    fn prepare_reload(&self) {
+        self.shown_after_hidden_start.store(true, Ordering::SeqCst);
+        self.painted.store(false, Ordering::SeqCst);
+    }
+
+    #[cfg(windows)]
+    fn uptime(&self) -> Duration {
+        self.created.elapsed()
     }
 
     fn advance_stage(&self, stage: SetupStage) -> bool {
@@ -527,11 +558,55 @@ fn clear_stalled_webview() {
 }
 
 #[cfg(windows)]
+fn restart_args(args: Vec<std::ffi::OsString>, window_visible: bool) -> Vec<std::ffi::OsString> {
+    if !window_visible {
+        return args;
+    }
+    args.into_iter()
+        .filter(|arg| {
+            arg.as_os_str() != std::ffi::OsStr::new(crate::launch_at_login::AUTOSTART_ARG)
+        })
+        .collect()
+}
+
+#[cfg(windows)]
+fn should_restart_after_webview_loss(uptime: Duration) -> bool {
+    uptime >= WEBVIEW_RESTART_MIN_UPTIME
+}
+
+#[cfg(windows)]
+pub fn handle_webview_process_failure(app: &tauri::AppHandle, browser_exited: bool) {
+    if !browser_exited {
+        reload_main_webview(app, "the webview page process stopped");
+        return;
+    }
+    let state: tauri::State<BootState> = app.state();
+    let uptime = state.uptime();
+    log_line(&format!(
+        "webview browser process exited after {}s",
+        uptime.as_secs()
+    ));
+    if !should_restart_after_webview_loss(uptime) {
+        return;
+    }
+    let visible = app
+        .get_webview_window("main")
+        .and_then(|window| window.is_visible().ok())
+        .unwrap_or(true);
+    restart_process(restart_args(std::env::args_os().skip(1).collect(), visible))
+}
+
+#[cfg(windows)]
 fn restart_without_event_loop() -> ! {
     log_line("restarting without the event loop");
+    restart_process(std::env::args_os().skip(1).collect())
+}
+
+#[cfg(windows)]
+fn restart_process(args: Vec<std::ffi::OsString>) -> ! {
     if let Ok(exe) = std::env::current_exe() {
         let spawned = std::process::Command::new(exe)
-            .args(std::env::args_os().skip(1))
+            .args(args)
             .env(RESTART_WAIT_ENV, std::process::id().to_string())
             .spawn();
         if let Err(error) = spawned {
@@ -659,30 +734,34 @@ fn report_persistent_failure(app: &tauri::AppHandle) {
 enum WatchdogStep {
     Healthy,
     Wait,
+    Reload,
     Failed,
-    GiveUp,
 }
 
 #[derive(Default)]
 struct WatchdogClock {
     on_screen: Duration,
+    reloaded: bool,
 }
 
 impl WatchdogClock {
-    fn step(&mut self, usable: bool, on_screen: bool, elapsed: Duration) -> WatchdogStep {
+    fn step(&mut self, usable: bool, on_screen: bool, can_reload: bool) -> WatchdogStep {
         if usable {
             return WatchdogStep::Healthy;
         }
-        if on_screen {
-            self.on_screen += POLL_INTERVAL;
-            if self.on_screen >= BOOT_TIMEOUT {
-                return WatchdogStep::Failed;
-            }
+        if !on_screen {
+            return WatchdogStep::Wait;
         }
-        if elapsed >= WATCHDOG_GIVE_UP {
-            return WatchdogStep::GiveUp;
+        self.on_screen += POLL_INTERVAL;
+        if self.on_screen < BOOT_TIMEOUT {
+            return WatchdogStep::Wait;
         }
-        WatchdogStep::Wait
+        self.on_screen = Duration::ZERO;
+        if can_reload && !self.reloaded {
+            self.reloaded = true;
+            return WatchdogStep::Reload;
+        }
+        WatchdogStep::Failed
     }
 }
 
@@ -703,8 +782,46 @@ fn choose_recovery(compat_active: bool, setup_finished: bool, can_restart: bool)
     }
 }
 
+fn eval_reload(app: &tauri::AppHandle) {
+    let state: tauri::State<BootState> = app.state();
+    state.prepare_reload();
+    if let Some(window) = app.get_webview_window("main") {
+        let _ = window.eval(crate::RELOAD_WITHOUT_OPEN_EMAIL_JS);
+    }
+}
+
+pub fn reload_main_webview(app: &tauri::AppHandle, reason: &str) {
+    log_line(&format!("reloading the window: {reason}"));
+    eval_reload(app);
+    spawn_watchdog(app.clone());
+}
+
+pub fn reload_on_first_show_after_hidden_start(app: &tauri::AppHandle) {
+    let state: tauri::State<BootState> = app.state();
+    if !state.setup_finished() || !state.take_first_show_after_hidden_start() {
+        return;
+    }
+    reload_main_webview(app, "first show after a hidden start");
+}
+
+struct WatchdogLease(tauri::AppHandle);
+
+impl Drop for WatchdogLease {
+    fn drop(&mut self) {
+        let state: tauri::State<BootState> = self.0.state();
+        state.watchdog_running.store(false, Ordering::SeqCst);
+    }
+}
+
 pub fn spawn_watchdog(app: tauri::AppHandle) {
+    {
+        let state: tauri::State<BootState> = app.state();
+        if state.watchdog_running.swap(true, Ordering::SeqCst) {
+            return;
+        }
+    }
     std::thread::spawn(move || {
+        let _lease = WatchdogLease(app.clone());
         let started = Instant::now();
         let mut clock = WatchdogClock::default();
 
@@ -713,7 +830,8 @@ pub fn spawn_watchdog(app: tauri::AppHandle) {
             let setup_finished = state.setup_finished();
             let stalled = cfg!(windows) && !setup_finished;
             let on_screen = stalled || main_window_on_screen(&app, setup_finished);
-            match clock.step(state.is_usable(), on_screen, started.elapsed()) {
+            let can_reload = setup_finished && state.started_hidden();
+            match clock.step(state.is_usable(), on_screen, can_reload) {
                 WatchdogStep::Healthy => {
                     log_line(&format!(
                         "boot healthy after {}ms",
@@ -721,9 +839,10 @@ pub fn spawn_watchdog(app: tauri::AppHandle) {
                     ));
                     return;
                 }
-                WatchdogStep::GiveUp => {
-                    log_line("watchdog stood down, window never became visible");
-                    return;
+                WatchdogStep::Reload => {
+                    log_line("window is on screen without a frame, reloading it");
+                    eval_reload(&app);
+                    std::thread::sleep(POLL_INTERVAL);
                 }
                 WatchdogStep::Failed => break,
                 WatchdogStep::Wait => std::thread::sleep(POLL_INTERVAL),
@@ -849,39 +968,101 @@ mod tests {
         assert_eq!(SetupStage::from_u8(200), SetupStage::Starting);
     }
 
-    #[test]
-    fn watchdog_fails_after_the_window_stays_dark() {
-        let mut clock = WatchdogClock::default();
-        let polls = (BOOT_TIMEOUT.as_millis() / POLL_INTERVAL.as_millis()) as usize;
-        for _ in 1..polls {
-            assert_eq!(clock.step(false, true, Duration::ZERO), WatchdogStep::Wait);
-        }
-        assert_eq!(
-            clock.step(false, true, Duration::ZERO),
-            WatchdogStep::Failed
-        );
+    fn polls_until_timeout() -> usize {
+        (BOOT_TIMEOUT.as_millis() / POLL_INTERVAL.as_millis()) as usize
     }
 
     #[test]
-    fn watchdog_ignores_time_while_the_window_is_hidden() {
+    fn watchdog_fails_after_the_window_stays_dark() {
         let mut clock = WatchdogClock::default();
-        for _ in 0..1000 {
-            assert_eq!(clock.step(false, false, Duration::ZERO), WatchdogStep::Wait);
+        for _ in 1..polls_until_timeout() {
+            assert_eq!(clock.step(false, true, false), WatchdogStep::Wait);
         }
-        assert_eq!(
-            clock.step(false, false, WATCHDOG_GIVE_UP),
-            WatchdogStep::GiveUp
-        );
+        assert_eq!(clock.step(false, true, false), WatchdogStep::Failed);
+    }
+
+    #[test]
+    fn watchdog_keeps_watching_a_hidden_window() {
+        let mut clock = WatchdogClock::default();
+        for _ in 0..100_000 {
+            assert_eq!(clock.step(false, false, true), WatchdogStep::Wait);
+        }
+        for _ in 1..polls_until_timeout() {
+            assert_eq!(clock.step(false, true, true), WatchdogStep::Wait);
+        }
+        assert_eq!(clock.step(false, true, true), WatchdogStep::Reload);
+    }
+
+    #[test]
+    fn watchdog_reloads_once_before_failing() {
+        let mut clock = WatchdogClock::default();
+        for _ in 1..polls_until_timeout() {
+            clock.step(false, true, true);
+        }
+        assert_eq!(clock.step(false, true, true), WatchdogStep::Reload);
+        for _ in 1..polls_until_timeout() {
+            assert_eq!(clock.step(false, true, true), WatchdogStep::Wait);
+        }
+        assert_eq!(clock.step(false, true, true), WatchdogStep::Failed);
+    }
+
+    #[test]
+    fn watchdog_recovers_when_the_reload_paints() {
+        let mut clock = WatchdogClock::default();
+        for _ in 1..polls_until_timeout() {
+            clock.step(false, true, true);
+        }
+        assert_eq!(clock.step(false, true, true), WatchdogStep::Reload);
+        assert_eq!(clock.step(true, true, true), WatchdogStep::Healthy);
     }
 
     #[test]
     fn watchdog_reports_healthy_once_painted() {
         let mut clock = WatchdogClock::default();
-        assert_eq!(clock.step(false, true, Duration::ZERO), WatchdogStep::Wait);
+        assert_eq!(clock.step(false, true, false), WatchdogStep::Wait);
+        assert_eq!(clock.step(true, true, false), WatchdogStep::Healthy);
+    }
+
+    #[test]
+    fn first_show_after_a_hidden_start_is_taken_once() {
+        let state = BootState::new();
+        assert!(!state.take_first_show_after_hidden_start());
+        state.mark_started_hidden();
+        assert!(state.take_first_show_after_hidden_start());
+        assert!(!state.take_first_show_after_hidden_start());
+    }
+
+    #[test]
+    fn a_reload_consumes_the_first_show_and_clears_the_frame() {
+        let state = BootState::new();
+        state.mark_started_hidden();
+        state.mark_painted();
+        state.prepare_reload();
+        assert!(!state.painted());
+        assert!(!state.take_first_show_after_hidden_start());
+    }
+
+    #[cfg(windows)]
+    #[test]
+    fn restart_after_webview_loss_shows_a_visible_window() {
+        let args = vec![
+            std::ffi::OsString::from(crate::launch_at_login::AUTOSTART_ARG),
+            std::ffi::OsString::from("mailto:a@b.c"),
+        ];
+        assert_eq!(restart_args(args.clone(), false), args);
         assert_eq!(
-            clock.step(true, true, Duration::ZERO),
-            WatchdogStep::Healthy
+            restart_args(args, true),
+            vec![std::ffi::OsString::from("mailto:a@b.c")]
         );
+    }
+
+    #[cfg(windows)]
+    #[test]
+    fn webview_loss_restarts_only_after_a_settled_start() {
+        assert!(!should_restart_after_webview_loss(Duration::from_secs(5)));
+        assert!(should_restart_after_webview_loss(
+            WEBVIEW_RESTART_MIN_UPTIME
+        ));
     }
 
     #[test]

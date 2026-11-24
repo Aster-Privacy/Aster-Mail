@@ -20,6 +20,7 @@
 //
 import type { EncryptedVault } from "@/services/crypto/key_manager";
 import type { StepUpCredentials } from "./step_up";
+import type { GuardHeldInfo } from "./client/helpers";
 
 import { api_client } from "./client";
 import { to_reauth_proof } from "./step_up";
@@ -29,6 +30,7 @@ import { get_account_data_crypto_keys } from "@/services/crypto/legacy_keks";
 import { hash_recovery_email } from "@/services/crypto/key_manager";
 import { vault_identity_key_materials } from "@/services/crypto/identity_key_materials";
 import { ignore_error } from "@/lib/ignore_error";
+import { held_of } from "@/services/guard/held_outcome";
 
 interface GetRecoveryEmailApiResponse {
   encrypted_email: string | null;
@@ -661,7 +663,13 @@ export async function save_recovery_email(
   email: string,
   vault: EncryptedVault,
   credentials?: StepUpCredentials,
-): Promise<{ data: { success: boolean }; code?: string; error?: string }> {
+): Promise<{
+  data: { success: boolean };
+  code?: string;
+  server_code?: string;
+  error?: string;
+  held?: GuardHeldInfo;
+}> {
   try {
     const normalized = normalize_recovery_email(email);
 
@@ -697,6 +705,9 @@ export async function save_recovery_email(
         hardware_key_assertion: credentials?.hardware_key_assertion,
       },
     );
+    const held = held_of(response);
+
+    if (held) return { data: { success: false }, held };
 
     const success = !response.error && response.data?.success === true;
 
@@ -709,7 +720,12 @@ export async function save_recovery_email(
       };
     }
 
-    return { data: { success }, code: response.code, error: response.error };
+    return {
+      data: { success },
+      code: response.code,
+      server_code: response.server_code,
+      error: response.error,
+    };
   } catch {
     return { data: { success: false } };
   }
@@ -777,7 +793,13 @@ export async function get_recovery_email_link_status(
 
 export async function remove_recovery_email(
   credentials: StepUpCredentials,
-): Promise<{ data: { success: boolean }; code?: string; error?: string }> {
+): Promise<{
+  data: { success: boolean };
+  code?: string;
+  server_code?: string;
+  error?: string;
+  held?: GuardHeldInfo;
+}> {
   try {
     const response = await api_client.delete<{ success: boolean }>(
       "/core/v1/recovery/email",
@@ -785,6 +807,9 @@ export async function remove_recovery_email(
         data: to_reauth_proof(credentials),
       },
     );
+    const held = held_of(response);
+
+    if (held) return { data: { success: false }, held };
 
     const success = !response.error && response.data?.success === true;
 
@@ -792,7 +817,12 @@ export async function remove_recovery_email(
       cached_recovery_data = null;
     }
 
-    return { data: { success }, code: response.code, error: response.error };
+    return {
+      data: { success },
+      code: response.code,
+      server_code: response.server_code,
+      error: response.error,
+    };
   } catch {
     return { data: { success: false } };
   }

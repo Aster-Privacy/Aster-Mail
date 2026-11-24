@@ -27,8 +27,14 @@ import {
   ComputerDesktopIcon,
   CheckIcon,
 } from "@heroicons/react/24/outline";
+import { Switch } from "@aster/ui";
 
-import { SettingsGroup, SettingsHeader, OptionList } from "./shared";
+import {
+  SettingsGroup,
+  SettingsHeader,
+  SettingsRow,
+  OptionList,
+} from "./shared";
 
 import { TimeZonePicker } from "@/components/settings/appearance/time_zone_picker";
 import { get_supported_time_zones } from "@/lib/time_zones";
@@ -170,6 +176,18 @@ export function AppearanceSection({
               </button>
             ))}
           </div>
+          <SettingsRow
+            description={t("settings.hide_scrollbars_description")}
+            label={t("settings.hide_scrollbars")}
+            trailing={
+              <Switch
+                checked={preferences.hide_scrollbars === true}
+                onCheckedChange={(v) =>
+                  update_preference("hide_scrollbars", v, true)
+                }
+              />
+            }
+          />
         </SettingsGroup>
 
         <SettingsGroup title={t("settings.language")}>

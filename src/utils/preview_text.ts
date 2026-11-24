@@ -18,7 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { strip_html_tags_bounded } from "@/lib/html_sanitizer";
+import { html_to_preview_text, preview_body_source } from "@/lib/html_text";
 import { repair_comment_markup } from "@/lib/html_sanitizer_utils";
 
 export const PREVIEW_SOURCE_CHAR_CAP = 600;
@@ -303,7 +303,10 @@ export function build_body_preview(
   if (preheader) return build_list_preview(preheader);
 
   return build_list_preview(
-    strip_html_tags_bounded(body_text || body_html, PREVIEW_SOURCE_CHAR_CAP),
+    html_to_preview_text(
+      preview_body_source(body_text, body_html),
+      PREVIEW_SOURCE_CHAR_CAP,
+    ),
   );
 }
 
@@ -373,6 +376,12 @@ export function truncate_with_ellipsis(value: string, cap: number): string {
   const cut = last_space > cap * 0.6 ? clipped.slice(0, last_space) : clipped;
 
   return cut.trimEnd() + ELLIPSIS;
+}
+
+export function build_plain_preview(value: string | undefined): string {
+  if (!value) return "";
+
+  return build_list_preview(html_to_preview_text(value, PREVIEW_SOURCE_CHAR_CAP));
 }
 
 export function build_list_preview(value: string): string {

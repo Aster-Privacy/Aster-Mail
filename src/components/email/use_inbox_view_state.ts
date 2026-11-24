@@ -60,13 +60,18 @@ import {
   mail_event_bus,
   on_mail_event,
   emit_mail_item_updated,
+  emit_mail_changed,
 } from "@/hooks/mail_events";
 import { REFRESH_STATE_MS } from "@/constants/timings";
 import {
+  invalidate_mail_cache,
   patch_all_view_caches,
   remove_ids_from_all_view_caches,
 } from "@/hooks/email_list_cache";
-import { thread_imported_emails } from "@/services/import/repair_threads";
+import {
+  cancel_thread_repair,
+  schedule_thread_repair,
+} from "@/services/import/repair_threads";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_context_menu_actions } from "@/components/email/inbox/inbox_context_menu_handler";
 import { use_open_reply_compose } from "@/components/email/inbox/use_open_reply_compose";
@@ -75,6 +80,7 @@ import { get_member_retention_policy } from "@/services/api/family_org";
 import { use_inbox_toolbar_actions } from "@/components/email/inbox/use_inbox_toolbar_actions";
 import { prewarm_search_index } from "@/hooks/use_search";
 import { ignore_error } from "@/lib/ignore_error";
+import { use_folder_unlock_version } from "@/hooks/use_folder_unlock_state";
 
 export type {
   ReplyData,
@@ -137,6 +143,7 @@ export function use_inbox_view_state(props: EmailInboxProps) {
   const is_snoozed_view = current_view === "snoozed";
   const is_archive_view = current_view === "archive";
   const [folder_unlock_key, set_folder_unlock_key] = useState(0);
+  const folder_unlock_version = use_folder_unlock_version();
   const [spam_retention_days, set_spam_retention_days] = useState<
     number | null
   >(null);
@@ -271,7 +278,7 @@ export function use_inbox_view_state(props: EmailInboxProps) {
     }
 
     return null;
-  }, [current_folder, folder_unlock_key]);
+  }, [current_folder, folder_unlock_key, folder_unlock_version]);
 
   const page_category_ref = useRef(categories.active_category);
   const category_page =
@@ -426,13 +433,21 @@ export function use_inbox_view_state(props: EmailInboxProps) {
   }, []);
 
   useEffect(() => {
+    const handle_linked = () => {
+      invalidate_mail_cache();
+      emit_mail_changed();
+    };
+
+    schedule_thread_repair(handle_linked);
+
     const unsub = mail_event_bus.subscribe(MAIL_EVENTS.MAIL_CHANGED, () => {
-      thread_imported_emails().catch((e) => {
-        if (import.meta.env.DEV) console.error(e);
-      });
+      schedule_thread_repair(handle_linked);
     });
 
-    return unsub;
+    return () => {
+      unsub();
+      cancel_thread_repair();
+    };
   }, []);
 
   useEffect(() => {
@@ -716,6 +731,8 @@ export function use_inbox_view_state(props: EmailInboxProps) {
     tags_lookup,
     preferences: {
       confirm_before_delete: preferences.confirm_before_delete,
+      confirm_before_permanent_delete:
+        preferences.confirm_before_permanent_delete,
       confirm_before_spam: preferences.confirm_before_spam,
       confirm_before_archive: preferences.confirm_before_archive,
       conversation_grouping: preferences.conversation_grouping,
@@ -745,6 +762,8 @@ export function use_inbox_view_state(props: EmailInboxProps) {
     remove_tag_from_email,
     preferences: {
       confirm_before_delete: preferences.confirm_before_delete,
+      confirm_before_permanent_delete:
+        preferences.confirm_before_permanent_delete,
       confirm_before_spam: preferences.confirm_before_spam,
       confirm_before_archive: preferences.confirm_before_archive,
       conversation_grouping: preferences.conversation_grouping,

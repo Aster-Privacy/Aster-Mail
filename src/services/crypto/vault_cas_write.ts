@@ -37,6 +37,7 @@ import {
   store_vault_in_memory,
 } from "./memory_key_store";
 import { collect_vault_key_fingerprints } from "./vault_key_fingerprints";
+import { notify_vault_written } from "./vault_write_events";
 import { merge_lane_replay_maps } from "./lane_replay";
 import {
   accept_recovered_vault,
@@ -696,6 +697,7 @@ async function write_once(
   note_vault_written(written.sealed, written.iterations);
   persist_local_vault(user_id, encrypted_vault, vault_nonce);
   await store_vault_in_memory(merged, passphrase, user_id);
+  notify_vault_written({ user_id, previous: server, vault: merged });
 
   return { status: "written", vault: merged, encrypted_vault, vault_nonce };
 }

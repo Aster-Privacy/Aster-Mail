@@ -75,6 +75,13 @@ export const SETTINGS_SEARCH_REGISTRY: SearchEntry[] = [
     description_key: "settings.theme_sync_across_devices_description",
   },
   {
+    id: "hide_scrollbars",
+    label_key: "settings.hide_scrollbars",
+    section: "appearance",
+    crumb_key: "settings_search.theme",
+    description_key: "settings.hide_scrollbars_description",
+  },
+  {
     id: "custom_theme_colors_title",
     label_key: "settings.custom_theme_colors_title",
     section: "appearance",
@@ -423,6 +430,12 @@ export const SETTINGS_SEARCH_REGISTRY: SearchEntry[] = [
     crumb_key: "settings_search.desktop",
   },
   {
+    id: "ext_v2_notify_sources_title",
+    label_key: "settings.ext_v2_notify_sources_title",
+    section: "notifications",
+    description_key: "settings.ext_v2_notify_sources_description",
+  },
+  {
     id: "notification_sound",
     label_key: "settings.notification_sound",
     section: "sound",
@@ -628,6 +641,13 @@ export const SETTINGS_SEARCH_REGISTRY: SearchEntry[] = [
     section: "appearance",
     crumb_key: "settings_search.layout",
     description_key: "settings.close_popup_on_outside_click_description",
+  },
+  {
+    id: "open_popup_maximized",
+    label_key: "settings.open_popup_maximized",
+    section: "appearance",
+    crumb_key: "settings_search.layout",
+    description_key: "settings.open_popup_maximized_description",
   },
   {
     id: "compose_window_mode",
@@ -915,6 +935,13 @@ export const SETTINGS_SEARCH_REGISTRY: SearchEntry[] = [
     description_key: "settings.confirm_delete_description",
   },
   {
+    id: "confirm_permanent_delete",
+    label_key: "settings.confirm_permanent_delete",
+    section: "behavior",
+    crumb_key: "settings_search.confirmations",
+    description_key: "settings.confirm_permanent_delete_description",
+  },
+  {
     id: "confirm_archive",
     label_key: "settings.confirm_archive",
     section: "behavior",
@@ -1068,6 +1095,12 @@ export const SETTINGS_SEARCH_REGISTRY: SearchEntry[] = [
     id: "inbox_categories",
     label_key: "settings.inbox_categories",
     section: "categories",
+  },
+  {
+    id: "learn_from_category_moves",
+    label_key: "settings.learn_from_moves",
+    section: "categories",
+    description_key: "settings.learn_from_moves_description",
   },
   {
     id: "custom_categories_title",
@@ -2003,6 +2036,17 @@ export const SETTINGS_SEARCH_REGISTRY: SearchEntry[] = [
     id: "recent_imports",
     label_key: "settings.recent_imports",
     section: "import",
+  },
+  {
+    id: "regroup_conversations_title",
+    label_key: "settings.regroup_conversations_title",
+    section: "import",
+  },
+  {
+    id: "regroup_conversations_label",
+    label_key: "settings.regroup_conversations_label",
+    section: "import",
+    description_key: "settings.regroup_conversations_description",
   },
   {
     id: "import_how_it_works",

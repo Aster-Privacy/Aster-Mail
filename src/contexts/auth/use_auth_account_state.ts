@@ -50,8 +50,10 @@ import {
 } from "./auth_helpers";
 import { clear_signed_out_account_caches } from "./signed_out_account_caches";
 import { build_restore_sign_in_path } from "./restore_sign_in_path";
+import { restore_from_server_vault } from "./stale_local_vault_restore";
 
 import { ensure_ratchet_keys } from "@/services/crypto/ensure_ratchet_keys";
+import { check_recovery_backup_coverage } from "@/services/crypto/recovery_backup_refresh";
 import {
   init_desktop_device_auth,
   forget_device_account,
@@ -682,6 +684,18 @@ export function use_auth_account_state() {
 
         if (
           !has_keys &&
+          refused_rolled_back_vault &&
+          (await restore_from_server_vault(current.id, current.user.id))
+        ) {
+          has_keys = true;
+          refused_rolled_back_vault = false;
+          await seed_login_salt_record_from_session().catch((caught) =>
+            ignore_error("contexts/auth/use_auth_account_state:init", caught),
+          );
+        }
+
+        if (
+          !has_keys &&
           !pin_locked_at_start &&
           (await get_account_kind(current.id)) !== "shared" &&
           (await try_sibling_handoff(current.user.id))
@@ -1003,9 +1017,12 @@ export function use_auth_account_state() {
       check_and_run_recovery_reencryption(vault, passphrase).catch((caught) =>
         ignore_error("contexts/auth/use_auth_account_state:init", caught),
       );
-      ensure_ratchet_keys().catch((caught) =>
-        ignore_error("contexts/auth/use_auth_account_state:init", caught),
-      );
+      ensure_ratchet_keys()
+        .catch(() => false)
+        .then(() => check_recovery_backup_coverage())
+        .catch((caught) =>
+          ignore_error("contexts/auth/use_auth_account_state:init", caught),
+        );
       ensure_pgp_key_published().catch((caught) =>
         ignore_error("contexts/auth/use_auth_account_state:init", caught),
       );
@@ -1159,9 +1176,15 @@ export function use_auth_account_state() {
         check_and_run_recovery_reencryption(vault, passphrase).catch((caught) =>
           ignore_error("contexts/auth/use_auth_account_state:accounts", caught),
         );
-        ensure_ratchet_keys().catch((caught) =>
-          ignore_error("contexts/auth/use_auth_account_state:accounts", caught),
-        );
+        ensure_ratchet_keys()
+          .catch(() => false)
+          .then(() => check_recovery_backup_coverage())
+          .catch((caught) =>
+            ignore_error(
+              "contexts/auth/use_auth_account_state:accounts",
+              caught,
+            ),
+          );
         ensure_pgp_key_published().catch((caught) =>
           ignore_error("contexts/auth/use_auth_account_state:accounts", caught),
         );

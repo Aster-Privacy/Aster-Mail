@@ -195,6 +195,12 @@ vi.mock("./use_sign_in_page", () => ({
     set_active_2fa_method: vi.fn(),
     handle_totp_success: vi.fn(),
     handle_resend_pending: vi.fn(),
+    handle_guard_complete: vi.fn(),
+    guard_gate: {
+      guard_start: null,
+      set_guard_user_hash: vi.fn(),
+      clear_guard: vi.fn(),
+    },
   }),
 }));
 

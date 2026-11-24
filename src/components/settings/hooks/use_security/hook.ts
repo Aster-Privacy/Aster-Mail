@@ -46,6 +46,7 @@ import { use_key_rotation } from "@/hooks/use_key_rotation";
 import { check_password_breach } from "@/services/breach_check";
 import { use_i18n } from "@/lib/i18n/context";
 import { show_toast } from "@/components/toast/simple_toast";
+import { held_of } from "@/services/guard/held_outcome";
 import {
   append_password_notice,
   password_change_failure_message,
@@ -289,6 +290,15 @@ export function use_security() {
       });
 
       if (!result.ok) {
+        if (result.held) {
+          set_show_password_section(false);
+          set_current_password("");
+          set_new_password("");
+          set_confirm_password("");
+
+          return;
+        }
+
         set_password_error(result.error);
 
         return;
@@ -459,6 +469,7 @@ export function use_security() {
         timeout,
       ]);
 
+      if (held_of(response)) return;
       if ("data" in response && response.data?.success) {
         set_sessions((prev) => prev.filter((s) => s.id !== session_id));
       } else {
@@ -492,6 +503,7 @@ export function use_security() {
       );
       const response = await Promise.race([revoke_all_sessions(), timeout]);
 
+      if (held_of(response)) return;
       if ("data" in response && response.data?.success) {
         const revoked_count = sessions.filter((s) => !s.is_current).length;
 

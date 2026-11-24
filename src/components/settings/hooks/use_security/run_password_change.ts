@@ -86,6 +86,7 @@ import {
   generate_auth_salt,
   login_safety_error_key,
 } from "@/services/crypto/auth_salt_guard";
+import { held_of } from "@/services/guard/held_outcome";
 import { ignore_error } from "@/lib/ignore_error";
 import { write_locked_sent_mail } from "@/services/locked_sent_mail_store";
 import {
@@ -109,7 +110,8 @@ export interface PasswordChangeRequest {
 }
 
 export type PasswordChangeResult =
-  | { ok: false; error: string }
+  | { ok: false; held: false; error: string }
+  | { ok: false; held: true }
   | {
       ok: true;
       password_strength_tier: ReturnType<typeof compute_password_strength_tier>;
@@ -156,6 +158,7 @@ export async function run_password_change(
   if (salt_response.error || !salt_response.data) {
     return {
       ok: false,
+      held: false,
       error: salt_response.error || t("settings.failed_get_auth_data"),
     };
   }
@@ -175,8 +178,10 @@ export async function run_password_change(
   let old_identity_key = "";
   let response!: Awaited<ReturnType<typeof change_password>>;
   let failure = "";
+  let change_held = false;
   const password_strength_tier = compute_password_strength_tier(new_password);
 
+  const derived_raws: Uint8Array[] = [];
   const committed = await with_vault_write_lock(async () => {
     const loaded = await load_password_change_vault(user_id, current_password);
 
@@ -258,6 +263,14 @@ export async function run_password_change(
     );
     const retired_raws = [await derive_kek_from_password(current_password)];
 
+    derived_raws.push(
+      ...retired_raws,
+      old_prefs_key_raw,
+      old_dev_mode_key_raw,
+      old_folder_hash,
+      old_tag_hash,
+    );
+
     vault.legacy_keks = keep_password_change_keks(vault.legacy_keks, [
       ...retired_raws,
       old_prefs_key_raw,
@@ -298,6 +311,12 @@ export async function run_password_change(
 
     response = written.response;
 
+    if (held_of(response)) {
+      change_held = true;
+
+      return false;
+    }
+
     if (response.error) {
       failure = resolve_password_change_error(
         response.error,
@@ -326,11 +345,16 @@ export async function run_password_change(
     void refresh_recovery_backup(vault, new_password);
 
     return true;
+  }).finally(() => {
+    for (const raw of derived_raws) raw.fill(0);
   });
 
   if (!committed) {
+    if (change_held) return { ok: false, held: true };
+
     return {
       ok: false,
+      held: false,
       error: failure || t("settings.failed_change_password"),
     };
   }
