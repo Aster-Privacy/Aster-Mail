@@ -28,6 +28,9 @@ updates:
       - dependency-name: "@stripe/react-stripe-js"
         versions:
           - ">=7.0.0"
+      - dependency-name: "@types/node"
+        update-types:
+          - version-update:semver-major
 
   - package-ecosystem: cargo
     directory: /src-tauri
@@ -42,6 +45,10 @@ updates:
         update-types:
           - minor
           - patch
+    ignore:
+      - dependency-name: zbus
+        update-types:
+          - version-update:semver-major
 
   - package-ecosystem: cargo
     directory: /aster-crypto
@@ -83,6 +90,14 @@ updates:
     cooldown:
       default-days: 7
     open-pull-requests-limit: 3
+    groups:
+      codeql-action:
+        patterns:
+          - "github/codeql-action*"
+    ignore:
+      - dependency-name: signpath/github-action-submit-signing-request
+        update-types:
+          - version-update:semver-major
 
   - package-ecosystem: docker
     directory: /
