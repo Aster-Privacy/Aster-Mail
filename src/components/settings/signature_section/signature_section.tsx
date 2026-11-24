@@ -205,7 +205,7 @@ export function SignatureSection() {
       <IslandSection
         bare
         title={t("settings.your_signatures", {
-          count: String(signatures.length),
+          count: signatures.length,
         })}
         trailing={
           <Button
