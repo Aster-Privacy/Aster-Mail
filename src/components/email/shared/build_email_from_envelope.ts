@@ -35,6 +35,7 @@ import {
   is_password_protected_body,
   is_ratchet_verified_body,
 } from "@/utils/email_crypto";
+import { is_pending_decrypt_body } from "@/utils/undecryptable_body";
 import { detect_unsubscribe_info } from "@/utils/unsubscribe_detector";
 import { resolve_forwarding_display } from "@/utils/forwarding_alias";
 import { build_body_preview } from "@/utils/preview_text";
@@ -147,6 +148,16 @@ async function resolve_envelope_body(
         message_id,
       )
     : resolved_text;
+
+  if (is_pending_decrypt_body(body_text)) {
+    return {
+      body_text,
+      safe_html: undefined,
+      unsubscribe_info: undefined,
+      e2e_verified: false,
+      e2e_sender_bound: false,
+    };
+  }
 
   const ratchet_verified = is_ratchet_verified_body(
     resolved_text,

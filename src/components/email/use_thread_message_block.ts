@@ -84,6 +84,7 @@ import {
   is_ratchet_envelope,
   is_password_protected_body,
 } from "@/utils/email_crypto";
+import { is_pending_decrypt_body } from "@/utils/undecryptable_body";
 import {
   is_lockdown_enabled,
   LOCKDOWN_CHANGED_EVENT,
@@ -226,6 +227,7 @@ export function use_thread_message_block(props: ThreadMessageBlockProps) {
   >(null);
   const password_protected =
     is_password_protected_body(message.body) && password_unlocked_body === null;
+  const is_decrypt_pending = is_pending_decrypt_body(message.body);
 
   useEffect(() => {
     set_password_unlocked_body(null);
@@ -259,6 +261,7 @@ export function use_thread_message_block(props: ThreadMessageBlockProps) {
     if (password_protected) {
       return t("mail.pgp_password_protected_title");
     }
+    if (is_decrypt_pending) return "";
 
     if (
       clean_body === RATCHET_UNDECRYPTABLE_SENTINEL ||
@@ -280,7 +283,7 @@ export function use_thread_message_block(props: ThreadMessageBlockProps) {
       },
       () => "",
     );
-  }, [clean_body, password_protected, t]);
+  }, [clean_body, is_decrypt_pending, password_protected, t]);
 
   const [lockdown_active, set_lockdown_active] = useState(() =>
     is_lockdown_enabled(account_id),
@@ -365,11 +368,13 @@ export function use_thread_message_block(props: ThreadMessageBlockProps) {
   const has_plaintext_body =
     !password_protected &&
     !!message.body &&
+    !is_decrypt_pending &&
     message.body !== RATCHET_UNDECRYPTABLE_SENTINEL &&
     message.body !== PGP_UNDECRYPTABLE_SENTINEL &&
     !is_ratchet_envelope(message.body);
   const is_ratchet_undecryptable =
     !has_plaintext_body &&
+    !is_decrypt_pending &&
     (message.body === RATCHET_UNDECRYPTABLE_SENTINEL ||
       message.body === PGP_UNDECRYPTABLE_SENTINEL ||
       is_ratchet_envelope(message.body) ||
@@ -690,16 +695,16 @@ export function use_thread_message_block(props: ThreadMessageBlockProps) {
     return null;
   }, [sanitize_job, deferred_content, message.id]);
 
-  const is_sanitize_pending = ready_content === null;
+  const is_sanitize_pending = ready_content === null || is_decrypt_pending;
 
   useEffect(() => {
-    if (!is_sanitize_pending || !sanitize_job.run) return;
+    if (!is_sanitize_pending || is_decrypt_pending || !sanitize_job.run) return;
     const run = sanitize_job.run;
 
     return run_after_next_paint(() => {
       set_deferred_content({ job: sanitize_job, content: run() });
     });
-  }, [is_sanitize_pending, sanitize_job]);
+  }, [is_decrypt_pending, is_sanitize_pending, sanitize_job]);
 
   if (ready_content && is_body_visible) {
     shown_message_ref.current = {
@@ -925,6 +930,7 @@ export function use_thread_message_block(props: ThreadMessageBlockProps) {
     load_remote_content,
     sanitized_content,
     is_sanitize_pending,
+    is_decrypt_pending,
     effective_html,
     show_as_text,
     plain_view,
