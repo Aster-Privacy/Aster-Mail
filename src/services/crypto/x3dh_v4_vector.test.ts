@@ -52,7 +52,7 @@ vi.mock("./ec_prekey_store", () => ({
 }));
 
 import { ml_kem768 } from "@noble/post-quantum/ml-kem.js";
-import { p256 } from "@noble/curves/nist";
+import { p256 } from "@noble/curves/nist.js";
 import { hkdf } from "@noble/hashes/hkdf";
 import { sha256 } from "@noble/hashes/sha2";
 

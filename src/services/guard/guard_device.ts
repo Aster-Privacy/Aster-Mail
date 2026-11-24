@@ -18,7 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { ed25519, x25519 } from "@noble/curves/ed25519";
+import { ed25519, x25519 } from "@noble/curves/ed25519.js";
 import { ml_kem768 } from "@noble/post-quantum/ml-kem.js";
 
 import { open_vault_key_envelope } from "@/lib/crypto/device_envelope";
@@ -272,8 +272,8 @@ async function create_web_guard_device(
 
   if (!wrap_key) throw new Error("guard_device: wrap key unavailable");
 
-  const ed25519_sk = ed25519.utils.randomPrivateKey();
-  const x25519_sk = x25519.utils.randomPrivateKey();
+  const ed25519_sk = ed25519.utils.randomSecretKey();
+  const x25519_sk = x25519.utils.randomSecretKey();
   const mlkem = ml_kem768.keygen();
   const secrets = concat_bytes(ed25519_sk, mlkem.secretKey, x25519_sk);
   const iv = crypto.getRandomValues(new Uint8Array(12));

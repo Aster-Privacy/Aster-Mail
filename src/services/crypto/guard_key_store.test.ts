@@ -20,7 +20,7 @@
 //
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { ml_kem768 } from "@noble/post-quantum/ml-kem.js";
-import { x25519 } from "@noble/curves/ed25519";
+import { x25519 } from "@noble/curves/ed25519.js";
 import { gcm } from "@noble/ciphers/aes";
 
 import { replace_indexed_db } from "@/tests/fixtures/version_change_indexed_db";
@@ -146,7 +146,7 @@ function seal_to(
   mlkem_pk: Uint8Array,
   x25519_pk: Uint8Array,
 ): Uint8Array {
-  const eph_sk = x25519.utils.randomPrivateKey();
+  const eph_sk = x25519.utils.randomSecretKey();
   const eph = x25519.getPublicKey(eph_sk);
   const x_shared = x25519.getSharedSecret(eph_sk, x25519_pk);
   const { cipherText, sharedSecret } = ml_kem768.encapsulate(mlkem_pk);
@@ -214,7 +214,7 @@ describe("guard device key store", () => {
     const pub = await device.public_keys();
     const message = new TextEncoder().encode("approve");
     const signature = await device.sign(message);
-    const { p256 } = await import("@noble/curves/p256");
+    const { p256 } = await import("@noble/curves/nist.js");
     const { sha256 } = await import("@noble/hashes/sha256");
 
     expect(
