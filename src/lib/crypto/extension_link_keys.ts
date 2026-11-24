@@ -52,17 +52,19 @@ function alias_fallback_keys(vault: LinkVault, data_kek: string): string[] {
 
   for (const entry of vault.legacy_keks ?? []) {
     if (kept.size >= MAX_LEGACY_KEKS) break;
-    if (entry.k === data_kek || kept.has(entry.k)) continue;
-    if (retired_kek_context(entry.k) || is_public_mail_kek(entry.k)) continue;
-
     const raw = decode_key(entry.k);
 
     if (!raw) continue;
 
-    const is_public = is_public_constant_kek_raw(raw);
+    const normalized = array_to_base64(raw);
+    const is_public =
+      is_public_constant_kek_raw(raw) ||
+      retired_kek_context(normalized) !== null ||
+      is_public_mail_kek(normalized);
 
     raw.fill(0);
-    if (!is_public) kept.add(entry.k);
+    if (is_public || normalized === data_kek) continue;
+    kept.add(normalized);
   }
 
   return [...kept];

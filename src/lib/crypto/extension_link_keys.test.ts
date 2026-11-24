@@ -87,6 +87,18 @@ describe("encode_extension_link_keys", () => {
     expect(payload.legacy).toEqual([key(2)]);
   });
 
+  it("sends older keys in padded form", () => {
+    const unpadded = key(2).replace(/=+$/, "");
+    const payload = decode(
+      encode_extension_link_keys({
+        data_kek: key(1),
+        legacy_keks: [entry(unpadded), entry(key(2)), entry(` ${key(3)}`)],
+      }),
+    );
+
+    expect(payload.legacy).toEqual([key(2), key(3)]);
+  });
+
   it("caps the number of older keys", () => {
     const payload = decode(
       encode_extension_link_keys({
