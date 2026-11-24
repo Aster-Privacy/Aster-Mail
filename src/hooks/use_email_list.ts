@@ -63,6 +63,7 @@ import {
   has_passphrase_in_memory,
   on_keys_ready,
 } from "@/services/crypto/memory_key_store";
+import { on_pending_decrypt_retry } from "@/services/crypto/decrypt_readiness";
 import { use_auth } from "@/contexts/auth_context";
 import { use_preferences } from "@/contexts/preferences_context";
 import { clear_preload_cache } from "@/components/email/hooks/preload_cache_store";
@@ -233,6 +234,7 @@ export function use_email_list(
   >(new Map());
   const page_offset_ref = useRef<Map<number, number>>(new Map());
   const drift_accounted_ref = useRef(0);
+  const failed_page_ref = useRef<{ view: string; page: number } | null>(null);
 
   if (page_ref.current === -1) {
     page_ref.current = derive_page_from_list_length(
@@ -383,6 +385,7 @@ export function use_email_list(
 
       if (!force && cached_page && now - cached_page.time < PAGE_CACHE_TTL_MS) {
         last_fetch_ref.current = { view: list_key, page, time: now };
+        failed_page_ref.current = null;
         page_ref.current = page;
         windowed_page_ref.current = true;
         page_limit_ref.current = limit;
@@ -423,6 +426,26 @@ export function use_email_list(
       abort_ref.current = new AbortController();
       const { signal } = abort_ref.current;
       const start = Date.now();
+      const settle_failed_load = () => {
+        if (committed_view_ref.current !== fetch_view) return;
+
+        const shows_other_page = !silent && page_ref.current !== page;
+
+        if (shows_other_page) {
+          page_ref.current = page;
+          windowed_page_ref.current = true;
+          page_limit_ref.current = limit;
+          state_view_ref.current = list_key;
+          failed_page_ref.current = { view: list_key, page };
+        }
+        set_state((prev) => ({
+          ...prev,
+          ...(shows_other_page ? { emails: [] } : {}),
+          is_loading: false,
+          has_initial_load: true,
+          has_load_error: shows_other_page || prev.emails.length === 0,
+        }));
+      };
 
       if (!silent) set_state((prev) => ({ ...prev, is_loading: true }));
       fetch_in_flight_ref.current = true;
@@ -504,14 +527,7 @@ export function use_email_list(
         }
 
         if (!result) {
-          if (committed_view_ref.current === fetch_view) {
-            set_state((prev) => ({
-              ...prev,
-              is_loading: false,
-              has_initial_load: true,
-              has_load_error: prev.emails.length === 0,
-            }));
-          }
+          settle_failed_load();
 
           return;
         }
@@ -538,6 +554,7 @@ export function use_email_list(
           keeps_left_rows || kept_only_ids ? read_filter : "all";
 
         last_fetch_ref.current = { view: list_key, page, time: now };
+        failed_page_ref.current = null;
         page_ref.current = page;
         windowed_page_ref.current = true;
         page_limit_ref.current = limit;
@@ -609,14 +626,7 @@ export function use_email_list(
           );
         }
       } catch {
-        if (!signal.aborted && committed_view_ref.current === fetch_view) {
-          set_state((prev) => ({
-            ...prev,
-            is_loading: false,
-            has_initial_load: true,
-            has_load_error: prev.emails.length === 0,
-          }));
-        }
+        if (!signal.aborted) settle_failed_load();
       } finally {
         if (abort_ref.current?.signal === signal) {
           fetch_in_flight_ref.current = false;
@@ -695,6 +705,7 @@ export function use_email_list(
         page: active_page,
         time: Date.now(),
       };
+      failed_page_ref.current = null;
       page_ref.current = active_page;
       state_view_ref.current = list_key;
       unverified_snapshot_view_ref.current = null;
@@ -871,6 +882,9 @@ export function use_email_list(
 
   const refresh = useCallback(() => {
     const keep_visible = has_emails_ref.current;
+    const failed = failed_page_ref.current;
+    const retry_page =
+      failed && failed.view === committed_view_ref.current ? failed.page : 0;
 
     last_fetch_ref.current = null;
     windowed_page_ref.current = false;
@@ -890,7 +904,7 @@ export function use_email_list(
         has_initial_load: false,
       };
     });
-    fetch_page_ref.current?.(0, page_size, {
+    fetch_page_ref.current?.(retry_page, page_size, {
       force: true,
       silent: keep_visible,
     });
@@ -1292,6 +1306,19 @@ export function use_email_list(
       fetch_page_ref.current?.(0, page_size, { force: true });
     });
   }, [has_keys, is_mail_view, page_size]);
+
+  useEffect(() => {
+    if (!is_mail_view) return;
+
+    return on_pending_decrypt_retry((ids) => {
+      const has_pending_row = loaded_emails_ref.current.some((email) =>
+        ids.has(email.id),
+      );
+
+      if (!has_pending_row) return;
+      fetch_page_ref.current?.(0, page_size, { force: true });
+    });
+  }, [is_mail_view, page_size]);
 
   const update_email = useCallback(
     (id: string, updates: Partial<InboxEmail>): void => {

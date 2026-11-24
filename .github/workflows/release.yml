@@ -15,7 +15,22 @@ env:
   SIGNER_NATIVE_INTEGRITY: sha512-Ru4gwJKPG0ctVGchRGpRup4Y4lW2SSfFnrbQcyHhCliKy4g8Qz97TrUgCur4CbWyAgKxvGh3SjrkA0LDYzDGiw==
 
 jobs:
+  ref_gate:
+    name: Require main or a version tag
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions: {}
+    steps:
+      - name: Check the ref
+        shell: bash
+        run: |
+          case "$GITHUB_REF" in
+            refs/heads/main|refs/tags/v*) ;;
+            *) echo "::error::releases run only from main or a v* tag, not $GITHUB_REF"; exit 1 ;;
+          esac
+
   test:
+    needs: ref_gate
     name: Typecheck and test before release
     runs-on: ubuntu-latest
     timeout-minutes: 30
@@ -68,6 +83,14 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
+      - name: Require main or a version tag
+        shell: bash
+        run: |
+          case "$GITHUB_REF" in
+            refs/heads/main|refs/tags/v*) ;;
+            *) echo "::error::signing runs only from main or a v* tag, not $GITHUB_REF"; exit 1 ;;
+          esac
+
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
@@ -168,6 +191,9 @@ jobs:
           set -euo pipefail
           if [ "$LEG" = "win" ]; then
             source scripts/use_msvc_toolchain.sh
+          fi
+          if [ "$LEG" = "mac" ]; then
+            export NODE_OPTIONS="--max-old-space-size=6144"
           fi
           TAURI_SIGNING_PRIVATE_KEY="$(cat "$RUNNER_TEMP/throwaway_updater.key")"
           export TAURI_SIGNING_PRIVATE_KEY
@@ -346,6 +372,14 @@ jobs:
     runs-on: ubuntu-22.04
     permissions: {}
     steps:
+      - name: Require main or a version tag
+        shell: bash
+        run: |
+          case "$GITHUB_REF" in
+            refs/heads/main|refs/tags/v*) ;;
+            *) echo "::error::signing runs only from main or a v* tag, not $GITHUB_REF"; exit 1 ;;
+          esac
+
       - name: Download the unsigned bundles
         uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
@@ -796,10 +830,19 @@ jobs:
   publish_winget:
     needs: [build, ensure_canonical_assets, promote_to_latest]
     if: startsWith(github.ref, 'refs/tags/v')
+    environment: release
     runs-on: ubuntu-22.04
     permissions:
       contents: read
     steps:
+      - name: Require main or a version tag
+        shell: bash
+        run: |
+          case "$GITHUB_REF" in
+            refs/heads/main|refs/tags/v*) ;;
+            *) echo "::error::signing runs only from main or a v* tag, not $GITHUB_REF"; exit 1 ;;
+          esac
+
       - name: Skip prereleases and drafts
         id: gate
         env:

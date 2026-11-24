@@ -25,6 +25,10 @@ import { zero_uint8_array } from "./secure_memory";
 import { without_retired_keks } from "./retired_identity_keks";
 import { prepend_keks_keeping_all } from "./legacy_keks";
 import {
+  is_public_mail_kek,
+  is_server_known_encoded,
+} from "./server_known_keys";
+import {
   derive_encryption_key_from_passphrase,
   get_derived_encryption_key,
   get_storage_kdf_version,
@@ -143,6 +147,30 @@ export async function load_storage_write_key_bytes(): Promise<Uint8Array | null>
   await wait_for_storage_key();
 
   return get_storage_write_key_bytes();
+}
+
+export function is_verifying_storage_key(
+  vault: Pick<
+    EncryptedVault,
+    "data_kek" | "data_kek_random" | "server_known_kek_ids"
+  > | null,
+): boolean {
+  if (!vault?.data_kek || vault.data_kek_random !== true) return false;
+
+  return (
+    !is_public_mail_kek(vault.data_kek) &&
+    !is_server_known_encoded(vault.data_kek, vault)
+  );
+}
+
+export async function load_verifying_storage_key_bytes(): Promise<Uint8Array | null> {
+  await wait_for_storage_key();
+
+  const vault = unlocked_vault();
+
+  if (!is_verifying_storage_key(vault)) return null;
+
+  return read_storage_write_key(vault);
 }
 
 export function generate_storage_write_key(): Uint8Array {
@@ -411,12 +439,20 @@ export async function derive_password_storage_keys(
   }
 }
 
+type WeakCheckVault = Pick<
+  EncryptedVault,
+  "data_kek" | "data_kek_random" | "kdf_version" | "server_known_kek_ids"
+>;
+
 export async function is_weak_storage_vault(
-  vault: Pick<EncryptedVault, "data_kek" | "data_kek_random" | "kdf_version">,
+  vault: WeakCheckVault,
   passphrase: string,
-  key_material_keys: Uint8Array[] = [],
 ): Promise<boolean> {
   if (!vault.data_kek) {
+    return true;
+  }
+
+  if (is_server_known_encoded(vault.data_kek, vault)) {
     return true;
   }
 
@@ -438,12 +474,6 @@ export async function is_weak_storage_vault(
       matches = true;
     }
     zero_uint8_array(candidate);
-  }
-
-  for (const candidate of key_material_keys) {
-    if (constant_time_equal(stored, candidate)) {
-      matches = true;
-    }
   }
   zero_uint8_array(stored);
 
@@ -510,19 +540,18 @@ export function decode_vault_storage_key(
 }
 
 export async function collect_prior_storage_keys(
-  vault: Pick<EncryptedVault, "data_kek" | "kdf_version">,
+  vault: Pick<EncryptedVault, "data_kek" | "kdf_version" | "server_known_kek_ids">,
   passphrase: string,
-  key_material_keys: Uint8Array[] = [],
 ): Promise<Uint8Array[]> {
   const password_keys = await derive_password_storage_keys(vault, passphrase);
   const ordered =
     password_keys.length > 1
       ? [password_keys[1], password_keys[0]]
       : password_keys;
-  const stored = decode_vault_storage_key(vault.data_kek);
-  const extra = key_material_keys
-    .filter((raw) => raw.length === STORAGE_WRITE_KEY_LENGTH)
-    .map((raw) => new Uint8Array(raw));
+  const stored =
+    vault.data_kek && !is_server_known_encoded(vault.data_kek, vault)
+      ? decode_vault_storage_key(vault.data_kek)
+      : null;
 
-  return stored ? [stored, ...ordered, ...extra] : [...ordered, ...extra];
+  return stored ? [stored, ...ordered] : ordered;
 }

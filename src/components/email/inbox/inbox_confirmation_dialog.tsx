@@ -96,15 +96,18 @@ export function ConfirmModal({
           )}
         </div>
 
-        <AlertDialogFooter className="flex-row gap-3 px-6 pb-6 pt-2 sm:justify-end">
+        <AlertDialogFooter className="flex-row flex-wrap gap-3 px-6 pb-6 pt-2 sm:justify-end">
           <AlertDialogCancel asChild>
-            <Button className="mt-0 max-sm:flex-1" variant="outline">
+            <Button
+              className="mt-0 whitespace-nowrap max-sm:flex-1"
+              variant="outline"
+            >
               {t("common.cancel")}
             </Button>
           </AlertDialogCancel>
           <AlertDialogAction asChild>
             <Button
-              className="max-sm:flex-1"
+              className="whitespace-nowrap max-sm:flex-1"
               variant={is_destructive ? "destructive" : "primary"}
               onClick={on_confirm}
             >
@@ -151,10 +154,10 @@ export function EmptyTrashModal({
           </AlertDialogHeader>
         </div>
 
-        <AlertDialogFooter className="flex-row gap-3 px-6 pb-6 pt-2 sm:justify-end">
+        <AlertDialogFooter className="flex-row flex-wrap gap-3 px-6 pb-6 pt-2 sm:justify-end">
           <AlertDialogCancel asChild>
             <Button
-              className="mt-0 max-sm:flex-1"
+              className="mt-0 whitespace-nowrap max-sm:flex-1"
               disabled={is_emptying}
               variant="outline"
             >
@@ -163,7 +166,7 @@ export function EmptyTrashModal({
           </AlertDialogCancel>
           <AlertDialogAction asChild>
             <Button
-              className="max-sm:flex-1"
+              className="whitespace-nowrap max-sm:flex-1"
               disabled={is_emptying}
               is_loading={is_emptying}
               variant="destructive"

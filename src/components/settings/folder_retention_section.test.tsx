@@ -145,9 +145,6 @@ vi.mock("@/components/ui/select", () => ({
 }));
 
 vi.mock("@/components/toast/simple_toast", () => ({ show_toast: vi.fn() }));
-vi.mock("@/components/settings/search_context", () => ({
-  use_register_search_items: () => {},
-}));
 vi.mock("@/hooks/use_folders", () => ({
   use_folders: () => ({
     state: { folders: h.folders, is_loading: false },

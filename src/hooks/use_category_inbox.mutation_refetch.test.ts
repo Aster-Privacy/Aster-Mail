@@ -104,6 +104,7 @@ vi.mock("@/services/category_index", () => ({
   get_category_total: () => mocks.page_ids.length,
   is_fully_built: () => true,
   is_index_settled: () => true,
+  is_serving_previous_build: () => false,
   is_build_in_progress: () => false,
   is_build_stalled: () => false,
   subscribe: (fn: () => void) => {
@@ -129,6 +130,7 @@ vi.mock("@/services/category_index", () => ({
 }));
 
 import { use_category_inbox } from "@/hooks/use_category_inbox";
+import { clear_category_row_cache } from "@/hooks/email_list_helpers/row_store";
 
 interface SeenState {
   is_loading: boolean;
@@ -171,6 +173,7 @@ async function flush(): Promise<void> {
 
 describe("use_category_inbox mutation refetch", () => {
   beforeEach(() => {
+    clear_category_row_cache();
     (
       globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT: boolean }
     ).IS_REACT_ACT_ENVIRONMENT = true;

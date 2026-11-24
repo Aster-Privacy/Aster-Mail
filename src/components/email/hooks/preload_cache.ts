@@ -52,6 +52,7 @@ import {
   is_password_protected_body,
   is_ratchet_verified_body,
 } from "@/utils/email_crypto";
+import { is_pending_decrypt_body } from "@/utils/undecryptable_body";
 import {
   get_vault_from_memory,
   wait_for_keys_ready,
@@ -102,7 +103,7 @@ import {
 import { prefetch_attachment_meta } from "@/services/attachment_meta_cache";
 import { prefetch_attachment_previews } from "@/services/attachment_preview_cache";
 import { app_locale, get_display_time_zone } from "@/utils/date_format";
-import { clip_code_points } from "@/utils/preview_text";
+import { build_body_preview, clip_code_points } from "@/utils/preview_text";
 import { move_leading_footer_to_end } from "@/components/email/message_body_parts";
 import {
   has_readable_body,
@@ -529,8 +530,6 @@ export async function preload_email_detail(
 
       if (!envelope) return;
 
-      const attachment_meta_ready = prefetch_attachment_meta([target_id]);
-
       let resolved_html = envelope.body_html ?? envelope.html_body ?? undefined;
 
       if (resolved_html && /^content-type\s*:/im.test(resolved_html)) {
@@ -551,8 +550,14 @@ export async function preload_email_detail(
           )
         : resolved_text;
 
+      if (is_pending_decrypt_body(body_text)) return;
+
       const sent_encryption_scope = sent_copy_encryption_scope(envelope);
-      const ratchet_sealed = is_ratchet_verified_body(resolved_text, body_text);
+      const ratchet_sealed = is_ratchet_verified_body(
+        resolved_text,
+        body_text,
+        item.id,
+      );
       const e2e_verified =
         ratchet_sealed || sent_encryption_scope !== undefined;
       const e2e_sender_bound = e2e_verified;
@@ -582,6 +587,7 @@ export async function preload_email_detail(
       }
 
       settle_sealed_fields(envelope, subject_bundle, ratchet_sealed, item.id);
+      const attachment_meta_ready = prefetch_attachment_meta([target_id]);
       const e2e_details_sealed = has_sealed_details(
         subject_bundle,
         ratchet_sealed,
@@ -656,13 +662,7 @@ export async function preload_email_detail(
         preview: password_protected
           ? ""
           : clip_code_points(
-              body_text ||
-                (safe_html
-                  ? safe_html
-                      .replace(/<[^>]*>/g, " ")
-                      .replace(/\s+/g, " ")
-                      .trim()
-                  : ""),
+              build_body_preview(body_text, safe_html ?? ""),
               200,
             ),
         timestamp: new Date(envelope.sent_at || item.created_at).toLocaleString(
@@ -868,6 +868,16 @@ export async function preload_email_detail(
       if (
         get_preload_generation() !== started_generation ||
         get_preload_account_epoch() !== started_account_epoch
+      ) {
+        if (cid_resolved) revoke_cid_blob_urls(cid_resolved.blob_urls);
+        for (const resolved of thread_cid_resolved.values())
+          revoke_cid_blob_urls(resolved.blob_urls);
+
+        return;
+      }
+
+      if (
+        thread_messages.some((message) => is_pending_decrypt_body(message.body))
       ) {
         if (cid_resolved) revoke_cid_blob_urls(cid_resolved.blob_urls);
         for (const resolved of thread_cid_resolved.values())

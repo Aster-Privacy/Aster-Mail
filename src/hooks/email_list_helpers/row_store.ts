@@ -24,6 +24,34 @@ export const ROW_STORE_LIMIT = 1500;
 
 export type RowStore = Map<string, InboxEmail>;
 
+export interface CategoryRowCache {
+  owner: string | null;
+  rows: RowStore;
+  pages: Map<string, InboxEmail[]>;
+}
+
+export const category_row_cache: CategoryRowCache = {
+  owner: null,
+  rows: new Map(),
+  pages: new Map(),
+};
+
+export function claim_category_row_cache(owner: string): CategoryRowCache {
+  if (category_row_cache.owner !== owner) {
+    category_row_cache.rows.clear();
+    category_row_cache.pages.clear();
+    category_row_cache.owner = owner;
+  }
+
+  return category_row_cache;
+}
+
+export function clear_category_row_cache(): void {
+  category_row_cache.rows.clear();
+  category_row_cache.pages.clear();
+  category_row_cache.owner = null;
+}
+
 function row_keys(row: InboxEmail): string[] {
   const grouped = row.grouped_email_ids ?? [];
 
@@ -99,4 +127,58 @@ export function assemble_cached_page(
   }
 
   return rows;
+}
+
+export function assemble_known_rows(
+  store: RowStore,
+  ids: readonly string[],
+  is_unread: (id: string) => boolean,
+): InboxEmail[] | null {
+  const seen = new Set<InboxEmail>();
+  const rows: InboxEmail[] = [];
+
+  for (const id of ids) {
+    const row = store.get(id);
+
+    if (!row || seen.has(row)) continue;
+    seen.add(row);
+
+    const is_read = !is_unread(id);
+
+    rows.push(row.is_read === is_read ? row : { ...row, is_read });
+  }
+
+  return rows.length > 0 ? rows : null;
+}
+
+export function is_pending_row(row: InboxEmail): boolean {
+  return row.is_encrypted === true;
+}
+
+export function has_pending_rows(rows: readonly InboxEmail[]): boolean {
+  return rows.some(is_pending_row);
+}
+
+export function fill_pending_rows(
+  rows: readonly InboxEmail[],
+  sources: readonly ReadonlyMap<string, InboxEmail>[],
+): InboxEmail[] {
+  return rows.map((row) => {
+    if (!is_pending_row(row)) return row;
+
+    for (const source of sources) {
+      const known = source.get(row.id);
+
+      if (!known || known.id !== row.id || is_pending_row(known)) continue;
+
+      return {
+        ...known,
+        is_read: row.is_read,
+        is_starred: row.is_starred,
+        is_pinned: row.is_pinned,
+      };
+    }
+
+    return row;
+  });
 }

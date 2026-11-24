@@ -38,6 +38,12 @@ const state = vi.hoisted(() => ({
   verify: vi.fn(),
   confirm: vi.fn(async () => ({ data: {} })),
   seal: vi.fn(async () => new Uint8Array(8)),
+  typed: "9B16 AF79 0A6A E2F2 55D3" as string | null,
+  prompt: vi.fn(),
+}));
+
+vi.mock("./account_bridge_prompt", () => ({
+  ask_device_fingerprint: state.prompt,
 }));
 
 vi.mock("@/services/account_manager", () => ({
@@ -166,6 +172,9 @@ beforeEach(() => {
   });
   state.confirm.mockClear();
   state.seal.mockClear();
+  state.typed = FINGERPRINT;
+  state.prompt.mockReset();
+  state.prompt.mockImplementation(async () => state.typed);
 });
 
 describe("account bridge device fingerprint", () => {
@@ -192,6 +201,7 @@ describe("account bridge device fingerprint", () => {
     });
 
     expect(reply).toMatchObject({ ok: false, error: "fingerprint_mismatch" });
+    expect(state.prompt).not.toHaveBeenCalled();
     expect(state.seal).not.toHaveBeenCalled();
     expect(state.confirm).not.toHaveBeenCalled();
   });
@@ -208,20 +218,23 @@ describe("account bridge device fingerprint", () => {
     expect(state.confirm).toHaveBeenCalledTimes(1);
   });
 
-  it("refuses to link when the request carries no fingerprint", async () => {
+  it("asks the person to type the fingerprint before it seals", async () => {
     const reply = await ask(LINK_ORIGIN, {
       action: "link",
       code: "code_one",
       account_id: "acct_a",
     });
 
-    expect(reply).toMatchObject({ ok: false, error: "fingerprint_required" });
-    expect(state.verify).not.toHaveBeenCalled();
-    expect(state.seal).not.toHaveBeenCalled();
-    expect(state.confirm).not.toHaveBeenCalled();
+    expect(reply.ok).toBe(true);
+    expect(state.prompt).toHaveBeenCalledTimes(1);
+    expect(state.prompt.mock.invocationCallOrder[0]).toBeLessThan(
+      state.seal.mock.invocationCallOrder[0],
+    );
   });
 
-  it("refuses to link when the fingerprint is null", async () => {
+  it("accepts the typed fingerprint in any case and spacing", async () => {
+    state.typed = "9b16af790a6ae2f255d3";
+
     const reply = await ask(LINK_ORIGIN, {
       action: "link",
       code: "code_one",
@@ -229,9 +242,60 @@ describe("account bridge device fingerprint", () => {
       fingerprint: null,
     });
 
-    expect(reply).toMatchObject({ ok: false, error: "fingerprint_required" });
+    expect(reply.ok).toBe(true);
+  });
+
+  it("does not trust a matching fingerprint from the page", async () => {
+    state.typed = OTHER_FINGERPRINT;
+
+    const reply = await ask(LINK_ORIGIN, {
+      action: "link",
+      code: "code_one",
+      account_id: "acct_a",
+      fingerprint: FINGERPRINT,
+    });
+
+    expect(reply).toMatchObject({ ok: false, error: "fingerprint_mismatch" });
     expect(state.seal).not.toHaveBeenCalled();
     expect(state.confirm).not.toHaveBeenCalled();
+  });
+
+  it("stops when the person cancels", async () => {
+    state.typed = null;
+
+    const reply = await ask(LINK_ORIGIN, {
+      action: "link",
+      code: "code_one",
+      account_id: "acct_a",
+    });
+
+    expect(reply).toMatchObject({ ok: false, error: "declined" });
+    expect(state.seal).not.toHaveBeenCalled();
+    expect(state.confirm).not.toHaveBeenCalled();
+  });
+
+  it("does not count a cancel against the link allowance", async () => {
+    state.typed = null;
+
+    for (let attempt = 0; attempt < 4; attempt += 1) {
+      const declined = await ask(LINK_ORIGIN, {
+        action: "link",
+        code: "code_one",
+        account_id: "acct_a",
+      });
+
+      expect(declined).toMatchObject({ ok: false, error: "declined" });
+    }
+
+    state.typed = FINGERPRINT;
+
+    const reply = await ask(LINK_ORIGIN, {
+      action: "link",
+      code: "code_one",
+      account_id: "acct_a",
+    });
+
+    expect(reply).toMatchObject({ ok: true });
   });
 
   it("rejects a fingerprint that is not in the displayed format", async () => {

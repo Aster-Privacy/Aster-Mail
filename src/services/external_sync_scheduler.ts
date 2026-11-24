@@ -25,6 +25,7 @@ import {
 } from "@/services/api/external_accounts";
 import { get_storage_write_crypto_key } from "@/services/crypto/storage_write_key";
 import { array_to_base64, base64_to_array } from "@/services/api/sender_utils";
+import { fetches_on_server } from "@/lib/external_account_modes";
 
 export type SyncInterval = "5m" | "15m" | "30m" | "1h" | "2h" | "6h" | "manual";
 
@@ -114,7 +115,11 @@ class ExternalSyncScheduler {
     const seen_tokens = new Set<string>();
 
     for (const account of accounts) {
-      if (!account.is_enabled || !account.is_verified) {
+      if (
+        !account.is_enabled ||
+        !account.is_verified ||
+        !fetches_on_server(account)
+      ) {
         continue;
       }
 

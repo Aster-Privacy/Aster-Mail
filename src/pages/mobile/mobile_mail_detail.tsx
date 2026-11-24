@@ -128,6 +128,7 @@ function MobileMailDetail() {
     opened_message_ref,
     scroll_ref,
     display_messages,
+    live_menu_message,
     pending_thread_count,
     pending_row_count,
     first_unread_id,
@@ -443,7 +444,7 @@ function MobileMailDetail() {
         is_pinned={pinned}
         is_spam={!!detail.mail_item?.is_spam}
         is_starred={starred}
-        menu_message={menu_message}
+        menu_message={live_menu_message}
         menu_source={menu_source}
         on_archive={is_archived ? handle_archive : handle_menu_archive}
         on_block={() => {
@@ -503,8 +504,11 @@ function MobileMailDetail() {
         on_toggle_pin={handle_toggle_pin}
         on_toggle_plain_view={handle_toggle_plain_view}
         on_toggle_read={() => {
-          if (menu_message) {
-            detail.handle_toggle_message_read(menu_message.id);
+          if (live_menu_message) {
+            detail.handle_toggle_message_read(
+              live_menu_message.id,
+              !live_menu_message.is_read,
+            );
           }
           set_menu_message(null);
         }}
@@ -536,7 +540,15 @@ function MobileMailDetail() {
         on_select={(category) => {
           if (!category_item) return;
           void move_items_to_category(
-            [mail_item_move_item(category_item, detail.email?.sender_email)],
+            [
+              mail_item_move_item(
+                category_item,
+                detail.email?.sender_email,
+                display_messages.find(
+                  (message) => message.id === category_item.id,
+                )?.sender_verification,
+              ),
+            ],
             category,
             { t: detail.t, custom_categories: preferences.custom_categories },
           );

@@ -77,6 +77,7 @@ import {
   type BulkScopeAction,
   type BulkScopeFilter,
 } from "@/services/api/mail";
+import { with_rate_limit_retry } from "@/services/api/rate_limit_retry";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_inbox_categories } from "@/hooks/use_inbox_categories";
 import { use_inbox_selection } from "@/components/email/inbox/use_inbox_selection";
@@ -315,11 +316,13 @@ export function use_inbox_bulk_actions({
             return;
           }
 
-          const res = await bulk_action_by_scope({
-            action,
-            scope: scope_for_view,
-            ...(exclude_ids.length > 0 ? { exclude_ids } : {}),
-          });
+          const res = await with_rate_limit_retry(() =>
+            bulk_action_by_scope({
+              action,
+              scope: scope_for_view,
+              ...(exclude_ids.length > 0 ? { exclude_ids } : {}),
+            }),
+          );
 
           if (res.error) throw new Error(res.error);
           affected_count = res.data?.affected_count ?? 0;
@@ -618,7 +621,9 @@ export function use_inbox_bulk_actions({
 
         for (let i = 0; i < ids.length; i += BATCH_LIMITS.MAIL_BULK) {
           const chunk = ids.slice(i, i + BATCH_LIMITS.MAIL_BULK);
-          const response = await bulk_snooze_emails(chunk, snooze_until);
+          const response = await with_rate_limit_retry(() =>
+            bulk_snooze_emails(chunk, snooze_until),
+          );
 
           if (response.error) {
             last_error = response.error;
@@ -699,18 +704,21 @@ export function use_inbox_bulk_actions({
         return;
       }
 
-      const ids = scope_category_ids(
+      const scoped_ids = scope_category_ids(
         categories.active_category,
         selection.get_excluded_message_ids(),
+      );
+      const snapshots = new Map(
+        get_index_entries(scoped_ids).map((entry) => [entry.id, { ...entry }]),
+      );
+      const ids = scoped_ids.filter(
+        (id) => !snapshots.get(id)?.system_locked,
       );
 
       if (ids.length === 0 || category === categories.active_category) {
         return;
       }
 
-      const snapshots = new Map(
-        get_index_entries(ids).map((entry) => [entry.id, { ...entry }]),
-      );
       const restore = (restore_ids: readonly string[]): void => {
         batch_index_updates(() => {
           for (const id of restore_ids) {

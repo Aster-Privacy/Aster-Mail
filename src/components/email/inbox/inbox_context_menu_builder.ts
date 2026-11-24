@@ -677,12 +677,15 @@ export function build_context_menu_actions(
   };
 
   const handle_delete_action = (email: InboxEmail) => {
-    if (
-      preferences.confirm_before_delete ||
-      (current_view !== "drafts" &&
-        current_view !== "scheduled" &&
-        is_list_email_in_trash(email, current_view))
-    ) {
+    const is_permanent =
+      current_view !== "drafts" &&
+      current_view !== "scheduled" &&
+      is_list_email_in_trash(email, current_view);
+    const needs_confirm = is_permanent
+      ? preferences.confirm_before_permanent_delete !== false
+      : preferences.confirm_before_delete;
+
+    if (needs_confirm) {
       set_pending_delete_email(email);
       set_show_single_delete_confirm(true);
     } else {

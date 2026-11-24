@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type { EmailCategory } from "@/types/email";
+import type { MailItem } from "@/services/api/mail";
 import type { CategoryPreview } from "@/lib/category_preview_text";
 
 import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
@@ -39,6 +40,10 @@ import { list_mail_items } from "@/services/api/mail";
 import { filter_locked_mail_items } from "@/services/locked_folders";
 import { decrypt_envelope } from "@/hooks/email_list_helpers";
 import { build_category_preview } from "@/lib/category_preview_text";
+import { get_current_account } from "@/services/account_manager";
+import { is_ratchet_body_text } from "@/services/crypto/ratchet_types";
+import { settle_bundle_subject } from "@/services/crypto/sealed_message_fields";
+import { decrypt_body_text_with_bundle } from "@/utils/email_crypto";
 
 export type { CategoryPreview };
 
@@ -102,6 +107,50 @@ function resolve_preview(id: string): CategoryPreview | undefined {
 
 const MAX_HOVER_PREVIEWS = 5;
 
+async function current_user_email(): Promise<string> {
+  try {
+    return (await get_current_account())?.user.email ?? "";
+  } catch {
+    return "";
+  }
+}
+
+async function settled_category_preview(
+  item: MailItem,
+): Promise<CategoryPreview | null> {
+  const envelope = await decrypt_envelope(
+    item.encrypted_envelope,
+    item.envelope_nonce,
+    item.id,
+  );
+
+  if (!envelope) return null;
+
+  if (envelope.body_text) {
+    const sealed_body = is_ratchet_body_text(envelope.body_text);
+
+    try {
+      const bundle = await decrypt_body_text_with_bundle(
+        envelope.body_text,
+        await current_user_email(),
+        envelope.from?.email || "",
+        item.id,
+      );
+
+      if (sealed_body && bundle.sealed !== true) return null;
+      settle_bundle_subject(envelope, bundle);
+    } catch {
+      if (sealed_body) return null;
+    }
+  }
+
+  return build_category_preview(
+    envelope.from?.name,
+    envelope.from?.email,
+    envelope.subject,
+  );
+}
+
 async function fetch_previews(ids: string[]): Promise<boolean> {
   const generation = get_index_generation();
 
@@ -118,23 +167,12 @@ async function fetch_previews(ids: string[]): Promise<boolean> {
     const items = filter_locked_mail_items(response.data.items ?? []);
 
     for (const item of items) {
-      const envelope = await decrypt_envelope(
-        item.encrypted_envelope,
-        item.envelope_nonce,
-        item.id,
-      );
+      const preview = await settled_category_preview(item);
 
       if (generation !== get_index_generation()) return false;
-      if (!envelope) continue;
+      if (!preview) continue;
 
-      preview_cache.set(
-        item.id,
-        build_category_preview(
-          envelope.from?.name,
-          envelope.from?.email,
-          envelope.subject,
-        ),
-      );
+      preview_cache.set(item.id, preview);
       attempts.delete(item.id);
     }
 
@@ -278,23 +316,12 @@ export function use_category_previews(enabled: boolean): CategoryPreviews {
         const items = filter_locked_mail_items(response.data.items ?? []);
 
         for (const item of items) {
-          const envelope = await decrypt_envelope(
-            item.encrypted_envelope,
-            item.envelope_nonce,
-            item.id,
-          );
+          const preview = await settled_category_preview(item);
 
           if (cancelled || generation !== get_index_generation()) return;
-          if (!envelope) continue;
+          if (!preview) continue;
 
-          preview_cache.set(
-            item.id,
-            build_category_preview(
-              envelope.from?.name,
-              envelope.from?.email,
-              envelope.subject,
-            ),
-          );
+          preview_cache.set(item.id, preview);
           attempts.delete(item.id);
         }
 

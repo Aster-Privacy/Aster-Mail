@@ -24,11 +24,16 @@ import {
   get_recipient_public_key,
 } from "./api/keys";
 import { is_internal_recipient } from "./recipient_classification";
-import { create_error } from "./send_queue_types";
+import {
+  create_error,
+  recipient_keys_unavailable_error,
+} from "./send_queue_types";
+import { missing_recipient_key_error } from "./recipient_existence";
 import {
   check_owner_key_pin,
   flag_recipient_untrusted,
   is_recipient_flagged_untrusted,
+  lookup_owner_key_pin,
 } from "./crypto/ratchet_identity_pin";
 import { RecipientPinUnreadableError } from "./crypto/ratchet_types";
 
@@ -73,21 +78,40 @@ export async function resolve_own_username_for_key_lookup(
   return extract_username_from_email(email);
 }
 
+export async function owner_key_pinned_before_send(
+  recipient: string,
+): Promise<boolean> {
+  const found = await lookup_owner_key_pin(recipient.trim().toLowerCase());
+
+  return found !== null && found !== "unreadable";
+}
+
 export async function assert_owner_key_trusted(
   recipient: string,
   armored_public_key: string,
+  pinned_before_send?: boolean,
 ): Promise<void> {
   const pin_id = recipient.trim().toLowerCase();
 
-  const owner_changed =
-    (await check_owner_key_pin(pin_id, armored_public_key).catch((caught) => {
+  const status = await check_owner_key_pin(pin_id, armored_public_key).catch(
+    (caught) => {
       if (!(caught instanceof RecipientPinUnreadableError)) throw caught;
 
       throw create_error(
         "encryption_failed",
         get_active_translations().errors.recipient_key_unreadable,
       );
-    })) === "changed";
+    },
+  );
+
+  if (status === "ok" && pinned_before_send === false) {
+    throw create_error(
+      "encryption_failed",
+      get_active_translations().errors.recipient_key_untrusted,
+    );
+  }
+
+  const owner_changed = status === "changed";
 
   if (!owner_changed && !(await is_recipient_flagged_untrusted(pin_id))) {
     return;
@@ -101,6 +125,33 @@ export async function assert_owner_key_trusted(
   );
 }
 
+async function fetch_recipient_public_key(
+  recipient: string,
+): Promise<string> {
+  const username = await resolve_username_for_key_lookup(recipient);
+
+  if (!username) {
+    throw recipient_keys_unavailable_error([recipient]);
+  }
+
+  const key_response = await get_recipient_public_key(username, recipient);
+
+  if (key_response.error || !key_response.data) {
+    if (key_response.code && key_response.code !== "NOT_FOUND") {
+      throw create_error(
+        "encryption_failed",
+        get_active_translations().errors.failed_encrypt_envelope,
+      );
+    }
+
+    throw missing_recipient_key_error(recipient, key_response);
+  }
+
+  await assert_owner_key_trusted(recipient, key_response.data.public_key);
+
+  return key_response.data.public_key;
+}
+
 export async function fetch_internal_public_keys(
   recipients: string[],
 ): Promise<string[]> {
@@ -108,26 +159,7 @@ export async function fetch_internal_public_keys(
   const public_keys: string[] = [];
 
   for (const recipient of internal_recipients) {
-    const username = await resolve_username_for_key_lookup(recipient);
-
-    if (!username) {
-      throw create_error(
-        "encryption_failed",
-        get_active_translations().errors.cannot_send_no_recipient_keys,
-      );
-    }
-
-    const key_response = await get_recipient_public_key(username, recipient);
-
-    if (key_response.error || !key_response.data) {
-      throw create_error(
-        "encryption_failed",
-        get_active_translations().errors.cannot_send_no_recipient_keys,
-      );
-    }
-
-    await assert_owner_key_trusted(recipient, key_response.data.public_key);
-    public_keys.push(key_response.data.public_key);
+    public_keys.push(await fetch_recipient_public_key(recipient));
   }
 
   return public_keys;

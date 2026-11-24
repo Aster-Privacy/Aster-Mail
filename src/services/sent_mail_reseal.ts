@@ -29,7 +29,6 @@ import {
 } from "./crypto/envelope";
 import { zero_uint8_array } from "./crypto/secure_memory";
 import {
-  ENVELOPE_V2_NONCE,
   encrypt_envelope_v2,
   envelope_sha256_hex,
   envelope_v2_write_key,
@@ -37,6 +36,7 @@ import {
 } from "./crypto/envelope_v2";
 import { is_level2_admitted } from "./crypto/vault_level2";
 import { get_vault_from_memory } from "./crypto/memory_key_store";
+import { stored_envelope_write_binding } from "./crypto/stored_envelope_write";
 import {
   is_attachment_meta_v2_nonce,
   seal_attachment_meta_v2,
@@ -78,10 +78,14 @@ async function rekey_to_envelope_v2(
 
   if (!SHA256_HEX_PATTERN.test(expected_envelope_sha256)) return false;
 
-  const { encrypted } = await encrypt_envelope_v2(decrypted, kek);
+  const { encrypted, nonce } = await encrypt_envelope_v2(
+    decrypted,
+    kek,
+    stored_envelope_write_binding(item_id),
+  );
   const response = await update_mail_item(item_id, {
     encrypted_envelope: encrypted,
-    envelope_nonce: ENVELOPE_V2_NONCE,
+    envelope_nonce: nonce,
     expected_envelope_sha256,
   });
 

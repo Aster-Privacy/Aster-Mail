@@ -24,6 +24,7 @@ import { get_active_translations } from "@/lib/i18n/translations";
 import { format_bytes } from "@/lib/utils";
 
 export const SENDER_NOT_AUTHORIZED_CODE = "SENDER_NOT_AUTHORIZED";
+export const ALIAS_SENDING_DISABLED_REFUSAL_CODE = "ALIAS_SENDING_DISABLED";
 
 export interface SendRefusalSource {
   code?: string;
@@ -40,6 +41,10 @@ export interface SendRefusal {
 export function describe_sender_refusal(
   result: SendRefusalSource,
 ): string | null {
+  if (result.server_code === ALIAS_SENDING_DISABLED_REFUSAL_CODE) {
+    return get_active_translations().errors.alias_sending_disabled;
+  }
+
   return result.server_code === SENDER_NOT_AUTHORIZED_CODE
     ? get_active_translations().errors.sender_address_refused
     : null;
@@ -61,6 +66,13 @@ export function describe_send_refusal(
             : get_active_translations().errors.that_provider,
         )
         .replace("{{time}}", format_time_remaining(result.resets_at)),
+    };
+  }
+
+  if (result.server_code === ALIAS_SENDING_DISABLED_REFUSAL_CODE) {
+    return {
+      kind: "send_failed",
+      message: get_active_translations().errors.alias_sending_disabled,
     };
   }
 

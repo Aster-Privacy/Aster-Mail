@@ -184,6 +184,7 @@ interface UseInboxToolbarActionsOptions {
   tags_lookup: Map<string, { name: string; color?: string; icon?: string }>;
   preferences: {
     confirm_before_delete: boolean;
+    confirm_before_permanent_delete?: boolean;
     confirm_before_spam: boolean;
     confirm_before_archive: boolean;
     conversation_grouping?: boolean;

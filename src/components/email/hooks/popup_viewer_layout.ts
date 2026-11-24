@@ -41,7 +41,10 @@ export interface PopupPosition {
 
 const POPUP_WIDTH = 680;
 const POPUP_HEIGHT_DEFAULT = 720;
-const POPUP_HEIGHT_EXPANDED = 860;
+const POPUP_WIDTH_EXPANDED_MAX = 1280;
+const POPUP_HEIGHT_EXPANDED_MIN = 860;
+const EXPANDED_WIDTH_RATIO = 0.7;
+const EXPANDED_HEIGHT_RATIO = 0.9;
 const POPUP_MIN_SIZE = 200;
 
 export function read_popup_viewport(): PopupViewport {
@@ -59,13 +62,27 @@ export function get_popup_dimensions(
     };
   }
 
-  const target_height =
-    size === "expanded" ? POPUP_HEIGHT_EXPANDED : POPUP_HEIGHT_DEFAULT;
+  const is_expanded = size === "expanded";
+  const target_width = is_expanded
+    ? Math.min(
+        POPUP_WIDTH_EXPANDED_MAX,
+        Math.max(
+          POPUP_WIDTH,
+          Math.round(viewport.width * EXPANDED_WIDTH_RATIO),
+        ),
+      )
+    : POPUP_WIDTH;
+  const target_height = is_expanded
+    ? Math.max(
+        POPUP_HEIGHT_EXPANDED_MIN,
+        Math.round(viewport.height * EXPANDED_HEIGHT_RATIO),
+      )
+    : POPUP_HEIGHT_DEFAULT;
 
   return {
     width: Math.max(
       POPUP_MIN_SIZE,
-      Math.min(POPUP_WIDTH, viewport.width - POPUP_MARGIN * 2),
+      Math.min(target_width, viewport.width - POPUP_MARGIN * 2),
     ),
     height: Math.max(
       POPUP_MIN_SIZE,
@@ -98,6 +115,22 @@ export function get_centered_popup_position(
       y: Math.round((viewport.height - dimensions.height) / 2),
     },
     dimensions,
+    viewport,
+  );
+}
+
+export function get_resized_popup_position(
+  position: PopupPosition,
+  from: PopupDimensions,
+  to: PopupDimensions,
+  viewport: PopupViewport,
+): PopupPosition {
+  return clamp_popup_position(
+    {
+      x: Math.round(position.x + (from.width - to.width) / 2),
+      y: Math.round(position.y + (from.height - to.height) / 2),
+    },
+    to,
     viewport,
   );
 }

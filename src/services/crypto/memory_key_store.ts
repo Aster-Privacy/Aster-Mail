@@ -52,9 +52,32 @@ import {
   prepend_keks_keeping_all,
 } from "./legacy_keks";
 
+import { pin_vault_generation } from "./vault_generation";
+import {
+  clear_password_storage_keys,
+  note_password_storage_keys,
+} from "./password_storage_keys";
+import {
+  reset_mail_legacy_retirement,
+  sync_mail_legacy_retirement,
+} from "./mail_legacy_retirement";
+import {
+  clear_server_known_keys,
+  note_server_known_raws,
+  strip_server_known_keks,
+} from "./server_known_keys";
+import {
+  retired_storage_kek_id,
+  strip_retired_storage_keks,
+} from "./retired_storage_keks";
+
 import { clear_preview_memo } from "@/utils/preview_text";
 import { HASH_ALG } from "@/services/crypto/constants";
 import { get_active_translations } from "@/lib/i18n/translations";
+import {
+  note_decrypt_key_change,
+  register_keys_settled_probe,
+} from "@/services/crypto/decrypt_readiness";
 
 export const MASTER_KEY_VAULT_FORMAT = 2;
 
@@ -310,6 +333,26 @@ async function derive_stretched_encryption_key(
   return new Uint8Array(derived_bits);
 }
 
+async function derive_password_storage_raws(
+  passphrase_bytes: Uint8Array,
+  kdf_version: number,
+): Promise<Uint8Array[]> {
+  const current = await derive_encryption_key_from_passphrase(
+    passphrase_bytes,
+    kdf_version,
+  );
+
+  if (kdf_version < STORAGE_KDF_VERSION_STRETCHED) return [current];
+
+  return [
+    current,
+    await derive_encryption_key_from_passphrase(
+      passphrase_bytes,
+      STORAGE_KDF_VERSION_LEGACY,
+    ),
+  ];
+}
+
 export async function derive_encryption_key_from_passphrase(
   passphrase_bytes: Uint8Array,
   kdf_version: number = STORAGE_KDF_VERSION_LEGACY,
@@ -478,8 +521,22 @@ function request_account_key_load(
   );
 }
 
+function retain_untrusted_raws(encoded: readonly string[]): void {
+  const raws: Uint8Array[] = [];
+
+  for (const entry of encoded) {
+    try {
+      raws.push(base64_to_array(entry));
+    } catch {
+      continue;
+    }
+  }
+  note_server_known_raws(raws);
+  raws.forEach((raw) => zero_uint8_array(raw));
+}
+
 export async function store_vault_in_memory(
-  vault: EncryptedVault,
+  source_vault: EncryptedVault,
   passphrase: string,
   owner_user_id?: string,
 ): Promise<void> {
@@ -490,8 +547,18 @@ export async function store_vault_in_memory(
 
   clear_vault_from_memory({ keep_account_keys: same_owner });
 
+  const stripped = strip_server_known_keks(
+    strip_retired_storage_keks(source_vault),
+  );
+  const vault = stripped.vault;
+
+  retain_untrusted_raws(stripped.removed);
   vault_owner_id = next_owner_id;
-  if (next_owner_id !== null) last_vault_owner_id = next_owner_id;
+  if (next_owner_id !== null) {
+    last_vault_owner_id = next_owner_id;
+    pin_vault_generation(next_owner_id, vault);
+  }
+  sync_mail_legacy_retirement(vault, next_owner_id);
 
   vault_in_memory = {
     ...vault,
@@ -514,6 +581,12 @@ export async function store_vault_in_memory(
       ? vault.ratchet_previous_keys.map((k) => ({ ...k }))
       : undefined,
     ratchet_regen_v4_done: vault.ratchet_regen_v4_done,
+    mail_legacy_retired: vault.mail_legacy_retired
+      ? { ...vault.mail_legacy_retired }
+      : undefined,
+    folder_key_pins: vault.folder_key_pins
+      ? { ...vault.folder_key_pins }
+      : undefined,
     legacy_keks: vault.legacy_keks ? [...vault.legacy_keks] : undefined,
     data_kek: vault.data_kek,
     vault_format: vault.vault_format,
@@ -526,6 +599,9 @@ export async function store_vault_in_memory(
             ? [...vault.storage_rekey.prior_keys]
             : undefined,
         }
+      : undefined,
+    retired_storage_key_hashes: vault.retired_storage_key_hashes
+      ? [...vault.retired_storage_key_hashes]
       : undefined,
   };
 
@@ -546,50 +622,32 @@ export async function store_vault_in_memory(
 
   const uses_master_key = is_master_key_vault(vault);
   const kdf_version = get_storage_kdf_version(vault);
+  const retired_ids = new Set(vault.retired_storage_kek_ids ?? []);
+  const password_keys = passphrase_bytes
+    ? await derive_password_storage_raws(passphrase_bytes, kdf_version)
+    : [];
+
+  if (passphrase_bytes) zero_uint8_array(passphrase_bytes);
+  note_password_storage_keys(password_keys);
 
   if (uses_master_key && vault.data_kek) {
     derived_encryption_key = base64_to_array(vault.data_kek);
-    if (passphrase_bytes) {
-      const password_derived = await derive_encryption_key_from_passphrase(
-        passphrase_bytes,
-        kdf_version,
-      );
-
-      if (!arrays_equal(password_derived, derived_encryption_key)) {
-        await append_legacy_key_raw_bytes(password_derived);
+    for (const raw of password_keys) {
+      if (
+        !arrays_equal(raw, derived_encryption_key) &&
+        !retired_ids.has(retired_storage_kek_id(raw))
+      ) {
+        await append_legacy_key_raw_bytes(raw);
       }
-      zero_uint8_array(password_derived);
-
-      if (kdf_version >= STORAGE_KDF_VERSION_STRETCHED) {
-        const legacy_derived = await derive_encryption_key_from_passphrase(
-          passphrase_bytes,
-          STORAGE_KDF_VERSION_LEGACY,
-        );
-
-        await append_legacy_key_raw_bytes(legacy_derived);
-        zero_uint8_array(legacy_derived);
-      }
-
-      zero_uint8_array(passphrase_bytes);
     }
-  } else if (passphrase_bytes) {
+  } else if (password_keys.length > 0) {
     const read_only_lookup_keys: string[] = [];
 
-    derived_encryption_key = await derive_encryption_key_from_passphrase(
-      passphrase_bytes,
-      kdf_version,
-    );
-    if (kdf_version >= STORAGE_KDF_VERSION_STRETCHED) {
-      const legacy_derived = await derive_encryption_key_from_passphrase(
-        passphrase_bytes,
-        STORAGE_KDF_VERSION_LEGACY,
-      );
-
-      await append_legacy_key_raw_bytes(legacy_derived);
-      read_only_lookup_keys.push(array_to_base64(legacy_derived));
-      zero_uint8_array(legacy_derived);
+    derived_encryption_key = password_keys[0].slice();
+    for (const raw of password_keys.slice(1)) {
+      await append_legacy_key_raw_bytes(raw);
+      read_only_lookup_keys.push(array_to_base64(raw));
     }
-    zero_uint8_array(passphrase_bytes);
     if (vault.data_kek && derived_encryption_key) {
       await remember_stored_data_kek(vault.data_kek, derived_encryption_key);
       if (vault.data_kek !== array_to_base64(derived_encryption_key)) {
@@ -609,6 +667,7 @@ export async function store_vault_in_memory(
       }
     }
   }
+  password_keys.forEach(zero_uint8_array);
 
   secure_passphrase.on_zero(() => {
     if (derived_encryption_key) {
@@ -722,7 +781,9 @@ export function clear_vault_from_memory(
 ): void {
   clear_passphrase();
   clear_legacy_keks_from_memory();
+  reset_mail_legacy_retirement();
   if (!options.keep_account_keys) {
+    clear_server_known_keys();
     cancel_account_key_retry();
     clear_account_key_derived_keks();
     account_key_load_generation = null;
@@ -731,6 +792,7 @@ export function clear_vault_from_memory(
   }
   vault_in_memory = null;
   vault_owner_id = null;
+  clear_password_storage_keys();
   clear_crypto_key_cache();
   clear_unlocked_key_cache();
   clear_envelope_key_cache();
@@ -746,6 +808,7 @@ export function clear_vault_from_memory(
 
   if (!event.same_owner) vault_account_epoch += 1;
 
+  note_decrypt_key_change();
   vault_cleared_listeners.forEach((callback) => {
     try {
       callback(event);
@@ -796,6 +859,8 @@ export function on_keys_ready(callback: () => void): () => void {
   };
 }
 
+register_keys_settled_probe(() => are_keys_ready() && vault_in_memory !== null);
+
 const KEYS_READY_WAIT_MS = 15000;
 
 export function wait_for_keys_ready(
@@ -833,6 +898,7 @@ export function wait_for_keys_ready(
 
 function notify_keys_ready(): void {
   keys_ready_seen = false;
+  note_decrypt_key_change();
   keys_ready_listeners.forEach((callback) => {
     try {
       callback();

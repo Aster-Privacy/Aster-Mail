@@ -35,6 +35,18 @@ import { use_external_link } from "@/contexts/external_link_context";
 import { use_preferences_optional } from "@/contexts/preferences_context";
 import { resolve_content_blocking } from "@/components/email/resolve_content_blocking";
 import { strip_style_blocks } from "@/utils/strip_style_blocks";
+import { is_mailto_link, keep_safe_mailto_fields } from "@/lib/mailto_link";
+
+function scroll_to_anchor(container: HTMLElement, name: string): void {
+  if (!name) return;
+
+  const selector_value = CSS.escape(name);
+  const anchor = container.querySelector(
+    `[id="${selector_value}"], a[name="${selector_value}"]`,
+  );
+
+  anchor?.scrollIntoView({ block: "nearest" });
+}
 
 export function QuotedHtmlPreview({ html }: { html: string }) {
   const { handle_external_link } = use_external_link();
@@ -112,16 +124,25 @@ export function QuotedHtmlPreview({ html }: { html: string }) {
       if (event.type === "auxclick" && event.button !== 1) return;
 
       const target = event.target as HTMLElement | null;
-      const link = target?.closest("a");
+      const link = target?.closest("a, area");
 
       if (!link) return;
       const href = link.getAttribute("href") ?? "";
 
-      if (!href || href.startsWith("#") || href.startsWith("mailto:")) return;
+      if (!href) return;
 
       event.preventDefault();
       event.stopPropagation();
-      handle_external_link(href);
+
+      if (href.startsWith("#")) {
+        scroll_to_anchor(container, href.slice(1));
+
+        return;
+      }
+
+      handle_external_link(
+        is_mailto_link(href) ? keep_safe_mailto_fields(href) : href,
+      );
     };
 
     container.addEventListener("click", intercept);
@@ -139,7 +160,12 @@ export function QuotedHtmlPreview({ html }: { html: string }) {
       ref={container_ref}
       data-selectable-region
       className="mt-2 py-3 px-4 rounded-md text-sm leading-relaxed overflow-y-auto max-h-[150px] bg-surf-tertiary text-txt-secondary"
-      style={{ wordBreak: "break-word" }}
+      style={{
+        wordBreak: "break-word",
+        contain: "paint",
+        isolation: "isolate",
+        overflowX: "hidden",
+      }}
       tabIndex={-1}
     />
   );

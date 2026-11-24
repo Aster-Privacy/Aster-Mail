@@ -94,6 +94,45 @@ describe("fingerprint_of_encoded_device_keys", () => {
   });
 });
 
+describe("fingerprint with a Guard action key", () => {
+  const ACTION = new Uint8Array(33).fill(4);
+  const ACTION_VECTOR = "66ED 3B45 08A0 8B87 6C46";
+
+  it("covers the action key when the device sends one", () => {
+    expect(device_key_fingerprint(ED, MLKEM, X, ACTION)).toBe(ACTION_VECTOR);
+    expect(
+      fingerprint_of_encoded_device_keys({
+        ed25519_pk: base64url_encode(ED),
+        mlkem_pk: base64url_encode(MLKEM),
+        x25519_pk: base64url_encode(X),
+        action_pk: base64url_encode(ACTION),
+      }),
+    ).toBe(ACTION_VECTOR);
+  });
+
+  it("keeps the old fingerprint when there is no action key", () => {
+    expect(
+      fingerprint_of_encoded_device_keys({
+        ed25519_pk: base64url_encode(ED),
+        mlkem_pk: base64url_encode(MLKEM),
+        x25519_pk: base64url_encode(X),
+        action_pk: null,
+      }),
+    ).toBe(VECTOR);
+  });
+
+  it("rejects an action key of the wrong size", () => {
+    expect(
+      fingerprint_of_encoded_device_keys({
+        ed25519_pk: base64url_encode(ED),
+        mlkem_pk: base64url_encode(MLKEM),
+        x25519_pk: base64url_encode(X),
+        action_pk: base64url_encode(new Uint8Array(32).fill(4)),
+      }),
+    ).toBeNull();
+  });
+});
+
 describe("typed verification codes", () => {
   it("keeps only code characters, uppercases them and stops at full length", () => {
     expect(normalize_fingerprint_input("9b16-af79 0a6a:e2f2 55d3 ffff zz")).toBe(

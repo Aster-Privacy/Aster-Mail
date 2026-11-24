@@ -38,6 +38,7 @@ import {
   peek_read_ticket,
   pick_flag_intents,
 } from "@/services/read_intent";
+import { with_rate_limit_retry } from "@/services/api/rate_limit_retry";
 
 type UpdateResult = MetadataWriteResult;
 
@@ -616,7 +617,9 @@ export async function bulk_update_metadata_by_ids(
     slices.map((_, index) => index),
     BULK_FETCH_CONCURRENCY,
     async (index) => {
-      responses[index] = await list_mail_items({ ids: slices[index] });
+      responses[index] = await with_rate_limit_retry(() =>
+        list_mail_items({ ids: slices[index] }),
+      );
     },
   );
 
@@ -803,9 +806,9 @@ async function execute_items_write(
 
   await Promise.all(
     chunks.map(async (chunk) => {
-      const response = await list_mail_items({ ids: chunk }).catch(
-        () => null,
-      );
+      const response = await with_rate_limit_retry(() =>
+        list_mail_items({ ids: chunk }),
+      ).catch(() => null);
 
       if (!response?.data) {
         for (const id of chunk) unfetchable.add(id);

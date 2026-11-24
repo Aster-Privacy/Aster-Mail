@@ -42,6 +42,7 @@ import { append_keks_to_list, serialize_kek_for_vault } from "./legacy_keks";
 import { base64_to_array } from "./base64";
 import { zero_uint8_array } from "./secure_memory";
 import { without_retired_keks } from "./retired_identity_keks";
+import { is_public_mail_kek } from "./server_known_keys";
 import {
   derive_encryption_key_from_passphrase,
   get_passphrase_from_memory,
@@ -57,6 +58,7 @@ import {
   verify_vault_roundtrip,
 } from "./ensure_ratchet_keys";
 import { with_vault_write_lock } from "./vault_write_lock";
+import { next_vault_generation } from "./vault_generation";
 import {
   merge_identity_keys_with,
   merge_recovered_identity_keys,
@@ -74,8 +76,8 @@ import {
 import {
   build_verifier_candidates,
   decrypt_recovery_key_with_code,
-  decrypt_vault_backup,
   hash_recovery_code,
+  read_vault_backup,
 } from "./recovery_key";
 import { refresh_recovery_backup } from "./recovery_backup_refresh";
 import { reprotect_pgp_key } from "./key_manager_pgp_keygen";
@@ -110,6 +112,8 @@ export function harvest_vault_storage_keys(
   }
 
   for (const encoded of encoded_keys) {
+    if (is_public_mail_kek(encoded)) continue;
+
     try {
       harvested.push(base64_to_array(encoded));
     } catch {
@@ -427,7 +431,7 @@ export async function restore_inactive_key_sets_with_code(
           code,
         );
 
-        const old_vault: BackupVault = await decrypt_vault_backup(
+        const opened_backup = await read_vault_backup(
           {
             encrypted_data: key_set.encrypted_vault_backup,
             nonce: key_set.vault_backup_nonce,
@@ -435,6 +439,12 @@ export async function restore_inactive_key_sets_with_code(
           },
           recovery_key,
         );
+
+        if (opened_backup.user_id && opened_backup.user_id !== user_id) {
+          continue;
+        }
+
+        const old_vault: BackupVault = opened_backup.vault;
 
         for (const [locked, open] of read_unlocked_keys(old_vault)) {
           unlocked_keys.set(locked, open);
@@ -512,7 +522,9 @@ const COMMIT_NOT_WRITTEN: RecoveredKeyCommitResult = {
   dropped_ratchet_keys: 0,
 };
 
-export function commit_dropped_keys(committed: RecoveredKeyCommitResult): boolean {
+export function commit_dropped_keys(
+  committed: RecoveredKeyCommitResult,
+): boolean {
   return committed.dropped_keks > 0 || committed.dropped_ratchet_keys > 0;
 }
 
@@ -545,6 +557,7 @@ export async function commit_recovered_keys(
     legacy_identity_keys: identity_keys.legacy_identity_keys,
     legacy_keks: absorbed_keks.list,
     ratchet_previous_keys,
+    vault_generation: next_vault_generation(user_id, vault),
   };
 
   const { encrypted_vault, vault_nonce } = await encrypt_vault(

@@ -83,6 +83,11 @@ const DATE_OPS: OperatorOption[] = [
   { value: "newer_than_days", label_key: "mail_rules.op_newer_than_days" },
 ];
 
+const SOURCE_OPS: OperatorOption[] = [
+  { value: "is", label_key: "mail_rules.op_is" },
+  { value: "is_not", label_key: "mail_rules.op_is_not" },
+];
+
 export const OPERATORS_BY_FIELD = (field: ConditionField): OperatorOption[] => {
   const kind = field_kind(field);
 
@@ -99,6 +104,8 @@ export const OPERATORS_BY_FIELD = (field: ConditionField): OperatorOption[] => {
       return NUMERIC_OPS;
     case "date":
       return DATE_OPS;
+    case "source":
+      return SOURCE_OPS;
     default:
       return [];
   }

@@ -42,6 +42,7 @@ import {
   is_inline_toggle_command,
   toggle_inline_format,
 } from "@/hooks/editor_inline_toggle";
+import { remove_highlight_in_range } from "@/hooks/editor_highlight";
 
 const ZERO_WIDTH_SPACE = "\u200B";
 
@@ -724,6 +725,44 @@ export function use_editor_format(
     [apply_inline_color],
   );
 
+  const remove_background_color = useCallback(() => {
+    const editor = editor_ref.current;
+
+    if (!editor || is_plain_text_mode) return;
+
+    restore_selection();
+
+    const selection = window.getSelection();
+    const range =
+      selection && selection.rangeCount > 0 ? selection.getRangeAt(0) : null;
+
+    if (
+      !selection ||
+      !range ||
+      !editor.contains(range.commonAncestorContainer)
+    ) {
+      return;
+    }
+
+    const next = remove_highlight_in_range(editor, range);
+
+    selection.removeAllRanges();
+    selection.addRange(next);
+
+    handle_input();
+    requestAnimationFrame(() => {
+      save_selection();
+      check_active_formats();
+    });
+  }, [
+    editor_ref,
+    is_plain_text_mode,
+    restore_selection,
+    handle_input,
+    save_selection,
+    check_active_formats,
+  ]);
+
   const set_font_family = useCallback(
     (family: string) => {
       if (!is_allowed_font_family(family)) return;
@@ -828,6 +867,7 @@ export function use_editor_format(
     insert_html,
     set_font_color,
     set_background_color,
+    remove_background_color,
     set_font_size,
     set_font_family,
   };

@@ -52,6 +52,7 @@ vi.mock("@/services/crypto/legacy_keks", () => {
 
   return {
     decrypt_aes_gcm_with_fallback,
+    get_account_data_crypto_keys: () => [],
     decrypt_account_context_with_fallback: (
       _context: string,
       ...rest: unknown[]

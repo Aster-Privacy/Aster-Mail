@@ -21,6 +21,7 @@
 import { Capacitor } from "@capacitor/core";
 
 import { connection_store } from "@/services/routing/connection_store";
+import { has_tauri_runtime } from "@/lib/tauri_runtime";
 
 const NATIVE_IMAGE_PROXY_URL = "https://app.astermail.org/api/images/v1/proxy";
 const WEB_IMAGE_PROXY_URL = "/api/images/v1/proxy";
@@ -40,9 +41,7 @@ export function get_image_proxy_url(): string {
     return WEB_IMAGE_PROXY_URL;
   }
 
-  const is_native =
-    Capacitor.isNativePlatform() ||
-    (typeof window !== "undefined" && "__TAURI_INTERNALS__" in window);
+  const is_native = Capacitor.isNativePlatform() || has_tauri_runtime();
 
   return is_native ? NATIVE_IMAGE_PROXY_URL : WEB_IMAGE_PROXY_URL;
 }

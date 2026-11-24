@@ -29,12 +29,16 @@ import {
   load_account_keys_for_session,
 } from "./account_key_loader";
 import {
+  build_account_key_token_payload,
   open_account_key_token,
   seal_account_key_token,
 } from "./account_key_token";
+import { array_to_base64 } from "./base64";
+import { encrypt_message } from "./key_manager_pgp_messages";
 import {
   clear_account_key_derived_keks,
   decrypt_aes_gcm_with_fallback,
+  get_account_data_write_key,
   get_legacy_crypto_keys,
 } from "./legacy_keks";
 
@@ -46,6 +50,17 @@ const api = vi.hoisted(() => ({
 }));
 
 vi.mock("@/services/api/account_key", () => api);
+
+const account = vi.hoisted(() => ({ user_id: null as string | null }));
+
+vi.mock("../account_manager", () => ({
+  get_current_account: async () =>
+    account.user_id ? { user: { id: account.user_id } } : null,
+}));
+
+vi.mock("./recovery_escrow", () => ({
+  sync_recovery_escrow: vi.fn(async () => undefined),
+}));
 
 const PASS = "pw";
 
@@ -61,6 +76,57 @@ async function make_key() {
 
 function vault_with(identity_key: string, previous_keys: string[] = []) {
   return { identity_key, previous_keys } as unknown as EncryptedVault;
+}
+
+async function seal_legacy_token(
+  account_key: Uint8Array,
+  armored_private: string,
+): Promise<string> {
+  const private_key = await openpgp.decryptKey({
+    privateKey: await openpgp.readPrivateKey({ armoredKey: armored_private }),
+    passphrase: PASS,
+  });
+
+  return (await openpgp.encrypt({
+    message: await openpgp.createMessage({
+      text: JSON.stringify({
+        type: "aster-account-key",
+        version: 1,
+        key: array_to_base64(account_key),
+      }),
+    }),
+    encryptionKeys: private_key.toPublic(),
+    signingKeys: private_key,
+    format: "armored",
+  })) as string;
+}
+
+async function write_key_opens_under(account_key: Uint8Array) {
+  const write_key = get_account_data_write_key("astermail-tags-v1");
+
+  if (!write_key) return false;
+
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const sealed = await crypto.subtle.encrypt(
+    { name: "AES-GCM", iv },
+    write_key,
+    new TextEncoder().encode("probe"),
+  );
+  const raw = await derive_account_data_key_raw(
+    account_key,
+    "astermail-tags-v1",
+  );
+  const expected = await crypto.subtle.importKey("raw", raw, "AES-GCM", false, [
+    "decrypt",
+  ]);
+
+  try {
+    await crypto.subtle.decrypt({ name: "AES-GCM", iv }, expected, sealed);
+
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 function token_row(token: string) {
@@ -83,6 +149,70 @@ describe("load_account_keys_for_session", () => {
 
   afterEach(() => {
     clear_account_key_derived_keks();
+    account.user_id = null;
+    localStorage.clear();
+  });
+
+  it("refuses a legacy token as the write key after a newer token was seen", async () => {
+    const me = await make_key();
+    const newer_key = Uint8Array.from({ length: 32 }, (_, i) => 50 + i);
+    const legacy_key = Uint8Array.from({ length: 32 }, (_, i) => 150 + i);
+
+    account.user_id = "user-floor";
+    api.get_account_key_token.mockResolvedValue(
+      token_row(await seal_account_key_token(newer_key, me.privateKey, PASS)),
+    );
+    await load_account_keys_for_session(vault_with(me.privateKey), PASS);
+    expect(await write_key_opens_under(newer_key)).toBe(true);
+
+    clear_account_key_derived_keks();
+    api.get_account_key_token.mockResolvedValue(
+      token_row(await seal_legacy_token(legacy_key, me.privateKey)),
+    );
+
+    await expect(
+      load_account_keys_for_session(vault_with(me.privateKey), PASS),
+    ).resolves.toBe(1);
+    expect(get_account_data_write_key("astermail-tags-v1")).toBeNull();
+  });
+
+  it("writes under the newest token when the server serves an older one as current", async () => {
+    const me = await make_key();
+    const newer_key = Uint8Array.from({ length: 32 }, (_, i) => 60 + i);
+    const legacy_key = Uint8Array.from({ length: 32 }, (_, i) => 160 + i);
+
+    api.get_account_key_token.mockResolvedValue(
+      token_row(await seal_legacy_token(legacy_key, me.privateKey)),
+    );
+    api.get_account_key_token_history.mockResolvedValue([
+      {
+        ...token_row(
+          await seal_account_key_token(newer_key, me.privateKey, PASS),
+        ),
+        archived_at: "",
+      },
+    ]);
+
+    await expect(
+      load_account_keys_for_session(vault_with(me.privateKey), PASS),
+    ).resolves.toBe(2);
+    expect(await write_key_opens_under(newer_key)).toBe(true);
+    expect(await write_key_opens_under(legacy_key)).toBe(false);
+  });
+
+  it("keeps a legacy token as the write key on an account that never had a newer one", async () => {
+    const me = await make_key();
+    const legacy_key = Uint8Array.from({ length: 32 }, (_, i) => 170 + i);
+
+    account.user_id = "user-legacy";
+    api.get_account_key_token.mockResolvedValue(
+      token_row(await seal_legacy_token(legacy_key, me.privateKey)),
+    );
+
+    await expect(
+      load_account_keys_for_session(vault_with(me.privateKey), PASS),
+    ).resolves.toBe(1);
+    expect(await write_key_opens_under(legacy_key)).toBe(true);
   });
 
   it("creates nothing when the server has no account key routes", async () => {
@@ -413,7 +543,7 @@ describe("load_account_keys_for_session", () => {
       expect(api.put_account_key_token_if_absent).not.toHaveBeenCalled();
     });
 
-    it("needs the retired copy to open a token signed before the reformat", async () => {
+    it("opens a token signed before the reformat with or without the retired copy", async () => {
       const me = await make_key();
       const token = await seal_account_key_token(
         new Uint8Array(32).fill(7),
@@ -424,10 +554,39 @@ describe("load_account_keys_for_session", () => {
 
       await expect(
         open_account_key_token(token, [reformatted], PASS),
-      ).resolves.toBeNull();
+      ).resolves.toHaveLength(32);
       await expect(
         open_account_key_token(token, [reformatted, me.privateKey], PASS),
       ).resolves.toHaveLength(32);
+    });
+
+    it("still refuses a token signed by a key the account does not hold", async () => {
+      const me = await make_key();
+      const other = await make_key();
+      const me_public = (
+        await openpgp.readPrivateKey({ armoredKey: me.privateKey })
+      )
+        .toPublic()
+        .armor();
+      const fingerprint = (
+        await openpgp.readPrivateKey({ armoredKey: me.privateKey })
+      )
+        .getFingerprint()
+        .toLowerCase();
+      const forged = await encrypt_message(
+        build_account_key_token_payload(
+          new Uint8Array(32).fill(7),
+          fingerprint,
+          1,
+        ),
+        me_public,
+        { armored_secret_key: other.privateKey, passphrase: PASS },
+      );
+      const reformatted = await reformat_later(me.privateKey);
+
+      await expect(
+        open_account_key_token(forged, [reformatted], PASS),
+      ).resolves.toBeNull();
     });
 
     it("trusts only retired copies of a key the vault still holds", async () => {

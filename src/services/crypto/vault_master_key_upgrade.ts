@@ -22,8 +22,10 @@ import type { EncryptedVault } from "./key_manager_core";
 
 import { is_master_key_vault } from "./memory_key_store";
 import { zero_uint8_array } from "./secure_memory";
+import { mark_keks_for_retirement } from "./retired_storage_keks";
 import {
   collect_prior_storage_keys,
+  derive_password_storage_keys,
   install_random_storage_key,
   is_weak_storage_vault,
 } from "./storage_write_key";
@@ -31,30 +33,27 @@ import {
 export async function upgrade_vault_to_master_key(
   vault: EncryptedVault,
   current_password: string,
-): Promise<boolean> {
+): Promise<void> {
   if (is_master_key_vault(vault)) {
-    if (vault.data_kek_random === true) return true;
-
-    try {
-      if (!(await is_weak_storage_vault(vault, current_password))) return true;
-    } catch {
-      return true;
-    }
+    if (vault.data_kek_random === true) return;
+    if (!(await is_weak_storage_vault(vault, current_password))) return;
   }
 
-  let prior_keys: Uint8Array[];
-
-  try {
-    prior_keys = await collect_prior_storage_keys(vault, current_password);
-  } catch {
-    return false;
-  }
+  const prior_keys = await collect_prior_storage_keys(vault, current_password);
+  const password_keys = await derive_password_storage_keys(
+    vault,
+    current_password,
+  );
 
   try {
     install_random_storage_key(vault, prior_keys);
+    vault.pending_retire_kek_ids = mark_keks_for_retirement(
+      vault.pending_retire_kek_ids,
+      password_keys,
+      vault.data_kek,
+    );
   } finally {
     prior_keys.forEach((raw) => zero_uint8_array(raw));
+    password_keys.forEach((raw) => zero_uint8_array(raw));
   }
-
-  return true;
 }

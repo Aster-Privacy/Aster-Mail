@@ -26,10 +26,13 @@ import { describe, it, expect, beforeAll, beforeEach, vi } from "vitest";
 const h = vi.hoisted(() => ({
   post: vi.fn(),
   get: vi.fn(),
+  toast: vi.fn(),
 }));
 
+vi.mock("@/components/toast/simple_toast", () => ({ show_toast: h.toast }));
+
 vi.mock("@/services/api/client", () => ({
-  api_client: { post: h.post, get: h.get },
+  api_client: { post: h.post, get: h.get, set_authenticated: vi.fn() },
 }));
 
 vi.mock("@/services/account_manager", () => ({
@@ -38,6 +41,8 @@ vi.mock("@/services/account_manager", () => ({
   get_current_account: vi.fn(async () => null),
 }));
 
+import { get_active_translations } from "@/lib/i18n/translations";
+import { login_user } from "@/services/api/auth";
 import { array_to_base64, base64_to_array } from "@/services/crypto/base64";
 import { derive_password_hash } from "@/services/crypto/key_manager_pgp_keygen";
 import {
@@ -48,6 +53,7 @@ import {
 import {
   derive_login_v3_input,
   enroll_login_v3,
+  is_login_v3_pinned,
   set_pending_login_v3,
   sign_in_v3,
   take_pending_login_v3,
@@ -233,6 +239,7 @@ beforeEach(() => {
   clear_pending_login_enrollment();
   h.post.mockReset();
   h.get.mockReset();
+  h.toast.mockReset();
   server.record = new Uint8Array(0);
   set_opaque_module_source(async () => CLIENT_MODULE);
 });
@@ -451,6 +458,91 @@ describe("pending sign-in", () => {
     await derive_sign_in_proof(PASSWORD, salt, 2, "abc", { login_v3: true });
     clear_pending_login_enrollment();
     expect(take_pending_login_v3("abc")).toBeNull();
+  });
+});
+
+describe("an account that signed in with its record", () => {
+  const salt = new Uint8Array(32).fill(3);
+
+  async function sign_in_once(password: string): Promise<void> {
+    serve();
+    await enroll_login_v3(await v1_proof_for(PASSWORD), "current-proof");
+    await sign_in_v3({ user_hash: "abc" }, await v1_proof_for(password));
+    h.post.mockClear();
+  }
+
+  it("derives the proof when the server moves the account off its record", async () => {
+    await sign_in_once(PASSWORD);
+
+    await expect(
+      derive_sign_in_proof(PASSWORD, salt, 2, "abc"),
+    ).resolves.toBeTypeOf("string");
+    expect(take_pending_login_v3("abc")).toBeNull();
+  });
+
+  it("signs in with the proof when the record sign-in is unavailable", async () => {
+    await sign_in_once(PASSWORD);
+
+    const response = await login_user({
+      user_hash: "abc",
+      password_hash: "proof",
+    });
+
+    expect(response.status).not.toBe(503);
+    expect(response.data).toBeDefined();
+    expect(paths()).toContain("/core/v1/auth/login");
+    expect(is_login_v3_pinned("abc")).toBe(false);
+    await vi.waitFor(() =>
+      expect(h.toast).toHaveBeenCalledWith(
+        get_active_translations().auth.sign_in_standard_protection,
+        "info",
+      ),
+    );
+  });
+
+  it("keeps the record pin when the proof sign-in fails", async () => {
+    await sign_in_once(PASSWORD);
+    serve({
+      "/core/v1/auth/login": () => ({
+        error: "Invalid credentials",
+        status: 401,
+      }),
+    });
+
+    const response = await login_user({
+      user_hash: "abc",
+      password_hash: "proof",
+    });
+
+    expect(response.data).toBeUndefined();
+    expect(is_login_v3_pinned("abc")).toBe(true);
+  });
+
+  it("pins the account again after the next record sign-in", async () => {
+    await sign_in_once(PASSWORD);
+    await login_user({ user_hash: "abc", password_hash: "proof" });
+    await sign_in_once(PASSWORD);
+
+    expect(is_login_v3_pinned("abc")).toBe(true);
+  });
+
+  it("keeps the record sign-in for that account only", async () => {
+    await sign_in_once(PASSWORD);
+
+    await expect(
+      derive_sign_in_proof(PASSWORD, salt, 2, "other"),
+    ).resolves.toBeTypeOf("string");
+    await expect(
+      derive_sign_in_proof(PASSWORD, salt, 2, "abc", { login_v3: true }),
+    ).resolves.toBeTypeOf("string");
+  });
+
+  it("does not hold an account to the record after a failed sign-in", async () => {
+    await sign_in_once("wrong password");
+
+    await expect(
+      derive_sign_in_proof(PASSWORD, salt, 2, "abc"),
+    ).resolves.toBeTypeOf("string");
   });
 });
 

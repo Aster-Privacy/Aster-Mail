@@ -45,6 +45,7 @@ import { read_settings_navigation } from "@/lib/settings_links";
 import { use_compose_host } from "@/components/toast/use_toast_action_hosts";
 import { SenderLogoBoundary } from "@/contexts/sender_logo_context";
 import { is_mail_item_in_trash } from "@/components/email/viewer_shared/trash_placement";
+import { use_email_detail_shortcuts } from "@/components/email/email_detail/use_email_detail_shortcuts";
 
 export default function EmailDetailPage() {
   const reduce_motion = use_should_reduce_motion();
@@ -63,6 +64,30 @@ export default function EmailDetailPage() {
   const active_message =
     detail.thread_messages?.find((m) => m.id === detail.email_id) ??
     detail.thread_messages?.[detail.thread_messages.length - 1];
+
+  use_email_detail_shortcuts({
+    enabled: detail.preferences.keyboard_shortcuts_enabled !== false,
+    has_email: !!detail.email,
+    is_any_modal_open:
+      detail.compose_instances.length > 0 ||
+      detail.is_reply_modal_open ||
+      detail.is_forward_modal_open ||
+      detail.is_archive_confirm_open ||
+      detail.is_trash_confirm_open ||
+      !!detail.pending_permanent_delete_id ||
+      detail.is_block_sender_modal_open ||
+      !!detail.view_source_message,
+    is_trashed: is_mail_item_in_trash(detail.mail_item),
+    is_popup,
+    confirm_before_archive: detail.preferences.confirm_before_archive,
+    confirm_before_delete: detail.preferences.confirm_before_delete,
+    navigate,
+    handle_archive: detail.handle_archive,
+    handle_trash: detail.handle_trash,
+    set_is_archive_confirm_open: detail.set_is_archive_confirm_open,
+    set_is_trash_confirm_open: detail.set_is_trash_confirm_open,
+    on_compose: () => detail.open_compose(),
+  });
 
   const handle_block_sender_confirm = async () => {
     detail.set_is_block_sender_modal_open(false);
@@ -301,11 +326,19 @@ export default function EmailDetailPage() {
         variant="info"
       />
       <ConfirmationModal
+        show_dont_ask_again
         confirm_text={detail.t("mail.delete_permanently")}
         is_open={!!detail.pending_permanent_delete_id}
         message={detail.t("mail.delete_email_confirmation")}
         on_cancel={() => detail.set_pending_permanent_delete_id(null)}
         on_confirm={detail.confirm_permanent_delete}
+        on_dont_ask_again={async () => {
+          detail.update_preference(
+            "confirm_before_permanent_delete",
+            false,
+            true,
+          );
+        }}
         title={detail.t("mail.delete_permanently_question")}
         variant="danger"
       />

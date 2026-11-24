@@ -42,6 +42,7 @@ import { on_local_contact_write } from "@/services/contact_local_writes";
 export interface ContactIndexEntry {
   contact_id: string;
   inline_photo?: string;
+  has_photo?: boolean;
 }
 
 type ContactIndexContact = Pick<
@@ -119,15 +120,19 @@ export function pick_inline_photo(avatar_url: unknown): string | undefined {
 
 export function build_contact_email_map(
   contacts: ContactIndexContact[],
+  photo_flags?: ReadonlyMap<string, boolean>,
 ): Map<string, ContactIndexEntry> {
   const next = new Map<string, ContactIndexEntry>();
 
   for (const contact of contacts) {
     if (is_contact_trashed(contact)) continue;
     const inline_photo = pick_inline_photo(contact.avatar_url);
+    const has_photo = photo_flags?.get(contact.id);
     const entry: ContactIndexEntry = inline_photo
       ? { contact_id: contact.id, inline_photo }
       : { contact_id: contact.id };
+
+    if (has_photo !== undefined) entry.has_photo = has_photo;
 
     for (const address of collect_contact_emails(contact)) {
       const existing = next.get(address);
@@ -196,6 +201,7 @@ async function fetch_index(
   await get_contacts_encryption_key();
 
   const contacts: DecryptedContact[] = [];
+  const photo_flags = new Map<string, boolean>();
   let cursor: string | null = null;
 
   for (let page = 0; page < MAX_PAGES; page += 1) {
@@ -212,14 +218,22 @@ async function fetch_index(
       throw new Error(result.error || "contacts unavailable");
     }
 
-    contacts.push(...(await decrypt_contacts(result.data.items ?? [])));
+    const items = result.data.items ?? [];
+
+    for (const item of items) {
+      if (typeof item.has_photo === "boolean") {
+        photo_flags.set(item.id, item.has_photo);
+      }
+    }
+
+    contacts.push(...(await decrypt_contacts(items)));
 
     if (!result.data.has_more || !result.data.next_cursor) break;
     cursor = result.data.next_cursor;
   }
 
   return {
-    entries: build_contact_email_map(contacts),
+    entries: build_contact_email_map(contacts, photo_flags),
     versions: build_contact_versions(contacts),
     trust_contacts: build_trust_contacts(contacts),
   };
@@ -400,4 +414,3 @@ export function invalidate_contact_email_index(): void {
   run_invalidation_handlers(null);
   notify_change();
 }
-

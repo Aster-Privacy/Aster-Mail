@@ -24,12 +24,8 @@ import type { UnsubscribeDelivery } from "@/utils/unsubscribe_detector";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { show_action_toast } from "@/components/toast/action_toast";
-import { is_any_lockdown_active } from "@/services/lockdown_store";
-import {
-  execute_unsubscribe,
-  get_manual_unsubscribe_url,
-} from "@/utils/unsubscribe_detector";
-import { request_external_link } from "@/utils/external_link_request";
+import { execute_unsubscribe } from "@/utils/unsubscribe_detector";
+import { show_unsubscribe_toast } from "@/utils/unsubscribe_toast";
 import { persist_unsubscribe } from "@/hooks/use_unsubscribed_senders";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_preferences } from "@/contexts/preferences_context";
@@ -74,15 +70,10 @@ export function use_unsubscribe_action({
     if (pending_timeout_ref.current) return;
 
     const record_unsubscribed = () =>
-      persist_unsubscribe(
-        sender_email,
-        sender_name,
-        {
-          unsubscribe_link: unsubscribe_info.unsubscribe_link,
-          list_unsubscribe_header: unsubscribe_info.list_unsubscribe_header,
-        },
-        "manual",
-      );
+      persist_unsubscribe(sender_email, sender_name, {
+        unsubscribe_link: unsubscribe_info.unsubscribe_link,
+        list_unsubscribe_header: unsubscribe_info.list_unsubscribe_header,
+      });
 
     cancelled_ref.current = false;
     set_is_pending(true);
@@ -96,7 +87,7 @@ export function use_unsubscribe_action({
     if (delay_ms > 0) {
       show_action_toast({
         message: t("settings.unsubscribing"),
-        action_type: "not_spam",
+        action_type: "unsubscribe",
         email_ids: [],
         duration_ms: delay_ms,
         on_undo: async () => {
@@ -120,44 +111,25 @@ export function use_unsubscribe_action({
           delivery_ref.current,
         );
 
+        const offers_page = show_unsubscribe_toast({
+          outcome: result,
+          info: unsubscribe_info,
+          t,
+          on_page_opened: () => {
+            record_unsubscribed();
+            on_unsubscribed?.();
+          },
+        });
+
         if (result === "api") {
           record_unsubscribed();
           on_unsubscribed?.();
-          show_action_toast({
-            message: t("mail.successfully_unsubscribed"),
-            action_type: "not_spam",
-            email_ids: [],
-          });
-        } else {
-          const url = get_manual_unsubscribe_url(unsubscribe_info);
-          const lockdown = is_any_lockdown_active();
-
-          show_action_toast({
-            message: t("mail.unsubscribe_manual_required"),
-            action_type: "not_spam",
-            email_ids: [],
-            duration_ms: 15000,
-            ...(!lockdown &&
-              url && {
-                action_label: t("mail.open_unsubscribe_page"),
-                on_undo: async () => {
-                  if (!(await request_external_link(url))) return;
-                  record_unsubscribed();
-                  on_unsubscribed?.();
-                },
-              }),
-          });
-          if (mounted_ref.current && (lockdown || !url)) {
-            set_is_pending(false);
-          }
+        } else if (mounted_ref.current && !offers_page) {
+          set_is_pending(false);
         }
       } catch {
         if (mounted_ref.current) set_is_pending(false);
-        show_action_toast({
-          message: t("mail.unsubscribe_failed"),
-          action_type: "not_spam",
-          email_ids: [],
-        });
+        show_unsubscribe_toast({ outcome: "error", info: unsubscribe_info, t });
       }
     }, delay_ms);
   }, [

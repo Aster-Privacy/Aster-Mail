@@ -36,6 +36,7 @@ const server: {
   puts: number;
   conflicts: number;
   legacy: boolean;
+  marker?: number;
   bodies: Record<string, unknown>[];
   before_put?: () => Promise<void>;
 } = { vault: null, puts: 0, conflicts: 0, legacy: false, bodies: [] };
@@ -70,7 +71,9 @@ vi.mock("@/services/api/client", () => ({
         };
       }
 
-      return { data: { ...server.vault } };
+      return {
+        data: { ...server.vault, vault_recovered_write_count: server.marker },
+      };
     },
     put: async (_path: string, body: Record<string, string>) => {
       server.bodies.push(body);
@@ -108,17 +111,23 @@ vi.mock("./vault_key_fingerprints", () => ({
   collect_vault_key_fingerprints: async () => [],
 }));
 
+import { base64_to_array } from "./base64";
 import { decrypt_vault, encrypt_vault } from "./key_manager";
 import {
   clear_vault_from_memory,
   get_vault_from_memory,
 } from "./memory_key_store";
 import { all_retired_kek_values } from "./retired_identity_keks";
+import { mark_keks_for_retirement } from "./retired_storage_keks";
 import {
   MAX_VAULT_CONFLICT_RETRIES,
   merge_vault_for_write,
   write_vault_merged,
 } from "./vault_cas_write";
+import {
+  pin_vault_generation,
+  VAULT_ROLLED_BACK,
+} from "./vault_generation";
 
 const PASSWORD = "Vault-Cas-Passw0rd-23";
 const USER_ID = "11111111-2222-4333-8444-555555555555";
@@ -173,6 +182,46 @@ async function read_server_vault(): Promise<EncryptedVault> {
 }
 
 describe("merge_vault_for_write", () => {
+  it("does not write back a storage key retired on the server", () => {
+    const retired_ids = mark_keks_for_retirement(undefined, [
+      base64_to_array(WEAK_KEK),
+    ]);
+    const server_copy = {
+      ...random_server_vault(),
+      retired_storage_kek_ids: retired_ids,
+      legacy_keks: [],
+    };
+    const older = random_server_vault();
+    const merged = merge_vault_for_write(
+      server_copy,
+      older,
+      { ...older, identity_key: "identity-2" },
+      false,
+    );
+
+    expect(merged.legacy_keks ?? []).toEqual([]);
+    expect(merged.retired_storage_kek_ids).toEqual(retired_ids);
+    expect(merged.identity_key).toBe("identity-2");
+  });
+
+  it("drops a retired key the server still holds", () => {
+    const local = random_server_vault();
+    const merged = merge_vault_for_write(
+      random_server_vault(),
+      local,
+      {
+        ...local,
+        legacy_keks: [],
+        retired_storage_kek_ids: mark_keks_for_retirement(undefined, [
+          base64_to_array(WEAK_KEK),
+        ]),
+      },
+      false,
+    );
+
+    expect(merged.legacy_keks ?? []).toEqual([]);
+  });
+
   it("never replaces a random server key with a local copy without one", () => {
     const local = stale_local_vault();
     const merged = merge_vault_for_write(
@@ -221,6 +270,63 @@ describe("merge_vault_for_write", () => {
       WEAK_KEK,
       "bmV3LWtlaw==",
     ]);
+  });
+
+  it("keeps both writers' lane replay records", () => {
+    const local = stale_local_vault();
+    const server_copy = {
+      ...random_server_vault(),
+      lane_replay: {
+        "a@example.com": { f: 5, e: [{ k: "k1", m: "m1", t: 10 }] },
+      },
+    };
+    const merged = merge_vault_for_write(server_copy, local, {
+      ...local,
+      lane_replay: {
+        "a@example.com": { f: 2, e: [{ k: "k2", m: "m2", t: 12 }] },
+        "b@example.com": { f: 0, e: [{ k: "k3", m: "m3", t: 3 }] },
+      },
+    });
+
+    expect(merged.lane_replay).toEqual({
+      "a@example.com": {
+        f: 5,
+        e: [
+          { k: "k1", m: "m1", t: 10 },
+          { k: "k2", m: "m2", t: 12 },
+        ],
+      },
+      "b@example.com": { f: 0, e: [{ k: "k3", m: "m3", t: 3 }] },
+    });
+  });
+
+  it("keeps the server lane replay record when the caller has none", () => {
+    const local = stale_local_vault();
+    const record = { f: 7, e: [{ k: "k1", m: "m1", t: 9 }] };
+    const merged = merge_vault_for_write(
+      { ...random_server_vault(), lane_replay: { "a@example.com": record } },
+      local,
+      { ...local, identity_key: "identity-3" },
+    );
+
+    expect(merged.lane_replay).toEqual({ "a@example.com": record });
+  });
+
+  it("keeps the server prekey seal key over a concurrent local one", () => {
+    const local = stale_local_vault();
+    const server_copy = {
+      ...random_server_vault(),
+      prekey_seal_key: "c2VydmVyLXNlYWwta2V5",
+      prekey_seal_migrated: true,
+    };
+    const merged = merge_vault_for_write(server_copy, local, {
+      ...local,
+      prekey_seal_key: "bG9jYWwtc2VhbC1rZXk=",
+      prekey_seal_migrated: false,
+    });
+
+    expect(merged.prekey_seal_key).toBe("c2VydmVyLXNlYWwta2V5");
+    expect(merged.prekey_seal_migrated).toBe(true);
   });
 
   it("only applies fields the caller changed", () => {
@@ -300,14 +406,65 @@ describe("merge_vault_for_write", () => {
   });
 });
 
+describe("merge_vault_for_write retired storage key hashes", () => {
+  it("keeps hashes the server gained since the local copy was read", () => {
+    const local: EncryptedVault = {
+      ...base_vault(),
+      retired_storage_key_hashes: ["hash-a"],
+    };
+    const server: EncryptedVault = {
+      ...base_vault(),
+      retired_storage_key_hashes: ["hash-a", "hash-b"],
+    };
+
+    const merged = merge_vault_for_write(server, null, {
+      ...local,
+      identity_key: "identity-2",
+    });
+
+    expect(merged.retired_storage_key_hashes).toEqual(["hash-a", "hash-b"]);
+    expect(merged.identity_key).toBe("identity-2");
+  });
+
+  it("never drops hashes when the local copy omits them", () => {
+    const local: EncryptedVault = {
+      ...base_vault(),
+      retired_storage_key_hashes: ["hash-a"],
+    };
+    const next: EncryptedVault = { ...local };
+
+    delete next.retired_storage_key_hashes;
+
+    const merged = merge_vault_for_write(
+      { ...base_vault(), retired_storage_key_hashes: ["hash-a"] },
+      local,
+      next,
+    );
+
+    expect(merged.retired_storage_key_hashes).toEqual(["hash-a"]);
+  });
+
+  it("adds new local hashes to the server list", () => {
+    const merged = merge_vault_for_write(
+      { ...base_vault(), retired_storage_key_hashes: ["hash-b"] },
+      base_vault(),
+      { ...base_vault(), retired_storage_key_hashes: ["hash-a"] },
+    );
+
+    expect(merged.retired_storage_key_hashes).toEqual(["hash-b", "hash-a"]);
+  });
+});
+
 describe("write_vault_merged", () => {
   beforeEach(() => {
+    localStorage.clear();
     server.vault = null;
     server.puts = 0;
     server.conflicts = 0;
     server.legacy = false;
     server.bodies = [];
     server.before_put = undefined;
+    server.marker = undefined;
     clear_vault_from_memory();
   });
 
@@ -397,6 +554,48 @@ describe("write_vault_merged", () => {
 
     expect(result.status).toBe("written");
     expect("expected_vault_sha256" in server.bodies[0]).toBe(false);
+  });
+
+  it("refuses an older server copy with no recovery reported", LONG_TEST, async () => {
+    pin_vault_generation(USER_ID, {
+      ...stale_local_vault(),
+      vault_generation: 9,
+      vault_generation_ready: true,
+    });
+    await put_server_vault({ ...stale_local_vault(), vault_generation: 2 });
+
+    const local = stale_local_vault();
+    const result = await write_vault_merged({
+      next: { ...local, recovery_codes: ["c5"] },
+      base: local,
+      passphrase: PASSWORD,
+      user_id: USER_ID,
+    });
+
+    expect(result).toEqual({ status: "failed", error: VAULT_ROLLED_BACK });
+    expect(server.puts).toBe(0);
+  });
+
+  it("writes onto an older server copy once a recovery is reported", LONG_TEST, async () => {
+    pin_vault_generation(USER_ID, {
+      ...stale_local_vault(),
+      vault_generation: 9,
+      vault_generation_ready: true,
+    });
+    await put_server_vault({ ...stale_local_vault(), vault_generation: 2 });
+    server.marker = 3;
+
+    const local = stale_local_vault();
+    const result = await write_vault_merged({
+      next: { ...local, recovery_codes: ["c6"] },
+      base: local,
+      passphrase: PASSWORD,
+      user_id: USER_ID,
+    });
+
+    expect(result.status).toBe("written");
+    expect(server.puts).toBe(1);
+    expect((await read_server_vault()).recovery_codes).toEqual(["c6"]);
   });
 
   it("refuses a different account", async () => {

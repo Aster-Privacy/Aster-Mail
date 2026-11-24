@@ -261,6 +261,16 @@ async function fetch_recipient_keys(
   };
 }
 
+export async function snapshot_recipient_keys(
+  email: string,
+): Promise<RecipientKeySnapshot | null> {
+  const { pin_id, username } = lookup_parts(email);
+
+  if (!pin_id || !username) return null;
+
+  return fetch_recipient_keys(pin_id, username);
+}
+
 export async function describe_recipient_identity_change(
   email: string,
 ): Promise<RecipientIdentityChange> {
@@ -335,29 +345,34 @@ function same_published_keys(
   return (
     (shown.binding?.kem_identity_key ?? null) ===
       (fresh.binding?.kem_identity_key ?? null) &&
+    (shown.binding?.signed_prekey ?? null) ===
+      (fresh.binding?.signed_prekey ?? null) &&
+    (shown.binding?.pq_kem_public_key ?? null) ===
+      (fresh.binding?.pq_kem_public_key ?? null) &&
+    shown.scoped === fresh.scoped &&
     shown.owner_public_key === fresh.owner_public_key
   );
 }
 
 export async function trust_recipient_identity(
   email: string,
-  shown?: RecipientKeySnapshot,
+  shown: RecipientKeySnapshot | null | undefined,
 ): Promise<void> {
   const { pin_id, username } = lookup_parts(email);
 
   if (!pin_id || !username) return;
 
-  if (shown && shown.pin_id !== pin_id) {
+  if (!shown || shown.pin_id !== pin_id) {
     throw new RecipientKeysChangedError(pin_id);
   }
 
   const fresh = await fetch_recipient_keys(pin_id, username);
 
-  if (shown && !same_published_keys(shown, fresh)) {
+  if (!same_published_keys(shown, fresh)) {
     throw new RecipientKeysChangedError(pin_id);
   }
 
-  const keys = shown ?? fresh;
+  const keys = shown;
 
   if (!keys.binding && !keys.owner_public_key) {
     throw new KeyPinUnavailableError(pin_id);
@@ -369,5 +384,6 @@ export async function trust_recipient_identity(
     keys.owner_public_key,
     keys.binding,
     keys.scoped,
+    true,
   );
 }

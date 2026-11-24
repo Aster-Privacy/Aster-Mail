@@ -39,6 +39,8 @@ export interface InitiateRecoveryResponse {
   encrypted_recovery_email?: string;
   recovery_email_nonce?: string;
   account_address?: string;
+  vault_write_count?: number;
+  vault_kdf_iterations?: number;
 }
 
 export interface RecoveryEmailReencryption {
@@ -64,6 +66,7 @@ export interface CodesStatus {
   used: UsedCode[];
   verifier_salts?: (string | null)[];
   code_hash_optional?: boolean;
+  backup_covers_published_keys?: boolean | null;
 }
 
 export interface VerifierCandidate {
@@ -165,6 +168,9 @@ export async function complete_recovery(
   new_account_key_fingerprint?: string,
   new_recovery_email?: RecoveryEmailReencryption,
   new_password_hash_v2?: string,
+  vault_generation?: number,
+  vault_kdf_iterations?: number,
+  backup_key_fingerprints?: string[],
 ): Promise<ApiResponse<CompleteRecoveryResponse>> {
   return api_client.post<CompleteRecoveryResponse>(
     "/core/v1/recovery/complete",
@@ -187,6 +193,9 @@ export async function complete_recovery(
       new_account_key_fingerprint,
       new_recovery_email,
       new_password_hash_v2,
+      vault_generation,
+      vault_kdf_iterations,
+      ...(backup_key_fingerprints?.length ? { backup_key_fingerprints } : {}),
     },
   );
 }
@@ -223,6 +232,8 @@ export async function reset_password_with_token(
   new_recovery_email?: RecoveryEmailReencryption,
   previous_vault_carried?: boolean,
   new_password_hash_v2?: string,
+  vault_kdf_iterations?: number,
+  backup_key_fingerprints?: string[],
 ): Promise<ApiResponse<ResetPasswordResponse>> {
   return api_client.post<ResetPasswordResponse>(
     "/core/v1/recovery/reset-password",
@@ -245,6 +256,8 @@ export async function reset_password_with_token(
       new_recovery_email,
       previous_vault_carried,
       new_password_hash_v2,
+      vault_kdf_iterations,
+      ...(backup_key_fingerprints?.length ? { backup_key_fingerprints } : {}),
     },
   );
 }
@@ -253,6 +266,7 @@ export interface ResetVaultResponse {
   encrypted_vault: string;
   vault_nonce: string;
   vault_version: number;
+  vault_kdf_iterations?: number;
 }
 
 export async function get_reset_vault(
@@ -273,12 +287,15 @@ export interface SaveRecoveryBackupOptions {
   vault_nonce?: string;
   vault_format?: number;
   expected_vault_sha256?: string;
+  vault_kdf_iterations?: number;
+  backup_key_fingerprints?: string[];
 }
 
 export interface ResetSecondFactorStatus {
   address?: string;
   password_salt?: string;
   kdf_version?: number;
+  vault_kdf_iterations?: number;
   required: boolean;
   verified: boolean;
   totp: boolean;
@@ -362,12 +379,14 @@ export async function get_codes_status(
 export async function verify_codes_step_up(
   password_hash: string,
   totp_code?: string,
+  hardware_key_assertion?: StepUpHardwareKeyAssertion,
 ): Promise<ApiResponse<CodesStepUp>> {
   return api_client.post<CodesStepUp>(
     "/core/v1/recovery/codes/verify-step-up",
     {
       password_hash,
       totp_code,
+      hardware_key_assertion,
     },
   );
 }

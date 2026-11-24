@@ -25,8 +25,11 @@ import { get_current_account } from "../account_manager";
 
 import { ACCOUNT_KEY_LENGTH } from "./account_data_key";
 import {
+  compare_account_key_token_rank,
   open_account_key_token,
+  open_ranked_account_key_token,
   seal_account_key_token,
+  type AccountKeyTokenRank,
 } from "./account_key_token";
 import {
   get_account_key_generation,
@@ -141,25 +144,96 @@ async function create_account_key_if_absent(
   }
 }
 
+async function current_user_id(): Promise<string | null> {
+  try {
+    return (await get_current_account())?.user?.id ?? null;
+  } catch {
+    return null;
+  }
+}
+
+const TOKEN_FLOOR_KEY_PREFIX = "astermail_account_key_floor:";
+
+function read_token_floor(user_id: string | null): AccountKeyTokenRank | null {
+  if (!user_id) return null;
+
+  try {
+    const parsed: unknown = JSON.parse(
+      localStorage.getItem(TOKEN_FLOOR_KEY_PREFIX + user_id) ?? "null",
+    );
+
+    if (!parsed || typeof parsed !== "object") return null;
+
+    const { version, serial } = parsed as Partial<AccountKeyTokenRank>;
+
+    if (!Number.isSafeInteger(version) || !Number.isSafeInteger(serial)) {
+      return null;
+    }
+
+    return { version: version as number, serial: serial as number };
+  } catch {
+    return null;
+  }
+}
+
+function write_token_floor(user_id: string | null, rank: AccountKeyTokenRank) {
+  if (!user_id) return;
+
+  try {
+    localStorage.setItem(
+      TOKEN_FLOOR_KEY_PREFIX + user_id,
+      JSON.stringify({ version: rank.version, serial: rank.serial }),
+    );
+  } catch {
+    return;
+  }
+}
+
+function higher_rank(
+  a: AccountKeyTokenRank | null,
+  b: AccountKeyTokenRank | null,
+): AccountKeyTokenRank | null {
+  if (!a) return b;
+  if (!b) return a;
+
+  return compare_account_key_token_rank(a, b) >= 0 ? a : b;
+}
+
+function meets_floor(
+  rank: AccountKeyTokenRank,
+  floor: AccountKeyTokenRank | null,
+): boolean {
+  return !floor || compare_account_key_token_rank(rank, floor) >= 0;
+}
+
 async function load_token(
   token: string,
   own_keys: string[],
   passphrase: string,
   generation: number,
   write_epoch: number | null = null,
-): Promise<boolean> {
-  const account_key = await open_account_key_token(token, own_keys, passphrase);
+  floor: AccountKeyTokenRank | null = null,
+): Promise<AccountKeyTokenRank | null> {
+  const opened = await open_ranked_account_key_token(
+    token,
+    own_keys,
+    passphrase,
+  );
 
-  if (!account_key) return false;
+  if (!opened) return null;
+
+  const rank = { version: opened.version, serial: opened.serial };
 
   try {
-    return await load_account_key_derived_keks_into_memory(
-      account_key,
+    const loaded = await load_account_key_derived_keks_into_memory(
+      opened.key,
       generation,
-      write_epoch,
+      meets_floor(rank, floor) ? write_epoch : null,
     );
+
+    return loaded ? rank : null;
   } finally {
-    zero_uint8_array(account_key);
+    zero_uint8_array(opened.key);
   }
 }
 
@@ -169,7 +243,7 @@ async function sync_escrow(
   token: AccountKeyTokenResponse,
   own_keys: string[],
 ): Promise<void> {
-  const user_id = (await get_current_account())?.user?.id;
+  const user_id = await current_user_id();
 
   if (!user_id) return;
 
@@ -203,30 +277,65 @@ export async function load_account_keys_for_session(
     if (!current || generation !== get_account_key_generation()) return 0;
   }
 
+  const user_id = await current_user_id();
+  const floor = read_token_floor(user_id);
   let loaded = 0;
+  const current_rank = await load_token(
+    current.token,
+    own_keys,
+    passphrase,
+    generation,
+    write_epoch,
+    floor,
+  );
 
-  if (
-    await load_token(
-      current.token,
-      own_keys,
-      passphrase,
-      generation,
-      write_epoch,
-    )
-  ) {
-    loaded += 1;
-  }
+  if (current_rank) loaded += 1;
 
   void sync_escrow(vault, passphrase, current, own_keys);
 
   const history = await get_account_key_token_history();
+  let best_history: { token: string; rank: AccountKeyTokenRank } | null = null;
 
   for (const entry of history.slice(0, MAX_ACCOUNT_KEY_HISTORY)) {
     if (generation !== get_account_key_generation()) break;
 
-    if (await load_token(entry.token, own_keys, passphrase, generation)) {
-      loaded += 1;
+    const rank = await load_token(entry.token, own_keys, passphrase, generation);
+
+    if (!rank) continue;
+
+    loaded += 1;
+
+    if (
+      !best_history ||
+      compare_account_key_token_rank(rank, best_history.rank) > 0
+    ) {
+      best_history = { token: entry.token, rank };
     }
+  }
+
+  if (
+    best_history &&
+    meets_floor(best_history.rank, floor) &&
+    (!current_rank ||
+      !meets_floor(current_rank, floor) ||
+      compare_account_key_token_rank(best_history.rank, current_rank) > 0) &&
+    generation === get_account_key_generation()
+  ) {
+    await load_token(
+      best_history.token,
+      own_keys,
+      passphrase,
+      generation,
+      write_epoch,
+      floor,
+    );
+  }
+
+  const observed = higher_rank(current_rank, best_history?.rank ?? null);
+  const next_floor = higher_rank(floor, observed);
+
+  if (next_floor && generation === get_account_key_generation()) {
+    write_token_floor(user_id, next_floor);
   }
 
   return loaded;

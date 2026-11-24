@@ -83,9 +83,15 @@ import {
   type UpgradeLimitKey,
 } from "@/stores/upgrade_store";
 import { checkout_error_text } from "@/components/settings/billing/checkout_error_text";
+import { has_tauri_runtime } from "@/lib/tauri_runtime";
 
 const USAGE_NOT_REPORTED: ReadonlySet<UpgradeLimitKey> = new Set([
   "max_labels",
+]);
+
+const EXTERNAL_LIMIT_KEYS: ReadonlySet<string> = new Set([
+  "max_external_accounts",
+  "max_send_only_accounts",
 ]);
 
 const LIMIT_LABEL_KEY: Record<UpgradeLimitKey, string> = {
@@ -96,7 +102,8 @@ const LIMIT_LABEL_KEY: Record<UpgradeLimitKey, string> = {
   max_custom_filters: "settings.usage_filters",
   max_custom_categories: "settings.usage_custom_categories",
   max_linked_accounts: "settings.usage_linked_accounts",
-  max_external_accounts: "settings.usage_external_accounts",
+  max_external_accounts: "settings.ext_v2_usage_synced_accounts",
+  max_send_only_accounts: "settings.ext_v2_usage_send_only_accounts",
   max_labels: "settings.folders_limit",
   generic: "settings.upgrade_generic_resource",
 };
@@ -212,7 +219,7 @@ function term_id_for_interval(interval: UpgradeInterval | null): string {
 }
 
 function is_desktop(): boolean {
-  return typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
+  return has_tauri_runtime();
 }
 
 export function UpgradeModal() {
@@ -708,6 +715,14 @@ export function UpgradeModal() {
             </div>
           ) : null}
 
+          {state.limit_key === "max_send_only_accounts" ? (
+            <div className="rounded-[var(--aster-radius-control)] bg-[var(--aster-field-bg)] px-3.5 py-2.5">
+              <p className="text-[13px] text-txt-secondary">
+                {t("settings.ext_v2_upgrade_send_only_note")}
+              </p>
+            </div>
+          ) : null}
+
           {state.limit_key === "max_linked_accounts" ? (
             <div className="rounded-[var(--aster-radius-control)] bg-[var(--aster-field-bg)] px-3.5 py-2.5">
               <p className="text-[13px] text-txt-secondary">
@@ -781,7 +796,9 @@ export function UpgradeModal() {
             </div>
           ) : null}
 
-          {!is_storage && limit_info && !USAGE_NOT_REPORTED.has(state.limit_key) ? (
+          {!is_storage &&
+          limit_info &&
+          !USAGE_NOT_REPORTED.has(state.limit_key) ? (
             <div className="rounded-[var(--aster-radius-control)] bg-[var(--aster-field-bg)] p-3">
               <div className="flex items-center justify-between mb-1.5">
                 <span className="text-sm font-medium text-txt-primary">
@@ -815,6 +832,13 @@ export function UpgradeModal() {
                     : 100
                 }
               />
+              {EXTERNAL_LIMIT_KEYS.has(state.limit_key) &&
+              limit_info.limit >= 0 &&
+              limit_info.current > limit_info.limit ? (
+                <p className="mt-2 text-[12px] text-txt-muted">
+                  {t("settings.ext_v2_usage_over_limit_note")}
+                </p>
+              ) : null}
             </div>
           ) : null}
 

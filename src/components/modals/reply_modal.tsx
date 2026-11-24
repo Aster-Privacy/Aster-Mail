@@ -29,6 +29,7 @@ import {
 import { use_reply_modal } from "@/components/modals/hooks/use_reply_modal";
 import { ReplyHeader } from "@/components/modals/reply/reply_header";
 import { ReplyBody } from "@/components/modals/reply/reply_body";
+import { use_mail_drop_attach } from "@/components/compose/use_forward_as_attachment";
 
 interface ReplyModalProps {
   is_open: boolean;
@@ -85,6 +86,7 @@ export function ReplyModal({
   on_draft_saved,
   existing_draft,
 }: ReplyModalProps) {
+  const attach_dropped_mail = use_mail_drop_attach();
   const modal = use_reply_modal({
     is_open,
     on_close,
@@ -177,6 +179,8 @@ export function ReplyModal({
 
               if (files.length > 0) {
                 modal.handle_files_drop(files);
+              } else {
+                attach_dropped_mail(e.dataTransfer, modal.handle_files_drop);
               }
             }}
           >
@@ -259,6 +263,7 @@ export function ReplyModal({
               message_content={modal.reply_message}
               message_editor_ref={modal.message_editor_ref}
               original_body={modal.original_body}
+              priority={modal.priority}
               quote_inlined={modal.quote_inlined}
               reduce_motion={modal.reduce_motion}
               remove_attachment={modal.remove_attachment}
@@ -269,6 +274,7 @@ export function ReplyModal({
               set_expires_at={modal.set_expires_at}
               set_expiry_password={modal.set_expiry_password}
               set_include_quoted={modal.set_include_quoted}
+              set_priority={modal.set_priority}
               set_scheduled_time={modal.set_scheduled_time}
               set_show_delete_confirm={modal.set_show_delete_confirm}
               set_show_quoted={modal.set_show_quoted}

@@ -246,6 +246,8 @@ export function clear_sidebar_aliases_cache(): void {
   cached_aliases.data = [];
   cached_aliases.has_loaded = false;
   cached_ghost_aliases.data = [];
+  alias_recovery.in_flight = false;
+  alias_recovery.last_ms = -Infinity;
   rebuild_alias_index();
   notify_alias_subscribers();
 }
@@ -323,6 +325,19 @@ interface UseSidebarAliasesReturn {
 }
 
 const ALIAS_RETRY_DELAYS_MS = [400, 1_200, 3_000];
+const ALIAS_BACKGROUND_RETRY_DELAYS_MS = [8_000, 20_000, 45_000];
+const ALIAS_FAILED_FETCH_RETRY_MS = 60_000;
+const ALIAS_RECOVERY_MIN_INTERVAL_MS = 5_000;
+
+const alias_recovery = { in_flight: false, last_ms: -Infinity };
+
+function can_retry_now(): boolean {
+  if (typeof navigator !== "undefined" && navigator.onLine === false) {
+    return false;
+  }
+
+  return document.visibilityState !== "hidden";
+}
 
 function wait(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -635,6 +650,29 @@ export function use_sidebar_aliases(): UseSidebarAliasesReturn {
 
     set_load_failed(cached_aliases.data.length === 0);
     set_is_loading(false);
+
+    const retry_in_background = async (): Promise<void> => {
+      for (const delay of ALIAS_BACKGROUND_RETRY_DELAYS_MS) {
+        await wait(delay);
+
+        if (this_generation !== alias_generation_ref.current) return;
+        if (cached_aliases.has_loaded) return;
+        if (!can_retry_now()) continue;
+        if ((await attempt_fetch()) !== "retry") return;
+      }
+
+      for (;;) {
+        await wait(ALIAS_FAILED_FETCH_RETRY_MS);
+
+        if (this_generation !== alias_generation_ref.current) return;
+        if (cached_aliases.has_loaded) return;
+        if (!has_passphrase_in_memory()) return;
+        if (!can_retry_now()) continue;
+        if ((await attempt_fetch()) !== "retry") return;
+      }
+    };
+
+    void retry_in_background();
   }, []);
 
   fetch_ref.current = fetch_aliases;
@@ -666,7 +704,50 @@ export function use_sidebar_aliases(): UseSidebarAliasesReturn {
   useEffect(() => {
     return subscribe_aliases(() => {
       set_aliases(cached_aliases.data);
+
+      if (cached_aliases.has_loaded) {
+        set_load_failed(false);
+        set_is_loading(false);
+      }
     });
+  }, []);
+
+  useEffect(() => {
+    const recover = () => {
+      if (cached_aliases.has_loaded || alias_recovery.in_flight) return;
+      if (!has_passphrase_in_memory() || !get_derived_encryption_key()) return;
+      if (!can_retry_now()) return;
+
+      const now = Date.now();
+
+      if (now - alias_recovery.last_ms < ALIAS_RECOVERY_MIN_INTERVAL_MS) {
+        return;
+      }
+
+      alias_recovery.in_flight = true;
+      alias_recovery.last_ms = now;
+
+      const run = fetch_ref.current?.() ?? Promise.resolve();
+
+      void run.finally(() => {
+        alias_recovery.in_flight = false;
+      });
+    };
+
+    const handle_visibility = () => {
+      if (document.visibilityState === "visible") recover();
+    };
+
+    window.addEventListener("online", recover);
+    window.addEventListener("focus", recover);
+    document.addEventListener("visibilitychange", handle_visibility);
+
+    return () => {
+      alias_generation_ref.current += 1;
+      window.removeEventListener("online", recover);
+      window.removeEventListener("focus", recover);
+      document.removeEventListener("visibilitychange", handle_visibility);
+    };
   }, []);
 
   useEffect(() => {

@@ -58,7 +58,8 @@ import { ignore_error } from "@/lib/ignore_error";
 
 type GateState = "loading" | "completing" | "pair" | "unavailable" | "unlock";
 
-type FinalizeOutcome = "signed_in" | "rejected" | "unavailable" | "locked";
+type FinalizeOutcome =
+  "signed_in" | "rejected" | "unavailable" | "locked" | "guard_pending";
 
 const RETRY_DELAYS_MS = [10_000, 30_000, 60_000, 120_000];
 
@@ -98,6 +99,8 @@ export function DesktopPairGate({ children }: { children: React.ReactNode }) {
         session.passphrase,
         session.encrypted_vault,
         session.vault_nonce,
+        true,
+        session.vault_recovered_write_count,
       );
       await update_account_device_id(session.user.id, session.device_id).catch(
         (caught) =>
@@ -196,7 +199,7 @@ export function DesktopPairGate({ children }: { children: React.ReactNode }) {
 
         if (cancelled) return;
 
-        if (outcome === "unavailable") {
+        if (outcome === "unavailable" || outcome === "guard_pending") {
           set_gate_state("unavailable");
 
           return;

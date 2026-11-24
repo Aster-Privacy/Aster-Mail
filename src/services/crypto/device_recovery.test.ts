@@ -69,8 +69,8 @@ vi.mock("./device_recovery_store", () => ({
   delete_device_snapshots: async (ids: string[]) => {
     for (const id of ids) snapshots.delete(id);
   },
-  SNAPSHOT_TTL_MS: 30 * 24 * 60 * 60 * 1000,
-  SNAPSHOT_REFRESH_MS: 7 * 24 * 60 * 60 * 1000,
+  SNAPSHOT_TTL_MS: 14 * 24 * 60 * 60 * 1000,
+  SNAPSHOT_REFRESH_MS: 3 * 24 * 60 * 60 * 1000,
 }));
 
 vi.mock("./key_manager", () => ({
@@ -303,6 +303,69 @@ describe("device recovery", () => {
         vi.unstubAllGlobals();
         Reflect.deleteProperty(window, "__TAURI_INTERNALS__");
       }
+    });
+
+    it("refuses an inner layer sealed without its binding outside the Mac desktop app", async () => {
+      const { key, secret } = await sealed_record();
+      const inner_key = await crypto.subtle.deriveKey(
+        {
+          name: "HKDF",
+          hash: "SHA-256",
+          salt: new TextEncoder().encode(meta.snapshot_id),
+          info: new TextEncoder().encode("aster-device-recovery-v1"),
+        },
+        await crypto.subtle.importKey("raw", secret, "HKDF", false, [
+          "deriveKey",
+        ]),
+        { name: "AES-GCM", length: 256 },
+        false,
+        ["encrypt"],
+      );
+      const inner_iv = crypto.getRandomValues(new Uint8Array(12));
+      const inner = new Uint8Array(
+        await crypto.subtle.encrypt(
+          { name: "AES-GCM", iv: inner_iv },
+          inner_key,
+          new TextEncoder().encode(JSON.stringify(payload)),
+        ),
+      );
+      const combined = new Uint8Array(12 + inner.length);
+
+      combined.set(inner_iv, 0);
+      combined.set(inner, 12);
+
+      const iv = crypto.getRandomValues(new Uint8Array(12));
+      const aad = new TextEncoder().encode(
+        `aster-device-recovery-v1|${meta.user_id}|${meta.snapshot_id}|${meta.source_hash}`,
+      );
+      const record: DeviceSnapshotRecord = {
+        ...meta,
+        created_at: 1,
+        iv,
+        sealed: await crypto.subtle.encrypt(
+          { name: "AES-GCM", iv, additionalData: aad },
+          key,
+          combined,
+        ),
+      };
+
+      expect(await open_device_snapshot(record, secret, key)).toBeNull();
+    });
+
+    it("refuses a secret the server returns for another snapshot", async () => {
+      const first = await sealed_record();
+      const second = await sealed_record();
+
+      expect(
+        await open_device_snapshot(
+          { ...second.record, snapshot_id: "snap-2" },
+          first.secret,
+          second.key,
+        ),
+      ).toBeNull();
+      expect(
+        await open_device_snapshot(first.record, second.secret, first.key),
+      ).toBeNull();
     });
 
     it("rejects a record whose bound metadata was swapped", async () => {
@@ -545,7 +608,7 @@ describe("device recovery", () => {
     install_vault("v1", key.armored, "pw");
     await refresh_device_snapshot(USER);
     for (const record of snapshots.values()) {
-      record.created_at = Date.now() - 31 * 24 * 60 * 60 * 1000;
+      record.created_at = Date.now() - 15 * 24 * 60 * 60 * 1000;
     }
 
     await run_device_recovery(USER);
@@ -689,7 +752,7 @@ describe("device recovery", () => {
     }
   });
 
-  it("renews the snapshot of an unchanged vault every week", async () => {
+  it("renews the snapshot of an unchanged vault every three days", async () => {
     vi.useFakeTimers({ toFake: ["Date"] });
 
     try {
@@ -700,7 +763,7 @@ describe("device recovery", () => {
 
       const [first] = [...snapshots.keys()];
 
-      vi.setSystemTime(Date.now() + 6 * 24 * 60 * 60 * 1000);
+      vi.setSystemTime(Date.now() + 2 * 24 * 60 * 60 * 1000);
       expect(await refresh_device_snapshot(USER)).toBe(false);
 
       vi.setSystemTime(Date.now() + 2 * 24 * 60 * 60 * 1000);

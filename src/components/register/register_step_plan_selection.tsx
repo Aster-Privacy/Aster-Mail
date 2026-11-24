@@ -90,6 +90,7 @@ import { read_offer_prefill } from "@/components/register/academic_offer_prefill
 import { clear_first_run_plan, restore_first_run_plan } from "@/lib/first_run";
 import { checkout_error_text } from "@/components/settings/billing/checkout_error_text";
 import { promo_code_error_text } from "@/components/settings/billing/plan_change_discount_text";
+import { has_tauri_runtime } from "@/lib/tauri_runtime";
 
 interface RegisterStepPlanSelectionProps {
   reg: UseRegistrationReturn;
@@ -109,7 +110,7 @@ let plans_promise_cache: Promise<{
 }> | null = null;
 
 function is_desktop(): boolean {
-  return typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
+  return has_tauri_runtime();
 }
 
 export function prefetch_plans(): void {
@@ -187,6 +188,14 @@ function feature_list_for_tier(
       { on: true, text: t("settings.f_tracker_protection_long") },
       { on: true, text: t("settings.plan_f_alias_avatars") },
       { on: true, text: t("settings.plan_f_catch_all") },
+      {
+        on: true,
+        text: with_bold(
+          "2",
+          t("settings.ext_v2_plan_synced_accounts_suffix"),
+        ),
+      },
+      { on: true, text: t("settings.ext_v2_plan_f_custom_domain_primary") },
       { on: true, text: t("settings.f_auto_forward") },
       { on: true, text: t("settings.plan_f_support_priority") },
       { on: true, text: t("settings.plan_f_imap_smtp_bridge") },
@@ -213,6 +222,14 @@ function feature_list_for_tier(
       { on: true, text: t("settings.f_tracker_protection_long") },
       { on: true, text: t("settings.plan_f_alias_avatars") },
       { on: true, text: t("settings.plan_f_catch_all") },
+      {
+        on: true,
+        text: with_bold(
+          "5",
+          t("settings.ext_v2_plan_synced_accounts_suffix"),
+        ),
+      },
+      { on: true, text: t("settings.ext_v2_plan_f_custom_domain_primary") },
       { on: true, text: t("settings.f_auto_forward") },
       { on: true, text: t("settings.plan_f_support_priority") },
       { on: true, text: t("settings.plan_f_imap_smtp_bridge") },
@@ -242,6 +259,14 @@ function feature_list_for_tier(
     { on: true, text: t("settings.f_tracker_protection_long") },
     { on: true, text: t("settings.plan_f_alias_avatars") },
     { on: true, text: t("settings.plan_f_catch_all") },
+    {
+      on: true,
+      text: with_bold(
+        "20",
+        t("settings.ext_v2_plan_synced_accounts_suffix"),
+      ),
+    },
+    { on: true, text: t("settings.ext_v2_plan_f_custom_domain_primary") },
     { on: true, text: t("settings.f_auto_forward") },
     { on: true, text: t("settings.plan_f_support_priority") },
     { on: true, text: t("settings.plan_f_imap_smtp_bridge") },

@@ -86,6 +86,18 @@ interface TagCounts {
 
 const TAG_RETRY_DELAYS_MS = [400, 1_200, 3_000];
 const TAG_BACKGROUND_RETRY_DELAYS_MS = [8_000, 20_000, 45_000];
+const TAG_FAILED_FETCH_RETRY_MS = 60_000;
+const TAG_RECOVERY_MIN_INTERVAL_MS = 5_000;
+
+const tag_recovery = { in_flight: false, last_ms: -Infinity };
+
+function can_retry_now(): boolean {
+  if (typeof navigator !== "undefined" && navigator.onLine === false) {
+    return false;
+  }
+
+  return document.visibilityState !== "hidden";
+}
 const TAGS_REFETCH_DEBOUNCE_MS = 300;
 const TAG_PARENT_ERROR_CODES = new Set([
   "TAG_PARENT_NOT_FOUND",
@@ -137,6 +149,8 @@ export function clear_tags_cache(): void {
   cached_tags.data = [];
   cached_tags.total = 0;
   cached_tags.has_loaded = false;
+  tag_recovery.in_flight = false;
+  tag_recovery.last_ms = -Infinity;
 }
 
 interface UseTagsReturn {
@@ -472,6 +486,18 @@ export function use_tags(): UseTagsReturn {
           await wait(delay);
 
           if (this_generation !== fetch_generation_ref.current) return;
+          if (cached_tags.has_loaded) return;
+          if (!can_retry_now()) continue;
+          if ((await attempt_fetch()) !== "retry") return;
+        }
+
+        for (;;) {
+          await wait(TAG_FAILED_FETCH_RETRY_MS);
+
+          if (this_generation !== fetch_generation_ref.current) return;
+          if (cached_tags.has_loaded) return;
+          if (!has_passphrase_in_memory()) return;
+          if (!can_retry_now()) continue;
           if ((await attempt_fetch()) !== "retry") return;
         }
       };
@@ -480,6 +506,44 @@ export function use_tags(): UseTagsReturn {
     },
     [t],
   );
+
+  const fetch_tags_ref = useRef(fetch_tags);
+
+  fetch_tags_ref.current = fetch_tags;
+
+  useEffect(() => {
+    const recover = () => {
+      if (cached_tags.has_loaded || tag_recovery.in_flight) return;
+      if (!has_passphrase_in_memory()) return;
+      if (!can_retry_now()) return;
+
+      const now = Date.now();
+
+      if (now - tag_recovery.last_ms < TAG_RECOVERY_MIN_INTERVAL_MS) return;
+
+      tag_recovery.in_flight = true;
+      tag_recovery.last_ms = now;
+
+      void fetch_tags_ref.current().finally(() => {
+        tag_recovery.in_flight = false;
+      });
+    };
+
+    const handle_visibility = () => {
+      if (document.visibilityState === "visible") recover();
+    };
+
+    window.addEventListener("online", recover);
+    window.addEventListener("focus", recover);
+    document.addEventListener("visibilitychange", handle_visibility);
+
+    return () => {
+      fetch_generation_ref.current += 1;
+      window.removeEventListener("online", recover);
+      window.removeEventListener("focus", recover);
+      document.removeEventListener("visibilitychange", handle_visibility);
+    };
+  }, []);
 
   useEffect(() => {
     return on_tags_loaded(() => {

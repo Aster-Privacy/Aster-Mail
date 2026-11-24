@@ -60,6 +60,7 @@ import { SettingsSkeleton } from "@/components/settings/settings_skeleton";
 import { LoadFailedNotice } from "@/components/settings/load_failed_notice";
 import { show_toast } from "@/components/toast/simple_toast";
 import { use_i18n } from "@/lib/i18n/context";
+import { payment_url_or_throw } from "@/lib/payment_url";
 import { format_bytes, format_decimal, format_number } from "@/lib/utils";
 import {
   addon_return_url,
@@ -92,6 +93,7 @@ import {
 } from "@/components/settings/billing/billing_constants";
 import { use_sticky_value } from "@/hooks/use_sticky_value";
 import { ButtonSpinner } from "@/components/ui/spinner";
+import { has_tauri_runtime } from "@/lib/tauri_runtime";
 
 export const STORAGE_PROMO_ENABLED = true;
 
@@ -361,7 +363,9 @@ export function StorageSection() {
         addon_return_url("cancelled"),
         addon.billing_interval,
       );
-      const url = response.data?.url;
+      const url = response.data?.url
+        ? payment_url_or_throw(response.data.url)
+        : undefined;
 
       if (!url) {
         show_toast(t("settings.addon_purchase_failed"), "error");
@@ -370,8 +374,7 @@ export function StorageSection() {
         return;
       }
 
-      const is_tauri =
-        typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
+      const is_tauri = has_tauri_runtime();
 
       if (is_tauri) {
         const core = await import("@tauri-apps/api/core");

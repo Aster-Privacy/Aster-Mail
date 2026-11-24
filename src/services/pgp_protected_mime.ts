@@ -156,6 +156,8 @@ const HTML_ENTITY_TEXT: Record<string, string> = {
   "&#39;": "'",
 };
 
+const HIDDEN_TEXT_ELEMENTS = ["style", "script", "head", "title"];
+
 export function html_to_plain_text(html: string): string {
   let out = "";
   let i = 0;
@@ -176,6 +178,17 @@ export function html_to_plain_text(html: string): string {
       i += 1;
 
       const lowered = tag.trim().toLowerCase();
+      const tag_name = lowered.split(/[\s/]/)[0];
+      const hidden = HIDDEN_TEXT_ELEMENTS.find((name) => name === tag_name);
+
+      if (hidden) {
+        const close = html.toLowerCase().indexOf(`</${hidden}`, i);
+        const close_end = close === -1 ? -1 : html.indexOf(">", close);
+
+        i = close_end === -1 ? html.length : close_end + 1;
+
+        continue;
+      }
 
       if (
         lowered.startsWith("br") ||

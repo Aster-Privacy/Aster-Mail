@@ -6,22 +6,26 @@
 // This file is part of this project.
 //
 // This program is free software: you can redistribute it and/or modify
-// it under the terms of the AGPLv3 as published by
+// it under the terms of the GNU Affero General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-// AGPLv3 for more details.
+// GNU Affero General Public License for more details.
 //
-// You should have received a copy of the AGPLv3
+// You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type { TlsMethod } from "@/components/settings/hooks/use_external_accounts";
 import type { TranslationFn } from "@/components/settings/external_accounts/form_types";
 
-import { ChevronDownIcon } from "@heroicons/react/24/outline";
+import {
+  AdjustmentsHorizontalIcon,
+  ChevronDownIcon,
+} from "@heroicons/react/24/outline";
+import { Island, IslandRow, SettingControlRow } from "@aster/ui";
 import { useState } from "react";
 
 import { commit_on_enter } from "@/lib/commit_on_enter";
@@ -52,33 +56,29 @@ export function AdvancedSettingsSection({
   const [timeout_input, set_timeout_input] = useState<string | null>(null);
 
   return (
-    <div className="space-y-3">
-      <button
+    <Island divided className="overflow-hidden">
+      <IslandRow
         aria-expanded={show_advanced}
-        className="flex items-center gap-2 w-full text-sm font-semibold py-1 transition-colors text-txt-primary"
-        type="button"
-        onClick={() => set_show_advanced(!show_advanced)}
-      >
-        <ChevronDownIcon
-          className="w-4 h-4 text-txt-muted"
-          style={{
-            transform: show_advanced ? "rotate(180deg)" : "rotate(0deg)",
-          }}
-        />
-        {t("settings.advanced_settings")}
-      </button>
+        chevron={false}
+        description={t("settings.ext_v2_advanced_description")}
+        icon={<AdjustmentsHorizontalIcon />}
+        label={t("settings.advanced_settings")}
+        on_press={() => set_show_advanced(!show_advanced)}
+        trailing={
+          <ChevronDownIcon
+            aria-hidden="true"
+            className={`w-4 h-4 text-txt-muted transition-transform duration-200 ${
+              show_advanced ? "rotate-180" : ""
+            }`}
+          />
+        }
+      />
       {show_advanced && (
-        <div className="space-y-4 ps-6">
-          <div>
-            <label
-              className="text-xs font-medium mb-1 block text-txt-muted"
-              id="ext-account-tls-method-label"
-            >
-              {t("settings.tls_method")}
-            </label>
+        <SettingControlRow
+          control={
             <div
               aria-labelledby="ext-account-tls-method-label"
-              className="inline-flex gap-0.5 p-1 rounded-full bg-[color-mix(in_srgb,var(--text-primary)_7%,transparent)]"
+              className="inline-flex gap-0.5 p-1 rounded-full bg-[var(--aster-segmented-track)]"
               role="radiogroup"
             >
               {tls_method_options.map((option) =>
@@ -90,19 +90,27 @@ export function AdvancedSettingsSection({
                 ),
               )}
             </div>
-          </div>
-          <div>
-            <label
-              className="text-xs font-medium mb-1 block text-txt-muted"
-              htmlFor="ext-account-timeout"
-            >
-              {t("settings.connection_timeout")}
-            </label>
+          }
+          control_width="auto"
+          description={
+            <span id="ext-account-tls-method-label">
+              {t("settings.ext_v2_tls_method_description")}
+            </span>
+          }
+          label={t("settings.tls_method")}
+        />
+      )}
+      {show_advanced && (
+        <SettingControlRow
+          control={
             <Input
-              className="w-24"
+              aria-label={t("settings.connection_timeout")}
+              className="aster_input_tonal w-24"
               id="ext-account-timeout"
+              inputMode="numeric"
               max={120}
               min={5}
+              size="md"
               type="number"
               value={timeout_input ?? form_connection_timeout}
               onBlur={(e) => {
@@ -113,9 +121,12 @@ export function AdvancedSettingsSection({
               onFocus={(e) => set_timeout_input(e.target.value)}
               onKeyDown={commit_on_enter}
             />
-          </div>
-        </div>
+          }
+          control_width="auto"
+          description={t("settings.ext_v2_timeout_description")}
+          label={t("settings.connection_timeout")}
+        />
       )}
-    </div>
+    </Island>
   );
 }

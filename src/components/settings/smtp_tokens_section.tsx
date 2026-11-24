@@ -23,9 +23,17 @@ import {
   ArrowRightIcon,
   ExclamationTriangleIcon,
   KeyIcon,
+  PencilIcon,
   PlusIcon,
+  ServerIcon,
 } from "@heroicons/react/24/outline";
-import { Button, Island, IslandRow, IslandSection } from "@aster/ui";
+import {
+  Button,
+  Island,
+  IslandIconButton,
+  IslandRow,
+  IslandSection,
+} from "@aster/ui";
 
 import { use_i18n } from "@/lib/i18n/context";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
@@ -36,6 +44,8 @@ import {
 } from "@/services/api/smtp_tokens";
 import { use_verified_domain_addresses } from "@/components/settings/hooks/use_verified_domain_addresses";
 import { SmtpTokenCreateModal } from "@/components/settings/smtp_token_create_modal";
+import { SmtpTokenDetailsModal } from "@/components/settings/smtp_token_details_modal";
+import { SmtpTokenRenameModal } from "@/components/settings/smtp_token_rename_modal";
 import { LoadFailedNotice } from "@/components/settings/load_failed_notice";
 import { InfoPopover } from "@/components/ui/info_popover";
 import { ConfirmationModal } from "@/components/modals/confirmation_modal";
@@ -46,8 +56,12 @@ import { ButtonSpinner } from "@/components/ui/spinner";
 import { show_toast } from "@/components/toast/simple_toast";
 import { app_locale, get_display_time_zone } from "@/utils/date_format";
 
-function format_date_short(iso: string): string {
-  return new Date(iso).toLocaleDateString(app_locale(), {
+function format_date_short(iso: string): string | null {
+  const date = new Date(iso);
+
+  if (Number.isNaN(date.getTime())) return null;
+
+  return date.toLocaleDateString(app_locale(), {
     timeZone: get_display_time_zone(),
     month: "short",
     day: "numeric",
@@ -72,6 +86,8 @@ export function SmtpTokensSection() {
     null,
   );
   const [create_open, set_create_open] = useState(false);
+  const [details_id, set_details_id] = useState<string | null>(null);
+  const [rename_id, set_rename_id] = useState<string | null>(null);
 
   const load_tokens = useCallback(async () => {
     set_tokens_loading(true);
@@ -117,7 +133,15 @@ export function SmtpTokensSection() {
     }
   };
 
+  const handle_renamed = (id: string, name: string) => {
+    set_tokens((current) =>
+      current.map((tok) => (tok.id === id ? { ...tok, name } : tok)),
+    );
+  };
+
   const confirm_token = tokens.find((tok) => tok.id === confirm_revoke_id);
+  const details_token = tokens.find((tok) => tok.id === details_id) ?? null;
+  const rename_token = tokens.find((tok) => tok.id === rename_id) ?? null;
   const has_addresses = addresses.length > 0;
 
   const section_props = {
@@ -277,28 +301,51 @@ export function SmtpTokensSection() {
                   <span className="block truncate">{token.bound_address}</span>
                   <span className="block mt-0.5">
                     {t("settings.trusted_devices_created")}{" "}
-                    {format_date_short(token.created_at)}
+                    {format_date_short(token.created_at) ?? ""}
                     {" · "}
                     {t("settings.smtp_token_last_used")}{" "}
                     {token.last_used_at
-                      ? format_date_short(token.last_used_at)
+                      ? (format_date_short(token.last_used_at) ??
+                        t("common.unknown"))
                       : t("settings.smtp_token_never_used")}
                   </span>
                 </>
               }
               icon={<KeyIcon />}
-              label={<span className="block truncate">{token.name}</span>}
+              label={
+                <span className="block truncate" title={token.name}>
+                  {token.name}
+                </span>
+              }
               trailing={
-                <Button
-                  className="flex-shrink-0"
-                  disabled={revoking_id === token.id}
-                  style={{ color: "var(--color-danger)" }}
-                  variant="secondary"
-                  onClick={() => set_confirm_revoke_id(token.id)}
-                >
-                  {t("settings.trusted_devices_revoke")}
-                  {revoking_id === token.id && <ButtonSpinner />}
-                </Button>
+                <div className="flex flex-shrink-0 items-center gap-1.5">
+                  {token.smtp_settings && (
+                    <IslandIconButton
+                      label={t("settings.smtp_token_details_title")}
+                      size="sm"
+                      onClick={() => set_details_id(token.id)}
+                    >
+                      <ServerIcon className="w-4 h-4" />
+                    </IslandIconButton>
+                  )}
+                  <IslandIconButton
+                    label={t("common.rename")}
+                    size="sm"
+                    onClick={() => set_rename_id(token.id)}
+                  >
+                    <PencilIcon className="w-4 h-4" />
+                  </IslandIconButton>
+                  <Button
+                    className="flex-shrink-0"
+                    disabled={revoking_id === token.id}
+                    style={{ color: "var(--color-danger)" }}
+                    variant="secondary"
+                    onClick={() => set_confirm_revoke_id(token.id)}
+                  >
+                    {t("settings.trusted_devices_revoke")}
+                    {revoking_id === token.id && <ButtonSpinner />}
+                  </Button>
+                </div>
               }
             />
           ))}
@@ -317,6 +364,18 @@ export function SmtpTokensSection() {
         on_confirm={() => confirm_revoke_id && handle_revoke(confirm_revoke_id)}
         title={t("settings.smtp_token_revoke_title")}
         variant="danger"
+      />
+
+      <SmtpTokenDetailsModal
+        token={details_token}
+        on_close={() => set_details_id(null)}
+      />
+
+      <SmtpTokenRenameModal
+        token={rename_token}
+        on_close={() => set_rename_id(null)}
+        on_missing={() => void load_tokens()}
+        on_renamed={handle_renamed}
       />
 
       <SmtpTokenCreateModal

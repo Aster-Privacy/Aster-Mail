@@ -27,6 +27,9 @@ const h = vi.hoisted(() => ({
   untrusted: new Set<string>(),
   trusted: [] as string[],
   acknowledged: [] as string[],
+  reviewed: [] as string[][],
+  refuse_review: false,
+  toasts: [] as string[],
   listeners: [] as Array<() => void>,
 }));
 
@@ -57,6 +60,27 @@ vi.mock("@/services/crypto/recipient_identity_check", () => ({
   trust_recipient_identity: vi.fn(async (email: string) => {
     h.trusted.push(email);
     h.untrusted.delete(email);
+  }),
+}));
+
+vi.mock("@/services/key_trust_consent", () => ({
+  confirm_internal_key_trust: vi.fn(async (untrusted: string[]) => {
+    h.reviewed.push(untrusted);
+
+    if (h.refuse_review) throw new Error("changed");
+
+    for (const email of untrusted) {
+      h.trusted.push(email);
+      h.untrusted.delete(email);
+    }
+
+    return "trusted";
+  }),
+}));
+
+vi.mock("@/components/toast/simple_toast", () => ({
+  show_toast: vi.fn((message: string) => {
+    h.toasts.push(message);
   }),
 }));
 
@@ -101,6 +125,9 @@ beforeEach(() => {
   h.untrusted = new Set();
   h.trusted = [];
   h.acknowledged = [];
+  h.reviewed = [];
+  h.refuse_review = false;
+  h.toasts = [];
   h.listeners = [];
   vi.mocked(get_recipient_identity_status).mockClear();
 });
@@ -197,8 +224,27 @@ describe("RecipientIdentityNotice", () => {
         ?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
     });
 
+    expect(h.reviewed).toEqual([["alice@astermail.org"]]);
     expect(h.trusted).toEqual(["alice@astermail.org"]);
     expect(h.acknowledged).toEqual([]);
     expect(container.querySelector('[role="alert"]')).toBeNull();
+  });
+
+  it("keeps the warning and says why when the reviewed key no longer matches", async () => {
+    h.untrusted.add("alice@astermail.org");
+    h.refuse_review = true;
+
+    const { container } = await render(["alice@astermail.org"]);
+
+    await act(async () => {
+      container
+        .querySelector("button")
+        ?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    });
+
+    expect(h.reviewed).toEqual([["alice@astermail.org"]]);
+    expect(h.trusted).toEqual([]);
+    expect(h.toasts).toEqual(["mail.trust_new_key_failed"]);
+    expect(container.querySelector('[role="alert"]')).not.toBeNull();
   });
 });

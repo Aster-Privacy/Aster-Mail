@@ -45,7 +45,11 @@ import {
 } from "@/lib/chunk_recovery";
 import { show_self_xss_warning } from "@/lib/security/console_warning";
 import { start_input_modality_tracking } from "@/lib/input_modality";
-import { install_global_error_reporting } from "@/services/error_reporter";
+import {
+  install_global_error_reporting,
+  report_client_error,
+} from "@/services/error_reporter";
+import { install_dom_mutation_tolerance } from "@/lib/dom_mutation_tolerance";
 import { connection_store } from "@/services/routing/connection_store";
 import { apply_desktop_content_protection } from "@/native/desktop_content_protection";
 import { start_desktop_interface_zoom } from "@/native/desktop_interface_zoom";
@@ -68,6 +72,7 @@ import "@/styles/fonts.css";
 import "@/styles/globals.css";
 import "@/styles/mobile.css";
 
+import { kept_across_updates } from "@/lib/app_update_caches";
 import { ignore_error } from "@/lib/ignore_error";
 import { safe_local_get } from "@/lib/safe_storage";
 import { predict_startup_route } from "@/lib/startup_route";
@@ -75,6 +80,7 @@ import { watch_device_erase } from "@/lib/device_erase_latch";
 import { capture_support_return } from "@/lib/support_return";
 import { capture_link_commitment } from "@/lib/device_link_commitment";
 import { lazy_with_retry } from "@/utils/lazy_with_retry";
+import { has_tauri_runtime } from "@/lib/tauri_runtime";
 
 const DesktopApp = lazy_with_retry(() => import("@/App"));
 const MobileApp = lazy_with_retry(() => import("@/mobile_app"));
@@ -131,6 +137,13 @@ warm_startup_route_chunk();
 
 start_input_modality_tracking();
 install_global_error_reporting();
+install_dom_mutation_tolerance((kind) =>
+  report_client_error({
+    feature: "dom_tolerance",
+    error_code: kind,
+    severity: "warn",
+  }),
+);
 capture_support_return();
 capture_link_commitment(true);
 
@@ -180,8 +193,7 @@ watch_device_erase((signal) => {
 
 connection_store.initialize().catch((caught) => ignore_error("main", caught));
 
-const is_tauri_runtime =
-  typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
+const is_tauri_runtime = has_tauri_runtime();
 
 if (is_tauri_runtime) {
   void import("@tauri-apps/api/core")
@@ -213,21 +225,21 @@ if (is_tauri_runtime && "serviceWorker" in navigator) {
   (async () => {
     try {
       const regs = await navigator.serviceWorker.getRegistrations();
-      let did_clear = false;
+      const had_worker = regs.length > 0;
 
-      if (regs.length > 0) {
+      if (had_worker) {
         await Promise.all(regs.map((r) => r.unregister()));
-        did_clear = true;
       }
       if (typeof caches !== "undefined") {
         const keys = await caches.keys();
 
-        if (keys.length > 0) {
-          await Promise.all(keys.map((k) => caches.delete(k)));
-          did_clear = true;
-        }
+        await Promise.all(
+          keys
+            .filter((k) => !kept_across_updates(k))
+            .map((k) => caches.delete(k)),
+        );
       }
-      if (did_clear && !sessionStorage.getItem("aster:sw-flushed")) {
+      if (had_worker && !sessionStorage.getItem("aster:sw-flushed")) {
         sessionStorage.setItem("aster:sw-flushed", "1");
         window.location.reload();
       }

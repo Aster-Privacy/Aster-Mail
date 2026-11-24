@@ -49,12 +49,23 @@ function key_set_id(set: {
   ratchet_identity_public?: string;
   ratchet_signed_prekey_public?: string;
   ratchet_pq_identity_public?: string;
+  ratchet_pq_identity_key?: string;
+  ratchet_pq_identity_seed?: string;
 }): string {
   return [
     set.ratchet_identity_public ?? "",
     set.ratchet_signed_prekey_public ?? "",
-    set.ratchet_pq_identity_public ?? "",
+    set.ratchet_identity_public
+      ? (set.ratchet_pq_identity_public ?? "")
+      : set.ratchet_pq_identity_public ||
+        set.ratchet_pq_identity_key ||
+        set.ratchet_pq_identity_seed ||
+        "",
   ].join("|");
+}
+
+function holds_pq_secret(set: RatchetKeySet): boolean {
+  return Boolean(set.ratchet_pq_identity_key || set.ratchet_pq_identity_seed);
 }
 
 function fill_missing_fields(
@@ -87,7 +98,8 @@ export function merge_ratchet_key_history(
   const by_id = new Map<string, RatchetKeySet>();
 
   for (const set of groups.flatMap((group) => group ?? [])) {
-    if (!set?.ratchet_identity_public) continue;
+    if (!set) continue;
+    if (!set.ratchet_identity_public && !holds_pq_secret(set)) continue;
 
     const id = key_set_id(set);
 

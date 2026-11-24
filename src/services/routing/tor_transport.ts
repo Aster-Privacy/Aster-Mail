@@ -20,6 +20,7 @@
 //
 import type { TorFetchResponse } from "./types";
 import type { TranslationKey } from "@/lib/i18n/types";
+import { has_tauri_runtime } from "@/lib/tauri_runtime";
 
 export type TorErrorCode =
   | "unsupported_platform"
@@ -47,7 +48,7 @@ let tor_connected_cache = false;
 let tor_status_poll_started = false;
 
 function is_tauri(): boolean {
-  return typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
+  return has_tauri_runtime();
 }
 
 function is_capacitor(): boolean {

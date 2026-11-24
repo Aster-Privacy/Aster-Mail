@@ -97,6 +97,11 @@ vi.mock("./recovery_key", () => ({
   decrypt_recovery_key_with_code: (...args: unknown[]) =>
     decrypt_recovery_key_with_code(...args),
   decrypt_vault_backup: (...args: unknown[]) => decrypt_vault_backup(...args),
+  read_vault_backup: async (...args: unknown[]) => {
+    const { backup_user_id, ...vault } = await decrypt_vault_backup(...args);
+
+    return { vault, generation: 0, user_id: backup_user_id ?? "" };
+  },
 }));
 
 import {
@@ -324,6 +329,19 @@ describe("restore_inactive_key_sets_with_code", () => {
     expect(consume_inactive_key_set).not.toHaveBeenCalledWith("archived-2");
   });
 
+  it("skips an archive bound to another account", async () => {
+    decrypt_vault_backup.mockImplementation(async () => ({
+      ...archived_backup(),
+      backup_user_id: "user-2",
+    }));
+
+    expect(await restore_inactive_key_sets_with_code(CODE)).toEqual({
+      restored: 0,
+      incomplete: 0,
+    });
+    expect(consume_inactive_key_set).not.toHaveBeenCalled();
+  });
+
   it("keeps a password-bound archive for the password method", async () => {
     decrypt_vault_backup.mockImplementation(async () => ({
       ...archived_backup(),
@@ -375,5 +393,24 @@ describe("restore_inactive_key_sets_with_code", () => {
       incomplete: 0,
     });
     expect(encrypt_vault).not.toHaveBeenCalled();
+  });
+  it("stamps the restored vault above the generation this device pinned", async () => {
+    localStorage.setItem("astermail_vault_generation_user-1", "9");
+    get_vault_from_memory.mockReturnValue({
+      ...current_vault(),
+      vault_generation: 4,
+    });
+
+    try {
+      await restore_inactive_key_sets_with_code(CODE);
+
+      const saved = encrypt_vault.mock.calls[0][0] as {
+        vault_generation?: number;
+      };
+
+      expect(saved.vault_generation).toBe(10);
+    } finally {
+      localStorage.removeItem("astermail_vault_generation_user-1");
+    }
   });
 });

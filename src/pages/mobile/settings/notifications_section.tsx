@@ -40,6 +40,7 @@ import {
 } from "@/services/api/product_updates";
 import { show_toast } from "@/components/toast/simple_toast";
 import { use_offer_preferences } from "@/hooks/use_offer_preferences";
+import { use_source_notify } from "@/hooks/use_source_notify";
 
 type PermissionState = "granted" | "denied" | "default" | "unsupported";
 
@@ -68,6 +69,7 @@ export function NotificationsSection({
   const [product_updates_info_open, set_product_updates_info_open] =
     useState(false);
   const offer_preferences = use_offer_preferences();
+  const source_notify = use_source_notify();
 
   useEffect(() => {
     let cancelled = false;
@@ -325,6 +327,35 @@ export function NotificationsSection({
             />
           )}
         </SettingsGroup>
+
+        {source_notify.rows.length > 0 && (
+          <SettingsGroup title={t("settings.ext_v2_notify_sources_title")}>
+            {source_notify.rows.map((row) => (
+              <SettingsRow
+                key={row.value}
+                description={
+                  source_notify.choice_for(row.value) === "none"
+                    ? t("settings.ext_v2_notify_source_none")
+                    : t("settings.ext_v2_notify_source_all")
+                }
+                label={row.label}
+                trailing={
+                  <Switch
+                    aria-label={row.label}
+                    checked={source_notify.choice_for(row.value) === "all"}
+                    disabled={source_notify.is_saving}
+                    onCheckedChange={(next) =>
+                      void source_notify.set_choice(
+                        row.value,
+                        next ? "all" : "none",
+                      )
+                    }
+                  />
+                }
+              />
+            ))}
+          </SettingsGroup>
+        )}
 
         <UpgradeGate
           description={t("settings.quiet_hours_locked")}

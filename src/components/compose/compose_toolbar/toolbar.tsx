@@ -28,6 +28,7 @@ import { Button } from "@aster/ui";
 import { DraftStatusIndicator } from "./draft_status";
 import { FormatTools } from "./format_tools";
 import { InsertTools } from "./insert_tools";
+import { PriorityPicker, PriorityTag } from "./priority_picker";
 import {
   ToolbarButton,
   read_format_bar_preference,
@@ -174,6 +175,8 @@ export function ComposeToolbar({
           <PlainTextTag compose={compose} />
         )}
 
+        <PriorityTag compose={compose} />
+
         <div className="flex items-center gap-1 ms-1">
           {!compose.is_plain_text_mode && (
             <ToolbarButton
@@ -204,6 +207,8 @@ export function ComposeToolbar({
           )}
 
           <InsertTools compose={compose} />
+
+          <PriorityPicker compose={compose} />
 
           {compose.schedule_picker_element}
 

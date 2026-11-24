@@ -54,13 +54,20 @@ import {
 } from "./crypto/ratchet_manager";
 import {
   assert_owner_key_trusted,
+  owner_key_pinned_before_send,
   resolve_own_username_for_key_lookup,
   resolve_username_for_key_lookup,
 } from "./send_queue_recipients";
 import { is_internal_recipient } from "./recipient_classification";
 import {
+  find_unregistered_aster_addresses,
+  missing_recipient_key_error,
+} from "./recipient_existence";
+import {
   PostQuantumUnavailableError,
   create_error,
+  recipient_keys_unavailable_error,
+  recipient_not_on_aster_error,
   type EncryptionResult,
   type SendReadinessResult,
 } from "./send_queue_types";
@@ -373,11 +380,20 @@ export async function encrypt_for_recipients(
     vault = get_vault_from_memory();
   }
 
+  const pinned_before = new Map<string, boolean>();
+
   if (
     sender_email &&
     vault?.ratchet_identity_key &&
     vault?.ratchet_identity_public
   ) {
+    for (const recipient of internal_recipients) {
+      pinned_before.set(
+        recipient.toLowerCase(),
+        await owner_key_pinned_before_send(recipient),
+      );
+    }
+
     const ratchet_sender = await resolve_ratchet_sender(sender_email);
     const sender_identity = await resolve_sender_identity(
       ratchet_sender,
@@ -493,6 +509,13 @@ export async function encrypt_for_recipients(
   }
 
   if (!allow_non_post_quantum) {
+    const unregistered =
+      await find_unregistered_aster_addresses(internal_recipients);
+
+    if (unregistered.length > 0) {
+      throw recipient_not_on_aster_error(unregistered);
+    }
+
     throw post_quantum_error(internal_recipients);
   }
 
@@ -502,10 +525,7 @@ export async function encrypt_for_recipients(
     const username = await resolve_username_for_key_lookup(recipient);
 
     if (!username) {
-      throw create_error(
-        "encryption_failed",
-        get_active_translations().errors.cannot_send_no_recipient_keys,
-      );
+      throw recipient_keys_unavailable_error([recipient]);
     }
 
     const key_response = await get_recipient_public_key(username, recipient);
@@ -518,21 +538,19 @@ export async function encrypt_for_recipients(
         );
       }
 
-      throw create_error(
-        "encryption_failed",
-        get_active_translations().errors.cannot_send_no_recipient_keys,
-      );
+      throw missing_recipient_key_error(recipient, key_response);
     }
 
-    await assert_owner_key_trusted(recipient, key_response.data.public_key);
+    await assert_owner_key_trusted(
+      recipient,
+      key_response.data.public_key,
+      pinned_before.get(recipient.toLowerCase()),
+    );
     public_keys.push(key_response.data.public_key);
   }
 
   if (public_keys.length === 0) {
-    throw create_error(
-      "encryption_failed",
-      get_active_translations().errors.cannot_send_no_recipient_keys,
-    );
+    throw recipient_keys_unavailable_error(internal_recipients);
   }
 
   await load_openpgp();

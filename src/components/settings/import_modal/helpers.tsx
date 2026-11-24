@@ -22,6 +22,10 @@
 import { type ParsedEmail } from "@/services/import/parser";
 import { type ImportSource } from "@/services/api/email_import";
 import { extract_email_address } from "@/services/import/mime_utils";
+import {
+  has_reply_prefix,
+  normalize_subject as normalize_thread_subject,
+} from "@/services/threading/threading_rules";
 
 import {
   STORE_ROOT_SEGMENT,
@@ -468,10 +472,7 @@ export function folder_for_email(
 export const NO_SUBJECT_SENTINELS = new Set(["(no subject)", "no subject"]);
 
 export function normalize_subject(subject: string): string {
-  const normalized = subject
-    .replace(/^(\s*(re|fwd?|aw|sv|vs|ref|rif|r)\s*:\s*)+/i, "")
-    .trim()
-    .toLowerCase();
+  const normalized = normalize_thread_subject(subject);
 
   if (NO_SUBJECT_SENTINELS.has(normalized)) return "";
 
@@ -511,12 +512,6 @@ function has_thread_headers(email: ParsedEmail): boolean {
   return (
     header_message_ids(email.raw_headers["in-reply-to"]).length > 0 ||
     header_message_ids(email.raw_headers["references"]).length > 0
-  );
-}
-
-function has_reply_prefix(subject: string): boolean {
-  return /^\s*(re|aw|sv|antw|fw|fwd)\s*(\[\d+\]|\^\d+|\(\d+\))?\s*:/i.test(
-    subject,
   );
 }
 

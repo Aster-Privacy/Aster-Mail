@@ -73,7 +73,11 @@ async function seal_reaction_body(
     return {
       ok: false,
       result: consent.blocked_by
-        ? { success: false, error: describe_consent_block(consent.blocked_by) }
+        ? {
+            success: false,
+            error:
+              consent.message ?? describe_consent_block(consent.blocked_by),
+          }
         : { success: false, cancelled: true },
     };
   }

@@ -64,13 +64,17 @@ import { use_delayed_flag } from "@/hooks/use_delayed_flag";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ButtonSpinner } from "@/components/ui/spinner";
 import { show_toast } from "@/components/toast/simple_toast";
+import { guard_error_text_or_null } from "@/components/guard/guard_error_text";
 import { PlanBadge } from "@/components/common/plan_badge";
 import { SmtpTokensSection } from "@/components/settings/smtp_tokens_section";
 import { LoadFailedNotice } from "@/components/settings/load_failed_notice";
 import { app_locale, get_display_time_zone } from "@/utils/date_format";
 import { detect_platform } from "@/lib/utils";
 
-const DL = "/api/bridge/v1/download";
+import {
+  bridge_download_url,
+  open_bridge_download,
+} from "@/components/settings/bridge_download";
 
 const CLI_DOCS_URL = "https://astermail.org/bridge/docs/command-line";
 
@@ -311,7 +315,7 @@ async function start_bridge_download(
 
   if (is_locked) return;
 
-  const url = `${DL}/${platform}`;
+  const url = bridge_download_url(platform);
 
   try {
     const res = await fetch(url, { method: "HEAD", redirect: "manual" });
@@ -326,7 +330,7 @@ async function start_bridge_download(
   }
 
   show_toast(t("settings.bridge_download_started"), "success");
-  window.location.href = url;
+  open_bridge_download(url);
 }
 
 interface BridgeDownloadLinkProps {
@@ -367,7 +371,7 @@ function BridgeDownloadLink({
       className={`${DOWNLOAD_BTN_BASE} ${
         is_primary ? "aster_btn_depth" : "aster_btn_outline"
       }`}
-      href={`${DL}/${platform}`}
+      href={bridge_download_url(platform)}
       onClick={(event) =>
         void start_bridge_download(platform, is_locked, t, event)
       }
@@ -420,7 +424,7 @@ function DownloadFormatMenu({
                 className="items-start gap-2.5 py-2"
               >
                 <a
-                  href={`${DL}/${link.platform}`}
+                  href={bridge_download_url(link.platform)}
                   onClick={(event) =>
                     void start_bridge_download(
                       link.platform,
@@ -679,7 +683,7 @@ function BridgeCliCard({ is_locked }: BridgeCliCardProps) {
           {variant.arch_link && !is_locked && (
             <a
               className="text-[13px] font-medium leading-5 text-brand hover:underline"
-              href={`${DL}/${variant.arch_link.platform}`}
+              href={bridge_download_url(variant.arch_link.platform)}
               onClick={(event) =>
                 variant.arch_link &&
                 void start_bridge_download(
@@ -894,7 +898,8 @@ export function BridgeSection() {
 
       if (result.error) {
         show_toast(
-          result.error || t("common.something_went_wrong_try_again"),
+          guard_error_text_or_null(t, result) ??
+            (result.error || t("common.something_went_wrong_try_again")),
           "error",
         );
 
@@ -918,7 +923,8 @@ export function BridgeSection() {
 
       if (failure) {
         show_toast(
-          failure.error || t("common.something_went_wrong_try_again"),
+          guard_error_text_or_null(t, failure) ??
+            (failure.error || t("common.something_went_wrong_try_again")),
           "error",
         );
       }

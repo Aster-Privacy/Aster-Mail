@@ -33,11 +33,12 @@ import {
   derive_password_hash,
   generate_recovery_codes,
   RECOVERY_CODE_SET_SIZE,
-  encrypt_vault,
   generate_identity_keypair,
   generate_signed_prekey,
   prepare_pgp_key_data,
 } from "@/services/crypto/key_manager";
+import { prepare_vault_write } from "@/services/crypto/key_manager_pgp_vault";
+import { stored_vault_write_iterations } from "@/services/crypto/vault_level2";
 import { keep_vault_keys_through_reset } from "@/services/crypto/reset_link_vault";
 import {
   generate_recovery_key,
@@ -51,6 +52,7 @@ import {
 } from "@/services/crypto/key_manager_core";
 import { MASTER_KEY_VAULT_FORMAT } from "@/services/crypto/memory_key_store";
 import { build_backup_vault } from "@/services/crypto/backup_unlocked_keys";
+import { backup_key_fingerprints_of } from "@/services/crypto/recovery_backup_coverage";
 import {
   get_reset_hardware_key_options,
   get_reset_second_factor_status,
@@ -537,6 +539,9 @@ export default function ResetPasswordPage() {
 
     try {
       let old_vault: EncryptedVault | null = null;
+      let stored_vault_kdf_iterations: unknown =
+        second_factor?.vault_kdf_iterations ?? null;
+      let stored_encrypted_vault: string | null = null;
 
       if (!lost_everything) {
         set_processing_status(t("auth.reset_unlocking_earlier_mail"));
@@ -570,11 +575,15 @@ export default function ResetPasswordPage() {
             throw new Error(t("auth.recovery_failed"));
           }
         } else {
+          stored_vault_kdf_iterations = vault_response.data.vault_kdf_iterations;
+          stored_encrypted_vault = vault_response.data.encrypted_vault;
           try {
             old_vault = await decrypt_vault(
               vault_response.data.encrypted_vault,
               vault_response.data.vault_nonce,
               current_password,
+              undefined,
+              false,
             );
           } catch {
             await timing_safe_delay();
@@ -661,9 +670,14 @@ export default function ResetPasswordPage() {
       }
 
       set_processing_status(t("auth.encrypting_vault_new_password"));
-      const { encrypted_vault, vault_nonce } = await encrypt_vault(
+      const vault_write = await prepare_vault_write(
         next_vault,
         password,
+        stored_vault_write_iterations(
+          stored_vault_kdf_iterations,
+          stored_encrypted_vault,
+        ),
+        false,
       );
 
       set_processing_status(t("auth.creating_new_recovery_backup"));
@@ -679,26 +693,33 @@ export default function ResetPasswordPage() {
 
       clear_recovery_key(new_recovery_key);
 
+      const backup_key_fingerprints =
+        await backup_key_fingerprints_of(next_vault);
+
       set_processing_status(t("auth.resetting_password"));
-      const response = await reset_password_with_token(
-        token,
-        password_hash,
-        password_salt,
-        encrypted_vault,
-        vault_nonce,
-        new_shares,
-        new_backup.encrypted_data,
-        new_backup.nonce,
-        new_backup.salt,
-        new_keys?.identity_key,
-        new_keys?.signed_prekey,
-        new_keys?.signed_prekey_signature,
-        new_keys?.pgp_key,
-        MASTER_KEY_VAULT_FORMAT,
-        true,
-        undefined,
-        old_vault !== null,
-        password_hash_v2,
+      const { response } = await vault_write.write((sealed, kdf_field) =>
+        reset_password_with_token(
+          token,
+          password_hash,
+          password_salt,
+          sealed.encrypted_vault,
+          sealed.vault_nonce,
+          new_shares,
+          new_backup.encrypted_data,
+          new_backup.nonce,
+          new_backup.salt,
+          new_keys?.identity_key,
+          new_keys?.signed_prekey,
+          new_keys?.signed_prekey_signature,
+          new_keys?.pgp_key,
+          MASTER_KEY_VAULT_FORMAT,
+          true,
+          undefined,
+          old_vault !== null,
+          password_hash_v2,
+          kdf_field.vault_kdf_iterations,
+          backup_key_fingerprints,
+        ),
       );
 
       if (response.error || !response.data?.success) {

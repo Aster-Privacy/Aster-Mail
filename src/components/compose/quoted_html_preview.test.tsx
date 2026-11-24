@@ -26,10 +26,13 @@ const h = vi.hoisted(() => ({
   block_external_content: true,
   load_remote_images: "never",
   defer_images: false,
+  handle_external_link: vi.fn(),
 }));
 
 vi.mock("@/contexts/external_link_context", () => ({
-  use_external_link: () => ({ handle_external_link: vi.fn() }),
+  use_external_link: () => ({
+    handle_external_link: h.handle_external_link,
+  }),
 }));
 
 vi.mock("@/contexts/preferences_context", () => ({
@@ -189,7 +192,8 @@ describe("QuotedHtmlPreview", () => {
 
     expect(cover).toBeDefined();
     expect(cover!.hasAttribute("class")).toBe(false);
-    expect(cover!.hasAttribute("id")).toBe(false);
+    expect(cover!.getAttribute("id")).toBe("aster_anchor_root");
+    expect(document.getElementById("root")).not.toBe(cover);
     expect(cover!.getAttribute("style") ?? "").not.toMatch(/fixed/i);
     expect(
       container.querySelector(".aster_quote .aster_quote_body"),
@@ -213,8 +217,8 @@ describe("QuotedHtmlPreview named properties", () => {
       />,
     );
 
-    expect(container.querySelector("[id]")).toBeNull();
-    expect(container.querySelector("[name]")).toBeNull();
+    expect(container.querySelector('[id="__TAURI_INTERNALS__"]')).toBeNull();
+    expect(container.querySelector('[name="__TAURI_INTERNALS__"]')).toBeNull();
     expect(
       (window as unknown as Record<string, unknown>).__TAURI_INTERNALS__,
     ).toBeUndefined();
@@ -223,7 +227,26 @@ describe("QuotedHtmlPreview named properties", () => {
     ).toBeUndefined();
   });
 
-  it("keeps anchor names so in-message links still jump", () => {
+  it("keeps a quoted anchor name from shadowing window globals", () => {
+    h.block_external_content = true;
+
+    const { container } = render(
+      <QuotedHtmlPreview
+        html={'<a name="__TAURI_INTERNALS__">a</a><a name="__TAURI__">b</a>'}
+      />,
+    );
+
+    expect(container.querySelector('a[name="__TAURI_INTERNALS__"]')).toBeNull();
+    expect(container.querySelector('a[name="__TAURI__"]')).toBeNull();
+    expect(
+      (window as unknown as Record<string, unknown>).__TAURI_INTERNALS__,
+    ).toBeUndefined();
+    expect(
+      (window as unknown as Record<string, unknown>).__TAURI__,
+    ).toBeUndefined();
+  });
+
+  it("keeps in-message links pointing at their prefixed anchor", () => {
     h.block_external_content = true;
 
     const { container } = render(
@@ -232,6 +255,123 @@ describe("QuotedHtmlPreview named properties", () => {
       />,
     );
 
-    expect(container.querySelector('a[name="section-1"]')).not.toBeNull();
+    const anchor = container.querySelector(
+      'a[name="aster_anchor_section-1"]',
+    ) as HTMLAnchorElement | null;
+    const link = container.querySelector(
+      'a[href="#aster_anchor_section-1"]',
+    ) as HTMLAnchorElement | null;
+
+    expect(anchor).not.toBeNull();
+    expect(link).not.toBeNull();
+
+    const scroll_into_view = vi.fn();
+
+    anchor!.scrollIntoView = scroll_into_view;
+    h.handle_external_link.mockClear();
+
+    act(() => {
+      link!.dispatchEvent(
+        new MouseEvent("click", { bubbles: true, cancelable: true }),
+      );
+    });
+
+    expect(scroll_into_view).toHaveBeenCalledTimes(1);
+    expect(h.handle_external_link).not.toHaveBeenCalled();
+  });
+
+  it("scrolls to a quoted heading that is targeted by id", () => {
+    h.block_external_content = true;
+
+    const { container } = render(
+      <QuotedHtmlPreview
+        html={'<a href="#news">Jump</a><h2 id="news">News</h2>'}
+      />,
+    );
+
+    const heading = container.querySelector(
+      '[id="aster_anchor_news"]',
+    ) as HTMLElement | null;
+    const link = container.querySelector(
+      'a[href="#aster_anchor_news"]',
+    ) as HTMLAnchorElement | null;
+
+    expect(heading).not.toBeNull();
+    expect(link).not.toBeNull();
+
+    const scroll_into_view = vi.fn();
+
+    heading!.scrollIntoView = scroll_into_view;
+    h.handle_external_link.mockClear();
+
+    act(() => {
+      link!.dispatchEvent(
+        new MouseEvent("click", { bubbles: true, cancelable: true }),
+      );
+    });
+
+    expect(scroll_into_view).toHaveBeenCalledTimes(1);
+    expect(h.handle_external_link).not.toHaveBeenCalled();
+  });
+});
+
+describe("QuotedHtmlPreview containment", () => {
+  it("paints quoted markup only inside its own box", () => {
+    h.block_external_content = true;
+
+    const { container } = render(<QuotedHtmlPreview html="<p>Hi</p>" />);
+    const box = container.firstElementChild as HTMLElement;
+
+    expect(box.style.contain).toBe("paint");
+    expect(box.style.isolation).toBe("isolate");
+    expect(box.style.overflowX).toBe("hidden");
+  });
+
+  it("keeps quoted styles from lifting content over the composer", () => {
+    h.block_external_content = true;
+
+    const { container } = render(
+      <QuotedHtmlPreview
+        html={
+          '<div style="position:-webkit-sticky;top:-300px;z-index:99999;transform:scale(30);margin-top:-500px">Over</div>'
+        }
+      />,
+    );
+    const over = container.firstElementChild?.querySelector("div");
+    const style = over?.getAttribute("style") ?? "";
+
+    expect(over?.textContent).toBe("Over");
+
+    expect(style).not.toMatch(/sticky|z-index|transform|-\d/i);
+  });
+});
+
+describe("QuotedHtmlPreview mailto links", () => {
+  it("sends a quoted mailto link through the link guard without bcc", () => {
+    h.block_external_content = true;
+    h.handle_external_link.mockClear();
+
+    const { container } = render(
+      <QuotedHtmlPreview
+        html={
+          '<a href="mailto:ada@example.com?bcc=eve@example.com&amp;subject=Hi">Mail</a>'
+        }
+      />,
+    );
+
+    const link = container.querySelector("a");
+
+    expect(link).not.toBeNull();
+
+    const event = new MouseEvent("click", { bubbles: true, cancelable: true });
+
+    act(() => {
+      link!.dispatchEvent(event);
+    });
+
+    expect(event.defaultPrevented).toBe(true);
+    expect(h.handle_external_link).toHaveBeenCalledWith(
+      "mailto:ada@example.com?subject=Hi",
+    );
   });
 });

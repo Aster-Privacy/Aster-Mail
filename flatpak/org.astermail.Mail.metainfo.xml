@@ -68,6 +68,24 @@
   </provides>
 
   <releases>
+    <release version="1.4.89" date="2026-11-22">
+      <url type="details">https://github.com/Aster-Privacy/Aster-Mail/releases/tag/v1.4.89</url>
+    </release>
+    <release version="1.4.88" date="2026-11-22">
+      <url type="details">https://github.com/Aster-Privacy/Aster-Mail/releases/tag/v1.4.88</url>
+    </release>
+    <release version="1.4.87" date="2026-11-20">
+      <url type="details">https://github.com/Aster-Privacy/Aster-Mail/releases/tag/v1.4.87</url>
+    </release>
+    <release version="1.4.86" date="2026-11-20">
+      <url type="details">https://github.com/Aster-Privacy/Aster-Mail/releases/tag/v1.4.86</url>
+    </release>
+    <release version="1.4.85" date="2026-11-19">
+      <url type="details">https://github.com/Aster-Privacy/Aster-Mail/releases/tag/v1.4.85</url>
+    </release>
+    <release version="1.4.84" date="2026-11-19">
+      <url type="details">https://github.com/Aster-Privacy/Aster-Mail/releases/tag/v1.4.84</url>
+    </release>
     <release version="1.4.83" date="2026-11-12">
       <url type="details">https://github.com/Aster-Privacy/Aster-Mail/releases/tag/v1.4.83</url>
     </release>

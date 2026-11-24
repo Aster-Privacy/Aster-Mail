@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { release_on_version_change } from "@/lib/idb_release";
+import { has_tauri_runtime } from "@/lib/tauri_runtime";
 
 const DB_NAME = "astermail_device_key";
 const DB_VERSION = 1;
@@ -35,9 +36,7 @@ async function request_native_keychain_reset(): Promise<void> {
   if (keychain_reset_requested) return;
   keychain_reset_requested = true;
 
-  if (typeof window === "undefined" || !("__TAURI_INTERNALS__" in window)) {
-    return;
-  }
+  if (!has_tauri_runtime()) return;
 
   try {
     const { invoke } = await import("@tauri-apps/api/core");

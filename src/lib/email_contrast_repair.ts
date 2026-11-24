@@ -679,6 +679,20 @@ function is_button_link(style: CSSStyleDeclaration): boolean {
   return !!background && background.a > 0;
 }
 
+function is_cell_button_link(link: HTMLElement, view: Window): boolean {
+  const cell = link.parentElement;
+
+  if (!cell || cell === link.ownerDocument.body) return false;
+  if (cell.children.length !== 1) return false;
+  if ((cell.textContent ?? "").trim() !== (link.textContent ?? "").trim()) {
+    return false;
+  }
+
+  return (
+    cell.hasAttribute("bgcolor") || is_button_link(view.getComputedStyle(cell))
+  );
+}
+
 export function mark_link_buttons(doc: Document, view?: Window | null): number {
   const window_view = view ?? doc.defaultView;
 
@@ -694,7 +708,11 @@ export function mark_link_buttons(doc: Document, view?: Window | null): number {
     const link = links[index];
 
     if (link.hasAttribute(LINK_BUTTON_ATTRIBUTE)) continue;
-    if (!is_button_link(window_view.getComputedStyle(link))) continue;
+    if (
+      !is_button_link(window_view.getComputedStyle(link)) &&
+      !is_cell_button_link(link, window_view)
+    )
+      continue;
 
     link.setAttribute(LINK_BUTTON_ATTRIBUTE, "");
     marked += 1;

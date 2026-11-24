@@ -32,11 +32,12 @@ import mail_icon from "@/assets/app_icons/mail.png?inline";
 import { DatedCalendarImage } from "@/components/icons/dated_calendar_image";
 import { CALENDAR_WEB_ORIGIN } from "@/lib/session_handoff/session_handoff_protocol";
 import { open_external } from "@/utils/open_link";
+import { has_tauri_runtime } from "@/lib/tauri_runtime";
 
 const DOT_POSITIONS = [5, 12, 19];
 
 function is_desktop_shell(): boolean {
-  return typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
+  return has_tauri_runtime();
 }
 
 function AppGridIcon() {

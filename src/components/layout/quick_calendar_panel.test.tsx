@@ -32,6 +32,12 @@ import {
 
 const mocks = vi.hoisted(() => ({
   open_external: vi.fn(),
+  mint_grant: vi.fn((): string | null => null),
+}));
+
+vi.mock("@/contexts/auth/sibling_session_handoff", () => ({
+  HANDOFF_GRANT_HASH_PREFIX: "#handoff=",
+  mint_panel_handoff_grant: mocks.mint_grant,
 }));
 
 vi.mock("@/lib/i18n/context", () => ({
@@ -235,6 +241,8 @@ describe("quick calendar panel", () => {
     document.documentElement.className = "light";
     document.documentElement.removeAttribute("style");
     mocks.open_external.mockReset();
+    mocks.mint_grant.mockReset();
+    mocks.mint_grant.mockReturnValue(null);
     container = document.createElement("div");
     document.body.appendChild(container);
     root = createRoot(container);
@@ -248,6 +256,123 @@ describe("quick calendar panel", () => {
     document.documentElement.className = "";
     document.documentElement.removeAttribute("style");
     vi.useRealTimers();
+  });
+
+  describe("when the panel reports it is signed out", () => {
+    const signed_out = {
+      source: "aster-calendar-panel",
+      type: "status",
+      status: "signed_out",
+    };
+    const base_src = `${ORIGIN}/mail-panel?theme=light&palette=default`;
+
+    beforeEach(() => {
+      let count = 0;
+
+      mocks.mint_grant.mockImplementation(() => `grant${++count}`);
+    });
+
+    it("reloads the panel once with a fresh grant", async () => {
+      await render_panel(true);
+
+      const first = frame();
+
+      expect(first?.getAttribute("src")).toBe(`${base_src}#handoff=grant1`);
+
+      await send({ source: "aster-calendar-panel", type: "ready" });
+      await send(signed_out);
+
+      const second = frame();
+
+      expect(second).not.toBe(first);
+      expect(second?.getAttribute("src")).toBe(
+        `${base_src}&attempt=1#handoff=grant2`,
+      );
+      expect(second?.className).toContain("opacity-0");
+
+      await send({ source: "aster-calendar-panel", type: "ready" });
+      await send(signed_out);
+
+      expect(frame()).toBeNull();
+      expect(mocks.mint_grant).toHaveBeenCalledTimes(2);
+    });
+
+    it("shows a set up state when Calendar has never been set up", async () => {
+      vi.useFakeTimers();
+      await render_panel(true);
+      await send({ source: "aster-calendar-panel", type: "ready" });
+      await send(signed_out);
+      await send({ source: "aster-calendar-panel", type: "ready" });
+      await send(signed_out);
+
+      expect(frame()).toBeNull();
+      expect(container.querySelector("[aria-hidden='true'] .grid")).toBeNull();
+      expect(container.textContent).toContain("calendar.panel_set_up");
+      expect(container.textContent).not.toContain("calendar.panel_load_failed");
+
+      const labels = Array.from(container.querySelectorAll("button"))
+        .map((button) => button.textContent)
+        .filter(Boolean);
+
+      expect(labels).toEqual([
+        "calendar.panel_open_calendar",
+        "calendar.panel_try_again",
+      ]);
+
+      const find_button = (label: string) =>
+        Array.from(container.querySelectorAll("button")).find(
+          (button) => button.textContent === label,
+        );
+
+      await act(async () => {
+        find_button("calendar.panel_open_calendar")?.click();
+      });
+
+      expect(mocks.open_external).toHaveBeenCalledWith(ORIGIN);
+
+      await act(async () => {
+        vi.advanceTimersByTime(60_000);
+      });
+
+      expect(container.textContent).toContain("calendar.panel_set_up");
+
+      await act(async () => {
+        find_button("calendar.panel_try_again")?.click();
+      });
+
+      expect(frame()).not.toBeNull();
+      expect(container.textContent).not.toContain("calendar.panel_set_up");
+    });
+
+    it("tries a fresh grant again when the panel is reopened", async () => {
+      await render_panel(true);
+      await send(signed_out);
+      await send(signed_out);
+      await render_panel(false);
+
+      expect(mocks.mint_grant).toHaveBeenCalledTimes(2);
+
+      await render_panel(true);
+
+      expect(frame()?.getAttribute("src")).toBe(
+        `${base_src}&attempt=2#handoff=grant3`,
+      );
+    });
+
+    it("does not reload for other panel states", async () => {
+      await render_panel(true);
+      await send({
+        source: "aster-calendar-panel",
+        type: "status",
+        status: "locked",
+      });
+      await render_panel(false);
+      await render_panel(true);
+
+      expect(frame()?.getAttribute("src")).toBe(`${base_src}#handoff=grant1`);
+      expect(frame()?.className).toContain("opacity-100");
+      expect(mocks.mint_grant).toHaveBeenCalledTimes(1);
+    });
   });
 
   it("does not load the frame until the panel first opens", async () => {
@@ -595,6 +720,66 @@ describe("quick calendar panel", () => {
     });
 
     expect(frame()?.className).toContain("opacity-100");
+    expect(container.textContent).not.toContain("calendar.panel_load_failed");
+  });
+
+  it("settles when the panel reports a calendar error", async () => {
+    vi.useFakeTimers();
+    await render_panel(true);
+    await send({ source: "aster-calendar-panel", type: "ready" });
+    await send({
+      source: "aster-calendar-panel",
+      type: "status",
+      status: "failed",
+    });
+
+    expect(frame()?.className).toContain("opacity-100");
+    expect(container.querySelector("[aria-hidden='true'] .grid")).toBeNull();
+
+    await act(async () => {
+      vi.advanceTimersByTime(60_000);
+    });
+
+    expect(frame()?.className).toContain("opacity-100");
+  });
+
+  it("fails within ten seconds even when the frame keeps reloading", async () => {
+    vi.useFakeTimers();
+    await render_panel(true);
+
+    for (let step = 0; step < 4; step += 1) {
+      await act(async () => {
+        frame()?.dispatchEvent(new Event("load"));
+      });
+      await act(async () => {
+        vi.advanceTimersByTime(LOAD_READY_TIMEOUT_MS / 2);
+      });
+    }
+
+    expect(frame()).toBeNull();
+    expect(container.textContent).toContain("calendar.panel_load_failed");
+  });
+
+  it("fails instead of loading forever when the frame address cannot be built", async () => {
+    mocks.mint_grant.mockImplementation(() => {
+      throw new Error("storage unavailable");
+    });
+    await render_panel(true);
+
+    expect(frame()).toBeNull();
+    expect(container.textContent).toContain("calendar.panel_load_failed");
+    expect(container.textContent).toContain("calendar.panel_try_again");
+  });
+
+  it("shows the calendar once it loads", async () => {
+    await render_panel(true);
+
+    expect(container.querySelector("[aria-hidden='true']")).not.toBeNull();
+
+    await send({ source: "aster-calendar-panel", type: "ready" });
+
+    expect(frame()?.className).toContain("opacity-100");
+    expect(container.querySelector("[aria-hidden='true']")).toBeNull();
     expect(container.textContent).not.toContain("calendar.panel_load_failed");
   });
 });

@@ -1807,8 +1807,7 @@
 }
 
 .aster_search_bar_slide {
-  animation: aster_search_bar_slide 1.6s cubic-bezier(0.65, 0, 0.35, 1)
-    infinite;
+  animation: aster_search_bar_slide 1.6s cubic-bezier(0.65, 0, 0.35, 1) infinite;
 }
 
 @keyframes aster_search_state_in {
@@ -3713,6 +3712,19 @@ html {
   text-decoration: underline !important;
 }
 
+html.hide-scrollbars,
+html.hide-scrollbars * {
+  -ms-overflow-style: none !important;
+  scrollbar-width: none !important;
+}
+
+html.hide-scrollbars::-webkit-scrollbar,
+html.hide-scrollbars *::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
 .dyslexia-font,
 .dyslexia-font *:not(code):not(pre):not(kbd):not(samp) {
   font-family:
@@ -4197,14 +4209,10 @@ html:not(.dark) .sender_logo_light > img {
   font-weight: 500;
   line-height: 1.45;
   letter-spacing: 0.01em;
-  background-color: color-mix(
-    in srgb,
-    var(--accent-color) 72%,
-    var(--dropdown-bg)
-  );
-  color: color-mix(in srgb, var(--accent-fg, #ffffff) 92%, var(--accent-color));
+  background-color: color-mix(in srgb, var(--accent-color) 14%, transparent);
+  color: color-mix(in srgb, var(--accent-color) 72%, var(--text-primary));
   box-shadow: inset 0 0 0 1px
-    color-mix(in srgb, var(--accent-color) 45%, transparent);
+    color-mix(in srgb, var(--accent-color) 30%, transparent);
 }
 
 .account_menu_badge_muted {
@@ -4220,12 +4228,13 @@ html:not(.dark) .sender_logo_light > img {
   align-items: center;
   flex-shrink: 0;
   max-width: 100%;
-  padding: 0.16em 0.62em 0.2em;
+  justify-content: center;
+  padding: 0.24em 0.62em;
   border-radius: 999px;
   font-size: 0.72rem;
   font-weight: 650;
   letter-spacing: 0.012em;
-  line-height: 1.35;
+  line-height: 1;
   white-space: nowrap;
   color: #fff;
   background:
@@ -4240,6 +4249,10 @@ html:not(.dark) .sender_logo_light > img {
       color-mix(in srgb, var(--plan_badge_accent) 74%, #05070f 26%) 100%
     );
   box-shadow: inset 0 0.5px 0 color-mix(in srgb, #ffffff 46%, transparent);
+}
+
+.account_menu_card span:has(> .plan_badge) > span.flex-1 {
+  flex: 0 1 auto;
 }
 
 .plan_galaxy {
@@ -4673,7 +4686,10 @@ html:not(.dark) .sender_logo_light > img {
   border-radius: var(--aster-radius-control, 16px);
   background-color: color-mix(in srgb, var(--text-primary) 4%, transparent);
   box-shadow: inset 0 0 0 1px
-    var(--aster-floating-divider, color-mix(in srgb, var(--text-primary) 8%, transparent));
+    var(
+      --aster-floating-divider,
+      color-mix(in srgb, var(--text-primary) 8%, transparent)
+    );
 }
 
 .contact_group_option {
@@ -5173,6 +5189,13 @@ html:not(.dark) .sender_logo_light > img {
   animation: aster_tip_fade_in 120ms ease-out;
 }
 
+.aster_tip_portal {
+  max-width: min(320px, calc(100vw - 24px));
+  white-space: normal;
+  overflow-wrap: break-word;
+  text-wrap: pretty;
+}
+
 .profile_avatar_edit {
   outline: none;
   box-shadow: 0 0 0 4px var(--aster-island-fill, var(--bg-primary));
@@ -5444,10 +5467,13 @@ html[data-input-modality="keyboard"]
     flex: 1 1 0%;
   }
 
+  .aster_island_row_stacked > .aster_island_row_text {
+    min-width: min(100%, 14rem);
+  }
+
   .aster_island_row_stacked > .aster_island_row_trailing {
-    flex-basis: 100%;
     flex-wrap: wrap;
-    justify-content: flex-start;
+    margin-inline-start: auto;
     max-width: 100%;
   }
 
@@ -5455,24 +5481,15 @@ html[data-input-modality="keyboard"]
     max-width: 100%;
   }
 
-  .aster_island_row_stacked:has(
-      > .aster_island_row_trailing
-        > .aster_island_row_control
-        > .aster_select_trigger
-    ) {
-    container: aster_select_row / inline-size;
-  }
-
   .aster_island_row_stacked
     > .aster_island_row_trailing:has(
       > .aster_island_row_control > .aster_select_trigger
     ) {
-    flex-basis: auto;
-    justify-content: flex-end;
     max-width: 50%;
   }
 
-  @container aster_select_row (max-width: 559px) {
+  @media (max-width: 767px) {
+    .aster_island_row_stacked > .aster_island_row_trailing,
     .aster_island_row_stacked
       > .aster_island_row_trailing:has(
         > .aster_island_row_control > .aster_select_trigger
@@ -5839,9 +5856,79 @@ html[data-input-modality="keyboard"]
   }
 }
 
+.guard_tree {
+  --guard_tree_line: color-mix(in srgb, var(--text-tertiary) 85%, transparent);
+  --guard_tree_indent: 34px;
+  --guard_tree_w: 2.5px;
+  --guard_tree_x: calc(var(--aster-island-row-pad-x, 16px) + 10px);
+}
+
+.guard_tree_parent {
+  position: relative;
+}
+
+.guard_tree_parent::after {
+  content: "";
+  position: absolute;
+  inset-inline-start: var(--guard_tree_x);
+  top: calc(50% + 15px);
+  bottom: 0;
+  border-inline-start: var(--guard_tree_w) solid var(--guard_tree_line);
+  pointer-events: none;
+}
+
+.guard_tree_child > .aster_island_row {
+  padding-inline-start: calc(
+    var(--aster-island-row-pad-x, 16px) + var(--guard_tree_indent)
+  );
+}
+
+.guard_tree_child {
+  position: relative;
+}
+
+.guard_tree_child::before {
+  content: "";
+  position: absolute;
+  inset-inline-start: var(--guard_tree_x);
+  top: 0;
+  height: calc(50% + 1px);
+  width: calc(var(--guard_tree_indent) - 13px);
+  border-inline-start: var(--guard_tree_w) solid var(--guard_tree_line);
+  border-bottom: var(--guard_tree_w) solid var(--guard_tree_line);
+  border-end-start-radius: 8px;
+  pointer-events: none;
+}
+
+.guard_tree_child::after {
+  content: "";
+  position: absolute;
+  inset-inline-start: calc(var(--guard_tree_x) + 13.5px);
+  top: calc(50% - 4px);
+  width: 8px;
+  height: 8px;
+  border-start-end-radius: 1px;
+  border-top: var(--guard_tree_w) solid var(--guard_tree_line);
+  border-inline-end: var(--guard_tree_w) solid var(--guard_tree_line);
+  transform: rotate(45deg);
+  pointer-events: none;
+}
+
+[dir="rtl"] .guard_tree_child::after {
+  transform: rotate(-45deg);
+}
+
+.guard_tree_child:not(:last-child) > .guard_tree_trunk {
+  position: absolute;
+  inset-inline-start: var(--guard_tree_x);
+  top: 50%;
+  bottom: 0;
+  border-inline-start: var(--guard_tree_w) solid var(--guard_tree_line);
+  pointer-events: none;
+}
+
 .bridge_upgrade_benefits {
-  border-top: 1px solid
-    color-mix(in srgb, var(--text-primary) 8%, transparent);
+  border-top: 1px solid color-mix(in srgb, var(--text-primary) 8%, transparent);
 }
 
 .bridge_cli_block {
@@ -5912,8 +5999,8 @@ html[data-input-modality="keyboard"]
 .bridge_cli_code,
 .bridge_cli_code * {
   font-family:
-    ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas,
-    "Liberation Mono", monospace;
+    ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono",
+    monospace;
   font-variant-ligatures: none;
 }
 
@@ -5967,6 +6054,7 @@ html[data-input-modality="keyboard"]
 .contact_group_member_row:hover::before,
 .contact_group_member_row:hover + .contact_group_member_row::before,
 .contact_group_member_row[data-active="true"]::before,
-.contact_group_member_row[data-active="true"] + .contact_group_member_row::before {
+.contact_group_member_row[data-active="true"]
+  + .contact_group_member_row::before {
   opacity: 0;
 }

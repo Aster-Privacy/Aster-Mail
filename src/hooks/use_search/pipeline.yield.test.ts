@@ -75,12 +75,12 @@ vi.mock("@/hooks/use_search/envelope", () => ({
 vi.mock("@/services/locked_folders", () => ({
   filter_locked_mail_items: (items: MailItem[]) => items,
 }));
-vi.mock("@/lib/html_sanitizer", async (import_original) => {
-  const actual = await import_original<typeof import("@/lib/html_sanitizer")>();
+vi.mock("@/lib/html_text", async (import_original) => {
+  const actual = await import_original<typeof import("@/lib/html_text")>();
 
   return {
     ...actual,
-    strip_html_tags_bounded: (html: string, min_chars: number) => {
+    html_to_preview_text: (html: string, min_chars: number) => {
       strip.calls++;
       const until = performance.now() + strip.cost_ms;
 
@@ -88,7 +88,7 @@ vi.mock("@/lib/html_sanitizer", async (import_original) => {
         continue;
       }
 
-      return actual.strip_html_tags_bounded(html, min_chars);
+      return actual.html_to_preview_text(html, min_chars);
     },
   };
 });

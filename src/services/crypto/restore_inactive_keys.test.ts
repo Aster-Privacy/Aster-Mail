@@ -101,7 +101,10 @@ vi.mock("./vault_write_lock", () => ({
   with_vault_write_lock: (fn: () => Promise<unknown>) => fn(),
 }));
 
-import { restore_inactive_key_sets } from "./restore_inactive_keys";
+import {
+  harvest_vault_storage_keys,
+  restore_inactive_key_sets,
+} from "./restore_inactive_keys";
 
 function key_set(public_key: string) {
   return {
@@ -625,5 +628,25 @@ describe("restore_inactive_key_sets", () => {
 
     expect(saved_keys[0]).toBe("b2xkZXItYWxyZWFkeS1oZWxk");
     expect(saved_keys.indexOf(ARCHIVED_DATA_KEK)).toBeGreaterThan(0);
+  });
+});
+
+describe("harvest_vault_storage_keys", () => {
+  it("leaves keys anyone can derive out of the harvested set", async () => {
+    const digest = await crypto.subtle.digest(
+      "SHA-256",
+      new TextEncoder().encode("undefinedastermail-envelope-v1"),
+    );
+    const public_kek = Buffer.from(new Uint8Array(digest)).toString("base64");
+    const real_kek = Buffer.from(new Uint8Array(32).fill(7)).toString("base64");
+
+    const harvested = harvest_vault_storage_keys({
+      legacy_keks: [
+        { k: public_kek, added_at: "2026-01-01T00:00:00.000Z" },
+        { k: real_kek, added_at: "2026-01-01T00:00:00.000Z" },
+      ],
+    } as never).map((raw) => Buffer.from(raw).toString("base64"));
+
+    expect(harvested).toEqual([real_kek]);
   });
 });

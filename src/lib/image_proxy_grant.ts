@@ -24,6 +24,7 @@ import { Capacitor } from "@capacitor/core";
 import { api_client } from "@/services/api/client";
 import { connection_store } from "@/services/routing/connection_store";
 import { routed_fetch } from "@/services/routing/routing_provider";
+import { has_tauri_runtime } from "@/lib/tauri_runtime";
 
 const GRANT_ENDPOINT = "/images/v1/grant";
 const GRANT_SCHEME = "AsterImageGrant";
@@ -75,10 +76,7 @@ export function should_defer_proxied_images(): boolean {
 }
 
 function is_native_shell(): boolean {
-  return (
-    Capacitor.isNativePlatform() ||
-    (typeof window !== "undefined" && "__TAURI_INTERNALS__" in window)
-  );
+  return Capacitor.isNativePlatform() || has_tauri_runtime();
 }
 
 function absolute_proxy_target(target: string): string {

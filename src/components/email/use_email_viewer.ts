@@ -30,6 +30,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { use_guarded_trash_actions } from "@/components/email/use_permanent_delete_confirm";
 import { UNDO_SEND_PREVIEW_ID } from "@/components/email/email_viewer_types";
 import { get_mail_item, type MailItem } from "@/services/api/mail";
+import { is_missing_mail_item } from "@/lib/stale_open_email";
 import { request_cache } from "@/services/api/request_cache";
 import { has_passphrase_in_memory } from "@/services/crypto/memory_key_store";
 import { update_item_metadata } from "@/services/crypto/mail_metadata";
@@ -42,6 +43,7 @@ import {
   type ThreadReplyCancelledEventDetail,
 } from "@/hooks/mail_events";
 import { ignore_error } from "@/lib/ignore_error";
+import { use_close_when_folder_locked } from "@/hooks/use_folder_unlock_state";
 import { get_email_username } from "@/lib/utils";
 import { extract_reply_to } from "@/utils/reply_to";
 import { resolve_forwarding_display } from "@/utils/forwarding_alias";
@@ -84,6 +86,13 @@ import { get_read_intent } from "@/services/read_intent";
 import { read_clears_conversation } from "@/hooks/unread_read_delta";
 import { mark_conversation_read } from "@/hooks/mark_conversation_read";
 import { decrypt_mail_envelope } from "@/components/email/shared/decrypt_envelope";
+import {
+  capture_decrypt_readiness,
+  on_pending_decrypt_retry,
+  settle_decrypt_failure,
+  settle_decrypt_success,
+} from "@/services/crypto/decrypt_readiness";
+import { is_pending_decrypt_body } from "@/utils/undecryptable_body";
 import { is_crypto_module_load_error } from "@/services/crypto/openpgp_loader";
 import { use_email_viewer_actions } from "@/components/email/email_viewer_actions";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
@@ -102,6 +111,7 @@ import {
 import { sync_client } from "@/services/sync_client";
 import { CATCH_UP_WHILE_LIVE_MS } from "@/services/sync_timing";
 import { use_thread_decrypt_hold } from "@/hooks/use_thread_decrypt_hold";
+import { with_message_read } from "@/components/email/hooks/detail_read_state";
 import { register_open_reader } from "@/hooks/open_reader_registry";
 import { use_conversation_catch_up_read } from "@/hooks/use_conversation_catch_up_read";
 import {
@@ -237,6 +247,10 @@ export function use_email_viewer({
   use_refresh_listener = false,
   grouped_email_ids,
 }: UseEmailViewerOptions) {
+  const on_dismiss_ref = useRef(on_dismiss);
+
+  on_dismiss_ref.current = on_dismiss;
+
   const local_email =
     email_id === UNDO_SEND_PREVIEW_ID ? incoming_local_email : undefined;
   const { t } = use_i18n();
@@ -246,6 +260,8 @@ export function use_email_viewer({
   const { is_feature_locked } = use_plan_limits();
   const [email, set_email] = useState<DecryptedEmail | null>(null);
   const [mail_item, set_mail_item] = useState<MailItem | null>(null);
+
+  use_close_when_folder_locked(mail_item, () => on_dismiss_ref.current());
   const [is_loading, set_is_loading] = useState(true);
   const [error, set_error] = useState<string | null>(null);
   const [decrypt_failure, set_decrypt_failure] = useState<{
@@ -484,7 +500,9 @@ export function use_email_viewer({
       set_has_recipient_key(!!preloaded.mail_item.has_recipient_key);
       set_has_pq_protection(!!preloaded.mail_item.ephemeral_pq_key);
       set_mail_item(preloaded.mail_item);
-      set_is_read(preloaded.email.is_read);
+      set_is_read(
+        get_read_intent(preloaded.mail_item.id) ?? preloaded.email.is_read,
+      );
       set_is_pinned(preloaded.mail_item.metadata?.is_pinned ?? false);
       set_thread_messages(preloaded.thread_messages);
       set_thread_draft(preloaded.thread_draft);
@@ -601,6 +619,9 @@ export function use_email_viewer({
 
             if (result.success && !cancelled) {
               set_is_read(true);
+              set_thread_messages((prev) =>
+                with_message_read(prev, item.id, true),
+              );
               if (result.encrypted) {
                 set_mail_item((prev) =>
                   prev
@@ -662,6 +683,13 @@ export function use_email_viewer({
       const result = await get_mail_item(email_id);
 
       if (result.error || !result.data) {
+        if (!cancelled && is_missing_mail_item(result)) {
+          set_is_loading(false);
+          on_dismiss_ref.current();
+
+          return;
+        }
+
         if (!cancelled && !reloading_same_email) {
           set_error(t("common.failed_to_load_email"));
           set_is_loading(false);
@@ -705,6 +733,7 @@ export function use_email_viewer({
           ? request_thread()
           : null;
 
+      const readiness_before = capture_decrypt_readiness();
       const envelope = await decrypt_mail_envelope<LocalDecryptedEnvelope>(
         item.encrypted_envelope,
         item.envelope_nonce,
@@ -712,6 +741,9 @@ export function use_email_viewer({
       );
 
       if (!envelope) {
+        const outcome = settle_decrypt_failure(item.id, readiness_before);
+
+        if (outcome === "pending") return;
         if (!cancelled && !reloading_same_email) {
           set_error(t("common.failed_to_decrypt_email"));
           set_decrypt_failure({
@@ -751,12 +783,16 @@ export function use_email_viewer({
         e2e_sender_bound,
         e2e_details_sealed,
         sent_encryption_scope,
+        decrypted_content_tag,
       } = await process_envelope_body(
         envelope,
         user_email,
         item.id,
         item.dkim_result,
       );
+
+      if (is_pending_decrypt_body(body_text)) return;
+      settle_decrypt_success(item.id);
 
       let decrypted_metadata = item.metadata;
 
@@ -835,7 +871,7 @@ export function use_email_viewer({
         set_has_recipient_key(!!item.has_recipient_key);
         set_has_pq_protection(!!item.ephemeral_pq_key);
         set_mail_item(item_with_metadata);
-        set_is_read(is_read_on_server);
+        set_is_read(get_read_intent(item.id) ?? is_read_on_server);
         set_is_pinned(decrypted_metadata?.is_pinned ?? false);
       }
 
@@ -881,6 +917,9 @@ export function use_email_viewer({
           if (result.success) {
             if (!cancelled) {
               set_is_read(true);
+              set_thread_messages((prev) =>
+                with_message_read(prev, item.id, true),
+              );
               if (result.encrypted) {
                 set_mail_item((prev) =>
                   prev
@@ -947,6 +986,7 @@ export function use_email_viewer({
         sent_encryption_scope,
         e2e_sender_bound,
         e2e_details_sealed,
+        decrypted_content_tag,
       );
 
       await resolve_reaction_emojis([single_message], user_email);
@@ -1090,6 +1130,28 @@ export function use_email_viewer({
     };
   }, [email_id, error]);
 
+  const thread_message_ids_ref = useRef<string[]>([]);
+
+  useEffect(() => {
+    thread_message_ids_ref.current = thread_messages.map(
+      (message) => message.id,
+    );
+  }, [thread_messages]);
+
+  useEffect(() => {
+    if (!email_id) return;
+
+    return on_pending_decrypt_retry((ids) => {
+      const affected =
+        ids.has(email_id) ||
+        thread_message_ids_ref.current.some((id) => ids.has(id));
+
+      if (!affected) return;
+      delete_preloaded_email(email_id);
+      set_refresh_key((k) => k + 1);
+    });
+  }, [email_id]);
+
   useEffect(() => {
     const handle_reactions_changed = () => {
       if (email_id) delete_preloaded_email(email_id);
@@ -1128,6 +1190,16 @@ export function use_email_viewer({
 
     const handle_mail_item_updated = (event: Event) => {
       const detail = (event as CustomEvent<MailItemUpdatedEventDetail>).detail;
+
+      if (!detail) return;
+
+      if (detail.is_read !== undefined) {
+        const next_read = detail.is_read;
+
+        set_thread_messages((prev) =>
+          with_message_read(prev, detail.id, next_read),
+        );
+      }
 
       if (detail.id !== email_id) return;
 

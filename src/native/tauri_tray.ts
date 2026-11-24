@@ -23,9 +23,10 @@ import {
   get_active_language,
   get_active_translations,
 } from "@/lib/i18n/translations";
+import { has_tauri_runtime } from "@/lib/tauri_runtime";
 
 function is_tauri(): boolean {
-  return "__TAURI_INTERNALS__" in window;
+  return has_tauri_runtime();
 }
 
 function select_plural_category(count: number): Intl.LDMLPluralRule {

@@ -29,6 +29,7 @@ import {
 } from "./helpers";
 import { group_search_results, expand_thread_ids } from "./thread_grouping";
 import { apply_header_filter, header_filter_for_query } from "./header_filter";
+import { use_search_delete } from "./use_search_delete";
 import {
   selection_folder_status,
   selection_tag_status,
@@ -36,6 +37,7 @@ import {
 } from "./selection_membership";
 
 import { count_filter_operators } from "@/utils/search_operators";
+import { build_label_name_to_tokens } from "@/utils/search_query";
 import { fetch_minimal_emails } from "@/services/fetch_minimal_emails";
 import { use_email_actions } from "@/hooks/use_email_actions";
 import { emit_mail_items_removed } from "@/hooks/mail_events";
@@ -87,6 +89,7 @@ export function use_search_results_page(props: SearchResultsPageProps) {
     set_query,
     clear_results,
     apply_flag_patch,
+    remove_results,
     apply_membership_patch,
   } = use_search();
   const { state: tags_state } = use_tags();
@@ -119,6 +122,10 @@ export function use_search_results_page(props: SearchResultsPageProps) {
 
     return lookup;
   }, [folders_state.folders]);
+  const label_name_to_tokens = useMemo(
+    () => build_label_name_to_tokens(folders_state.folders, tags_state.tags),
+    [folders_state.folders, tags_state.tags],
+  );
   const email_actions = use_email_actions();
   const [bulk_busy, set_bulk_busy] = useState(false);
   const [is_slow, set_is_slow] = useState(false);
@@ -156,9 +163,10 @@ export function use_search_results_page(props: SearchResultsPageProps) {
       search(search_query, {
         fields: ["all"],
         search_body: content_search_enabled,
+        label_name_to_tokens,
       });
     },
-    [search, content_search_enabled],
+    [search, content_search_enabled, label_name_to_tokens],
   );
 
   const content_search_ref = useRef(content_search_enabled);
@@ -645,6 +653,20 @@ export function use_search_results_page(props: SearchResultsPageProps) {
     t,
   ]);
 
+  const disable_permanent_delete_confirm = useCallback(() => {
+    update_preference("confirm_before_permanent_delete", false, true);
+  }, [update_preference]);
+
+  const { delete_emails, search_delete_dialog } = use_search_delete({
+    t,
+    bulk_delete: email_actions.bulk_delete,
+    apply_flag_patch,
+    remove_results,
+    confirm_before_permanent_delete:
+      preferences.confirm_before_permanent_delete,
+    disable_permanent_delete_confirm,
+  });
+
   const handle_bulk_delete = useCallback(async () => {
     const ids = expand_selection(Array.from(selected_ids));
 
@@ -658,27 +680,16 @@ export function use_search_results_page(props: SearchResultsPageProps) {
 
         return;
       }
-      if (emails.length > 0) {
-        const deleted = await email_actions.bulk_delete(emails);
-
-        if (deleted) {
-          apply_flag_patch(
-            emails.map((e) => e.id),
-            { is_trashed: true },
-          );
-          emit_mail_items_removed({ ids: emails.map((e) => e.id) });
-        }
-      }
+      if (emails.length > 0) await delete_emails(emails);
       handle_clear_selection();
     } finally {
       set_bulk_busy(false);
     }
   }, [
-    apply_flag_patch,
+    delete_emails,
     selected_ids,
     bulk_busy,
     fetch_as_minimal_emails,
-    email_actions,
     handle_clear_selection,
     expand_selection,
     t,
@@ -922,6 +933,8 @@ export function use_search_results_page(props: SearchResultsPageProps) {
     handle_select_all_visible,
     handle_bulk_archive,
     handle_bulk_delete,
+    delete_emails,
+    search_delete_dialog,
     handle_bulk_mark_read,
     handle_bulk_mark_unread,
     handle_bulk_toggle_star,

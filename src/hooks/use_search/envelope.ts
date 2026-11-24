@@ -21,6 +21,7 @@
 
 import type { DecryptedEnvelope } from "@/types/email";
 
+import { is_server_sealed_envelope_marker } from "@/components/email/shared/envelope_markers";
 import { vault_identity_key_materials } from "@/services/crypto/identity_key_materials";
 import { reencrypt_mail_item_envelope } from "@/services/api/mail";
 import {
@@ -45,11 +46,14 @@ import {
   fetch_refreshed_vault,
 } from "@/services/crypto/vault_refresh";
 import { zero_uint8_array } from "@/services/crypto/secure_memory";
-import { decrypt_envelope_v2_with_vault } from "@/services/crypto/envelope_v2";
+import {
+  is_stored_envelope_sentinel,
+  open_stored_envelope,
+} from "@/services/crypto/stored_envelope_read";
 import { encrypt_envelope_for_storage } from "@/services/crypto/stored_envelope_write";
 import { register_envelope_attachment_keys } from "@/services/crypto/inbound_attachment_keys";
 import { normalize_envelope_from } from "@/services/crypto/envelope_normalize";
-import { decrypt_legacy_ios_envelope } from "@/services/crypto/legacy_ios_envelope";
+import { decrypt_legacy_ios_mail_envelope } from "@/services/crypto/legacy_ios_envelope";
 import { drop_sender_verification } from "@/services/crypto/sender_verification";
 
 export async function try_decrypt_with_identity_key(
@@ -123,6 +127,7 @@ export function schedule_legacy_envelope_migration(
       const { encrypted, nonce } = await encrypt_envelope_for_storage(
         snapshot,
         vault,
+        item_id,
       );
 
       const response = await reencrypt_mail_item_envelope(item_id, {
@@ -261,10 +266,12 @@ async function open_search_envelope(
     }
   }
 
-  if (nonce_bytes.length === 1 && nonce_bytes[0] === 2) {
-    return decrypt_envelope_v2_with_vault<DecryptedEnvelope>(
+  if (is_stored_envelope_sentinel(nonce_bytes)) {
+    return open_stored_envelope<DecryptedEnvelope>(
       encrypted,
+      nonce_bytes,
       get_vault_from_memory(),
+      item_id,
     );
   }
 
@@ -295,7 +302,7 @@ async function open_search_envelope(
 
     if (
       nonce_bytes.length === 12 &&
-      (first_byte === 2 || first_byte === 3 || first_byte === 4)
+      is_server_sealed_envelope_marker(first_byte)
     ) {
       const { decrypt_mail_envelope } =
         await import("@/components/email/shared/decrypt_envelope");
@@ -357,7 +364,7 @@ async function open_search_envelope(
       }
     }
 
-    const legacy_plaintext = await decrypt_legacy_ios_envelope(
+    const legacy_plaintext = await decrypt_legacy_ios_mail_envelope(
       encrypted_bytes,
       nonce_bytes,
     );

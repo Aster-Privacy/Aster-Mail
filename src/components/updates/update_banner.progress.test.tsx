@@ -219,6 +219,8 @@ describe("UpdateBanner download progress", () => {
     });
     expect(phase()).toBe("installing");
     expect(by_id("update-spinner")).not.toBeNull();
+    expect(bar()).not.toBeNull();
+    expect(bar()?.hasAttribute("aria-valuenow")).toBe(false);
     expect(by_id("update-detail")?.textContent).toBe(
       "settings.updates_card_installing_detail",
     );

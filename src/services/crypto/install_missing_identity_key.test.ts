@@ -18,6 +18,9 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
+
 import { describe, it, expect, vi } from "vitest";
 
 vi.mock("@/services/crypto/key_manager", () => ({
@@ -75,8 +78,8 @@ describe("install_missing_identity_key", () => {
         legacy_keks: [existing],
       } as never,
       "passphrase",
-      "zein@astermail.org",
-      "zein",
+      "member@example.com",
+      "member",
     );
 
     expect(new_vault.identity_key).toContain("BEGIN PGP PRIVATE KEY");
@@ -91,5 +94,25 @@ describe("install_missing_identity_key", () => {
       await sha256("undefinedastermail-preferences-v1"),
     );
     expect(kek_values).toContain("existing");
+  });
+});
+
+describe("install_missing_identity_key fixtures", () => {
+  it("uses only reserved example domains for addresses", () => {
+    const source = readFileSync(
+      join(
+        process.cwd(),
+        "src/services/crypto/install_missing_identity_key.test.ts",
+      ),
+      "utf8",
+    );
+    const domains = [...source.matchAll(/[\w.+-]+@([\w-]+(?:\.[\w-]+)+)/g)]
+      .map((match) => match[1].toLowerCase())
+      .filter((domain) => !domain.endsWith(".ts"));
+
+    expect(domains.length).toBeGreaterThan(0);
+    const reserved = ["example.com", "example.org", "example.net"];
+
+    expect(domains.filter((domain) => !reserved.includes(domain))).toEqual([]);
   });
 });

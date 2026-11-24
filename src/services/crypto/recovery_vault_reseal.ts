@@ -30,6 +30,12 @@ import {
   retained_identity_key_materials,
 } from "./identity_key_materials";
 import { load_openpgp } from "./openpgp_loader";
+import {
+  read_vault_generation_pin,
+  recovered_vault_generation,
+} from "./vault_generation";
+
+import { get_all_accounts } from "@/services/account_manager";
 
 export class RecoveryPreviousPasswordIncorrect extends Error {
   constructor() {
@@ -43,7 +49,9 @@ export interface RecoveryVaultReseal {
   identity_locked: boolean;
 }
 
-async function is_locked_pgp_key(armored: string | undefined): Promise<boolean> {
+async function is_locked_pgp_key(
+  armored: string | undefined,
+): Promise<boolean> {
   if (!armored) return false;
   const openpgp = await load_openpgp();
 
@@ -122,11 +130,34 @@ async function reseal_key(
   return reprotect_with_previous(armored, previous_password, new_password);
 }
 
+export async function recovery_device_pin(
+  account_address: string | null,
+): Promise<number> {
+  const address = account_address?.trim().toLowerCase();
+
+  if (!address) return 0;
+
+  try {
+    const accounts = await get_all_accounts();
+
+    return Math.max(
+      0,
+      ...accounts
+        .filter((account) => account.user?.email?.toLowerCase() === address)
+        .map((account) => read_vault_generation_pin(account.user.id)),
+    );
+  } catch {
+    return 0;
+  }
+}
+
 export async function reseal_recovery_vault(
   source: EncryptedVault,
   unlocked_keys: Map<string, string>,
   new_password: string,
   previous_password: string | null,
+  server_write_count: number | null = null,
+  account_address: string | null = null,
 ): Promise<RecoveryVaultReseal> {
   const usable_previous = previous_password ? previous_password : null;
   const locked_identity = await recovery_locked_identity_key(
@@ -197,6 +228,12 @@ export async function reseal_recovery_vault(
   const identity_locked =
     (await is_locked_pgp_key(vault.identity_key)) &&
     !(await private_key_unlocks(vault.identity_key, new_password));
+
+  vault.vault_generation = recovered_vault_generation(
+    server_write_count,
+    await recovery_device_pin(account_address),
+    source,
+  );
 
   return { vault, identity_locked };
 }

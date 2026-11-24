@@ -73,10 +73,15 @@ import {
   encrypted_attachment_bytes,
 } from "@/services/import/attachments";
 import {
+  count_attachment_messages,
+  import_attachment_notice,
   plan_import_fills,
+  should_review_attachments,
   store_with_rate_limit_retry,
   should_flush_import_batch,
+  type ImportAttachmentNotice,
 } from "@/services/import/import_fill";
+import { use_plan_limits } from "@/hooks/use_plan_limits";
 import {
   create_import_job,
   update_import_job,
@@ -117,7 +122,10 @@ import {
   type ImportAddressEntry,
 } from "./import_routing";
 import { ignore_error } from "@/lib/ignore_error";
-import { show_storage_full_upgrade } from "@/stores/upgrade_store";
+import {
+  show_storage_full_upgrade,
+  show_upgrade_plans,
+} from "@/stores/upgrade_store";
 import { user_facing_error } from "@/utils/user_facing_error";
 import { normalize_address_ignoring_dots } from "@/utils/address_dots";
 import { api_client } from "@/services/api/client";
@@ -134,6 +142,10 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
   const tags_ref = useRef(tags);
 
   tags_ref.current = tags;
+  const { plan_code } = use_plan_limits();
+  const plan_code_ref = useRef(plan_code);
+
+  plan_code_ref.current = plan_code;
 
   const reduce_motion = use_should_reduce_motion();
   const dialog_ref = useRef<HTMLDivElement>(null);
@@ -154,6 +166,8 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
     failed: number;
     attachments_filled?: number;
     attachment_daily_limit?: boolean;
+    attachments_skipped?: number;
+    attachment_notice?: ImportAttachmentNotice;
     quota_exceeded?: boolean;
     folders_skipped?: number;
     labels_created?: number;
@@ -166,6 +180,7 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
     collection: ImportCollection;
     source: ImportSource;
     summary: ImportPlacementSummary;
+    attachment_messages: number;
   } | null>(null);
   const [trash_mode, set_trash_mode] = useState<ImportTrashMode>(
     DEFAULT_IMPORT_TRASH_MODE,
@@ -913,11 +928,21 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
           failed_emails: failed_count,
         });
 
+        const attachments_skipped = attachments_allowed
+          ? 0
+          : count_attachment_messages(emails);
+
         set_import_result({
           imported: imported_count,
           duplicates: Math.max(0, total_duplicates - attachments_filled),
           attachments_filled,
           attachment_daily_limit,
+          attachments_skipped,
+          attachment_notice: import_attachment_notice(
+            attachments_skipped,
+            attachments_allowed,
+            plan_code_ref.current,
+          ),
           drafts_skipped: drafts_skipped_count,
           invalid: invalid_count,
           failed: failed_count,
@@ -1047,12 +1072,19 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
         }
 
         const summary = summarize_import_placement(collection.summaries);
+        const attachment_messages = count_attachment_messages(
+          collection.summaries,
+        );
 
-        if (summary.trashed > 0) {
+        if (
+          summary.trashed > 0 ||
+          should_review_attachments(attachment_messages, plan_code_ref.current)
+        ) {
           set_pending_import({
             collection,
             source: effective_source,
             summary,
+            attachment_messages,
           });
           set_trash_mode(DEFAULT_IMPORT_TRASH_MODE);
           set_progress(null);
@@ -1194,43 +1226,77 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
     },
   ];
 
-  const render_review = (summary: ImportPlacementSummary) => (
+  const render_review = (
+    summary: ImportPlacementSummary,
+    attachment_messages: number,
+  ) => (
     <div className="space-y-4">
       <div className="space-y-1">
         <p className="text-sm font-medium text-txt-primary">
           {t("settings.import_review_ready", { count: summary.total })}
         </p>
-        <p className="text-[13px] leading-relaxed text-txt-secondary">
-          {t("settings.import_review_trash_found", { count: summary.trashed })}
-        </p>
+        {summary.trashed > 0 && (
+          <p className="text-[13px] leading-relaxed text-txt-secondary">
+            {t("settings.import_review_trash_found", {
+              count: summary.trashed,
+            })}
+          </p>
+        )}
       </div>
 
-      <Island
-        divided
-        aria-label={t("settings.import_review_trash_label")}
-        className="overflow-hidden"
-        role="radiogroup"
-      >
-        {trash_mode_options.map((option) => (
-          <IslandRow
-            key={option.mode}
-            aria-checked={trash_mode === option.mode}
-            description={option.hint}
-            label={option.label}
-            on_press={() => set_trash_mode(option.mode)}
-            role="radio"
-            trailing={
-              <span aria-hidden="true" className="pointer-events-none flex">
-                <Radio
-                  readOnly
-                  checked={trash_mode === option.mode}
-                  tabIndex={-1}
-                />
-              </span>
-            }
-          />
-        ))}
-      </Island>
+      {summary.trashed > 0 && (
+        <Island
+          divided
+          aria-label={t("settings.import_review_trash_label")}
+          className="overflow-hidden"
+          role="radiogroup"
+        >
+          {trash_mode_options.map((option) => (
+            <IslandRow
+              key={option.mode}
+              aria-checked={trash_mode === option.mode}
+              description={option.hint}
+              label={option.label}
+              on_press={() => set_trash_mode(option.mode)}
+              role="radio"
+              trailing={
+                <span aria-hidden="true" className="pointer-events-none flex">
+                  <Radio
+                    readOnly
+                    checked={trash_mode === option.mode}
+                    tabIndex={-1}
+                  />
+                </span>
+              }
+            />
+          ))}
+        </Island>
+      )}
+
+      {should_review_attachments(attachment_messages, plan_code) && (
+        <div className="flex flex-col items-start gap-2">
+          <p className="flex items-start gap-2 text-xs leading-relaxed text-amber-500">
+            <InformationCircleIcon
+              aria-hidden="true"
+              className="w-4 h-4 mt-px flex-shrink-0"
+            />
+            <span>
+              {t("settings.import_review_attachments_free", {
+                count: attachment_messages,
+              })}
+            </span>
+          </p>
+          <UpgradeBtn
+            size="sm"
+            onClick={() => {
+              handle_close();
+              show_upgrade_plans();
+            }}
+          >
+            {t("common.upgrade")}
+          </UpgradeBtn>
+        </div>
+      )}
 
       {summary.spam > 0 && (
         <p className="flex items-start gap-2 text-xs leading-relaxed text-txt-muted">
@@ -1376,7 +1442,12 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
         );
 
       case "review":
-        return pending_import ? render_review(pending_import.summary) : null;
+        return pending_import
+          ? render_review(
+              pending_import.summary,
+              pending_import.attachment_messages,
+            )
+          : null;
 
       case "progress":
         return (
@@ -1519,6 +1590,33 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
                   <p className="text-xs text-amber-500">
                     {t("settings.import_attachment_daily_limit")}
                   </p>
+                )}
+                {import_result.attachment_notice === "import_again" && (
+                  <p className="text-xs text-amber-500">
+                    {t("settings.import_attachments_skipped_retry", {
+                      count: import_result.attachments_skipped ?? 0,
+                    })}
+                  </p>
+                )}
+                {import_result.attachment_notice === "upgrade" && (
+                  <div className="mt-3 flex flex-col items-center gap-2">
+                    <p className="text-xs text-amber-500">
+                      {t("settings.import_attachments_skipped_free", {
+                        count: import_result.attachments_skipped ?? 0,
+                      })}
+                    </p>
+                    {!import_result.quota_exceeded && (
+                      <UpgradeBtn
+                        size="sm"
+                        onClick={() => {
+                          handle_close();
+                          show_upgrade_plans();
+                        }}
+                      >
+                        {t("common.upgrade")}
+                      </UpgradeBtn>
+                    )}
+                  </div>
                 )}
                 {import_result.quota_exceeded && (
                   <div className="mt-3 flex flex-col items-center gap-2">

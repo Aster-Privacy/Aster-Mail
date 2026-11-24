@@ -27,6 +27,7 @@ import {
   get_popup_dimensions,
   get_centered_popup_position,
   clamp_popup_position,
+  get_resized_popup_position,
 } from "@/components/email/hooks/popup_viewer_layout";
 
 function centered_for(size: PopupSize) {
@@ -38,8 +39,14 @@ function centered_for(size: PopupSize) {
   );
 }
 
-export function use_popup_drag_resize() {
-  const [popup_size, set_popup_size] = useState<PopupSize>("default");
+export function get_initial_popup_size(open_maximized: boolean): PopupSize {
+  return open_maximized ? "fullscreen" : "default";
+}
+
+export function use_popup_drag_resize(open_maximized = false) {
+  const [popup_size, set_popup_size] = useState<PopupSize>(() =>
+    get_initial_popup_size(open_maximized),
+  );
   const [viewport, set_viewport] = useState<PopupViewport>(read_popup_viewport);
   const [raw_position, set_raw_position] = useState(() =>
     centered_for("default"),
@@ -146,11 +153,15 @@ export function use_popup_drag_resize() {
 
     set_popup_size(new_size);
     set_viewport(current_viewport);
-    set_raw_position({
-      x: position.x,
-      y: Math.round((current_viewport.height - new_dimensions.height) / 2),
-    });
-  }, [popup_size, is_fullscreen, position.x]);
+    set_raw_position(
+      get_resized_popup_position(
+        position,
+        dimensions,
+        new_dimensions,
+        current_viewport,
+      ),
+    );
+  }, [popup_size, is_fullscreen, position, dimensions]);
 
   const handle_fullscreen = useCallback(() => {
     if (is_fullscreen) {

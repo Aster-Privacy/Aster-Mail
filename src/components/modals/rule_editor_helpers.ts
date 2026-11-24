@@ -181,6 +181,7 @@ export function condition_has_value(c: Condition): boolean {
   const k = field_kind(c.type);
 
   if (k === "boolean" || k === "auth") return true;
+  if (c.type === "source") return c.values.length > 0;
   if (c.type === "header") {
     if (!c.name) return false;
   }

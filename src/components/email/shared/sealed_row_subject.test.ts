@@ -103,6 +103,8 @@ vi.mock("@/services/api/client", () => ({
 
 import { process_envelope_body } from "./build_email_from_envelope";
 
+import { trust_recipient_keys } from "@/services/crypto/ratchet_identity_pin";
+
 import {
   generate_ratchet_keys,
   encrypt_for_ratchet_recipient,
@@ -137,6 +139,7 @@ function make_vault(keys: {
 
 async function build_real_internal_envelope(
   plaintext: string,
+  sender_confirmed: boolean = true,
 ): Promise<{ envelope_json: string; receiver_vault: EncryptedVault }> {
   const sender_keys = (await generate_ratchet_keys())!;
   const receiver_keys = (await generate_ratchet_keys())!;
@@ -173,6 +176,18 @@ async function build_real_internal_envelope(
   );
 
   expect(envelope_json).toContain("double_ratchet_v2");
+
+  if (sender_confirmed) {
+    h.vault = receiver_vault;
+    await trust_recipient_keys(
+      SENDER,
+      sender_vault.ratchet_identity_public!,
+      null,
+      null,
+      false,
+      true,
+    );
+  }
 
   return { envelope_json, receiver_vault };
 }

@@ -62,6 +62,10 @@ import {
   native_open_base64,
   native_seal_base64,
 } from "@/native/local_secret_seal";
+import {
+  clear_all_session_login_salts,
+  clear_session_login_salt,
+} from "@/services/crypto/session_login_salt";
 
 const ENCRYPTED_VAULT_KEY_PREFIX = "astermail_encrypted_vault_";
 const VAULT_NONCE_KEY_PREFIX = "astermail_vault_nonce_";
@@ -401,11 +405,13 @@ export async function clear_session_passphrase(
   remove_wrapped_passphrase(account_id);
   clear_pending_passphrase(account_id);
   remove_stored_passphrase(account_id);
+  clear_session_login_salt(account_id);
   safe_local_remove(LEGACY_SESSION_PASSPHRASE_FB_KEY_PREFIX + account_id);
   safe_local_remove(LEGACY_SESSION_PASSPHRASE_FB_IV_KEY_PREFIX + account_id);
 }
 
 export async function clear_all_session_passphrases(): Promise<void> {
+  clear_all_session_login_salts();
   const keys_to_remove = safe_local_keys().filter(
     (key) =>
       key.startsWith(SESSION_PASSPHRASE_KEY_PREFIX) ||

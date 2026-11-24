@@ -91,6 +91,7 @@ export function EncryptionSection() {
         preferences={encryption.preferences}
         set_keyserver_input={encryption.set_keyserver_input}
         update_preference={encryption.update_preference}
+        wkd_description={encryption.wkd_description}
       />
     </IslandSections>
   );

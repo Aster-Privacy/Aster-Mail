@@ -6,29 +6,30 @@
 // This file is part of this project.
 //
 // This program is free software: you can redistribute it and/or modify
-// it under the terms of the AGPLv3 as published by
+// it under the terms of the GNU Affero General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-// AGPLv3 for more details.
+// GNU Affero General Public License for more details.
 //
-// You should have received a copy of the AGPLv3
+// You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type { DecryptedExternalAccount } from "@/services/api/external_accounts";
 import type { TranslationFn } from "@/components/settings/external_accounts/form_types";
 
-import {
-  EnvelopeIcon,
-  EyeIcon,
-  EyeSlashIcon,
-} from "@heroicons/react/24/outline";
-import { Checkbox } from "@aster/ui";
+import { PaperAirplaneIcon } from "@heroicons/react/24/outline";
+import { IslandDivider, IslandSection, SettingToggleRow } from "@aster/ui";
 
 import { Input } from "@/components/ui/input";
+import {
+  FieldGroup,
+  FormField,
+  PasswordInput,
+} from "@/components/settings/external_accounts/form_field";
 
 interface OutgoingMailSectionProps {
   editing_account: DecryptedExternalAccount | null;
@@ -69,147 +70,112 @@ export function OutgoingMailSection({
   handle_smtp_same_toggle,
   t,
 }: OutgoingMailSectionProps) {
+  const password_hint = has_stored_smtp_password ? (
+    <p>{t("settings.keep_saved_password")}</p>
+  ) : editing_account ? (
+    <p>{t("settings.re_enter_password")}</p>
+  ) : undefined;
+
   return (
-    <div className="space-y-3">
-      <h3 className="text-sm font-semibold flex items-center gap-2 text-txt-primary">
-        <EnvelopeIcon className="w-4 h-4 text-txt-muted" />
-        {t("settings.outgoing_mail_smtp")}
-      </h3>
-      <div className="flex items-center gap-2">
-        <Checkbox
-          checked={smtp_same_as_incoming}
-          id="ext-account-smtp-same"
-          onCheckedChange={(v) => handle_smtp_same_toggle(v === true)}
-        />
-        <label
-          className="text-sm text-txt-primary"
-          htmlFor="ext-account-smtp-same"
-        >
-          {t("settings.same_as_incoming")}
-        </label>
-      </div>
+    <IslandSection
+      icon={<PaperAirplaneIcon />}
+      title={t("settings.outgoing_mail_smtp")}
+    >
+      <SettingToggleRow
+        checked={smtp_same_as_incoming}
+        description={t("settings.ext_v2_smtp_same_description")}
+        label={t("settings.same_as_incoming")}
+        on_change={handle_smtp_same_toggle}
+      />
       {!smtp_same_as_incoming && (
-        <div className="space-y-3">
-          <div className="grid grid-cols-3 gap-3">
-            <div className="col-span-2">
-              <label
-                className="text-xs font-medium mb-1 block text-txt-muted"
-                htmlFor="ext-account-smtp-host"
-              >
-                {t("settings.smtp_server_host")}
-              </label>
+        <>
+          <IslandDivider />
+          <FieldGroup>
+            <FormField
+              id="ext-account-smtp-host"
+              label={t("settings.smtp_server_host")}
+              span={4}
+            >
               <Input
+                autoCapitalize="none"
                 autoComplete="off"
-                className="w-full"
+                autoCorrect="off"
+                className="aster_input_tonal w-full"
                 id="ext-account-smtp-host"
                 maxLength={253}
                 placeholder={t("settings.smtp_host_placeholder")}
+                size="md"
+                spellCheck={false}
                 type="text"
                 value={form_smtp_host}
                 onChange={(e) => handle_smtp_host_change(e.target.value)}
               />
-            </div>
-            <div>
-              <label
-                className="text-xs font-medium mb-1 block text-txt-muted"
-                htmlFor="ext-account-smtp-port"
-              >
-                {t("settings.port")}
-              </label>
+            </FormField>
+            <FormField
+              id="ext-account-smtp-port"
+              label={t("settings.port")}
+              span={2}
+            >
               <Input
-                className="w-full"
+                className="aster_input_tonal w-full"
                 id="ext-account-smtp-port"
+                inputMode="numeric"
                 max={65535}
                 min={0}
+                size="md"
                 type="number"
                 value={form_smtp_port === 0 ? "" : form_smtp_port}
                 onChange={(e) => handle_smtp_port_change(e.target.value)}
               />
-            </div>
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label
-                className="text-xs font-medium mb-1 block text-txt-muted"
-                htmlFor="ext-account-smtp-username"
-              >
-                {t("settings.smtp_username")}
-              </label>
+            </FormField>
+            <FormField
+              id="ext-account-smtp-username"
+              label={t("settings.smtp_username")}
+              span={3}
+            >
               <Input
                 autoCapitalize="none"
                 autoComplete="username"
                 autoCorrect="off"
-                className="w-full"
+                className="aster_input_tonal w-full"
                 id="ext-account-smtp-username"
                 maxLength={254}
                 placeholder={t("settings.username_placeholder")}
+                size="md"
                 spellCheck={false}
                 type="text"
                 value={form_smtp_username}
                 onChange={(e) => handle_smtp_username_change(e.target.value)}
               />
-            </div>
-            <div>
-              <label
-                className="text-xs font-medium mb-1 block text-txt-muted"
-                htmlFor="ext-account-smtp-password"
-              >
-                {t("settings.smtp_password")}
-              </label>
-              <div className="relative">
-                <Input
-                  autoComplete="current-password"
-                  className="w-full pe-10"
-                  id="ext-account-smtp-password"
-                  type={show_smtp_password ? "text" : "password"}
-                  value={form_smtp_password}
-                  onChange={(e) => handle_smtp_password_change(e.target.value)}
-                />
-                <button
-                  aria-label={
-                    show_smtp_password
-                      ? t("settings.hide_smtp_password")
-                      : t("settings.show_smtp_password")
-                  }
-                  className="absolute end-2 top-1/2 -translate-y-1/2"
-                  type="button"
-                  onClick={() => set_show_smtp_password(!show_smtp_password)}
-                >
-                  {show_smtp_password ? (
-                    <EyeSlashIcon className="w-4 h-4 text-txt-muted" />
-                  ) : (
-                    <EyeIcon className="w-4 h-4 text-txt-muted" />
-                  )}
-                </button>
-              </div>
-              {has_stored_smtp_password ? (
-                <p className="mt-1.5 text-xs text-txt-muted">
-                  {t("settings.keep_saved_password")}
-                </p>
-              ) : editing_account ? (
-                <p className="mt-1.5 text-xs text-txt-muted">
-                  {t("settings.re_enter_password")}
-                </p>
-              ) : null}
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <Checkbox
-              checked={form_smtp_use_tls}
-              id="ext-account-smtp-use-tls"
-              onCheckedChange={(checked) =>
-                set_form_smtp_use_tls(checked === true)
-              }
-            />
-            <label
-              className="text-sm text-txt-primary"
-              htmlFor="ext-account-smtp-use-tls"
+            </FormField>
+            <FormField
+              hint={password_hint}
+              id="ext-account-smtp-password"
+              label={t("settings.smtp_password")}
+              span={3}
             >
-              {t("settings.use_tls")}
-            </label>
-          </div>
-        </div>
+              <PasswordInput
+                hide_label={t("settings.hide_smtp_password")}
+                id="ext-account-smtp-password"
+                is_visible={show_smtp_password}
+                on_change={handle_smtp_password_change}
+                on_toggle_visible={() =>
+                  set_show_smtp_password(!show_smtp_password)
+                }
+                show_label={t("settings.show_smtp_password")}
+                value={form_smtp_password}
+              />
+            </FormField>
+          </FieldGroup>
+          <IslandDivider />
+          <SettingToggleRow
+            checked={form_smtp_use_tls}
+            description={t("settings.ext_v2_tls_description")}
+            label={t("settings.use_tls")}
+            on_change={set_form_smtp_use_tls}
+          />
+        </>
       )}
-    </div>
+    </IslandSection>
   );
 }

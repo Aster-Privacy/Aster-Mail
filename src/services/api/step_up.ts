@@ -21,6 +21,7 @@
 import type { StepUpHardwareKeyAssertion } from "./webauthn";
 
 import { api_client } from "./client";
+import { remember_totp_required } from "./step_up_cache";
 
 import { base64_to_array } from "@/services/crypto/key_manager";
 import {
@@ -36,20 +37,28 @@ export interface StepUpCredentials {
   hardware_key_assertion?: StepUpHardwareKeyAssertion;
 }
 
-export interface ReauthProof {
-  password_hash: string;
-  totp_code?: string;
-}
+export type ReauthProof = StepUpCredentials;
 
 export const STEP_UP_REQUIRED_CODE = "STEP_UP_REQUIRED";
 
+const REAUTH_CODES = new Set([
+  STEP_UP_REQUIRED_CODE,
+  "TOTP_REQUIRED",
+  "SECURITY_KEY_REQUIRED",
+]);
+
+export function is_reauth_required(server_code?: string): boolean {
+  return !!server_code && REAUTH_CODES.has(server_code);
+}
+
 export function to_reauth_proof(credentials: StepUpCredentials): ReauthProof {
-  return credentials.totp_code
-    ? {
-        password_hash: credentials.password_hash,
-        totp_code: credentials.totp_code,
-      }
-    : { password_hash: credentials.password_hash };
+  return {
+    password_hash: credentials.password_hash,
+    ...(credentials.totp_code ? { totp_code: credentials.totp_code } : {}),
+    ...(credentials.hardware_key_assertion
+      ? { hardware_key_assertion: credentials.hardware_key_assertion }
+      : {}),
+  };
 }
 
 export interface StepUpRequirements {
@@ -76,9 +85,13 @@ export async function fetch_step_up_requirements(): Promise<StepUpRequirements> 
     );
   }
 
+  const totp_required = salt_response.data.totp_required === true;
+
+  remember_totp_required(totp_required);
+
   return {
     salt: base64_to_array(salt_response.data.salt),
-    totp_required: salt_response.data.totp_required === true,
+    totp_required,
     kdf_version: read_kdf_version(salt_response.data.kdf_version),
   };
 }

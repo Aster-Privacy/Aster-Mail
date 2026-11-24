@@ -55,11 +55,13 @@ function settle_sealed_details(
 }
 
 export function sealed_timestamp(
-  envelope: { sent_at?: string },
+  envelope: { sent_at?: string; imported_at?: string },
   details_sealed: boolean,
   served_timestamp: string,
 ): string {
-  return details_sealed && envelope.sent_at
+  const owns_timestamp = details_sealed || !!envelope.imported_at;
+
+  return owns_timestamp && envelope.sent_at
     ? envelope.sent_at
     : served_timestamp;
 }
@@ -80,7 +82,11 @@ export function settle_sealed_fields(
   sealed: boolean,
   mail_item_id?: string,
 ): boolean {
-  if (!sealed) return false;
+  if (!sealed) {
+    register_sealed_attachment_manifest(mail_item_id, undefined);
+
+    return false;
+  }
 
   if (bundle.subject !== null) envelope.subject = bundle.subject;
   envelope.raw_headers = without_reply_to(envelope.raw_headers);
@@ -96,6 +102,7 @@ export function settle_bundle_subject(
   envelope: {
     subject: string;
     from?: { name: string; email: string };
+    raw_headers?: { name: string; value: string }[];
     attachment_metadata?: Array<{ filename?: string; content_type?: string }>;
   },
   bundle: {
@@ -113,6 +120,10 @@ export function settle_bundle_subject(
     envelope.attachment_metadata = bundle.decrypted_attachments.map(
       ({ filename, content_type }) => ({ filename, content_type }),
     );
+  }
+
+  if (bundle.sealed === true && envelope.raw_headers) {
+    envelope.raw_headers = without_reply_to(envelope.raw_headers);
   }
 
   if (bundle.sealed === true && bundle.details && envelope.from) {

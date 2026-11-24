@@ -24,6 +24,7 @@ import {
   get_popup_dimensions,
   get_centered_popup_position,
   clamp_popup_position,
+  get_resized_popup_position,
 } from "./popup_viewer_layout";
 import { POPUP_MARGIN, FULLSCREEN_MARGIN } from "./popup_viewer_types";
 
@@ -36,10 +37,43 @@ describe("get_popup_dimensions", () => {
       width: 680,
       height: 720,
     });
-    expect(get_popup_dimensions("expanded", large_monitor)).toEqual({
-      width: 680,
-      height: 860,
+  });
+
+  it("grows the expanded window in both directions", () => {
+    const base = get_popup_dimensions("default", large_monitor);
+    const expanded = get_popup_dimensions("expanded", large_monitor);
+
+    expect(expanded.width).toBeGreaterThan(base.width);
+    expect(expanded.height).toBeGreaterThan(base.height);
+    expect(expanded).toEqual({ width: 1280, height: 1260 });
+  });
+
+  it("scales the expanded window with a laptop viewport", () => {
+    const expanded = get_popup_dimensions("expanded", {
+      width: 1440,
+      height: 900,
     });
+
+    expect(expanded.width).toBe(Math.round(1440 * 0.7));
+    expect(expanded.height).toBe(860);
+  });
+
+  it("never makes the expanded window narrower than the default one", () => {
+    const expanded = get_popup_dimensions("expanded", {
+      width: 900,
+      height: 900,
+    });
+
+    expect(expanded.width).toBe(680);
+  });
+
+  it("caps the expanded width on a narrow viewport", () => {
+    const expanded = get_popup_dimensions("expanded", {
+      width: 600,
+      height: 900,
+    });
+
+    expect(expanded.width).toBe(600 - POPUP_MARGIN * 2);
   });
 
   it("caps the height so the window fits a short viewport", () => {
@@ -132,5 +166,36 @@ describe("clamp_popup_position", () => {
     const pos = clamp_popup_position({ x: 100, y: 400 }, tall, short_laptop);
 
     expect(pos.y).toBeGreaterThanOrEqual(0);
+  });
+});
+
+describe("get_resized_popup_position", () => {
+  it("keeps the window centered on the same point when it grows", () => {
+    const from = get_popup_dimensions("default", large_monitor);
+    const to = get_popup_dimensions("expanded", large_monitor);
+    const start = get_centered_popup_position(from, large_monitor);
+    const next = get_resized_popup_position(start, from, to, large_monitor);
+
+    expect(next.x + to.width / 2).toBe(start.x + from.width / 2);
+    expect(next.y).toBeGreaterThanOrEqual(POPUP_MARGIN);
+  });
+
+  it("keeps a grown window fully on screen near an edge", () => {
+    const from = get_popup_dimensions("default", short_laptop);
+    const to = get_popup_dimensions("expanded", short_laptop);
+    const next = get_resized_popup_position(
+      { x: short_laptop.width - from.width - POPUP_MARGIN, y: POPUP_MARGIN },
+      from,
+      to,
+      short_laptop,
+    );
+
+    expect(next.x).toBeGreaterThanOrEqual(POPUP_MARGIN);
+    expect(next.x + to.width).toBeLessThanOrEqual(
+      short_laptop.width - POPUP_MARGIN,
+    );
+    expect(next.y + to.height).toBeLessThanOrEqual(
+      short_laptop.height - POPUP_MARGIN,
+    );
   });
 });

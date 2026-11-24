@@ -32,6 +32,7 @@ import { use_auth } from "@/contexts/auth_context";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
 import { use_special_offer_checkout } from "@/hooks/use_special_offer_checkout";
 import { use_i18n } from "@/lib/i18n/context";
+import { payment_url_or_throw } from "@/lib/payment_url";
 import {
   format_price,
   remember_checkout_target,
@@ -123,9 +124,7 @@ async function start_offer_family_checkout(
 
     if (!checkout_url) return { ok: false, server_code: response.server_code };
 
-    const parsed = new URL(checkout_url);
-
-    if (parsed.protocol !== "https:") return { ok: false };
+    const parsed = new URL(payment_url_or_throw(checkout_url));
 
     remember_checkout_target(plan_code, interval, special_offer);
 

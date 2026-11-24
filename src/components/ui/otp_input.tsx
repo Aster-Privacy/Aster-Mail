@@ -22,14 +22,23 @@ import { useRef, useEffect } from "react";
 
 import { cn } from "@/lib/utils";
 
+function only_digits(raw: string): string {
+  return raw.replace(/\D/g, "");
+}
+
 interface OtpInputProps {
   length?: number;
   value: string;
   disabled?: boolean;
   status?: "default" | "error";
   autofocus?: boolean;
+  size?: "md" | "lg";
+  id_prefix?: string;
   align?: "center" | "left";
   aria_label?: string;
+  input_mode?: "numeric" | "text";
+  sanitize?: (raw: string) => string;
+  placeholder?: string;
   onChange: (value: string) => void;
   onComplete?: (value: string) => void;
 }
@@ -40,8 +49,13 @@ export function OtpInput({
   disabled = false,
   status = "default",
   autofocus = true,
+  size = "md",
+  id_prefix,
   align = "center",
   aria_label,
+  input_mode = "numeric",
+  sanitize = only_digits,
+  placeholder,
   onChange,
   onComplete,
 }: OtpInputProps) {
@@ -81,7 +95,7 @@ export function OtpInput({
   };
 
   const handle_change = (index: number, raw: string) => {
-    const cleaned = raw.replace(/\D/g, "");
+    const cleaned = sanitize(raw);
 
     if (!cleaned) {
       set_at(index, "");
@@ -156,16 +170,26 @@ export function OtpInput({
           ref={(el) => {
             box_refs.current[index] = el;
           }}
+          aria-label={
+            id_prefix && aria_label ? `${aria_label} ${index + 1}` : undefined
+          }
           autoComplete={index === 0 ? "one-time-code" : "off"}
           className={cn(
-            "w-11 h-[52px] rounded-[10px] text-center text-xl font-semibold outline-none transition-colors bg-surf-primary text-txt-primary border-2",
+            "text-center font-semibold tabular-nums outline-none transition-colors bg-surf-primary text-txt-primary border-2",
+            size === "lg"
+              ? "w-16 h-[76px] rounded-2xl text-4xl"
+              : "w-11 h-[52px] rounded-[10px] text-xl",
             status === "error"
               ? "border-red-500"
               : "border-edge-primary focus:border-brand",
+            placeholder &&
+              "placeholder:font-normal placeholder:text-txt-muted/40 focus:placeholder:text-transparent",
           )}
           disabled={disabled}
-          inputMode="numeric"
+          id={id_prefix ? `${id_prefix}_${index}` : undefined}
+          inputMode={input_mode}
           maxLength={1}
+          placeholder={placeholder}
           type="text"
           value={digit}
           onBlur={(e) => {

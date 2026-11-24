@@ -18,8 +18,11 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import type { ReauthProof } from "./step_up";
+
 import { api_client, ApiResponse } from "./client";
 import { clear_csrf_cache } from "./csrf";
+import { forget_totp_required, remember_totp_required } from "./step_up_cache";
 import { apply_sign_in_scope } from "@/lib/suspension_state";
 
 export interface TotpSetupInitiateResponse {
@@ -53,6 +56,7 @@ export interface TotpVerifyResponse {
   csrf_token: string;
   encrypted_vault: string;
   vault_nonce: string;
+  vault_recovered_write_count?: number;
   access_token?: string;
   needs_prekey_replenishment?: boolean;
   is_suspended?: boolean;
@@ -86,6 +90,7 @@ export interface TotpDisableResponse {
 
 export interface TotpRegenerateBackupCodesRequest {
   code: string;
+  password_hash: string;
 }
 
 export interface TotpRegenerateBackupCodesResponse {
@@ -98,10 +103,9 @@ export interface TotpRequiredResponse {
   available_methods?: string[];
 }
 
-export async function initiate_totp_setup(proof?: {
-  password_hash: string;
-  totp_code?: string;
-}): Promise<ApiResponse<TotpSetupInitiateResponse>> {
+export async function initiate_totp_setup(
+  proof?: ReauthProof,
+): Promise<ApiResponse<TotpSetupInitiateResponse>> {
   return api_client.post<TotpSetupInitiateResponse>(
     "/core/v1/auth/totp/setup/initiate",
     proof ?? {},
@@ -111,10 +115,14 @@ export async function initiate_totp_setup(proof?: {
 export async function verify_totp_setup(
   request: TotpSetupVerifyRequest,
 ): Promise<ApiResponse<TotpSetupVerifyResponse>> {
-  return api_client.post<TotpSetupVerifyResponse>(
+  const response = await api_client.post<TotpSetupVerifyResponse>(
     "/core/v1/auth/totp/setup/verify",
     request,
   );
+
+  if (response.data) forget_totp_required();
+
+  return response;
 }
 
 export async function verify_totp_login(
@@ -166,16 +174,28 @@ export async function verify_backup_code_login(
 export async function get_totp_status(): Promise<
   ApiResponse<TotpStatusResponse>
 > {
-  return api_client.get<TotpStatusResponse>("/core/v1/auth/totp/status");
+  const response = await api_client.get<TotpStatusResponse>(
+    "/core/v1/auth/totp/status",
+  );
+
+  if (typeof response.data?.enabled === "boolean") {
+    remember_totp_required(response.data.enabled);
+  }
+
+  return response;
 }
 
 export async function disable_totp(
   request: TotpDisableRequest,
 ): Promise<ApiResponse<TotpDisableResponse>> {
-  return api_client.post<TotpDisableResponse>(
+  const response = await api_client.post<TotpDisableResponse>(
     "/core/v1/auth/totp/disable",
     request,
   );
+
+  if (response.data) forget_totp_required();
+
+  return response;
 }
 
 export async function regenerate_backup_codes(

@@ -96,6 +96,7 @@ export function KeyboardShortcutsModal({
     forward: "mail.forward",
     search: "mail.shortcut_search",
     command_palette: "mail.shortcut_command_palette",
+    lock_folders: "common.lock_all_folders",
     show_shortcuts: "mail.shortcut_show_shortcuts",
   };
 

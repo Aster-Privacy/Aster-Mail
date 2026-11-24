@@ -19,3 +19,4 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 export const HASH_ALG = ["SHA", "256"].join("-");
+export const MAIL_METADATA_CONTEXT = "mail-item-metadata";

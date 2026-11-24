@@ -22,6 +22,7 @@ import * as openpgp from "openpgp";
 import { afterEach, beforeAll, describe, expect, it } from "vitest";
 
 import { decrypt_message, encrypt_message } from "./key_manager_pgp_messages";
+import { with_aes_kw_fallback } from "./webcrypto_aes_kw";
 
 const PASSPHRASE = "correct-horse-battery-staple";
 const PLAINTEXT = "forwarded pgp body";
@@ -128,5 +129,19 @@ describe("inbound pgp decryption without usable webcrypto aes-kw", () => {
     } finally {
       subtle.wrapKey = real_wrap_key;
     }
+  });
+
+  it("leaves importKey alone when webcrypto aes-kw works", async () => {
+    const original = subtle.importKey;
+    const seen: boolean[] = [];
+
+    await expect(
+      with_aes_kw_fallback(async () => {
+        seen.push(subtle.importKey === original);
+        throw new Error("unrelated failure");
+      }),
+    ).rejects.toThrow("unrelated failure");
+
+    expect(seen).toEqual([true]);
   });
 });

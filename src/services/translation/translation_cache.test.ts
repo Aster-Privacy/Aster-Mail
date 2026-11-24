@@ -36,6 +36,7 @@ function key(message_id: string) {
     source: "de" as const,
     target: "en" as const,
     model_version: "v1",
+    source_hash: "h1",
   };
 }
 
@@ -60,6 +61,7 @@ describe("translation_cache", () => {
         source: "de",
         target: "de",
         model_version: "v1",
+        source_hash: "h1",
       }),
     ).toBeNull();
   });
@@ -74,6 +76,7 @@ describe("translation_cache", () => {
         source: "fr",
         target: "en",
         model_version: "v1",
+        source_hash: "h1",
       }),
     ).toBeNull();
   });
@@ -88,6 +91,7 @@ describe("translation_cache", () => {
         source: "de",
         target: "en",
         model_version: "v2",
+        source_hash: "h1",
       }),
     ).toBeNull();
   });
@@ -102,6 +106,7 @@ describe("translation_cache", () => {
         source: "de",
         target: "en",
         model_version: "v1",
+        source_hash: "h1",
       }),
     ).toBeNull();
   });

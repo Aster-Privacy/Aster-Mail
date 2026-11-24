@@ -1,6 +1,6 @@
 [package]
 name = "aster-mail-desktop"
-version = "1.4.83"
+version = "1.4.89"
 edition = "2021"
 license = "AGPL-3.0-or-later"
 
@@ -55,8 +55,9 @@ tauri-plugin-window-state = "2"
 
 [target.'cfg(target_os = "macos")'.dependencies]
 objc2-app-kit = { version = "0.3", features = ["NSWorkspace"] }
-objc2-foundation = { version = "0.3", features = ["NSString", "NSURL", "NSNotification", "NSOperation", "block2"] }
+objc2-foundation = { version = "0.3", features = ["NSString", "NSURL", "NSNotification", "NSOperation", "NSUserNotification", "block2"] }
 block2 = "0.6"
+objc2 = "0.6"
 core-foundation = "0.10"
 
 [target.'cfg(windows)'.dependencies]
@@ -71,10 +72,13 @@ x11-dl = "2.21"
 oo7 = { version = "0.7", default-features = false, features = ["tokio", "native_crypto"] }
 ashpd = { version = "0.13", default-features = false, features = ["tokio", "notification", "open_uri", "background"] }
 futures-util = "0.3"
+notify-rust = "4.18"
+zbus = "5"
 
 [patch.crates-io]
 glib = { path = "patches/glib-0.18.5" }
 atty = { path = "patches/atty-0.2.14" }
+wry = { path = "patches/wry-0.57.0" }
 
 [profile.release]
 panic = "unwind"

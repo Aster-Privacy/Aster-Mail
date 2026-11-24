@@ -23,6 +23,7 @@ import { is_own_address_identity_key } from "./address_sender_identity";
 import { base64_to_array } from "./base64";
 import {
   DoubleRatchet,
+  InvalidRatchetStateError,
   type EncryptedMessage,
   type SerializedState,
 } from "./double_ratchet";
@@ -50,8 +51,12 @@ import {
 } from "./ratchet_plaintext_cache";
 import { detect_identity_pin_drift } from "./ratchet_prekey_bundle";
 import {
-  has_peer_advertised_pq,
+  first_contact_standing,
+  is_first_contact_unconfirmed,
+  is_identity_confirmed_by_user,
   lookup_owner_key_pin,
+  note_first_contact_identity,
+  read_peer_downgrade_floor,
 } from "./ratchet_identity_pin";
 import { is_identity_bound_by_current_bundle } from "./ratchet_encrypt";
 import {
@@ -66,7 +71,20 @@ import {
   type SenderIdentityStatus,
 } from "./ratchet_verification_status";
 import { claim_rotation_notice } from "./rotation_notice";
-import { open_recovery_lane } from "./ratchet_recovery_lane";
+import { claim_bootstrap, type BootstrapClaim } from "./bootstrap_replay";
+import {
+  claim_lane_nonce,
+  lookup_lane_sender_pin,
+  pin_lane_sender,
+} from "./ratchet_lane_sender_pin";
+import { recovery_lane_verdict } from "./recovery_lane_trust";
+import {
+  open_recovery_lane,
+  open_unauthenticated_recovery_lane,
+  recovery_lane_sent_at,
+  recovery_lane_transcript,
+  type RecoveryLaneBinding,
+} from "./ratchet_recovery_lane";
 import {
   decrypt_with_peer_session,
   peer_conversation_ids,
@@ -92,6 +110,7 @@ import { is_authenticated_ratchet_enforced } from "./crypto_enforcement_policy";
 import {
   authenticate_sender_identity,
   check_sender_identity_continuity,
+  has_received_sender_identity,
   is_sender_identity_published,
   note_message_sender_identity,
   type SenderIdentityContinuity,
@@ -99,7 +118,9 @@ import {
 } from "./sender_identity_authentication";
 import {
   compute_signed_prekey_id,
+  minimum_x3dh_version,
   perform_x3dh_receiver,
+  X3DH_VERSION_MAX,
   X3DH_VERSION_ONE_TIME_BOUND,
 } from "./x3dh";
 
@@ -195,9 +216,19 @@ async function prefer_escrowed_plaintext(
   if (!is_unauthenticated_plaintext(plaintext)) return plaintext;
   if (escrow_upgrade_misses.has(dedupe_key)) return plaintext;
 
-  const escrowed = await fetch_verified_from_escrow(dedupe_key, binding).catch(
-    () => null,
-  );
+  let escrowed: string | null;
+
+  try {
+    escrowed = await fetch_verified_from_escrow(dedupe_key, binding);
+  } catch (error) {
+    if (
+      !(error instanceof Error && error.name === "EscrowUnavailableError")
+    ) {
+      note_escrow_upgrade_miss(dedupe_key);
+    }
+
+    return plaintext;
+  }
 
   if (escrowed === null) {
     note_escrow_upgrade_miss(dedupe_key);
@@ -220,6 +251,8 @@ interface RatchetSessionPlaintext {
   plaintext: string;
   sender_identity_key: string | null;
   archived: boolean;
+  weak_bootstrap: boolean;
+  first_contact: boolean;
 }
 
 function is_own_sender_address(
@@ -245,9 +278,7 @@ async function sender_continuity(
 ): Promise<SenderIdentityContinuity> {
   if (
     session_bound &&
-    is_own_sender_address(sender_email, our_email) &&
-    (is_own_identity_key(vault, sender_identity_key) ||
-      is_own_address_identity_key(vault, [sender_email], sender_identity_key))
+    is_own_session_sender(our_email, sender_email, sender_identity_key, vault)
   ) {
     return "known";
   }
@@ -258,12 +289,70 @@ async function sender_continuity(
   ).catch(() => "unreadable" as const);
 }
 
+function is_own_session_sender(
+  our_email: string,
+  sender_email: string,
+  sender_identity_key: string,
+  vault: EncryptedVault,
+): boolean {
+  return (
+    is_own_sender_address(sender_email, our_email) &&
+    (is_own_identity_key(vault, sender_identity_key) ||
+      is_own_address_identity_key(vault, [sender_email], sender_identity_key))
+  );
+}
+
+async function is_first_contact(
+  our_email: string,
+  sender_email: string,
+  sender_identity_key: string,
+  vault: EncryptedVault,
+): Promise<boolean> {
+  if (
+    is_own_session_sender(our_email, sender_email, sender_identity_key, vault)
+  ) {
+    return false;
+  }
+
+  const continuity = await sender_continuity(
+    our_email,
+    sender_email,
+    sender_identity_key,
+    vault,
+    true,
+  );
+
+  if (continuity === "new") return true;
+  if (continuity !== "known") return false;
+
+  const standing = await first_contact_standing(
+    sender_email.trim().toLowerCase(),
+    sender_identity_key,
+  );
+
+  if (standing === "confirmed") return false;
+  if (standing !== "absent") return true;
+
+  return !(await has_received_sender_identity(
+    sender_email,
+    sender_identity_key,
+  ).catch(() => false));
+}
+
 async function session_sender_identity_key(
   conversation_id: string,
 ): Promise<string | null> {
   const ratchet = await load_ratchet_state(conversation_id).catch(() => null);
 
   return ratchet?.get_remote_identity_key() ?? null;
+}
+
+async function is_weak_bootstrap_session(
+  conversation_id: string,
+): Promise<boolean> {
+  const ratchet = await load_ratchet_state(conversation_id).catch(() => null);
+
+  return ratchet?.is_weak_bootstrap() ?? false;
 }
 
 async function bind_session_sender_identity_key(
@@ -312,9 +401,22 @@ async function settle_cached_plaintext(
         )
       : "changed";
 
-    if (continuity === "known") {
+    if (
+      continuity === "known" &&
+      judged_key &&
+      !(await is_weak_bootstrap_session(binding.conversation_id)) &&
+      !(await is_first_contact_unconfirmed(
+        sender_email.trim().toLowerCase(),
+        judged_key,
+      ))
+    ) {
       clear_unconfirmed_sender_plaintext(plaintext, dedupe_key);
-      note_message_sender_identity(message_id ?? dedupe_key, sender_email);
+      record_message_sender_identity(
+        message_id ?? dedupe_key,
+        await authenticate_sender_identity(sender_email, judged_key).catch(
+          () => "unverified" as const,
+        ),
+      );
       await set_cached_ratchet_plaintext(
         dedupe_key,
         plaintext,
@@ -401,6 +503,15 @@ async function attempt_ratchet_decrypt(
         ? null
         : decrypted.sender_identity_key;
       const identity_key = bound_identity_key ?? envelope.sender_identity_key;
+      const first_contact =
+        decrypted.first_contact ||
+        (!lane_plaintext &&
+          (await is_first_contact(
+            our_email,
+            sender_email,
+            identity_key,
+            vault,
+          )));
       const continuity = await sender_continuity(
         our_email,
         sender_email,
@@ -409,9 +520,10 @@ async function attempt_ratchet_decrypt(
         bound_identity_key !== null,
       );
 
-      await authenticate_sender_identity(sender_email, identity_key).catch(
-        () => "unverified" as const,
-      );
+      const sender_status = await authenticate_sender_identity(
+        sender_email,
+        identity_key,
+      ).catch(() => "unverified" as const);
 
       if (
         !lane_plaintext &&
@@ -449,7 +561,14 @@ async function attempt_ratchet_decrypt(
       const from_escrow = lane_plaintext && !unauthenticated;
       const unconfirmed_sender = from_escrow
         ? is_unconfirmed_sender_plaintext(plaintext)
-        : continuity !== "known" && continuity !== "new";
+        : continuity !== "known" || decrypted.weak_bootstrap || first_contact;
+
+      if (first_contact && !from_escrow) {
+        await note_first_contact_identity(
+          sender_email.trim().toLowerCase(),
+          identity_key,
+        );
+      }
 
       if (unconfirmed_sender) {
         mark_unconfirmed_sender_plaintext(
@@ -464,9 +583,9 @@ async function attempt_ratchet_decrypt(
           "unverified",
         );
       } else {
-        note_message_sender_identity(
+        record_message_sender_identity(
           message_id ?? dedupe_key ?? "",
-          sender_email,
+          sender_status,
         );
       }
 
@@ -778,13 +897,21 @@ function recovery_lane_key_candidates(
   return candidates;
 }
 
+interface RecoveredLanePlaintext {
+  plaintext: string;
+  binding: RecoveryLaneBinding;
+  conversation_id: string;
+  snonce: string;
+  sent_at: number;
+}
+
 async function try_recovery_lanes(
   data: RatchetRecipientData,
   conversation_ids: string[],
   sender_identity_key: string,
   vault: EncryptedVault,
   address: string,
-): Promise<string | null> {
+): Promise<RecoveredLanePlaintext | null> {
   for (const lane_conversation_id of conversation_ids) {
     const recovered = await try_recovery_lane(
       data,
@@ -806,8 +933,8 @@ async function try_recovery_lane(
   sender_identity_key: string,
   vault: EncryptedVault,
   address: string,
-): Promise<string | null> {
-  const message_key_base64 = await open_recovery_lane_message_key(
+): Promise<RecoveredLanePlaintext | null> {
+  const opened = await open_recovery_lane_message_key(
     data,
     conversation_id,
     sender_identity_key,
@@ -815,19 +942,28 @@ async function try_recovery_lane(
     address,
   );
 
-  if (message_key_base64 === null) return null;
+  if (opened === null) return null;
 
-  const message_key = base64_to_array(message_key_base64);
+  const message_key = base64_to_array(opened.message_key);
 
   try {
-    return await DoubleRatchet.decrypt_with_message_key(
-      {
-        header: data.header,
-        ciphertext: data.ciphertext,
-        nonce: data.nonce,
-      },
-      message_key,
-    );
+    return {
+      plaintext: await DoubleRatchet.decrypt_with_message_key(
+        {
+          header: data.header,
+          ciphertext: data.ciphertext,
+          nonce: data.nonce,
+        },
+        message_key,
+      ),
+      binding: opened.binding,
+      conversation_id,
+      snonce: opened.binding === "none" ? "" : (data.recovery?.snonce ?? ""),
+      sent_at:
+        opened.binding === "transcript" && data.recovery
+          ? (recovery_lane_sent_at(data.recovery) ?? 0)
+          : 0,
+    };
   } catch {
     return null;
   } finally {
@@ -841,7 +977,7 @@ async function open_recovery_lane_message_key(
   sender_identity_key: string,
   vault: EncryptedVault,
   address: string,
-): Promise<string | null> {
+): Promise<{ message_key: string; binding: RecoveryLaneBinding } | null> {
   if (!data.recovery) return null;
 
   const candidates = recovery_lane_key_candidates(vault, address);
@@ -851,20 +987,41 @@ async function open_recovery_lane_message_key(
     ...candidates.filter((c) => c.identity_public !== data.recovery?.rid),
   ];
 
-  for (const candidate of ordered) {
-    const opened = await open_recovery_lane(
-      data.recovery,
-      conversation_id,
-      sender_identity_key,
-      {
+  const sent_at = recovery_lane_sent_at(data.recovery);
+  const bindings: RecoveryLaneBinding[] =
+    sent_at === null
+      ? ["legacy", "none"]
+      : ["transcript", "legacy", "none"];
+
+  for (const binding of bindings) {
+    for (const candidate of ordered) {
+      const own_keys = {
         identity_jwk: candidate.identity_jwk,
         identity_public: candidate.identity_public,
         pq_identity_secret: candidate.pq_identity_secret,
-      },
-      candidate.pq_identity_public,
-    );
+      };
+      const message_key =
+        binding === "none"
+          ? await open_unauthenticated_recovery_lane(
+              data.recovery,
+              conversation_id,
+              sender_identity_key,
+              own_keys,
+              candidate.pq_identity_public,
+            )
+          : await open_recovery_lane(
+              data.recovery,
+              conversation_id,
+              sender_identity_key,
+              own_keys,
+              candidate.pq_identity_public,
+              binding === "transcript" && sent_at !== null
+                ? recovery_lane_transcript(data, sent_at)
+                : null,
+            );
 
-    if (opened !== null) return opened;
+      if (message_key !== null) return { message_key, binding };
+    }
   }
 
   return null;
@@ -904,13 +1061,23 @@ async function init_receiver_from_bootstrap(
         }
       : null;
 
-  if (
+  const peer = sender_email.toLowerCase();
+  const floor = await read_peer_downgrade_floor(peer);
+  const floor_unreadable = floor === "unreadable";
+  const pq_missing =
     !pq_input &&
-    keys.ratchet_pq_identity_public &&
-    (await has_peer_advertised_pq(sender_email.toLowerCase()))
-  ) {
+    !!keys.ratchet_pq_identity_public &&
+    !floor_unreadable &&
+    floor.pq_seen;
+
+  if (pq_missing) {
     record_peer_identity_event(sender_email, "downgraded");
   }
+
+  const weak_bootstrap =
+    floor_unreadable ||
+    pq_missing ||
+    is_below_remembered_x3dh(data.x3dh_v, floor.x3dh_version);
 
   const shared_secret = await perform_x3dh_receiver(
     receiver_identity_jwk,
@@ -941,7 +1108,19 @@ async function init_receiver_from_bootstrap(
   shared_secret.fill(0);
   own_keypair.secret_key.fill(0);
 
+  if (weak_bootstrap) ratchet.mark_weak_bootstrap();
+
   return ratchet;
+}
+
+function is_below_remembered_x3dh(
+  received: number | undefined,
+  remembered: number,
+): boolean {
+  return (
+    (received ?? 1) <
+    Math.max(Math.min(remembered, X3DH_VERSION_MAX), minimum_x3dh_version())
+  );
 }
 
 async function snapshot_ratchet_state(
@@ -1019,6 +1198,18 @@ async function bootstrap_may_replace_session(
   );
 }
 
+function session_already_on_chain(
+  snapshot: SerializedState,
+  dh_public: string,
+): boolean {
+  return (
+    snapshot.state.dh_remote_public === dh_public ||
+    snapshot.state.skipped_message_keys.some(
+      (skipped) => skipped.dh_public === dh_public,
+    )
+  );
+}
+
 async function decrypt_ratchet_for_recipient(
   our_email: string,
   sender_email: string,
@@ -1059,7 +1250,12 @@ async function decrypt_ratchet_for_recipient(
     nonce: data.nonce,
   };
 
-  const loaded_ratchet = await load_ratchet_state(conversation_id);
+  const loaded_ratchet = await load_ratchet_state(conversation_id).catch(
+    (error: unknown) => {
+      if (error instanceof InvalidRatchetStateError) return null;
+      throw error;
+    },
+  );
   const loaded_snapshot = loaded_ratchet
     ? await snapshot_ratchet_state(loaded_ratchet)
     : null;
@@ -1070,8 +1266,29 @@ async function decrypt_ratchet_for_recipient(
   let ratchet_origin: "loaded" | "archived" | "replacement" | "bootstrap" =
     "loaded";
   let identity_status: SenderIdentityStatus = "unverified";
+  let first_contact = false;
 
   let plaintext: string | null = null;
+  const bootstrap_seen: { claim: BootstrapClaim | null } = { claim: null };
+
+  const claim_opened_bootstrap = async (): Promise<boolean> => {
+    if (ratchet_origin !== "bootstrap" || plaintext === null) return true;
+
+    bootstrap_seen.claim ??= await claim_bootstrap(
+      sender_email,
+      sender_identity_key,
+      data,
+      message_key,
+    );
+
+    if (bootstrap_seen.claim !== "replayed") return true;
+
+    plaintext = null;
+    ratchet = null;
+    ratchet_origin = "loaded";
+
+    return false;
+  };
 
   if (ratchet) {
     try {
@@ -1082,6 +1299,19 @@ async function decrypt_ratchet_for_recipient(
   }
 
   if (plaintext === null) {
+    first_contact = await is_first_contact(
+      our_email,
+      sender_email,
+      sender_identity_key,
+      vault,
+    );
+    const prior_continuity = data.recovery
+      ? await check_sender_identity_continuity(
+          sender_email,
+          sender_identity_key,
+        )
+      : "unreadable";
+
     identity_status = await authenticate_sender_identity(
       sender_email,
       sender_identity_key,
@@ -1129,6 +1359,8 @@ async function decrypt_ratchet_for_recipient(
         plaintext,
         sender_identity_key: ratchet!.get_remote_identity_key(),
         archived: true,
+        weak_bootstrap: ratchet!.is_weak_bootstrap(),
+        first_contact,
       };
     }
 
@@ -1163,6 +1395,10 @@ async function decrypt_ratchet_for_recipient(
       } catch (err) {
         last_error = err;
       }
+    }
+
+    if (!(await claim_opened_bootstrap())) {
+      throw new Error("Opening message was already used");
     }
 
     if (plaintext === null || !ratchet) {
@@ -1267,6 +1503,10 @@ async function decrypt_ratchet_for_recipient(
       }
     }
 
+    if (!(await claim_opened_bootstrap())) {
+      throw new Error("Opening message was already used");
+    }
+
     if ((plaintext === null || !ratchet) && identity_status === "verified") {
       const peer_session = await decrypt_with_peer_session(
         conversation_id,
@@ -1291,6 +1531,8 @@ async function decrypt_ratchet_for_recipient(
           plaintext: peer_session.plaintext,
           sender_identity_key: peer_session.peer_identity_key,
           archived: false,
+          weak_bootstrap: peer_session.ratchet.is_weak_bootstrap(),
+          first_contact,
         };
       }
     }
@@ -1315,9 +1557,13 @@ async function decrypt_ratchet_for_recipient(
       );
 
       if (recovered !== null) {
-        mark_unauthenticated_plaintext(recovered, message_key);
-
-        return lane_plaintext(recovered);
+        return trusted_lane_plaintext(
+          recovered,
+          prior_continuity,
+          sender_email,
+          sender_identity_key,
+          message_key,
+        );
       }
 
       if (data.recovery) {
@@ -1333,10 +1579,15 @@ async function decrypt_ratchet_for_recipient(
           );
 
           if (recovered_refreshed !== null) {
-            mark_unauthenticated_plaintext(recovered_refreshed, message_key);
             await adopt_refreshed_vault(refreshed);
 
-            return lane_plaintext(recovered_refreshed);
+            return trusted_lane_plaintext(
+              recovered_refreshed,
+              prior_continuity,
+              sender_email,
+              sender_identity_key,
+              message_key,
+            );
           }
         }
       }
@@ -1360,19 +1611,23 @@ async function decrypt_ratchet_for_recipient(
   if (
     ratchet_origin === "bootstrap" &&
     loaded_snapshot &&
-    !(await bootstrap_may_replace_session(
-      our_email,
-      sender_email,
-      vault,
-      established_identity_key,
-      ratchet.get_remote_identity_key(),
-      identity_status,
-    ))
+    (bootstrap_seen.claim !== "first" ||
+      session_already_on_chain(loaded_snapshot, data.header.dh_public) ||
+      !(await bootstrap_may_replace_session(
+        our_email,
+        sender_email,
+        vault,
+        established_identity_key,
+        ratchet.get_remote_identity_key(),
+        identity_status,
+      )))
   ) {
     return {
       plaintext,
       sender_identity_key: ratchet.get_remote_identity_key(),
       archived: false,
+      weak_bootstrap: ratchet.is_weak_bootstrap(),
+      first_contact,
     };
   }
 
@@ -1404,9 +1659,54 @@ async function decrypt_ratchet_for_recipient(
     plaintext,
     sender_identity_key: ratchet.get_remote_identity_key(),
     archived: false,
+    weak_bootstrap: ratchet.is_weak_bootstrap(),
+    first_contact,
   };
 }
 
-function lane_plaintext(plaintext: string): RatchetSessionPlaintext {
-  return { plaintext, sender_identity_key: null, archived: false };
+async function trusted_lane_plaintext(
+  recovered: RecoveredLanePlaintext,
+  continuity: SenderIdentityContinuity,
+  sender_email: string,
+  sender_identity_key: string,
+  message_key: string,
+): Promise<RatchetSessionPlaintext> {
+  const pin_id = sender_email.trim().toLowerCase();
+  const verdict = recovery_lane_verdict({
+    binding: recovered.binding,
+    freshness:
+      recovered.binding === "none"
+        ? "unknown"
+        : await claim_lane_nonce(
+            pin_id,
+            recovered.conversation_id,
+            recovered.snonce,
+            message_key,
+            recovered.sent_at,
+          ),
+    continuity,
+    user_confirmed: await is_identity_confirmed_by_user(
+      pin_id,
+      sender_identity_key,
+    ),
+    sender_pin: await lookup_lane_sender_pin(pin_id),
+  });
+
+  if (verdict === "refused") {
+    record_message_sender_identity(message_key, "unverified");
+  }
+
+  if (verdict === "confirmed") {
+    if (recovered.binding === "transcript") await pin_lane_sender(pin_id);
+  } else {
+    mark_unauthenticated_plaintext(recovered.plaintext, message_key);
+  }
+
+  return {
+    plaintext: recovered.plaintext,
+    sender_identity_key: verdict === "confirmed" ? sender_identity_key : null,
+    archived: false,
+    weak_bootstrap: false,
+    first_contact: false,
+  };
 }

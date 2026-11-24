@@ -41,7 +41,6 @@ const MAX_MIME_ATTACHMENTS = 100;
 
 const SKIPPED_LEAF_TYPES = new Set([
   "application/pgp-signature",
-  "application/pgp-keys",
   "application/pgp-encrypted",
   "application/pkcs7-signature",
   "application/x-pkcs7-signature",

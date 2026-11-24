@@ -45,6 +45,7 @@ import {
   prepare_preferences_payload,
   preferences_equal,
   reconcile_preferences,
+  without_learned_base,
   DEFAULT_PREFERENCES,
   type UserPreferences,
 } from "@/services/api/preferences";
@@ -219,7 +220,9 @@ export function use_preferences_core() {
       }
 
       let to_save = prefs;
-      const base = fallback_base_ref.current ?? server_base_ref.current;
+      const base = fallback_base_ref.current
+        ? without_learned_base(fallback_base_ref.current)
+        : server_base_ref.current;
 
       if (base) {
         let fresh = null;
@@ -386,7 +389,11 @@ export function use_preferences_core() {
       const identity = v.identity_key;
 
       prepare_preferences_payload(prefs, v).then((payload) => {
-        if (latest_prefs_ref.current === prefs && has_loaded_ref.current) {
+        if (
+          latest_prefs_ref.current === prefs &&
+          has_loaded_ref.current &&
+          !fallback_base_ref.current
+        ) {
           beacon_payload_ref.current = payload
             ? { encrypted: payload.encrypted, nonce: payload.nonce, identity }
             : null;
@@ -429,7 +436,11 @@ export function use_preferences_core() {
       const identity = v.identity_key;
 
       prepare_preferences_payload(updated, v).then((payload) => {
-        if (latest_prefs_ref.current === updated && has_loaded_ref.current) {
+        if (
+          latest_prefs_ref.current === updated &&
+          has_loaded_ref.current &&
+          !fallback_base_ref.current
+        ) {
           beacon_payload_ref.current = payload
             ? { encrypted: payload.encrypted, nonce: payload.nonce, identity }
             : null;
@@ -678,6 +689,7 @@ export function use_preferences_core() {
         prefs.reduce_transparency ?? false,
       );
       root.classList.toggle("link-underlines", prefs.link_underlines ?? false);
+      root.classList.toggle("hide-scrollbars", prefs.hide_scrollbars === true);
       root.classList.toggle("dyslexia-font", prefs.dyslexia_font ?? false);
       root.classList.toggle("text-spacing", prefs.text_spacing ?? false);
     },

@@ -27,14 +27,21 @@ export const THREAD_TOKEN_BYTES = 16;
 
 const REPLY_PREFIXES = [
   "re",
+  "r",
   "aw",
   "antw",
+  "ant",
   "sv",
   "svar",
   "vs",
+  "vl",
   "res",
   "rif",
+  "ref",
+  "réf",
+  "rv",
   "odp",
+  "pd",
   "ynt",
   "fw",
   "fwd",
@@ -42,26 +49,34 @@ const REPLY_PREFIXES = [
   "tr",
   "enc",
   "doorst",
+  "отв",
+  "пересл",
+  "回复",
+  "答复",
+  "转发",
+  "回覆",
+  "轉寄",
+  "轉發",
+  "返信",
+  "転送",
+  "회신",
+  "답장",
+  "전달",
 ];
 
-function trim_start(value: string): string {
-  return value.replace(/^\s+/, "");
-}
+const REPLY_PREFIX_PATTERN = new RegExp(
+  String.raw`^\s*(?:` +
+    [...REPLY_PREFIXES].sort((a, b) => b.length - a.length).join("|") +
+    String.raw`)\s*(?:\[\d+\]|\(\d+\)|\^\d+)?\s*[:\uff1a]\s*`,
+  "u",
+);
 
 function strip_reply_prefix_once(subject: string): string | null {
-  const trimmed = trim_start(subject);
+  const match = REPLY_PREFIX_PATTERN.exec(subject);
 
-  for (const prefix of REPLY_PREFIXES) {
-    if (!trimmed.startsWith(prefix)) continue;
+  if (!match) return null;
 
-    const rest = trim_start(trimmed.slice(prefix.length));
-
-    if (rest.startsWith(":")) {
-      return trim_start(rest.slice(1));
-    }
-  }
-
-  return null;
+  return subject.slice(match[0].length);
 }
 
 export function normalize_subject(subject: string): string {

@@ -20,6 +20,7 @@
 //
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
+mod address_race;
 mod badge;
 mod badges_data;
 mod boot_guard;
@@ -30,6 +31,8 @@ mod default_mail_linux;
 mod default_mail_store;
 mod device;
 mod downloads;
+#[cfg(all(unix, not(target_os = "macos")))]
+mod download_origin;
 #[cfg(all(unix, not(target_os = "macos")))]
 mod external_link;
 #[cfg(all(unix, not(target_os = "macos")))]
@@ -56,6 +59,9 @@ use tauri::{
 use tauri_plugin_window_state::{AppHandleExt, StateFlags};
 
 const LINK_ACTIVATED_EVENT: &str = "aster://link-activated";
+
+pub(crate) const RELOAD_WITHOUT_OPEN_EMAIL_JS: &str =
+    "history.replaceState(history.state, '', location.pathname + location.search); location.reload();";
 
 const APP_NAVIGATION_HOSTS: &[&str] = &[
     "tauri.localhost",
@@ -170,8 +176,10 @@ fn mark_download_quarantined(path: &std::path::Path) {
     downloads::mark_from_internet(path);
 }
 
-#[cfg(not(any(target_os = "macos", windows)))]
-fn mark_download_quarantined(_path: &std::path::Path) {}
+#[cfg(all(unix, not(target_os = "macos")))]
+fn mark_download_quarantined(path: &std::path::Path) {
+    download_origin::mark_download(path);
+}
 
 fn resolve_download_destination(app: &tauri::AppHandle, destination: &mut std::path::PathBuf) {
     if destination.is_absolute() {
@@ -363,6 +371,7 @@ fn restore_dock_presence(app: &tauri::AppHandle) {
 fn show_main_window(app: &tauri::AppHandle) {
     #[cfg(target_os = "macos")]
     restore_dock_presence(app);
+    boot_guard::reload_on_first_show_after_hidden_start(app);
     if let Some(window) = app.get_webview_window("main") {
         let _ = window.show();
         let _ = window.unminimize();
@@ -375,6 +384,45 @@ fn set_tray_tooltip(state: State<TrayState>, tooltip: String) {
     let Ok(guard) = state.0.lock() else { return };
     if let Some(tray) = guard.as_ref() {
         let _ = tray.set_tooltip(Some(&tooltip));
+    }
+}
+
+#[cfg(windows)]
+fn watch_webview_processes(window: &tauri::WebviewWindow) {
+    use webview2_com::Microsoft::Web::WebView2::Win32::{
+        COREWEBVIEW2_PROCESS_FAILED_KIND, COREWEBVIEW2_PROCESS_FAILED_KIND_BROWSER_PROCESS_EXITED,
+        COREWEBVIEW2_PROCESS_FAILED_KIND_RENDER_PROCESS_EXITED,
+        COREWEBVIEW2_PROCESS_FAILED_KIND_RENDER_PROCESS_UNRESPONSIVE,
+    };
+    use webview2_com::ProcessFailedEventHandler;
+
+    let app = window.app_handle().clone();
+    let result = window.with_webview(move |webview| unsafe {
+        let Ok(core) = webview.controller().CoreWebView2() else {
+            boot_guard::log_line("could not watch webview processes");
+            return;
+        };
+        let handler = ProcessFailedEventHandler::create(Box::new(move |_, args| {
+            let mut kind = COREWEBVIEW2_PROCESS_FAILED_KIND::default();
+            if let Some(args) = args {
+                let _ = args.ProcessFailedKind(&mut kind);
+            }
+            if kind == COREWEBVIEW2_PROCESS_FAILED_KIND_BROWSER_PROCESS_EXITED {
+                boot_guard::handle_webview_process_failure(&app, true);
+            } else if kind == COREWEBVIEW2_PROCESS_FAILED_KIND_RENDER_PROCESS_EXITED
+                || kind == COREWEBVIEW2_PROCESS_FAILED_KIND_RENDER_PROCESS_UNRESPONSIVE
+            {
+                boot_guard::handle_webview_process_failure(&app, false);
+            }
+            Ok(())
+        }));
+        let mut token = 0i64;
+        if core.add_ProcessFailed(&handler, &mut token).is_err() {
+            boot_guard::log_line("could not watch webview processes");
+        }
+    });
+    if let Err(error) = result {
+        boot_guard::log_line(&format!("could not watch webview processes: {error}"));
     }
 }
 
@@ -561,13 +609,19 @@ static WEBKIT_KEYCHAIN_RESET_DONE: std::sync::atomic::AtomicBool =
     std::sync::atomic::AtomicBool::new(false);
 
 #[cfg(target_os = "macos")]
-fn clear_stale_webkit_keychain() {
-    use std::process::Command;
+const KEYCHAIN_TOOL: &str = "/usr/bin/security";
 
+#[cfg(target_os = "macos")]
+fn keychain_delete_command() -> std::process::Command {
+    let mut command = std::process::Command::new(KEYCHAIN_TOOL);
+    command.args(["delete-generic-password", "-s", "com.astermail.mail", "-l", "Aster Mail Desktop web mail web crypto master key"]);
+    command
+}
+
+#[cfg(target_os = "macos")]
+fn clear_stale_webkit_keychain() {
     for _ in 0..5 {
-        let result = Command::new("security")
-            .args(["delete-generic-password", "-s", "com.astermail.mail", "-l", "Aster Mail Desktop web mail web crypto master key"])
-            .output();
+        let result = keychain_delete_command().output();
         match result {
             Ok(output) if output.status.success() => continue,
             _ => break,
@@ -665,7 +719,7 @@ fn main() {
                     mail_notification::queue_open(app, open, was_visible);
                 }
                 if !was_visible {
-                    let _ = window.eval("window.location.reload()");
+                    boot_guard::reload_main_webview(app, "opened from another launch");
                 }
                 show_main_window(app);
             }
@@ -728,6 +782,7 @@ fn main() {
             device::crypto::device_set_id,
             device::crypto::device_sign_challenge,
             device::crypto::device_unseal_vault_envelope,
+            device::crypto::device_open_guard_seal,
             device::crypto::device_get_stored_passphrase,
             device::crypto::device_pin_seal_stored_passphrase,
             device::crypto::device_pin_restore_stored_passphrase,
@@ -788,6 +843,7 @@ fn main() {
 
             default_mail::refresh_registration(app.handle());
             launch_at_login::refresh_registration();
+
 
             let start_hidden = launch_at_login::should_start_hidden(
                 launch_at_login::launched_at_login(std::env::args_os()),
@@ -984,8 +1040,12 @@ fn main() {
             boot_guard_state(app).enter_stage(boot_guard::SetupStage::WindowCreated);
 
             if start_hidden {
+                boot_guard_state(app).mark_started_hidden();
                 let _ = main_window.hide();
             }
+
+            #[cfg(windows)]
+            watch_webview_processes(&main_window);
 
             window_fit::fit_to_work_area(
                 &main_window,
@@ -1007,6 +1067,11 @@ fn main() {
             Ok(())
         })
         .on_window_event(|window, event| {
+            if let WindowEvent::Focused(true) = event {
+                if window.is_visible().unwrap_or(false) {
+                    boot_guard::reload_on_first_show_after_hidden_start(window.app_handle());
+                }
+            }
             if let WindowEvent::Focused(false) = event {
                 let _ = window.app_handle().save_window_state(window_state_flags());
             }
@@ -1331,5 +1396,18 @@ mod navigation_tests {
             let parsed = Url::parse(url).expect("valid url");
             assert!(is_app_navigation_for_build(&parsed, false), "{url}");
         }
+    }
+}
+
+#[cfg(all(test, target_os = "macos"))]
+mod keychain_tool_tests {
+    use super::keychain_delete_command;
+
+    #[test]
+    fn keychain_tool_runs_from_the_system_path() {
+        let command = keychain_delete_command();
+
+        assert_eq!(command.get_program(), std::ffi::OsStr::new("/usr/bin/security"));
+        assert!(std::path::Path::new(command.get_program()).is_absolute());
     }
 }

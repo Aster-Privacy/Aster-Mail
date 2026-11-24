@@ -91,6 +91,107 @@ export function search_view_for_path(pathname: string): string | undefined {
   return SEARCH_VIEW_LABELS.has(view) ? view : undefined;
 }
 
+export interface SearchListScope {
+  operator: "folder" | "label";
+  token: string;
+}
+
+const LIST_SCOPE_ROUTES: [string, string, SearchListScope["operator"]][] = [
+  ["/folder/", "folder-", "folder"],
+  ["/tag/", "tag-", "label"],
+];
+
+function decoded_token(raw: string): string {
+  try {
+    return decodeURIComponent(raw);
+  } catch {
+    return raw;
+  }
+}
+
+export function search_list_scope_for_path(
+  pathname: string,
+): SearchListScope | undefined {
+  for (const [route_prefix, , operator] of LIST_SCOPE_ROUTES) {
+    if (!pathname.startsWith(route_prefix)) continue;
+
+    const token = decoded_token(
+      pathname.slice(route_prefix.length).split("/")[0],
+    );
+
+    return token ? { operator, token } : undefined;
+  }
+
+  return undefined;
+}
+
+export function search_list_scope_for_view(
+  view: string | undefined,
+): SearchListScope | undefined {
+  if (!view) return undefined;
+
+  for (const [, view_prefix, operator] of LIST_SCOPE_ROUTES) {
+    if (!view.startsWith(view_prefix)) continue;
+
+    const token = view.slice(view_prefix.length);
+
+    return token ? { operator, token } : undefined;
+  }
+
+  return undefined;
+}
+
+export function search_list_scope_name(
+  scope: SearchListScope | undefined,
+  folders: { folder_token: string; name: string }[],
+  tags: { tag_token: string; name: string }[],
+): string | undefined {
+  if (!scope) return undefined;
+
+  const name =
+    scope.operator === "folder"
+      ? folders.find((folder) => folder.folder_token === scope.token)?.name
+      : tags.find((tag) => tag.tag_token === scope.token)?.name;
+  const trimmed = name?.trim();
+
+  return trimmed && !trimmed.includes('"') ? trimmed : undefined;
+}
+
+export function scope_search_query_to_list(
+  query: string,
+  scope: SearchListScope | undefined,
+  name: string | undefined,
+): string {
+  const trimmed = query.trim();
+
+  if (!trimmed || !scope || !name) return trimmed;
+
+  const is_scoped = parse_search_query(trimmed).operators.some(
+    (op) => op.type === "in" || op.type === "folder" || op.type === "label",
+  );
+
+  return is_scoped ? trimmed : `${trimmed} ${scope.operator}:"${name}"`;
+}
+
+export function build_label_name_to_tokens(
+  folders: { folder_token: string; name: string; is_system?: boolean }[],
+  tags: { tag_token: string; name: string }[],
+): Map<string, string[]> {
+  const map = new Map<string, string[]>();
+  const add = (name: string, token: string) => {
+    const key = name.toLowerCase();
+
+    map.set(key, [...(map.get(key) ?? []), token]);
+  };
+
+  for (const folder of folders) {
+    if (!folder.is_system) add(folder.name, folder.folder_token);
+  }
+  for (const tag of tags) add(tag.name, tag.tag_token);
+
+  return map;
+}
+
 export function search_placeholder_label_key(
   view: string | undefined,
 ): TranslationKey | undefined {

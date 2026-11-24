@@ -24,6 +24,8 @@ export const ENFORCE_STRICT_RECIPIENT_BUNDLE: boolean = true;
 
 export const ENABLE_PQXDH_TRANSCRIPT_BINDING: boolean = true;
 
+export const REQUIRE_SIGNED_RATCHET_KEYS: boolean = false;
+
 export function is_authenticated_ratchet_enforced(): boolean {
   return ENFORCE_AUTHENTICATED_RATCHET;
 }
@@ -43,5 +45,12 @@ export function is_pqxdh_transcript_binding_enabled(): boolean {
   return opted_in(
     import.meta.env.VITE_ENABLE_PQXDH_TRANSCRIPT_BINDING,
     ENABLE_PQXDH_TRANSCRIPT_BINDING,
+  );
+}
+
+export function is_signed_ratchet_keys_required(): boolean {
+  return opted_in(
+    import.meta.env.VITE_REQUIRE_SIGNED_RATCHET_KEYS,
+    REQUIRE_SIGNED_RATCHET_KEYS,
   );
 }

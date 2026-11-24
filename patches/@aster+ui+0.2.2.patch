@@ -1,0 +1,78 @@
+diff --git a/node_modules/@aster/ui/dist/index.cjs b/node_modules/@aster/ui/dist/index.cjs
+index f94e215..619a34a 100644
+--- a/node_modules/@aster/ui/dist/index.cjs
++++ b/node_modules/@aster/ui/dist/index.cjs
+@@ -12918,7 +12918,8 @@ function EncryptionInfoDropdownView({
+   sender_title,
+   sender_description,
+   sender_invalid_short_label,
+-  reduce_motion = false
++  reduce_motion = false,
++  show_cipher = true
+ }) {
+   const panel_id = (0, import_react19.useId)();
+   const container_ref = (0, import_react19.useRef)(null);
+@@ -13037,7 +13038,7 @@ function EncryptionInfoDropdownView({
+               /* @__PURE__ */ (0, import_jsx_runtime92.jsx)("p", { className: "text-[14px] leading-5 font-semibold text-txt-primary", children: heading })
+             ] }),
+             /* @__PURE__ */ (0, import_jsx_runtime92.jsx)("p", { className: "ps-6", children: description }),
+-            /* @__PURE__ */ (0, import_jsx_runtime92.jsxs)("p", { className: "ps-6 text-txt-muted", children: [
++            show_cipher && /* @__PURE__ */ (0, import_jsx_runtime92.jsxs)("p", { className: "ps-6 text-txt-muted", "data-testid": "encryption_cipher_line", children: [
+               "AES-256-GCM \xB7 ",
+               has_pq_protection ? "ML-KEM-768" : "KEM-768"
+             ] }),
+diff --git a/node_modules/@aster/ui/dist/index.d.cts b/node_modules/@aster/ui/dist/index.d.cts
+index c3712fb..bae1386 100644
+--- a/node_modules/@aster/ui/dist/index.d.cts
++++ b/node_modules/@aster/ui/dist/index.d.cts
+@@ -2020,9 +2020,10 @@ interface EncryptionInfoDropdownViewProps {
+     sender_description?: ReactNode;
+     sender_invalid_short_label?: ReactNode;
+     reduce_motion?: boolean;
++    show_cipher?: boolean;
+ }
+ declare const ENCRYPTED_LOCK_COLOR = "rgb(59, 130, 246)";
+-declare function EncryptionInfoDropdownView({ is_open, on_open_change, is_encrypted, has_pq_protection, heading, description, size, label, sender_verification, sender_title, sender_description, sender_invalid_short_label, reduce_motion, }: EncryptionInfoDropdownViewProps): react_jsx_runtime.JSX.Element;
++declare function EncryptionInfoDropdownView({ is_open, on_open_change, is_encrypted, has_pq_protection, heading, description, size, label, sender_verification, sender_title, sender_description, sender_invalid_short_label, reduce_motion, show_cipher, }: EncryptionInfoDropdownViewProps): react_jsx_runtime.JSX.Element;
+ 
+ interface ContactAvatarViewProps {
+     size_px: number;
+diff --git a/node_modules/@aster/ui/dist/index.d.ts b/node_modules/@aster/ui/dist/index.d.ts
+index 0a0cf22..eff22d6 100644
+--- a/node_modules/@aster/ui/dist/index.d.ts
++++ b/node_modules/@aster/ui/dist/index.d.ts
+@@ -2020,9 +2020,10 @@ interface EncryptionInfoDropdownViewProps {
+     sender_description?: ReactNode;
+     sender_invalid_short_label?: ReactNode;
+     reduce_motion?: boolean;
++    show_cipher?: boolean;
+ }
+ declare const ENCRYPTED_LOCK_COLOR = "rgb(59, 130, 246)";
+-declare function EncryptionInfoDropdownView({ is_open, on_open_change, is_encrypted, has_pq_protection, heading, description, size, label, sender_verification, sender_title, sender_description, sender_invalid_short_label, reduce_motion, }: EncryptionInfoDropdownViewProps): react_jsx_runtime.JSX.Element;
++declare function EncryptionInfoDropdownView({ is_open, on_open_change, is_encrypted, has_pq_protection, heading, description, size, label, sender_verification, sender_title, sender_description, sender_invalid_short_label, reduce_motion, show_cipher, }: EncryptionInfoDropdownViewProps): react_jsx_runtime.JSX.Element;
+ 
+ interface ContactAvatarViewProps {
+     size_px: number;
+diff --git a/node_modules/@aster/ui/dist/index.js b/node_modules/@aster/ui/dist/index.js
+index 9ccda88..db3c59d 100644
+--- a/node_modules/@aster/ui/dist/index.js
++++ b/node_modules/@aster/ui/dist/index.js
+@@ -12589,7 +12589,8 @@ function EncryptionInfoDropdownView({
+   sender_title,
+   sender_description,
+   sender_invalid_short_label,
+-  reduce_motion = false
++  reduce_motion = false,
++  show_cipher = true
+ }) {
+   const panel_id = useId4();
+   const container_ref = useRef20(null);
+@@ -12708,7 +12709,7 @@ function EncryptionInfoDropdownView({
+               /* @__PURE__ */ jsx92("p", { className: "text-[14px] leading-5 font-semibold text-txt-primary", children: heading })
+             ] }),
+             /* @__PURE__ */ jsx92("p", { className: "ps-6", children: description }),
+-            /* @__PURE__ */ jsxs74("p", { className: "ps-6 text-txt-muted", children: [
++            show_cipher && /* @__PURE__ */ jsxs74("p", { className: "ps-6 text-txt-muted", "data-testid": "encryption_cipher_line", children: [
+               "AES-256-GCM \xB7 ",
+               has_pq_protection ? "ML-KEM-768" : "KEM-768"
+             ] }),

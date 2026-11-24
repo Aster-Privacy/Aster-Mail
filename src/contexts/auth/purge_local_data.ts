@@ -32,6 +32,8 @@ import { logout_user } from "@/services/api/auth";
 import { purge_favicon_cache } from "@/lib/favicon_cache_db";
 import { clear_icon_cache } from "@/lib/icon_cache";
 import { wipe_all_storage } from "@/services/crypto/secure_storage";
+import { delete_guard_database } from "@/services/crypto/guard_key_store";
+import { GUARD_RESCUE_STORAGE_KEY } from "@/services/guard/guard_rescue_storage";
 import {
   logout_all as storage_logout_all,
   clear_cache,
@@ -79,6 +81,7 @@ import { INVITE_ANSWER_PREFIX } from "@/services/calendar/invite_answers";
 import { clear_preload_cache } from "@/components/email/hooks/preload_cache_store";
 import { clear_billing_cache } from "@/components/settings/billing/billing_cache";
 import { clear_family_cache } from "@/components/settings/billing/family_section/family_cache";
+import { has_tauri_runtime } from "@/lib/tauri_runtime";
 
 export interface PurgeLocalDataOptions {
   erase_device_traces?: boolean;
@@ -106,6 +109,10 @@ const DEVICE_TRACES_STEP = "device_traces";
 const STORAGE_STEPS: readonly WipeStep[] = [
   ["account_storage", () => storage_logout_all()],
   ["secure_storage", () => wipe_all_storage()],
+];
+
+const GUARD_DEVICE_STEPS: readonly WipeStep[] = [
+  ["guard_device", () => delete_guard_database()],
 ];
 
 const STORE_STEPS: readonly WipeStep[] = [
@@ -187,6 +194,7 @@ async function clear_local_caches(): Promise<void> {
     if (
       key.startsWith("aster:lockdown:") ||
       key === "pq_prekey_missing" ||
+      key === GUARD_RESCUE_STORAGE_KEY ||
       key.startsWith("astermail_pq_self_heal_at_") ||
       key.startsWith("astermail_pq_self_heal_keys_") ||
       key.startsWith("astermail_pq_reconciler_at_") ||
@@ -252,7 +260,7 @@ async function sign_out_locally(
 }
 
 function runs_in_desktop_shell(): boolean {
-  return typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
+  return has_tauri_runtime();
 }
 
 async function capture_paired_device_id(): Promise<string | null> {
@@ -328,6 +336,7 @@ export async function erase_device_data(
   }
 
   await run_steps(STORAGE_STEPS, failed, only);
+  await run_steps(GUARD_DEVICE_STEPS, failed, only);
   await run_steps([[LOCAL_CACHES_STEP, clear_local_caches]], failed, only);
   await run_steps(STORE_STEPS, failed, only);
   await run_steps(FINAL_STEPS, failed, only);

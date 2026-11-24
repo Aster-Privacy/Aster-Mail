@@ -43,7 +43,10 @@ import { MobileDrawer } from "@/components/mobile/mobile_drawer";
 import { MobileFab } from "@/components/mobile/mobile_fab";
 import { SimpleToast } from "@/components/toast/simple_toast";
 import { KeyTrustChangePrompt } from "@/components/compose/key_trust_change_prompt";
+import { GuardApprovalHost } from "@/components/guard/guard_approval_sheet";
+import { TotpRequirementWarmup } from "@/hooks/use_totp_required";
 import { PostQuantumSendPrompt } from "@/components/compose/post_quantum_send_prompt";
+import { CreationTokenPrompt } from "@/components/auth/creation_token_prompt";
 import { ActionToast } from "@/components/toast/action_toast";
 import { UndoSendContainer } from "@/components/toast/undo_send_container";
 import { ProfilePictureDialog } from "@/components/profile/profile_picture_dialog";
@@ -131,6 +134,9 @@ import("@/pages/mobile/mobile_welcome").catch((caught) =>
 const ForgotPasswordPage = lazy_with_retry(
   () => import("@/pages/mobile/mobile_forgot_password"),
 );
+const GuardVetoPage = lazy_with_retry(
+  () => import("@/pages/guard/guard_veto_page"),
+);
 const PublicCancelPage = lazy_with_retry(
   () => import("@/pages/public_cancel"),
 );
@@ -208,6 +214,7 @@ const AUTH_PREFIXES = [
   "/register",
   "/signup",
   "/forgot-password",
+  "/guard/veto",
   "/cancel",
   "/reset-password",
   "/verify-recovery-email",
@@ -835,6 +842,7 @@ function MobileApp() {
               <Route element={<InvitePage />} path="/invite/:code" />
               <Route element={<RegisterPage />} path="/signup" />
               <Route element={<ForgotPasswordPage />} path="/forgot-password" />
+              <Route element={<GuardVetoPage />} path="/guard/veto" />
               {PUBLIC_CANCEL_ENABLED && (
                 <Route element={<PublicCancelPage />} path="/cancel" />
               )}
@@ -922,7 +930,12 @@ function MobileApp() {
         <UndoSendPreviewModal />
         <UnsubscribeConfirmationModal />
         <KeyTrustChangePrompt />
+        <ErrorBoundary fallback={null}>
+          <GuardApprovalHost show_rescue_banner />
+          <TotpRequirementWarmup />
+        </ErrorBoundary>
         <PostQuantumSendPrompt />
+        <CreationTokenPrompt />
         <ErrorBoundary fallback={null}>
           <UpgradeModalHost />
           <AliasCapUpsellModalHost />

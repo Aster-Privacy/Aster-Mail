@@ -30,6 +30,7 @@ import {
 } from "@/services/crypto/key_manager";
 import { generate_rotated_credential } from "@/services/crypto/shared_mailbox";
 import { has_pending_identity_rotation } from "@/services/key_rotation_service";
+import { array_to_base64 } from "@/services/crypto/base64";
 
 const OLD_SECRET = "b2xkLWxvZ2luLXNlY3JldC0zMi1ieXRlcy1vbGQ=";
 
@@ -112,5 +113,31 @@ describe("shared mailbox credential rotation", () => {
         identity_rotation_pending: false,
       }),
     ).toBe(false);
+  });
+
+  it("gives the rotated vault a new storage key and keeps the old one for reading", async () => {
+    const old_kek = array_to_base64(crypto.getRandomValues(new Uint8Array(32)));
+    const vault = {
+      ...(await mailbox_vault()),
+      data_kek: old_kek,
+      data_kek_random: true,
+      vault_format: 2,
+    };
+    const rotated = await generate_rotated_credential(vault, OLD_SECRET);
+    const opened = await decrypt_vault(
+      rotated.encrypted_vault,
+      rotated.vault_nonce,
+      rotated.login_secret,
+    );
+
+    expect(opened.data_kek).toBeTruthy();
+    expect(opened.data_kek).not.toBe(old_kek);
+    expect(opened.data_kek_random).toBe(true);
+    expect((opened.legacy_keks ?? []).map((entry) => entry.k)).toContain(
+      old_kek,
+    );
+    expect(opened.storage_rekey?.state).toBe("pending");
+    expect(opened.storage_rekey?.prior_keys).toContain(old_kek);
+    expect(vault.data_kek).toBe(old_kek);
   });
 });

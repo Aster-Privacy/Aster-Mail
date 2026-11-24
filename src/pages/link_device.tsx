@@ -19,10 +19,15 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type { ReactNode } from "react";
+import type { StepUpProof } from "@/services/api/guard";
 
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { PlusIcon, ComputerDesktopIcon } from "@heroicons/react/24/outline";
+import {
+  PlusIcon,
+  ComputerDesktopIcon,
+  PuzzlePieceIcon,
+} from "@heroicons/react/24/outline";
 import { Button } from "@aster/ui";
 
 import { use_auth } from "@/contexts/auth_context";
@@ -45,7 +50,11 @@ import {
   normalize_fingerprint,
   read_link_commitment,
 } from "@/lib/device_link_commitment";
-import { get_passphrase_from_memory } from "@/services/crypto/memory_key_store";
+import {
+  get_passphrase_from_memory,
+  get_vault_from_memory,
+} from "@/services/crypto/memory_key_store";
+import { encode_extension_link_keys } from "@/lib/crypto/extension_link_keys";
 import { app_pathname } from "@/lib/account_index_url";
 import { show_toast } from "@/components/toast/simple_toast";
 import { ButtonSpinner, Spinner } from "@/components/ui/spinner";
@@ -63,6 +72,8 @@ import { set_post_switch_path } from "@/lib/post_switch_path";
 import { api_client } from "@/services/api/client";
 import { has_stored_session_passphrase } from "@/contexts/auth/session_passphrase";
 import { UNLIMITED_ACCOUNTS } from "@/services/plan_limits";
+import { guard_device_code_action } from "@/services/guard/device_code_approval";
+import { use_guard_step_up } from "@/components/guard/use_guard_step_up";
 
 type PageState =
   | "choose_account"
@@ -78,7 +89,20 @@ interface DeviceInfo {
   ed25519_pk: string;
   mlkem_pk: string;
   x25519_pk: string;
+  device_type?: string;
   envelope_versions?: number[];
+  action_pk?: string | null;
+  keys_digest?: string;
+}
+
+function encode_passphrase_secret(): Uint8Array {
+  const passphrase = get_passphrase_from_memory();
+
+  if (!passphrase) {
+    throw new Error("vault_locked");
+  }
+
+  return new TextEncoder().encode(passphrase);
 }
 
 function LinkDeviceShell({
@@ -90,12 +114,14 @@ function LinkDeviceShell({
   heading: string;
   description?: string;
 }) {
+  const { t } = use_i18n();
+
   return (
     <div className="fixed inset-0 overflow-y-auto bg-surf-primary">
       <div className="min-h-full flex items-center justify-center px-4 py-10">
         <div className="flex flex-col items-center w-full max-w-[352px]">
           <img
-            alt="Aster"
+            alt={t("common.aster_mail")}
             className="h-9"
             decoding="async"
             draggable={false}
@@ -442,6 +468,21 @@ function AccountChooser({
 }
 
 export default function LinkDevice() {
+  const step_up = use_guard_step_up();
+
+  return (
+    <>
+      <LinkDeviceFlow request_proof={step_up.request_proof} />
+      {step_up.step_up_modal}
+    </>
+  );
+}
+
+function LinkDeviceFlow({
+  request_proof,
+}: {
+  request_proof: () => Promise<StepUpProof | null>;
+}) {
   const { t } = use_i18n();
   const navigate = useNavigate();
   const {
@@ -449,6 +490,7 @@ export default function LinkDevice() {
     is_loading: auth_loading,
     has_keys,
     accounts,
+    user,
   } = use_auth();
 
   const [page_state, set_page_state] = useState<PageState>("choose_account");
@@ -470,6 +512,7 @@ export default function LinkDevice() {
       device_info ? fingerprint_of_encoded_device_keys(device_info) : null,
     [device_info],
   );
+  const is_extension = device_info?.device_type === "extension";
   const typed_fingerprint = normalize_fingerprint(fingerprint_input);
   const fingerprint_matches =
     device_fingerprint !== null && typed_fingerprint === device_fingerprint;
@@ -590,19 +633,40 @@ export default function LinkDevice() {
     set_error(null);
 
     try {
-      const passphrase = get_passphrase_from_memory();
+      const guard = await guard_device_code_action(
+        user?.id,
+        device_info,
+        request_proof,
+      );
 
-      if (!passphrase) {
-        throw new Error("vault_locked");
+      if (guard.kind === "canceled") {
+        set_page_state("confirming_device");
+
+        return;
+      }
+      if (guard.kind === "needs_approver" || guard.kind === "keys_mismatch") {
+        const message = t(
+          guard.kind === "needs_approver"
+            ? "guard.link_device_needs_approver"
+            : "guard.link_device_keys_changed",
+        );
+
+        set_error(message);
+        show_toast(message, "error");
+        set_page_state("confirming_device");
+
+        return;
       }
 
-      const passphrase_bytes = new TextEncoder().encode(passphrase);
+      const secret_bytes = is_extension
+        ? encode_extension_link_keys(get_vault_from_memory())
+        : encode_passphrase_secret();
 
       let envelope: Uint8Array;
 
       try {
         envelope = await seal_vault_key_for_device(
-          passphrase_bytes,
+          secret_bytes,
           {
             ed25519_pk: base64url_decode(device_info.ed25519_pk),
             mlkem_pk: base64url_decode(device_info.mlkem_pk),
@@ -611,13 +675,16 @@ export default function LinkDevice() {
           choose_envelope_version(device_info.envelope_versions),
         );
       } finally {
-        passphrase_bytes.fill(0);
+        secret_bytes.fill(0);
       }
 
       const envelope_b64 = base64url_encode(envelope);
       const normalized = code_input.replace(/-/g, "");
 
-      const response = await confirm_device_code(normalized, envelope_b64);
+      const response =
+        guard.kind === "signed"
+          ? await confirm_device_code(normalized, envelope_b64, guard.action)
+          : await confirm_device_code(normalized, envelope_b64);
 
       if (response.error === "plan_upgrade_required") {
         set_error(null);
@@ -769,7 +836,11 @@ export default function LinkDevice() {
           <div className="account_menu_card rounded-[18px] px-4 py-4">
             <div className="flex items-center gap-3.5">
               <span className="account_menu_tile_icon">
-                <ComputerDesktopIcon className="w-[18px] h-[18px]" />
+                {is_extension ? (
+                  <PuzzlePieceIcon className="w-[18px] h-[18px]" />
+                ) : (
+                  <ComputerDesktopIcon className="w-[18px] h-[18px]" />
+                )}
               </span>
               <div className="flex min-w-0 flex-1 flex-col gap-0.5">
                 <span
@@ -782,7 +853,11 @@ export default function LinkDevice() {
                   className="text-[11px] leading-tight truncate"
                   style={{ color: "var(--text-muted)" }}
                 >
-                  {t("auth.link_device_desktop")}
+                  {t(
+                    is_extension
+                      ? "auth.link_device_extension"
+                      : "auth.link_device_desktop",
+                  )}
                 </span>
               </div>
             </div>
@@ -795,10 +870,15 @@ export default function LinkDevice() {
                 data-testid="link_device_grant"
                 style={{ color: "var(--text-primary)" }}
               >
-                {t("auth.link_device_grant_notice", {
-                  device: device_info.machine_name,
-                  email: identity.display_email,
-                })}
+                {t(
+                  is_extension
+                    ? "auth.link_device_extension_grant_notice"
+                    : "auth.link_device_grant_notice",
+                  {
+                    device: device_info.machine_name,
+                    email: identity.display_email,
+                  },
+                )}
               </p>
               <p
                 className="mt-2 text-[11px] leading-relaxed"

@@ -18,7 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useSyncExternalStore } from "react";
 
 import {
   list_all_aliases,
@@ -44,7 +44,15 @@ import {
 } from "@/services/crypto/memory_key_store";
 import { is_primary_address } from "@/services/crypto/address_identity_entry";
 import { list_external_accounts } from "@/services/api/external_accounts";
+import { external_sender_candidates } from "@/lib/external_account_modes";
 import { MAIL_EVENTS, mail_event_bus } from "@/hooks/mail_events";
+import {
+  get_sending_blocks_snapshot,
+  is_option_sending_disabled,
+  load_sending_blocks,
+  reset_sending_blocks,
+  subscribe_sending_blocks,
+} from "@/services/api/alias_sending_blocks";
 import {
   list_ghost_aliases,
   decrypt_ghost_aliases,
@@ -84,6 +92,24 @@ export interface SenderOption {
   is_catch_all?: boolean;
   domain_name?: string;
   profile_picture?: string;
+  sending_disabled?: boolean;
+}
+
+export function annotate_sending_blocks(
+  options: SenderOption[],
+  is_disabled: (option_id: string) => boolean = is_option_sending_disabled,
+): SenderOption[] {
+  return options.map((option) =>
+    is_disabled(option.id) ? { ...option, sending_disabled: true } : option,
+  );
+}
+
+export function use_sending_blocks() {
+  return useSyncExternalStore(
+    subscribe_sending_blocks,
+    get_sending_blocks_snapshot,
+    get_sending_blocks_snapshot,
+  );
 }
 
 export const SIGNATURE_BINDABLE_SENDER_TYPES: SenderOptionType[] = [
@@ -189,6 +215,7 @@ export function clear_sender_aliases_cache(): void {
   cached_user = null;
   cached_domain_routing_tokens = new Map();
   cache_populated = false;
+  reset_sending_blocks();
   cache_loaded_at = 0;
   clear_sender_trust_context();
   clear_sender_trust_caches();
@@ -343,8 +370,8 @@ async function load_sender_alias_caches(
   const external_response = await list_external_accounts();
 
   if (external_response.data) {
-    const enabled_externals = external_response.data.filter(
-      (a) => a.is_enabled && !a.oauth_provider && !a.email.endsWith("@import"),
+    const enabled_externals = external_sender_candidates(
+      external_response.data,
     );
     const external_sender_options: SenderOption[] = enabled_externals.map(
       (account) => ({
@@ -505,7 +532,10 @@ export function use_sender_aliases(
     set_external_options(cached_external_options);
   }, []);
 
+  const sending_blocks = use_sending_blocks();
+
   const load_aliases = useCallback(async () => {
+    load_sending_blocks();
     try {
       await load_sender_alias_caches({
         on_fetch_start: () => {
@@ -570,14 +600,17 @@ export function use_sender_aliases(
     ...ghost_options,
   ].filter((option) => is_sendable_address(option.email));
 
+  const annotated_options = annotate_sending_blocks(sender_options);
+
   return {
+    sending_blocks,
     sender_options: [
-      ...sender_options,
+      ...annotated_options,
       ...(!is_feature_locked(CATCH_ALL_FEATURE)
         ? catch_all_sender_options(
             catch_all_domains,
             candidates,
-            sender_options,
+            annotated_options,
             disabled_addresses,
           )
         : []),

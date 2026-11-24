@@ -1,0 +1,114 @@
+{
+  "description": "Ratchet state merge rules shared by every client. A state is built from the base state below with the listed fields replaced. Skipped key counts expand to keys with dh_public set to the side name and message_number and timestamp set to the index. The tie-break hash is SHA-256 over the UTF-8 bytes of root_key, compared as lowercase hex.",
+  "base_state": {
+    "dh_keypair": { "public_key": "dh-pub", "private_key": "dh-priv" },
+    "dh_remote_public": "dh-remote",
+    "root_key": "root-base",
+    "chain_key_send": "cks",
+    "chain_key_recv": "ckr",
+    "send_message_number": 0,
+    "recv_message_number": 0,
+    "previous_chain_length": 0,
+    "skipped_message_keys": [],
+    "created_at": 1,
+    "updated_at": 10,
+    "epoch": 1,
+    "remote_identity_key": "identity-base"
+  },
+  "vectors": [
+    {
+      "name": "higher_epoch_wins",
+      "remote_versioned": true,
+      "local": { "root_key": "root-local", "epoch": 3, "updated_at": 5 },
+      "remote": { "root_key": "root-remote", "epoch": 2, "updated_at": 50 },
+      "expect": { "root_key": "root-local", "epoch": 3, "updated_at": 50 }
+    },
+    {
+      "name": "updated_at_breaks_an_epoch_tie",
+      "remote_versioned": true,
+      "local": { "root_key": "root-local", "epoch": 2, "updated_at": 10 },
+      "remote": { "root_key": "root-remote", "epoch": 2, "updated_at": 20 },
+      "expect": { "root_key": "root-remote", "epoch": 2, "updated_at": 20 }
+    },
+    {
+      "name": "root_key_hash_breaks_a_full_tie",
+      "remote_versioned": true,
+      "local": { "root_key": "root-2", "epoch": 2, "updated_at": 10 },
+      "remote": { "root_key": "root-1", "epoch": 2, "updated_at": 10 },
+      "expect": { "root_key": "root-1", "epoch": 2, "updated_at": 10 }
+    },
+    {
+      "name": "empty_identity_key_counts_as_missing",
+      "remote_versioned": true,
+      "local": { "root_key": "root-local", "epoch": 1, "remote_identity_key": "identity-local" },
+      "remote": { "root_key": "root-remote", "epoch": 4, "remote_identity_key": "" },
+      "expect": { "root_key": "root-remote", "remote_identity_key": "identity-local" }
+    },
+    {
+      "name": "winner_identity_key_is_kept",
+      "remote_versioned": true,
+      "local": { "root_key": "root-local", "epoch": 1, "remote_identity_key": "identity-local" },
+      "remote": { "root_key": "root-remote", "epoch": 4, "remote_identity_key": "identity-remote" },
+      "expect": { "root_key": "root-remote", "remote_identity_key": "identity-remote" }
+    },
+    {
+      "name": "non_positive_created_at_counts_as_zero",
+      "remote_versioned": false,
+      "local": { "root_key": "root-local", "epoch": 1, "created_at": 0 },
+      "remote": { "root_key": "root-remote", "epoch": 3, "created_at": -1 },
+      "expect": { "root_key": "root-remote", "epoch": 3 }
+    },
+    {
+      "name": "header_bound_is_kept_from_either_side",
+      "remote_versioned": true,
+      "local": { "root_key": "root-local", "epoch": 1, "header_bound": true },
+      "remote": { "root_key": "root-remote", "epoch": 2 },
+      "expect": { "root_key": "root-remote", "header_bound": true }
+    },
+    {
+      "name": "skipped_keys_are_a_union_capped_at_2000",
+      "remote_versioned": true,
+      "local": { "root_key": "root-local", "epoch": 1, "skipped_count": 1500 },
+      "remote": { "root_key": "root-remote", "epoch": 2, "skipped_count": 1500 },
+      "expect": { "root_key": "root-remote", "skipped_count": 2000 }
+    }
+  ],
+  "retired_description": "A copy sealed under a retired key is merged without taking any key from it. The merged state is the local state. send_target is the send number the local sending chain is then stepped to with the chain KDF: the copy's send number when the copy shares the local keys, is ahead, and is at most 1000 ahead, otherwise the local send number.",
+  "retired_vectors": [
+    {
+      "name": "retired_copy_never_replaces_the_send_chain",
+      "local": { "send_message_number": 2 },
+      "remote": { "send_message_number": 7, "chain_key_send": "cks-remote", "chain_key_recv": "ckr-remote", "recv_message_number": 9, "updated_at": 50 },
+      "expect": { "chain_key_send": "cks", "send_message_number": 2, "chain_key_recv": "ckr", "recv_message_number": 0, "root_key": "root-base", "updated_at": 10 },
+      "send_target": 7
+    },
+    {
+      "name": "retired_copy_with_other_keys_at_the_same_epoch_is_ignored",
+      "local": { "send_message_number": 1 },
+      "remote": { "root_key": "root-remote", "chain_key_send": "cks-remote", "send_message_number": 5, "created_at": 9, "updated_at": 50 },
+      "expect": { "root_key": "root-base", "chain_key_send": "cks", "send_message_number": 1 },
+      "send_target": 1
+    },
+    {
+      "name": "retired_copy_never_adds_skipped_keys",
+      "local": { "skipped_count": 1 },
+      "remote": { "skipped_count": 3 },
+      "expect": { "skipped_count": 1 },
+      "send_target": 0
+    },
+    {
+      "name": "retired_copy_more_than_1000_ahead_moves_nothing",
+      "local": { "send_message_number": 0 },
+      "remote": { "send_message_number": 1001, "chain_key_send": "cks-remote" },
+      "expect": { "chain_key_send": "cks", "send_message_number": 0 },
+      "send_target": 0
+    },
+    {
+      "name": "retired_copy_behind_keeps_the_local_counter",
+      "local": { "send_message_number": 5 },
+      "remote": { "send_message_number": 3, "chain_key_send": "cks-remote" },
+      "expect": { "chain_key_send": "cks", "send_message_number": 5 },
+      "send_target": 5
+    }
+  ]
+}

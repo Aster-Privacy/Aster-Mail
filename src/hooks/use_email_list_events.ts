@@ -46,7 +46,12 @@ import { has_passphrase_in_memory } from "@/services/crypto/memory_key_store";
 import { request_cache } from "@/services/api/request_cache";
 import { forget_removed_ids } from "@/services/removed_items";
 import { sync_client } from "@/services/sync_client";
-import { CATCH_UP_WHILE_LIVE_MS } from "@/services/sync_timing";
+import { filter_locked_folder_emails } from "@/services/locked_folders";
+import {
+  CATCH_UP_WHILE_LIVE_MS,
+  HIDDEN_CATCH_UP_MS,
+  HIDDEN_CATCH_UP_WHILE_LIVE_MS,
+} from "@/services/sync_timing";
 import {
   mark_preload_stale,
   delete_preloaded_email,
@@ -116,6 +121,14 @@ export const ENTERED_READ_FILTER_REFETCH_DELAY_MS = 1500;
 
 const POLL_INTERVAL_MS = 60_000;
 const LIVE_POLL_MS = CATCH_UP_WHILE_LIVE_MS - POLL_INTERVAL_MS / 2;
+const HIDDEN_POLL_MS = HIDDEN_CATCH_UP_MS - POLL_INTERVAL_MS / 2;
+const HIDDEN_LIVE_POLL_MS = HIDDEN_CATCH_UP_WHILE_LIVE_MS - POLL_INTERVAL_MS / 2;
+
+function poll_gap_ms(page_hidden: boolean, socket_live: boolean): number {
+  if (page_hidden) return socket_live ? HIDDEN_LIVE_POLL_MS : HIDDEN_POLL_MS;
+
+  return socket_live ? LIVE_POLL_MS : 0;
+}
 
 export function removal_keeps_rows_in_view(
   action: string | undefined,
@@ -224,6 +237,17 @@ export function use_email_list_events({
       fetch_page_ref.current?.(0, page_size);
     };
 
+    const folder_locked_handler = () => {
+      set_state((prev) => {
+        const visible = filter_locked_folder_emails(prev.emails);
+
+        return visible.length === prev.emails.length
+          ? prev
+          : { ...prev, emails: visible };
+      });
+      full_fetch_handler();
+    };
+
     const handle_soft_refresh = () => {
       if (has_keys && has_passphrase_in_memory()) {
         request_cache.invalidate("GET:/mail/v1/messages");
@@ -254,12 +278,10 @@ export function use_email_list_events({
       }, 150);
     };
 
+    const can_refresh = () => has_keys && has_passphrase_in_memory();
+
     const maybe_revalidate = () => {
-      if (
-        document.visibilityState !== "visible" ||
-        !has_keys ||
-        !has_passphrase_in_memory()
-      ) {
+      if (document.visibilityState !== "visible" || !can_refresh()) {
         return;
       }
       const now = Date.now();
@@ -281,18 +303,24 @@ export function use_email_list_events({
 
     const poll_interval = window.setInterval(() => {
       const now = Date.now();
+      const page_hidden = document.visibilityState !== "visible";
+      const gap_ms = poll_gap_ms(page_hidden, sync_client.is_connected());
 
-      if (sync_client.is_connected()) {
+      if (gap_ms > 0) {
         const last_refresh = Math.max(
           last_poll_at,
           last_fetch_ref.current?.time ?? 0,
         );
 
-        if (now - last_refresh < LIVE_POLL_MS) return;
+        if (now - last_refresh < gap_ms) return;
       }
 
       last_poll_at = now;
-      maybe_revalidate();
+      if (!page_hidden) {
+        maybe_revalidate();
+      } else if (can_refresh()) {
+        silent_fetch_ref.current?.();
+      }
     }, POLL_INTERVAL_MS);
 
     window.addEventListener(MAIL_EVENTS.MAIL_CHANGED, silent_handler);
@@ -307,7 +335,7 @@ export function use_email_list_events({
       full_fetch_handler,
     );
     window.addEventListener(MAIL_EVENTS.REFRESH_REQUESTED, force_fetch_handler);
-    window.addEventListener("astermail:folder-locked", full_fetch_handler);
+    window.addEventListener("astermail:folder-locked", folder_locked_handler);
     document.addEventListener("visibilitychange", handle_visibility_change);
     window.addEventListener("focus", handle_focus);
 
@@ -338,7 +366,10 @@ export function use_email_list_events({
         MAIL_EVENTS.REFRESH_REQUESTED,
         force_fetch_handler,
       );
-      window.removeEventListener("astermail:folder-locked", full_fetch_handler);
+      window.removeEventListener(
+        "astermail:folder-locked",
+        folder_locked_handler,
+      );
       document.removeEventListener(
         "visibilitychange",
         handle_visibility_change,

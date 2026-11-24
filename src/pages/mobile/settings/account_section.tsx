@@ -77,6 +77,7 @@ import { MAX_DISPLAY_NAME_LENGTH } from "@/services/sanitize";
 import { user_facing_error } from "@/utils/user_facing_error";
 import { use_primary_identity } from "@/lib/primary_identity";
 import { format_date } from "@/utils/date_format";
+import { is_reauth_required } from "@/services/api/step_up";
 import { ChangePrimaryAddressModal } from "@/components/settings/change_primary_address_modal";
 import {
   load_primary_address_eligibility,
@@ -388,7 +389,8 @@ export function AccountSection({
 
     const r = await save_recovery_email(normalized, vault);
 
-    if (r.code === "STEP_UP_REQUIRED" || r.code === "TOTP_REQUIRED") {
+    if (r.held) return;
+    if (is_reauth_required(r.server_code)) {
       request_recovery_step_up(normalized);
 
       return;
@@ -420,6 +422,11 @@ export function AccountSection({
         credentials,
       );
 
+      if (r.held) {
+        set_show_step_up(false);
+
+        return;
+      }
       if (r.code === "CONFLICT") {
         throw new Error(r.error || t("common.recovery_conflict"));
       }
@@ -439,6 +446,12 @@ export function AccountSection({
       set_show_step_up(false);
     } else {
       const r = await remove_recovery_email(credentials);
+
+      if (r.held) {
+        set_show_step_up(false);
+
+        return;
+      }
 
       if (r.error || !r.data?.success) {
         throw new Error(r.error || t("common.step_up_error"));

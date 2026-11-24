@@ -264,7 +264,7 @@ pub mod notification {
         launch: &str,
     ) -> std::result::Result<(), String> {
         let proxy = proxy(app).await?;
-        let id = uuid::Uuid::new_v4().to_string();
+        let id = mail_notification::PORTAL_SLOTS_IN_USE.next_id();
         let notification = Notification::new(title)
             .body(body)
             .default_action(OPEN_ACTION)
@@ -274,6 +274,19 @@ pub mod notification {
             .add_notification(&id, notification)
             .await
             .map_err(|e| e.to_string())
+    }
+
+    pub async fn clear(app: &tauri::AppHandle) -> std::result::Result<(), String> {
+        let proxy = proxy(app).await?;
+        let ids = mail_notification::PORTAL_SLOTS_IN_USE.ids_to_remove();
+
+        mail_notification::remove_portal_notifications(ids, |id| async move {
+            proxy
+                .remove_notification(&id)
+                .await
+                .map_err(|e| e.to_string())
+        })
+        .await
     }
 }
 

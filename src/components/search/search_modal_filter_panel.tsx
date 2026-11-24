@@ -29,7 +29,15 @@ import {
   MagnifyingGlassIcon,
   PaperClipIcon,
 } from "@heroicons/react/24/outline";
-import { Checkbox } from "@aster/ui";
+import {
+  Checkbox,
+  Input,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@aster/ui";
 
 import { use_i18n } from "@/lib/i18n/context";
 import { DateInput } from "@/components/ui/date_input";
@@ -58,11 +66,12 @@ const WITHIN_LABEL_KEYS: Record<
   "365": "mail.chip_last_year",
 };
 
-const FIELD_CLASS =
-  "h-9 bg-transparent text-[13px] text-txt-primary placeholder:text-txt-muted outline-none";
+const ANY_TIME = "any";
 
-const SELECT_CLASS =
-  "h-9 bg-transparent text-[13px] text-txt-primary outline-none cursor-pointer";
+const TRIGGER_CLASS = "h-9 text-[13px]";
+
+const DATE_FIELD_CLASS =
+  "aster_input aster_input_md h-9 w-full text-[13px] text-txt-primary";
 
 function sanitize(value: string): string {
   return value.replace(/[\r\n\t]/g, " ").slice(0, MAX_FIELD_LEN);
@@ -108,7 +117,7 @@ export function SearchModalFilterPanel({
               on_submit();
             }}
           >
-            <div className="flex-1 min-h-0 overflow-y-auto px-4 py-4 space-y-5">
+            <div className="relative flex-1 min-h-0 overflow-y-auto px-4 py-4 space-y-5">
               <Section title={t("mail.contacts")}>
                 <InputRow
                   label={t("common.from_label")}
@@ -129,44 +138,54 @@ export function SearchModalFilterPanel({
                 <InputRow
                   label={t("common.subject_label")}
                   on_change={(value) => update("subject", value)}
+                  placeholder={t("mail.search_subject_placeholder")}
                   value={filters.subject}
                 />
                 <RowDivider />
                 <InputRow
                   label={t("mail.search_has_words")}
                   on_change={(value) => update("has_words", value)}
+                  placeholder={t("mail.search_has_words_placeholder")}
                   value={filters.has_words}
                 />
                 <RowDivider />
                 <InputRow
                   label={t("mail.search_does_not_have")}
                   on_change={(value) => update("does_not_have", value)}
+                  placeholder={t("mail.search_does_not_have_placeholder")}
                   value={filters.does_not_have}
                 />
                 <RowDivider />
                 <FieldRow label={t("mail.search_size_label")}>
-                  <div className="flex items-center gap-1.5">
-                    <select
-                      aria-label={t("mail.search_size_op")}
-                      className={SELECT_CLASS}
+                  <div className="flex items-center gap-2">
+                    <Select
                       value={filters.size_op}
-                      onChange={(e) =>
-                        update(
-                          "size_op",
-                          e.target.value as FilterState["size_op"],
-                        )
+                      onValueChange={(value) =>
+                        update("size_op", value as FilterState["size_op"])
                       }
                     >
-                      <option value="greater">
-                        {t("mail.search_size_greater")}
-                      </option>
-                      <option value="less">{t("mail.search_size_less")}</option>
-                    </select>
-                    <input
-                      className={`${FIELD_CLASS} flex-1 min-w-0`}
+                      <SelectTrigger
+                        aria-label={t("mail.search_size_op")}
+                        className={`${TRIGGER_CLASS} w-auto flex-shrink-0`}
+                      >
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="greater">
+                          {t("mail.search_size_greater")}
+                        </SelectItem>
+                        <SelectItem value="less">
+                          {t("mail.search_size_less")}
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <Input
+                      aria-label={t("mail.search_size_label")}
+                      className="h-9 flex-1 min-w-0 text-[13px]"
                       inputMode="numeric"
                       maxLength={12}
                       pattern="[0-9]*"
+                      placeholder="0"
                       type="text"
                       value={filters.size_value}
                       onChange={(e) =>
@@ -176,45 +195,59 @@ export function SearchModalFilterPanel({
                         )
                       }
                     />
-                    <select
-                      aria-label={t("mail.search_size_unit")}
-                      className={SELECT_CLASS}
+                    <Select
                       value={filters.size_unit}
-                      onChange={(e) =>
-                        update(
-                          "size_unit",
-                          e.target.value as FilterState["size_unit"],
-                        )
+                      onValueChange={(value) =>
+                        update("size_unit", value as FilterState["size_unit"])
                       }
                     >
-                      <option value="mb">MB</option>
-                      <option value="kb">KB</option>
-                      <option value="bytes">B</option>
-                    </select>
+                      <SelectTrigger
+                        aria-label={t("mail.search_size_unit")}
+                        className={`${TRIGGER_CLASS} w-auto flex-shrink-0`}
+                      >
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="mb">MB</SelectItem>
+                        <SelectItem value="kb">KB</SelectItem>
+                        <SelectItem value="bytes">B</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
                 </FieldRow>
               </Section>
 
               <Section title={t("mail.date")}>
                 <FieldRow label={t("mail.search_date_within")}>
-                  <select
-                    aria-label={t("mail.search_date_within")}
-                    className={`${SELECT_CLASS} w-full`}
-                    value={filters.within_days}
-                    onChange={(e) => update("within_days", e.target.value)}
+                  <Select
+                    value={filters.within_days || ANY_TIME}
+                    onValueChange={(value) =>
+                      update("within_days", value === ANY_TIME ? "" : value)
+                    }
                   >
-                    {within_options.map((opt) => (
-                      <option key={opt.value} value={opt.value}>
-                        {opt.label}
-                      </option>
-                    ))}
-                  </select>
+                    <SelectTrigger
+                      aria-label={t("mail.search_date_within")}
+                      className={TRIGGER_CLASS}
+                    >
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {within_options.map((opt) => (
+                        <SelectItem
+                          key={opt.value || ANY_TIME}
+                          value={opt.value || ANY_TIME}
+                        >
+                          {opt.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </FieldRow>
                 <RowDivider />
                 <FieldRow label={t("mail.from_date")}>
                   <DateInput
                     aria_label={t("mail.from_date")}
-                    className={`${FIELD_CLASS} w-full`}
+                    className={DATE_FIELD_CLASS}
                     max={filters.date_to || undefined}
                     on_change={(value) => update("date_from", value)}
                     value={filters.date_from}
@@ -224,7 +257,7 @@ export function SearchModalFilterPanel({
                 <FieldRow label={t("mail.to_date")}>
                   <DateInput
                     aria_label={t("mail.to_date")}
-                    className={`${FIELD_CLASS} w-full`}
+                    className={DATE_FIELD_CLASS}
                     min={filters.date_from || undefined}
                     on_change={(value) => update("date_to", value)}
                     value={filters.date_to}
@@ -234,23 +267,29 @@ export function SearchModalFilterPanel({
 
               <Section title={t("mail.search_section_filters")}>
                 <FieldRow label={t("mail.search_scope_label")}>
-                  <select
-                    aria-label={t("mail.search_scope_label")}
-                    className={`${SELECT_CLASS} w-full`}
+                  <Select
                     value={filters.scope}
-                    onChange={(e) =>
-                      update("scope", e.target.value as SearchScope)
+                    onValueChange={(value) =>
+                      update("scope", value as SearchScope)
                     }
                   >
-                    {scope_options.map((opt) => (
-                      <option key={opt.value} value={opt.value}>
-                        {opt.label}
-                      </option>
-                    ))}
-                  </select>
+                    <SelectTrigger
+                      aria-label={t("mail.search_scope_label")}
+                      className={TRIGGER_CLASS}
+                    >
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {scope_options.map((opt) => (
+                        <SelectItem key={opt.value} value={opt.value}>
+                          {opt.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </FieldRow>
                 <RowDivider />
-                <label className="flex items-center justify-between gap-3 min-h-[44px] px-3 cursor-pointer select-none">
+                <label className="flex items-center justify-between gap-3 min-h-[52px] px-3 cursor-pointer select-none">
                   <span className="flex items-center gap-1.5 text-[13px] text-txt-secondary">
                     <PaperClipIcon className="w-4 h-4" />
                     {t("mail.has_attachments")}
@@ -266,7 +305,7 @@ export function SearchModalFilterPanel({
                   />
                 </label>
                 <RowDivider />
-                <label className="flex items-center justify-between gap-3 min-h-[44px] px-3 cursor-pointer select-none">
+                <label className="flex items-center justify-between gap-3 min-h-[52px] px-3 cursor-pointer select-none">
                   <span className="text-[13px] text-txt-secondary">
                     {t("mail.search_message_content")}
                   </span>
@@ -336,7 +375,7 @@ function FieldRow({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex items-center gap-3 min-h-[44px] px-3">
+    <div className="flex items-center gap-3 min-h-[52px] px-3 py-2">
       <label className="w-[104px] flex-shrink-0 text-[13px] text-txt-secondary">
         {label}
       </label>
@@ -358,8 +397,8 @@ function InputRow({
 }) {
   return (
     <FieldRow label={label}>
-      <input
-        className={`${FIELD_CLASS} w-full`}
+      <Input
+        className="h-9 w-full text-[13px]"
         maxLength={MAX_FIELD_LEN}
         placeholder={placeholder}
         type="text"

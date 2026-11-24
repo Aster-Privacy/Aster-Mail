@@ -27,6 +27,7 @@ import {
 } from "./opaque_wasm";
 
 import { api_client, type ApiResponse } from "@/services/api/client";
+import { default_guard_device_name } from "@/services/guard/guard_device_label";
 
 const LOGIN_V3_INFO = "aster-login-v3";
 const LOGIN_V3_INPUT_BYTES = 32;
@@ -36,6 +37,7 @@ const FINISH_PATH = "/core/v1/auth/login/v3/finish";
 const ENROLL_START_PATH = "/core/v1/auth/me/password-v3/start";
 const ENROLL_FINISH_PATH = "/core/v1/auth/me/password-v3/finish";
 const LOGIN_VERSION = 3;
+const LOGIN_V3_PIN_PREFIX = "astermail_login_v3_pin:";
 
 export function read_login_v3_flag(value: unknown): boolean {
   return value === true;
@@ -76,6 +78,40 @@ let pending_sign_in: {
   v1_proof: string;
   created_at: number;
 } | null = null;
+
+function login_v3_pin_key(user_hash: string): string {
+  return LOGIN_V3_PIN_PREFIX + user_hash;
+}
+
+export function is_login_v3_pinned(user_hash: string): boolean {
+  if (!user_hash) return false;
+
+  try {
+    return localStorage.getItem(login_v3_pin_key(user_hash)) === "1";
+  } catch {
+    return false;
+  }
+}
+
+function pin_login_v3(user_hash: string): void {
+  if (!user_hash) return;
+
+  try {
+    localStorage.setItem(login_v3_pin_key(user_hash), "1");
+  } catch {
+    return;
+  }
+}
+
+export function unpin_login_v3(user_hash: string): void {
+  if (!user_hash) return;
+
+  try {
+    localStorage.removeItem(login_v3_pin_key(user_hash));
+  } catch {
+    return;
+  }
+}
 
 export function set_pending_login_v3(user_hash: string, v1_proof: string): void {
   pending_sign_in = { user_hash, v1_proof, created_at: Date.now() };
@@ -186,10 +222,15 @@ export async function sign_in_v3<T>(
       started.state.fill(0);
     }
 
-    return await api_client.post<T>(FINISH_PATH, {
+    const finished = await api_client.post<T>(FINISH_PATH, {
       state_id,
       credential_finalization: array_to_base64(finalization),
+      device_label: default_guard_device_name(),
     });
+
+    if (finished.data && !finished.error) pin_login_v3(request.user_hash);
+
+    return finished;
   } finally {
     input.fill(0);
   }

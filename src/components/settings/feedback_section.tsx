@@ -23,6 +23,7 @@ import { useNavigate } from "react-router-dom";
 import {
   ChatBubbleBottomCenterTextIcon,
   EnvelopeIcon,
+  InformationCircleIcon,
   LifebuoyIcon,
   QuestionMarkCircleIcon,
   ShieldExclamationIcon,
@@ -61,6 +62,8 @@ type FeedbackCategory = (typeof FEEDBACK_CATEGORIES)[number]["value"];
 
 const ROW_ICON_CLASS = "h-[22px] w-[22px]";
 
+const NOTICE_EMAIL_TOKEN = "\u0000";
+
 export function FeedbackSection() {
   const { t } = use_i18n();
   const navigate = useNavigate();
@@ -81,6 +84,11 @@ export function FeedbackSection() {
     },
     [navigate],
   );
+
+  const [notice_before, notice_after = ""] = t(
+    "settings.feedback_support_notice",
+    { email: NOTICE_EMAIL_TOKEN },
+  ).split(NOTICE_EMAIL_TOKEN);
 
   const handle_send = useCallback(async () => {
     if (!feedback_text.trim()) return;
@@ -128,6 +136,26 @@ export function FeedbackSection() {
         padding="md"
         title={t("settings.your_feedback")}
       >
+        <div
+          className="flex items-start gap-2 px-3 py-2 rounded-[var(--aster-radius-control)] bg-[var(--aster-field-bg)]"
+          data-testid="feedback-support-notice"
+        >
+          <InformationCircleIcon className="w-4 h-4 mt-0.5 text-txt-muted flex-shrink-0" />
+          <p className="text-xs text-txt-muted leading-relaxed">
+            {notice_before}
+            <a
+              className="font-medium text-brand hover:underline"
+              href={`mailto:${SUPPORT_ADDRESS}`}
+              onClick={(event) => {
+                event.preventDefault();
+                compose_to(SUPPORT_ADDRESS);
+              }}
+            >
+              {SUPPORT_ADDRESS}
+            </a>
+            {notice_after}
+          </p>
+        </div>
         <div className="flex flex-wrap gap-2">
           {FEEDBACK_CATEGORIES.map((option) => (
             <PillButton

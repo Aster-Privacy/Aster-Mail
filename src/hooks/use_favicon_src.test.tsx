@@ -41,7 +41,7 @@ vi.mock("@/services/lockdown_store", () => ({
 vi.mock("@/lib/favicon_url", () => ({
   get_favicon_url: (domain: string) => `/api/images/v1/favicon/${domain}`,
   is_valid_favicon_domain: () => true,
-  same_origin_favicon_domain: (url: string) =>
+  api_favicon_domain: (url: string) =>
     url.startsWith("/api/images/v1/favicon/")
       ? url.slice("/api/images/v1/favicon/".length)
       : null,
@@ -74,6 +74,11 @@ vi.mock("@/lib/icon_cache", () => ({
 const { use_favicon_src, store_favicon_if_api_url } =
   await import("./use_favicon_src");
 const { routed_fetch } = await import("@/services/routing/routing_provider");
+const { set_sender_logos_enabled } = await import(
+  "@/services/sender_logos_state"
+);
+
+set_sender_logos_enabled(true);
 const { mark_icon_failed } = await import("@/lib/icon_cache");
 
 declare global {
@@ -130,6 +135,32 @@ afterEach(() => {
 });
 
 describe("use_favicon_src", () => {
+  it("fetches nothing while company logos are off", async () => {
+    set_sender_logos_enabled(false);
+    vi.mocked(routed_fetch).mockClear();
+    try {
+      mount("off.example");
+      await settle();
+
+      expect(routed_fetch).not.toHaveBeenCalled();
+      expect(new Set(observed)).toEqual(new Set(["data:pending"]));
+    } finally {
+      set_sender_logos_enabled(true);
+    }
+  });
+
+  it("does not show a stored logo while company logos are off", async () => {
+    set_sender_logos_enabled(false);
+    try {
+      mount("warm.example");
+      await settle();
+
+      expect(observed).not.toContain("blob:warm");
+    } finally {
+      set_sender_logos_enabled(true);
+    }
+  });
+
   it("starts from the cached blob url when one is already live", () => {
     mount("warm.example");
 
@@ -183,7 +214,35 @@ describe("use_favicon_src", () => {
     await settle();
 
     expect(observed[observed.length - 1]).toBe("data:,");
-    expect(mark_icon_failed).toHaveBeenCalledWith("missing.example");
+    expect(mark_icon_failed).toHaveBeenCalledWith("missing.example", undefined);
+  });
+
+  it("uses the server retry time for a missing favicon", async () => {
+    const fetch_mock = vi.mocked(routed_fetch);
+
+    fetch_mock.mockReset();
+    fetch_mock.mockResolvedValue(
+      new Response(null, {
+        status: 404,
+        headers: { "cache-control": "private, max-age=900" },
+      }),
+    );
+    mount("slow.example");
+    await settle();
+
+    expect(mark_icon_failed).toHaveBeenCalledWith("slow.example", 900_000);
+  });
+
+  it("does not mark a rate limited favicon as failed", async () => {
+    const fetch_mock = vi.mocked(routed_fetch);
+
+    fetch_mock.mockReset();
+    vi.mocked(mark_icon_failed).mockClear();
+    fetch_mock.mockResolvedValue(new Response(null, { status: 429 }));
+    mount("busy.example");
+    await settle();
+
+    expect(mark_icon_failed).not.toHaveBeenCalled();
   });
 
   it("does not ask again for a favicon that is already known to be missing", async () => {

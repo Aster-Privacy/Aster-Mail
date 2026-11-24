@@ -111,6 +111,7 @@ const SECTIONS: FieldSection[] = [
       { value: "total_size", label_key: "mail_rules.field_total_size" },
       { value: "date_received", label_key: "mail_rules.field_date_received" },
       { value: "spam_score", label_key: "mail_rules.field_spam_score" },
+      { value: "source", label_key: "settings.ext_v2_rule_field_source" },
     ],
   },
   {

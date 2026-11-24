@@ -28,6 +28,10 @@ import {
   store_vault_in_memory,
 } from "./memory_key_store";
 import { carry_displaced_ratchet_keys } from "./ratchet_key_continuity";
+import {
+  accept_recovered_vault,
+  is_rolled_back_vault,
+} from "./vault_generation";
 import { with_vault_write_lock } from "./vault_write_lock";
 
 import { ignore_error } from "@/lib/ignore_error";
@@ -97,6 +101,7 @@ async function run(): Promise<RefreshedVault | null> {
     const response = await api_client.get<{
       encrypted_vault: string;
       vault_nonce: string;
+      vault_recovered_write_count?: number;
     }>("/core/v1/auth/vault");
 
     if (
@@ -114,6 +119,19 @@ async function run(): Promise<RefreshedVault | null> {
       response.data.vault_nonce,
       passphrase,
     );
+
+    if (
+      !accept_recovered_vault(
+        user_id,
+        vault,
+        response.data.vault_recovered_write_count,
+      ) &&
+      is_rolled_back_vault(user_id, vault)
+    ) {
+      last_failure_at = Date.now();
+
+      return last_result;
+    }
 
     last_result = {
       vault,
@@ -162,6 +180,10 @@ export async function adopt_refreshed_vault(
       const passphrase = get_passphrase_from_memory();
 
       if (!passphrase) return false;
+
+      if (is_rolled_back_vault(refreshed.user_id, refreshed.vault)) {
+        return false;
+      }
 
       const current = get_vault_from_memory();
 

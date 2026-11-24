@@ -1,5 +1,12 @@
 (function () {
-  if (!window.__TAURI_INTERNALS__) return;
+  function has_tauri_runtime() {
+    if (!Object.getOwnPropertyDescriptor(window, "__TAURI_INTERNALS__")) return false;
+    var v = window.__TAURI_INTERNALS__;
+    if (typeof v !== "object" || v === null) return false;
+    var p = Object.getPrototypeOf(v);
+    return p === Object.prototype || p === null;
+  }
+  if (!has_tauri_runtime()) return;
   var ua = navigator.userAgent || "";
   if (!/Macintosh|Mac OS/i.test(ua)) return;
   var s = crypto.subtle;
@@ -265,7 +272,14 @@
   };
 })();
 (function () {
-  if (!window.__TAURI_INTERNALS__) return;
+  function has_tauri_runtime() {
+    if (!Object.getOwnPropertyDescriptor(window, "__TAURI_INTERNALS__")) return false;
+    var v = window.__TAURI_INTERNALS__;
+    if (typeof v !== "object" || v === null) return false;
+    var p = Object.getPrototypeOf(v);
+    return p === Object.prototype || p === null;
+  }
+  if (!has_tauri_runtime()) return;
   if (!navigator.plugins || navigator.plugins.length === 0) {
     try { Object.defineProperty(navigator, "plugins", { value: { length: 0 }, configurable: true }); } catch {}
   }
