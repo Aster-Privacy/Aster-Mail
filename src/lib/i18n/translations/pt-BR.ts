@@ -12118,6 +12118,23 @@ export const pt_br = {
     panel_open_calendar: "Abrir Calendário",
     panel_load_failed: "Sua agenda não carregou.",
     panel_try_again: "Tentar novamente",
+    panel_signed_out: "Para ver sua agenda, faça login.",
+    panel_keys_loading:
+      "Sua agenda aparece quando sua conta terminar de desbloquear.",
+    panel_locked: "Para ver sua agenda, desbloqueie o Aster Mail.",
+    panel_no_calendars:
+      "Você ainda não tem agendas. Para criar uma, abra o Aster Calendar.",
+    panel_unavailable: "O Aster Calendar não está disponível no momento.",
+    panel_refresh_failed:
+      "Sua agenda não foi atualizada. Você está vendo eventos salvos.",
+    panel_up_next: "A seguir",
+    panel_up_next_now: "Agora",
+    panel_up_next_in_minutes: "Em {count} min",
+    panel_up_next_empty: "Nenhum evento nos próximos 7 dias",
+    panel_no_events: "Nenhum evento",
+    panel_previous_month: "Mês anterior",
+    panel_next_month: "Próximo mês",
+    panel_open_event: "Abrir no Calendário",
     panel_set_up: "Para ver seus eventos aqui, configure o Aster Calendar.",
     beta_waitlist_start: "A beta deve começar em 1º de novembro.",
     beta_waitlist_features_title: "O que está incluído",

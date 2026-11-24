@@ -32,6 +32,8 @@ import {
   open_calendar_externally,
   QuickCalendarPanel,
 } from "@/components/layout/quick_calendar_panel";
+import { DesktopCalendarPanel } from "@/components/layout/desktop_calendar_panel";
+import { is_tauri } from "@/native/desktop_device_auth";
 import { use_panel_transition } from "@/components/layout/use_panel_transition";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_preferences } from "@/contexts/preferences_context";
@@ -80,6 +82,7 @@ function AppRailComponent({
   const [is_hidden, set_is_hidden] = useState(read_hidden);
   const [is_swapping, set_is_swapping] = useState(false);
   const calendar_origin = useMemo(get_calendar_panel_origin, []);
+  const is_desktop = useMemo(is_tauri, []);
 
   const close_contacts = useCallback(() => {
     write_rail_contacts_open(false);
@@ -136,7 +139,7 @@ function AppRailComponent({
   }, [on_calendar_open_change]);
 
   const toggle_calendar = useCallback(() => {
-    if (!calendar_origin) {
+    if (!calendar_origin && !is_desktop) {
       open_calendar_externally();
 
       return;
@@ -154,6 +157,7 @@ function AppRailComponent({
     }
   }, [
     calendar_origin,
+    is_desktop,
     is_calendar_open,
     is_contacts_open,
     is_security_open,
@@ -266,13 +270,21 @@ function AppRailComponent({
               is_swapping={is_swapping}
               on_close={close_security}
             />
-            {calendar_origin && (
-              <QuickCalendarPanel
+            {is_desktop ? (
+              <DesktopCalendarPanel
                 is_open={is_calendar_open}
                 is_swapping={is_swapping}
-                origin={calendar_origin}
                 on_close={close_calendar}
               />
+            ) : (
+              calendar_origin && (
+                <QuickCalendarPanel
+                is_open={is_calendar_open}
+                is_swapping={is_swapping}
+                  origin={calendar_origin}
+                  on_close={close_calendar}
+                />
+              )
             )}
           </>
         }
