@@ -83,6 +83,7 @@ const add_account_mock = vi.fn(
   },
 );
 const navigate_mock = vi.fn();
+const emit_auth_ready_mock = vi.fn();
 
 vi.mock("react-router-dom", async (load_original) => ({
   ...(await load_original<typeof import("react-router-dom")>()),
@@ -151,6 +152,11 @@ vi.mock("@/lib/hard_redirect", () => ({
 
 vi.mock("@/pages/mobile/mobile_register", () => ({}));
 
+vi.mock("@/hooks/mail_events", async (load_original) => ({
+  ...(await load_original<typeof import("@/hooks/mail_events")>()),
+  emit_auth_ready: emit_auth_ready_mock,
+}));
+
 const { use_mobile_sign_in } = await import("./use_mobile_sign_in");
 
 declare global {
@@ -204,6 +210,7 @@ describe("mobile two-step sign-in after a recovery on another app", () => {
     navigate_mock.mockClear();
     login_mock.mockClear();
     add_account_mock.mockClear();
+    emit_auth_ready_mock.mockClear();
     auth_state.is_adding_account = false;
     pin_vault_generation(USER_ID, {
       ...at(40),
@@ -228,6 +235,9 @@ describe("mobile two-step sign-in after a recovery on another app", () => {
     expect(thrown).toEqual([]);
     expect(read_vault_generation_pin(USER_ID)).toBe(25);
     expect(navigate_mock).toHaveBeenCalledWith("/");
+    await vi.waitFor(() =>
+      expect(emit_auth_ready_mock).toHaveBeenCalledTimes(1),
+    );
   });
 
   it("adds the account with the recovered vault through add_account", async () => {
@@ -239,6 +249,9 @@ describe("mobile two-step sign-in after a recovery on another app", () => {
     expect(thrown).toEqual([]);
     expect(read_vault_generation_pin(USER_ID)).toBe(25);
     expect(navigate_mock).toHaveBeenCalledWith("/");
+    await vi.waitFor(() =>
+      expect(emit_auth_ready_mock).toHaveBeenCalledTimes(1),
+    );
   });
 
   it("still refuses the older vault when the server reports no recovery", async () => {
@@ -248,5 +261,6 @@ describe("mobile two-step sign-in after a recovery on another app", () => {
     expect((thrown[0] as Error).name).toBe("VaultRolledBackError");
     expect(read_vault_generation_pin(USER_ID)).toBe(40);
     expect(navigate_mock).not.toHaveBeenCalledWith("/");
+    expect(emit_auth_ready_mock).not.toHaveBeenCalled();
   });
 });
