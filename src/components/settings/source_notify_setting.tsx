@@ -28,12 +28,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { use_source_notify } from "@/hooks/use_source_notify";
+import type { SourceNotifyState } from "@/hooks/use_source_notify";
 import { use_i18n } from "@/lib/i18n/context";
 
-export function SourceNotifySetting() {
+export function SourceNotifySetting({ state }: { state: SourceNotifyState }) {
   const { t } = use_i18n();
-  const { rows, is_saving, choice_for, set_choice } = use_source_notify();
+  const { rows, is_saving, choice_for, set_choice } = state;
 
   if (rows.length === 0) return null;
 

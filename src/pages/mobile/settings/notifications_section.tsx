@@ -41,6 +41,13 @@ import {
 import { show_toast } from "@/components/toast/simple_toast";
 import { use_offer_preferences } from "@/hooks/use_offer_preferences";
 import { use_source_notify } from "@/hooks/use_source_notify";
+import { peek_product_updates_subscription } from "@/services/api/product_updates";
+import { Spinner } from "@/components/ui/spinner";
+import {
+  is_plan_pending,
+  notifications_section_ready,
+  wants_product_updates_unsubscribe,
+} from "@/components/settings/notifications_ready";
 
 type PermissionState = "granted" | "denied" | "default" | "unsupported";
 
@@ -61,10 +68,22 @@ export function NotificationsSection({
 }) {
   const { t } = use_i18n();
   const { preferences, update_preference } = use_preferences();
-  const { is_feature_locked } = use_plan_limits();
+  const {
+    limits: plan_limits,
+    is_loading: plan_is_loading,
+    load_failed: plan_load_failed,
+    is_feature_locked,
+  } = use_plan_limits();
   const [permission_state, set_permission_state] =
     useState<PermissionState>(get_permission_state);
-  const [product_updates, set_product_updates] = useState<boolean | null>(null);
+  const [product_updates, set_product_updates] = useState<boolean | null>(
+    () => peek_product_updates_subscription()?.value ?? null,
+  );
+  const [product_updates_settled, set_product_updates_settled] = useState(
+    () =>
+      peek_product_updates_subscription() !== null &&
+      !wants_product_updates_unsubscribe(window.location.search),
+  );
   const [product_updates_busy, set_product_updates_busy] = useState(false);
   const [product_updates_info_open, set_product_updates_info_open] =
     useState(false);
@@ -115,7 +134,11 @@ export function NotificationsSection({
       }
     };
 
-    sync_product_updates();
+    sync_product_updates()
+      .catch(() => undefined)
+      .finally(() => {
+        if (!cancelled) set_product_updates_settled(true);
+      });
 
     return () => {
       cancelled = true;
@@ -199,6 +222,18 @@ export function NotificationsSection({
     }
   };
 
+  const is_ready = notifications_section_ready({
+    product_updates_settled,
+    offers_loaded: offer_preferences.loaded,
+    source_notify_loaded: source_notify.loaded,
+    permission_settled: true,
+    plan_pending: is_plan_pending(
+      plan_limits,
+      plan_is_loading,
+      plan_load_failed,
+    ),
+  });
+
   const desktop_blocked =
     permission_state === "denied"
       ? t("settings.blocked_by_browser")
@@ -213,205 +248,217 @@ export function NotificationsSection({
         on_close={on_close}
         title={t("settings.notifications")}
       />
-      <div className="flex-1 overflow-y-auto pb-8">
-        <SettingsGroup title={t("settings.channels")}>
-          <SettingsRow
-            label={t("settings.desktop_notifications")}
-            trailing={
-              <Switch
-                checked={desktop_enabled}
-                onCheckedChange={handle_desktop_toggle}
-              />
-            }
-          />
-          {desktop_blocked && (
-            <div className="px-4 pb-2">
-              <p className="text-[12px] text-[var(--text-muted)]">
-                {desktop_blocked}
-              </p>
-            </div>
-          )}
-          <SettingsRow
-            label={t("settings.sound_new_notifications")}
-            trailing={
-              <Switch
-                checked={preferences.sound}
-                onCheckedChange={(v) => update_preference("sound", v, true)}
-              />
-            }
-          />
-          <SettingsRow
-            label={t("common.push_notifications")}
-            trailing={
-              <Switch
-                checked={preferences.push_notifications}
-                onCheckedChange={handle_push_toggle}
-              />
-            }
-          />
-        </SettingsGroup>
-
-        <SettingsGroup title={t("settings.events")}>
-          <SettingsRow
-            label={t("settings.new_emails")}
-            trailing={
-              <Switch
-                checked={preferences.notify_new_email}
-                onCheckedChange={(v) =>
-                  update_preference("notify_new_email", v, true)
-                }
-              />
-            }
-          />
-          <SettingsRow
-            label={t("settings.replies")}
-            trailing={
-              <Switch
-                checked={preferences.notify_replies}
-                onCheckedChange={(v) =>
-                  update_preference("notify_replies", v, true)
-                }
-              />
-            }
-          />
-          {product_updates !== null && (
-            <>
-              <SettingsRow
-                label={t("settings.product_updates")}
-                trailing={
-                  <Switch
-                    checked={product_updates}
-                    disabled={product_updates_busy}
-                    onCheckedChange={handle_product_updates_toggle}
-                  />
-                }
-              />
+      {!is_ready ? (
+        <div className="flex flex-1 items-center justify-center py-12">
+          <Spinner size="md" />
+        </div>
+      ) : (
+        <div className="flex-1 overflow-y-auto pb-8">
+          <SettingsGroup title={t("settings.channels")}>
+            <SettingsRow
+              label={t("settings.desktop_notifications")}
+              trailing={
+                <Switch
+                  checked={desktop_enabled}
+                  onCheckedChange={handle_desktop_toggle}
+                />
+              }
+            />
+            {desktop_blocked && (
               <div className="px-4 pb-2">
-                <div className="flex items-start gap-1.5">
-                  <p className="text-[12px] text-[var(--text-muted)]">
-                    {t("settings.product_updates_description")}
-                  </p>
-                  <button
-                    aria-expanded={product_updates_info_open}
-                    aria-label={t("settings.product_updates_info")}
-                    className="flex-shrink-0 text-[var(--text-muted)]"
-                    type="button"
-                    onClick={() =>
-                      set_product_updates_info_open(!product_updates_info_open)
-                    }
-                  >
-                    <InformationCircleIcon className="h-3.5 w-3.5" />
-                  </button>
-                </div>
-                {product_updates_info_open && (
-                  <p className="mt-1 text-[12px] text-[var(--text-muted)]">
-                    {t("settings.product_updates_info")}
-                  </p>
-                )}
+                <p className="text-[12px] text-[var(--text-muted)]">
+                  {desktop_blocked}
+                </p>
               </div>
-            </>
-          )}
-          {offer_preferences.enabled !== null && (
+            )}
             <SettingsRow
-              description={t("settings.special_offers_description")}
-              label={t("settings.special_offers")}
+              label={t("settings.sound_new_notifications")}
               trailing={
                 <Switch
-                  checked={offer_preferences.enabled}
-                  disabled={offer_preferences.busy}
-                  onCheckedChange={(next) =>
-                    void offer_preferences.toggle(next)
-                  }
+                  checked={preferences.sound}
+                  onCheckedChange={(v) => update_preference("sound", v, true)}
                 />
               }
             />
-          )}
-        </SettingsGroup>
-
-        {source_notify.rows.length > 0 && (
-          <SettingsGroup title={t("settings.ext_v2_notify_sources_title")}>
-            {source_notify.rows.map((row) => (
-              <SettingsRow
-                key={row.value}
-                description={
-                  source_notify.choice_for(row.value) === "none"
-                    ? t("settings.ext_v2_notify_source_none")
-                    : t("settings.ext_v2_notify_source_all")
-                }
-                label={row.label}
-                trailing={
-                  <Switch
-                    aria-label={row.label}
-                    checked={source_notify.choice_for(row.value) === "all"}
-                    disabled={source_notify.is_saving}
-                    onCheckedChange={(next) =>
-                      void source_notify.set_choice(
-                        row.value,
-                        next ? "all" : "none",
-                      )
-                    }
-                  />
-                }
-              />
-            ))}
+            <SettingsRow
+              label={t("common.push_notifications")}
+              trailing={
+                <Switch
+                  checked={preferences.push_notifications}
+                  onCheckedChange={handle_push_toggle}
+                />
+              }
+            />
           </SettingsGroup>
-        )}
 
-        <UpgradeGate
-          description={t("settings.quiet_hours_locked")}
-          feature_name={t("settings.quiet_hours")}
-          is_locked={is_feature_locked("has_quiet_hours")}
-          min_plan="Star"
-        >
-          <SettingsGroup title={t("settings.quiet_hours")}>
+          <SettingsGroup title={t("settings.events")}>
             <SettingsRow
-              label={t("settings.quiet_hours")}
+              label={t("settings.new_emails")}
               trailing={
                 <Switch
-                  checked={preferences.quiet_hours_enabled}
+                  checked={preferences.notify_new_email}
                   onCheckedChange={(v) =>
-                    update_preference("quiet_hours_enabled", v, true)
+                    update_preference("notify_new_email", v, true)
                   }
                 />
               }
             />
-            {preferences.quiet_hours_enabled && (
+            <SettingsRow
+              label={t("settings.replies")}
+              trailing={
+                <Switch
+                  checked={preferences.notify_replies}
+                  onCheckedChange={(v) =>
+                    update_preference("notify_replies", v, true)
+                  }
+                />
+              }
+            />
+            {product_updates !== null && (
               <>
-                <div className="flex items-center gap-3 px-4 py-3">
-                  <span className="text-[15px] text-[var(--text-primary)]">
-                    {t("settings.from")}
-                  </span>
-                  <Input
-                    className="ms-auto"
-                    type="time"
-                    value={quiet_start}
-                    onChange={(e) =>
-                      update_preference(
-                        "quiet_hours_start",
-                        e.target.value,
-                        true,
-                      )
-                    }
-                  />
-                </div>
-                <div className="flex items-center gap-3 px-4 py-3">
-                  <span className="text-[15px] text-[var(--text-primary)]">
-                    {t("settings.to")}
-                  </span>
-                  <Input
-                    className="ms-auto"
-                    type="time"
-                    value={quiet_end}
-                    onChange={(e) =>
-                      update_preference("quiet_hours_end", e.target.value, true)
-                    }
-                  />
+                <SettingsRow
+                  label={t("settings.product_updates")}
+                  trailing={
+                    <Switch
+                      checked={product_updates}
+                      disabled={product_updates_busy}
+                      onCheckedChange={handle_product_updates_toggle}
+                    />
+                  }
+                />
+                <div className="px-4 pb-2">
+                  <div className="flex items-start gap-1.5">
+                    <p className="text-[12px] text-[var(--text-muted)]">
+                      {t("settings.product_updates_description")}
+                    </p>
+                    <button
+                      aria-expanded={product_updates_info_open}
+                      aria-label={t("settings.product_updates_info")}
+                      className="flex-shrink-0 text-[var(--text-muted)]"
+                      type="button"
+                      onClick={() =>
+                        set_product_updates_info_open(
+                          !product_updates_info_open,
+                        )
+                      }
+                    >
+                      <InformationCircleIcon className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                  {product_updates_info_open && (
+                    <p className="mt-1 text-[12px] text-[var(--text-muted)]">
+                      {t("settings.product_updates_info")}
+                    </p>
+                  )}
                 </div>
               </>
             )}
+            {offer_preferences.enabled !== null && (
+              <SettingsRow
+                description={t("settings.special_offers_description")}
+                label={t("settings.special_offers")}
+                trailing={
+                  <Switch
+                    checked={offer_preferences.enabled}
+                    disabled={offer_preferences.busy}
+                    onCheckedChange={(next) =>
+                      void offer_preferences.toggle(next)
+                    }
+                  />
+                }
+              />
+            )}
           </SettingsGroup>
-        </UpgradeGate>
-      </div>
+
+          {source_notify.rows.length > 0 && (
+            <SettingsGroup title={t("settings.ext_v2_notify_sources_title")}>
+              {source_notify.rows.map((row) => (
+                <SettingsRow
+                  key={row.value}
+                  description={
+                    source_notify.choice_for(row.value) === "none"
+                      ? t("settings.ext_v2_notify_source_none")
+                      : t("settings.ext_v2_notify_source_all")
+                  }
+                  label={row.label}
+                  trailing={
+                    <Switch
+                      aria-label={row.label}
+                      checked={source_notify.choice_for(row.value) === "all"}
+                      disabled={source_notify.is_saving}
+                      onCheckedChange={(next) =>
+                        void source_notify.set_choice(
+                          row.value,
+                          next ? "all" : "none",
+                        )
+                      }
+                    />
+                  }
+                />
+              ))}
+            </SettingsGroup>
+          )}
+
+          <UpgradeGate
+            description={t("settings.quiet_hours_locked")}
+            feature_name={t("settings.quiet_hours")}
+            is_locked={is_feature_locked("has_quiet_hours")}
+            min_plan="Star"
+          >
+            <SettingsGroup title={t("settings.quiet_hours")}>
+              <SettingsRow
+                label={t("settings.quiet_hours")}
+                trailing={
+                  <Switch
+                    checked={preferences.quiet_hours_enabled}
+                    onCheckedChange={(v) =>
+                      update_preference("quiet_hours_enabled", v, true)
+                    }
+                  />
+                }
+              />
+              {preferences.quiet_hours_enabled && (
+                <>
+                  <div className="flex items-center gap-3 px-4 py-3">
+                    <span className="text-[15px] text-[var(--text-primary)]">
+                      {t("settings.from")}
+                    </span>
+                    <Input
+                      className="ms-auto"
+                      type="time"
+                      value={quiet_start}
+                      onChange={(e) =>
+                        update_preference(
+                          "quiet_hours_start",
+                          e.target.value,
+                          true,
+                        )
+                      }
+                    />
+                  </div>
+                  <div className="flex items-center gap-3 px-4 py-3">
+                    <span className="text-[15px] text-[var(--text-primary)]">
+                      {t("settings.to")}
+                    </span>
+                    <Input
+                      className="ms-auto"
+                      type="time"
+                      value={quiet_end}
+                      onChange={(e) =>
+                        update_preference(
+                          "quiet_hours_end",
+                          e.target.value,
+                          true,
+                        )
+                      }
+                    />
+                  </div>
+                </>
+              )}
+            </SettingsGroup>
+          </UpgradeGate>
+        </div>
+      )}
     </div>
   );
 }

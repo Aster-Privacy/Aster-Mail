@@ -33,8 +33,15 @@ import {
 
 export interface OfferPreferencesState {
   enabled: boolean | null;
+  loaded: boolean;
   busy: boolean;
   toggle: (next: boolean) => Promise<void>;
+}
+
+let cached_enabled: { value: boolean | null } | null = null;
+
+export function clear_offer_preferences_cache(): void {
+  cached_enabled = null;
 }
 
 function apply_offer_visibility(enabled: boolean) {
@@ -49,7 +56,10 @@ function apply_offer_visibility(enabled: boolean) {
 
 export function use_offer_preferences(): OfferPreferencesState {
   const { t } = use_i18n();
-  const [enabled, set_enabled] = useState<boolean | null>(null);
+  const [enabled, set_enabled] = useState<boolean | null>(
+    () => cached_enabled?.value ?? null,
+  );
+  const [loaded, set_loaded] = useState(() => cached_enabled !== null);
   const [busy, set_busy] = useState(false);
   const busy_ref = useRef(false);
 
@@ -58,10 +68,17 @@ export function use_offer_preferences(): OfferPreferencesState {
 
     get_offer_preferences()
       .then((preferences) => {
-        if (!cancelled) set_enabled(preferences?.in_app_offers_enabled ?? null);
+        const value = preferences?.in_app_offers_enabled ?? null;
+
+        if (value !== null) cached_enabled = { value };
+        if (cancelled) return;
+        set_enabled(value);
+        set_loaded(true);
       })
       .catch(() => {
-        if (!cancelled) set_enabled(null);
+        if (cancelled) return;
+        set_enabled(null);
+        set_loaded(true);
       });
 
     return () => {
@@ -84,6 +101,7 @@ export function use_offer_preferences(): OfferPreferencesState {
       try {
         const saved = await set_offer_preferences(next);
 
+        cached_enabled = { value: saved.in_app_offers_enabled };
         set_enabled(saved.in_app_offers_enabled);
 
         if (saved.in_app_offers_enabled || next) {
@@ -102,5 +120,5 @@ export function use_offer_preferences(): OfferPreferencesState {
     [enabled, t],
   );
 
-  return { enabled, busy, toggle };
+  return { enabled, loaded, busy, toggle };
 }

@@ -84,7 +84,7 @@ export function use_security() {
   const [login_alerts_failed, set_login_alerts_failed] = useState(false);
   const [login_alerts_loading, set_login_alerts_loading] = useState(false);
   const [login_events, set_login_events] = useState<LoginEventEntry[]>([]);
-  const [login_events_loading, set_login_events_loading] = useState(false);
+  const [login_events_loading, set_login_events_loading] = useState(true);
   const [login_events_failed, set_login_events_failed] = useState(false);
   const [show_password_section, set_show_password_section] = useState(false);
   const [current_password, set_current_password] = useState("");

@@ -212,9 +212,9 @@ function RecoveryModal({
 
 function FreePlanBanner() {
   const { t } = use_i18n();
-  const { limits } = use_plan_limits();
+  const { plan_code } = use_plan_limits();
 
-  if (is_onion_host() || !limits || limits.plan_code !== "free") return null;
+  if (is_onion_host() || plan_code !== "free") return null;
 
   return (
     <Island padding="md" tone="accent">
@@ -668,10 +668,7 @@ export function AccountSection() {
           ),
         );
       }
-      show_toast(
-        t("common.failed_save_profile_color"),
-        "error",
-      );
+      show_toast(t("common.failed_save_profile_color"), "error");
     };
 
     color_saving_ref.current = true;
@@ -685,10 +682,7 @@ export function AccountSection() {
 
       if (response.error) await revert();
     } catch (caught) {
-      ignore_error(
-        "components/settings/account_section:update_color",
-        caught,
-      );
+      ignore_error("components/settings/account_section:update_color", caught);
       await revert();
     } finally {
       color_saving_ref.current = false;
