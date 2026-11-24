@@ -130,6 +130,15 @@ import {
   type ReadingPanePosition,
 } from "@/lib/reading_pane";
 import { has_tauri_runtime } from "@/lib/tauri_runtime";
+import { SettingsSkeleton } from "@/components/settings/settings_skeleton";
+import {
+  DEFAULT_SPAM_SETTINGS,
+  behavior_section_ready,
+  peek_family_policy,
+  peek_spam_settings,
+  remember_family_policy,
+  remember_spam_settings,
+} from "@/components/settings/behavior_section/behavior_load_cache";
 
 export function BehaviorSection() {
   const { preferences, update_preference, update_preferences } =
@@ -202,18 +211,23 @@ export function BehaviorSection() {
       true,
     );
   }, [preferences.sidebar_width, update_preference]);
-  const [spam_settings, set_spam_settings] = useState<SpamSettings>({
-    spam_retention_days: 30,
-    spam_sensitivity: "medium",
-    spam_filter_enabled: true,
-    trash_retention_days: 30,
-  });
+  const [spam_settings, set_spam_settings] = useState<SpamSettings>(
+    () => peek_spam_settings() ?? DEFAULT_SPAM_SETTINGS,
+  );
+  const [spam_settled, set_spam_settled] = useState(
+    () => peek_spam_settings() !== null,
+  );
   const dev_mode_generation_ref = useRef(0);
   const spam_generation_ref = useRef(0);
-  const spam_loaded_ref = useRef(false);
+  const spam_loaded_ref = useRef(peek_spam_settings() !== null);
   const [spam_load_failed, set_spam_load_failed] = useState(false);
   const [family_policy, set_family_policy] =
-    useState<MemberRetentionPolicy | null>(null);
+    useState<MemberRetentionPolicy | null>(
+      () => peek_family_policy()?.value ?? null,
+    );
+  const [family_policy_settled, set_family_policy_settled] = useState(
+    () => peek_family_policy() !== null,
+  );
   const [show_grouping_dialog, set_show_grouping_dialog] = useState(false);
   const [pending_translate_mode, set_pending_translate_mode] = useState<
     "ask" | "always" | null
@@ -416,20 +430,31 @@ export function BehaviorSection() {
       set_dev_mode_enabled(result.data);
       write_dev_mode_cache(current_account_id, result.data);
     });
-    get_spam_settings().then((result) => {
-      if (spam_generation !== spam_generation_ref.current) return;
+    get_spam_settings()
+      .then((result) => {
+        if (spam_generation !== spam_generation_ref.current) return;
 
-      if (result.data) {
-        spam_loaded_ref.current = true;
-        set_spam_settings(result.data);
-        set_spam_load_failed(false);
+        if (result.data) {
+          spam_loaded_ref.current = true;
+          remember_spam_settings(result.data);
+          set_spam_settings(result.data);
+          set_spam_load_failed(false);
 
-        return;
-      }
-      set_spam_load_failed(true);
-    });
+          return;
+        }
+        set_spam_load_failed(true);
+      })
+      .catch(() => {
+        if (spam_generation !== spam_generation_ref.current) return;
+        set_spam_load_failed(true);
+      })
+      .finally(() => {
+        if (spam_generation !== spam_generation_ref.current) return;
+        set_spam_settled(true);
+      });
     get_member_retention_policy()
       .then((result) => {
+        remember_family_policy(result.data ?? null);
         if (result.data) {
           set_family_policy(result.data);
         }
@@ -439,8 +464,13 @@ export function BehaviorSection() {
           "components/settings/behavior_section/behavior_section:remove_never_language",
           caught,
         ),
-      );
+      )
+      .finally(() => set_family_policy_settled(true));
   }, [current_account_id]);
+
+  useEffect(() => {
+    if (spam_loaded_ref.current) remember_spam_settings(spam_settings);
+  }, [spam_settings]);
 
   const handle_dev_mode_toggle = async () => {
     const vault = get_vault_from_memory();
@@ -595,6 +625,10 @@ export function BehaviorSection() {
       }
     }
   };
+
+  if (!behavior_section_ready({ spam_settled, family_policy_settled })) {
+    return <SettingsSkeleton />;
+  }
 
   return (
     <IslandSections>

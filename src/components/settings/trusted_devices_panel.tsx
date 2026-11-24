@@ -146,8 +146,8 @@ function format_last_seen(t: Translate, value: string | null): string {
 
 export function TrustedDevicesPanel() {
   const { t } = use_i18n();
-  const { limits } = use_plan_limits();
-  const is_free_plan = !!limits && limits.plan_code === "free";
+  const { limits, plan_code } = use_plan_limits();
+  const is_free_plan = plan_code === "free";
   const {
     data: cached,
     error: load_error,

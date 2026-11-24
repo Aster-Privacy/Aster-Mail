@@ -40,18 +40,30 @@ import {
 
 export interface SourceNotifyState {
   rows: SourceOption[];
+  loaded: boolean;
   is_saving: boolean;
   choice_for: (source_id: string) => SourceNotifyChoice;
   set_choice: (source_id: string, notify: SourceNotifyChoice) => Promise<void>;
 }
 
+let cached_settings: SourceNotifySetting[] | null = null;
+
+export function clear_source_notify_cache(): void {
+  cached_settings = null;
+}
+
 export function use_source_notify(): SourceNotifyState {
   const { t } = use_i18n();
   const { options, loading } = use_external_sources();
-  const [settings, set_settings] = useState<SourceNotifySetting[] | null>(null);
+  const [settings, set_settings] = useState<SourceNotifySetting[] | null>(
+    () => cached_settings,
+  );
+  const [settings_settled, set_settings_settled] = useState(
+    () => cached_settings !== null,
+  );
   const [is_saving, set_is_saving] = useState(false);
   const is_mounted_ref = useRef(true);
-  const settings_ref = useRef<SourceNotifySetting[]>([]);
+  const settings_ref = useRef<SourceNotifySetting[]>(cached_settings ?? []);
 
   useEffect(() => {
     is_mounted_ref.current = true;
@@ -64,7 +76,10 @@ export function use_source_notify(): SourceNotifyState {
       })
       .catch(() => null)
       .then((loaded) => {
-        if (!is_mounted_ref.current || loaded === null) return;
+        if (loaded !== null) cached_settings = loaded;
+        if (!is_mounted_ref.current) return;
+        set_settings_settled(true);
+        if (loaded === null) return;
         settings_ref.current = loaded;
         set_settings(loaded);
       });
@@ -98,6 +113,7 @@ export function use_source_notify(): SourceNotifyState {
         const result = await save_source_notify(next);
 
         if (result.error) throw new Error(result.error);
+        cached_settings = next;
       } catch {
         settings_ref.current = previous;
         if (is_mounted_ref.current) set_settings(previous);
@@ -111,6 +127,7 @@ export function use_source_notify(): SourceNotifyState {
 
   return {
     rows: loading || settings === null ? [] : options,
+    loaded: !loading && settings_settled,
     is_saving,
     choice_for,
     set_choice,

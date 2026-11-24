@@ -30,18 +30,17 @@ import { RecoverDataModal } from "@/components/common/recover_data_modal";
 import { use_auth } from "@/contexts/auth_context";
 import { use_i18n } from "@/lib/i18n/context";
 import { SETTINGS_ANCHORS } from "@/lib/settings_links";
-import {
-  get_codes_status,
-  get_recovery_methods,
-  CodesStatus,
-  RecoveryMethods,
-} from "@/services/api/recovery";
+import { CodesStatus, RecoveryMethods } from "@/services/api/recovery";
 import {
   RecoveryCodesModal,
   RecoveryCodesModalMode,
 } from "@/components/settings/security/recovery_codes_modal";
-import { vault_keys_need_previous_password } from "@/services/crypto/restore_inactive_keys";
 import { app_locale, get_display_time_zone } from "@/utils/date_format";
+import { SettingsSkeleton } from "@/components/settings/settings_skeleton";
+import {
+  fetch_recovery_section_data,
+  peek_recovery_section_data,
+} from "@/components/settings/security/recovery_section_cache";
 
 const LOW_CODES_THRESHOLD = 3;
 
@@ -64,34 +63,45 @@ export function AccountRecoverySection({
   on_changed?: () => void;
 } = {}) {
   const { t } = use_i18n();
-  const [methods, set_methods] = useState<RecoveryMethods | null>(null);
-  const [status, set_status] = useState<CodesStatus | null>(null);
+  const [methods, set_methods] = useState<RecoveryMethods | null>(
+    () => peek_recovery_section_data()?.methods ?? null,
+  );
+  const [status, set_status] = useState<CodesStatus | null>(
+    () => peek_recovery_section_data()?.status ?? null,
+  );
+  const [settled, set_settled] = useState(
+    () => peek_recovery_section_data() !== null,
+  );
   const [show_codes_modal, set_show_codes_modal] = useState(false);
   const [modal_mode, set_modal_mode] =
     useState<RecoveryCodesModalMode>("regenerate");
   const [load_error, set_load_error] = useState(false);
   const [show_recover_data, set_show_recover_data] = useState(false);
-  const [locked_vault_keys, set_locked_vault_keys] = useState(false);
+  const [locked_vault_keys, set_locked_vault_keys] = useState(
+    () => peek_recovery_section_data()?.locked_vault_keys ?? false,
+  );
   const { user } = use_auth();
   const account_id = user?.id ?? null;
 
   const fetch_methods = useCallback(async () => {
-    const [methods_response, status_response, keys_locked] = await Promise.all([
-      get_recovery_methods(),
-      get_codes_status(),
-      vault_keys_need_previous_password().catch(() => false),
-    ]);
+    try {
+      const data = await fetch_recovery_section_data();
 
-    set_locked_vault_keys(keys_locked);
+      set_locked_vault_keys(data.locked_vault_keys);
 
-    if (methods_response.data) {
-      set_methods(methods_response.data);
-      set_load_error(false);
-    } else {
+      if (data.methods) {
+        set_methods(data.methods);
+        set_load_error(false);
+      } else {
+        set_load_error(true);
+      }
+
+      set_status(data.status);
+    } catch {
       set_load_error(true);
+    } finally {
+      set_settled(true);
     }
-
-    set_status(status_response.data ?? null);
   }, []);
 
   useEffect(() => {
@@ -110,6 +120,10 @@ export function AccountRecoverySection({
     set_modal_mode(mode);
     set_show_codes_modal(true);
   };
+
+  if (!settled) {
+    return <SettingsSkeleton />;
+  }
 
   return (
     <>

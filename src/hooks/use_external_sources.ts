@@ -44,7 +44,13 @@ interface LoadedSources {
 
 const CACHE_MS = 30_000;
 
-let cached: { at: number; promise: Promise<LoadedSources> } | null = null;
+interface SourcesCacheEntry {
+  at: number;
+  promise: Promise<LoadedSources>;
+  value: LoadedSources | null;
+}
+
+let cached: SourcesCacheEntry | null = null;
 
 async function fetch_sources(): Promise<LoadedSources> {
   const sources_result = await list_external_sources();
@@ -62,19 +68,32 @@ async function fetch_sources(): Promise<LoadedSources> {
 function load_sources(): Promise<LoadedSources> {
   if (cached && Date.now() - cached.at < CACHE_MS) return cached.promise;
 
-  const entry: { at: number; promise: Promise<LoadedSources> } = {
+  const entry: SourcesCacheEntry = {
     at: Date.now(),
-    promise: fetch_sources().catch(() => {
-      if (cached === entry) cached = null;
+    value: null,
+    promise: fetch_sources()
+      .then((result) => {
+        entry.value = result;
 
-      return { sources: [], accounts: [] };
-    }),
+        return result;
+      })
+      .catch(() => {
+        if (cached === entry) cached = null;
+
+        return { sources: [], accounts: [] };
+      }),
   };
   const promise = entry.promise;
 
   cached = entry;
 
   return promise;
+}
+
+function peek_sources(): LoadedSources | null {
+  if (!cached || Date.now() - cached.at >= CACHE_MS) return null;
+
+  return cached.value;
 }
 
 export function reset_external_sources_cache(): void {
@@ -90,7 +109,7 @@ export interface ExternalSourcesState {
 
 export function use_external_sources(): ExternalSourcesState {
   const { t } = use_i18n();
-  const [loaded, set_loaded] = useState<LoadedSources | null>(null);
+  const [loaded, set_loaded] = useState<LoadedSources | null>(peek_sources);
 
   useEffect(() => {
     let active = true;

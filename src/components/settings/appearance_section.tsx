@@ -113,8 +113,16 @@ export function AppearanceSection() {
     use_preferences();
   const { t, set_language } = use_i18n();
   const [show_more_themes, set_show_more_themes] = useState(false);
-  const { limits, load_failed: plan_load_failed } = use_plan_limits();
-  const is_paid_plan = limits ? limits.plan_code !== "free" : plan_load_failed;
+  const {
+    limits,
+    plan_code,
+    load_failed: plan_load_failed,
+  } = use_plan_limits();
+  const is_paid_plan = limits
+    ? limits.plan_code !== "free"
+    : plan_code
+      ? plan_code !== "free"
+      : plan_load_failed;
   const effective_theme_fields = get_effective_theme_fields(preferences);
   const theme_sync_enabled = is_theme_sync_enabled(preferences);
   const reading_pane_hidden = preferences.reading_pane_position === "hidden";

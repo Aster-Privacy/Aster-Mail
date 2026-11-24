@@ -60,6 +60,9 @@ import { VanguardSection } from "@/components/settings/security/vanguard_section
 import { SessionSection } from "@/components/settings/security/session_section";
 import { TrustedDevicesSection } from "@/components/settings/security/trusted_devices_section";
 import { AccountRecoverySection } from "@/components/settings/security/account_recovery_section";
+import { use_recovery_section_preload } from "@/components/settings/security/recovery_section_cache";
+import { SettingsSkeleton } from "@/components/settings/settings_skeleton";
+import { security_section_ready } from "@/components/settings/security/security_ready";
 import { GuardSection } from "@/components/guard/guard_section";
 import { request_guard_setup } from "@/services/guard/guard_setup_request";
 import { AccountProtectionScore } from "@/components/settings/security/account_protection_score";
@@ -106,6 +109,7 @@ export function SecuritySection({
 }: SecuritySectionProps) {
   const security = use_security();
   const recovery = use_recovery_status(true);
+  const recovery_section_settled = use_recovery_section_preload();
   const guard_status = use_guard_status(true);
   const guard_enabled = guard_criterion_met(
     guard_protection_state(guard_status.status),
@@ -198,6 +202,20 @@ export function SecuritySection({
       set_show_inline_totp_setup((prev) => !prev);
     }
   };
+
+  const is_ready = security_section_ready({
+    totp_settled: security.totp_status !== null || security.totp_status_failed,
+    login_alerts_settled:
+      security.login_alerts_loaded || security.login_alerts_failed,
+    recovery_settled: recovery.is_loaded || recovery.has_failed,
+    recovery_section_settled,
+    passkeys_settled: passkey_loaded || !!passkey_error,
+    guard_settled: !guard_status.loading,
+  });
+
+  if (!is_ready) {
+    return <SettingsSkeleton />;
+  }
 
   return (
     <IslandSections>

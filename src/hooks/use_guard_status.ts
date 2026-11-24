@@ -34,14 +34,24 @@ export interface GuardStatusState {
   refresh: () => Promise<void>;
 }
 
+let cached_guard_status: { value: GuardStatus | null } | null = null;
+
+export function clear_guard_status_cache(): void {
+  cached_guard_status = null;
+}
+
 export function request_guard_status_refresh(): void {
   if (typeof window === "undefined") return;
   window.dispatchEvent(new Event(GUARD_STATUS_REFRESH_EVENT));
 }
 
 export function use_guard_status(enabled = true): GuardStatusState {
-  const [status, set_status] = useState<GuardStatus | null>(null);
-  const [loading, set_loading] = useState(enabled);
+  const [status, set_status] = useState<GuardStatus | null>(() =>
+    enabled ? (cached_guard_status?.value ?? null) : null,
+  );
+  const [loading, set_loading] = useState(
+    () => enabled && cached_guard_status === null,
+  );
   const generation_ref = useRef(0);
 
   const refresh = useCallback(async () => {
@@ -54,10 +64,19 @@ export function use_guard_status(enabled = true): GuardStatusState {
       return;
     }
 
-    const response = await get_guard_status();
+    let next: GuardStatus | null = null;
 
+    try {
+      const response = await get_guard_status();
+
+      next = !response.error && response.data ? response.data : null;
+    } catch {
+      next = null;
+    }
+
+    cached_guard_status = { value: next };
     if (generation !== generation_ref.current) return;
-    set_status(!response.error && response.data ? response.data : null);
+    set_status(next);
     set_loading(false);
   }, [enabled]);
 

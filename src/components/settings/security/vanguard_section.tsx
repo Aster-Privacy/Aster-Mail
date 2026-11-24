@@ -320,7 +320,9 @@ export function VanguardSection() {
     "family_full",
   ].includes(limits?.plan_code ?? "");
 
-  const [enabled, set_enabled] = useState(false);
+  const [enabled, set_enabled] = useState(() =>
+    account_id ? is_vanguard_enabled(account_id) : false,
+  );
   const [show_disable_confirm, set_show_disable_confirm] = useState(false);
   const [is_disabling, set_is_disabling] = useState(false);
 
@@ -410,7 +412,7 @@ export function VanguardSection() {
     set_is_disabling(false);
   };
 
-  if (is_loading) {
+  if (is_loading && !limits) {
     return <Skeleton className="h-14 rounded-[inherit]" />;
   }
 

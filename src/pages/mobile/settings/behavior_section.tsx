@@ -53,6 +53,15 @@ import {
   save_spam_settings,
 } from "@/services/api/preferences";
 import { get_member_retention_policy } from "@/services/api/family_org";
+import { Spinner } from "@/components/ui/spinner";
+import {
+  DEFAULT_SPAM_SETTINGS,
+  behavior_section_ready,
+  peek_family_policy,
+  peek_spam_settings,
+  remember_family_policy,
+  remember_spam_settings,
+} from "@/components/settings/behavior_section/behavior_load_cache";
 import { ignore_error } from "@/lib/ignore_error";
 import {
   UNDO_DEFAULT_SECONDS,
@@ -98,20 +107,27 @@ export function BehaviorSection({
       : remote_content.locked_by === "low_network"
         ? t("settings.low_network_mode_active_banner")
         : undefined;
-  const { limits } = use_plan_limits();
-  const is_paid_plan = !!limits && limits.plan_code !== "free";
+  const { limits, plan_code } = use_plan_limits();
+  const is_paid_plan = limits
+    ? limits.plan_code !== "free"
+    : !!plan_code && plan_code !== "free";
 
-  const [spam_settings, set_spam_settings] = useState<SpamSettings>({
-    spam_retention_days: 30,
-    spam_sensitivity: "medium",
-    spam_filter_enabled: true,
-    trash_retention_days: 30,
-  });
-  const spam_loaded_ref = useRef(false);
+  const [spam_settings, set_spam_settings] = useState<SpamSettings>(
+    () => peek_spam_settings() ?? DEFAULT_SPAM_SETTINGS,
+  );
+  const [spam_settled, set_spam_settled] = useState(
+    () => peek_spam_settings() !== null,
+  );
+  const spam_loaded_ref = useRef(peek_spam_settings() !== null);
   const [spam_load_failed, set_spam_load_failed] = useState(false);
   const spam_generation_ref = useRef(0);
   const [family_policy, set_family_policy] =
-    useState<MemberRetentionPolicy | null>(null);
+    useState<MemberRetentionPolicy | null>(
+      () => peek_family_policy()?.value ?? null,
+    );
+  const [family_policy_settled, set_family_policy_settled] = useState(
+    () => peek_family_policy() !== null,
+  );
   const is_web = !Capacitor.isNativePlatform();
   const [mailto_registered, set_mailto_registered] = useState(() => {
     try {
@@ -152,6 +168,7 @@ export function BehaviorSection({
 
         if (result.data) {
           spam_loaded_ref.current = true;
+          remember_spam_settings(result.data);
           set_spam_settings(result.data);
           set_spam_load_failed(false);
 
@@ -167,13 +184,15 @@ export function BehaviorSection({
           "pages/mobile/settings/behavior_section:get_spam_settings",
           caught,
         );
-      });
+      })
+      .finally(() => set_spam_settled(true));
   };
 
   useEffect(() => {
     load_spam_settings();
     get_member_retention_policy()
       .then((result) => {
+        remember_family_policy(result.data ?? null);
         if (result.data) set_family_policy(result.data);
       })
       .catch((caught) =>
@@ -181,8 +200,13 @@ export function BehaviorSection({
           "pages/mobile/settings/behavior_section:get_member_retention_policy",
           caught,
         ),
-      );
+      )
+      .finally(() => set_family_policy_settled(true));
   }, []);
+
+  useEffect(() => {
+    if (spam_loaded_ref.current) remember_spam_settings(spam_settings);
+  }, [spam_settings]);
 
   const update_spam_settings = (patch: Partial<SpamSettings>) => {
     const generation = ++spam_generation_ref.current;
@@ -330,6 +354,21 @@ export function BehaviorSection({
       { value: "session", label: t("settings.lock_mode_session") },
       { value: "on_leave", label: t("settings.lock_mode_on_leave") },
     ];
+
+  if (!behavior_section_ready({ spam_settled, family_policy_settled })) {
+    return (
+      <div className="flex h-full flex-col">
+        <SettingsHeader
+          on_back={on_back}
+          on_close={on_close}
+          title={t("settings.behavior")}
+        />
+        <div className="flex flex-1 items-center justify-center py-12">
+          <Spinner size="md" />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-full flex-col">
@@ -1187,7 +1226,10 @@ export function BehaviorSection({
                     )}
                     <span className="min-w-0 flex-1 text-[15px] text-[var(--text-primary)]">
                       {def
-                        ? t((def.settings_label_key ?? def.label_key) as "mail.archive")
+                        ? t(
+                            (def.settings_label_key ??
+                              def.label_key) as "mail.archive",
+                          )
                         : t("settings.swipe_none")}
                     </span>
                     {preferences.swipe_left_action === id && (
@@ -1221,7 +1263,10 @@ export function BehaviorSection({
                     )}
                     <span className="min-w-0 flex-1 text-[15px] text-[var(--text-primary)]">
                       {def
-                        ? t((def.settings_label_key ?? def.label_key) as "mail.archive")
+                        ? t(
+                            (def.settings_label_key ??
+                              def.label_key) as "mail.archive",
+                          )
                         : t("settings.swipe_none")}
                     </span>
                     {preferences.swipe_right_action === id && (
