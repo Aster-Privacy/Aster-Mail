@@ -2123,13 +2123,15 @@ textarea.aster_input {
 }
 
 .aster_simple_toast_host .bg-modal-bg.border {
-  max-width: min(92vw, 28rem);
+  max-width: min(calc(100vw - 32px), 48rem);
 }
 
 .aster_simple_toast_host .bg-modal-bg.border > span.font-medium {
   min-width: 0;
   white-space: normal;
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
+  text-align: center;
+  text-wrap: balance;
 }
 
 .aster_input.aster_input_tonal {
