@@ -106,4 +106,28 @@ describe("resolve_page_range", () => {
       }),
     ).toEqual({ start: 1, end: 50, total: 12_000 });
   });
+
+  it("ends the last page of a large folder at the total while its rows load", () => {
+    expect(
+      resolve_page_range({
+        current_page: 381,
+        page_size: 50,
+        page_row_count: 0,
+        total: 19_063,
+        total_pages: 383,
+      }),
+    ).toEqual({ start: 19_051, end: 19_063, total: 19_063 });
+  });
+
+  it("ends a short last page at the total when a stale page count says more exist", () => {
+    expect(
+      resolve_page_range({
+        current_page: 381,
+        page_size: 50,
+        page_row_count: 13,
+        total: 19_063,
+        total_pages: 383,
+      }),
+    ).toEqual({ start: 19_051, end: 19_063, total: 19_063 });
+  });
 });
