@@ -2710,7 +2710,7 @@ mod tests {
     #[test]
     fn refresh_store_keeps_other_accounts_when_one_is_added() {
         let path = scratch_path("refresh_keep_others");
-        let key = test_key(21);
+        let key = fresh_key();
 
         refresh_store_put(&path, &key, "account-a".to_string(), "refresh-a".to_string()).unwrap();
         refresh_store_put(&path, &key, "account-b".to_string(), "refresh-b".to_string()).unwrap();
@@ -2725,12 +2725,12 @@ mod tests {
     #[test]
     fn refresh_store_write_never_replaces_a_file_it_cannot_open() {
         let path = scratch_path("refresh_unreadable_put");
-        let key = test_key(22);
+        let key = fresh_key();
 
         refresh_store_put(&path, &key, "account-a".to_string(), "refresh-a".to_string()).unwrap();
         let before = std::fs::read(&path).unwrap();
 
-        assert!(refresh_store_put(&path, &test_key(23), "account-b".to_string(), "refresh-b".to_string()).is_err());
+        assert!(refresh_store_put(&path, &fresh_key(), "account-b".to_string(), "refresh-b".to_string()).is_err());
         assert_eq!(std::fs::read(&path).unwrap(), before);
         assert_eq!(refresh_store_read(&path, &key, "account-a").unwrap().as_deref(), Some("refresh-a"));
         let _ = std::fs::remove_file(&path);
@@ -2739,12 +2739,12 @@ mod tests {
     #[test]
     fn refresh_store_remove_never_deletes_a_file_it_cannot_open() {
         let path = scratch_path("refresh_unreadable_drop");
-        let key = test_key(24);
+        let key = fresh_key();
 
         refresh_store_put(&path, &key, "account-a".to_string(), "refresh-a".to_string()).unwrap();
         refresh_store_put(&path, &key, "account-b".to_string(), "refresh-b".to_string()).unwrap();
 
-        assert!(refresh_store_drop(&path, &test_key(25), "account-a").is_err());
+        assert!(refresh_store_drop(&path, &fresh_key(), "account-a").is_err());
         assert!(path.exists());
         assert_eq!(refresh_store_read(&path, &key, "account-b").unwrap().as_deref(), Some("refresh-b"));
         let _ = std::fs::remove_file(&path);
@@ -2772,7 +2772,7 @@ mod tests {
     #[test]
     fn refresh_store_remove_affects_only_that_account() {
         let path = scratch_path("refresh_drop_one");
-        let key = test_key(26);
+        let key = fresh_key();
 
         refresh_store_put(&path, &key, "account-a".to_string(), "refresh-a".to_string()).unwrap();
         refresh_store_put(&path, &key, "account-b".to_string(), "refresh-b".to_string()).unwrap();
