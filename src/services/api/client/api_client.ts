@@ -753,6 +753,12 @@ export class ApiClient {
   }
 
   async load_tokens_for_account(account_id: string): Promise<boolean> {
+    return (await this.load_account_token_state(account_id)) === "loaded";
+  }
+
+  private async load_account_token_state(
+    account_id: string,
+  ): Promise<"loaded" | "missing" | "unavailable"> {
     try {
       const { get_account_tokens } = await import("@/services/account_manager");
       const tokens = await get_account_tokens(account_id);
@@ -778,20 +784,27 @@ export class ApiClient {
           sessionStorage.setItem(DEV_TOKEN_KEY, tokens.access_token);
         }
 
-        return true;
+        return "loaded";
       }
 
       if (tokens.refresh_token) {
-        return true;
+        return "loaded";
       }
     } catch (caught) {
       ignore_error(
         "services/api/client/api_client:load_tokens_for_account",
         caught,
       );
+
+      if (
+        caught instanceof Error &&
+        caught.name === "DesktopRefreshStoreUnavailableError"
+      ) {
+        return "unavailable";
+      }
     }
 
-    return false;
+    return "missing";
   }
 
   clear_in_memory_token(): void {
@@ -1450,9 +1463,13 @@ export class ApiClient {
   async reestablish_session_for_account(
     account_id: string,
   ): Promise<SessionReestablishResult> {
-    const loaded = await this.load_tokens_for_account(account_id);
+    const token_state = await this.load_account_token_state(account_id);
 
-    if (!loaded) {
+    if (token_state === "unavailable") {
+      return "unavailable";
+    }
+
+    if (token_state !== "loaded") {
       return "expired";
     }
 

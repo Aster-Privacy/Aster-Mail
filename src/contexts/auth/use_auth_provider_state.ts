@@ -366,10 +366,14 @@ export function use_auth_provider_state() {
             session_result = await attempt();
           }
 
+          const device_login_available =
+            is_tauri() && Boolean(target.device_id);
+
           if (
             session_result === "ok" ||
             session_result === "unavailable" ||
-            device_passphrase_used
+            device_passphrase_used ||
+            device_login_available
           ) {
             if (uses_account_hub()) {
               await with_timeout(

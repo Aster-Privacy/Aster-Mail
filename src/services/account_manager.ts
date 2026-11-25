@@ -126,7 +126,21 @@ export interface AccountsData {
 }
 
 let cached_data: AccountsData | null = null;
-let desktop_refresh_store_unavailable = false;
+
+const DESKTOP_REFRESH_SET_ATTEMPTS = 2;
+
+export class DesktopRefreshStoreUnavailableError extends Error {
+  constructor() {
+    super("desktop refresh store unavailable");
+    this.name = "DesktopRefreshStoreUnavailableError";
+  }
+}
+
+export function is_desktop_refresh_store_unavailable(
+  caught: unknown,
+): boolean {
+  return caught instanceof DesktopRefreshStoreUnavailableError;
+}
 
 async function invoke_desktop<T>(
   command: string,
@@ -141,20 +155,20 @@ async function desktop_refresh_set(
   account_id: string,
   value: string,
 ): Promise<boolean> {
-  if (desktop_refresh_store_unavailable) return false;
-  try {
-    await invoke_desktop("device_refresh_token_set", {
-      accountId: account_id,
-      value,
-    });
+  for (let attempt = 0; attempt < DESKTOP_REFRESH_SET_ATTEMPTS; attempt++) {
+    try {
+      await invoke_desktop("device_refresh_token_set", {
+        accountId: account_id,
+        value,
+      });
 
-    return true;
-  } catch (caught) {
-    desktop_refresh_store_unavailable = true;
-    ignore_error("services/account_manager:desktop_refresh_set", caught);
-
-    return false;
+      return true;
+    } catch (caught) {
+      ignore_error("services/account_manager:desktop_refresh_set", caught);
+    }
   }
+
+  return false;
 }
 
 async function desktop_refresh_get(account_id: string): Promise<string | null> {
@@ -168,7 +182,7 @@ async function desktop_refresh_get(account_id: string): Promise<string | null> {
   } catch (caught) {
     ignore_error("services/account_manager:desktop_refresh_get", caught);
 
-    return null;
+    throw new DesktopRefreshStoreUnavailableError();
   }
 }
 
@@ -578,122 +592,132 @@ export async function set_account_plan_flag(
   account_id: string,
   is_paid_plan: boolean,
 ): Promise<boolean> {
-  const data = await get_accounts_data_async();
-  const account = data.accounts.find((a) => a.id === account_id);
+  return serialize_account_write(async () => {
+    const data = await get_accounts_data_async();
+    const account = data.accounts.find((a) => a.id === account_id);
 
-  if (!account || account.user.is_paid_plan === is_paid_plan) return false;
+    if (!account || account.user.is_paid_plan === is_paid_plan) return false;
 
-  account.user = { ...account.user, is_paid_plan };
-  await save_accounts_data(data);
+    account.user = { ...account.user, is_paid_plan };
+    await save_accounts_data(data);
 
-  return true;
+    return true;
+  });
 }
 
 export async function repair_stale_plan_flags(): Promise<boolean> {
   if (safe_local_get(PLAN_FLAG_REPAIR_KEY) === "1") return false;
   if (!safe_local_set(PLAN_FLAG_REPAIR_KEY, "1")) return false;
 
-  const data = await get_accounts_data_async();
-  let changed = false;
+  return serialize_account_write(async () => {
+    const data = await get_accounts_data_async();
+    let changed = false;
 
-  for (const account of data.accounts) {
-    if (account.id === data.current_account_id) continue;
-    if (account.user.is_paid_plan !== true) continue;
+    for (const account of data.accounts) {
+      if (account.id === data.current_account_id) continue;
+      if (account.user.is_paid_plan !== true) continue;
 
-    account.user = { ...account.user, is_paid_plan: false };
-    changed = true;
-  }
+      account.user = { ...account.user, is_paid_plan: false };
+      changed = true;
+    }
 
-  if (changed) await save_accounts_data(data);
+    if (changed) await save_accounts_data(data);
 
-  return changed;
+    return changed;
+  });
 }
 
 export async function add_account(
   user: User,
 ): Promise<{ success: boolean; error?: string }> {
-  const data = await get_accounts_data_async();
+  const max_accounts = await load_plan_account_limit();
 
-  const existing = data.accounts.find((a) => a.id === user.id);
+  return serialize_account_write(async () => {
+    const data = await get_accounts_data_async();
 
-  if (existing) {
-    existing.user = merge_user(existing.user, user);
+    const existing = data.accounts.find((a) => a.id === user.id);
+
+    if (existing) {
+      existing.user = merge_user(existing.user, user);
+      data.current_account_id = user.id;
+      await save_accounts_data(data);
+
+      return { success: true };
+    }
+
+    const personal_count = data.accounts.filter(
+      (a) => a.kind !== "shared",
+    ).length;
+
+    if (
+      max_accounts !== null &&
+      max_accounts !== UNLIMITED_ACCOUNTS &&
+      personal_count >= max_accounts
+    ) {
+      return {
+        success: false,
+        error: get_active_translations().errors.max_accounts.replace(
+          "{{ max }}",
+          String(max_accounts),
+        ),
+      };
+    }
+
+    const new_account: StoredAccount = {
+      id: user.id,
+      user,
+      added_at: Date.now(),
+    };
+
+    data.accounts.push(new_account);
     data.current_account_id = user.id;
     await save_accounts_data(data);
 
     return { success: true };
-  }
-
-  const personal_count = data.accounts.filter(
-    (a) => a.kind !== "shared",
-  ).length;
-
-  const max_accounts = await load_plan_account_limit();
-
-  if (
-    max_accounts !== null &&
-    max_accounts !== UNLIMITED_ACCOUNTS &&
-    personal_count >= max_accounts
-  ) {
-    return {
-      success: false,
-      error: get_active_translations().errors.max_accounts.replace(
-        "{{ max }}",
-        String(max_accounts),
-      ),
-    };
-  }
-
-  const new_account: StoredAccount = {
-    id: user.id,
-    user,
-    added_at: Date.now(),
-  };
-
-  data.accounts.push(new_account);
-  data.current_account_id = user.id;
-  await save_accounts_data(data);
-
-  return { success: true };
+  });
 }
 
 export async function upsert_shared_account(user: User): Promise<void> {
-  const data = await get_accounts_data_async();
-  const existing = data.accounts.find((a) => a.id === user.id);
+  return serialize_account_write(async () => {
+    const data = await get_accounts_data_async();
+    const existing = data.accounts.find((a) => a.id === user.id);
 
-  if (existing) {
-    existing.user = merge_user(existing.user, user);
-    existing.kind = "shared";
-  } else {
-    data.accounts.push({
-      id: user.id,
-      user,
-      added_at: Date.now(),
-      kind: "shared",
-    });
-  }
+    if (existing) {
+      existing.user = merge_user(existing.user, user);
+      existing.kind = "shared";
+    } else {
+      data.accounts.push({
+        id: user.id,
+        user,
+        added_at: Date.now(),
+        kind: "shared",
+      });
+    }
 
-  await save_accounts_data(data);
+    await save_accounts_data(data);
+  });
 }
 
 export async function remove_stale_shared_accounts(
   granted_ids: string[],
 ): Promise<string[]> {
-  const data = await get_accounts_data_async();
-  const granted = new Set(granted_ids);
-  const stale = data.accounts.filter(
-    (a) =>
-      a.kind === "shared" &&
-      !granted.has(a.id) &&
-      a.id !== data.current_account_id,
-  );
+  return serialize_account_write(async () => {
+    const data = await get_accounts_data_async();
+    const granted = new Set(granted_ids);
+    const stale = data.accounts.filter(
+      (a) =>
+        a.kind === "shared" &&
+        !granted.has(a.id) &&
+        a.id !== data.current_account_id,
+    );
 
-  if (stale.length === 0) return [];
+    if (stale.length === 0) return [];
 
-  data.accounts = data.accounts.filter((a) => !stale.includes(a));
-  await save_accounts_data(data);
+    data.accounts = data.accounts.filter((a) => !stale.includes(a));
+    await save_accounts_data(data);
 
-  return stale.map((a) => a.id);
+    return stale.map((a) => a.id);
+  });
 }
 
 export async function get_account_kind(
@@ -757,14 +781,21 @@ async function clear_account_scoped_contact_index(): Promise<void> {
 export async function switch_account(
   account_id: string,
 ): Promise<StoredAccount | null> {
-  const data = await get_accounts_data_async();
-  const account = data.accounts.find((a) => a.id === account_id);
+  const account = await serialize_account_write(async () => {
+    const data = await get_accounts_data_async();
+    const found = data.accounts.find((a) => a.id === account_id);
+
+    if (!found) return null;
+
+    data.current_account_id = account_id;
+    await save_accounts_data(data);
+
+    return found;
+  });
 
   if (!account) return null;
 
-  data.current_account_id = account_id;
   forget_totp_required();
-  await save_accounts_data(data);
   await clear_offline_email_cache();
   await clear_account_scoped_preferences_cache();
   await clear_account_scoped_contact_index();
@@ -798,28 +829,37 @@ async function clear_account_key_storage(account_id: string): Promise<void> {
 export async function remove_account(
   account_id: string,
 ): Promise<{ removed: boolean; switched_to: StoredAccount | null }> {
-  const data = await get_accounts_data_async();
-  const index = data.accounts.findIndex((a) => a.id === account_id);
+  const outcome = await serialize_account_write(async () => {
+    const data = await get_accounts_data_async();
+    const index = data.accounts.findIndex((a) => a.id === account_id);
 
-  if (index === -1) {
+    if (index === -1) return null;
+
+    data.accounts.splice(index, 1);
+
+    let next: StoredAccount | null = null;
+
+    if (data.current_account_id === account_id) {
+      if (data.accounts.length > 0) {
+        data.current_account_id = data.accounts[0].id;
+        next = data.accounts[0];
+      } else {
+        data.current_account_id = null;
+      }
+    }
+
+    await save_accounts_data(data);
+    await desktop_refresh_remove(account_id);
+
+    return { switched_to: next };
+  });
+
+  if (!outcome) {
     return { removed: false, switched_to: null };
   }
 
-  data.accounts.splice(index, 1);
+  const switched_to = outcome.switched_to;
 
-  let switched_to: StoredAccount | null = null;
-
-  if (data.current_account_id === account_id) {
-    if (data.accounts.length > 0) {
-      data.current_account_id = data.accounts[0].id;
-      switched_to = data.accounts[0];
-    } else {
-      data.current_account_id = null;
-    }
-  }
-
-  await save_accounts_data(data);
-  await desktop_refresh_remove(account_id);
   await clear_account_session_material(account_id);
   await clear_account_key_storage(account_id);
   clear_expanded_folders(account_id);
@@ -829,6 +869,19 @@ export async function remove_account(
   await clear_account_scoped_contact_index();
 
   return { removed: true, switched_to };
+}
+
+export async function device_id_claimed_by_other_account(
+  account_id: string | null | undefined,
+  device_id: string | null | undefined,
+): Promise<boolean> {
+  if (!device_id) return false;
+
+  const data = await get_accounts_data_async();
+
+  return data.accounts.some(
+    (account) => account.id !== account_id && account.device_id === device_id,
+  );
 }
 
 export async function update_account_device_id(
@@ -843,6 +896,12 @@ export async function update_account_device_id(
 
     if (device_id === null) {
       delete account.device_id;
+    } else if (
+      data.accounts.some(
+        (other) => other.id !== account_id && other.device_id === device_id,
+      )
+    ) {
+      return false;
     } else {
       account.device_id = device_id;
     }
@@ -900,10 +959,6 @@ async function place_refresh_token(
   }
 
   account.refresh_token = refresh_token;
-  if (account.refresh_in_device_store) {
-    delete account.refresh_in_device_store;
-    await desktop_refresh_remove(account.id);
-  }
 }
 
 async function adopt_roster_refresh_token(account_id: string): Promise<void> {
@@ -922,6 +977,12 @@ async function adopt_roster_refresh_token(account_id: string): Promise<void> {
 
 export function account_has_refresh_token(account: StoredAccount): boolean {
   return Boolean(account.refresh_token || account.refresh_in_device_store);
+}
+
+export function account_session_resumable(account: StoredAccount): boolean {
+  if (account_has_refresh_token(account)) return true;
+
+  return is_tauri_env() && Boolean(account.device_id);
 }
 
 export async function get_account_tokens(
@@ -964,15 +1025,17 @@ export async function update_account_user(
   account_id: string,
   updated_user: User,
 ): Promise<boolean> {
-  const data = await get_accounts_data_async();
-  const account = data.accounts.find((a) => a.id === account_id);
+  return serialize_account_write(async () => {
+    const data = await get_accounts_data_async();
+    const account = data.accounts.find((a) => a.id === account_id);
 
-  if (!account) return false;
+    if (!account) return false;
 
-  account.user = merge_user(account.user, updated_user);
-  await save_accounts_data(data);
+    account.user = merge_user(account.user, updated_user);
+    await save_accounts_data(data);
 
-  return true;
+    return true;
+  });
 }
 
 export async function logout_all(): Promise<void> {
