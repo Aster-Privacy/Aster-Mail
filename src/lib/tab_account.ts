@@ -90,6 +90,12 @@ export function read_tab_account_binding(): TabAccountBinding | null {
   }
 }
 
+export function tab_scoped_storage_key(base: string): string {
+  const id = bound_account_id ?? read_tab_account_binding()?.id ?? null;
+
+  return id ? `${base}:${id}` : base;
+}
+
 export function bind_tab_account(id: string, index: number): void {
   bound_account_id = id;
   choice_required = false;

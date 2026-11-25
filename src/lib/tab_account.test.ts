@@ -32,6 +32,7 @@ import {
   reset_tab_account_for_tests,
   set_account_choice_required,
   subscribe_tab_account,
+  tab_scoped_storage_key,
   tab_shares_session_cookies,
 } from "./tab_account";
 import {
@@ -177,5 +178,36 @@ describe("tab binding", () => {
     expect(get_csrf_token_from_cookie()).toBe("cookie_owner_token");
 
     document.cookie = "csrf_token=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/";
+  });
+});
+
+describe("tab_scoped_storage_key", () => {
+  beforeEach(() => {
+    reset_tab_account_for_tests();
+    window.sessionStorage.clear();
+  });
+
+  it("keeps the plain key when the tab has no account", () => {
+    expect(tab_scoped_storage_key("aster_sync_schedules")).toBe(
+      "aster_sync_schedules",
+    );
+  });
+
+  it("adds the bound account id to the key", () => {
+    bind_tab_account("acct_b", 1);
+
+    expect(tab_scoped_storage_key("aster_sync_schedules")).toBe(
+      "aster_sync_schedules:acct_b",
+    );
+  });
+
+  it("gives each account its own key", () => {
+    bind_tab_account("acct_a", 0);
+    const first = tab_scoped_storage_key("astermail:queued_send_drafts");
+
+    bind_tab_account("acct_b", 1);
+    const second = tab_scoped_storage_key("astermail:queued_send_drafts");
+
+    expect(first).not.toBe(second);
   });
 });
