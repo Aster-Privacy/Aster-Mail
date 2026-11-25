@@ -20,7 +20,7 @@
 //
 import { address_receiver_key_sets } from "./address_identity_entry";
 import { is_own_address_identity_key } from "./address_sender_identity";
-import { base64_to_array } from "./base64";
+import { array_to_base64, base64_to_array } from "./base64";
 import {
   DoubleRatchet,
   InvalidRatchetStateError,
@@ -120,6 +120,7 @@ import {
   compute_signed_prekey_id,
   minimum_x3dh_version,
   perform_x3dh_receiver,
+  PQ_IDENTITY_KEY_ID,
   X3DH_VERSION_MAX,
   X3DH_VERSION_ONE_TIME_BOUND,
 } from "./x3dh";
@@ -826,9 +827,35 @@ async function order_key_sets_for_signed_prekey(
   return [...matching, ...others];
 }
 
+async function discard_used_pq_prekey(
+  data: RatchetRecipientData,
+): Promise<void> {
+  if (
+    !data.pq_ciphertext ||
+    data.pq_key_id === undefined ||
+    data.pq_key_id === PQ_IDENTITY_KEY_ID
+  ) {
+    return;
+  }
+
+  try {
+    const { consume_pq_prekey } = await import("./pq_prekey_store");
+    const ephemeral_b64 = array_to_base64(base64_to_array(data.ephemeral_key));
+
+    await consume_pq_prekey(data.pq_key_id, ephemeral_b64);
+  } catch (caught) {
+    ignore_error(
+      "services/crypto/ratchet_decrypt:discard_used_pq_prekey",
+      caught,
+    );
+  }
+}
+
 async function discard_used_one_time_prekey(
   data: RatchetRecipientData,
 ): Promise<void> {
+  await discard_used_pq_prekey(data);
+
   if (
     data.x3dh_v !== X3DH_VERSION_ONE_TIME_BOUND ||
     data.opk_id === undefined
