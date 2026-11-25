@@ -242,11 +242,9 @@ async function render_block(granted: string[] = []): Promise<void> {
   });
 }
 
-function load_buttons(): HTMLButtonElement[] {
-  return Array.from(
-    container!.querySelectorAll<HTMLButtonElement>("button"),
-  ).filter((button) =>
-    button.textContent?.includes("mail.load_external_content"),
+function load_button(): HTMLButtonElement | null {
+  return container!.querySelector<HTMLButtonElement>(
+    "[data-testid='load-external-content']",
   );
 }
 
@@ -278,11 +276,7 @@ describe("ThreadMessageBlock image loading modes", () => {
     await render_block();
 
     expect(blocked_types()).toContain("image");
-    expect(
-      load_buttons().filter((button) =>
-        /mail\.images?\b|mail\.trackers?\b/.test(button.textContent ?? ""),
-      ),
-    ).toHaveLength(0);
+    expect(load_button()).toBe(null);
     expect(settings_button()).not.toBe(null);
   });
 
@@ -320,15 +314,14 @@ describe("ThreadMessageBlock image loading modes", () => {
     expect(blocked_types()).toContain("image");
     expect(settings_button()).toBe(null);
 
-    const image_button = load_buttons().find((button) =>
-      /mail\.images?\b/.test(button.textContent ?? ""),
-    );
-
-    expect(image_button).toBeDefined();
+    expect(load_button()).not.toBe(null);
     act(() => {
-      image_button!.click();
+      load_button()!.click();
     });
-    expect(load_requests).toEqual([{ id: "news_1", types: ["image"] }]);
+    expect(load_requests).toHaveLength(1);
+    expect(load_requests[0].id).toBe("news_1");
+    expect(load_requests[0].types).toContain("image");
+    expect(load_requests[0].types).not.toContain("tracking_pixel");
   });
 
   it("loads images for a message the reader allowed when the setting asks first", async () => {
@@ -347,10 +340,11 @@ describe("ThreadMessageBlock image loading modes", () => {
       expect.objectContaining({ type: "image" }),
     );
     expect(settings_button()).toBe(null);
+    act(() => {
+      load_button()?.click();
+    });
     expect(
-      load_buttons().filter((button) =>
-        /mail\.images?\b/.test(button.textContent ?? ""),
-      ),
-    ).toHaveLength(0);
+      load_requests.flatMap((request) => request.types ?? []),
+    ).not.toContain("image");
   });
 });

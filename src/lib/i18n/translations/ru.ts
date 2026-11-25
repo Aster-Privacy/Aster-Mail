@@ -10508,6 +10508,8 @@ export const ru = {
     link_text_optional: "Текст ссылки (необязательно)",
     links_cleaned: "Ссылки очищены",
     load_external_content: "Загрузить внешний контент",
+    external_content_hidden: "Внешний контент скрыт",
+    show_external_content: "Показать контент",
     image_loading_settings: "Настройки изображений",
     location_label: "Место:",
     message_details: "Детали сообщения",

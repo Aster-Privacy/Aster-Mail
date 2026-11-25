@@ -10268,6 +10268,8 @@ export const pt_br = {
     forwarded_by_label: "Encaminhado por",
     new_reaction: "Nova reação",
     load_external_content: "Carregar conteúdo externo",
+    external_content_hidden: "O conteúdo externo está oculto",
+    show_external_content: "Mostrar conteúdo",
     image_loading_settings: "Configurações de imagens",
     image: "imagem",
     images: "imagens",

@@ -10003,6 +10003,8 @@ export const ja = {
     link_text_optional: "リンクテキスト（任意）",
     advanced_search: "詳細",
     load_external_content: "外部コンテンツを読み込む",
+    external_content_hidden: "外部コンテンツは非表示です",
+    show_external_content: "コンテンツを表示",
     image_loading_settings: "画像の設定",
     image: "画像",
     images: "画像",

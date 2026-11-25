@@ -10491,6 +10491,8 @@ export const pl = {
     forwarded_by_label: "Przekazane przez",
     new_reaction: "Nowa reakcja",
     load_external_content: "Załaduj zewnętrzną zawartość",
+    external_content_hidden: "Zawartość zewnętrzna jest ukryta",
+    show_external_content: "Pokaż zawartość",
     image_loading_settings: "Ustawienia obrazów",
     image: "obraz",
     images: "obrazy",

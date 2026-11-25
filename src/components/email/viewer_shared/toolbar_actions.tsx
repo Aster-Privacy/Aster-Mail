@@ -45,8 +45,6 @@ import {
   ClockIcon,
   AdjustmentsHorizontalIcon,
   CheckIcon,
-  ArrowUturnLeftIcon,
-  ArrowUturnRightIcon,
 } from "@heroicons/react/24/outline";
 import { Button, Tooltip } from "@aster/ui";
 
@@ -132,8 +130,6 @@ export interface ViewerToolbarActionsProps {
   show_nav?: boolean;
   show_pin?: boolean;
   show_read_toggle?: boolean;
-  on_reply?: () => void;
-  on_forward?: () => void;
 }
 
 export function ViewerToolbarActions({
@@ -174,8 +170,6 @@ export function ViewerToolbarActions({
   show_nav = false,
   show_pin = true,
   show_read_toggle,
-  on_reply,
-  on_forward,
   can_go_prev,
   can_go_next,
   on_navigate_prev,
@@ -406,36 +400,6 @@ export function ViewerToolbarActions({
 
   return (
     <>
-      {on_reply && (
-        <Tooltip tip={t("mail.reply")}>
-          <Button
-            aria-label={t("mail.reply")}
-            className={btn_base}
-            size="icon"
-            style={muted_style}
-            variant="ghost"
-            onClick={on_reply}
-          >
-            <ArrowUturnLeftIcon className={icon_size} />
-          </Button>
-        </Tooltip>
-      )}
-
-      {on_forward && (
-        <Tooltip tip={t("mail.forward")}>
-          <Button
-            aria-label={t("mail.forward")}
-            className={btn_base}
-            size="icon"
-            style={muted_style}
-            variant="ghost"
-            onClick={on_forward}
-          >
-            <ArrowUturnRightIcon className={icon_size} />
-          </Button>
-        </Tooltip>
-      )}
-
       {show_pin && (
         <Tooltip tip={is_pinned ? t("mail.unpin") : t("mail.pin_to_top")}>
           <Button
