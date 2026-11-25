@@ -89,6 +89,8 @@ export interface CustomDomain {
   can_create_aliases?: boolean;
   bimi_available?: boolean;
   bimi_state?: string | null;
+  mta_sts_available?: boolean;
+  mta_sts_state?: string | null;
 }
 
 export interface DomainListResponse {
