@@ -1246,6 +1246,8 @@ export const ko = {
       "연결된 외부 계정으로 보내지 못했습니다. 다시 시도하세요. 임시 보관함에 저장되었습니다.",
     offline_change_failed:
       "오프라인 상태에서 변경한 내용을 저장하지 못했습니다.",
+    storage_key_update_pending:
+      "Aster Mail에서 저장된 데이터를 보호하는 키의 업데이트를 완료하지 못했습니다. 변경 사항은 계속 저장되며, Aster Mail은 백그라운드에서 계속 재시도합니다.",
     offline_send_failed: "오프라인 상태에서 작성한 이메일을 보내지 못했습니다.",
     offline_email_queued:
       "지금은 오프라인 상태입니다. 이 이메일은 다시 연결되는 즉시 발송됩니다.",
@@ -10159,6 +10161,7 @@ export const ko = {
     authenticating: "인증 중...",
     fetching_auth_data: "인증 데이터 가져오는 중...",
     verifying_credentials: "자격 증명 확인 중...",
+    sign_in_enhanced_unavailable: "Aster Mail에서 이 계정에 강화된 로그인 보호를 사용할 수 없어 아직 로그인되지 않았습니다. 다른 기기에서 암호를 변경했다면 다시 로그인하여 표준 보호로 계속하세요.",
     sign_in_standard_protection: "강화된 로그인 보호를 지금 사용할 수 없어 표준 보호로 로그인했습니다.",
     decrypting_vault: "키 금고 복호화 중...",
     getting_user_info: "사용자 정보 가져오는 중...",

@@ -1231,6 +1231,8 @@ export const es = {
       "El envío a través de tu cuenta externa vinculada no funcionó. Inténtalo de nuevo. Tu borrador está guardado.",
     offline_change_failed:
       "No se pudo guardar un cambio que hiciste sin conexión.",
+    storage_key_update_pending:
+      "Aster Mail no pudo terminar de actualizar la clave que protege tus datos guardados. Tus cambios se siguen guardando y Aster Mail sigue intentándolo en segundo plano.",
     offline_send_failed:
       "No se pudo enviar un correo que escribiste sin conexión.",
     offline_email_queued:
@@ -10609,6 +10611,7 @@ export const es = {
     authenticating: "Autenticando...",
     fetching_auth_data: "Obteniendo datos de autenticación...",
     verifying_credentials: "Verificando credenciales...",
+    sign_in_enhanced_unavailable: "Aster Mail no pudo usar la protección de inicio de sesión mejorada para esta cuenta, así que aún no has iniciado sesión. Si cambiaste tu contraseña en otro dispositivo, vuelve a iniciar sesión para continuar con la protección estándar.",
     sign_in_standard_protection: "La protección de inicio de sesión mejorada no está disponible en este momento, así que iniciaste sesión con la protección estándar.",
     decrypting_vault: "Descifrando tu bóveda de claves...",
     getting_user_info: "Obteniendo información del usuario...",

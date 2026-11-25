@@ -1194,6 +1194,8 @@ export const nl = {
       "Verzenden via je gekoppelde externe account is niet gelukt. Probeer het opnieuw. Je concept is opgeslagen.",
     offline_change_failed:
       "Een wijziging die je offline hebt gemaakt, kon niet worden opgeslagen.",
+    storage_key_update_pending:
+      "Aster Mail kon het bijwerken van de sleutel die je opgeslagen gegevens beschermt niet voltooien. Je wijzigingen worden nog steeds opgeslagen en Aster Mail blijft het op de achtergrond proberen.",
     offline_send_failed:
       "Een e-mail die je offline hebt geschreven, kon niet worden verzonden.",
     offline_email_queued:
@@ -10577,6 +10579,7 @@ export const nl = {
     authenticating: "Authenticeren...",
     fetching_auth_data: "Authenticatiegegevens ophalen...",
     verifying_credentials: "Inloggegevens verifiëren...",
+    sign_in_enhanced_unavailable: "Aster Mail kon de uitgebreide aanmeldbeveiliging voor dit account niet gebruiken, dus je bent nog niet aangemeld. Als je je wachtwoord op een ander apparaat hebt gewijzigd, meld je dan opnieuw aan om verder te gaan met standaardbeveiliging.",
     sign_in_standard_protection: "Uitgebreide aanmeldbeveiliging is nu niet beschikbaar, dus je bent aangemeld met standaardbeveiliging.",
     decrypting_vault: "Je sleutelkluis ontsleutelen...",
     getting_user_info: "Gebruikersinformatie ophalen...",
