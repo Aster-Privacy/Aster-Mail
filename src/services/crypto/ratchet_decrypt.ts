@@ -111,6 +111,7 @@ import { recover_ratchet_keys_from_history } from "./vault_key_recovery";
 import { is_authenticated_ratchet_enforced } from "./crypto_enforcement_policy";
 import {
   authenticate_sender_identity,
+  accept_endorsed_sender_rotation,
   check_sender_identity_continuity,
   has_received_sender_identity,
   is_sender_identity_published,
@@ -573,13 +574,24 @@ async function attempt_ratchet_decrypt(
             identity_key,
             vault,
           )));
-      const continuity = await sender_continuity(
+      let continuity = await sender_continuity(
         our_email,
         sender_email,
         identity_key,
         vault,
         bound_identity_key !== null,
       );
+
+      if (
+        continuity === "changed" &&
+        (await accept_endorsed_sender_rotation(
+          sender_email,
+          identity_key,
+          !lane_plaintext,
+        ).catch(() => false))
+      ) {
+        continuity = lane_plaintext ? "superseded" : "known";
+      }
 
       const sender_status = await authenticate_sender_identity(
         sender_email,

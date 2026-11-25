@@ -496,6 +496,7 @@ async function pin_identity_in_lock(
   advertised_x3dh: number | null,
   signs_pq: boolean,
   signed_at: number | null,
+  endorsed: boolean,
 ): Promise<IdentityPinStatus> {
   let read = await load_identity_pin(slot);
 
@@ -526,8 +527,24 @@ async function pin_identity_in_lock(
   const rooted = Boolean(existing.address_rooted) || address_rooted;
 
   if (existing.fingerprint !== fingerprint) {
-    if (!verified) return "drift";
+    if (!verified && !endorsed) return "drift";
     if (is_signed_before_pin(existing.signed_at, signed_at)) return "drift";
+
+    if (endorsed) {
+      await write_contact_entry(IDENTITY_PIN_PREFIX, slot, {
+        fingerprint,
+        verified,
+        pinned_at: Date.now(),
+        pq_seen,
+        ...signed_pq_field(pq_signed_seen),
+        x3dh_seen,
+        ...(existing.rotated ? { rotated: true } : {}),
+        ...rooted_field(rooted),
+        ...signed_at_field(existing.signed_at, signed_at),
+      } satisfies StoredIdentityPin);
+
+      return "ok";
+    }
 
     await write_contact_entry(IDENTITY_PIN_PREFIX, slot, {
       fingerprint,
@@ -583,6 +600,7 @@ export async function check_and_pin_identity(
   advertised_x3dh: number | null = null,
   signs_pq: boolean = false,
   signed_at: number | null = null,
+  endorsed: boolean = false,
 ): Promise<IdentityPinStatus> {
   try {
     if (!pin_id || !kem_identity_key) {
@@ -605,11 +623,42 @@ export async function check_and_pin_identity(
         advertised_x3dh,
         signs_pq,
         signed_at,
+        endorsed,
       ),
     );
   } catch {
     return "unknown";
   }
+}
+
+export async function adopt_endorsed_identity_in_lock(
+  slot: ContactSlot,
+  identity_key: string,
+): Promise<boolean> {
+  const read = await load_identity_pin(slot);
+
+  if (read.state === "absent") return true;
+  if (read.state !== "found" || read.conflict) return false;
+
+  const fingerprint = await compute_hash(base64_to_array(identity_key));
+  const existing = read.value;
+
+  if (existing.rotated && existing.fingerprint !== fingerprint) return false;
+
+  await write_contact_entry(IDENTITY_PIN_PREFIX, slot, {
+    fingerprint,
+    verified: existing.verified,
+    pinned_at:
+      existing.fingerprint === fingerprint ? existing.pinned_at : Date.now(),
+    pq_seen: existing.pq_seen,
+    ...signed_pq_field(existing.pq_signed_seen),
+    ...x3dh_field(existing.x3dh_seen),
+    ...rooted_field(true),
+    ...signed_at_field(existing.signed_at, null),
+  } satisfies StoredIdentityPin);
+  await delete_contact_entry(IDENTITY_CHANGE_PREFIX, slot);
+
+  return true;
 }
 
 export async function flag_recipient_untrusted(pin_id: string): Promise<void> {
