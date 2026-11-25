@@ -60,6 +60,7 @@ import { SettingsSkeleton } from "@/components/settings/settings_skeleton";
 import { LoadFailedNotice } from "@/components/settings/load_failed_notice";
 import { show_toast } from "@/components/toast/simple_toast";
 import { use_i18n } from "@/lib/i18n/context";
+import { use_storage_palette } from "@/lib/storage_palette";
 import { payment_url_or_throw } from "@/lib/payment_url";
 import { format_bytes, format_decimal, format_number } from "@/lib/utils";
 import {
@@ -98,41 +99,41 @@ import { has_tauri_runtime } from "@/lib/tauri_runtime";
 export const STORAGE_PROMO_ENABLED = true;
 
 interface CategoryStyle {
-  color: string;
+  slot: number;
   icon: React.ElementType;
   label_key: TranslationKey;
 }
 
 const CATEGORY_STYLES: Record<string, CategoryStyle> = {
   emails: {
-    color: "var(--storage-emails)",
+    slot: 0,
     icon: EnvelopeIcon,
     label_key: "mail.emails",
   },
   attachments: {
-    color: "var(--storage-attachments)",
+    slot: 1,
     icon: PaperClipIcon,
     label_key: "mail.attachments",
   },
   drafts: {
-    color: "var(--storage-drafts)",
+    slot: 3,
     icon: PencilSquareIcon,
     label_key: "mail.drafts",
   },
   spam: {
-    color: "var(--storage-spam)",
+    slot: 4,
     icon: ShieldExclamationIcon,
     label_key: "mail.spam",
   },
   trash: {
-    color: "var(--storage-trash)",
+    slot: 5,
     icon: TrashIcon,
     label_key: "mail.trash",
   },
 };
 
 const FALLBACK_STYLE: CategoryStyle = {
-  color: "var(--storage-other)",
+  slot: 2,
   icon: CircleStackIcon,
   label_key: "settings.storage",
 };
@@ -166,6 +167,7 @@ function share_of(bytes: number, total: number): number {
 
 export function StorageSection() {
   const { t } = use_i18n();
+  const storage_palette = use_storage_palette();
   const { storage_format, handle_storage_format_change } = use_storage_format();
   const on_onion = is_onion_host();
 
@@ -213,25 +215,25 @@ export function StorageSection() {
       key: string;
       bytes: number;
       label_key: TranslationKey;
-      color: string;
+      slot: number;
     }[] = [
       {
         key: "plan",
         bytes: overview?.plan_limit_bytes ?? 0,
         label_key: "settings.storage_included_with_plan",
-        color: "var(--capacity-plan)",
+        slot: 0,
       },
       {
         key: "addons",
         bytes: overview?.addon_bytes ?? 0,
         label_key: "settings.storage_from_addons",
-        color: "var(--capacity-addons)",
+        slot: 1,
       },
       {
         key: "family",
         bytes: overview?.family_allocation_bytes ?? 0,
         label_key: "settings.storage_family_allocation",
-        color: "var(--capacity-family)",
+        slot: 2,
       },
     ];
 
@@ -485,7 +487,7 @@ export function StorageSection() {
 
       acc.push({
         name: donut_rows[index].name,
-        color: style_of(donut_rows[index].name).color,
+        color: storage_palette[style_of(donut_rows[index].name).slot],
         share,
         offset: previous ? previous.offset + previous.share : 0,
       });
@@ -507,7 +509,7 @@ export function StorageSection() {
   ).map((share, index) => ({
     name: categories[index].name,
     share,
-    color: style_of(categories[index].name).color,
+    color: storage_palette[style_of(categories[index].name).slot],
   }));
 
   return (
@@ -758,7 +760,9 @@ export function StorageSection() {
                             <span
                               aria-hidden="true"
                               className="h-2 w-2 flex-shrink-0 rounded-full"
-                              style={{ backgroundColor: style.color }}
+                              style={{
+                                backgroundColor: storage_palette[style.slot],
+                              }}
                             />
                           )}
                           {row_share > 0
@@ -802,7 +806,7 @@ export function StorageSection() {
                   key={source.key}
                   style={{
                     width: `${source.bar_share}%`,
-                    backgroundColor: source.color,
+                    backgroundColor: storage_palette[source.slot],
                   }}
                 />
               ))}
@@ -817,7 +821,7 @@ export function StorageSection() {
               >
                 <span
                   className="h-2.5 w-2.5 flex-shrink-0 rounded-full"
-                  style={{ backgroundColor: source.color }}
+                  style={{ backgroundColor: storage_palette[source.slot] }}
                 />
                 <span className="text-txt-secondary">
                   {t(source.label_key)}
