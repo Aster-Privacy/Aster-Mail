@@ -43,9 +43,16 @@ vi.mock("@/hooks/use_sidebar_aliases", () => ({
   subscribe_aliases: () => () => {},
 }));
 
+const alias_row = vi.hoisted(() => ({
+  custom_domain_label: null as string | null,
+}));
+
 vi.mock("@/hooks/use_alias_delivery", () => ({
   normalize_alias_candidates: () => "",
-  use_alias_row_info: () => ({ delivery: null, custom_domain_label: null }),
+  use_alias_row_info: () => ({
+    delivery: null,
+    custom_domain_label: alias_row.custom_domain_label,
+  }),
 }));
 
 vi.mock("@/components/ui/profile_avatar", () => ({
@@ -66,18 +73,16 @@ vi.mock("@aster/ui", async (import_original) => ({
   Checkbox: () => <span />,
 }));
 
-const { InboxEmailListItem } = await import(
-  "@/components/email/inbox_email_list_item/item"
-);
+const { InboxEmailListItem } =
+  await import("@/components/email/inbox_email_list_item/item");
 
 declare global {
   var IS_REACT_ACT_ENVIRONMENT: boolean;
 }
 globalThis.IS_REACT_ACT_ENVIRONMENT = true;
 
-const long_subject = "Your quarterly account statement is ready to review ".repeat(
-  10,
-);
+const long_subject =
+  "Your quarterly account statement is ready to review ".repeat(10);
 
 const spam_email = {
   id: "spam-1",
@@ -147,6 +152,7 @@ beforeEach(() => {
 });
 
 afterEach(() => {
+  alias_row.custom_domain_label = null;
   act(() => {
     root?.unmount();
   });
@@ -164,7 +170,7 @@ describe("InboxEmailListItem tags with a long subject", () => {
 
     expect(spam_tag.className.split(/\s+/)).toContain("flex-shrink-0");
     expect(subject.className.split(/\s+/)).toEqual(
-      expect.arrayContaining(["min-w-0", "flex-1", "truncate"]),
+      expect.arrayContaining(["min-w-[40%]", "flex-1", "truncate"]),
     );
     expect(subject.contains(spam_tag)).toBe(false);
     expect(spam_tag.parentElement).toBe(subject.parentElement);
@@ -193,6 +199,32 @@ describe("InboxEmailListItem tags with a long subject", () => {
     expect(label_tag.className.split(/\s+/)).toContain("flex-shrink-0");
     expect(group.className.split(/\s+/)).toContain("flex-shrink-0");
     expect(subject_container().contains(label_tag)).toBe(false);
+  });
+
+  it("caps label tags so a long name truncates inside the tag", () => {
+    render({ ...spam_email, subject: long_subject.trim() } as InboxEmail);
+
+    expect(tag_root("Receipts").className.split(/\s+/)).toContain(
+      "max-w-[8rem]",
+    );
+  });
+
+  it("lets the domain tag give way to the subject", () => {
+    alias_row.custom_domain_label = "newsletters.example-company.com";
+    render({ ...spam_email, subject: long_subject.trim() } as InboxEmail);
+
+    const domain_tag = element_with_text(
+      "newsletters.example-company.com",
+    ).closest('[class*="max-w-[10rem]"]') as HTMLElement;
+
+    expect(domain_tag).toBeTruthy();
+    const classes = domain_tag.className.split(/\s+/);
+
+    expect(classes).toEqual(
+      expect.arrayContaining(["min-w-0", "shrink", "max-w-[10rem]"]),
+    );
+    expect(classes).not.toContain("flex-shrink-0");
+    expect(subject_container().contains(domain_tag)).toBe(false);
   });
 
   it("renders the spam tag for short and long subjects alike", () => {

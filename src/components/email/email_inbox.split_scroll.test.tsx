@@ -274,7 +274,9 @@ function stub_layout(): void {
       }
 
       if (this.classList.contains("overflow-y-auto")) {
-        const height = parseFloat(this.style.height) || FULL_LIST_HEIGHT;
+        const sized =
+          this.style.height || this.parentElement?.style.height || "";
+        const height = parseFloat(sized) || FULL_LIST_HEIGHT;
 
         return new DOMRect(0, LIST_TOP, 400, height);
       }

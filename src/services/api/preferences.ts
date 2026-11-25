@@ -157,6 +157,7 @@ export interface UserPreferences {
   show_tracking_protection: boolean;
   skip_draft_delete_confirmation: boolean;
   split_pane_width: number;
+  split_pane_ratio: number;
   split_pane_height: number;
   contacts_pane_width: number;
   session_timeout_enabled: boolean;
@@ -869,6 +870,7 @@ export const DEFAULT_PREFERENCES: UserPreferences = {
   show_tracking_protection: true,
   skip_draft_delete_confirmation: false,
   split_pane_width: 0,
+  split_pane_ratio: 0,
   split_pane_height: 0,
   contacts_pane_width: 400,
   session_timeout_enabled: false,

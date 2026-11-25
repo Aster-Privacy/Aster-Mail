@@ -9357,6 +9357,7 @@ export const tr = {
     sidebar_move_section_down: "{{name}} öğesini aşağı taşı",
   },
   mail: {
+    resize_reading_pane: "Okuma bölmesini yeniden boyutlandır",
     image_size_prompt_title: "Bu iletideki görsellerin boyutu küçültülsün mü?",
     image_size_prompt_description:
       "Daha küçük görseller daha hızlı gönderilir ve diğer e-posta sağlayıcılarının boyut sınırları içinde kalır. Orijinal boyut tüm ayrıntıları korur.",

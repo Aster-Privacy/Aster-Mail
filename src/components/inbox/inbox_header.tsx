@@ -307,8 +307,7 @@ export function InboxHeader({
   };
   const scope_selected_count = Math.max(total_messages - excluded_count, 0);
   const page_count =
-    total_pages ??
-    (page_size > 0 ? Math.ceil(filtered_count / page_size) : 0);
+    total_pages ?? (page_size > 0 ? Math.ceil(filtered_count / page_size) : 0);
   const select_all_banner = resolve_select_all_banner({
     all_selected: has_selection && all_selected,
     select_all_mode,
@@ -321,9 +320,10 @@ export function InboxHeader({
   const display_selected_label =
     select_all_banner === "selected_unknown"
       ? t("mail.all")
-      : (select_all_mode ? scope_selected_count : selected_count).toLocaleString(
-          app_locale(),
-        );
+      : (select_all_mode
+          ? scope_selected_count
+          : selected_count
+        ).toLocaleString(app_locale());
   const hide_mail_actions = is_drafts_view || is_scheduled_view;
   const [advanced_toolbar, set_advanced_toolbar] = useState<boolean>(() => {
     if (typeof window === "undefined") return false;
@@ -394,9 +394,9 @@ export function InboxHeader({
     <>
       <div
         data-inbox-toolbar
-        className="flex select-none items-center justify-between gap-2 ps-3 pe-1 sm:ps-4 sm:pe-2 py-1 min-h-[44px] overflow-hidden"
+        className="@container/listbar flex select-none items-center justify-between gap-2 ps-3 pe-1 sm:ps-4 sm:pe-2 py-1 min-h-[44px] md:min-h-[52px] overflow-hidden"
       >
-        <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-shrink-0">
+        <div className="flex items-center gap-2 sm:gap-3 min-w-0 shrink">
           {leading_left_slot}
           {on_toggle_select_all && (
             <div className="group flex items-center flex-shrink-0">
@@ -502,7 +502,7 @@ export function InboxHeader({
                 onClick={handle_refresh}
               >
                 <ArrowPathIcon
-                  className={`w-[18px] h-[18px] ${is_refreshing ? "animate-spin" : ""}`}
+                  className={`w-5 h-5 ${is_refreshing ? "animate-spin" : ""}`}
                 />
               </Button>
             </Tooltip>
@@ -579,7 +579,7 @@ export function InboxHeader({
                     className="h-9 w-9 rounded-[10px] flex items-center justify-center transition-colors hover:bg-[var(--bg-hover)] text-[var(--icon-secondary)] hover:text-[var(--icon-active)]"
                     onClick={on_restore}
                   >
-                    <ArrowUturnLeftIcon className="w-[18px] h-[18px] rtl:-scale-x-100" />
+                    <ArrowUturnLeftIcon className="w-5 h-5 rtl:-scale-x-100" />
                   </button>
                 </Tooltip>
               )}
@@ -593,7 +593,7 @@ export function InboxHeader({
                       className="h-9 w-9 rounded-[10px] flex items-center justify-center transition-colors hover:bg-[var(--bg-hover)] text-[var(--icon-secondary)] hover:text-[var(--icon-active)]"
                       onClick={on_unarchive}
                     >
-                      <InboxIcon className="w-[18px] h-[18px]" />
+                      <InboxIcon className="w-5 h-5" />
                     </button>
                   </Tooltip>
                 ) : (
@@ -602,7 +602,7 @@ export function InboxHeader({
                       className="h-9 w-9 rounded-[10px] flex items-center justify-center transition-colors hover:bg-[var(--bg-hover)] text-[var(--icon-secondary)] hover:text-[var(--icon-active)]"
                       onClick={on_archive}
                     >
-                      <ArchiveBoxArrowDownIcon className="w-[18px] h-[18px]" />
+                      <ArchiveBoxArrowDownIcon className="w-5 h-5" />
                     </button>
                   </Tooltip>
                 ))}
@@ -618,7 +618,7 @@ export function InboxHeader({
                   className="h-9 w-9 rounded-[10px] flex items-center justify-center transition-colors hover:bg-[var(--bg-hover)] text-[var(--icon-secondary)] hover:text-[var(--icon-active)]"
                   onClick={on_delete}
                 >
-                  <TrashIcon className="w-[18px] h-[18px]" />
+                  <TrashIcon className="w-5 h-5" />
                 </button>
               </Tooltip>
 
@@ -628,7 +628,7 @@ export function InboxHeader({
                     className="h-9 w-9 rounded-[10px] flex items-center justify-center transition-colors hover:bg-[var(--bg-hover)] text-[var(--icon-secondary)] hover:text-[var(--icon-active)]"
                     onClick={on_mark_read}
                   >
-                    <EnvelopeOpenIcon className="w-[18px] h-[18px]" />
+                    <EnvelopeOpenIcon className="w-5 h-5" />
                   </button>
                 </Tooltip>
               )}
@@ -639,7 +639,7 @@ export function InboxHeader({
                     className="h-9 w-9 rounded-[10px] flex items-center justify-center transition-colors hover:bg-[var(--bg-hover)] text-[var(--icon-secondary)] hover:text-[var(--icon-active)]"
                     onClick={on_toggle_star}
                   >
-                    <StarIcon className="w-[18px] h-[18px]" />
+                    <StarIcon className="w-5 h-5" />
                   </button>
                 </Tooltip>
               )}
@@ -652,7 +652,7 @@ export function InboxHeader({
                         aria-label={t("common.snooze_until")}
                         className="h-9 w-9 rounded-[10px] flex items-center justify-center transition-colors hover:bg-[var(--bg-hover)] text-[var(--icon-secondary)] hover:text-[var(--icon-active)]"
                       >
-                        <ClockIcon className="w-[18px] h-[18px]" />
+                        <ClockIcon className="w-5 h-5" />
                       </button>
                     </DropdownMenuTrigger>
                   </Tooltip>
@@ -714,7 +714,7 @@ export function InboxHeader({
                       className="h-9 w-9 rounded-[10px] flex items-center justify-center transition-colors hover:bg-[var(--bg-hover)] text-[var(--icon-secondary)] hover:text-[var(--icon-active)]"
                       onClick={on_spam}
                     >
-                      <ReportSpamIcon className="w-[18px] h-[18px]" />
+                      <ReportSpamIcon className="w-5 h-5" />
                     </button>
                   </Tooltip>
                 )}
@@ -731,7 +731,7 @@ export function InboxHeader({
                           aria-label={t("common.add_to_folders")}
                           className="h-9 w-9 rounded-[10px] flex items-center justify-center transition-colors hover:bg-[var(--bg-hover)] text-[var(--icon-secondary)] hover:text-[var(--icon-active)]"
                         >
-                          <FolderIcon className="w-[18px] h-[18px]" />
+                          <FolderIcon className="w-5 h-5" />
                         </button>
                       </DropdownMenuTrigger>
                     </Tooltip>
@@ -786,7 +786,7 @@ export function InboxHeader({
                           aria-label={t("common.labels")}
                           className="h-9 w-9 rounded-[10px] flex items-center justify-center transition-colors hover:bg-[var(--bg-hover)] text-[var(--icon-secondary)] hover:text-[var(--icon-active)]"
                         >
-                          <TagIcon className="w-[18px] h-[18px]" />
+                          <TagIcon className="w-5 h-5" />
                         </button>
                       </DropdownMenuTrigger>
                     </Tooltip>
@@ -833,7 +833,7 @@ export function InboxHeader({
                         aria-label={t("common.more")}
                         className="h-9 w-9 rounded-[10px] flex items-center justify-center transition-colors hover:bg-[var(--bg-hover)] text-[var(--icon-secondary)] hover:text-[var(--icon-active)]"
                       >
-                        <EllipsisHorizontalIcon className="w-[18px] h-[18px]" />
+                        <EllipsisHorizontalIcon className="w-5 h-5" />
                       </button>
                     </DropdownMenuTrigger>
                   </Tooltip>
@@ -1108,7 +1108,7 @@ export function InboxHeader({
                 })}
               </span>
               <button
-                className="flex-shrink-0 text-xs font-medium text-[var(--accent-color)] rounded px-1.5 py-0.5 hover:bg-[color-mix(in_srgb,var(--accent-color)_10%,transparent)] transition-colors"
+                className="flex-shrink-0 text-sm font-medium text-[var(--accent-color)] rounded-[8px] px-2 py-1 hover:bg-[color-mix(in_srgb,var(--accent-color)_10%,transparent)] transition-colors"
                 onClick={on_activate_select_all_mode}
               >
                 {select_all_banner === "offer"
@@ -1133,7 +1133,7 @@ export function InboxHeader({
                     })}
               </span>
               <button
-                className="flex-shrink-0 text-xs font-medium text-[var(--accent-color)] rounded px-1.5 py-0.5 hover:bg-[color-mix(in_srgb,var(--accent-color)_10%,transparent)] transition-colors"
+                className="flex-shrink-0 text-sm font-medium text-[var(--accent-color)] rounded-[8px] px-2 py-1 hover:bg-[color-mix(in_srgb,var(--accent-color)_10%,transparent)] transition-colors"
                 onClick={on_clear_selection}
               >
                 {t("mail.clear_selection")}

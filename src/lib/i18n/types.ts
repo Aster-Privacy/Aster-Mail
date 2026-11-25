@@ -8668,6 +8668,7 @@ export interface SettingsTranslations {
 }
 
 export interface MailTranslations {
+  resize_reading_pane: string;
   image_size_prompt_title: string;
   image_size_prompt_description: string;
   image_size_reduce: string;

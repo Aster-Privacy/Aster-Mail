@@ -73,7 +73,7 @@ export function HeaderToolbar({
     <>
       {is_trash_view && on_empty_trash && trash_count > 0 && (
         <Button
-          className="hidden md:flex h-8 px-3 gap-1.5 text-xs font-medium text-red-700 dark:text-red-400 hover:bg-red-500/10"
+          className="hidden md:flex h-9 px-3 gap-1.5 text-sm font-medium text-red-700 dark:text-red-400 hover:bg-red-500/10"
           size="md"
           variant="ghost"
           onClick={on_empty_trash}
@@ -84,7 +84,7 @@ export function HeaderToolbar({
 
       {is_spam_view && on_empty_spam && spam_count > 0 && (
         <Button
-          className="hidden md:flex h-8 px-3 gap-1.5 text-xs font-medium text-red-700 dark:text-red-400 hover:bg-red-500/10"
+          className="hidden md:flex h-9 px-3 gap-1.5 text-sm font-medium text-red-700 dark:text-red-400 hover:bg-red-500/10"
           size="md"
           variant="ghost"
           onClick={on_empty_spam}
@@ -104,7 +104,7 @@ export function HeaderToolbar({
             onClick={handle_refresh}
           >
             <ArrowPathIcon
-              className={`w-[18px] h-[18px] ${is_refreshing ? "animate-spin" : ""}`}
+              className={`w-5 h-5 ${is_refreshing ? "animate-spin" : ""}`}
             />
           </Button>
         </Tooltip>
@@ -121,7 +121,7 @@ export function HeaderToolbar({
                 size="icon"
                 variant="ghost"
               >
-                <BoltIcon className="w-[18px] h-[18px]" />
+                <BoltIcon className="w-5 h-5" />
               </Button>
             </DropdownMenuTrigger>
           </Tooltip>

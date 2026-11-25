@@ -9493,6 +9493,7 @@ export const pt_br = {
     sidebar_move_section_down: "Mover {{name}} para baixo",
   },
   mail: {
+    resize_reading_pane: "Redimensionar painel de leitura",
     image_size_prompt_title: "Reduzir o tamanho das imagens nesta mensagem?",
     image_size_prompt_description:
       "Imagens menores são enviadas mais rápido e ficam dentro dos limites de tamanho de outros provedores de e-mail. O tamanho original mantém todos os detalhes.",

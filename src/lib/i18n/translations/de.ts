@@ -9561,6 +9561,7 @@ export const de = {
     sidebar_move_section_down: "{{name}} nach unten verschieben",
   },
   mail: {
+    resize_reading_pane: "Größe des Lesebereichs ändern",
     image_size_prompt_title: "Größe der Bilder in dieser Nachricht verringern?",
     image_size_prompt_description:
       "Kleinere Bilder werden schneller gesendet und bleiben innerhalb der Größenlimits anderer E-Mail-Anbieter. Die Originalgröße behält jedes Detail.",

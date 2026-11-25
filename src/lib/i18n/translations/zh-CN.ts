@@ -8392,6 +8392,7 @@ export const zh_CN = {
     sidebar_move_section_down: "下移{{name}}",
   },
   mail: {
+    resize_reading_pane: "调整阅读窗格大小",
     image_size_prompt_title: "要缩小此邮件中的图片吗？",
     image_size_prompt_description:
       "较小的图片发送更快，并且不会超出其他邮件服务商的大小限制。原始大小会保留所有细节。",

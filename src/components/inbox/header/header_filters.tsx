@@ -78,7 +78,7 @@ export function FilterDropdown({
             size="icon"
             variant="ghost"
           >
-            <FunnelIcon className="w-[18px] h-[18px]" />
+            <FunnelIcon className="w-5 h-5" />
           </Button>
         </DropdownMenuTrigger>
       </Tooltip>
@@ -136,7 +136,9 @@ export function FilterDropdown({
           {t("mail.oldest_first")}
         </DropdownMenuItem>
         <DropdownMenuSeparator />
-        <DropdownMenuLabel>{t("settings_search.reading_pane")}</DropdownMenuLabel>
+        <DropdownMenuLabel>
+          {t("settings_search.reading_pane")}
+        </DropdownMenuLabel>
         {READING_PANE_POSITIONS.map((position) => (
           <DropdownMenuItem
             key={position}

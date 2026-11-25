@@ -593,7 +593,7 @@ export const InboxEmailListItem = memo(
             </div>
           </Tooltip>
 
-          <div className="flex-1 min-w-0 flex items-center gap-3 sm:gap-10 overflow-hidden">
+          <div className="flex-1 min-w-0 flex items-center gap-3 sm:gap-6 overflow-hidden">
             <div className="flex items-center gap-1.5 min-w-0 sm:w-44 sm:shrink-0 sm:max-w-[45%] overflow-hidden pe-px">
               {email.is_pinned && (
                 <PinIcon
@@ -614,7 +614,7 @@ export const InboxEmailListItem = memo(
                 (preferences.thread_count_position ?? "left") === "left" && (
                   <span
                     className={cn(
-                      "text-[11px] font-medium flex-shrink-0 min-w-[18px] h-[18px] px-1 flex items-center justify-center rounded-[5px] border border-transparent bg-[color-mix(in_srgb,currentColor_12%,transparent)]",
+                      "text-xs font-medium flex-shrink-0 min-w-[18px] h-[18px] px-1 flex items-center justify-center rounded-[5px] border border-transparent bg-[color-mix(in_srgb,currentColor_12%,transparent)]",
                       email.is_read ? "text-txt-muted" : "text-txt-secondary",
                     )}
                   >
@@ -665,7 +665,7 @@ export const InboxEmailListItem = memo(
                 (preferences.thread_count_position ?? "left") === "right" && (
                   <span
                     className={cn(
-                      "text-[11px] font-medium flex-shrink-0 min-w-[18px] h-[18px] px-1 flex items-center justify-center rounded-[5px] border border-transparent bg-[color-mix(in_srgb,currentColor_12%,transparent)]",
+                      "text-xs font-medium flex-shrink-0 min-w-[18px] h-[18px] px-1 flex items-center justify-center rounded-[5px] border border-transparent bg-[color-mix(in_srgb,currentColor_12%,transparent)]",
                       email.is_read ? "text-txt-muted" : "text-txt-secondary",
                     )}
                   >
@@ -686,7 +686,7 @@ export const InboxEmailListItem = memo(
             <div className="flex-1 min-w-0 overflow-hidden flex items-center gap-1.5">
               {is_system_email(email) && (
                 <EmailTag
-                  className="flex-shrink-0 hidden sm:inline-flex"
+                  className="flex-shrink-0 hidden sm:inline-flex text-xs"
                   icon="info"
                   label={t("common.system")}
                   muted={email.is_read}
@@ -696,7 +696,7 @@ export const InboxEmailListItem = memo(
 
               {email.item_type === "scheduled" && (
                 <EmailTag
-                  className="flex-shrink-0 hidden sm:inline-flex"
+                  className="flex-shrink-0 hidden sm:inline-flex text-xs"
                   label={t("mail.scheduled_label")}
                   muted={email.is_read}
                   variant="scheduled"
@@ -705,7 +705,7 @@ export const InboxEmailListItem = memo(
 
               {email.item_type === "draft" && (
                 <EmailTag
-                  className="flex-shrink-0 hidden sm:inline-flex"
+                  className="flex-shrink-0 hidden sm:inline-flex text-xs"
                   label={t("mail.draft")}
                   muted={email.is_read}
                   variant="draft"
@@ -714,7 +714,7 @@ export const InboxEmailListItem = memo(
 
               {email.item_type === "sent" && current_view !== "sent" && (
                 <EmailTag
-                  className="flex-shrink-0 hidden sm:inline-flex"
+                  className="flex-shrink-0 hidden sm:inline-flex text-xs"
                   label={t("mail.sent_label")}
                   muted={email.is_read}
                   variant="sent"
@@ -723,7 +723,7 @@ export const InboxEmailListItem = memo(
 
               {email.send_status === "bounced" && (
                 <EmailTag
-                  className="flex-shrink-0"
+                  className="flex-shrink-0 text-xs"
                   icon="warning"
                   label={t("common.bounced_label")}
                   variant="red"
@@ -732,7 +732,7 @@ export const InboxEmailListItem = memo(
 
               {email.send_status === "failed" && (
                 <EmailTag
-                  className="flex-shrink-0"
+                  className="flex-shrink-0 text-xs"
                   icon="warning"
                   label={t("common.failed_label")}
                   variant="red"
@@ -744,7 +744,7 @@ export const InboxEmailListItem = memo(
                 !in_scoped_collection_view &&
                 named_folders.length === 0 && (
                   <EmailTag
-                    className="flex-shrink-0 hidden sm:inline-flex"
+                    className="flex-shrink-0 hidden sm:inline-flex text-xs"
                     label={t("mail.archived_label")}
                     muted={email.is_read}
                     variant="archived"
@@ -753,7 +753,7 @@ export const InboxEmailListItem = memo(
 
               {email.is_trashed && !is_trash_view && (
                 <EmailTag
-                  className="flex-shrink-0 hidden sm:inline-flex"
+                  className="flex-shrink-0 hidden sm:inline-flex text-xs"
                   label={t("mail.trashed_label")}
                   muted={email.is_read}
                   variant="trashed"
@@ -762,7 +762,7 @@ export const InboxEmailListItem = memo(
 
               {email.is_spam && !is_spam_view && (
                 <EmailTag
-                  className="flex-shrink-0 hidden sm:inline-flex"
+                  className="flex-shrink-0 hidden sm:inline-flex text-xs"
                   label={t("mail.spam_label")}
                   muted={email.is_read}
                   variant="spam"
@@ -772,7 +772,7 @@ export const InboxEmailListItem = memo(
               {custom_domain_label && (
                 <EmailTag
                   show_icon
-                  className="flex-shrink-0 hidden sm:inline-flex"
+                  className="hidden sm:inline-flex min-w-0 shrink max-w-[10rem] text-xs"
                   icon="globe"
                   label={custom_domain_label}
                   muted={email.is_read}
@@ -781,13 +781,13 @@ export const InboxEmailListItem = memo(
               )}
 
               {email.phishing_level === "suspicious" && (
-                <span className="flex-shrink-0 hidden sm:inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-semibold leading-none text-white bg-[#d97706]">
+                <span className="flex-shrink-0 hidden sm:inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-semibold leading-none text-white bg-[#d97706]">
                   {t("common.suspicious")}
                 </span>
               )}
 
               {email.phishing_level === "dangerous" && (
-                <span className="flex-shrink-0 hidden sm:inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-semibold leading-none text-white bg-[#dc2626]">
+                <span className="flex-shrink-0 hidden sm:inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-semibold leading-none text-white bg-[#dc2626]">
                   {t("common.dangerous")}
                 </span>
               )}
@@ -816,7 +816,7 @@ export const InboxEmailListItem = memo(
                     return (
                       <EmailTag
                         key={folder.folder_token}
-                        className="flex-shrink-0"
+                        className="flex-shrink-0 max-w-[8rem] text-xs"
                         custom_color={folder_color}
                         icon={(folder.icon as TagIconName) || "folder"}
                         label={folder.name}
@@ -826,7 +826,7 @@ export const InboxEmailListItem = memo(
                     );
                   })}
                   {named_folders.length > 3 && (
-                    <span className="text-[11px] text-txt-muted">
+                    <span className="shrink-0 text-xs text-txt-muted">
                       +{format_number(named_folders.length - 3)}
                     </span>
                   )}
@@ -838,7 +838,7 @@ export const InboxEmailListItem = memo(
                   {named_tags.slice(0, 3).map((tag) => (
                     <EmailTag
                       key={tag.id}
-                      className="flex-shrink-0"
+                      className="flex-shrink-0 max-w-[8rem] text-xs"
                       custom_color={tag.color}
                       icon={tag.icon as TagIconName}
                       label={tag.name}
@@ -850,7 +850,7 @@ export const InboxEmailListItem = memo(
                     />
                   ))}
                   {named_tags.length > 3 && (
-                    <span className="text-[11px] text-txt-muted">
+                    <span className="shrink-0 text-xs text-txt-muted">
                       +{format_number(named_tags.length - 3)}
                     </span>
                   )}
@@ -875,7 +875,7 @@ export const InboxEmailListItem = memo(
 
               <div
                 className={cn(
-                  "text-sm min-w-0 flex-1 whitespace-nowrap truncate",
+                  "text-sm min-w-[40%] flex-1 whitespace-nowrap truncate",
                   show_email_preview && (search_preview_node || email.preview)
                     ? "text-txt-muted"
                     : email.is_read
@@ -913,7 +913,9 @@ export const InboxEmailListItem = memo(
                 <span
                   className={cn(
                     "hidden sm:inline-flex flex-shrink-0",
-                    show_hover_actions && row_engaged && "group-hover:invisible",
+                    show_hover_actions &&
+                      row_engaged &&
+                      "group-hover:invisible",
                   )}
                 >
                   <RowCodeCopyButton
@@ -938,7 +940,7 @@ export const InboxEmailListItem = memo(
                       />
                     ))}
                     {attachment_previews.attachments.length > 3 && (
-                      <span className="text-[10px] text-txt-muted">
+                      <span className="text-xs text-txt-muted">
                         {t("mail.attachment_chips_more", {
                           count: attachment_previews.attachments.length - 3,
                         })}
@@ -948,7 +950,7 @@ export const InboxEmailListItem = memo(
                 )}
             </div>
 
-            <span className="text-[11px] text-txt-muted tabular-nums whitespace-nowrap sm:hidden shrink-0">
+            <span className="text-xs text-txt-muted tabular-nums whitespace-nowrap sm:hidden shrink-0">
               {format_mobile_timestamp(email.timestamp)}
               {show_message_size &&
                 email.size_bytes != null &&

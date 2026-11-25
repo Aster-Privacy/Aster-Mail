@@ -9496,6 +9496,7 @@ export const it = {
     sidebar_move_section_down: "Sposta {{name}} in basso",
   },
   mail: {
+    resize_reading_pane: "Ridimensiona il riquadro di lettura",
     image_size_prompt_title:
       "Ridurre le dimensioni delle immagini in questo messaggio?",
     image_size_prompt_description:

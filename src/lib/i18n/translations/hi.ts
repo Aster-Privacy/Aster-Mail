@@ -9275,6 +9275,7 @@ export const hi = {
     sidebar_move_section_down: "{{name}} को नीचे ले जाएँ",
   },
   mail: {
+    resize_reading_pane: "पठन फलक का आकार बदलें",
     image_size_prompt_title: "क्या इस संदेश की इमेज का आकार कम करें?",
     image_size_prompt_description:
       "छोटी इमेज तेज़ी से भेजी जाती हैं और दूसरे ईमेल प्रदाताओं की आकार सीमाओं के भीतर रहती हैं। मूल आकार हर विवरण बनाए रखता है।",
