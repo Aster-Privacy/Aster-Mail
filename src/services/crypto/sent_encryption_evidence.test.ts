@@ -286,6 +286,49 @@ describe("shows_end_to_end", () => {
     ).toBe(false);
   });
 
+  it("shows outside mail that opened with your key as end-to-end", () => {
+    expect(
+      shows_end_to_end({
+        is_external: true,
+        has_recipient_key: false,
+        e2e_verified: true,
+        is_received: true,
+      }),
+    ).toBe(true);
+    expect(
+      shows_end_to_end({
+        is_external: true,
+        e2e_verified: true,
+        item_type: "received",
+      }),
+    ).toBe(true);
+    expect(
+      shows_end_to_end({
+        is_external: true,
+        e2e_verified: false,
+        is_received: true,
+      }),
+    ).toBe(false);
+  });
+
+  it("keeps a sent copy to outside recipients in transit without evidence", () => {
+    expect(
+      shows_end_to_end({
+        is_external: true,
+        has_recipient_key: false,
+        e2e_verified: true,
+        is_received: false,
+      }),
+    ).toBe(false);
+    expect(
+      shows_end_to_end({
+        is_external: true,
+        e2e_verified: true,
+        item_type: "sent",
+      }),
+    ).toBe(false);
+  });
+
   it("requires verification for internal mail", () => {
     expect(shows_end_to_end({ is_external: false, e2e_verified: true })).toBe(
       true,
