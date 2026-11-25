@@ -68,5 +68,5 @@ jobs:
         run: |
           set -euo pipefail
           for lock in src-tauri/Cargo.lock aster-crypto/Cargo.lock aster-opaque/Cargo.lock; do
-            cargo audit --file "$lock" --ignore RUSTSEC-2023-0071 --ignore RUSTSEC-2026-0387
+            cargo audit --file "$lock" --ignore RUSTSEC-2026-0387
           done
