@@ -97,7 +97,7 @@ describe("sender binding for inbound PGP mail", () => {
     const result = await process_envelope_body(make_envelope(ciphertext));
 
     expect(result.body_text).toContain("hello from outside");
-    expect(result.e2e_verified).toBe(true);
+    expect(result.e2e_verified).toBe(false);
     expect(result.e2e_sender_bound).toBe(false);
   });
 
