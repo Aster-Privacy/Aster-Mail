@@ -195,19 +195,27 @@ export interface EncryptionDisplayFlags {
   has_recipient_key?: boolean;
   e2e_verified?: boolean;
   sent_encryption_scope?: SentEncryptionScope;
+  is_received?: boolean;
+  item_type?: string;
+}
+
+function is_received_message(flags: EncryptionDisplayFlags): boolean {
+  return flags.is_received ?? flags.item_type === "received";
 }
 
 export function shows_end_to_end(flags: EncryptionDisplayFlags): boolean {
   if (as_sent_encryption_scope(flags.sent_encryption_scope)) return true;
+  if (!flags.e2e_verified) return false;
 
   return (
-    (!flags.is_external || !!flags.has_recipient_key) && !!flags.e2e_verified
+    !flags.is_external ||
+    !!flags.has_recipient_key ||
+    is_received_message(flags)
   );
 }
 
 export interface SenderDisplayFlags extends EncryptionDisplayFlags {
   sender_verification?: SenderVerificationStatus;
-  is_received?: boolean;
 }
 
 export function displayed_sender_verification(
@@ -219,7 +227,7 @@ export function displayed_sender_verification(
   if (status && status !== "unknown") return status;
 
   if (
-    flags.is_received === true &&
+    is_received_message(flags) &&
     flags.is_external === true &&
     !as_sent_encryption_scope(flags.sent_encryption_scope) &&
     shows_end_to_end(flags)

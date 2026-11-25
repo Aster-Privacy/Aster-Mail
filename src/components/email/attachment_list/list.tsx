@@ -181,6 +181,7 @@ function ServerAttachmentList({
   mail_item_id,
   is_external = false,
   has_recipient_key = false,
+  is_received = false,
   e2e_verified = false,
   sent_encryption_scope,
   is_local = false,
@@ -198,6 +199,7 @@ function ServerAttachmentList({
     mail_item_id,
     is_external,
     has_recipient_key,
+    is_received,
     e2e_verified,
     sent_encryption_scope,
   });
@@ -1000,6 +1002,7 @@ function ServerAttachmentList({
               has_pq_protection={false}
               has_recipient_key={has_recipient_key}
               is_external={is_external}
+              is_received={is_received}
               label={
                 files_outside_encrypted
                   ? t("common.files_outside_encrypted_label")

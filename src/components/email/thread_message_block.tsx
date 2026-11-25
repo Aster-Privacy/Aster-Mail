@@ -992,6 +992,7 @@ export function ThreadMessageBlock(
             inline_refs={inline_refs}
             is_external={message.is_external}
             is_local={message.is_sending === true}
+            is_received={message.item_type === "received"}
             mail_item_id={message.id}
             sent_encryption_scope={message.sent_encryption_scope}
           />
