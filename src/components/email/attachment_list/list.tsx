@@ -317,6 +317,8 @@ function ServerAttachmentList({
       try {
         const pdf_mod = await import("@/lib/pdf_utils");
 
+        if (!pdf_mod.can_render_pdf_thumbnails()) return;
+
         render_pdf_thumbnail = pdf_mod.render_pdf_thumbnail;
         is_pdf_password_error = pdf_mod.is_pdf_password_error;
       } catch {

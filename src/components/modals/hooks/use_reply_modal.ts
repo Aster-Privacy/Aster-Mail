@@ -123,6 +123,7 @@ import {
 } from "@/hooks/editor_utils";
 import { ignore_error } from "@/lib/ignore_error";
 import { outgoing_html_to_plain_text } from "@/lib/outgoing_plain_text";
+import { read_file_bytes } from "@/lib/read_file_bytes";
 import { app_locale, get_display_time_zone } from "@/utils/date_format";
 import { user_facing_error } from "@/utils/user_facing_error";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
@@ -1408,7 +1409,7 @@ export function use_reply_modal(props: UseReplyModalProps) {
           const name = unique_attachment_name(file.name, taken_names);
 
           try {
-            const raw = await file.arrayBuffer();
+            const raw = await read_file_bytes(file);
             const data = await apply_metadata_strip(
               raw,
               mime_type,
@@ -1517,7 +1518,7 @@ export function use_reply_modal(props: UseReplyModalProps) {
           const name = unique_attachment_name(file.name, taken_names);
 
           try {
-            const raw = await file.arrayBuffer();
+            const raw = await read_file_bytes(file);
             const data = await apply_metadata_strip(
               raw,
               mime_type,

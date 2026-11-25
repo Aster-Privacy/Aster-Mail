@@ -42,8 +42,13 @@ const state = vi.hoisted(() => {
     attempts: [] as (string | undefined)[],
     destroyed: 0,
     lengths: [] as number[],
+    readback_trusted: true,
   };
 });
+
+vi.mock("@/lib/canvas_readback", () => ({
+  canvas_readback_trusted: () => state.readback_trusted,
+}));
 
 vi.mock("@/lib/i18n/context", () => {
   const t = (k: string) => k;
@@ -160,6 +165,7 @@ describe("PdfPreviewModal password flow", () => {
     state.attempts = [];
     state.lengths = [];
     state.destroyed = 0;
+    state.readback_trusted = true;
     url_counter = 0;
     URL.createObjectURL = vi.fn(() => `blob:page-${++url_counter}`);
     URL.revokeObjectURL = vi.fn();
@@ -249,5 +255,25 @@ describe("PdfPreviewModal password flow", () => {
     expect(state.destroyed).toBe(1);
     expect(URL.revokeObjectURL).toHaveBeenCalledWith("blob:page-1");
     expect(URL.revokeObjectURL).toHaveBeenCalledWith("blob:page-2");
+  });
+
+  it("shows the rendered pages directly when canvas reads are altered", async () => {
+    state.readback_trusted = false;
+    const to_blob = vi.fn();
+
+    HTMLCanvasElement.prototype.toBlob = to_blob;
+
+    await mount();
+    await type_and_submit(state.correct);
+
+    const pages = q("pdf-pages")!;
+
+    expect(pages.querySelectorAll("img").length).toBe(0);
+    expect(pages.querySelectorAll("canvas").length).toBe(2);
+    expect(
+      pages.querySelector("canvas")!.getAttribute("aria-label"),
+    ).not.toBeNull();
+    expect(to_blob).not.toHaveBeenCalled();
+    expect(URL.createObjectURL).not.toHaveBeenCalled();
   });
 });

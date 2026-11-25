@@ -24,6 +24,12 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
 import { strip_metadata } from "@/lib/strip_image_metadata";
 
+const readback = vi.hoisted(() => ({ trusted: true }));
+
+vi.mock("@/lib/canvas_readback", () => ({
+  canvas_readback_trusted: () => readback.trusted,
+}));
+
 function ascii_bytes(text: string): number[] {
   return Array.from(text).map((c) => c.charCodeAt(0));
 }
@@ -355,5 +361,63 @@ describe("failure handling", () => {
 
       expect(result.data.byteLength).toBeLessThanOrEqual(source.length);
     }
+  });
+});
+
+describe("altered canvas reads", () => {
+  let constructed = 0;
+
+  beforeEach(() => {
+    constructed = 0;
+    readback.trusted = false;
+
+    class counting_image {
+      onload: (() => void) | null = null;
+      onerror: (() => void) | null = null;
+      naturalWidth = 4;
+      naturalHeight = 4;
+
+      constructor() {
+        constructed += 1;
+      }
+
+      set src(_value: string) {
+        queueMicrotask(() => this.onload?.());
+      }
+    }
+
+    vi.stubGlobal("Image", counting_image);
+  });
+
+  afterEach(() => {
+    readback.trusted = true;
+    vi.unstubAllGlobals();
+  });
+
+  it("keeps the original bytes instead of redrawing a jpeg it cannot parse", async () => {
+    const source = build_jpeg({ exif: true }).subarray(0, 12);
+    const result = await strip_metadata(to_buffer(source), "image/jpeg");
+
+    expect(result.status).toBe("failed");
+    expect(Array.from(new Uint8Array(result.data))).toEqual(Array.from(source));
+    expect(constructed).toBe(0);
+  });
+
+  it("keeps the original bytes for an unrecognized image payload", async () => {
+    const source = new Uint8Array([1, 2, 3, 4, 5, 6, 7, 8]);
+    const result = await strip_metadata(to_buffer(source), "image/png");
+
+    expect(result.status).not.toBe("stripped");
+    expect(Array.from(new Uint8Array(result.data))).toEqual(Array.from(source));
+    expect(constructed).toBe(0);
+  });
+
+  it("still strips metadata losslessly", async () => {
+    const source = build_jpeg({ exif: true });
+    const result = await strip_metadata(to_buffer(source), "image/jpeg");
+
+    expect(result.status).toBe("stripped");
+    expect(result.data.byteLength).toBeLessThan(source.length);
+    expect(constructed).toBe(0);
   });
 });
