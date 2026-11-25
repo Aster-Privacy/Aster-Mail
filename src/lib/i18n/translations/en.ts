@@ -1269,6 +1269,8 @@ export const en: Translations = {
     failed_to_send_via_external:
       "Sending through your linked outside account did not work. Try again. Your draft is saved.",
     offline_change_failed: "A change you made while offline couldn't be saved.",
+    storage_key_update_pending:
+      "Aster Mail couldn't finish updating the key that protects your saved data. Your changes still save, and Aster Mail keeps trying in the background.",
     offline_send_failed: "An email you wrote while offline couldn't be sent.",
     offline_email_queued:
       "You are offline right now. This email will send as soon as you reconnect.",
