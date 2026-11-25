@@ -427,6 +427,18 @@ export function use_preferences_provider() {
             "sidebar_aliases_collapsed",
             applied.sidebar_aliases_collapsed,
           );
+          cache_sidebar_state(
+            "sidebar_folders_show_all",
+            applied.sidebar_folders_show_all,
+          );
+          cache_sidebar_state(
+            "sidebar_labels_show_all",
+            applied.sidebar_labels_show_all,
+          );
+          cache_sidebar_state(
+            "sidebar_aliases_show_all",
+            applied.sidebar_aliases_show_all,
+          );
           apply_visual_preferences(applied);
 
           await load_notification_preferences(v);

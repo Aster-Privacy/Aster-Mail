@@ -108,6 +108,13 @@ export function SidebarLayoutSetting() {
         })}
       </>
 
+      <SettingToggleRow
+        checked={layout.show_all_folders}
+        description={t("settings.sidebar_show_all_folders_description")}
+        label={t("settings.sidebar_show_all_folders")}
+        on_change={layout.set_show_all_folders}
+      />
+
       <SettingControlRow
         description={t("settings.sidebar_mail_items_description")}
         label={t("settings.sidebar_mail_items")}

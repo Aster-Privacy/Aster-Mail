@@ -77,6 +77,7 @@ import { SidebarAccountSwitcher } from "@/components/layout/sidebar/sidebar_acco
 import { RailTipLayer } from "@/components/layout/sidebar/rail_tip_layer";
 import { use_sidebar_aliases } from "@/hooks/use_sidebar_aliases";
 import { use_preferences } from "@/contexts/preferences_context";
+import { use_sidebar_show_all } from "@/components/layout/sidebar/use_sidebar_show_all";
 import { cache_sidebar_state } from "@/services/api/preferences";
 import { preload_compose_window } from "@/components/compose/compose_manager";
 import {
@@ -317,9 +318,14 @@ const sidebar_base = ({
   >(null);
   const [selected_folder_for_modal, set_selected_folder_for_modal] =
     useState<FolderModalData | null>(null);
-  const [folders_expanded, set_folders_expanded] = useState(false);
-  const [labels_expanded, set_labels_expanded] = useState(false);
-  const [aliases_expanded, set_aliases_expanded] = useState(false);
+  const {
+    folders_expanded,
+    labels_expanded,
+    aliases_expanded,
+    set_folders_expanded,
+    set_labels_expanded,
+    set_aliases_expanded,
+  } = use_sidebar_show_all();
   const [is_create_tag_open, set_is_create_tag_open] = useState(false);
   const [tag_modal_action, set_tag_modal_action] =
     useState<TagModalAction | null>(null);
@@ -593,6 +599,9 @@ const sidebar_base = ({
     preferences.sidebar_folders_collapsed,
     preferences.sidebar_labels_collapsed,
     preferences.sidebar_aliases_collapsed,
+    preferences.sidebar_folders_show_all,
+    preferences.sidebar_labels_show_all,
+    preferences.sidebar_aliases_show_all,
     preferences.sidebar_section_order,
     preferences.sidebar_hidden_items,
   ]);
