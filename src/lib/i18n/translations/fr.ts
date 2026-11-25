@@ -3387,12 +3387,14 @@ export const fr = {
     alias_tab_ghost: "Alias éphémères",
     alias_tab_sending: "Envoi",
     sending_blocks_title: "Envoi",
-    sending_blocks_description: "Choisissez les alias autorisés à envoyer des e-mails. Si vous désactivez l'envoi d'un alias, il continue de recevoir des e-mails.",
-    sending_blocks_search_placeholder: "Rechercher des alias",
+    sending_blocks_description: "Choisissez les adresses qui peuvent envoyer des e-mails. Lorsque vous désactivez l'envoi pour une adresse, elle continue de recevoir des e-mails.",
+    sending_blocks_search_placeholder: "Rechercher des adresses",
     sending_blocks_empty: "Vous n'avez encore aucun alias ni adresse de domaine.",
     sending_blocks_sending_allowed: "Envoi autorisé",
     sending_blocks_toggle_label: "Autoriser l'envoi depuis {{ email }}",
-    sending_blocks_update_failed: "Impossible de mettre à jour l'envoi pour cet alias. Réessayez.",
+    sending_blocks_update_failed: "Impossible de mettre à jour l'envoi pour cette adresse. Réessayez.",
+    sending_blocks_primary_label: "Adresse principale",
+    sending_blocks_all_disabled: "L'envoi est désactivé pour toutes les adresses, vous ne pouvez donc pas envoyer d'e-mails. Pour envoyer des e-mails, activez l'envoi pour au moins une adresse.",
     alias_tab_preferences: "Préférences",
     alias_search_placeholder: "Rechercher des alias...",
     alias_filter_all: "Tous",
@@ -10110,6 +10112,8 @@ export const fr = {
     load_more_results: "Charger plus de résultats ({{remaining}} restants)",
     contacts: "Contacts",
     scheduled_for: "Programmé pour",
+    scheduled_send_failed_sending_disabled:
+      "Ce message programmé n'a pas été envoyé, car l'envoi est désactivé pour son adresse d'expéditeur. Pour l'envoyer, activez l'envoi pour cette adresse dans les Réglages, puis programmez-le à nouveau.",
     scheduled_send_failed:
       "Ce message n'a pas pu être envoyé. Choisis une nouvelle heure d'envoi pour réessayer.",
     spam_email_message:

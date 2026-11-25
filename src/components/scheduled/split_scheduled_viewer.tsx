@@ -63,6 +63,7 @@ import {
   get_display_time_zone,
 } from "@/utils/date_format";
 import { ButtonSpinner } from "@/components/ui/spinner";
+import { scheduled_failure_message_key } from "@/components/scheduled/scheduled_failure";
 
 interface ScheduledData {
   id: string;
@@ -73,6 +74,7 @@ interface ScheduledData {
   body: string;
   scheduled_at: string;
   status?: string;
+  failure_reason?: string;
   content_verified?: boolean;
 }
 
@@ -385,7 +387,7 @@ export function SplitScheduledViewer({
 
           {scheduled_data.status === "failed" && (
             <div className="mx-4 mb-3 rounded-lg border border-danger/40 bg-danger/10 px-3 py-2 text-sm text-danger">
-              {t("mail.scheduled_send_failed")}
+              {t(scheduled_failure_message_key(scheduled_data.failure_reason))}
             </div>
           )}
           <SandboxedEmailRenderer

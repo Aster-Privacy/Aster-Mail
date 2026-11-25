@@ -375,6 +375,7 @@ function MobileApp() {
           forward_from_id?: string;
           thread_token?: string;
           from_email?: string;
+          thread_addresses?: string[];
         }>
       ).detail;
 
@@ -392,6 +393,7 @@ function MobileApp() {
         subject: data.subject,
         message: data.message,
         from_email: data.from_email,
+        thread_addresses: data.thread_addresses,
         updated_at: new Date().toISOString(),
       };
       set_is_compose_open(true);

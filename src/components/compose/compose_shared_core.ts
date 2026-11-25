@@ -126,6 +126,7 @@ export interface EditDraftData {
   subject: string;
   message: string;
   from_email?: string;
+  thread_addresses?: string[];
   expires_at?: string;
   expiry_password?: string;
   updated_at: string;

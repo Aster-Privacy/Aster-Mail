@@ -23,7 +23,10 @@ import type { SenderOption } from "@/hooks/use_sender_aliases";
 import { describe, expect, it } from "vitest";
 
 import { annotate_sending_blocks } from "@/hooks/use_sender_aliases";
-import { filter_sending_block_options } from "@/components/settings/aliases/alias_sending_blocks_section";
+import {
+  are_all_sending_options_disabled,
+  filter_sending_block_options,
+} from "@/components/settings/aliases/alias_sending_blocks_section";
 
 const options: SenderOption[] = [
   {
@@ -67,11 +70,38 @@ describe("annotate_sending_blocks", () => {
 });
 
 describe("filter_sending_block_options", () => {
-  it("lists aliases and domain addresses only", () => {
+  it("lists the primary address, aliases, ghost aliases and domain addresses", () => {
     expect(filter_sending_block_options(options, "").map((o) => o.id)).toEqual([
+      "primary",
       "a1",
       "domain-d1",
+      "ghost-g1",
     ]);
+  });
+
+  it("leaves out external accounts and catch-all addresses", () => {
+    const with_external: SenderOption[] = [
+      ...options,
+      {
+        id: "external-e1",
+        email: "me@elsewhere.example",
+        type: "external",
+        is_enabled: true,
+      },
+    ];
+
+    expect(
+      filter_sending_block_options(with_external, "").map((o) => o.id),
+    ).not.toContain("external-e1");
+    expect(
+      filter_sending_block_options(with_external, "any@").map((o) => o.id),
+    ).toEqual([]);
+  });
+
+  it("finds the primary address by search", () => {
+    expect(
+      filter_sending_block_options(options, "me@aster").map((o) => o.id),
+    ).toEqual(["primary"]);
   });
 
   it("searches by address and display name", () => {
@@ -82,5 +112,17 @@ describe("filter_sending_block_options", () => {
       filter_sending_block_options(options, "my.example").map((o) => o.id),
     ).toEqual(["domain-d1"]);
     expect(filter_sending_block_options(options, "nothing")).toEqual([]);
+  });
+});
+
+describe("are_all_sending_options_disabled", () => {
+  it("is true only when every listed address is turned off", () => {
+    const listed = filter_sending_block_options(options, "");
+    const all_off = annotate_sending_blocks(listed, () => true);
+    const one_on = annotate_sending_blocks(listed, (id) => id !== "a1");
+
+    expect(are_all_sending_options_disabled(all_off)).toBe(true);
+    expect(are_all_sending_options_disabled(one_on)).toBe(false);
+    expect(are_all_sending_options_disabled([])).toBe(false);
   });
 });

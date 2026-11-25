@@ -110,6 +110,7 @@ import {
 import { AliasDirectionMenuItems } from "@/components/email/inbox/alias_direction_menu_items";
 import { AliasIndexingNotice } from "@/components/email/inbox/alias_indexing_notice";
 import { StorageBanner } from "@/components/email/inbox/inbox_storage_banner";
+import { scheduled_failure_message_key } from "@/components/scheduled/scheduled_failure";
 import { use_sender_alias_backfill } from "@/hooks/use_sender_alias_backfill";
 import { use_auth } from "@/contexts/auth/use_auth_hook";
 
@@ -1730,7 +1731,7 @@ function MobileInbox({
           </p>
           {scheduled_target?.status === "failed" && (
             <div className="mb-3 rounded-[12px] border border-danger/40 bg-danger/10 px-3 py-2 text-[12px] text-danger">
-              {t("mail.scheduled_send_failed")}
+              {t(scheduled_failure_message_key(scheduled_target?.failure_reason))}
             </div>
           )}
           <div className="space-y-1">

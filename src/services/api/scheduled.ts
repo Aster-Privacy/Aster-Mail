@@ -80,6 +80,7 @@ export interface ScheduledEmail {
   id: string;
   scheduled_at: string;
   status: ScheduledEmailStatus;
+  failure_reason?: string;
   created_at: string;
   updated_at: string;
 }
@@ -540,6 +541,7 @@ interface ScheduledListApiResponse {
     has_attachments: boolean;
     scheduled_at: string;
     status: string;
+    failure_reason?: string | null;
     created_at: string;
     is_external: boolean;
   }>;
@@ -566,6 +568,7 @@ export async function list_scheduled_emails(
         id: item.id,
         scheduled_at: item.scheduled_at,
         status: item.status as ScheduledEmailStatus,
+        failure_reason: item.failure_reason ?? undefined,
         created_at: item.created_at,
         updated_at: item.created_at,
       })),
@@ -585,6 +588,7 @@ interface ScheduledEmailApiFullResponse {
   recipient_count: number;
   scheduled_at: string;
   status: string;
+  failure_reason?: string | null;
   created_at: string;
   updated_at: string;
   is_external: boolean;
@@ -696,6 +700,7 @@ export async function get_scheduled_email(
         id: response.data.id,
         scheduled_at: response.data.scheduled_at,
         status: response.data.status as ScheduledEmailStatus,
+        failure_reason: response.data.failure_reason ?? undefined,
         created_at: response.data.created_at,
         updated_at: response.data.updated_at,
         content: { ...content, scheduled_at: response.data.scheduled_at },

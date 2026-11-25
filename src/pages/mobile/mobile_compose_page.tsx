@@ -59,6 +59,7 @@ import { use_i18n } from "@/lib/i18n/context";
 import { show_toast } from "@/components/toast/simple_toast";
 import { use_preferences } from "@/contexts/preferences_context";
 import { ConfirmationModal } from "@/components/modals/confirmation_modal";
+import { ReplyFromMismatchModal } from "@/components/modals/reply_from_mismatch_modal";
 import { MobileHeader } from "@/components/mobile/mobile_header";
 import { ButtonSpinner } from "@/components/ui/spinner";
 import { Input } from "@/components/ui/input";
@@ -786,6 +787,8 @@ function MobileComposePage({
         title={t("common.unsaved_changes_title")}
         variant="danger"
       />
+
+      <ReplyFromMismatchModal {...compose.reply_from_mismatch} />
     </motion.div>
   );
 }
