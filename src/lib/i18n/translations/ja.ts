@@ -9937,6 +9937,11 @@ export const ja = {
     spam_label: "スパム",
     attachment_chips_more: "+{{count}}件",
     page_of_total: "{{total}}ページ中{{current}}ページ",
+    page_jump_newest: "最新",
+    page_jump_oldest: "最古",
+    page_jump_go_to: "ページへ移動",
+    page_jump_input: "ページ番号",
+    page_jump_invalid: "1から{{total}}までのページを入力してください",
     total_pages_label: "{{count}}ページ",
     loading_preview: "プレビューを読み込み中…",
     preview_failed:

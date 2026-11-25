@@ -126,6 +126,7 @@ interface InboxHeaderProps {
   total_pages?: number;
   page_row_count?: number;
   on_page_change?: (page: number) => void;
+  on_jump_to_page?: (page: number) => void;
   is_trash_view?: boolean;
   on_empty_trash?: () => void;
   trash_count?: number;
@@ -198,6 +199,7 @@ export function InboxHeader({
   total_pages,
   page_row_count,
   on_page_change,
+  on_jump_to_page,
   is_trash_view = false,
   on_empty_trash,
   trash_count = 0,
@@ -1077,6 +1079,7 @@ export function InboxHeader({
             current_page={current_page}
             filtered_count={filtered_count}
             on_navigate_next={on_navigate_next}
+            on_jump_to_page={on_jump_to_page}
             on_navigate_prev={on_navigate_prev}
             on_page_change={on_page_change}
             page_row_count={page_row_count}

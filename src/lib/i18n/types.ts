@@ -8780,6 +8780,11 @@ export interface MailTranslations {
   attachments: string;
   attachment_chips_more: string;
   page_of_total: string;
+  page_jump_newest: string;
+  page_jump_oldest: string;
+  page_jump_go_to: string;
+  page_jump_input: string;
+  page_jump_invalid: string;
   total_pages_label: string;
   total_pages_label_one?: string;
   loading_preview: string;

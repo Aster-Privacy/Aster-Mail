@@ -55,7 +55,6 @@ import {
   TagNotFoundState,
   LockedFolderState,
 } from "@/components/email/inbox/inbox_email_list";
-import { BottomPagination } from "@/components/email/inbox/inbox_bottom_pagination";
 import { reveal_list_row } from "@/components/email/inbox/use_inbox_list_scroll";
 import { use_empty_folder_request } from "@/components/email/inbox/empty_folder_request";
 import { StorageBanner } from "@/components/email/inbox/inbox_storage_banner";
@@ -257,13 +256,6 @@ export function EmailInbox(props: EmailInboxProps): React.ReactElement {
               />
             )}
           </div>
-          {active_filter !== "all" && total_pages > 1 && (
-            <BottomPagination
-              current_page={current_page}
-              on_page_change={handle_page_change}
-              total_pages={total_pages}
-            />
-          )}
         </div>
       ) : (
         <div className="relative min-h-full -mt-px border-t border-edge-secondary">
@@ -318,15 +310,6 @@ export function EmailInbox(props: EmailInboxProps): React.ReactElement {
                 tags={list_tags}
               />
             )}
-            {!skeleton_visible &&
-              filtered_emails.length > 0 &&
-              total_pages > 1 && (
-                <BottomPagination
-                  current_page={current_page}
-                  on_page_change={handle_page_change}
-                  total_pages={total_pages}
-                />
-              )}
             {show_indexing_notice && <AliasIndexingNotice />}
           </div>
           {(skeleton_visible ||
@@ -408,6 +391,7 @@ export function EmailInbox(props: EmailInboxProps): React.ReactElement {
           on_navigate_prev={
             nav.effective_email_id ? nav.handle_local_navigate_prev : undefined
           }
+          on_jump_to_page={show_reading_pane ? handle_page_change : undefined}
           on_page_change={
             nav.effective_email_id ? undefined : handle_page_change
           }
