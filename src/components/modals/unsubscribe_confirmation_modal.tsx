@@ -127,11 +127,32 @@ export function UnsubscribeConfirmationModal() {
 
   const is_bulk = request?.kind === "bulk";
 
-  const get_display_host = () => {
+  const get_title = () => {
     if (!request) return "";
     if (request.kind === "bulk") {
-      return t("common.selected_count", { count: request.bulk_count ?? 0 });
+      return t("mail.unsubscribe_senders_title", {
+        count: request.bulk_count ?? 0,
+      });
     }
+    const name = request.sender_name?.trim();
+
+    return name
+      ? t("mail.unsubscribe_from_sender_title", { name })
+      : t("mail.unsubscribe_from_list_title");
+  };
+
+  const get_body = () => {
+    if (!request) return "";
+    if (request.kind === "bulk") return t("mail.unsubscribe_bulk_body");
+    if (request.kind === "mailto") return t("mail.unsubscribe_mailto_body");
+    if (request.kind === "one_click")
+      return t("mail.unsubscribe_one_click_body");
+
+    return t("mail.unsubscribe_link_body");
+  };
+
+  const get_display_host = () => {
+    if (!request || request.kind === "bulk") return "";
     if (request.kind === "mailto") {
       return request.destination;
     }
@@ -146,6 +167,12 @@ export function UnsubscribeConfirmationModal() {
     }
   };
 
+  const full_destination =
+    request?.kind === "mailto"
+      ? `mailto:${request.destination}`
+      : (request?.destination ?? "");
+  const display_host = get_display_host();
+
   return (
     <AlertDialog
       open={internal_open}
@@ -154,57 +181,48 @@ export function UnsubscribeConfirmationModal() {
       }}
     >
       <AlertDialogContent
-        className="gap-0 p-0 overflow-hidden max-w-[440px] max-sm:max-w-none max-sm:w-full max-sm:h-full max-sm:rounded-none max-sm:start-0 max-sm:top-0 max-sm:translate-x-0 max-sm:translate-y-0"
+        className="gap-0 p-0 overflow-hidden w-[calc(100%-2rem)] max-w-[420px]"
         on_overlay_click={handle_cancel}
       >
-        <div className="flex h-full flex-col">
-          <div className="flex-1 px-6 pt-6 pb-5 max-sm:pt-[env(safe-area-inset-top,0px)]">
-            <AlertDialogHeader className="space-y-2">
-              <AlertDialogTitle className="text-[16px] font-semibold">
-                {t("mail.unsubscribe_title")}
+        <div className="flex max-h-[calc(100dvh-2rem)] flex-col">
+          <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-6 pt-6 pb-5">
+            <AlertDialogHeader className="space-y-2 text-start">
+              <AlertDialogTitle className="text-[16px] font-semibold [overflow-wrap:anywhere]">
+                {get_title()}
               </AlertDialogTitle>
-              <AlertDialogDescription className="text-[14px] leading-normal">
-                {t("mail.unsubscribe_confirm_message")}
+              <AlertDialogDescription
+                className="text-[14px] leading-5"
+                style={{ color: "var(--text-tertiary)" }}
+              >
+                {get_body()}
               </AlertDialogDescription>
             </AlertDialogHeader>
 
-            <div
-              className="mt-4 p-3 rounded-lg"
-              style={{
-                backgroundColor: "var(--bg-tertiary)",
-                border: "1px solid var(--border-secondary)",
-              }}
-            >
-              <p
-                className="text-[13px] font-medium"
-                style={{ color: "var(--text-primary)" }}
-              >
-                {get_display_host()}
-              </p>
-              {!is_bulk && (
-                <p
-                  className="text-[12px] break-all mt-1.5 max-h-[30vh] overflow-y-auto"
-                  style={{ color: "var(--color-info)" }}
-                >
-                  {request?.kind === "mailto"
-                    ? `mailto:${request.destination}`
-                    : (request?.destination ?? "")}
+            {!is_bulk && display_host && (
+              <div className="mt-5">
+                <p className="text-start text-[16px] font-semibold leading-5 text-txt-primary [overflow-wrap:anywhere]">
+                  {display_host}
                 </p>
-              )}
-            </div>
+                {full_destination && full_destination !== display_host && (
+                  <p className="mt-1 select-text text-start text-[14px] leading-[22px] text-txt-muted line-clamp-2 break-all">
+                    {full_destination}
+                  </p>
+                )}
+              </div>
+            )}
           </div>
 
-          <AlertDialogFooter className="flex-row gap-3 px-6 pb-6 pt-2 sm:justify-end max-sm:pb-[calc(env(safe-area-inset-bottom,0px)+1.5rem)]">
+          <AlertDialogFooter className="flex-row flex-wrap gap-3 px-6 pb-6 pt-2 sm:justify-end max-sm:pb-[calc(env(safe-area-inset-bottom,0px)+1.5rem)]">
             <Button
-              className="mt-0 max-sm:flex-1"
-              variant="secondary"
+              className="mt-0 whitespace-nowrap max-sm:flex-1"
+              variant="outline"
               onClick={handle_cancel}
             >
               {t("common.cancel")}
             </Button>
             <Button
-              className="max-sm:flex-1"
-              variant="primary"
+              className="whitespace-nowrap max-sm:flex-1"
+              variant="depth_destructive"
               onClick={handle_confirm}
             >
               {t("mail.unsubscribe")}
