@@ -254,8 +254,7 @@ describe("inline_email_css selector budget", () => {
     const rules = Array.from(
       { length: 1_900 },
       (_, index) => `${"div ".repeat(24)}p.r${index} { color: red; } div:has(p.r${index}) { color: blue; }`,
-    ).join("
-");
+    ).join("\n");
     const html =
       `<style>${rules}</style>` +
       "<div>".repeat(300) +
