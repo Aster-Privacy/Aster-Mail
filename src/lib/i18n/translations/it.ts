@@ -6488,6 +6488,9 @@ export const it = {
     show_encryption_indicators_description:
       "Mostra icone lucchetto sui messaggi crittografati",
     publish_keys_wkd_title: "Pubblica chiavi su WKD",
+    alias_pgp_title: "Usa PGP con gli alias",
+    alias_pgp_description:
+      "Quando questa opzione è disattivata, le e-mail che invii da un alias non contengono alcuna firma PGP né dettagli della chiave che le colleghino al tuo account.",
     publish_keys_wkd_description:
       "Rendi la chiave del tuo indirizzo principale reperibile tramite Web Key Directory.",
     publish_keys_wkd_not_covered:

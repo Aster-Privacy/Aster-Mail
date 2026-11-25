@@ -5026,6 +5026,9 @@ export const ja = {
     show_encryption_indicators_description:
       "暗号化されたメッセージにロックアイコンを表示します",
     publish_keys_wkd_title: "WKDにキーを公開",
+    alias_pgp_title: "エイリアスでPGPを使用",
+    alias_pgp_description:
+      "オフにすると、エイリアスから送信するメールには、アカウントとの関連を示すPGP署名や鍵の情報が含まれません。",
     publish_keys_wkd_description:
       "プライマリアドレスのキーをWeb Key Directoryで検出可能にします。",
     publish_keys_wkd_not_covered:

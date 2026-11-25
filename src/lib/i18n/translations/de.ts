@@ -5034,6 +5034,9 @@ export const de = {
     show_encryption_indicators_description:
       "Schloss-Symbole bei verschlüsselten Nachrichten anzeigen",
     publish_keys_wkd_title: "Schlüssel auf WKD veröffentlichen",
+    alias_pgp_title: "PGP mit Aliassen verwenden",
+    alias_pgp_description:
+      "Wenn diese Option deaktiviert ist, enthalten E-Mails, die Sie von einem Alias senden, keine PGP-Signatur und keine Schlüsseldetails, die sie mit Ihrem Konto verknüpfen.",
     publish_keys_wkd_description:
       "Den Schlüssel Ihrer primären Adresse über das Web Key Directory auffindbar machen.",
     publish_keys_wkd_not_covered:

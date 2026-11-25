@@ -733,6 +733,7 @@ async function prepare_email_with_plans(
     ...(email.is_plain_text ? { plain_text: true } : {}),
     ...priority_request_field(email.priority),
     ...(client_copies ? { external_pgp_bodies: client_copies } : {}),
+    primary_only_signing: true,
     obscure_subject,
   };
 

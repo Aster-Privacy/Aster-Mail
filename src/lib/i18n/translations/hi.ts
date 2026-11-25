@@ -6147,6 +6147,9 @@ export const hi = {
     show_encryption_indicators_description:
       "एन्क्रिप्टेड संदेशों पर ताले के चिह्न दिखाएं",
     publish_keys_wkd_title: "कुंजियां WKD पर प्रकाशित करें",
+    alias_pgp_title: "उपनामों के साथ PGP का इस्तेमाल करें",
+    alias_pgp_description:
+      "यह बंद होने पर, किसी उपनाम से भेजे गए आपके ईमेल में कोई PGP हस्ताक्षर या कुंजी विवरण नहीं होता जो उसे आपके खाते से जोड़े।",
     publish_keys_wkd_description:
       "अपने मुख्य पते की कुंजी वेब कुंजी डायरेक्टरी से खोजी जाने लायक बनाएं।",
     publish_keys_wkd_not_covered:

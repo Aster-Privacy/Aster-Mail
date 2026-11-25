@@ -337,6 +337,7 @@ async function execute_send_with_plans(
     ...(email.is_plain_text ? { plain_text: true } : {}),
     ...priority_request_field(email.priority),
     ...(client_copies ? { external_pgp_bodies: client_copies } : {}),
+    primary_only_signing: true,
     obscure_subject,
   };
 
@@ -818,6 +819,7 @@ export async function execute_external_send(
     ...(email.is_plain_text && !is_secure_external ? { plain_text: true } : {}),
     ...priority_request_field(email.priority),
     ...(client_copies ? { external_pgp_bodies: client_copies } : {}),
+    primary_only_signing: true,
     ...(is_secure_external ? {} : { obscure_subject: obscure_outer_subject }),
   };
 

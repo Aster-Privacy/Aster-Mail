@@ -5276,6 +5276,9 @@ export const pl = {
     show_encryption_indicators_description:
       "Wyświetlaj ikony kłódki na zaszyfrowanych wiadomościach",
     publish_keys_wkd_title: "Publikuj klucze w WKD",
+    alias_pgp_title: "Używaj PGP z aliasami",
+    alias_pgp_description:
+      "Gdy ta opcja jest wyłączona, poczta wysyłana z aliasu nie zawiera podpisu PGP ani danych klucza, które łączą ją z Twoim kontem.",
     publish_keys_wkd_description:
       "Udostępnij klucz swojego adresu głównego przez Web Key Directory.",
     publish_keys_wkd_not_covered:

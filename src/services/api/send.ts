@@ -68,6 +68,7 @@ interface SimpleSendRequest {
   plain_text?: boolean;
   priority?: OutgoingPriority;
   external_pgp_bodies?: Record<string, string>;
+  primary_only_signing?: boolean;
   obscure_subject?: boolean;
 }
 
@@ -143,6 +144,7 @@ interface ExternalSendRequest {
   signed_mime_signature?: string;
   signed_mime_micalg?: string;
   external_pgp_bodies?: Record<string, string>;
+  primary_only_signing?: boolean;
   in_reply_to?: string;
   plain_text?: boolean;
   priority?: OutgoingPriority;

@@ -4613,6 +4613,9 @@ export const zh_CN = {
     show_encryption_indicators_title: "显示加密指示器",
     show_encryption_indicators_description: "在加密消息上显示锁定图标",
     publish_keys_wkd_title: "将密钥发布到 WKD",
+    alias_pgp_title: "在别名中使用 PGP",
+    alias_pgp_description:
+      "关闭后，从别名发送的邮件不会包含任何可将其关联到你账户的 PGP 签名或密钥信息。",
     publish_keys_wkd_description:
       "通过 Web Key Directory 使您主地址的密钥可被发现。",
     publish_keys_wkd_not_covered:

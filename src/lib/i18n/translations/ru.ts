@@ -5232,6 +5232,9 @@ export const ru = {
     show_encryption_indicators_description:
       "Отображать значки замка на зашифрованных сообщениях",
     publish_keys_wkd_title: "Публиковать ключи в WKD",
+    alias_pgp_title: "Использовать PGP с псевдонимами",
+    alias_pgp_description:
+      "Если этот параметр выключен, письма, отправленные с псевдонима, не содержат подписи PGP и сведений о ключе, которые связывают их с вашим аккаунтом.",
     publish_keys_wkd_description:
       "Сделать ключ вашего основного адреса обнаруживаемым через Web Key Directory.",
     publish_keys_wkd_not_covered:

@@ -5063,6 +5063,9 @@ export const pt_br = {
     show_encryption_indicators_description:
       "Exibir ícones de cadeado em mensagens criptografadas",
     publish_keys_wkd_title: "Publicar chaves no WKD",
+    alias_pgp_title: "Usar PGP com aliases",
+    alias_pgp_description:
+      "Quando esta opção está desativada, os e-mails que você envia de um alias não incluem assinatura PGP nem detalhes da chave que os vinculem à sua conta.",
     publish_keys_wkd_description:
       "Tornar a chave do seu endereço principal descobrível via Web Key Directory.",
     publish_keys_wkd_not_covered:

@@ -5041,6 +5041,9 @@ export const tr = {
     show_encryption_indicators_description:
       "Şifreli mesajlarda kilit simgelerini göster",
     publish_keys_wkd_title: "Anahtarları WKD'ye yayınla",
+    alias_pgp_title: "Takma adlarla PGP kullan",
+    alias_pgp_description:
+      "Bu seçenek kapalıyken, bir takma addan gönderdiğiniz e-postalar onu hesabınıza bağlayan bir PGP imzası veya anahtar bilgisi içermez.",
     publish_keys_wkd_description:
       "Birincil adresinizin anahtarını Web Key Directory aracılığıyla keşfedilebilir yapın.",
     publish_keys_wkd_not_covered:

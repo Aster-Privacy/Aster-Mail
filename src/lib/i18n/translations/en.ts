@@ -6062,6 +6062,9 @@ export const en: Translations = {
     show_encryption_indicators_description:
       "Display lock icons on encrypted messages",
     publish_keys_wkd_title: "Publish keys to WKD",
+    alias_pgp_title: "Use PGP with aliases",
+    alias_pgp_description:
+      "When this is off, mail you send from an alias carries no PGP signature or key details that link it to your account.",
     publish_keys_wkd_description:
       "Make the key for your primary address discoverable through Web Key Directory.",
     publish_keys_wkd_not_covered:
