@@ -537,8 +537,10 @@ a:focus-visible {
     !force_light_scheme && (force_dark_mode || auto_dark_active)
       ? "dark"
       : "light";
+  const light_scheme_canvas =
+    !html_bg || html_bg === "transparent" ? "#ffffff" : html_bg;
   const html_el_style = force_light_scheme
-    ? ` style="background-color:${html_bg}"`
+    ? ` style="background-color:${light_scheme_canvas}"`
     : document_scheme === "dark"
       ? ` style="color-scheme:dark !important"`
       : "";
@@ -889,10 +891,7 @@ ${preferences.hide_scrollbars === true ? `<style>html, body { scrollbar-width: n
   }, [zoomed_image]);
 
   const effective_bg = is_html_email ? html_bg : plain_bg;
-  const frame_bg =
-    force_light_scheme && (!effective_bg || effective_bg === "transparent")
-      ? "#ffffff"
-      : effective_bg;
+  const frame_bg = force_light_scheme ? light_scheme_canvas : effective_bg;
   const skeleton_canvas = normalize_hex(effective_bg);
   const skeleton_canvas_ink = skeleton_canvas
     ? relative_luminance(skeleton_canvas) > 0.4
