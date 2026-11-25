@@ -5460,10 +5460,26 @@ html[data-input-modality="keyboard"]
   color: var(--accent-color) !important;
 }
 
-.aster_island_divided > .aster_island_row + .aster_island_row::before {
+:is(.aster_island, .aster_island_divided)
+  > :is(.aster_island_row, div:not([class]):has(> .aster_island_row))
+  + .aster_island_row::before,
+:is(.aster_island, .aster_island_divided)
+  > :is(.aster_island_row, div:not([class]):has(> .aster_island_row))
+  + div:not([class])
+  > .aster_island_row:first-child::before,
+:is(.aster_island, .aster_island_divided)
+  > div:not([class])
+  > .aster_island_row
+  + .aster_island_row::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  inset-inline-start: var(--aster-island-divider-inset, 0);
+  inset-inline-end: 0;
   height: 0;
   background: none;
   border-top: 1px solid var(--aster-island-divider);
+  pointer-events: none;
 }
 
 @layer components {
