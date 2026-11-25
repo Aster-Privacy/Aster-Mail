@@ -71,6 +71,7 @@ import {
 
 export const HOVER_PRELOAD_DELAY_MS = 220;
 export const HOVER_PRELOAD_MAX_ATTEMPTS = 10;
+export const HOVER_PRELOAD_REST_MS = 140;
 const HOVER_PRELOAD_IDLE_TIMEOUT_MS = 1200;
 
 type IdleWindow = Window & {
@@ -203,6 +204,7 @@ export function EmailList({
   const { user } = use_auth();
   const { preferences } = use_preferences();
   const hover_timer_ref = useRef<number | null>(null);
+  const last_pointer_move_ref = useRef(0);
   const last_preloaded_ref = useRef<string | null>(null);
   const cancel_idle_ref = useRef<(() => void) | null>(null);
   const [menu_email, set_menu_email] = useState<InboxEmail | null>(null);
@@ -427,13 +429,21 @@ export function EmailList({
 
       let attempts = 0;
 
-      const start = () => {
-        attempts += 1;
+      const start = (delay_ms: number) => {
         hover_timer_ref.current = window.setTimeout(() => {
           hover_timer_ref.current = null;
 
+          const moved_ago = performance.now() - last_pointer_move_ref.current;
+
+          if (moved_ago < HOVER_PRELOAD_REST_MS) {
+            start(HOVER_PRELOAD_REST_MS - moved_ago);
+
+            return;
+          }
+
+          attempts += 1;
           if (is_preload_busy() && attempts < HOVER_PRELOAD_MAX_ATTEMPTS) {
-            start();
+            start(HOVER_PRELOAD_DELAY_MS);
 
             return;
           }
@@ -453,10 +463,10 @@ export function EmailList({
               ),
             );
           });
-        }, HOVER_PRELOAD_DELAY_MS);
+        }, delay_ms);
       };
 
-      start();
+      start(HOVER_PRELOAD_DELAY_MS);
     },
     [
       user?.email,
@@ -634,6 +644,13 @@ export function EmailList({
     },
   });
 
+  const handle_list_pointer_move = (e: React.PointerEvent) => {
+    if (e.pointerType === "mouse") {
+      last_pointer_move_ref.current = performance.now();
+    }
+    press_prefetch.onPointerMove(e);
+  };
+
   const first_row_id = (pinned_emails[0] ?? primary_emails[0])?.id;
   const last_row_id = (primary_emails.at(-1) ?? pinned_emails.at(-1))?.id;
 
@@ -683,7 +700,7 @@ export function EmailList({
           onMouseOver={handle_list_mouse_over}
           onPointerCancel={press_prefetch.onPointerCancel}
           onPointerDown={press_prefetch.onPointerDown}
-          onPointerMove={press_prefetch.onPointerMove}
+          onPointerMove={handle_list_pointer_move}
           onPointerUp={press_prefetch.onPointerUp}
         >
           {pinned_emails.length > 0 && (
