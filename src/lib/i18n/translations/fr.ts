@@ -9857,6 +9857,9 @@ export const fr = {
     empty_spam: "Vider les indésirables",
     report_phishing: "Signaler le spam",
     not_spam: "Non indésirable",
+    pending_send_failed: "Impossible d’envoyer ce message.",
+    pending_send_offline:
+      "En attente de connexion. Ce message sera envoyé dès que vous serez de nouveau en ligne.",
     send_failed_title: "Ce message n’a pas été remis.",
     send_failed_help: "Vérifiez l’adresse, puis envoyez à nouveau le message.",
     spam_reasons_title: "Ce message a été déplacé vers les indésirables",

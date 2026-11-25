@@ -9796,6 +9796,9 @@ export const it = {
     empty_spam: "Svuota spam",
     report_phishing: "Segnala spam",
     not_spam: "Non è spam",
+    pending_send_failed: "Impossibile inviare questo messaggio.",
+    pending_send_offline:
+      "In attesa di connessione. Questo messaggio verrà inviato appena si riconnetterà.",
     send_failed_title: "Questo messaggio non è stato recapitato.",
     send_failed_help: "Controlla l’indirizzo, poi invia di nuovo il messaggio.",
     spam_reasons_title: "Questo messaggio è stato spostato nello spam",

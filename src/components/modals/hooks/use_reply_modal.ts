@@ -35,10 +35,7 @@ import {
   undo_send_manager,
 } from "@/hooks/use_undo_send";
 import { send_reply, type OriginalEmail } from "@/services/mail_actions";
-import {
-  outgoing_priority,
-  type MailPriority,
-} from "@/services/mail_priority";
+import { outgoing_priority, type MailPriority } from "@/services/mail_priority";
 import { build_reply_subject } from "@/lib/reply_subject";
 import { resolve_reply_prefix } from "@/lib/reply_defaults";
 import {
@@ -87,6 +84,7 @@ import {
   emit_thread_reply_optimistic,
   emit_thread_reply_sent,
 } from "@/hooks/mail_events";
+import { set_pending_reply_status } from "@/hooks/pending_reply_messages";
 import {
   create_scheduled_email,
   type ScheduledEmailContent,
@@ -636,248 +634,375 @@ export function use_reply_modal(props: UseReplyModalProps) {
         ? selected_sender.display_name
         : undefined;
 
+    const reply_subject = build_reply_subject(
+      original_subject,
+      resolve_reply_prefix(t("mail.reply_subject_prefix")),
+    );
+    const reply_id = crypto.randomUUID();
+    const reply_sender_name =
+      selected_sender?.display_name ||
+      user?.display_name ||
+      user?.username ||
+      "";
+    const reply_sender_email =
+      selected_sender && selected_sender.type !== "primary"
+        ? selected_sender.email
+        : user?.email || "";
+
     let handed_off = false;
     let handed_off_thread_token = thread_token;
-    const keep_failed_reply = async (): Promise<boolean> => {
+    let bubble_token: string | null = null;
+    let detached = false;
+    let attempt = 0;
+    let attempt_reported = false;
+    let kept_draft_id: string | null = null;
+
+    const keep_failed_reply = async (): Promise<string | null> => {
       const draft_vault = get_vault_from_memory();
 
-      if (!draft_vault) return false;
-      const saved = await create_draft(
-        {
-          to_recipients: send_recipients.to,
-          cc_recipients: send_recipients.cc,
-          bcc_recipients: send_recipients.bcc,
-          subject: build_reply_subject(
-            original_subject,
-            resolve_reply_prefix(t("mail.reply_subject_prefix")),
-          ),
-          message: is_plain_text_mode
-            ? escape_plain_text(reply_message).replace(/\n/g, "<br>")
-            : reply_message,
-          from_email: selected_sender?.email,
-          attachments:
-            attachments.length > 0
-              ? attachments_to_draft_data(attachments)
-              : undefined,
-          is_plain_text: is_plain_text_mode || undefined,
-        },
-        draft_vault,
-        "reply",
-        original_email_id,
-        undefined,
-        handed_off_thread_token,
-      ).catch(() => null);
+      if (!draft_vault) return null;
+      let saved: Awaited<ReturnType<typeof create_draft>> | null = null;
 
-      return !!saved?.data;
+      try {
+        saved = await create_draft(
+          {
+            to_recipients: send_recipients.to,
+            cc_recipients: send_recipients.cc,
+            bcc_recipients: send_recipients.bcc,
+            subject: reply_subject,
+            message: is_plain_text_mode
+              ? escape_plain_text(reply_message).replace(/\n/g, "<br>")
+              : reply_message,
+            from_email: selected_sender?.email,
+            attachments:
+              attachments.length > 0
+                ? attachments_to_draft_data(attachments)
+                : undefined,
+            is_plain_text: is_plain_text_mode || undefined,
+          },
+          draft_vault,
+          "reply",
+          original_email_id,
+          undefined,
+          handed_off_thread_token,
+        );
+      } catch {
+        saved = null;
+      }
+
+      return saved?.data?.id ?? null;
     };
 
-    const result = await send_reply(
-      {
-        original,
-        message: message_with_signature,
-        reply_all,
-        to_recipients: send_recipients.to,
-        cc_recipients: send_recipients.cc,
-        bcc_recipients: send_recipients.bcc,
-        own_addresses,
-        thread_token,
-        original_email_id,
-        expires_at: expires_at?.toISOString(),
-        sender_email: sender_email_value,
-        sender_alias_hash: sender_alias_hash_value,
-        sender_display_name: sender_display_name_value,
-        in_reply_to: original_rfc_message_id,
-        attachments: attachments.length > 0 ? attachments : undefined,
-        require_encryption: preferences.require_encryption === true,
-        is_plain_text: is_plain_text_mode,
-        priority: outgoing_priority(priority),
-        lock_scope,
-      },
-      {
-        on_complete: () => {
-          is_sending_ref.current = false;
-          send_lock_started_at_ref.current = 0;
-          set_is_sending(false);
-          emit_email_sent();
-          show_email_sent_toast(t("common.email_sent"), delay_seconds > 0);
+    const show_reply_in_thread = (reply_thread_token: string) => {
+      if (bubble_token) return;
+      bubble_token = reply_thread_token;
+      optimistic_id_ref.current = reply_id;
+      pending_thread_token_ref.current = reply_thread_token;
 
-          if (pending_thread_token_ref.current) {
-            emit_thread_reply_sent({
-              thread_token: pending_thread_token_ref.current,
-              original_email_id,
-              optimistic_id: optimistic_id_ref.current ?? undefined,
-            });
-            pending_thread_token_ref.current = null;
-          }
-          optimistic_id_ref.current = null;
-        },
-        on_cancel: () => {
-          is_sending_ref.current = false;
-          send_lock_started_at_ref.current = 0;
-          set_is_sending(false);
-          last_send_time_ref.current = 0;
-          forget_send(send_fingerprint);
-          if (optimistic_id_ref.current && pending_thread_token_ref.current) {
+      emit_thread_reply_optimistic({
+        thread_token: reply_thread_token,
+        original_email_id,
+        optimistic_id: reply_id,
+        sender_name: reply_sender_name,
+        sender_email: reply_sender_email,
+        subject: reply_subject,
+        body: message_with_signature,
+        display_body: reply_body,
+        to_recipients: send_recipients.to.map((email) => ({
+          name: email === recipient_email ? recipient_name : "",
+          email,
+        })),
+        cc_recipients: send_recipients.cc.map((email) => ({
+          name: "",
+          email,
+        })),
+        attachments: attachments.length > 0 ? attachments : undefined,
+      });
+    };
+
+    const release_send_lock = () => {
+      is_sending_ref.current = false;
+      send_lock_started_at_ref.current = 0;
+      set_is_sending(false);
+    };
+
+    const detach_composer = () => {
+      if (detached) return;
+      detached = true;
+      has_sent_ref.current = true;
+      release_send_lock();
+      on_close();
+    };
+
+    const forget_reply_refs = () => {
+      if (optimistic_id_ref.current !== reply_id) return;
+      optimistic_id_ref.current = null;
+      pending_thread_token_ref.current = null;
+    };
+
+    const keep_reply_as_draft = async () => {
+      if (kept_draft_id) return true;
+      kept_draft_id = await keep_failed_reply();
+      if (!kept_draft_id) return false;
+      if (!handed_off) await discard_sent_draft(bubble_token || undefined);
+
+      return true;
+    };
+
+    const hold_failed_reply = async (error: string | undefined) => {
+      const offline =
+        typeof navigator !== "undefined" && navigator.onLine === false;
+
+      set_pending_reply_status(reply_id, offline ? "offline" : "failed", {
+        error,
+        retry: send_again,
+      });
+
+      return keep_reply_as_draft();
+    };
+
+    const callbacks = {
+      on_dispatch: (dispatched_thread_token: string | undefined) => {
+        const reply_thread_token = dispatched_thread_token || thread_token;
+
+        if (!reply_thread_token) return;
+        show_reply_in_thread(reply_thread_token);
+        detach_composer();
+      },
+      on_complete: () => {
+        if (!detached) release_send_lock();
+        emit_email_sent();
+        show_email_sent_toast(t("common.email_sent"), delay_seconds > 0);
+
+        if (bubble_token) {
+          emit_thread_reply_sent({
+            thread_token: bubble_token,
+            original_email_id,
+            optimistic_id: reply_id,
+          });
+        }
+        forget_reply_refs();
+      },
+      on_cancel: () => {
+        attempt_reported = true;
+        if (!detached) release_send_lock();
+        last_send_time_ref.current = 0;
+        forget_send(send_fingerprint);
+        if (bubble_token) {
+          emit_thread_reply_cancelled({
+            optimistic_id: reply_id,
+            thread_token: bubble_token,
+          });
+        }
+        forget_reply_refs();
+      },
+      on_error: (error: string) => {
+        attempt_reported = true;
+        last_send_time_ref.current = 0;
+        forget_send(send_fingerprint);
+
+        if (!detached || !bubble_token) {
+          if (bubble_token) {
             emit_thread_reply_cancelled({
-              optimistic_id: optimistic_id_ref.current,
-              thread_token: pending_thread_token_ref.current,
+              optimistic_id: reply_id,
+              thread_token: bubble_token,
             });
           }
-          optimistic_id_ref.current = null;
-          pending_thread_token_ref.current = null;
-        },
-        on_error: (error) => {
-          is_sending_ref.current = false;
-          send_lock_started_at_ref.current = 0;
-          if (optimistic_id_ref.current && pending_thread_token_ref.current) {
-            emit_thread_reply_cancelled({
-              optimistic_id: optimistic_id_ref.current,
-              thread_token: pending_thread_token_ref.current,
-            });
-          }
-          optimistic_id_ref.current = null;
+          forget_reply_refs();
           set_error_message(error);
-          if (handed_off) {
-            void keep_failed_reply().then((kept) => {
-              show_toast(
-                error || t("common.failed_to_send_reply"),
-                "error",
-                10000,
-              );
-              if (!kept) show_toast(t("common.failed_to_save"), "error");
+          release_send_lock();
+        }
+
+        if (handed_off) {
+          if (bubble_token) {
+            set_pending_reply_status(reply_id, "failed", {
+              error,
+              retry: send_again,
             });
-          } else {
+          }
+          void keep_reply_as_draft().then((kept) => {
             show_toast(
               error || t("common.failed_to_send_reply"),
               "error",
               10000,
             );
-          }
-          set_is_sending(false);
-          last_send_time_ref.current = 0;
-          forget_send(send_fingerprint);
-          pending_thread_token_ref.current = null;
-        },
+            if (!kept) show_toast(t("common.failed_to_save"), "error");
+          });
+
+          return;
+        }
+
+        if (detached && bubble_token) void hold_failed_reply(error);
+        show_toast(error || t("common.failed_to_send_reply"), "error", 10000);
       },
-      delay_ms,
-    ).catch((error: unknown) => ({
-      success: false as const,
-      error:
-        error instanceof Error
-          ? error.message
-          : t("common.failed_to_send_reply"),
-      queued_id: undefined,
-      thread_token: undefined,
-      is_server_queued: undefined,
-    }));
+    };
 
-    if (result.success && result.queued_id) {
-      pending_thread_token_ref.current = result.thread_token || null;
+    const finish_attempt = (result: {
+      success: boolean;
+      error?: string;
+      queued_id?: string;
+      thread_token?: string;
+      is_server_queued?: boolean;
+    }) => {
+      if (result.success && result.queued_id) {
+        const reply_thread_token =
+          bubble_token || result.thread_token || thread_token;
 
-      const reply_thread_token = result.thread_token || thread_token;
+        if (reply_thread_token) show_reply_in_thread(reply_thread_token);
 
-      if (reply_thread_token) {
-        const opt_id = crypto.randomUUID();
+        const first_handoff = !handed_off && !kept_draft_id;
 
-        optimistic_id_ref.current = opt_id;
+        handed_off = true;
+        handed_off_thread_token = reply_thread_token;
 
-        const sender_name =
-          selected_sender?.display_name ||
-          user?.display_name ||
-          user?.username ||
-          "";
-        const sender_email_addr =
-          selected_sender && selected_sender.type !== "primary"
-            ? selected_sender.email
-            : user?.email || "";
+        if (kept_draft_id) {
+          const retried_draft_id = kept_draft_id;
 
-        emit_thread_reply_optimistic({
-          thread_token: reply_thread_token,
-          original_email_id,
-          optimistic_id: opt_id,
-          sender_name,
-          sender_email: sender_email_addr,
-          subject: build_reply_subject(
-            original_subject,
-            resolve_reply_prefix(t("mail.reply_subject_prefix")),
-          ),
-          body: message_with_signature,
-          display_body: reply_body,
-          to_recipients: send_recipients.to.map((email) => ({
-            name: email === recipient_email ? recipient_name : "",
-            email,
-          })),
-          cc_recipients: send_recipients.cc.map((email) => ({
-            name: "",
-            email,
-          })),
-          attachments: attachments.length > 0 ? attachments : undefined,
-        });
+          kept_draft_id = null;
+          void delete_thread_draft(retried_draft_id, reply_thread_token).catch(
+            (caught) =>
+              ignore_error(
+                "components/modals/hooks/use_reply_modal:retry_draft",
+                caught,
+              ),
+          );
+        } else if (first_handoff) {
+          void discard_sent_draft(reply_thread_token);
+        }
+
+        if (delay_seconds > 0) {
+          const undo_body = is_plain_text_mode
+            ? escape_plain_text(
+                [trimmed_reply, outgoing_html_to_plain_text(quoted_content)]
+                  .filter((part) => part.length > 0)
+                  .join("\n\n"),
+              ).replace(/\n/g, "<br>")
+            : message_with_signature;
+
+          store_pending_send_payload(result.queued_id, {
+            to: send_recipients.to,
+            cc: send_recipients.cc,
+            bcc: send_recipients.bcc,
+            subject: reply_subject,
+            body: undo_body,
+            sender_email: sender_email_value,
+            thread_token: reply_thread_token || undefined,
+            draft_type: "reply",
+            reply_to_id: original_email_id,
+            rfc_message_id: original_rfc_message_id,
+            expires_at: expires_at?.toISOString(),
+            attachments: attachments.length > 0 ? attachments : undefined,
+            restore_verbatim: true,
+            is_plain_text: is_plain_text_mode || undefined,
+          });
+          undo_send_manager.add({
+            id: result.queued_id,
+            to: send_recipients.to,
+            cc: send_recipients.cc,
+            bcc: send_recipients.bcc,
+            subject: reply_subject,
+            body: message_with_signature,
+            sender_email: sender_email_value,
+            scheduled_time: Date.now() + delay_ms,
+            total_seconds: delay_seconds,
+            is_server_queued: result.is_server_queued,
+            server_queue_id: result.is_server_queued
+              ? result.queued_id
+              : undefined,
+            optimistic_id: bubble_token ? reply_id : undefined,
+            thread_token: reply_thread_token || undefined,
+          });
+        }
+
+        if (!detached) {
+          detached = true;
+          on_close();
+        }
+
+        return;
       }
 
-      handed_off = true;
-      handed_off_thread_token = reply_thread_token;
-      void discard_sent_draft(reply_thread_token);
+      if (result.success) return;
 
-      if (delay_seconds > 0) {
-        const undo_subject = build_reply_subject(
-          original_subject,
-          resolve_reply_prefix(t("mail.reply_subject_prefix")),
-        );
+      if (detached && bubble_token) {
+        if (!attempt_reported) {
+          void hold_failed_reply(result.error);
+          show_toast(
+            result.error || t("common.failed_to_send_reply"),
+            "error",
+            10000,
+          );
+        }
 
-        const undo_body = is_plain_text_mode
-          ? escape_plain_text(
-              [trimmed_reply, outgoing_html_to_plain_text(quoted_content)]
-                .filter((part) => part.length > 0)
-                .join("\n\n"),
-            ).replace(/\n/g, "<br>")
-          : message_with_signature;
-
-        store_pending_send_payload(result.queued_id, {
-          to: send_recipients.to,
-          cc: send_recipients.cc,
-          bcc: send_recipients.bcc,
-          subject: undo_subject,
-          body: undo_body,
-          sender_email: sender_email_value,
-          thread_token: reply_thread_token || undefined,
-          draft_type: "reply",
-          reply_to_id: original_email_id,
-          rfc_message_id: original_rfc_message_id,
-          expires_at: expires_at?.toISOString(),
-          attachments: attachments.length > 0 ? attachments : undefined,
-          restore_verbatim: true,
-          is_plain_text: is_plain_text_mode || undefined,
-        });
-        undo_send_manager.add({
-          id: result.queued_id,
-          to: send_recipients.to,
-          cc: send_recipients.cc,
-          bcc: send_recipients.bcc,
-          subject: undo_subject,
-          body: message_with_signature,
-          sender_email: sender_email_value,
-          scheduled_time: Date.now() + delay_ms,
-          total_seconds: delay_seconds,
-          is_server_queued: result.is_server_queued,
-          server_queue_id: result.is_server_queued
-            ? result.queued_id
-            : undefined,
-          optimistic_id: optimistic_id_ref.current || undefined,
-          thread_token: reply_thread_token || undefined,
-        });
+        return;
       }
 
-      on_close();
-    } else if (!result.success) {
-      is_sending_ref.current = false;
-      send_lock_started_at_ref.current = 0;
+      release_send_lock();
       set_error_message(result.error ?? null);
-      set_is_sending(false);
       last_send_time_ref.current = 0;
       forget_send(send_fingerprint);
       void save_thread_draft(reply_message);
+    };
+
+    const run_attempt = async () => {
+      attempt += 1;
+      attempt_reported = false;
+
+      const result = await send_reply(
+        {
+          original,
+          message: message_with_signature,
+          reply_all,
+          to_recipients: send_recipients.to,
+          cc_recipients: send_recipients.cc,
+          bcc_recipients: send_recipients.bcc,
+          own_addresses,
+          thread_token: bubble_token || thread_token,
+          original_email_id,
+          expires_at: expires_at?.toISOString(),
+          sender_email: sender_email_value,
+          sender_alias_hash: sender_alias_hash_value,
+          sender_display_name: sender_display_name_value,
+          in_reply_to: original_rfc_message_id,
+          attachments: attachments.length > 0 ? attachments : undefined,
+          require_encryption: preferences.require_encryption === true,
+          is_plain_text: is_plain_text_mode,
+          priority: outgoing_priority(priority),
+          lock_scope,
+        },
+        callbacks,
+        delay_ms,
+      ).catch((error: unknown) => ({
+        success: false as const,
+        error:
+          error instanceof Error
+            ? error.message
+            : t("common.failed_to_send_reply"),
+        queued_id: undefined,
+        thread_token: undefined,
+        is_server_queued: undefined,
+      }));
+
+      finish_attempt(result);
+    };
+
+    function send_again() {
+      void run_attempt();
     }
+
+    if (
+      thread_token &&
+      typeof navigator !== "undefined" &&
+      navigator.onLine === false
+    ) {
+      show_reply_in_thread(thread_token);
+      detach_composer();
+      await hold_failed_reply(undefined);
+
+      return;
+    }
+
+    await run_attempt();
   }, [
     lock_scope,
     save_thread_draft,

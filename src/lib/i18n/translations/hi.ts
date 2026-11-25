@@ -9592,6 +9592,9 @@ export const hi = {
     empty_spam: "स्पैम खाली करें",
     report_phishing: "स्पैम की शिकायत करें",
     not_spam: "स्पैम नहीं",
+    pending_send_failed: "यह संदेश भेजा नहीं जा सका.",
+    pending_send_offline:
+      "कनेक्शन की प्रतीक्षा की जा रही है. आपके वापस ऑनलाइन होते ही यह संदेश भेज दिया जाएगा.",
     send_failed_title: "यह संदेश डिलीवर नहीं हुआ.",
     send_failed_help: "पता जांचें, फिर संदेश दोबारा भेजें.",
     spam_reasons_title: "यह संदेश स्पैम में ले जाया गया",

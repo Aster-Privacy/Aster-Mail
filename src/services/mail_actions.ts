@@ -121,6 +121,7 @@ export interface MailActionCallbacks {
   on_complete: (sent_id?: string) => void;
   on_cancel: () => void;
   on_error?: (error: string) => void;
+  on_dispatch?: (thread_token: string | undefined) => void;
 }
 
 function build_reply_subject(original_subject: string): string {
@@ -399,6 +400,8 @@ export async function send_reply(
 
     return { success: false, error: message };
   }
+
+  callbacks.on_dispatch?.(thread_token);
 
   const reply_queue_seconds = server_queue_seconds(
     [...recipients, ...(cc ?? []), ...(bcc ?? [])],

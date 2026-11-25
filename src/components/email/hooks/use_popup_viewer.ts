@@ -1058,6 +1058,20 @@ export function use_popup_viewer({
   }, [fetch_email]);
 
   useEffect(() => {
+    if (!error || !email_id || local_email) return;
+
+    const handle_online = () => {
+      fetch_email();
+    };
+
+    window.addEventListener("online", handle_online);
+
+    return () => {
+      window.removeEventListener("online", handle_online);
+    };
+  }, [error, email_id, local_email, fetch_email]);
+
+  useEffect(() => {
     const handle_thread_reply = async (event: Event) => {
       const custom_event = event as CustomEvent<ThreadReplySentEventDetail>;
       const detail = custom_event.detail;

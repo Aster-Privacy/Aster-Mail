@@ -9757,6 +9757,9 @@ export const es = {
     empty_spam: "Vaciar spam",
     report_phishing: "Reportar spam",
     not_spam: "No es spam",
+    pending_send_failed: "No se pudo enviar este mensaje.",
+    pending_send_offline:
+      "Esperando conexión. Este mensaje se enviará cuando vuelvas a conectarte.",
     send_failed_title: "Este mensaje no se entregó.",
     send_failed_help: "Comprueba la dirección y vuelve a enviar el mensaje.",
     spam_reasons_title: "Este mensaje se movió a spam",
