@@ -226,6 +226,7 @@ export const hi = {
     profile_picture_upload_hint: "JPEG, PNG या WebP, 5 MB तक",
     profile_picture_gallery_failed:
       "गैलरी लोड नहीं हुई। अपना कनेक्शन जाँचें और फिर से कोशिश करें।",
+    profile_picture_categories: "गैलरी श्रेणियां",
     profile_picture_cat_all: "सभी",
     profile_picture_cat_space: "अंतरिक्ष",
     profile_picture_cat_night_sky: "रात का आकाश",

@@ -1318,6 +1318,7 @@ export interface CommonTranslations {
   profile_picture_upload: string;
   profile_picture_upload_hint: string;
   profile_picture_gallery_failed: string;
+  profile_picture_categories: string;
   profile_picture_cat_all: string;
   profile_picture_cat_space: string;
   profile_picture_cat_night_sky: string;

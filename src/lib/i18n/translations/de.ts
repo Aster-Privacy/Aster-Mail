@@ -68,6 +68,7 @@ export const de = {
     profile_picture_upload_hint: "JPEG, PNG oder WebP, bis zu 5 MB",
     profile_picture_gallery_failed:
       "Die Galerie wurde nicht geladen. Prüfe deine Verbindung und versuche es erneut.",
+    profile_picture_categories: "Galeriekategorien",
     profile_picture_cat_all: "Alle",
     profile_picture_cat_space: "Weltraum",
     profile_picture_cat_night_sky: "Nachthimmel",

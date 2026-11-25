@@ -202,6 +202,7 @@ export const ko = {
     profile_picture_upload_hint: "JPEG, PNG 또는 WebP, 최대 5MB",
     profile_picture_gallery_failed:
       "갤러리를 불러오지 못했습니다. 연결을 확인한 후 다시 시도하세요.",
+    profile_picture_categories: "갤러리 카테고리",
     profile_picture_cat_all: "전체",
     profile_picture_cat_space: "우주",
     profile_picture_cat_night_sky: "밤하늘",

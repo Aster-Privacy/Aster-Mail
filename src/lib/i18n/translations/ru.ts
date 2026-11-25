@@ -153,6 +153,7 @@ export const ru = {
     profile_picture_upload_hint: "JPEG, PNG или WebP, до 5 МБ",
     profile_picture_gallery_failed:
       "Не удалось загрузить галерею. Проверьте подключение и повторите попытку.",
+    profile_picture_categories: "Категории галереи",
     profile_picture_cat_all: "Все",
     profile_picture_cat_space: "Космос",
     profile_picture_cat_night_sky: "Ночное небо",

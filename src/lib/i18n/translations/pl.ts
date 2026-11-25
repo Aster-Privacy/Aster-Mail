@@ -163,6 +163,7 @@ export const pl = {
     profile_picture_upload_hint: "JPEG, PNG lub WebP, do 5 MB",
     profile_picture_gallery_failed:
       "Nie udało się wczytać galerii. Sprawdź połączenie i spróbuj ponownie.",
+    profile_picture_categories: "Kategorie galerii",
     profile_picture_cat_all: "Wszystko",
     profile_picture_cat_space: "Kosmos",
     profile_picture_cat_night_sky: "Nocne niebo",

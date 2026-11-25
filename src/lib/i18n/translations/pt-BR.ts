@@ -149,6 +149,7 @@ export const pt_br = {
     profile_picture_upload_hint: "JPEG, PNG ou WebP, até 5 MB",
     profile_picture_gallery_failed:
       "A galeria não carregou. Verifique sua conexão e tente novamente.",
+    profile_picture_categories: "Categorias da galeria",
     profile_picture_cat_all: "Tudo",
     profile_picture_cat_space: "Espaço",
     profile_picture_cat_night_sky: "Céu noturno",

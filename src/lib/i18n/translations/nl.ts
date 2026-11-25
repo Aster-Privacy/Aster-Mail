@@ -154,6 +154,7 @@ export const nl = {
     profile_picture_upload_hint: "JPEG, PNG of WebP, maximaal 5 MB",
     profile_picture_gallery_failed:
       "De galerij is niet geladen. Controleer je verbinding en probeer het opnieuw.",
+    profile_picture_categories: "Galeriecategorieën",
     profile_picture_cat_all: "Alles",
     profile_picture_cat_space: "Ruimte",
     profile_picture_cat_night_sky: "Nachtelijke hemel",
