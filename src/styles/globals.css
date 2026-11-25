@@ -1680,51 +1680,18 @@
 }
 
 :root {
-  --storage-blue: #3b82f6;
-  --storage-violet: #8b5cf6;
-  --storage-teal: #0d9488;
-  --storage-amber: #b86f06;
-  --storage-rose: #e11d48;
-  --storage-fuchsia: #c026d3;
   --storage-track: rgba(100, 116, 139, 0.08);
-  --storage-emails: var(--storage-blue);
-  --storage-attachments: var(--storage-violet);
-  --storage-drafts: var(--storage-amber);
-  --storage-spam: var(--storage-rose);
-  --storage-trash: var(--storage-fuchsia);
-  --storage-other: var(--storage-teal);
-  --capacity-plan: var(--storage-blue);
-  --capacity-addons: var(--storage-violet);
-  --capacity-family: var(--storage-teal);
 }
 
 .dark {
-  --storage-blue: #4f8ff7;
-  --storage-violet: #a78bfa;
-  --storage-teal: #2dd4bf;
-  --storage-amber: #fbbf24;
-  --storage-rose: #fb7185;
-  --storage-fuchsia: #e879f9;
   --storage-track: rgba(148, 163, 184, 0.16);
 }
 
 .high-contrast {
-  --storage-blue: #2563eb;
-  --storage-violet: #7c3aed;
-  --storage-teal: #0f766e;
-  --storage-amber: #b45309;
-  --storage-rose: #be123c;
-  --storage-fuchsia: #a21caf;
   --storage-track: rgba(71, 85, 105, 0.22);
 }
 
 .dark.high-contrast {
-  --storage-blue: #60a5fa;
-  --storage-violet: #a78bfa;
-  --storage-teal: #2dd4bf;
-  --storage-amber: #fbbf24;
-  --storage-rose: #fb7185;
-  --storage-fuchsia: #e879f9;
   --storage-track: rgba(203, 213, 225, 0.22);
 }
 
