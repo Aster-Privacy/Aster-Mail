@@ -487,12 +487,17 @@ a:focus-visible {
   const quote_toggle_hover_bg = quote_toggle_dark
     ? "rgba(255, 255, 255, 0.14)"
     : "rgba(60, 64, 67, 0.12)";
-  const quote_toggle_css = `.aster-quote-toggle { display: block !important; box-sizing: border-box !important; width: max-content !important; height: 24px !important; min-width: 40px !important; margin: 8px 0 !important; padding: 10px 12px !important; list-style: none !important; font-size: 0 !important; line-height: 0 !important; background: ${quote_toggle_bg} !important; border: 0 !important; border-radius: 12px !important; color: ${quote_toggle_ink} !important; cursor: pointer !important; vertical-align: middle !important; transition: background-color 0.16s ease !important; }
+  const quote_toggle_active_bg = quote_toggle_dark
+    ? "rgba(255, 255, 255, 0.2)"
+    : "rgba(60, 64, 67, 0.18)";
+  const quote_toggle_css = `.aster-quote-toggle { display: flex !important; align-items: center !important; justify-content: center !important; position: relative !important; box-sizing: border-box !important; width: 24px !important; height: 12px !important; margin: 10px 0 8px !important; padding: 0 !important; list-style: none !important; font-size: 0 !important; line-height: 0 !important; background: ${quote_toggle_bg} !important; border: 0 !important; border-radius: 6px !important; color: ${quote_toggle_ink} !important; cursor: pointer !important; transition: background-color 0.12s ease, transform 0.08s ease !important; }
+.aster-quote-toggle::after { content: "" !important; position: absolute !important; inset: -8px -6px !important; }
+.aster-quote-toggle:active { background: ${quote_toggle_active_bg} !important; transform: scale(0.94) !important; }
 .aster-quote-toggle::-webkit-details-marker { display: none !important; }
 .aster-quote-toggle::marker { content: "" !important; }
 .aster-quote-toggle:hover, .aster-quote-toggle.aster-quote-expanded, details[open] > .aster-quote-toggle { background: ${quote_toggle_hover_bg} !important; }
-.aster-quote-toggle:focus-visible { outline: 2px solid ${link_ink} !important; outline-offset: 1px !important; }
-.aster-quote-toggle-dots { display: block !important; margin: 0 auto !important; width: 4px !important; height: 4px !important; border-radius: 50% !important; background: currentColor !important; box-shadow: -6.5px 0 0 currentColor, 6.5px 0 0 currentColor !important; }
+.aster-quote-toggle:focus-visible { outline: 2px solid ${link_ink} !important; outline-offset: 2px !important; }
+.aster-quote-toggle-dots { display: block !important; flex: none !important; margin: 0 !important; width: 3px !important; height: 3px !important; border-radius: 50% !important; background: currentColor !important; box-shadow: -5px 0 0 currentColor, 5px 0 0 currentColor !important; }
 .aster-quoted-content { border-left-color: ${quote_rail_ink} !important; }`;
 
   const plain_dark_css = auto_dark_active
