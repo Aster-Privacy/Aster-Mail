@@ -170,23 +170,39 @@ describe("app rail items", () => {
     expect(panel_state("security_panel")).toBe("0");
   });
 
-  it("shows the Contacts and Security Center app logos", () => {
-    const contacts_logo = rail_item("common.contacts")?.querySelector("img");
-    const security_logo = rail_item("common.security_center")?.querySelector(
-      "img",
-    );
+  it.each([
+    ["common.app_name_calendar", "rail"],
+    ["common.contacts", "contacts"],
+    ["common.security_center", "security"],
+  ])("draws %s with the bundled brand artwork", (label, marker) => {
+    const button = rail_item(label);
+    const icon = button?.querySelector("svg.app_rail_icon");
+    const href = icon?.querySelector("image")?.getAttribute("href");
 
-    expect(contacts_logo?.getAttribute("src")).toBe(
-      "/icons/contacts/contacts_rail_24.png",
-    );
-    expect(contacts_logo?.getAttribute("srcset")).toContain(
-      "/icons/contacts/contacts_rail_48.png 2x",
-    );
-    expect(security_logo?.getAttribute("src")).toBe(
-      "/icons/security/security_rail_24.png",
-    );
-    expect(security_logo?.getAttribute("srcset")).toContain(
-      "/icons/security/security_rail_72.png 3x",
+    expect(
+      icon?.getAttribute("data-app-rail-icon") ??
+        icon?.getAttribute("data-dated-calendar-icon"),
+    ).toBe(marker);
+    expect(href?.startsWith("data:image/png;base64,")).toBe(true);
+    expect(button?.querySelector("img")).toBeNull();
+    expect(button?.querySelector("svg[stroke]")).toBeNull();
+  });
+
+  it("never swaps the rail to outline icons when artwork reports an error", () => {
+    const rail = container.querySelector(".app_rail_column");
+    const before = rail?.innerHTML;
+
+    act(() => {
+      rail
+        ?.querySelectorAll("image")
+        .forEach((image) => image.dispatchEvent(new Event("error")));
+    });
+
+    expect(rail?.innerHTML).toBe(before);
+    expect(rail?.querySelectorAll("svg.app_rail_icon image")).toHaveLength(3);
+    expect(rail?.innerHTML).not.toContain("M6.75 3v2.25M17.25 3v2.25");
+    expect(rail?.innerHTML).not.toContain(
+      "M15 19.128a9.38 9.38 0 0 0 2.625.372",
     );
   });
 });
