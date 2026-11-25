@@ -198,6 +198,8 @@ interface ReEncryptedDomainAddress {
   display_name_nonce?: string;
   encrypted_note?: string;
   note_nonce?: string;
+  encrypted_websites?: string;
+  websites_nonce?: string;
 }
 
 interface RekeyRequest {

@@ -353,7 +353,8 @@ export function AliasList({
         (a) =>
           `${a.local_part}@${a.domain_name}`.toLowerCase().includes(query) ||
           (a.display_name ?? "").toLowerCase().includes(query) ||
-          (a.note ?? "").toLowerCase().includes(query),
+          (a.note ?? "").toLowerCase().includes(query) ||
+          (a.websites ?? []).some((url) => url.toLowerCase().includes(query)),
       );
     }
     if (filter_mode === "enabled") {
