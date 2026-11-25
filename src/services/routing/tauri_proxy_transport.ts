@@ -31,6 +31,24 @@ interface ProxyResponse {
   headers: Record<string, string>;
 }
 
+type Base64Decoder = (value: string) => Uint8Array;
+
+export function decode_base64_body(value: string): Uint8Array {
+  const native = (Uint8Array as unknown as { fromBase64?: Base64Decoder })
+    .fromBase64;
+
+  if (typeof native === "function") return native.call(Uint8Array, value);
+
+  const binary = atob(value);
+  const decoded = new Uint8Array(binary.length);
+
+  for (let index = 0; index < binary.length; index += 1) {
+    decoded[index] = binary.charCodeAt(index);
+  }
+
+  return decoded;
+}
+
 export async function tauri_proxy_fetch(
   url: string,
   options: RequestInit,
@@ -67,17 +85,7 @@ export async function tauri_proxy_fetch(
   let bytes: Uint8Array;
 
   try {
-    if (result.body) {
-      const binary = atob(result.body);
-      const decoded = new Uint8Array(binary.length);
-
-      for (let index = 0; index < binary.length; index += 1) {
-        decoded[index] = binary.charCodeAt(index);
-      }
-      bytes = decoded;
-    } else {
-      bytes = new Uint8Array(0);
-    }
+    bytes = result.body ? decode_base64_body(result.body) : new Uint8Array(0);
   } catch {
     return new Response(null, { status: 500 });
   }
