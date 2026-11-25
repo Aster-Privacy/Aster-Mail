@@ -34,6 +34,7 @@ import {
   is_tauri,
   consume_pending_device_login,
   forget_device_account,
+  resolve_current_account_device_id,
   clear_device_session,
   clear_explicit_sign_out,
   locked_device_login_account_id,
@@ -171,7 +172,10 @@ export function DesktopPairGate({ children }: { children: React.ReactNode }) {
         await init_desktop_device_auth(account_device_id);
         const core = await import("@tauri-apps/api/core");
         const pk = await core.invoke<DevicePubkeys>("device_get_pubkeys");
-        const device_id = account_device_id ?? pk.device_id;
+        const device_id = await resolve_current_account_device_id(
+          account_device_id,
+          pk.device_id,
+        );
 
         if (cancelled) return;
         if (!device_id) {
