@@ -2544,7 +2544,7 @@ button.press_scale:active {
   -webkit-backdrop-filter: blur(10px);
   border: 1px solid color-mix(in srgb, var(--border-primary) 70%, transparent);
   border-inline-end: none;
-  animation: app_rail_popout_in 0.22s cubic-bezier(0.32, 0.72, 0, 1);
+  animation: app_rail_popout_in 0.12s cubic-bezier(0.2, 0, 0, 1);
   transition:
     color 0.15s ease,
     background-color 0.15s ease;
@@ -6099,4 +6099,50 @@ html[data-input-modality="keyboard"]
 .contact_group_member_row[data-active="true"]
   + .contact_group_member_row::before {
   opacity: 0;
+}
+
+@property --aster-press-layer {
+  syntax: "<color>";
+  inherits: false;
+  initial-value: transparent;
+}
+
+[data-aster-press]:not([data-aster-press-mode="filter"]) {
+  --aster-press-layer: color-mix(in srgb, currentColor 13%, transparent);
+  background-image: linear-gradient(
+    var(--aster-press-layer),
+    var(--aster-press-layer)
+  ) !important;
+}
+
+[data-aster-press][data-aster-press-mode="shade"] {
+  --aster-press-layer: rgb(0 0 0 / 0.12);
+}
+
+[data-aster-press="down"][data-aster-press-mode="filter"] {
+  filter: brightness(0.92);
+}
+
+[data-aster-press="release"]:not([data-aster-press-mode="filter"]) {
+  animation: aster_press_release 160ms cubic-bezier(0.2, 0, 0, 1) forwards;
+}
+
+[data-aster-press="release"][data-aster-press-mode="filter"] {
+  animation: aster_press_release_filter 160ms cubic-bezier(0.2, 0, 0, 1)
+    forwards;
+}
+
+@keyframes aster_press_release {
+  to {
+    --aster-press-layer: transparent;
+  }
+}
+
+@keyframes aster_press_release_filter {
+  from {
+    filter: brightness(0.92);
+  }
+  to {
+    filter: brightness(1);
+  }
 }

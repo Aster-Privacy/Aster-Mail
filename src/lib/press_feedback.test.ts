@@ -1,0 +1,188 @@
+//
+// Aster Communications Inc.
+//
+// Copyright (c) 2026 Aster Communications Inc.
+//
+// This file is part of this project.
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the AGPLv3 as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// AGPLv3 for more details.
+//
+// You should have received a copy of the AGPLv3
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+//
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
+import {
+  PRESS_ATTRIBUTE,
+  PRESS_MIN_HOLD_MS,
+  PRESS_RELEASE_MS,
+  find_press_target,
+  start_press_feedback,
+} from "./press_feedback";
+
+function pointer(type: string, target: Element, pointer_type = "mouse") {
+  const event = new PointerEvent(type, {
+    bubbles: true,
+    cancelable: true,
+    button: 0,
+    pointerType: pointer_type,
+  });
+
+  target.dispatchEvent(event);
+
+  return event;
+}
+
+function mouse_down(target: Element, detail: number) {
+  const event = new MouseEvent("mousedown", {
+    bubbles: true,
+    cancelable: true,
+    button: 0,
+    detail,
+  });
+
+  target.dispatchEvent(event);
+
+  return event;
+}
+
+describe("press_feedback", () => {
+  let stop: () => void;
+  let button: HTMLButtonElement;
+  let clicks: number;
+
+  beforeEach(() => {
+    vi.useFakeTimers({
+      toFake: ["setTimeout", "clearTimeout", "performance"],
+    });
+    document.body.innerHTML = `
+      <button id="menu"><span id="icon">i</span></button>
+      <button id="other">o</button>
+      <button id="off" disabled>x</button>
+      <div id="body"><p id="text">hello world</p></div>
+      <div contenteditable="true"><button id="inside_editor">b</button></div>
+      <textarea id="area"></textarea>
+    `;
+    button = document.getElementById("menu") as HTMLButtonElement;
+    clicks = 0;
+    button.addEventListener("click", () => {
+      clicks += 1;
+    });
+    stop = start_press_feedback();
+  });
+
+  afterEach(() => {
+    stop();
+    vi.useRealTimers();
+    document.body.innerHTML = "";
+  });
+
+  it("marks the innermost control on pointer down", () => {
+    pointer("pointerdown", document.getElementById("icon")!);
+
+    expect(button.getAttribute(PRESS_ATTRIBUTE)).toBe("down");
+  });
+
+  it("holds a quick press for the minimum duration", () => {
+    pointer("pointerdown", button);
+    pointer("pointerup", button);
+
+    expect(button.getAttribute(PRESS_ATTRIBUTE)).toBe("down");
+    vi.advanceTimersByTime(PRESS_MIN_HOLD_MS - 1);
+    expect(button.getAttribute(PRESS_ATTRIBUTE)).toBe("down");
+    vi.advanceTimersByTime(1);
+    expect(button.getAttribute(PRESS_ATTRIBUTE)).toBe("release");
+    vi.advanceTimersByTime(PRESS_RELEASE_MS);
+    expect(button.hasAttribute(PRESS_ATTRIBUTE)).toBe(false);
+  });
+
+  it("restarts cleanly on rapid clicks and never sticks", () => {
+    for (let i = 0; i < 5; i += 1) {
+      pointer("pointerdown", button);
+      expect(button.getAttribute(PRESS_ATTRIBUTE)).toBe("down");
+      pointer("pointerup", button);
+      button.click();
+      vi.advanceTimersByTime(100);
+    }
+
+    expect(clicks).toBe(5);
+    vi.advanceTimersByTime(PRESS_MIN_HOLD_MS + PRESS_RELEASE_MS);
+    expect(button.hasAttribute(PRESS_ATTRIBUTE)).toBe(false);
+  });
+
+  it("moves the press to a new control", () => {
+    const other = document.getElementById("other")!;
+
+    pointer("pointerdown", button);
+    pointer("pointerup", button);
+    pointer("pointerdown", other);
+
+    expect(button.hasAttribute(PRESS_ATTRIBUTE)).toBe(false);
+    expect(other.getAttribute(PRESS_ATTRIBUTE)).toBe("down");
+  });
+
+  it("clears the press on pointer cancel", () => {
+    pointer("pointerdown", button);
+    pointer("pointercancel", button);
+
+    expect(button.hasAttribute(PRESS_ATTRIBUTE)).toBe(false);
+  });
+
+  it("never cancels pointer events", () => {
+    const event = pointer("pointerdown", button);
+
+    expect(event.defaultPrevented).toBe(false);
+  });
+
+  it("ignores disabled controls and editable areas", () => {
+    expect(find_press_target(document.getElementById("off"))).toBeNull();
+    expect(
+      find_press_target(document.getElementById("inside_editor")),
+    ).toBeNull();
+    expect(find_press_target(document.getElementById("area"))).toBeNull();
+    expect(find_press_target(document.getElementById("text"))).toBeNull();
+  });
+
+  it("blocks multi-click selection on controls only", () => {
+    expect(mouse_down(button, 1).defaultPrevented).toBe(false);
+    expect(mouse_down(button, 2).defaultPrevented).toBe(true);
+    expect(mouse_down(button, 3).defaultPrevented).toBe(true);
+    expect(
+      mouse_down(document.getElementById("text")!, 2).defaultPrevented,
+    ).toBe(false);
+    expect(
+      mouse_down(document.getElementById("area")!, 3).defaultPrevented,
+    ).toBe(false);
+  });
+
+  it("presses on keyboard activation", () => {
+    button.focus();
+    document.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter" }));
+    expect(button.getAttribute(PRESS_ATTRIBUTE)).toBe("down");
+    document.dispatchEvent(new KeyboardEvent("keyup", { key: "Enter" }));
+    vi.advanceTimersByTime(PRESS_MIN_HOLD_MS + PRESS_RELEASE_MS);
+    expect(button.hasAttribute(PRESS_ATTRIBUTE)).toBe(false);
+  });
+
+  it("delays the touch press so scrolls do not flash", () => {
+    pointer("pointerdown", button, "touch");
+    expect(button.hasAttribute(PRESS_ATTRIBUTE)).toBe(false);
+    pointer("pointercancel", button, "touch");
+    vi.advanceTimersByTime(200);
+    expect(button.hasAttribute(PRESS_ATTRIBUTE)).toBe(false);
+  });
+
+  it("shows a quick tap immediately", () => {
+    pointer("pointerdown", button, "touch");
+    pointer("pointerup", button, "touch");
+    expect(button.getAttribute(PRESS_ATTRIBUTE)).toBe("down");
+  });
+});
