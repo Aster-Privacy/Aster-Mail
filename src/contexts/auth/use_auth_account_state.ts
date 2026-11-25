@@ -112,7 +112,11 @@ import { connection_store } from "@/services/routing/connection_store";
 import { load_preferred_sender_from_server } from "@/lib/preferred_sender";
 import { show_toast } from "@/components/toast/simple_toast";
 import { hard_redirect } from "@/lib/hard_redirect";
-import { app_pathname } from "@/lib/account_index_url";
+import {
+  account_index_routing_enabled,
+  app_pathname,
+} from "@/lib/account_index_url";
+import { is_account_choice_required } from "@/lib/tab_account";
 import {
   clear_app_lock_config,
   clear_session_unlock,
@@ -392,14 +396,18 @@ export function use_auth_account_state() {
         const current = await get_current_account();
 
         if (!current) {
-          if (await try_sibling_handoff()) return;
+          const tab_scoped = account_index_routing_enabled();
+
+          if (!is_account_choice_required() && (await try_sibling_handoff())) {
+            return;
+          }
 
           api_client.set_authenticated(false);
           set_state((prev) => ({
             ...prev,
             is_loading: false,
             accounts: data.accounts,
-            current_account_id: data.current_account_id,
+            current_account_id: tab_scoped ? null : data.current_account_id,
           }));
 
           return;

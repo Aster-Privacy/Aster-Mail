@@ -10738,6 +10738,9 @@ export const fr = {
       "Vous déplacez souvent les messages de {{sender}} vers {{category}}. Voulez-vous le faire automatiquement ?",
   },
   auth: {
+    account_chooser_title: "Choisissez un compte",
+    account_chooser_body: "Cette adresse ne correspond à aucun compte connecté sur cet appareil. Choisissez un compte pour continuer.",
+    account_chooser_empty: "Aucun compte n'est connecté sur cet appareil.",
     continue_with_app: "Continuer avec {{app}}",
     sibling_waiting: "Confirmez la connexion dans la fenêtre qui s'est ouverte.",
     sibling_popup_blocked: "La fenêtre de confirmation a été bloquée. Autorisez les fenêtres pop-up pour ce site, puis réessayez.",

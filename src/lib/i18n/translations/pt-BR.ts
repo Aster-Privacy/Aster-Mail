@@ -10660,6 +10660,9 @@ export const pt_br = {
     forward_message_heading: "Encaminhar mensagem",
   },
   auth: {
+    account_chooser_title: "Escolha uma conta",
+    account_chooser_body: "Este endereço não corresponde a nenhuma conta conectada neste dispositivo. Escolha uma conta para continuar.",
+    account_chooser_empty: "Nenhuma conta está conectada neste dispositivo.",
     continue_with_app: "Continuar com {{app}}",
     sibling_waiting: "Confirme o login na janela que foi aberta.",
     sibling_popup_blocked: "A janela de confirmação foi bloqueada. Permita pop-ups para este site e tente novamente.",

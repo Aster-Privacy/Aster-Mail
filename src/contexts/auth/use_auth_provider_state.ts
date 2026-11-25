@@ -108,13 +108,19 @@ import {
 } from "@/native/desktop_device_auth";
 import { process_offline_queue } from "@/native/offline_queue";
 import {
+  account_index_path,
   account_index_routing_enabled,
+  account_index_url,
   app_pathname,
   get_active_account_index,
   is_public_entry_path,
   redirect_to_account_index,
-  take_url_account_request,
 } from "@/lib/account_index_url";
+import {
+  clear_tab_account,
+  get_tab_account_id,
+  set_account_choice_required,
+} from "@/lib/tab_account";
 import {
   clear_session_unlock,
 } from "@/services/app_lock_store";
@@ -159,6 +165,20 @@ async function resume_surviving_account(
 }
 
 const SIGN_OUT_NETWORK_BUDGET_MS = 4000;
+
+async function survivor_tab_path(
+  survivor_id: string,
+  pathname: string,
+): Promise<string> {
+  if (!account_index_routing_enabled()) return pathname;
+
+  const accounts = await get_all_accounts().catch(() => []);
+  const index = accounts.findIndex((a) => a.id === survivor_id);
+
+  clear_tab_account();
+
+  return account_index_path(index === -1 ? 0 : index, pathname);
+}
 const SIGN_OUT_WIPE_BUDGET_MS = 4000;
 const SIGN_OUT_FALLBACK_MS = 10000;
 
@@ -209,6 +229,16 @@ export function use_auth_provider_state() {
 
   const switch_to_account = useCallback(
     async (account_id: string) => {
+      if (account_index_routing_enabled()) {
+        const index = state.accounts.findIndex((a) => a.id === account_id);
+
+        if (index === -1 || account_id === get_tab_account_id()) return;
+
+        window.open(account_index_url(index), "_blank", "noopener");
+
+        return;
+      }
+
       if (switch_in_flight.current) return;
       switch_in_flight.current = true;
       session_expired_muted_until.current = Date.now() + 30000;
@@ -403,6 +433,7 @@ export function use_auth_provider_state() {
     },
     [
       navigate,
+      state.accounts,
       state.current_account_id,
       set_is_adding_account,
       begin_account_reauth,
@@ -538,7 +569,7 @@ export function use_auth_provider_state() {
 
         if (await resume_surviving_account(other)) {
           reload_into_survivor = true;
-          nav_target = "/";
+          nav_target = await survivor_tab_path(other.id, "/");
 
           return;
         }
@@ -555,7 +586,7 @@ export function use_auth_provider_state() {
           current_account_id: other.id,
         }));
         set_is_adding_account(true);
-        nav_target = `/sign-in?u=${encodeURIComponent(survivor_local)}`;
+        nav_target = `${await survivor_tab_path(other.id, "/sign-in")}?u=${encodeURIComponent(survivor_local)}`;
       } else {
         await with_timeout(clear_local_auth_data(), SIGN_OUT_WIPE_BUDGET_MS);
         nav_target = "/sign-in";
@@ -1038,10 +1069,28 @@ export function use_auth_provider_state() {
 
     if (requested === state.current_account_id) return;
 
+    if (account_index_routing_enabled()) {
+      const index = state.accounts.findIndex((a) => a.id === requested);
+
+      if (index === -1) return;
+
+      clear_tab_account();
+      hard_redirect(
+        `${account_index_path(index, app_pathname())}${query ? `?${query}` : ""}${window.location.hash}`,
+      );
+
+      return;
+    }
+
     switch_to_account(requested).catch((e) => {
       safe_log_error(e);
     });
-  }, [state.is_authenticated, state.current_account_id, switch_to_account]);
+  }, [
+    state.is_authenticated,
+    state.accounts,
+    state.current_account_id,
+    switch_to_account,
+  ]);
 
   useEffect(() => {
     if (!account_index_routing_enabled()) return;
@@ -1056,22 +1105,7 @@ export function use_auth_provider_state() {
 
     const url_index = get_active_account_index();
 
-    if (url_index === null) return;
-
-    const requested_index = take_url_account_request();
-
-    if (current_index === url_index) return;
-
-    const target =
-      requested_index === null ? null : state.accounts[requested_index];
-
-    if (target && target.id !== state.current_account_id) {
-      switch_to_account(target.id).catch((e) => {
-        safe_log_error(e);
-      });
-
-      return;
-    }
+    if (url_index === null || current_index === url_index) return;
 
     redirect_to_account_index(current_index);
   }, [
@@ -1080,7 +1114,6 @@ export function use_auth_provider_state() {
     state.accounts,
     state.current_account_id,
     location.pathname,
-    switch_to_account,
   ]);
 
   useEffect(() => {
@@ -1098,6 +1131,24 @@ export function use_auth_provider_state() {
       const stored_current = await get_current_account_id().catch(() => null);
 
       if (!stored.some((acc) => acc.id === current_id)) {
+        if (account_index_routing_enabled()) {
+          api_client.clear_dev_token();
+          api_client.set_expected_user_id(null);
+          clear_vault_from_memory();
+          sync_client.disconnect();
+          set_account_choice_required(true);
+          set_state((prev) => ({
+            ...prev,
+            user: null,
+            is_authenticated: false,
+            has_keys: false,
+            accounts: stored,
+            current_account_id: null,
+          }));
+
+          return;
+        }
+
         hard_redirect(stored_current ? "/" : "/sign-in");
 
         return;

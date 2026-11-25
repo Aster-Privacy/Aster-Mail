@@ -10629,6 +10629,9 @@ export const es = {
       "Sueles mover el correo de {{sender}} a {{category}}. ¿Quieres que se haga automáticamente?",
   },
   auth: {
+    account_chooser_title: "Elige una cuenta",
+    account_chooser_body: "Esta dirección no corresponde a ninguna cuenta con la sesión iniciada en este dispositivo. Elige una cuenta para continuar.",
+    account_chooser_empty: "No hay ninguna cuenta con la sesión iniciada en este dispositivo.",
     continue_with_app: "Continuar con {{app}}",
     sibling_waiting: "Confirma el inicio de sesión en la ventana que se abrió.",
     sibling_popup_blocked: "Se bloqueó la ventana de confirmación. Permite las ventanas emergentes para este sitio e inténtalo de nuevo.",

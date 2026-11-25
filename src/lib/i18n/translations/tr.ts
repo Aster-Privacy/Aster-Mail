@@ -10506,6 +10506,9 @@ export const tr = {
       "{{sender}} kişisinden gelen iletileri sık sık {{category}} kategorisine taşıyorsunuz. Bu otomatik yapılsın mı?",
   },
   auth: {
+    account_chooser_title: "Bir hesap seçin",
+    account_chooser_body: "Bu adres, bu cihazda oturum açılmış hiçbir hesapla eşleşmiyor. Devam etmek için bir hesap seçin.",
+    account_chooser_empty: "Bu cihazda oturum açılmış hesap yok.",
     continue_with_app: "{{app}} ile devam et",
     sibling_waiting: "Açılan pencerede oturum açmayı onaylayın.",
     sibling_popup_blocked: "Onay penceresi engellendi. Bu site için açılır pencerelere izin verin ve tekrar deneyin.",

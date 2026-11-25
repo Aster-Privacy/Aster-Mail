@@ -206,6 +206,6 @@ export async function clear_search_data(
     secure_remove(saved_search_storage_key(user_id));
   }
   if (options.clear_cache) {
-    clear_search_index();
+    clear_search_index("current_account");
   }
 }

@@ -10733,6 +10733,9 @@ export const de = {
       "Sie verschieben E-Mails von {{sender}} immer wieder nach {{category}}. Soll das automatisch passieren?",
   },
   auth: {
+    account_chooser_title: "Konto auswählen",
+    account_chooser_body: "Diese Adresse gehört zu keinem Konto, das auf diesem Gerät angemeldet ist. Wähle ein Konto aus, um fortzufahren.",
+    account_chooser_empty: "Auf diesem Gerät ist kein Konto angemeldet.",
     continue_with_app: "Mit {{app}} fortfahren",
     sibling_waiting: "Bestätigen Sie die Anmeldung im geöffneten Fenster.",
     sibling_popup_blocked: "Das Bestätigungsfenster wurde blockiert. Erlauben Sie Pop-ups für diese Website und versuchen Sie es erneut.",

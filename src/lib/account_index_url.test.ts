@@ -22,13 +22,13 @@ import { describe, it, expect, beforeEach } from "vitest";
 
 import {
   account_index_path,
+  account_index_url,
   app_pathname,
+  is_public_entry_path,
   get_active_account_index,
   parse_account_index,
   resolve_account_basename,
   strip_account_prefix,
-  take_url_account_request,
-  write_account_index_hint,
 } from "./account_index_url";
 
 function set_location(pathname: string, search = "", hash = ""): void {
@@ -66,54 +66,55 @@ describe("account_index_url", () => {
     expect(account_index_path(0, "/")).toBe("/u/0/");
   });
 
-  it("honors an explicit index in the url", () => {
+  it("keeps an explicit index in the url as the basename", () => {
     set_location("/u/2/starred", "?q=hi");
 
     expect(resolve_account_basename()).toBe("/u/2");
     expect(get_active_account_index()).toBe(2);
     expect(window.location.pathname).toBe("/u/2/starred");
-    expect(take_url_account_request()).toBe(2);
-    expect(take_url_account_request()).toBe(null);
+    expect(window.location.search).toBe("?q=hi");
   });
 
-  it("adds the stored index to an app path that has none", () => {
-    write_account_index_hint(1);
+  it("treats a plain path as the first account and adds the prefix", () => {
     set_location("/archive", "?q=hi", "#msg");
 
-    expect(resolve_account_basename()).toBe("/u/1");
-    expect(get_active_account_index()).toBe(1);
-    expect(window.location.pathname).toBe("/u/1/archive");
+    expect(resolve_account_basename()).toBe("/u/0");
+    expect(get_active_account_index()).toBe(0);
+    expect(window.location.pathname).toBe("/u/0/archive");
     expect(window.location.search).toBe("?q=hi");
     expect(window.location.hash).toBe("#msg");
-    expect(take_url_account_request()).toBe(null);
   });
 
-  it("defaults to the first account when nothing is stored", () => {
+  it("maps the root path to the first account", () => {
     set_location("/");
 
     expect(resolve_account_basename()).toBe("/u/0");
     expect(window.location.pathname).toBe("/u/0/");
   });
 
-  it("prefixes public entry paths without treating them as a switch request", () => {
-    write_account_index_hint(2);
-
+  it("prefixes public entry paths with the first account", () => {
     for (const path of ["/sign-in", "/view/token", "/family/claim/abc"]) {
       set_location(path);
 
-      expect(resolve_account_basename()).toBe("/u/2");
-      expect(get_active_account_index()).toBe(2);
-      expect(window.location.pathname).toBe(`/u/2${path}`);
-      expect(take_url_account_request()).toBe(null);
+      expect(resolve_account_basename()).toBe("/u/0");
+      expect(window.location.pathname).toBe(`/u/0${path}`);
+      expect(is_public_entry_path(app_pathname())).toBe(true);
     }
   });
 
-  it("ignores an explicit index typed onto a sign-in url", () => {
-    set_location("/u/1/sign-in", "?u=someone");
+  it("keeps an out-of-range index so the chooser can explain it", () => {
+    set_location("/u/99/all");
 
-    expect(resolve_account_basename()).toBe("/u/1");
-    expect(get_active_account_index()).toBe(1);
-    expect(take_url_account_request()).toBe(null);
+    expect(resolve_account_basename()).toBe("/u/99");
+    expect(get_active_account_index()).toBe(99);
+    expect(window.location.pathname).toBe("/u/99/all");
+  });
+
+  it("uses the exact matched prefix as the basename", () => {
+    set_location("/u/007/settings");
+
+    expect(resolve_account_basename()).toBe("/u/007");
+    expect(get_active_account_index()).toBe(7);
   });
 
   it("reports the app path with the prefix removed", () => {
@@ -122,19 +123,15 @@ describe("account_index_url", () => {
     expect(app_pathname()).toBe("/sign-in");
   });
 
-  it("replaces an out-of-range url index instead of nesting it", () => {
-    write_account_index_hint(1);
-    set_location("/u/99/all");
-
-    expect(resolve_account_basename()).toBe("/u/1");
-    expect(window.location.pathname).toBe("/u/1/all");
-    expect(take_url_account_request()).toBe(null);
+  it("builds the url a new account tab opens", () => {
+    expect(account_index_url(0)).toBe("/u/0/");
+    expect(account_index_url(3)).toBe("/u/3/");
   });
 
-  it("ignores an out-of-range stored index", () => {
-    write_account_index_hint(99);
-    set_location("/");
+  it("does not treat lookalike paths as a prefix", () => {
+    set_location("/user/1/all");
 
     expect(resolve_account_basename()).toBe("/u/0");
+    expect(window.location.pathname).toBe("/u/0/user/1/all");
   });
 });

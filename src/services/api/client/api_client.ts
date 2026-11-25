@@ -20,6 +20,9 @@
 //
 import { Capacitor } from "@capacitor/core";
 
+import { account_index_routing_enabled } from "@/lib/account_index_url";
+import { tab_shares_session_cookies } from "@/lib/tab_account";
+
 import {
   get_csrf_token_from_cookie,
   set_csrf_token,
@@ -158,6 +161,8 @@ function is_transient_response(result: {
     (TRANSIENT_RESPONSE_STATUSES.has(result.status) || result.status >= 500)
   );
 }
+
+const EXPECTED_USER_HEADER = "X-Aster-Expected-User";
 
 export class ApiClient {
   private refresh_timeout: number | null = null;
@@ -1427,6 +1432,26 @@ export class ApiClient {
     return this.dev_access_token;
   }
 
+  session_transport(): {
+    credentials: RequestCredentials;
+    headers: Record<string, string>;
+  } {
+    const headers: Record<string, string> = {};
+
+    if (this.dev_access_token) {
+      headers["Authorization"] = `Bearer ${this.dev_access_token}`;
+    }
+
+    if (this.expected_user_id && account_index_routing_enabled()) {
+      headers[EXPECTED_USER_HEADER] = this.expected_user_id;
+    }
+
+    return {
+      credentials: tab_shares_session_cookies() ? "include" : "omit",
+      headers,
+    };
+  }
+
   get_active_refresh_token(): string | null {
     return this.active_refresh_token;
   }
@@ -1771,6 +1796,8 @@ export class ApiClient {
   }
 
   async clear_session_cookies(): Promise<boolean> {
+    if (!tab_shares_session_cookies()) return true;
+
     await this.await_outgoing_session_checkpoint();
 
     try {
@@ -2022,6 +2049,13 @@ export class ApiClient {
       headers["Authorization"] = `Bearer ${this.dev_access_token}`;
     }
 
+    if (this.expected_user_id && account_index_routing_enabled()) {
+      headers[EXPECTED_USER_HEADER] = this.expected_user_id;
+    }
+
+    const request_credentials: RequestCredentials =
+      tab_shares_session_cookies() ? "include" : "omit";
+
     const method = options.method || "GET";
 
     options.body = with_declared_platform(endpoint, options.body);
@@ -2090,7 +2124,7 @@ export class ApiClient {
         const started_at = Date.now();
         const timed = await this.request_with_timeout(
           url,
-          { ...options, headers, credentials: "include" },
+          { ...options, headers, credentials: request_credentials },
           timeout,
           background?.controller,
         );

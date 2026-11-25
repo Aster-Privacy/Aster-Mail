@@ -18,6 +18,8 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { tab_shares_session_cookies } from "@/lib/tab_account";
+
 const CSRF_COOKIE_NAME = "csrf_token";
 
 let cached_csrf_token: string | null = null;
@@ -31,7 +33,7 @@ export function get_csrf_token_from_cookie(): string | null {
     return cached_csrf_token;
   }
 
-  if (typeof document === "undefined") {
+  if (typeof document === "undefined" || !tab_shares_session_cookies()) {
     return cached_csrf_token;
   }
 

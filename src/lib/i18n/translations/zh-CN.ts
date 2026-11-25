@@ -9472,6 +9472,9 @@ export const zh_CN = {
       "您经常把 {{sender}} 的邮件移到{{category}}。要自动处理吗？",
   },
   auth: {
+    account_chooser_title: "选择账户",
+    account_chooser_body: "此地址与本设备上已登录的任何账户都不匹配。请选择一个账户以继续。",
+    account_chooser_empty: "本设备上没有已登录的账户。",
     continue_with_app: "使用 {{app}} 继续",
     sibling_waiting: "请在打开的窗口中确认登录。",
     sibling_popup_blocked: "确认窗口被拦截。请允许此网站的弹出窗口，然后重试。",

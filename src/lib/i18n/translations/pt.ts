@@ -10713,6 +10713,9 @@ export const pt = {
       "Move frequentemente mensagens de {{sender}} para {{category}}. Pretende fazê-lo automaticamente?",
   },
   auth: {
+    account_chooser_title: "Escolha uma conta",
+    account_chooser_body: "Este endereço não corresponde a nenhuma conta com sessão iniciada neste dispositivo. Escolha uma conta para continuar.",
+    account_chooser_empty: "Não existe nenhuma conta com sessão iniciada neste dispositivo.",
     continue_with_app: "Continuar com {{app}}",
     sibling_waiting: "Confirme o início de sessão na janela que se abriu.",
     sibling_popup_blocked: "A janela de confirmação foi bloqueada. Permita janelas pop-up para este site e tente novamente.",
