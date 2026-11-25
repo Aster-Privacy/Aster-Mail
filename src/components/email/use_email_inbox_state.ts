@@ -69,6 +69,7 @@ import {
 } from "@/components/email/inbox/category_drag";
 import type { SystemDropTarget } from "@/lib/system_drop_targets";
 import { build_selection_snapshot } from "@/components/email/inbox/selection_snapshot";
+import { cap_category_unread } from "@/components/email/inbox/cap_category_unread";
 
 export type {
   ReplyData,
@@ -97,6 +98,7 @@ export function use_email_inbox_state(props: EmailInboxProps) {
     preferences,
     update_preference,
     mail_stats,
+    mail_stats_ready,
     folders_state,
     folder_unread_counts,
     tags_state,
@@ -448,7 +450,10 @@ export function use_email_inbox_state(props: EmailInboxProps) {
     current_view === "inbox" || current_view === ""
       ? categories.enabled
         ? is_index_reconciled()
-          ? categories.counts[categories.active_category]?.unread
+          ? cap_category_unread(
+              categories.counts[categories.active_category]?.unread,
+              mail_stats_ready ? mail_stats.unread : undefined,
+            )
           : undefined
         : mail_stats.unread
       : current_view === "drafts"

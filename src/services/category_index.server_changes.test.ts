@@ -109,14 +109,14 @@ function make_item(index: number, overrides: Partial<MailItem> = {}): MailItem {
   } as MailItem;
 }
 
-function serve_list(items: MailItem[]): void {
+function serve_list(items: MailItem[], has_more = false): void {
   list_mail_items.mockImplementation(
     async (params: { ids?: string[] } | undefined) => ({
       data: {
         items: params?.ids
           ? items.filter((item) => params.ids!.includes(item.id))
           : items,
-        has_more: false,
+        has_more,
       },
     }),
   );
@@ -276,7 +276,7 @@ describe("category_index server change feed", () => {
     await sync_recent();
     await settle();
     localStorage.setItem(TOKEN_KEY, STORED_TOKEN);
-    serve_list(newest);
+    serve_list(newest, true);
     sync_mail_items.mockClear();
   });
 
