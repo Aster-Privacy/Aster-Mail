@@ -73,6 +73,7 @@ export interface AttachmentListProps {
   decrypted_content_tag?: string;
   is_external?: boolean;
   has_recipient_key?: boolean;
+  is_received?: boolean;
   e2e_verified?: boolean;
   sent_encryption_scope?: SentEncryptionScope;
   is_local?: boolean;

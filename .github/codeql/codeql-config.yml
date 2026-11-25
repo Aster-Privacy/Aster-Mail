@@ -4,6 +4,7 @@ paths-ignore:
   - public/bergamot/**
   - src/vendor/**
   - src-tauri/patches/**
+  - aster-crypto/patches/**
   - src-tauri/gen/**
   - src-tauri/target/**
   - android/**

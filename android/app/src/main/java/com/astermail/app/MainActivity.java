@@ -150,10 +150,8 @@ public class MainActivity extends BridgeActivity {
                 Log.w(TAG, "Failed to build image inject payload", e);
             }
 
-        } catch (SecurityException e) {
-            Log.w(TAG, "SecurityException reading clipboard URI: " + uri, e);
         } catch (Exception e) {
-            Log.w(TAG, "Failed to read clipboard URI: " + uri, e);
+            Log.w(TAG, "Failed to read clipboard image: " + e.getClass().getSimpleName());
         }
     }
 }

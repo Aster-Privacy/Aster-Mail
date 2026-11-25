@@ -1612,6 +1612,117 @@ describe("run_retired_key_rewrap", () => {
     expect(summary?.confirming).toContain(PREFERENCES);
   });
 
+  it("never lowers a protection when it moves settings off a retired key", async () => {
+    const forged = {
+      theme: "dark",
+      load_remote_images: "always",
+      block_external_images: false,
+      encrypt_emails: false,
+      require_encryption: false,
+      show_encryption_indicators: false,
+      block_tracking_pixels: false,
+      send_read_receipts: true,
+      external_content_blocking_mode: "trackers",
+    };
+    const sealed = await seal(
+      await retired_key(PREFERENCES),
+      JSON.stringify(forged),
+    );
+
+    localStorage.removeItem("aster_preferences_cache");
+    h.account_key = await aes_key(new Uint8Array(32).fill(9));
+    await affected_vault();
+    h.preferences = {
+      encrypted_preferences: sealed.encrypted,
+      preferences_nonce: sealed.nonce,
+      preferences_version: 4,
+    };
+
+    const summary = await run_retired_key_rewrap(ACCOUNT);
+    const stored = JSON.parse(
+      (await open(
+        h.account_key,
+        h.preferences.encrypted_preferences,
+        h.preferences.preferences_nonce,
+      )) as string,
+    );
+
+    expect(summary?.rewrapped).toBe(1);
+    expect(stored).toEqual({
+      theme: "dark",
+      load_remote_images: "never",
+      block_external_images: false,
+      encrypt_emails: false,
+      require_encryption: false,
+      show_encryption_indicators: true,
+      block_tracking_pixels: true,
+      send_read_receipts: false,
+      external_content_blocking_mode: "both",
+    });
+  });
+
+  it("keeps a weaker setting the user already chose on this device", async () => {
+    const sealed = await seal(
+      await retired_key(PREFERENCES),
+      JSON.stringify({ load_remote_images: "always", encrypt_emails: true }),
+    );
+
+    localStorage.setItem(
+      "aster_preferences_cache",
+      JSON.stringify({ load_remote_images: "ask", encrypt_emails: false }),
+    );
+    h.account_key = await aes_key(new Uint8Array(32).fill(9));
+    await affected_vault();
+    h.preferences = {
+      encrypted_preferences: sealed.encrypted,
+      preferences_nonce: sealed.nonce,
+      preferences_version: 4,
+    };
+
+    try {
+      await run_retired_key_rewrap(ACCOUNT);
+
+      expect(
+        JSON.parse(
+          (await open(
+            h.account_key,
+            h.preferences.encrypted_preferences,
+            h.preferences.preferences_nonce,
+          )) as string,
+        ),
+      ).toEqual({ load_remote_images: "ask", encrypt_emails: true });
+    } finally {
+      localStorage.removeItem("aster_preferences_cache");
+    }
+  });
+
+  it("turns developer mode off when it moves it off a retired key", async () => {
+    const context: AccountDataContext = "astermail-devmode-v1";
+    const sealed = await seal(
+      await retired_key(context),
+      JSON.stringify({ enabled: true, timestamp: 1 }),
+    );
+
+    await affected_vault();
+    h.dev_mode = {
+      encrypted_dev_mode: sealed.encrypted,
+      dev_mode_nonce: sealed.nonce,
+    };
+
+    const summary = await run_retired_key_rewrap(ACCOUNT);
+
+    expect(summary?.rewrapped).toBe(1);
+    expect(
+      JSON.parse(
+        (await open(
+          await identity_key(context),
+          h.dev_mode.encrypted_dev_mode as string,
+          h.dev_mode.dev_mode_nonce as string,
+        )) as string,
+      ),
+    ).toEqual({ enabled: false, timestamp: 1 });
+  });
+
   it("yields to a newer copy saved by another device", async () => {
     const sealed = await seal(await retired_key(PREFERENCES), '"dark"');
     const newer = await seal(await identity_key(PREFERENCES), '"light"');
@@ -2420,7 +2531,7 @@ describe("run_retired_key_rewrap", () => {
     expect(held_contexts()).toContain(LABELS);
   });
 
-  it("moves calendars and events to the current key and keeps them readable", async () => {
+  it("keeps calendar data under the retired key instead of resealing it as bound", async () => {
     let clock = START;
 
     await single_vault(CALENDAR);
@@ -2431,105 +2542,23 @@ describe("run_retired_key_rewrap", () => {
       await old_event("e2", '{"title":"Lunch","notes":"café"}'),
     ];
 
-    const first = await run_retired_key_rewrap(ACCOUNT, () => clock);
-
-    expect(first?.rewrapped).toBe(3);
-    expect(first?.held).toBe(0);
-    expect(first?.confirming).toEqual([CALENDAR]);
-    expect(puts()).toEqual([
-      "/calendar/v1/calendars/c1",
-      "/calendar/v1/events/e1",
-      "/calendar/v1/events/e2",
-    ]);
-    expect(h.calendars[0].version).toBe(4);
-    expect(h.events[0].version).toBe(2);
-    expect(await calendar_text(h.calendars[0], false)).toBe('{"name":"Home"}');
-    expect(await calendar_text(h.events[0], true)).toBe('{"title":"Dentist"}');
-    expect(await calendar_text(h.events[1], true)).toBe(
-      '{"title":"Lunch","notes":"café"}',
-    );
-    expect(
-      await open(
-        await retired_key(CALENDAR),
-        h.calendars[0].encrypted_blob,
-        h.calendars[0].blob_nonce,
-      ),
-    ).toBeNull();
-
-    const stored = JSON.stringify([h.calendars, h.events]);
-
-    h.calls = [];
-    clock += RETIRED_REWRAP_RESCAN_MS + 1;
-
-    const second = await run_retired_key_rewrap(ACCOUNT, () => clock);
-
-    expect(second?.rewrapped).toBe(0);
-    expect(changes()).toEqual([]);
-    expect(JSON.stringify([h.calendars, h.events])).toBe(stored);
-
-    clock = START + RETIRED_REWRAP_CONFIRM_MS + 1;
-
-    const last = await run_retired_key_rewrap(ACCOUNT, () => clock);
-
-    expect(last?.dropped).toEqual([CALENDAR]);
-    expect(held_contexts()).toEqual([]);
-    expect(await calendar_text(h.events[0], true)).toBe('{"title":"Dentist"}');
-  });
-
-  it("holds calendar data until the account key is loaded", async () => {
-    let clock = START;
-
-    await single_vault(CALENDAR);
-    h.events = [await old_event("e1", '{"title":"Dentist"}')];
-
-    const before = { ...h.events[0] };
-    const first = await run_retired_key_rewrap(ACCOUNT, () => clock);
-
-    expect(first?.held).toBe(1);
-    expect(first?.pending).toEqual([CALENDAR]);
-    expect(changes()).toEqual([]);
-    expect(h.events[0]).toEqual(before);
-
-    await load_account_key();
-    clock += RETIRED_REWRAP_RETRY_MS;
-
-    const second = await run_retired_key_rewrap(ACCOUNT, () => clock);
-
-    expect(second?.rewrapped).toBe(1);
-    expect(await calendar_text(h.events[0], true)).toBe('{"title":"Dentist"}');
-  });
-
-  it("yields to an event another device saved first", async () => {
-    let clock = START;
-
-    await single_vault(CALENDAR);
-    await load_account_key();
-    h.events = [await old_event("e1", '{"title":"Dentist"}')];
-
-    const edited = await old_event("e1", '{"title":"Moved"}');
-
-    h.on_put = () => {
-      if (h.events[0].version === 1) {
-        Object.assign(h.events[0], edited, { version: 2 });
-      }
-    };
-
+    const before = JSON.stringify([h.calendars, h.events]);
     const first = await run_retired_key_rewrap(ACCOUNT, () => clock);
 
     expect(first?.rewrapped).toBe(0);
-    expect(first?.held).toBe(1);
+    expect(first?.held).toBe(3);
     expect(first?.pending).toEqual([CALENDAR]);
-    expect(h.events[0].encrypted_blob).toBe(edited.encrypted_blob);
-    expect(h.events[0].version).toBe(2);
+    expect(changes()).toEqual([]);
+    expect(JSON.stringify([h.calendars, h.events])).toBe(before);
+    expect(await calendar_text(h.calendars[0], false)).toBeNull();
+    expect(await calendar_text(h.events[0], true)).toBeNull();
+
+    clock += RETIRED_REWRAP_CONFIRM_MS + RETIRED_REWRAP_HELD_MS;
+    await run_retired_key_rewrap(ACCOUNT, () => clock);
+    expect(changes()).toEqual([]);
     expect(held_contexts()).toEqual([CALENDAR]);
-
-    h.on_put = null;
-    clock += RETIRED_REWRAP_RETRY_MS;
-
-    const second = await run_retired_key_rewrap(ACCOUNT, () => clock);
-
-    expect(second?.rewrapped).toBe(1);
-    expect(await calendar_text(h.events[0], true)).toBe('{"title":"Moved"}');
+    expect(get_retired_context_key(CALENDAR)).not.toBeNull();
+    expect(JSON.stringify([h.calendars, h.events])).toBe(before);
   });
 
   it("leaves calendar data it cannot rebuild exactly where it is", async () => {
@@ -2558,48 +2587,6 @@ describe("run_retired_key_rewrap", () => {
     expect(changes()).toEqual([]);
     expect(held_contexts()).toEqual([CALENDAR]);
     expect(get_retired_context_key(CALENDAR)).not.toBeNull();
-  });
-
-  it("resumes calendar data after an interrupted run", async () => {
-    let clock = START;
-
-    await single_vault(CALENDAR);
-    await load_account_key();
-    h.events = [
-      await old_event("e1", '{"title":"One"}'),
-      await old_event("e2", '{"title":"Two"}'),
-      await old_event("e3", '{"title":"Three"}'),
-    ];
-
-    const second_before = { ...h.events[1] };
-
-    h.on_put = (path) => {
-      if (path.endsWith("/e2")) throw new Error("connection lost");
-    };
-    h.fail_put = ["/calendar/v1/events/e3"];
-
-    const first = await run_retired_key_rewrap(ACCOUNT, () => clock);
-
-    expect(first?.rewrapped).toBe(1);
-    expect(first?.pending).toEqual([CALENDAR]);
-    expect(h.events[1]).toEqual(second_before);
-    expect(held_contexts()).toEqual([CALENDAR]);
-
-    h.on_put = null;
-    h.fail_put = [];
-    h.calls = [];
-    clock += RETIRED_REWRAP_RETRY_MS;
-
-    const second = await run_retired_key_rewrap(ACCOUNT, () => clock);
-
-    expect(puts()).toEqual([
-      "/calendar/v1/events/e2",
-      "/calendar/v1/events/e3",
-    ]);
-    expect(second?.rewrapped).toBe(2);
-    expect(await calendar_text(h.events[0], true)).toBe('{"title":"One"}');
-    expect(await calendar_text(h.events[1], true)).toBe('{"title":"Two"}');
-    expect(await calendar_text(h.events[2], true)).toBe('{"title":"Three"}');
   });
 
   it("never writes over a row it could not open", async () => {
@@ -2773,7 +2760,7 @@ describe("run_retired_key_rewrap", () => {
     ).toBe("Two");
   });
 
-  it("converts what an account wrote before it had an identity key, except drafts", async () => {
+  it("converts what an account wrote before it had an identity key, except drafts and calendars", async () => {
     const preferences = await seal(
       await retired_key(PREFERENCES),
       '{"theme":"dark"}',
@@ -2841,20 +2828,23 @@ describe("run_retired_key_rewrap", () => {
 
     const waiting = { ...h.scheduled[0] };
     const drafts_before = JSON.stringify(h.drafts);
+    const calendars_before = JSON.stringify([h.calendars, h.events]);
     const first = await run_retired_key_rewrap(ACCOUNT, () => clock);
 
-    expect(first?.held).toBe(3);
+    expect(first?.held).toBe(5);
     expect([...(first?.pending ?? [])].sort()).toEqual(
-      [SCHEDULED, DRAFTS, SHORT_DRAFTS].sort(),
+      [SCHEDULED, DRAFTS, SHORT_DRAFTS, CALENDAR].sort(),
     );
-    expect(first?.rewrapped).toBe(8);
+    expect(first?.rewrapped).toBe(6);
 
     clock += RETIRED_REWRAP_CONFIRM_MS + 1;
 
     const last = await run_retired_key_rewrap(ACCOUNT, () => clock);
 
     expect(last?.rewrapped).toBe(0);
-    expect(held_contexts()).toEqual([SCHEDULED, DRAFTS, SHORT_DRAFTS].sort());
+    expect(held_contexts()).toEqual(
+      [SCHEDULED, DRAFTS, SHORT_DRAFTS, CALENDAR].sort(),
+    );
     expect(h.scheduled[0]).toEqual(waiting);
     expect(JSON.stringify(h.drafts)).toBe(drafts_before);
     expect(
@@ -2903,8 +2893,8 @@ describe("run_retired_key_rewrap", () => {
         ),
       ).toBe('{"step":2}');
     }
-    expect(await calendar_text(h.calendars[0], false)).toBe('{"name":"Home"}');
-    expect(await calendar_text(h.events[0], true)).toBe('{"title":"Dentist"}');
+    expect(JSON.stringify([h.calendars, h.events])).toBe(calendars_before);
+    expect(await calendar_text(h.events[0], true)).toBeNull();
   });
 
   it("reads under a retired key until the first clean scan", async () => {

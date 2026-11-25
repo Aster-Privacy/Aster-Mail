@@ -1044,6 +1044,8 @@ export const zh_CN = {
     failed_to_send_via_external:
       "通过您关联的外部账户发送失败。请重试。您的草稿已保存。",
     offline_change_failed: "无法保存您在离线时所做的更改。",
+    storage_key_update_pending:
+      "Aster Mail 无法完成更新用于保护你已存数据的密钥。你的更改仍会保存，Aster Mail 会在后台继续重试。",
     offline_send_failed: "无法发送您在离线时撰写的邮件。",
     offline_email_queued: "您当前处于离线状态，这封邮件会在您重新联网后发出。",
     failed_to_queue_offline:
@@ -9452,6 +9454,7 @@ export const zh_CN = {
     authenticating: "验证中...",
     fetching_auth_data: "获取验证数据中...",
     verifying_credentials: "验证凭据中...",
+    sign_in_enhanced_unavailable: "Aster Mail 无法为此帐户使用增强登录保护，因此你尚未登录。如果你在另一台设备上更改了密码，请重新登录以继续使用标准保护。",
     sign_in_standard_protection: "增强登录保护暂时不可用，因此你已使用标准保护登录。",
     decrypting_vault: "解密密钥库中...",
     getting_user_info: "获取用户信息中...",

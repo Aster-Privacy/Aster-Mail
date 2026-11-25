@@ -237,7 +237,7 @@ mod platform {
             return Err("invalid path".into());
         }
 
-        std::process::Command::new("explorer.exe")
+        std::process::Command::new(crate::boot_guard::explorer_exe())
             .raw_arg(format!("/select,\"{display}\""))
             .spawn()
             .map(|_| ())

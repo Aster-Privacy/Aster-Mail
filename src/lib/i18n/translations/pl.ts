@@ -1231,6 +1231,8 @@ export const pl = {
       "Wysyłanie przez połączone konto zewnętrzne nie zadziałało. Spróbuj ponownie. Szkic jest zapisany.",
     offline_change_failed:
       "Nie udało się zapisać zmiany wprowadzonej w trybie offline.",
+    storage_key_update_pending:
+      "Aster Mail nie mógł dokończyć aktualizacji klucza, który chroni zapisane dane. Zmiany nadal są zapisywane, a Aster Mail ponawia próby w tle.",
     offline_send_failed:
       "Nie udało się wysłać wiadomości napisanej w trybie offline.",
     offline_email_queued:
@@ -10834,6 +10836,7 @@ export const pl = {
     authenticating: "Uwierzytelnianie...",
     fetching_auth_data: "Pobieranie danych uwierzytelniania...",
     verifying_credentials: "Weryfikowanie poświadczeń...",
+    sign_in_enhanced_unavailable: "Aster Mail nie mógł użyć rozszerzonej ochrony logowania dla tego konta, więc nie zalogowano Cię jeszcze. Jeśli zmieniono hasło na innym urządzeniu, zaloguj się ponownie, aby kontynuować ze standardową ochroną.",
     sign_in_standard_protection: "Rozszerzona ochrona logowania jest teraz niedostępna, więc zalogowano Cię ze standardową ochroną.",
     decrypting_vault: "Odszyfrowywanie sejfu kluczy...",
     getting_user_info: "Pobieranie informacji o użytkowniku...",
