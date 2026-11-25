@@ -488,6 +488,7 @@ function MobileThreadMessageContent({
     t("common.encrypted_attachment"),
     plain_view || !has_rich_html(clean_body) ? undefined : sanitized_html,
     message.decrypted_content_tag,
+    is_own_message,
   );
 
   use_attachment_keys_version(message.id);

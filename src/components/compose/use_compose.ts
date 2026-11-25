@@ -94,10 +94,11 @@ import {
   SIGNATURE_GAP_BLOCK,
   insert_signature_node,
 } from "@/lib/signature_html";
+import { extract_cid_references } from "@/lib/cid_resolver";
 import {
-  extract_cid_references,
-  resolve_cid_references,
-} from "@/lib/cid_resolver";
+  cap_scoped_quote_images,
+  embed_quoted_cid_images,
+} from "@/lib/quoted_inline_images";
 import { load_forward_attachments } from "@/services/forward_attachments";
 import { show_toast } from "@/components/toast/simple_toast";
 import {
@@ -244,18 +245,16 @@ function inject_html_with_inline_images(
   apply: (resolved_html: string) => void,
 ): void {
   if (!source_mail_id || extract_cid_references(html).length === 0) {
-    apply(html);
+    apply(cap_scoped_quote_images(html));
 
     return;
   }
 
-  resolve_cid_references(html, source_mail_id, "data")
-    .then((result) => {
-      if (is_active()) apply(result.html);
-    })
-    .catch(() => {
-      if (is_active()) apply(html);
-    });
+  void embed_quoted_cid_images(html, source_mail_id, false, true).then(
+    (resolved_html) => {
+      if (is_active()) apply(resolved_html);
+    },
+  );
 }
 
 export function use_compose({
