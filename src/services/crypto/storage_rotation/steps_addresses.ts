@@ -87,6 +87,8 @@ interface DomainAddressRow {
   display_name_nonce?: string | null;
   encrypted_note?: string | null;
   note_nonce?: string | null;
+  encrypted_websites?: string | null;
+  websites_nonce?: string | null;
 }
 
 interface MailTokenResponse {
@@ -302,6 +304,11 @@ async function build_domain_address_entry(
     address.encrypted_note,
     address.note_nonce,
   );
+  const websites = await plan_optional_field(
+    ctx,
+    address.encrypted_websites,
+    address.websites_nonce,
+  );
   const new_hash = await sign_under_new(
     ctx.keys,
     DOMAIN_ADDRESS_HMAC_INFO,
@@ -309,7 +316,13 @@ async function build_domain_address_entry(
   );
   const hash_changed = !same_hash(address.local_part_hash, new_hash);
 
-  if (!opened.changed && !display.changed && !note.changed && !hash_changed) {
+  if (
+    !opened.changed &&
+    !display.changed &&
+    !note.changed &&
+    !websites.changed &&
+    !hash_changed
+  ) {
     ctx.counts.current += 1;
 
     return null;
@@ -329,6 +342,10 @@ async function build_domain_address_entry(
   if (note.changed && note.send) {
     item.encrypted_note = note.send.ciphertext;
     item.note_nonce = note.send.nonce;
+  }
+  if (websites.changed && websites.send) {
+    item.encrypted_websites = websites.send.ciphertext;
+    item.websites_nonce = websites.send.nonce;
   }
 
   return {

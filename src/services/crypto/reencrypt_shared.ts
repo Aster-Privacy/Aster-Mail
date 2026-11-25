@@ -73,6 +73,8 @@ export interface ReEncryptedDomainAddress {
   display_name_nonce?: string;
   encrypted_note?: string;
   note_nonce?: string;
+  encrypted_websites?: string;
+  websites_nonce?: string;
 }
 
 export async function decrypt_with_candidates(
