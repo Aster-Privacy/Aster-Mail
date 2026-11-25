@@ -527,9 +527,13 @@ a:focus-visible {
     quote_toggle_dark,
   );
 
+  const document_scheme: "dark" | "light" =
+    !force_light_scheme && (force_dark_mode || auto_dark_active)
+      ? "dark"
+      : "light";
   const html_el_style = force_light_scheme
     ? ` style="background-color:${html_bg}"`
-    : force_dark_mode || auto_dark_active
+    : document_scheme === "dark"
       ? ` style="color-scheme:dark !important"`
       : "";
 
@@ -1122,6 +1126,7 @@ ${preferences.hide_scrollbars === true ? `<style>html, body { scrollbar-width: n
             display: "block",
             opacity: is_settling ? 0 : 1,
             backgroundColor: frame_bg,
+            colorScheme: document_scheme,
             touchAction: "pan-y",
           }}
           title={t("mail.email_content")}
