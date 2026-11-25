@@ -26,6 +26,7 @@ import {
   PRESS_RELEASE_MS,
   PRESS_SLOP_PX,
   find_press_target,
+  ripple_geometry,
   start_press_feedback,
 } from "./press_feedback";
 
@@ -82,6 +83,8 @@ describe("press_feedback", () => {
       <textarea id="area"></textarea>
       <div role="switch" id="toggle" tabindex="0"></div>
       <button id="code_button"><span id="code" class="select-text">123456</span></button>
+      <div role="button" id="strip" data-press-skip tabindex="0"><span id="strip_gap">g</span><button id="strip_action">a</button></div>
+      <div style="opacity: 0"><button id="hidden_action">h</button></div>
     `;
     button = document.getElementById("menu") as HTMLButtonElement;
     clicks = 0;
@@ -223,5 +226,31 @@ describe("press_feedback", () => {
     expect(
       mouse_down(document.getElementById("code_button")!, 2).defaultPrevented,
     ).toBe(true);
+  });
+
+  it("presses row actions but not their strip or hidden actions", () => {
+    expect(find_press_target(document.getElementById("strip_gap"))).toBeNull();
+    expect(find_press_target(document.getElementById("strip_action"))).toBe(
+      document.getElementById("strip_action"),
+    );
+    expect(
+      find_press_target(document.getElementById("hidden_action")),
+    ).toBeNull();
+  });
+
+  it("grows the ripple from the press point to cover the target", () => {
+    const g = ripple_geometry(200, 40, 30, 10);
+
+    expect([g.from_x, g.from_y, g.to_x, g.to_y]).toEqual([30, 10, 100, 20]);
+    expect(g.from_r).toBeCloseTo(20);
+    expect(g.to_r * 0.65).toBeGreaterThanOrEqual(Math.hypot(100, 20) - 0.001);
+  });
+
+  it("starts keyboard ripples at the center and clamps stray points", () => {
+    const centered = ripple_geometry(40, 40, null, null);
+    const clamped = ripple_geometry(40, 40, -5, 90);
+
+    expect([centered.from_x, centered.from_y]).toEqual([20, 20]);
+    expect([clamped.from_x, clamped.from_y]).toEqual([0, 40]);
   });
 });

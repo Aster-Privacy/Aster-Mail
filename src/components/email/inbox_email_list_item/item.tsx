@@ -1036,6 +1036,7 @@ export const InboxEmailListItem = memo(
 
             {show_hover_actions && (
               <div
+                data-press-skip
                 className={cn(
                   "absolute end-3 sm:end-4 flex items-center gap-0.5 opacity-0 group-hover:opacity-100 ps-10",
                   email.is_selected === true
