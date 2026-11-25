@@ -460,28 +460,80 @@ fn zeroize_refresh_map(map: &mut HashMap<String, String>) {
     }
 }
 
-fn refresh_store_load(wrap_key: &[u8; 32]) -> Result<HashMap<String, String>, String> {
-    let path = auth_file_path(REFRESH_FILE_NAME)?;
-
+fn refresh_store_load_at(
+    path: &std::path::Path,
+    wrap_key: &[u8; 32],
+) -> Result<HashMap<String, String>, String> {
     if !path.exists() {
         return Ok(HashMap::new());
     }
-    let blob = std::fs::read(&path).map_err(|e| e.to_string())?;
+    let blob = std::fs::read(path).map_err(|e| e.to_string())?;
 
     refresh_map_open(wrap_key, &blob)
 }
 
-fn refresh_store_save(wrap_key: &[u8; 32], map: &HashMap<String, String>) -> Result<(), String> {
-    let path = auth_file_path(REFRESH_FILE_NAME)?;
-
+fn refresh_store_save_at(
+    path: &std::path::Path,
+    wrap_key: &[u8; 32],
+    map: &HashMap<String, String>,
+) -> Result<(), String> {
     if map.is_empty() {
-        secure_delete_file(&path);
+        if !secure_delete_file(path) {
+            return Err("stored session file could not be removed".to_string());
+        }
 
         return Ok(());
     }
     let blob = refresh_map_seal(wrap_key, map)?;
 
-    atomic_write(&path, &blob)
+    atomic_write(path, &blob)
+}
+
+fn refresh_store_put(
+    path: &std::path::Path,
+    wrap_key: &[u8; 32],
+    account_id: String,
+    value: String,
+) -> Result<(), String> {
+    let mut map = refresh_store_load_at(path, wrap_key)?;
+
+    if let Some(mut previous) = map.insert(account_id, value) {
+        previous.zeroize();
+    }
+    let result = refresh_store_save_at(path, wrap_key, &map);
+
+    zeroize_refresh_map(&mut map);
+    result
+}
+
+fn refresh_store_read(
+    path: &std::path::Path,
+    wrap_key: &[u8; 32],
+    account_id: &str,
+) -> Result<Option<String>, String> {
+    let mut map = refresh_store_load_at(path, wrap_key)?;
+    let value = map.remove(account_id);
+
+    zeroize_refresh_map(&mut map);
+    Ok(value)
+}
+
+fn refresh_store_drop(
+    path: &std::path::Path,
+    wrap_key: &[u8; 32],
+    account_id: &str,
+) -> Result<(), String> {
+    let mut map = refresh_store_load_at(path, wrap_key)?;
+    let result = match map.remove(account_id) {
+        Some(mut removed) => {
+            removed.zeroize();
+            refresh_store_save_at(path, wrap_key, &map)
+        }
+        None => Ok(()),
+    };
+
+    zeroize_refresh_map(&mut map);
+    result
 }
 
 const MAX_SECURE_OVERWRITE_BYTES: u64 = 1024 * 1024;
@@ -903,11 +955,34 @@ fn clean_machine_name(raw: &str) -> Option<String> {
 }
 
 #[tauri::command]
-pub fn device_set_id(device_id: String) -> Result<(), String> {
+pub fn device_set_id(window: tauri::WebviewWindow, device_id: String) -> Result<(), String> {
+    require_primary_webview(&window)?;
     let parsed = Uuid::parse_str(&device_id).map_err(|e| e.to_string())?;
     let mut stored = load_stored()?.ok_or_else(|| "no device identity".to_string())?;
+
+    if let Some(previous) = stored.device_id.filter(|previous| *previous != parsed) {
+        let legacy = passphrase_file_path()?;
+
+        if let Some(dir) = legacy.parent() {
+            let _ = scope_legacy_passphrase_to(dir, previous);
+        }
+    }
     stored.device_id = Some(parsed);
     save_stored(&stored)
+}
+
+fn scope_legacy_passphrase_to(dir: &std::path::Path, owner: Uuid) -> Result<(), String> {
+    let legacy = dir.join("device_passphrase.bin");
+
+    if !legacy.exists() {
+        return Ok(());
+    }
+    let scoped = dir.join(passphrase_file_name_for(owner));
+
+    if scoped.exists() {
+        return Ok(());
+    }
+    std::fs::rename(&legacy, &scoped).map_err(|e| e.to_string())
 }
 
 const DEVICE_LOGIN_NONCE_LEN: usize = 32;
@@ -1281,9 +1356,8 @@ pub fn device_open_local_secret(
 ) -> Result<Option<String>, String> {
     require_primary_webview(&window)?;
     let sealed = b64url_decode(&sealed_b64)?;
-    let Some(wrap_key) = wrap_key_load()? else {
-        return Ok(None);
-    };
+    let wrap_key = wrap_key_load()?
+        .ok_or_else(|| "stored sessions could not be unlocked".to_string())?;
     let value = Zeroizing::new(open_local_secret(&wrap_key, &sealed)?);
 
     Ok(Some(b64url(&value)))
@@ -1336,16 +1410,14 @@ pub fn device_refresh_token_set(
     }
 
     let _guard = REFRESH_STORE_LOCK.lock().map_err(|e| e.to_string())?;
-    let wrap_key = wrap_key_load_or_create()?;
-    let mut map = refresh_store_load(&wrap_key).unwrap_or_default();
+    let path = auth_file_path(REFRESH_FILE_NAME)?;
+    let wrap_key = if path.exists() {
+        wrap_key_load()?.ok_or_else(|| "stored sessions could not be unlocked".to_string())?
+    } else {
+        wrap_key_load_or_create()?
+    };
 
-    if let Some(mut previous) = map.insert(account_id, value) {
-        previous.zeroize();
-    }
-    let result = refresh_store_save(&wrap_key, &map);
-
-    zeroize_refresh_map(&mut map);
-    result
+    refresh_store_put(&path, &wrap_key, account_id, value)
 }
 
 #[tauri::command]
@@ -1360,19 +1432,15 @@ pub fn device_refresh_token_get(
     }
 
     let _guard = REFRESH_STORE_LOCK.lock().map_err(|e| e.to_string())?;
+    let path = auth_file_path(REFRESH_FILE_NAME)?;
 
-    if !auth_file_path(REFRESH_FILE_NAME)?.exists() {
+    if !path.exists() {
         return Ok(None);
     }
-    let wrap_key = match wrap_key_load()? {
-        Some(key) => key,
-        None => return Ok(None),
-    };
-    let mut map = refresh_store_load(&wrap_key)?;
-    let value = map.remove(&account_id);
+    let wrap_key = wrap_key_load()?
+        .ok_or_else(|| "stored sessions could not be unlocked".to_string())?;
 
-    zeroize_refresh_map(&mut map);
-    Ok(value)
+    refresh_store_read(&path, &wrap_key, &account_id)
 }
 
 #[tauri::command]
@@ -1392,28 +1460,10 @@ pub fn device_refresh_token_remove(
     if !path.exists() {
         return Ok(());
     }
-    let wrap_key = match wrap_key_load()? {
-        Some(key) => key,
-        None => return Ok(()),
-    };
-    let mut map = match refresh_store_load(&wrap_key) {
-        Ok(map) => map,
-        Err(_) => {
-            secure_delete_file(&path);
+    let wrap_key = wrap_key_load()?
+        .ok_or_else(|| "stored sessions could not be unlocked".to_string())?;
 
-            return Ok(());
-        }
-    };
-    let result = match map.remove(&account_id) {
-        Some(mut removed) => {
-            removed.zeroize();
-            refresh_store_save(&wrap_key, &map)
-        }
-        None => Ok(()),
-    };
-
-    zeroize_refresh_map(&mut map);
-    result
+    refresh_store_drop(&path, &wrap_key, &account_id)
 }
 
 #[tauri::command]
@@ -2655,6 +2705,83 @@ mod tests {
         assert!(aead_open(&key, MAGIC_AUTH, &sealed).is_err());
         assert!(refresh_map_open(&test_key(12), &sealed).is_err());
         assert!(refresh_map_open(&key, &aead_seal(&key, MAGIC_AUTH, b"{}").unwrap()).is_err());
+    }
+
+    #[test]
+    fn refresh_store_keeps_other_accounts_when_one_is_added() {
+        let path = scratch_path("refresh_keep_others");
+        let key = test_key(21);
+
+        refresh_store_put(&path, &key, "account-a".to_string(), "refresh-a".to_string()).unwrap();
+        refresh_store_put(&path, &key, "account-b".to_string(), "refresh-b".to_string()).unwrap();
+        refresh_store_put(&path, &key, "account-c".to_string(), "refresh-c".to_string()).unwrap();
+
+        assert_eq!(refresh_store_read(&path, &key, "account-a").unwrap().as_deref(), Some("refresh-a"));
+        assert_eq!(refresh_store_read(&path, &key, "account-b").unwrap().as_deref(), Some("refresh-b"));
+        assert_eq!(refresh_store_read(&path, &key, "account-c").unwrap().as_deref(), Some("refresh-c"));
+        let _ = std::fs::remove_file(&path);
+    }
+
+    #[test]
+    fn refresh_store_write_never_replaces_a_file_it_cannot_open() {
+        let path = scratch_path("refresh_unreadable_put");
+        let key = test_key(22);
+
+        refresh_store_put(&path, &key, "account-a".to_string(), "refresh-a".to_string()).unwrap();
+        let before = std::fs::read(&path).unwrap();
+
+        assert!(refresh_store_put(&path, &test_key(23), "account-b".to_string(), "refresh-b".to_string()).is_err());
+        assert_eq!(std::fs::read(&path).unwrap(), before);
+        assert_eq!(refresh_store_read(&path, &key, "account-a").unwrap().as_deref(), Some("refresh-a"));
+        let _ = std::fs::remove_file(&path);
+    }
+
+    #[test]
+    fn refresh_store_remove_never_deletes_a_file_it_cannot_open() {
+        let path = scratch_path("refresh_unreadable_drop");
+        let key = test_key(24);
+
+        refresh_store_put(&path, &key, "account-a".to_string(), "refresh-a".to_string()).unwrap();
+        refresh_store_put(&path, &key, "account-b".to_string(), "refresh-b".to_string()).unwrap();
+
+        assert!(refresh_store_drop(&path, &test_key(25), "account-a").is_err());
+        assert!(path.exists());
+        assert_eq!(refresh_store_read(&path, &key, "account-b").unwrap().as_deref(), Some("refresh-b"));
+        let _ = std::fs::remove_file(&path);
+    }
+
+    #[test]
+    fn legacy_passphrase_stays_with_its_account_when_another_pairs() {
+        let dir = std::env::temp_dir().join(format!("aster_legacy_pp_{}", Uuid::new_v4().as_simple()));
+        std::fs::create_dir_all(&dir).unwrap();
+        let owner = Uuid::new_v4();
+
+        std::fs::write(dir.join("device_passphrase.bin"), b"first").unwrap();
+        scope_legacy_passphrase_to(&dir, owner).unwrap();
+
+        assert!(!dir.join("device_passphrase.bin").exists());
+        assert_eq!(std::fs::read(dir.join(passphrase_file_name_for(owner))).unwrap(), b"first");
+
+        std::fs::write(dir.join("device_passphrase.bin"), b"stale").unwrap();
+        scope_legacy_passphrase_to(&dir, owner).unwrap();
+
+        assert_eq!(std::fs::read(dir.join(passphrase_file_name_for(owner))).unwrap(), b"first");
+        let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn refresh_store_remove_affects_only_that_account() {
+        let path = scratch_path("refresh_drop_one");
+        let key = test_key(26);
+
+        refresh_store_put(&path, &key, "account-a".to_string(), "refresh-a".to_string()).unwrap();
+        refresh_store_put(&path, &key, "account-b".to_string(), "refresh-b".to_string()).unwrap();
+        refresh_store_drop(&path, &key, "account-a").unwrap();
+
+        assert_eq!(refresh_store_read(&path, &key, "account-a").unwrap(), None);
+        assert_eq!(refresh_store_read(&path, &key, "account-b").unwrap().as_deref(), Some("refresh-b"));
+        refresh_store_drop(&path, &key, "account-b").unwrap();
+        assert!(!path.exists());
     }
 
     #[test]
