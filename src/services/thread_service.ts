@@ -246,6 +246,14 @@ async function resolve_our_email(
   }
 }
 
+function thread_recipient_key(
+  msg: ThreadMessageItem,
+): Pick<DecryptedThreadMessage, "has_recipient_key"> {
+  return typeof msg.has_recipient_key === "boolean"
+    ? { has_recipient_key: msg.has_recipient_key }
+    : {};
+}
+
 async function decode_thread_envelope(
   msg: ThreadMessageItem,
   our_email: string | undefined,
@@ -524,6 +532,7 @@ export async function fetch_and_decrypt_thread_messages(
         is_trashed: resolve_thread_trash_flag(msg.is_trashed, options),
         is_external: msg.is_external ?? false,
         system_origin: msg.system_origin,
+        ...thread_recipient_key(msg),
         sender_verified_domain: msg.sender_verified
           ? msg.sender_verified_domain
           : undefined,
@@ -566,6 +575,7 @@ export async function fetch_and_decrypt_thread_messages(
       is_trashed: resolve_thread_trash_flag(msg.is_trashed, options),
       is_external: msg.is_external ?? false,
       system_origin: msg.system_origin,
+      ...thread_recipient_key(msg),
       e2e_verified: content.e2e_verified,
       e2e_sender_bound: content.e2e_sender_bound,
       e2e_details_sealed: content.e2e_details_sealed,

@@ -1083,6 +1083,8 @@ export const de = {
       "Das Senden über Ihr verknüpftes externes Konto hat nicht funktioniert. Versuchen Sie es erneut. Ihr Entwurf ist gespeichert.",
     offline_change_failed:
       "Eine Änderung, die Sie offline vorgenommen haben, konnte nicht gespeichert werden.",
+    storage_key_update_pending:
+      "Aster Mail konnte den Schlüssel, der Ihre gespeicherten Daten schützt, nicht vollständig aktualisieren. Ihre Änderungen werden weiterhin gespeichert, und Aster Mail versucht es im Hintergrund weiter.",
     offline_send_failed:
       "Eine E-Mail, die Sie offline geschrieben haben, konnte nicht gesendet werden.",
     offline_email_queued:
@@ -10712,6 +10714,7 @@ export const de = {
     authenticating: "Authentifizierung...",
     fetching_auth_data: "Authentifizierungsdaten werden abgerufen...",
     verifying_credentials: "Zugangsdaten werden überprüft...",
+    sign_in_enhanced_unavailable: "Aster Mail konnte den erweiterten Anmeldeschutz für dieses Konto nicht verwenden, daher sind Sie noch nicht angemeldet. Wenn Sie Ihr Passwort auf einem anderen Gerät geändert haben, melden Sie sich erneut an, um mit dem Standardschutz fortzufahren.",
     sign_in_standard_protection: "Der erweiterte Anmeldeschutz ist derzeit nicht verfügbar. Sie wurden mit dem Standardschutz angemeldet.",
     decrypting_vault: "Ihr Schlüsseltresor wird entschlüsselt...",
     getting_user_info: "Benutzerinformationen werden abgerufen...",

@@ -23,8 +23,12 @@ import {
   index_of_ascii_ci,
   skip_js_whitespace,
 } from "./html_sanitizer_constants";
+import { create_selector_budget, is_affordable_selector } from "./selector_budget";
 
 export const BACKGROUND_IMAGE_MARK = "data-aster-bg-image";
+
+const MAX_MARKED_SELECTORS = 4_000;
+const MARK_TIME_BUDGET_MS = 150;
 
 function has_url_call(value: string, from: number, end: number): boolean {
   for (
@@ -142,7 +146,15 @@ export function mark_stylesheet_background_images(root: Element): void {
     selectors_with_background_image(element.textContent || ""),
   );
 
+  const budget = create_selector_budget(
+    MAX_MARKED_SELECTORS,
+    MARK_TIME_BUDGET_MS,
+  );
+
   for (const selector of selectors) {
+    if (!is_affordable_selector(selector)) continue;
+    if (!budget.take()) return;
+
     let matches: Element[] = [];
 
     try {

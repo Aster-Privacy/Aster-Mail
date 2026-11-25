@@ -1230,6 +1230,8 @@ export const it = {
       "L'invio tramite il tuo account esterno collegato non ha funzionato. Riprova. La bozza è salvata.",
     offline_change_failed:
       "Non è stato possibile salvare una modifica che ha fatto offline.",
+    storage_key_update_pending:
+      "Aster Mail non è riuscito a completare l'aggiornamento della chiave che protegge i tuoi dati salvati. Le modifiche vengono comunque salvate e Aster Mail continua a riprovare in background.",
     offline_send_failed:
       "Non è stato possibile inviare un’email che ha scritto offline.",
     offline_email_queued:
@@ -10647,6 +10649,7 @@ export const it = {
     authenticating: "Autenticazione...",
     fetching_auth_data: "Recupero dati di autenticazione...",
     verifying_credentials: "Verifica credenziali...",
+    sign_in_enhanced_unavailable: "Aster Mail non è riuscito a usare la protezione di accesso avanzata per questo account, quindi non hai ancora eseguito l'accesso. Se hai cambiato la password su un altro dispositivo, accedi di nuovo per continuare con la protezione standard.",
     sign_in_standard_protection: "La protezione di accesso avanzata non è al momento disponibile, quindi hai effettuato l'accesso con la protezione standard.",
     decrypting_vault: "Decrittazione del tuo vault di chiavi...",
     getting_user_info: "Recupero informazioni utente...",

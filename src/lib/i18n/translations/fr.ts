@@ -1240,6 +1240,8 @@ export const fr = {
       "L'envoi via votre compte externe associé n'a pas fonctionné. Réessayez. Votre brouillon est enregistré.",
     offline_change_failed:
       "Une modification que vous avez faite hors ligne n’a pas pu être enregistrée.",
+    storage_key_update_pending:
+      "Aster Mail n'a pas pu terminer la mise à jour de la clé qui protège vos données enregistrées. Vos modifications sont toujours enregistrées, et Aster Mail continue d'essayer en arrière-plan.",
     offline_send_failed:
       "Un message que vous avez écrit hors ligne n’a pas pu être envoyé.",
     offline_email_queued:
@@ -10718,6 +10720,7 @@ export const fr = {
     authenticating: "Authentification...",
     fetching_auth_data: "Récupération des données d'authentification...",
     verifying_credentials: "Vérification des identifiants...",
+    sign_in_enhanced_unavailable: "Aster Mail n'a pas pu utiliser la protection de connexion renforcée pour ce compte, vous n'êtes donc pas encore connecté. Si vous avez changé votre mot de passe sur un autre appareil, reconnectez-vous pour continuer avec la protection standard.",
     sign_in_standard_protection: "La protection de connexion renforcée n'est pas disponible pour le moment. Vous vous êtes connecté avec la protection standard.",
     decrypting_vault: "Déchiffrement de votre coffre-fort de clés...",
     getting_user_info: "Récupération des informations utilisateur...",

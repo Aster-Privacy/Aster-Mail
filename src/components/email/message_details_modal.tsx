@@ -272,7 +272,10 @@ export function MessageDetailsModal({
               is_external={message.is_external}
               is_received={message.item_type === "received"}
               label={
-                shows_end_to_end(message)
+                shows_end_to_end({
+                  ...message,
+                  is_received: message.item_type === "received",
+                })
                   ? t("mail.zero_access_encrypted")
                   : t("common.protected_in_transit")
               }

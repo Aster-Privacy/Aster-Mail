@@ -24,10 +24,13 @@ import {
   replace_matched_ranges,
   table_lookup,
 } from "./html_text";
+import { create_selector_budget, is_affordable_selector } from "./selector_budget";
 
 const MAX_CSS_LENGTH = 400_000;
 const MAX_STYLE_RULES = 4_000;
 const INLINE_STYLE_RANK = Number.MAX_SAFE_INTEGER;
+const MAX_SELECTORS = 8_000;
+const SELECTOR_TIME_BUDGET_MS = 250;
 
 interface DeclarationRank {
   important: boolean;
@@ -292,12 +295,14 @@ function apply_stylesheet_to_document(doc: Document, css_text: string): void {
   if (style_rules.length === 0 || style_rules.length > MAX_STYLE_RULES) return;
 
   const winners = snapshot_inline_styles(doc);
+  const budget = create_selector_budget(MAX_SELECTORS, SELECTOR_TIME_BUDGET_MS);
 
-  style_rules.forEach((rule, order) => {
+  for (const [order, rule] of style_rules.entries()) {
     for (const raw_selector of rule.selectorText.split(",")) {
       const selector = raw_selector.trim();
 
-      if (!selector) continue;
+      if (!selector || !is_affordable_selector(selector)) continue;
+      if (!budget.take()) return;
 
       let matched: Element[];
 
@@ -323,7 +328,7 @@ function apply_stylesheet_to_document(doc: Document, css_text: string): void {
         );
       }
     }
-  });
+  }
 }
 
 function is_safe_presentational_value(value: string): boolean {

@@ -29,6 +29,10 @@ import {
   mark_legacy_sweep_done,
   run_legacy_key_sweep,
 } from "./legacy_sweep";
+import {
+  STORAGE_KEY_PENDING_EVENT,
+  type StorageKeyPendingDetail,
+} from "./pending_event";
 import { local_progress_store } from "./reseal_io";
 import { needs_storage_reseal, run_storage_reseal } from "./run";
 import {
@@ -66,10 +70,18 @@ import { ignore_error } from "@/lib/ignore_error";
 
 export const RESEAL_RETRY_DELAYS_MS = [60_000, 5 * 60_000, 15 * 60_000];
 export const VAULT_STEP_RETRY_DELAYS_MS = [2_000, 5_000, 15_000, 30_000, 60_000];
+export const STORAGE_KEY_PENDING_RETRY_DELAYS_MS = [
+  60_000,
+  5 * 60_000,
+  15 * 60_000,
+  30 * 60_000,
+];
 
 let step_in_flight: Promise<StorageVaultOutcome> | null = null;
 let step_timer: ReturnType<typeof setTimeout> | null = null;
 let step_attempt = 0;
+let pending_attempt = 0;
+let rotation_pending = false;
 let online_listener: (() => void) | null = null;
 
 function clear_step_timer(): void {
@@ -118,10 +130,52 @@ function kick_vault_step(): void {
   void run_vault_step(passphrase);
 }
 
+function schedule_pending_step(): void {
+  if (step_timer) return;
+
+  const delays = STORAGE_KEY_PENDING_RETRY_DELAYS_MS;
+  const delay = delays[Math.min(pending_attempt, delays.length - 1)];
+
+  pending_attempt += 1;
+  watch_online();
+  step_timer = setTimeout(() => {
+    step_timer = null;
+    kick_vault_step();
+  }, delay);
+}
+
 const STEP_RELEASES_GATE = new Set([
   STORAGE_STEP_UNSUPPORTED,
   STORAGE_STEP_UNREADABLE,
 ]);
+
+function announce_pending(pending: boolean): void {
+  if (typeof window === "undefined") return;
+
+  const detail: StorageKeyPendingDetail = { pending };
+
+  window.dispatchEvent(new CustomEvent(STORAGE_KEY_PENDING_EVENT, { detail }));
+}
+
+function set_rotation_pending(next: boolean): void {
+  if (rotation_pending === next) return;
+
+  rotation_pending = next;
+  if (!next) pending_attempt = 0;
+  announce_pending(next);
+}
+
+function memory_key_is_random(): boolean {
+  const vault = get_vault_from_memory();
+
+  return vault?.data_kek_random === true && !!vault.data_kek;
+}
+
+export function is_storage_key_rotation_pending(): boolean {
+  if (rotation_pending && memory_key_is_random()) set_rotation_pending(false);
+
+  return rotation_pending;
+}
 
 export function run_vault_step(
   passphrase: string,
@@ -142,12 +196,17 @@ export function run_vault_step(
 
       if (outcome.status !== "skipped") {
         mark_storage_key_verified(outcome.vault.data_kek ?? null);
+        set_rotation_pending(false);
       } else if (STEP_RELEASES_GATE.has(outcome.reason)) {
         mark_storage_key_verified(get_vault_from_memory()?.data_kek ?? null);
+        set_rotation_pending(!memory_key_is_random());
       }
 
       if (is_storage_key_held(get_vault_from_memory())) {
         schedule_vault_step();
+      } else if (is_storage_key_rotation_pending()) {
+        step_attempt = 0;
+        schedule_pending_step();
       } else {
         step_attempt = 0;
         unwatch_online();
@@ -160,7 +219,32 @@ export function run_vault_step(
   return step_in_flight;
 }
 
+export async function retry_storage_key_step(): Promise<boolean> {
+  const passphrase = vault_passphrase();
+
+  if (!passphrase) return is_storage_key_rotation_pending();
+
+  clear_step_timer();
+  await run_vault_step(passphrase);
+
+  const pending = is_storage_key_rotation_pending();
+
+  if (pending) announce_pending(true);
+
+  return pending;
+}
+
+export function stop_storage_key_retries(): void {
+  clear_step_timer();
+  unwatch_online();
+  step_attempt = 0;
+  pending_attempt = 0;
+  rotation_pending = false;
+}
+
 export function prepare_storage_key_gate(): void {
+  rotation_pending = false;
+  pending_attempt = 0;
   set_storage_key_runner(kick_vault_step);
 }
 

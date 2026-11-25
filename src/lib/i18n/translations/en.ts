@@ -1269,6 +1269,8 @@ export const en: Translations = {
     failed_to_send_via_external:
       "Sending through your linked outside account did not work. Try again. Your draft is saved.",
     offline_change_failed: "A change you made while offline couldn't be saved.",
+    storage_key_update_pending:
+      "Aster Mail couldn't finish updating the key that protects your saved data. Your changes still save, and Aster Mail keeps trying in the background.",
     offline_send_failed: "An email you wrote while offline couldn't be sent.",
     offline_email_queued:
       "You are offline right now. This email will send as soon as you reconnect.",
@@ -10455,6 +10457,7 @@ export const en: Translations = {
     authenticating: "Authenticating...",
     fetching_auth_data: "Fetching authentication data...",
     verifying_credentials: "Verifying credentials...",
+    sign_in_enhanced_unavailable: "Aster Mail couldn't use enhanced sign-in protection for this account, so you aren't signed in yet. If you changed your password on another device, sign in again to continue with standard protection.",
     sign_in_standard_protection: "Enhanced sign-in protection is unavailable right now, so you signed in with standard protection.",
     decrypting_vault: "Decrypting your key vault...",
     getting_user_info: "Getting user info...",

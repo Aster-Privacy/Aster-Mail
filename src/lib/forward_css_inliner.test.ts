@@ -18,7 +18,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { describe, it, expect } from "vitest";
+import { afterEach, describe, it, expect, vi } from "vitest";
 
 import { inline_email_css } from "./forward_css_inliner";
 import { sanitize_outgoing_html } from "./html_sanitizer_compose";
@@ -194,5 +194,76 @@ describe("sanitize_outgoing_html style preservation", () => {
 
     expect(result).not.toContain("javascript:");
     expect(result).not.toContain("onclick");
+  });
+});
+
+describe("inline_email_css selector budget", () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it("skips relational, overlong, and deeply chained selectors", () => {
+    const long_selector = `p${".x".repeat(300)}`;
+    const deep_selector = `${"div ".repeat(20)}p`;
+    const html =
+      `<style>div:has(p) { color: red; } ${long_selector} { font-weight: bold; } ` +
+      `${deep_selector} { font-style: italic; } .keep { text-decoration: underline; }</style>` +
+      "<div>".repeat(21) +
+      `<p class="keep${" x".repeat(300)}">text</p>` +
+      "</div>".repeat(21);
+    const doc = parse(inline_email_css(html));
+    const div = doc.querySelector("div")!;
+    const p = doc.querySelector("p")!;
+
+    expect(div.style.color).toBe("");
+    expect(p.style.fontWeight).toBe("");
+    expect(p.style.fontStyle).toBe("");
+    expect(p.style.textDecoration).toBe("underline");
+  });
+
+  it("keeps selectors with a few combinators", () => {
+    const html =
+      "<style>div > p span { color: red; }</style>" +
+      "<div><p><span>c</span></p></div>";
+    const doc = parse(inline_email_css(html));
+
+    expect(doc.querySelector("span")!.style.color).toBe("red");
+  });
+
+  it("stops evaluating selectors once the time budget is spent", () => {
+    let now = 0;
+
+    vi.spyOn(performance, "now").mockImplementation(() => {
+      now += 100;
+
+      return now;
+    });
+
+    const html =
+      "<style>.a { color: red; } .b { color: red; } .c { color: red; } .d { color: red; }</style>" +
+      '<p class="a">a</p><p class="b">b</p><p class="c">c</p><p class="d">d</p>';
+    const doc = parse(inline_email_css(html));
+    const colors = Array.from(doc.querySelectorAll("p")).map(
+      (p) => (p as HTMLElement).style.color,
+    );
+
+    expect(colors).toEqual(["red", "red", "", ""]);
+  });
+
+  it("finishes quickly on many costly selectors over deep markup", () => {
+    const rules = Array.from(
+      { length: 1_900 },
+      (_, index) => `${"div ".repeat(24)}p.r${index} { color: red; } div:has(p.r${index}) { color: blue; }`,
+    ).join("\n");
+    const html =
+      `<style>${rules}</style>` +
+      "<div>".repeat(300) +
+      "<p>x</p>" +
+      "</div>".repeat(300);
+    const started = performance.now();
+
+    inline_email_css(html);
+
+    expect(performance.now() - started).toBeLessThan(3000);
   });
 });

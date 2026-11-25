@@ -27,6 +27,10 @@ import {
 import { use_should_reduce_motion } from "@/provider";
 import { ignore_error } from "@/lib/ignore_error";
 import { play_iconic_sound } from "@/services/iconic_sounds";
+import {
+  STORAGE_KEY_PENDING_EVENT,
+  type StorageKeyPendingDetail,
+} from "@/services/crypto/storage_rotation/pending_event";
 import { use_translation } from "@/lib/i18n";
 import {
   use_toast_position,
@@ -47,6 +51,7 @@ export {
 } from "@aster/ui";
 
 const OFFLINE_FAILURE_TOAST_MS = 8000;
+const STORAGE_KEY_PENDING_TOAST_MS = 10000;
 
 export function show_toast(
   ...args: Parameters<typeof show_ui_toast>
@@ -85,10 +90,40 @@ export function SimpleToast({ position }: SimpleToastProps) {
       });
     };
 
+    const on_storage_key_pending = (event: Event) => {
+      const detail = (event as CustomEvent<StorageKeyPendingDetail>).detail;
+
+      if (!detail?.pending) return;
+
+      show_toast(
+        t("common.storage_key_update_pending"),
+        "warning",
+        STORAGE_KEY_PENDING_TOAST_MS,
+        {
+          label: t("common.retry"),
+          on_click: () => {
+            void import("@/services/crypto/storage_rotation/background")
+              .then((rotation) => rotation.retry_storage_key_step())
+              .catch((caught) =>
+                ignore_error(
+                  "components/toast/simple_toast:storage_key_retry",
+                  caught,
+                ),
+              );
+          },
+        },
+      );
+    };
+
     window.addEventListener("offline-queue-failure", on_queue_failure);
+    window.addEventListener(STORAGE_KEY_PENDING_EVENT, on_storage_key_pending);
 
     return () => {
       window.removeEventListener("offline-queue-failure", on_queue_failure);
+      window.removeEventListener(
+        STORAGE_KEY_PENDING_EVENT,
+        on_storage_key_pending,
+      );
     };
   }, [t]);
 
