@@ -250,6 +250,7 @@ export function use_auth_account_state() {
 
       if (
         signed_in_elsewhere &&
+        !account_index_routing_enabled() &&
         get_stored_encrypted_vault(signed_in_elsewhere.id)
       ) {
         const passphrase = await get_session_passphrase(
@@ -772,7 +773,7 @@ export function use_auth_account_state() {
             is_authenticated: false,
             has_keys: false,
             accounts: data.accounts,
-            current_account_id: data.current_account_id,
+            current_account_id: current.id,
           });
 
           const local = current.user.email.split("@")[0] ?? "";
@@ -802,7 +803,7 @@ export function use_auth_account_state() {
           is_authenticated: true,
           has_keys: true,
           accounts: data.accounts,
-          current_account_id: data.current_account_id,
+          current_account_id: current.id,
         });
 
         if (verdict_pending) {
