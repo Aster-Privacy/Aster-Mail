@@ -122,6 +122,27 @@ export interface BatchAttachmentMetaResponse {
   items: Record<string, AttachmentMetaItem[]>;
 }
 
+export interface ImportedPasswordMetaPage {
+  attachments: AttachmentMetaItem[];
+  next_cursor: string | null;
+}
+
+export async function list_imported_password_meta(
+  after?: string,
+  limit?: number,
+): Promise<ApiResponse<ImportedPasswordMetaPage>> {
+  const params = new URLSearchParams();
+
+  if (after) params.set("after", after);
+  if (limit !== undefined) params.set("limit", String(limit));
+
+  const query = params.toString();
+
+  return api_client.get<ImportedPasswordMetaPage>(
+    `/mail/v1/attachments/imported/password-meta${query ? `?${query}` : ""}`,
+  );
+}
+
 export const MAX_ATTACHMENT_META_BATCH = 50;
 
 async function post_attachment_meta_batch(

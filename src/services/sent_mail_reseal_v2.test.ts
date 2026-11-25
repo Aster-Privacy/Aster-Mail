@@ -29,6 +29,9 @@ vi.mock("./api/attachments", () => ({
   list_attachments: (id: string) => list_attachments(id),
   update_attachment_meta: (id: string, body: unknown) =>
     update_attachment_meta(id, body),
+  list_imported_password_meta: async () => ({
+    data: { attachments: [], next_cursor: null },
+  }),
 }));
 
 vi.mock("./api/mail", () => ({

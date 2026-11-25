@@ -105,6 +105,9 @@ vi.mock("@/services/api/attachments", () => ({
     data: { attachments: h.listed_attachments },
   })),
   update_attachment_meta: vi.fn(async () => ({ data: { status: "updated" } })),
+  list_imported_password_meta: async () => ({
+    data: { attachments: [], next_cursor: null },
+  }),
 }));
 
 vi.mock("@/services/crypto/mail_metadata", () => ({
@@ -1108,6 +1111,7 @@ describe("reencrypt_all_sent_mail", () => {
       rewritten: 0,
       unreadable: 0,
       failed: 0,
+      locked_attachments: 0,
     });
   });
 
@@ -1165,6 +1169,7 @@ describe("reencrypt_all_sent_mail", () => {
       rewritten: 0,
       unreadable: 1,
       failed: 0,
+      locked_attachments: 0,
     });
     expect(vi.mocked(update_mail_item)).not.toHaveBeenCalled();
   });
@@ -1236,6 +1241,7 @@ describe("reencrypt_all_sent_mail", () => {
       rewritten: 1,
       unreadable: 0,
       failed: 0,
+      locked_attachments: 0,
     });
   });
 });

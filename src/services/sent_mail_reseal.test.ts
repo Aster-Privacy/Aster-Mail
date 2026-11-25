@@ -24,11 +24,14 @@ const list_attachments = vi.fn();
 const update_attachment_meta = vi.fn();
 const list_encrypted_mail_items = vi.fn();
 const update_mail_item = vi.fn();
+const list_imported_password_meta = vi.fn();
 
 vi.mock("./api/attachments", () => ({
   list_attachments: (id: string) => list_attachments(id),
   update_attachment_meta: (id: string, body: unknown) =>
     update_attachment_meta(id, body),
+  list_imported_password_meta: (after?: string, limit?: number) =>
+    list_imported_password_meta(after, limit),
 }));
 
 vi.mock("./api/mail", () => ({
@@ -51,7 +54,10 @@ vi.mock("./crypto/envelope", () => ({
   }),
 }));
 
-import { reencrypt_all_sent_mail } from "./sent_mail_reseal";
+import {
+  locked_after_reseal,
+  reencrypt_all_sent_mail,
+} from "./sent_mail_reseal";
 
 const PGP_NONCE = "";
 
@@ -60,6 +66,40 @@ describe("reencrypt_all_sent_mail", () => {
     vi.clearAllMocks();
     update_attachment_meta.mockResolvedValue({ data: { success: true } });
     update_mail_item.mockResolvedValue({ data: { success: true } });
+    list_imported_password_meta.mockResolvedValue({
+      data: { attachments: [], next_cursor: null },
+    });
+  });
+
+  it("reseals attachment details on imported mail after a password change", async () => {
+    list_encrypted_mail_items.mockResolvedValue({
+      data: { items: [], next_cursor: null },
+    });
+    list_imported_password_meta.mockResolvedValue({
+      data: {
+        attachments: [
+          { id: "imp-old", encrypted_meta: "sealed:old-pw" },
+          { id: "imp-new", encrypted_meta: "sealed:new-pw" },
+          { id: "imp-lost", encrypted_meta: "sealed:older-pw" },
+        ],
+        next_cursor: null,
+      },
+    });
+
+    const summary = await reencrypt_all_sent_mail("old-pw", "new-pw");
+
+    expect(update_attachment_meta).toHaveBeenCalledTimes(1);
+    expect(update_attachment_meta).toHaveBeenCalledWith(
+      "imp-old",
+      expect.objectContaining({ encrypted_meta: "sealed:new-pw" }),
+    );
+    expect(summary).toMatchObject({
+      rewritten: 1,
+      unreadable: 0,
+      failed: 0,
+      locked_attachments: 1,
+    });
+    expect(locked_after_reseal(summary)).toBe(1);
   });
 
   it("reseals password-sealed attachment details on an already converted item", async () => {
