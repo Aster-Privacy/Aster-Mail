@@ -1887,6 +1887,13 @@ export const SETTINGS_SEARCH_REGISTRY: SearchEntry[] = [
     description_key: "settings.publish_keys_wkd_description",
   },
   {
+    id: "alias_pgp_title",
+    label_key: "settings.alias_pgp_title",
+    section: "encryption",
+    crumb_key: "settings.encryption_behavior",
+    description_key: "settings.alias_pgp_description",
+  },
+  {
     id: "publish_to_keyservers_title",
     label_key: "settings.publish_to_keyservers_title",
     section: "encryption",

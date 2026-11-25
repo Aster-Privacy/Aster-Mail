@@ -5024,6 +5024,9 @@ export const nl = {
     show_encryption_indicators_description:
       "Slotpictogrammen weergeven op versleutelde berichten",
     publish_keys_wkd_title: "Sleutels publiceren naar WKD",
+    alias_pgp_title: "PGP gebruiken met aliassen",
+    alias_pgp_description:
+      "Als dit uit staat, bevat mail die je vanaf een alias verstuurt geen PGP-handtekening of sleutelgegevens die hem aan je account koppelen.",
     publish_keys_wkd_description:
       "Maak de sleutel van je primaire adres vindbaar via Web Key Directory.",
     publish_keys_wkd_not_covered:
@@ -13068,6 +13071,7 @@ export const nl = {
     require_encryption_title: "versleuteling verplichten, onversleuteld blokkeren, PGP afdwingen",
     show_encryption_indicators_title: "slotje, versleuteld badge, indicator, versleutelingsindicator",
     publish_keys_wkd_title: "WKD, web key directory, sleutel publiceren, openbare sleutel",
+    alias_pgp_title: "alias, PGP, handtekening, ondertekenen, openbare sleutel, sleutel delen",
     publish_to_keyservers_title: "sleutelserver, keys.openpgp.org, sleutel publiceren",
     keyserver_addresses_title: "sleutelserver, adressen publiceren, adressen openbare sleutel",
     key_fingerprint: "vingerafdruk, verificatiecode, sleutel-id",

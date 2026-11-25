@@ -124,6 +124,38 @@ export function is_primary_sender(
   return is_primary_address(sender_address(from), primary_address);
 }
 
+function plus_tag(address: string): string {
+  const normalized = address.trim().toLowerCase();
+  const local = normalized.slice(0, Math.max(normalized.lastIndexOf("@"), 0));
+  const plus = local.indexOf("+");
+
+  return plus < 0 ? "" : local.slice(plus);
+}
+
+export function is_tagged_primary_sender(
+  from: string,
+  primary_address: string | null | undefined,
+): boolean {
+  if (!is_primary_sender(from, primary_address)) return false;
+
+  return plus_tag(sender_address(from)) !== plus_tag(primary_address ?? "");
+}
+
+async function alias_pgp_allowed(): Promise<boolean> {
+  try {
+    const { api_client } = await import("@/services/api/client");
+    const response = await api_client.get<{ alias_pgp_enabled?: boolean }>(
+      "/settings/v1/encryption",
+    );
+
+    if (response.error || !response.data) return false;
+
+    return response.data.alias_pgp_enabled !== false;
+  } catch {
+    return false;
+  }
+}
+
 async function resolve_primary_address(): Promise<string | null> {
   try {
     const { get_current_account } = await import("@/services/account_manager");
@@ -157,6 +189,15 @@ export async function build_signed_mime_payload(
   const primary_address = await resolve_primary_address();
 
   if (!is_primary_sender(params.from, primary_address)) {
+    last_signing_skip_reason = "sender_has_no_signing_key";
+
+    return undefined;
+  }
+
+  if (
+    is_tagged_primary_sender(params.from, primary_address) &&
+    !(await alias_pgp_allowed())
+  ) {
     last_signing_skip_reason = "sender_has_no_signing_key";
 
     return undefined;

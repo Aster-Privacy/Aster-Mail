@@ -5034,6 +5034,9 @@ export const de = {
     show_encryption_indicators_description:
       "Schloss-Symbole bei verschlüsselten Nachrichten anzeigen",
     publish_keys_wkd_title: "Schlüssel auf WKD veröffentlichen",
+    alias_pgp_title: "PGP mit Aliassen verwenden",
+    alias_pgp_description:
+      "Wenn diese Option deaktiviert ist, enthalten E-Mails, die Sie von einem Alias senden, keine PGP-Signatur und keine Schlüsseldetails, die sie mit Ihrem Konto verknüpfen.",
     publish_keys_wkd_description:
       "Den Schlüssel Ihrer primären Adresse über das Web Key Directory auffindbar machen.",
     publish_keys_wkd_not_covered:
@@ -13240,6 +13243,7 @@ export const de = {
     require_encryption_title: "Verschlüsselung erzwingen, Verschlüsselung erforderlich, Unverschlüsseltes blockieren, PGP erzwingen",
     show_encryption_indicators_title: "Verschlüsselungshinweise anzeigen, Schloss-Symbol, Verschlüsselt-Badge, Hinweis",
     publish_keys_wkd_title: "Schlüssel in WKD veröffentlichen, WKD, Web Key Directory, Schlüssel veröffentlichen, öffentlicher Schlüssel",
+    alias_pgp_title: "Alias, PGP, Signatur, Signieren, öffentlicher Schlüssel, Schlüsselfreigabe",
     publish_to_keyservers_title: "Auf Keyservern veröffentlichen, Keyserver, keys.openpgp.org, Schlüssel veröffentlichen",
     keyserver_addresses_title: "Zu veröffentlichende Adressen, Keyserver, Adressen veröffentlichen, Adressen des öffentlichen Schlüssels",
     key_fingerprint: "Bestätigungscode, Fingerabdruck, Prüfcode, Schlüssel-ID",

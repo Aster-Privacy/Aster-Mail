@@ -5276,6 +5276,9 @@ export const pl = {
     show_encryption_indicators_description:
       "Wyświetlaj ikony kłódki na zaszyfrowanych wiadomościach",
     publish_keys_wkd_title: "Publikuj klucze w WKD",
+    alias_pgp_title: "Używaj PGP z aliasami",
+    alias_pgp_description:
+      "Gdy ta opcja jest wyłączona, poczta wysyłana z aliasu nie zawiera podpisu PGP ani danych klucza, które łączą ją z Twoim kontem.",
     publish_keys_wkd_description:
       "Udostępnij klucz swojego adresu głównego przez Web Key Directory.",
     publish_keys_wkd_not_covered:
@@ -13316,6 +13319,7 @@ export const pl = {
     require_encryption_title: "wymagaj szyfrowania, blokuj nieszyfrowane, wymuś PGP",
     show_encryption_indicators_title: "ikona kłódki, plakietka szyfrowania, wskaźnik szyfrowania",
     publish_keys_wkd_title: "WKD, web key directory, opublikuj klucz, klucz publiczny",
+    alias_pgp_title: "alias, PGP, podpis, podpisywanie, klucz publiczny, udostępnianie klucza",
     publish_to_keyservers_title: "serwer kluczy, keys.openpgp.org, opublikuj klucz",
     keyserver_addresses_title: "serwer kluczy, publikowane adresy, adresy klucza publicznego",
     key_fingerprint: "odcisk klucza, kod weryfikacyjny, identyfikator klucza",

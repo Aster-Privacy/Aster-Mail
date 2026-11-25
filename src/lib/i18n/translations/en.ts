@@ -6062,6 +6062,9 @@ export const en: Translations = {
     show_encryption_indicators_description:
       "Display lock icons on encrypted messages",
     publish_keys_wkd_title: "Publish keys to WKD",
+    alias_pgp_title: "Use PGP with aliases",
+    alias_pgp_description:
+      "When this is off, mail you send from an alias carries no PGP signature or key details that link it to your account.",
     publish_keys_wkd_description:
       "Make the key for your primary address discoverable through Web Key Directory.",
     publish_keys_wkd_not_covered:
@@ -12790,6 +12793,7 @@ export const en: Translations = {
     require_encryption_title: "require encryption, block unencrypted, force pgp",
     show_encryption_indicators_title: "lock icon, encrypted badge, indicator",
     publish_keys_wkd_title: "wkd, web key directory, publish key, public key",
+    alias_pgp_title: "alias, pgp, signature, signing, public key, key sharing",
     publish_to_keyservers_title: "keyserver, keys.openpgp.org, publish key",
     keyserver_addresses_title: "keyserver, publish addresses, public key addresses",
     key_fingerprint: "fingerprint, verification code, key id",

@@ -771,6 +771,7 @@ describe("execute_external_send", () => {
     ).toBe("External body");
     expect(request.encrypted_envelope).toBeTruthy();
     expect(request.acknowledge_server_readable).toBe(true);
+    expect(request.primary_only_signing).toBe(true);
     expect(request.thread_token).toBeTruthy();
   });
 

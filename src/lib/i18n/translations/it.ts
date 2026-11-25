@@ -6488,6 +6488,9 @@ export const it = {
     show_encryption_indicators_description:
       "Mostra icone lucchetto sui messaggi crittografati",
     publish_keys_wkd_title: "Pubblica chiavi su WKD",
+    alias_pgp_title: "Usa PGP con gli alias",
+    alias_pgp_description:
+      "Quando questa opzione è disattivata, le e-mail che invii da un alias non contengono alcuna firma PGP né dettagli della chiave che le colleghino al tuo account.",
     publish_keys_wkd_description:
       "Rendi la chiave del tuo indirizzo principale reperibile tramite Web Key Directory.",
     publish_keys_wkd_not_covered:
@@ -13147,6 +13150,7 @@ export const it = {
     require_encryption_title: "richiedi crittografia, blocca non crittografati, forza PGP, crittografia obbligatoria",
     show_encryption_indicators_title: "indicatori di crittografia, icona lucchetto, badge crittografato, indicatore",
     publish_keys_wkd_title: "pubblica chiavi su WKD, WKD, web key directory, pubblica chiave, chiave pubblica",
+    alias_pgp_title: "alias, PGP, firma, firmare, chiave pubblica, condivisione chiave",
     publish_to_keyservers_title: "pubblica su keyserver, keyserver, keys.openpgp.org, pubblica chiave",
     keyserver_addresses_title: "indirizzi da pubblicare, keyserver, pubblica indirizzi, indirizzi chiave pubblica",
     key_fingerprint: "codice di verifica, impronta digitale, fingerprint, ID chiave",

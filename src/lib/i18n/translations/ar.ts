@@ -5199,6 +5199,9 @@ export const ar = {
     show_encryption_indicators_description:
       "عرض أيقونات القفل على الرسائل المشفرة",
     publish_keys_wkd_title: "نشر المفاتيح إلى WKD",
+    alias_pgp_title: "استخدام PGP مع الأسماء المستعارة",
+    alias_pgp_description:
+      "عند إيقاف هذا الخيار، لا يحمل البريد الذي ترسله من اسم مستعار أي توقيع PGP أو تفاصيل مفتاح تربطه بحسابك.",
     publish_keys_wkd_description:
       "جعل مفتاح عنوانك الأساسي قابلًا للاكتشاف عبر دليل مفاتيح الويب.",
     publish_keys_wkd_not_covered:
@@ -12831,6 +12834,7 @@ export const ar = {
     require_encryption_title: "طلب التشفير, فرض التشفير, حظر غير المشفر, فرض PGP",
     show_encryption_indicators_title: "إظهار مؤشرات التشفير, أيقونة القفل, شارة مشفر, مؤشر",
     publish_keys_wkd_title: "نشر المفاتيح في WKD, WKD, دليل مفاتيح الويب, نشر المفتاح, المفتاح العام",
+    alias_pgp_title: "اسم مستعار, PGP, توقيع, التوقيع, مفتاح عام, مشاركة المفتاح",
     publish_to_keyservers_title: "النشر على خوادم المفاتيح, خادم المفاتيح, keys.openpgp.org, نشر المفتاح",
     keyserver_addresses_title: "العناوين المراد نشرها, خادم المفاتيح, نشر العناوين, عناوين المفتاح العام",
     key_fingerprint: "رمز التحقق, البصمة, بصمة المفتاح, معرف المفتاح",

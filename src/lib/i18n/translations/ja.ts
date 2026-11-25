@@ -5026,6 +5026,9 @@ export const ja = {
     show_encryption_indicators_description:
       "暗号化されたメッセージにロックアイコンを表示します",
     publish_keys_wkd_title: "WKDにキーを公開",
+    alias_pgp_title: "エイリアスでPGPを使用",
+    alias_pgp_description:
+      "オフにすると、エイリアスから送信するメールには、アカウントとの関連を示すPGP署名や鍵の情報が含まれません。",
     publish_keys_wkd_description:
       "プライマリアドレスのキーをWeb Key Directoryで検出可能にします。",
     publish_keys_wkd_not_covered:
@@ -12794,6 +12797,7 @@ export const ja = {
     require_encryption_title: "暗号化を必須にする, 暗号化必須, 暗号化されていないメールをブロック, PGPを強制",
     show_encryption_indicators_title: "暗号化インジケーターを表示, 鍵アイコン, 暗号化バッジ, インジケーター",
     publish_keys_wkd_title: "鍵をWKDで公開, WKD, Web鍵ディレクトリ, 鍵を公開, 公開鍵",
+    alias_pgp_title: "エイリアス, PGP, 署名, 公開鍵, 鍵の共有",
     publish_to_keyservers_title: "鍵サーバーに公開, 鍵サーバー, keys.openpgp.org, 鍵を公開",
     keyserver_addresses_title: "公開するアドレス, 鍵サーバー, アドレスを公開, 公開鍵のアドレス",
     key_fingerprint: "確認コード, フィンガープリント, 鍵の指紋, 鍵ID",

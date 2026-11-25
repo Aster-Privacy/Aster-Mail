@@ -6147,6 +6147,9 @@ export const hi = {
     show_encryption_indicators_description:
       "एन्क्रिप्टेड संदेशों पर ताले के चिह्न दिखाएं",
     publish_keys_wkd_title: "कुंजियां WKD पर प्रकाशित करें",
+    alias_pgp_title: "उपनामों के साथ PGP का इस्तेमाल करें",
+    alias_pgp_description:
+      "यह बंद होने पर, किसी उपनाम से भेजे गए आपके ईमेल में कोई PGP हस्ताक्षर या कुंजी विवरण नहीं होता जो उसे आपके खाते से जोड़े।",
     publish_keys_wkd_description:
       "अपने मुख्य पते की कुंजी वेब कुंजी डायरेक्टरी से खोजी जाने लायक बनाएं।",
     publish_keys_wkd_not_covered:
@@ -12843,6 +12846,7 @@ export const hi = {
     require_encryption_title: "एन्क्रिप्शन ज़रूरी करें, बिना एन्क्रिप्शन ब्लॉक, PGP लागू करें",
     show_encryption_indicators_title: "एन्क्रिप्शन संकेतक दिखाएं, लॉक आइकन, एन्क्रिप्टेड बैज, संकेतक",
     publish_keys_wkd_title: "कुंजियां WKD पर प्रकाशित करें, WKD, वेब की डायरेक्टरी, कुंजी प्रकाशित करें, पब्लिक की",
+    alias_pgp_title: "उपनाम, PGP, हस्ताक्षर, साइनिंग, सार्वजनिक कुंजी, कुंजी साझा करना",
     publish_to_keyservers_title: "कीसर्वर पर प्रकाशित करें, कीसर्वर, keys.openpgp.org, कुंजी प्रकाशित करें",
     keyserver_addresses_title: "प्रकाशित करने के पते, कीसर्वर, पते प्रकाशित करें, पब्लिक की के पते",
     key_fingerprint: "सत्यापन कोड, फ़िंगरप्रिंट, कुंजी आईडी",

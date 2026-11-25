@@ -5065,6 +5065,9 @@ export const ko = {
     show_encryption_indicators_description:
       "암호화된 메시지에 잠금 아이콘을 표시합니다",
     publish_keys_wkd_title: "WKD에 키 게시",
+    alias_pgp_title: "별칭에서 PGP 사용",
+    alias_pgp_description:
+      "이 옵션을 끄면 별칭으로 보내는 메일에 계정과 연결되는 PGP 서명이나 키 정보가 포함되지 않습니다.",
     publish_keys_wkd_description:
       "Web Key Directory를 통해 기본 주소의 키를 검색 가능하게 합니다.",
     publish_keys_wkd_not_covered:
@@ -12577,6 +12580,7 @@ export const ko = {
     require_encryption_title: "암호화 필수, 암호화 요구, 암호화되지 않은 메일 차단, PGP 강제",
     show_encryption_indicators_title: "암호화 표시기 보기, 자물쇠 아이콘, 암호화 배지, 표시기",
     publish_keys_wkd_title: "WKD에 키 게시, WKD, 웹 키 디렉터리, 키 게시, 공개 키",
+    alias_pgp_title: "별칭, PGP, 서명, 공개 키, 키 공유",
     publish_to_keyservers_title: "키 서버에 게시, 키 서버, keys.openpgp.org, 키 게시",
     keyserver_addresses_title: "게시할 주소, 키 서버, 주소 게시, 공개 키 주소",
     key_fingerprint: "확인 코드, 지문, 키 지문, 키 ID",

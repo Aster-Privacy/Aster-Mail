@@ -4613,6 +4613,9 @@ export const zh_CN = {
     show_encryption_indicators_title: "显示加密指示器",
     show_encryption_indicators_description: "在加密消息上显示锁定图标",
     publish_keys_wkd_title: "将密钥发布到 WKD",
+    alias_pgp_title: "在别名中使用 PGP",
+    alias_pgp_description:
+      "关闭后，从别名发送的邮件不会包含任何可将其关联到你账户的 PGP 签名或密钥信息。",
     publish_keys_wkd_description:
       "通过 Web Key Directory 使您主地址的密钥可被发现。",
     publish_keys_wkd_not_covered:
@@ -11748,6 +11751,7 @@ export const zh_CN = {
     require_encryption_title: "强制加密, 要求加密, 阻止未加密邮件, 强制 PGP",
     show_encryption_indicators_title: "显示加密标识, 锁图标, 加密徽章, 标识",
     publish_keys_wkd_title: "将密钥发布到 WKD, WKD, 网络密钥目录, 发布密钥, 公钥",
+    alias_pgp_title: "别名, PGP, 签名, 公钥, 密钥共享",
     publish_to_keyservers_title: "发布到密钥服务器, 密钥服务器, keys.openpgp.org, 发布密钥",
     keyserver_addresses_title: "要发布的地址, 密钥服务器, 发布地址, 公钥地址",
     key_fingerprint: "验证码, 指纹, 密钥指纹, 密钥 ID",

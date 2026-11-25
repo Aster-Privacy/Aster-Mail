@@ -5127,6 +5127,9 @@ export const es = {
     show_encryption_indicators_description:
       "Mostrar iconos de candado en mensajes cifrados",
     publish_keys_wkd_title: "Publicar claves en WKD",
+    alias_pgp_title: "Usar PGP con alias",
+    alias_pgp_description:
+      "Si desactivas esta opción, el correo que envíes desde un alias no incluirá ninguna firma PGP ni datos de clave que lo vinculen con tu cuenta.",
     publish_keys_wkd_description:
       "Haz que la clave de tu dirección principal se pueda encontrar mediante Web Key Directory.",
     publish_keys_wkd_not_covered:
@@ -13083,6 +13086,7 @@ export const es = {
     require_encryption_title: "Exigir cifrado, cifrado obligatorio, bloquear sin cifrar, forzar PGP",
     show_encryption_indicators_title: "Mostrar indicadores de cifrado, icono de candado, insignia de cifrado, indicador",
     publish_keys_wkd_title: "Publicar claves en WKD, WKD, Web Key Directory, publicar clave, clave pública",
+    alias_pgp_title: "alias, PGP, firma, firmar, clave pública, compartir clave",
     publish_to_keyservers_title: "Publicar en servidores de claves, servidor de claves, keys.openpgp.org, publicar clave",
     keyserver_addresses_title: "Direcciones para publicar, servidor de claves, publicar direcciones, direcciones de la clave pública",
     key_fingerprint: "Código de verificación, huella digital, ID de clave",
