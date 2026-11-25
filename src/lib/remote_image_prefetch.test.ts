@@ -53,7 +53,7 @@ const gate = {
 const no_wait = vi.fn(async () => undefined);
 
 function image_loader() {
-  return vi.fn(async () => ({
+  return vi.fn(async (_target: string) => ({
     kind: "image" as const,
     bytes: new Uint8Array([1]),
     content_type: "image/png",
@@ -215,7 +215,7 @@ describe("create_image_prefetcher", () => {
   });
 
   it("spaces image requests to stay under the proxy rate limit", async () => {
-    const wait = vi.fn(async () => undefined);
+    const wait = vi.fn(async (_ms: number) => undefined);
     const prefetcher = create_image_prefetcher({
       allowed: () => true,
       proxy_url: () => proxy,
