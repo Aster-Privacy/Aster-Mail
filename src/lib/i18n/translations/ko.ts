@@ -1195,6 +1195,11 @@ export const ko = {
       "이 기기에서 비공개 키가 잠겨 있습니다. 다시 로그인하면 풀립니다. 서버의 키는 그대로입니다.",
     email_data_missing:
       "이 이메일의 내용을 불러올 수 없었습니다. 받은편지함에서 다시 열면 돌아옵니다. 받은편지함은 그대로입니다.",
+    message_temporarily_unavailable:
+      "이 메시지를 일시적으로 사용할 수 없습니다. 잠시 후 다시 시도하세요.",
+    attachment_temporarily_unavailable:
+      "이 첨부 파일을 일시적으로 사용할 수 없습니다. 잠시 후 다시 시도하세요.",
+    unavailable_try_again: "다시 시도",
     later: "나중에",
     welcome_to_aster: "Aster Mail에 오신 것을 환영합니다",
     purchase_thank_you: "구매해 주셔서 감사합니다. 구독이 활성화되었습니다.",

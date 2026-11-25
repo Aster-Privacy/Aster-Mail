@@ -1191,6 +1191,11 @@ export const en: Translations = {
       "Your private keys are locked on this device. Signing in again will unlock them. Your keys on the server are unchanged.",
     email_data_missing:
       "We could not load the contents of this email. Opening it again from your inbox should bring it back. Your inbox is unchanged.",
+    message_temporarily_unavailable:
+      "This message is temporarily unavailable. Try again in a moment.",
+    attachment_temporarily_unavailable:
+      "This attachment is temporarily unavailable. Try again in a moment.",
+    unavailable_try_again: "Try again",
     later: "Later",
     welcome_to_aster: "Welcome to Aster Mail",
     purchase_thank_you:

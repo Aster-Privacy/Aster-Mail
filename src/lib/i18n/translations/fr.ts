@@ -1186,6 +1186,11 @@ export const fr = {
       "Vos clés privées sont verrouillées sur cet appareil. Vous reconnecter les déverrouillera. Vos clés sur le serveur sont inchangées.",
     email_data_missing:
       "Nous n'avons pas pu charger le contenu de ce message. L'ouvrir à nouveau depuis votre boîte de réception devrait le ramener. Votre boîte de réception est inchangée.",
+    message_temporarily_unavailable:
+      "Ce message est temporairement indisponible. Réessayez dans un instant.",
+    attachment_temporarily_unavailable:
+      "Cette pièce jointe est temporairement indisponible. Réessayez dans un instant.",
+    unavailable_try_again: "Réessayer",
     later: "Plus tard",
     welcome_to_aster: "Bienvenue sur Aster Mail",
     purchase_thank_you:

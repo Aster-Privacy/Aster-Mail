@@ -2271,6 +2271,9 @@ export interface CommonTranslations {
   delete_account_error: string;
   encryption_vault_not_available: string;
   email_data_missing: string;
+  message_temporarily_unavailable: string;
+  attachment_temporarily_unavailable: string;
+  unavailable_try_again: string;
   later: string;
   welcome_to_aster: string;
   purchase_thank_you: string;

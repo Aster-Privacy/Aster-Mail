@@ -1176,6 +1176,11 @@ export const it = {
       "Le sue chiavi private sono bloccate su questo dispositivo. Accedere di nuovo le sbloccherà. Le sue chiavi sul server sono invariate.",
     email_data_missing:
       "Non siamo riusciti a caricare il contenuto di questa email. Aprirla di nuovo dalla sua casella dovrebbe farla riapparire. La sua casella è invariata.",
+    message_temporarily_unavailable:
+      "Questo messaggio non è temporaneamente disponibile. Riprovi tra un momento.",
+    attachment_temporarily_unavailable:
+      "Questo allegato non è temporaneamente disponibile. Riprovi tra un momento.",
+    unavailable_try_again: "Riprova",
     later: "Più tardi",
     welcome_to_aster: "Benvenuto su Aster Mail",
     purchase_thank_you:

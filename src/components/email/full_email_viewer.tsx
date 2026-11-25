@@ -416,6 +416,7 @@ export function FullEmailViewer({
           show_back_button
           decrypt_failed={viewer.decrypt_failed}
           message_created_at={viewer.decrypt_failed_created_at}
+          payload_unavailable={viewer.payload_unavailable}
           error={viewer.error}
           on_dismiss={on_back}
           on_retry={viewer.retry_load}

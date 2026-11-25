@@ -86,6 +86,7 @@ export interface MailItem {
   item_type: "received" | "sent" | "draft" | "scheduled" | "outbox";
   encrypted_envelope: string;
   envelope_nonce: string;
+  payload_unavailable?: boolean;
   ephemeral_key?: string;
   ephemeral_pq_key?: string;
   sender_sealed?: string;

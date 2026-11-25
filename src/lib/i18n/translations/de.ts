@@ -1032,6 +1032,11 @@ export const de = {
       "Ihre privaten Schlüssel sind auf diesem Gerät gesperrt. Ein erneutes Anmelden entsperrt sie. Ihre Schlüssel auf dem Server bleiben unverändert.",
     email_data_missing:
       "Der Inhalt dieser E-Mail ließ sich nicht laden. Ein erneutes Öffnen aus dem Posteingang bringt sie zurück. Ihr Posteingang bleibt unverändert.",
+    message_temporarily_unavailable:
+      "Diese Nachricht ist vorübergehend nicht verfügbar. Versuchen Sie es gleich noch einmal.",
+    attachment_temporarily_unavailable:
+      "Dieser Anhang ist vorübergehend nicht verfügbar. Versuchen Sie es gleich noch einmal.",
+    unavailable_try_again: "Erneut versuchen",
     later: "Später",
     welcome_to_aster: "Willkommen bei Aster Mail",
     purchase_thank_you:

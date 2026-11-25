@@ -57,6 +57,7 @@ export interface ViewerErrorStateProps {
   on_retry?: () => void;
   show_back_button?: boolean;
   decrypt_failed?: boolean;
+  payload_unavailable?: boolean;
   message_created_at?: string | null;
 }
 
@@ -66,6 +67,7 @@ export function ViewerErrorState({
   on_retry,
   show_back_button = false,
   decrypt_failed = false,
+  payload_unavailable = false,
   message_created_at = null,
 }: ViewerErrorStateProps): React.ReactElement {
   const { t } = use_i18n();
@@ -74,7 +76,7 @@ export function ViewerErrorState({
     <div className="flex-1 flex items-center justify-center p-6">
       <div className="text-center">
         <NoSymbolIcon className="w-12 h-12 mx-auto mb-3 text-txt-muted" />
-        {decrypt_failed && error ? (
+        {decrypt_failed && error && !payload_unavailable ? (
           <LockedMailNotice
             button_class_name="mt-4 mx-1 px-4 py-2 text-sm font-medium rounded-[14px] transition-colors bg-brand text-[var(--accent-fg,#ffffff)]"
             error={error}
@@ -94,7 +96,9 @@ export function ViewerErrorState({
             type="button"
             onClick={on_retry}
           >
-            {t("common.retry")}
+            {payload_unavailable
+              ? t("common.unavailable_try_again")
+              : t("common.retry")}
           </button>
         )}
         {show_back_button && (

@@ -1198,6 +1198,11 @@ export const ja = {
       "このデバイスでは秘密鍵がロックされています。再度サインインするとロックが解除されます。サーバー上の鍵には変更ありません。",
     email_data_missing:
       "このメールの内容を読み込めませんでした。受信箱から再度開き直すと戻ってきます。受信箱には変更ありません。",
+    message_temporarily_unavailable:
+      "このメッセージは一時的に利用できません。しばらくしてからもう一度お試しください。",
+    attachment_temporarily_unavailable:
+      "この添付ファイルは一時的に利用できません。しばらくしてからもう一度お試しください。",
+    unavailable_try_again: "もう一度試す",
     later: "後で",
     welcome_to_aster: "Aster Mailへようこそ",
     purchase_thank_you:

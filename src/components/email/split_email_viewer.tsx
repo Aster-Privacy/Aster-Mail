@@ -475,6 +475,7 @@ export function SplitEmailViewer({
         <ViewerErrorState
           decrypt_failed={viewer.decrypt_failed}
           message_created_at={viewer.decrypt_failed_created_at}
+          payload_unavailable={viewer.payload_unavailable}
           error={viewer.error}
           on_dismiss={on_close}
           on_retry={viewer.retry_load}

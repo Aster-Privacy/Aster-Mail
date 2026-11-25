@@ -997,6 +997,11 @@ export const zh_CN = {
       "这台设备上的私钥处于锁定状态，重新登录就可以解锁。服务器上的密钥未发生变化。",
     email_data_missing:
       "我们无法加载这封邮件的内容，从收件箱中再打开一次应该可以恢复。您的收件箱未发生变化。",
+    message_temporarily_unavailable:
+      "此邮件暂时无法使用，请稍后重试。",
+    attachment_temporarily_unavailable:
+      "此附件暂时无法使用，请稍后重试。",
+    unavailable_try_again: "重试",
     later: "稍后",
     welcome_to_aster: "欢迎使用 Aster Mail",
     purchase_thank_you: "感谢您的购买。您的订阅现已激活。",
