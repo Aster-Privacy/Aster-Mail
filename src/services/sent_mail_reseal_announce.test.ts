@@ -35,6 +35,7 @@ const summary = (rewritten: number) => ({
   rewritten,
   unreadable: 0,
   failed: 0,
+  locked_attachments: 0,
 });
 
 describe("announcing a finished sent mail reseal", () => {
