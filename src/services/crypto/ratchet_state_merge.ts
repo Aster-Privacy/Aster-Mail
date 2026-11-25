@@ -208,7 +208,7 @@ export function merge_ratchet_states(
   const recv_source =
     local.state.chain_key_recv === null ? remote.state : local.state;
   const skipped_message_keys =
-    remote_versioned || local.state.chain_key_recv === null
+    local.state.chain_key_recv === null
       ? merged_skipped
       : merge_skipped_keys(local_skipped, []);
 

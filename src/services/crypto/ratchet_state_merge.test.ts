@@ -145,7 +145,39 @@ describe("ratchet state merge", () => {
       merge_ratchet_states(local, stale).state.skipped_message_keys.map(
         (key) => `${key.dh_public}:${key.message_number}`,
       ),
-    ).toEqual(["remote-dh-pub:5", "older-dh-pub:1"]);
+    ).toEqual([]);
+  });
+
+  it("never takes a key from the other copy on a chain this device holds", () => {
+    const local = make_state({
+      chain_key_recv: "recv-chain-2",
+      recv_message_number: 2,
+      skipped_message_keys: [skipped("older-dh-pub", 4, 40)],
+    });
+    const remote = make_state({
+      chain_key_recv: "recv-chain-6",
+      recv_message_number: 6,
+      skipped_message_keys: [
+        skipped("older-dh-pub", 3, 30),
+        skipped("older-dh-pub", 4, 40),
+        skipped("remote-dh-pub", 3, 50),
+      ],
+    });
+
+    const merged = merge_ratchet_states(local, remote).state;
+
+    expect(merged).toMatchObject({
+      chain_key_recv: "recv-chain-2",
+      recv_message_number: 2,
+    });
+    expect(
+      merged.skipped_message_keys.map(
+        (key) => `${key.dh_public}:${key.message_number}`,
+      ),
+    ).toEqual(["older-dh-pub:4"]);
+    expect(
+      merge_ratchet_states(local, remote, false).state.skipped_message_keys,
+    ).toHaveLength(1);
   });
 
   it("a device behind keeps its own chain so mail read elsewhere stays readable", () => {
@@ -207,8 +239,9 @@ describe("ratchet state merge", () => {
     });
   });
 
-  it("unions skipped message keys from both devices", () => {
+  it("unions skipped message keys while this device has no receive chain", () => {
     const local = make_state({
+      chain_key_recv: null,
       skipped_message_keys: [skipped("dh-a", 1, 10), skipped("dh-a", 2, 20)],
     });
     const remote = make_state({
@@ -224,14 +257,14 @@ describe("ratchet state merge", () => {
     ).toEqual(["dh-a:1", "dh-a:2", "dh-b:1"]);
   });
 
-  it("never drops a skipped key when only one side has it", () => {
+  it("never drops a skipped key this device holds", () => {
     const local = make_state({
       skipped_message_keys: [skipped("dh-a", 9, 90)],
     });
     const remote = make_state({ skipped_message_keys: [] });
 
     expect(
-      merge_ratchet_states(remote, local).state.skipped_message_keys,
+      merge_ratchet_states(local, remote).state.skipped_message_keys,
     ).toHaveLength(1);
   });
 
@@ -545,6 +578,9 @@ describe("retaining skipped message keys across devices", () => {
       ),
     });
     const remote = make_state({
+      dh_keypair: { public_key: "other-dh-pub", secret_key: "other-dh-sec" },
+      root_key: "root-key-epoch-2",
+      epoch: 1,
       skipped_message_keys: Array.from({ length: 1500 }, (_, index) =>
         skipped("remote-dh-pub", index, 10_000 + index),
       ),
@@ -562,6 +598,9 @@ describe("retaining skipped message keys across devices", () => {
       ),
     });
     const remote = make_state({
+      dh_keypair: { public_key: "other-dh-pub", secret_key: "other-dh-sec" },
+      root_key: "root-key-epoch-2",
+      epoch: 1,
       skipped_message_keys: Array.from({ length: 1500 }, (_, index) =>
         skipped("remote-dh-pub", index, 10_000 + index),
       ),
