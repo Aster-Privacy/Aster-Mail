@@ -1548,6 +1548,12 @@ export const SETTINGS_SEARCH_REGISTRY: SearchEntry[] = [
     description_key: "settings.sidebar_mail_items_description",
   },
   {
+    id: "sidebar_show_all_folders",
+    label_key: "settings.sidebar_show_all_folders",
+    section: "behavior",
+    description_key: "settings.sidebar_show_all_folders_description",
+  },
+  {
     id: "quick_preview_text",
     label_key: "settings.quick_preview_text",
     section: "behavior",

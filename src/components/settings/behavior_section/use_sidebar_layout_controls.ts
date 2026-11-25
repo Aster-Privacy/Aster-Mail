@@ -25,6 +25,7 @@ import type {
 } from "@/lib/sidebar_layout";
 
 import { use_preferences } from "@/contexts/preferences_context";
+import { cache_sidebar_state } from "@/services/api/preferences";
 import {
   SIDEBAR_HIDEABLE_MAIL_ITEM_IDS,
   can_move_sidebar_section,
@@ -75,6 +76,11 @@ export function use_sidebar_layout_controls() {
     sections: resolve_sidebar_section_order(order),
     mail_item_ids: SIDEBAR_HIDEABLE_MAIL_ITEM_IDS,
     is_default: is_default_sidebar_layout(order, hidden),
+    show_all_folders: preferences.sidebar_folders_show_all === true,
+    set_show_all_folders: (show_all: boolean) => {
+      cache_sidebar_state("sidebar_folders_show_all", show_all);
+      update_preference("sidebar_folders_show_all", show_all, true);
+    },
     is_hidden: (id: SidebarHideableItemId) =>
       is_sidebar_item_hidden(hidden, id),
     can_move: (id: SidebarSectionId, direction: -1 | 1) =>

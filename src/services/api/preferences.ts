@@ -239,6 +239,9 @@ export interface UserPreferences {
   sidebar_folders_collapsed: boolean;
   sidebar_labels_collapsed: boolean;
   sidebar_aliases_collapsed: boolean;
+  sidebar_folders_show_all: boolean;
+  sidebar_labels_show_all: boolean;
+  sidebar_aliases_show_all: boolean;
   sidebar_minimized: boolean;
   sidebar_width: number;
   sidebar_section_order: string[];
@@ -922,6 +925,9 @@ export const DEFAULT_PREFERENCES: UserPreferences = {
   sidebar_folders_collapsed: false,
   sidebar_labels_collapsed: false,
   sidebar_aliases_collapsed: false,
+  sidebar_folders_show_all: false,
+  sidebar_labels_show_all: false,
+  sidebar_aliases_show_all: false,
   sidebar_minimized: false,
   sidebar_width: 256,
   sidebar_section_order: [...DEFAULT_SIDEBAR_SECTION_ORDER],
@@ -1161,6 +1167,9 @@ export function build_merged_preferences(
     merged.sidebar_hidden_items,
   );
   merged.iconic_sounds_enabled = merged.iconic_sounds_enabled === true;
+  merged.sidebar_folders_show_all = merged.sidebar_folders_show_all === true;
+  merged.sidebar_labels_show_all = merged.sidebar_labels_show_all === true;
+  merged.sidebar_aliases_show_all = merged.sidebar_aliases_show_all === true;
 
   if (
     merged.inbox_sort_order !== "newest_first" &&

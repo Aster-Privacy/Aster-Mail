@@ -303,6 +303,7 @@ export interface SettingsKeywordsTranslations {
   close_to_tray: string;
   hide_dock_on_close: string;
   sidebar_mail_items: string;
+  sidebar_show_all_folders: string;
   quick_preview_text: string;
   signature: string;
   haptic_feedback_title: string;
@@ -8663,6 +8664,8 @@ export interface SettingsTranslations {
   sidebar_mail_section_description: string;
   sidebar_mail_items: string;
   sidebar_mail_items_description: string;
+  sidebar_show_all_folders: string;
+  sidebar_show_all_folders_description: string;
   sidebar_move_section_up: string;
   sidebar_move_section_down: string;
 }
