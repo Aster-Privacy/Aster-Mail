@@ -140,6 +140,34 @@ describe("extract_mime_attachments", () => {
     );
   });
 
+  it("decodes a quoted-printable part with long blank runs in linear time", () => {
+    const blanks = " \t".repeat(40_000);
+    const raw = [
+      'Content-Type: multipart/mixed; boundary="t"',
+      "",
+      "--t",
+      "Content-Type: text/plain",
+      "",
+      "body",
+      "--t",
+      "Content-Type: text/plain; charset=utf-8",
+      'Content-Disposition: attachment; filename="blank.txt"',
+      "Content-Transfer-Encoding: quoted-printable",
+      "",
+      `a${blanks}b${blanks}`,
+      "c",
+      "--t--",
+      "",
+    ].join("\n");
+
+    const started = performance.now();
+    const parts = extract_mime_attachments(raw);
+    const elapsed = performance.now() - started;
+
+    expect(elapsed).toBeLessThan(1000);
+    expect(new TextDecoder().decode(parts[0]!.data)).toBe(`a${blanks}b\r\nc`);
+  });
+
   it("decodes RFC 2231 and RFC 2047 filenames", () => {
     const raw = multipart("mixed", "names", [
       text_part("plain", "body"),

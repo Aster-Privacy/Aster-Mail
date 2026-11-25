@@ -202,13 +202,13 @@ export interface ComposeCssPlaceholder {
   value: string;
 }
 
-interface ParsedAttribute {
+export interface ParsedAttribute {
   name: string;
   text: string;
   raw_value: string | null;
 }
 
-interface ParsedTag {
+export interface ParsedTag {
   head: string;
   attributes: ParsedAttribute[];
   tail: string;
@@ -268,7 +268,7 @@ function decode_payload(payload: string): string | null {
   }
 }
 
-function parse_tag(tag: string): ParsedTag | null {
+export function parse_tag(tag: string): ParsedTag | null {
   const head = TAG_HEAD_PATTERN.exec(tag);
 
   if (!head) return null;
