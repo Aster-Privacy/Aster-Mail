@@ -8506,6 +8506,8 @@ export interface SettingsTranslations {
   sending_blocks_sending_allowed: string;
   sending_blocks_toggle_label: string;
   sending_blocks_update_failed: string;
+  sending_blocks_primary_label: string;
+  sending_blocks_all_disabled: string;
   alias_tab_preferences: string;
   alias_search_placeholder: string;
   alias_filter_all: string;
@@ -9388,6 +9390,7 @@ export interface MailTranslations {
   load_more_results: string;
   contacts: string;
   scheduled_for: string;
+  scheduled_send_failed_sending_disabled: string;
   scheduled_send_failed: string;
   spam_email_message: string;
   spam_email_sender_message: string;

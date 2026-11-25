@@ -30,6 +30,7 @@ import {
 } from "@/components/compose/compose_shell_mode";
 import { CloseIcon } from "@/components/common/icons";
 import { ConfirmationModal } from "@/components/modals/confirmation_modal";
+import { ReplyFromMismatchModal } from "@/components/modals/reply_from_mismatch_modal";
 import { SchedulePicker } from "@/components/compose/schedule_picker";
 import { ExpirationPicker } from "@/components/compose/expiration_picker";
 import { TemplatePicker } from "@/components/compose/template_picker";
@@ -563,6 +564,8 @@ export function ComposeWindow({
             title={t("common.unsaved_changes_title")}
             variant="danger"
           />
+
+          <ReplyFromMismatchModal {...compose.reply_from_mismatch} />
         </ErrorBoundary>
         {shell_mode === "docked" && (
           <div

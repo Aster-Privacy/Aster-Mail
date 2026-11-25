@@ -116,7 +116,7 @@ describe("AliasSendingBlocksSection layout", () => {
 
     const rows = list?.querySelectorAll(".aster_island_row") ?? [];
 
-    expect(rows.length).toBe(2);
+    expect(rows.length).toBe(3);
     rows.forEach((row) => {
       const switch_el = row.querySelector(".aster_switch_input");
 
@@ -151,6 +151,34 @@ describe("AliasSendingBlocksSection layout", () => {
       ),
     ];
 
-    expect(switches.map((el) => el.checked)).toEqual([true, false]);
+    expect(switches.map((el) => el.checked)).toEqual([true, true, false]);
+  });
+
+  it("lists the primary address with a label", async () => {
+    await render_section();
+    const primary = container.querySelector('[title="me@astermail.org"]');
+
+    expect(primary).not.toBeNull();
+    expect(container.textContent).toContain(
+      "settings.sending_blocks_primary_label",
+    );
+  });
+
+  it("explains when every address has sending turned off", async () => {
+    await render_section();
+    expect(
+      container.querySelector("[data-testid=sending-blocks-all-disabled]"),
+    ).toBeNull();
+
+    scenario.options = scenario.options.map((option) => ({
+      ...option,
+      sending_disabled: true,
+    }));
+    await render_section();
+
+    expect(
+      container.querySelector("[data-testid=sending-blocks-all-disabled]")
+        ?.textContent,
+    ).toContain("settings.sending_blocks_all_disabled");
   });
 });

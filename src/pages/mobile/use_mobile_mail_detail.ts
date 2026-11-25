@@ -41,7 +41,10 @@ import { use_email_dark_mode } from "@/components/email/use_email_dark_mode";
 import { use_email_detail } from "@/components/email/hooks/use_email_detail";
 import { use_sender_aliases } from "@/hooks/use_sender_aliases";
 import { build_reply_recipient_for_message } from "@/components/email/build_reply_recipient";
-import { resolve_received_reply_from } from "@/components/email/delivery_reply_address";
+import {
+  build_forward_from_candidates,
+  resolve_received_reply_from,
+} from "@/components/email/delivery_reply_address";
 import { use_email_actions } from "@/hooks/use_email_actions";
 import { remove_email_from_view_cache } from "@/hooks/use_email_list";
 import { use_date_format } from "@/hooks/use_date_format";
@@ -910,6 +913,19 @@ export function use_mobile_mail_detail() {
               },
               own_addresses,
             );
+      const routing_token =
+        msg.routing_token ??
+        (msg.id === detail.mail_item?.id
+          ? detail.mail_item?.routing_token
+          : undefined);
+      const thread_addresses = build_forward_from_candidates({
+        is_own_message: msg.item_type === "sent",
+        sender_email: msg.sender_email,
+        routing_token,
+        raw_headers: msg.raw_headers,
+        to_emails: (msg.to_recipients ?? []).map((r) => r.email),
+        cc_emails: (msg.cc_recipients ?? []).map((r) => r.email),
+      });
 
       if (mode === "forward") {
         window.dispatchEvent(
@@ -926,6 +942,7 @@ export function use_mobile_mail_detail() {
               forward_from_id: msg.id,
               thread_token,
               from_email,
+              thread_addresses,
             },
           }),
         );
@@ -979,6 +996,7 @@ export function use_mobile_mail_detail() {
               rfc_message_id,
               thread_token,
               from_email,
+              thread_addresses,
             },
           }),
         );
