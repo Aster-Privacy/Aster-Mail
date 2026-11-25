@@ -33,6 +33,7 @@ import {
   unblock_sender_by_token,
   block_sender,
 } from "@/services/api/blocked_senders";
+import { is_email_shape } from "@/lib/email_shape";
 
 export function BlockedSendersTab() {
   const { t } = use_i18n();
@@ -112,9 +113,7 @@ export function BlockedSendersTab() {
         return;
       }
     } else {
-      const email_regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-      if (!email_regex.test(value)) {
+      if (!is_email_shape(value)) {
         show_toast(t("common.please_enter_valid_email"), "error");
 
         return;

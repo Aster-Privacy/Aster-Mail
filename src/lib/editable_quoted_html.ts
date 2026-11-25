@@ -31,7 +31,11 @@ import {
   restore_compose_image_sources,
 } from "@/lib/compose_image_sources";
 import { defer_compose_images } from "@/lib/compose_deferred_images";
-import { restore_deferred_compose_images } from "@/lib/compose_deferred_markup";
+import {
+  replace_markup_tags,
+  replace_style_blocks,
+  restore_deferred_compose_images,
+} from "@/lib/compose_deferred_markup";
 import { sanitize_html } from "@/lib/html_sanitizer";
 import { is_tracking_pixel } from "@/lib/html_sanitizer_utils";
 import { editor_text_breaks_to_elements } from "@/lib/html_source_whitespace";
@@ -312,12 +316,9 @@ export function build_editable_quoted_fragment(
   return template.content;
 }
 
-const TAG_PATTERN = /<[a-z][^\s/>]*(?:[^>"']|"[^"]*"|'[^']*')*>/gi;
 const TAG_HEAD_PATTERN = /^<[^\s/>]+/;
 const ATTRIBUTE_PATTERN =
   /\s+([^\s"'>/=]+)(?:\s*=\s*(?:"[^"]*"|'[^']*'|[^\s"'=<>`]+))?/y;
-const PARKED_STYLE_PATTERN =
-  /<style\b((?:[^>"']|"[^"]*"|'[^']*')*)>([\s\S]*?)<\/style>/gi;
 const PARKED_CSS_VALUE_PATTERN = /\sdata-aster-parked-css="([^"]*)"/;
 
 interface ParsedAttribute {
@@ -386,24 +387,21 @@ function restore_parked_tag(tag: string): string {
 function restore_parked_styles(html: string): string {
   if (!html.includes(PARKED_CSS_ATTRIBUTE)) return html;
 
-  return html.replace(
-    PARKED_STYLE_PATTERN,
-    (match: string, attributes: string) => {
-      const parked = PARKED_CSS_VALUE_PATTERN.exec(attributes);
+  return replace_style_blocks(html, ({ match, attributes }) => {
+    const parked = PARKED_CSS_VALUE_PATTERN.exec(attributes);
 
-      if (!parked) return match;
+    if (!parked) return match;
 
-      const remaining = attributes.replace(PARKED_CSS_VALUE_PATTERN, "");
+    const remaining = attributes.replace(PARKED_CSS_VALUE_PATTERN, "");
 
-      return `<style${remaining}>${decode_serialized_attribute(parked[1])}</style>`;
-    },
-  );
+    return `<style${remaining}>${decode_serialized_attribute(parked[1])}</style>`;
+  });
 }
 
 function restore_parked_sources(html: string): string {
   if (!html.includes(PARKED_PREFIX)) return html;
 
-  return restore_parked_styles(html).replace(TAG_PATTERN, restore_parked_tag);
+  return replace_markup_tags(restore_parked_styles(html), restore_parked_tag);
 }
 
 function clear_blocked_placeholders(html: string): string {

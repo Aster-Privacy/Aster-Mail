@@ -60,11 +60,11 @@ const ATTRIBUTION_DETAIL_RE = /@|\d{1,2}[:.]\d{2}|\b(?:19|20)\d{2}\b/;
 const SENTENCE_END_RE = /[.!?]$/;
 
 const FROM_LINE_RE =
-  /^\*?(?:From|Von|De|Da|Van|Från|Fra|Od|От|Lähettäjä|Feladó|Kimden|Από|发件人|寄件者|差出人|보낸\s*사람)\s*\*?\s*[:：]\s*\S/iu;
+  /^\*?(?:From|Von|De|Da|Van|Från|Fra|Od|От|Lähettäjä|Feladó|Kimden|Από|发件人|寄件者|差出人|보낸\s*사람)\s*(?:\*\s*)?[:：]\s*\S/iu;
 const DATE_LINE_RE =
-  /^\*?(?:Sent|Date|Gesendet|Datum|Envoyé|Enviado|Fecha|Inviato|Data|Verzonden|Skickat|Sendt|Wysłano|Отправлено|Дата|Lähetetty|Päivämäärä|Elküldve|Dátum|Gönderildi|Tarih|Στάλθηκε|Ημερομηνία|发送时间|日期|送信日時|日付|보낸\s*날짜)\s*\*?\s*[:：]/iu;
+  /^\*?(?:Sent|Date|Gesendet|Datum|Envoyé|Enviado|Fecha|Inviato|Data|Verzonden|Skickat|Sendt|Wysłano|Отправлено|Дата|Lähetetty|Päivämäärä|Elküldve|Dátum|Gönderildi|Tarih|Στάλθηκε|Ημερομηνία|发送时间|日期|送信日時|日付|보낸\s*날짜)\s*(?:\*\s*)?[:：]/iu;
 const SUBJECT_LINE_RE =
-  /^\*?(?:Subject|Betreff|Objet|Asunto|Assunto|Oggetto|Onderwerp|Ämne|Emne|Temat|Тема|Aihe|Tárgy|Konu|Θέμα|主题|主旨|件名|제목)\s*\*?\s*[:：]/iu;
+  /^\*?(?:Subject|Betreff|Objet|Asunto|Assunto|Oggetto|Onderwerp|Ämne|Emne|Temat|Тема|Aihe|Tárgy|Konu|Θέμα|主题|主旨|件名|제목)\s*(?:\*\s*)?[:：]/iu;
 const HEADER_BLOCK_SPAN = 7;
 
 const ORIGINAL_MESSAGE_RE =

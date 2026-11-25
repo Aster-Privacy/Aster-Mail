@@ -25,6 +25,11 @@ import { build_measurement_controls } from "./measurement_controls";
 import { attach_iframe_interactions } from "./iframe_interactions";
 import { has_designed_background } from "./designed_background";
 import {
+  has_centered_card_layout,
+  has_style_block_background,
+  has_table_layout_attribute,
+} from "./layout_probe";
+import {
   BODY_PADDING,
   CONTENT_READY_FALLBACK_MS,
   SETTLE_REMEASURE_DELAYS_MS,
@@ -331,18 +336,14 @@ export function SandboxedEmailRenderer({
       layout_probe,
       body_background,
     );
-    const has_style_block =
-      /<style\b[^>]*>(?:(?!<\/style\b)[\s\S])*?background/i.test(layout_probe);
-    const has_centered_card =
-      /max-width\s*:\s*[3456789]\d{2}px[^;}"']*;[^"']*margin\s*:[^;}"']*auto/i.test(
-        layout_probe,
-      );
+    const has_style_block = has_style_block_background(layout_probe);
+    const has_centered_card = has_centered_card_layout(layout_probe);
     const has_newsletter_layout =
       (has_table_layout &&
         (/style\s*=\s*["'][^"']*width\s*:\s*[456789]\d{2}px/i.test(
           layout_probe,
         ) ||
-          /<table[^>]*(?:width|bgcolor|background)\s*=/i.test(layout_probe) ||
+          has_table_layout_attribute(layout_probe) ||
           (layout_probe.match(/<table\b/gi)?.length ?? 0) > 2)) ||
       has_designed_bg ||
       has_style_block ||

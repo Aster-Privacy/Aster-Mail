@@ -282,7 +282,7 @@ const REMOTE_LOAD_ATTRIBUTES = ["src", "srcset", "background", "poster"];
 
 const REMOTE_URL_PATTERN = /^\s*(https?:|\/\/)/i;
 
-const REMOTE_STYLE_URL_PATTERN = /url\(\s*["']?\s*(https?:|\/\/)/i;
+export const REMOTE_STYLE_URL_PATTERN = /url\(\s*(?:["']\s*)?(https?:|\/\/)/i;
 
 export function print_granted_types(
   message_id: string | undefined,

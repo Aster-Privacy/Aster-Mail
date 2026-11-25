@@ -35,6 +35,7 @@ import { fold_search_text } from "@/utils/search_fold";
 import { use_peer_profile } from "@/hooks/use_peer_profile";
 import { is_composing } from "@/utils/ime";
 import { split_recipient_list } from "@/utils/recipient_list";
+import { find_angle_content, has_angle_content } from "@/lib/email_shape";
 
 const EMAIL_REGEX =
   /^[^\s@]+@[a-zA-Z0-9][-a-zA-Z0-9.]*\.[a-zA-Z][-a-zA-Z0-9]{1,}$/;
@@ -126,9 +127,9 @@ function SuggestionRow({
 }
 
 function extract_email_from_text(text: string): string {
-  const angle_match = text.match(/<([^>]+)>/);
+  const angle_match = find_angle_content(text);
 
-  return (angle_match ? angle_match[1] : text).trim();
+  return (angle_match ?? text).trim();
 }
 
 interface EmailSuggestion {
@@ -333,7 +334,7 @@ export function EmailAutocomplete({
 
       if (
         !/[,;\n\t]/.test(source) &&
-        !/<[^>]+>/.test(source) &&
+        !has_angle_content(source) &&
         parts.length < 2
       ) {
         return;

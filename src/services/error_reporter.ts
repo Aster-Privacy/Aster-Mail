@@ -32,6 +32,7 @@ import {
   routed_fetch,
 } from "@/services/routing/routing_provider";
 import { has_tauri_runtime } from "@/lib/tauri_runtime";
+import { char_set_predicate, trim_end_while } from "@/lib/linear_trim";
 
 const SURFACE = "mail_app";
 const MAX_REPORTS_PER_SESSION = 40;
@@ -290,6 +291,8 @@ function release(): string {
   }
 }
 
+const is_slash = char_set_predicate("/");
+
 function route_pattern(): string {
   if (typeof window === "undefined") {
     return "/unknown";
@@ -297,7 +300,7 @@ function route_pattern(): string {
   const raw = window.location.hash.startsWith("#/")
     ? window.location.hash.slice(1)
     : window.location.pathname;
-  const path = raw.split("?")[0].replace(/\/+$/, "") || "/";
+  const path = trim_end_while(raw.split("?")[0], is_slash) || "/";
 
   if (path === "/") {
     return "/";

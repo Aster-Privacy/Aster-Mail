@@ -17,6 +17,9 @@
 //
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+//
+import { padded_name_angle_address } from "@/lib/address_scans";
+
 export interface SealedAddress {
   name: string;
   email: string;
@@ -41,7 +44,6 @@ export const SEALED_DETAILS_VERSION = 1;
 const MAX_SEALED_NAME_LENGTH = 256;
 const MAX_SEALED_EMAIL_LENGTH = 320;
 const MAX_SEALED_ADDRESSES = 1000;
-const ANGLE_ADDRESS_PATTERN = /^\s*(.*?)\s*<([^<>]+)>\s*$/;
 
 function clean_name(value: string): string {
   return value
@@ -53,12 +55,12 @@ function clean_name(value: string): string {
 }
 
 function to_sealed_address(entry: string): SealedAddress | null {
-  const angled = ANGLE_ADDRESS_PATTERN.exec(entry);
-  const email = (angled ? angled[2] : entry).trim();
+  const angled = padded_name_angle_address(entry);
+  const email = (angled ? angled.address : entry).trim();
 
   if (!email || email.length > MAX_SEALED_EMAIL_LENGTH) return null;
 
-  return { name: angled ? clean_name(angled[1]) : "", email };
+  return { name: angled ? clean_name(angled.name) : "", email };
 }
 
 function to_sealed_addresses(

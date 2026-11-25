@@ -32,6 +32,7 @@ import {
   calendar_day_diff,
   get_display_time_zone,
 } from "@/utils/date_format";
+import { is_email_shape } from "@/lib/email_shape";
 
 export interface ComposeToolbarState {
   scheduled_time: Date | null;
@@ -348,8 +349,7 @@ export function extract_inline_images(html: string): {
   };
 }
 
-export const is_valid_email = (email: string): boolean =>
-  /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+export const is_valid_email = (email: string): boolean => is_email_shape(email);
 
 export function format_last_saved(
   saved_time: Date,

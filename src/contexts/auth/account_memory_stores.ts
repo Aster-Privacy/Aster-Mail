@@ -43,6 +43,7 @@ import { clear_product_updates_cache } from "@/services/api/product_updates";
 import { clear_guard_status_cache } from "@/hooks/use_guard_status";
 import { clear_recovery_section_cache } from "@/components/settings/security/recovery_section_cache";
 import { clear_behavior_load_cache } from "@/components/settings/behavior_section/behavior_load_cache";
+import { reset_image_proxy_grant_state } from "@/lib/image_proxy_grant";
 import { ignore_error } from "@/lib/ignore_error";
 
 const ACCOUNT_MEMORY_CLEARERS: ReadonlyArray<() => void> = [
@@ -71,6 +72,7 @@ const ACCOUNT_MEMORY_CLEARERS: ReadonlyArray<() => void> = [
   () => clear_guard_status_cache(),
   () => clear_recovery_section_cache(),
   () => clear_behavior_load_cache(),
+  () => reset_image_proxy_grant_state(),
 ];
 
 export function clear_account_memory_stores(): void {

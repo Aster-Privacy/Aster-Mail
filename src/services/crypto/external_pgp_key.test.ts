@@ -39,6 +39,14 @@ const h = vi.hoisted(() => ({
   put_results: [] as unknown[],
   on_challenge: null as null | (() => void),
   on_put: null as null | (() => void),
+  verifying: true,
+}));
+
+vi.mock("@/services/crypto/storage_write_key", () => ({
+  load_verifying_storage_key_bytes: async () =>
+    h.verifying && h.vault?.data_kek
+      ? Uint8Array.from(atob(h.vault.data_kek), (c) => c.charCodeAt(0))
+      : null,
 }));
 
 vi.mock("@/services/crypto/memory_key_store", () => ({
@@ -148,6 +156,7 @@ beforeEach(() => {
   h.put_results = [];
   h.on_challenge = null;
   h.on_put = null;
+  h.verifying = true;
   vi.mocked(api_client.put).mockClear();
   vi.mocked(api_client.post).mockClear();
   vi.mocked(api_client.delete).mockClear();
@@ -188,6 +197,28 @@ async function server_record(
     ...overrides,
   };
 }
+
+describe("external key storage key", () => {
+  it("refuses to wrap the key without a verifying storage key", async () => {
+    const prepared = await prepare(first_armored);
+
+    h.verifying = false;
+
+    const result = await upload_external_key(prepared);
+
+    expect(result).toEqual({ ok: false, code: "MASTER_KEY_REQUIRED" });
+    expect(api_client.post).not.toHaveBeenCalled();
+    expect(api_client.put).not.toHaveBeenCalled();
+    expect(get_external_signing_key()).toBeNull();
+  });
+
+  it("wraps the key when the storage key verifies", async () => {
+    const result = await upload_external_key(await prepare(first_armored));
+
+    expect(result.ok).toBe(true);
+    expect(api_client.put).toHaveBeenCalledTimes(1);
+  });
+});
 
 describe("external key account switching", () => {
   it("does not adopt the key when the account changes before the upload", async () => {

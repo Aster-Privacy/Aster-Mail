@@ -18,6 +18,8 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { is_plain_address, whitespace_or_chars } from "@/lib/address_scans";
+
 export interface MailtoDraft {
   to: string[];
   cc: string[];
@@ -31,7 +33,7 @@ const MAX_LINK_LENGTH = 16384;
 const MAX_RECIPIENTS_PER_FIELD = 100;
 const MAX_SUBJECT_LENGTH = 998;
 const MAX_BODY_LENGTH = 100000;
-const ADDRESS_PATTERN = /^[^\s@<>(),;:"]+@[^\s@<>(),;:"]+\.[^\s@<>(),;:"]+$/;
+const is_address_excluded = whitespace_or_chars('@<>(),;:"');
 const BRACKETED_ADDRESS_PATTERN = /<([^<>]+)>\s*$/;
 
 function decode_component(value: string): string {
@@ -50,7 +52,7 @@ function extract_address(raw: string): string | null {
   const bracketed = trimmed.match(BRACKETED_ADDRESS_PATTERN);
   const candidate = (bracketed ? bracketed[1] : trimmed).trim();
 
-  return ADDRESS_PATTERN.test(candidate) ? candidate : null;
+  return is_plain_address(candidate, is_address_excluded) ? candidate : null;
 }
 
 function append_addresses(target: string[], encoded_list: string): void {

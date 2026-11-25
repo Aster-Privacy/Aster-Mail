@@ -18,7 +18,10 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-const EDGE_C0_CONTROL_OR_SPACE = /^[\u0000- ]+|[\u0000- ]+$/g;
+import { trim_edges_while, trim_end_while } from "./linear_trim";
+
+const is_c0_control_or_space = (code: number): boolean => code <= 0x20;
+const is_comma = (code: number): boolean => code === 0x2c;
 const ASCII_TAB_OR_NEWLINE = /[\t\n\r]/g;
 const WEB_SCHEME = /^https?:/i;
 const ABSOLUTE_WEB_URL = /^https?:\/\//i;
@@ -34,9 +37,10 @@ export interface SrcsetCandidate {
 }
 
 export function normalize_url_value(value: string): string {
-  return value
-    .replace(EDGE_C0_CONTROL_OR_SPACE, "")
-    .replace(ASCII_TAB_OR_NEWLINE, "");
+  return trim_edges_while(value, is_c0_control_or_space).replace(
+    ASCII_TAB_OR_NEWLINE,
+    "",
+  );
 }
 
 export function get_page_origin(): string | null {
@@ -170,7 +174,7 @@ export function parse_srcset_candidates(value: string): SrcsetCandidate[] {
     let descriptor = "";
 
     if (url.endsWith(",")) {
-      url = url.replace(/,+$/, "");
+      url = trim_end_while(url, is_comma);
     } else {
       const descriptor_start = position;
 
