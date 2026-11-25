@@ -39,6 +39,7 @@ vi.mock("./api/mail", () => ({
 
 vi.mock("./crypto/memory_key_store", () => ({
   get_vault_from_memory: () => null,
+  get_vault_owner_id: () => null,
 }));
 
 vi.mock("./crypto/envelope", () => ({

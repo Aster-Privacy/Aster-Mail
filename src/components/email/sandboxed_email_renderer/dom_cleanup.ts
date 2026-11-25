@@ -264,9 +264,9 @@ export function collapse_forwarded_content(
 
   const walker = doc.createTreeWalker(body, NodeFilter.SHOW_TEXT);
   const fw_patterns = [
-    /-{3,}\s*Forwarded\s+[Mm]essage\s*-{3,}/,
+    /---\s*Forwarded\s+[Mm]essage\s*---/,
     /Begin forwarded message:/i,
-    /-{3,}\s*Original\s+[Mm]essage\s*-{3,}/i,
+    /---\s*Original\s+[Mm]essage\s*---/i,
   ];
 
   let marker_text: Text | null = null;

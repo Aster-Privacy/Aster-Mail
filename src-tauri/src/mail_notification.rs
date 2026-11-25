@@ -414,10 +414,25 @@ mod platform {
     static SHOWN: ServerIds = ServerIds::new();
     static CONNECTION: Mutex<Option<Connection>> = Mutex::new(None);
 
+    pub fn escape_markup(text: &str) -> String {
+        let mut escaped = String::with_capacity(text.len());
+
+        for character in text.chars() {
+            match character {
+                '&' => escaped.push_str("&amp;"),
+                '<' => escaped.push_str("&lt;"),
+                '>' => escaped.push_str("&gt;"),
+                _ => escaped.push(character),
+            }
+        }
+
+        escaped
+    }
+
     pub fn build_notification(title: &str, body: &str) -> Notification {
         Notification::new()
-            .summary(title)
-            .body(body)
+            .summary(&escape_markup(title))
+            .body(&escape_markup(body))
             .auto_icon()
             .hint(Hint::Transient(true))
             .finalize()
@@ -606,6 +621,22 @@ mod tests {
             platform::server_hints(&notification).get("transient"),
             Some(&zbus::zvariant::Value::from(true))
         );
+    }
+
+    #[cfg(all(unix, not(target_os = "macos")))]
+    #[test]
+    fn desktop_notification_bodies_carry_no_markup() {
+        let notification = platform::build_notification(
+            "A <b>&</b> B",
+            "<a href=\"https://example.com\">Pay</a> & <img src=x> R&amp;D",
+        );
+
+        assert_eq!(notification.summary, "A &lt;b&gt;&amp;&lt;/b&gt; B");
+        assert_eq!(
+            notification.body,
+            "&lt;a href=\"https://example.com\"&gt;Pay&lt;/a&gt; &amp; &lt;img src=x&gt; R&amp;amp;D"
+        );
+        assert_eq!(platform::escape_markup("plain text"), "plain text");
     }
 
     #[test]

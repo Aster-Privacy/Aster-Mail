@@ -34,6 +34,11 @@ import {
   ALLOWED_TAGS,
   DANGEROUS_TAGS,
   ALLOWED_DATA_URL_TYPES,
+  ascii_ci_at,
+  index_of_ascii_ci,
+  replace_up_to_last,
+  skip_js_whitespace,
+  word_boundary_after,
 } from "./html_sanitizer_constants";
 import {
   build_proxy_url,
@@ -53,7 +58,15 @@ import {
   strip_tracking_params,
   repair_comment_markup,
   sanitize_attribute,
+  find_close_tag,
+  find_close_tag_end,
+  find_tag_open,
 } from "./html_sanitizer_utils";
+import {
+  is_js_whitespace,
+  trim_end_index,
+  trim_end_while,
+} from "./linear_trim";
 import {
   get_page_origin,
   is_remote_url_value,
@@ -124,7 +137,7 @@ function classify_local_image_url(value: string): LocalImageUrl {
     return { kind: "external" };
   }
 
-  const pathname = parsed.pathname.replace(/\/+$/, "").toLowerCase();
+  const pathname = trim_end_while(parsed.pathname, is_slash_code).toLowerCase();
 
   if (pathname === IMAGE_PROXY_PATH) {
     const inner = parsed.searchParams.get("url");
@@ -217,15 +230,56 @@ export interface SanitizeOptions {
   blocked_image_labels?: BlockedImageLabels;
 }
 
+export function strip_raw_text_blocks(text: string, name: string): string {
+  const last_close = text.lastIndexOf(">");
+  let result = "";
+  let copied = 0;
+  let from = 0;
+
+  for (;;) {
+    const start = find_tag_open(text, name, from);
+
+    if (start === -1) break;
+
+    const close = find_tag_open(text, `/${name}`, start + name.length + 1);
+
+    if (close === -1 || last_close < close + name.length + 2) break;
+
+    const end = text.indexOf(">", close + name.length + 2) + 1;
+
+    result += `${text.slice(copied, start)} `;
+    copied = end;
+    from = end;
+  }
+
+  return copied === 0 ? text : result + text.slice(copied);
+}
+
+export function strip_raw_text_tail(text: string, name: string): string {
+  const start = find_tag_open(text, name, 0);
+
+  if (start === -1 || text.lastIndexOf(">") < start + name.length + 1) {
+    return text;
+  }
+
+  return `${text.slice(0, start)} `;
+}
+
 export function degraded_text_html(html: string): string {
   const text =
     typeof html === "string"
-      ? html
-          .replace(/<style\b[\s\S]*?<\/style\b[^>]*>/gi, " ")
-          .replace(/<style\b[^>]*>[\s\S]*/gi, " ")
-          .replace(/<script\b[\s\S]*?<\/script\b[^>]*>/gi, " ")
-          .replace(/<script\b[^>]*>[\s\S]*/gi, " ")
-          .replace(/<[^>]*>/g, " ")
+      ? replace_up_to_last(
+          strip_raw_text_tail(
+            strip_raw_text_blocks(
+              strip_raw_text_tail(strip_raw_text_blocks(html, "style"), "style"),
+              "script",
+            ),
+            "script",
+          ),
+          ">",
+          /<[^>]*>/g,
+          " ",
+        )
           .replace(/\s+/g, " ")
           .trim()
       : "";
@@ -266,24 +320,296 @@ const PREVIEW_FORBIDDEN_ELEMENTS =
 const PREVIEW_FORBIDDEN_REGEX =
   /<\/?(?:style|script|noscript|template|link|meta|base|iframe|object|embed)\b[^>]*>/gi;
 
-const PREVIEW_STYLE_BLOCK_REGEX = /<style[\s\S]*?<\/style\s*>/gi;
+export function strip_preview_forbidden_tags(html: string): string {
+  return replace_up_to_last(html, ">", PREVIEW_FORBIDDEN_REGEX, "");
+}
+
+export function strip_preview_style_blocks(html: string): string {
+  let result = "";
+  let copied = 0;
+  let from = 0;
+
+  for (;;) {
+    const start = index_of_ascii_ci(html, "<style", from);
+
+    if (start === -1) break;
+
+    const end = find_close_tag_end(html, "style", start + 6);
+
+    if (end === -1) break;
+
+    result += html.slice(copied, start);
+    copied = end;
+    from = end;
+  }
+
+  return copied === 0 ? html : result + html.slice(copied);
+}
+
+function is_slash_code(code: number): boolean {
+  return code === 0x2f;
+}
+
+const BODY_STYLE_ATTRIBUTE_REGEX = /<body[^>]*style\s*=\s*["']([^"']*)["']/iy;
+const BODY_BGCOLOR_ATTRIBUTE_REGEX =
+  /<body[^>]*bgcolor\s*=\s*["']?([^"'\s>]+)["']?/iy;
+
+function match_body_tag(html: string, pattern: RegExp): RegExpExecArray | null {
+  let from = 0;
+
+  for (;;) {
+    const start = index_of_ascii_ci(html, "<body", from);
+
+    if (start === -1) return null;
+
+    pattern.lastIndex = start;
+
+    const match = pattern.exec(html);
+
+    if (match) return match;
+
+    const tag_end = html.indexOf(">", start + 5);
+
+    if (tag_end === -1) return null;
+
+    from = tag_end + 1;
+  }
+}
+
+export function match_body_style_attribute(
+  html: string,
+): RegExpExecArray | null {
+  return match_body_tag(html, BODY_STYLE_ATTRIBUTE_REGEX);
+}
+
+export function match_body_bgcolor_attribute(
+  html: string,
+): RegExpExecArray | null {
+  return match_body_tag(html, BODY_BGCOLOR_ATTRIBUTE_REGEX);
+}
+
+const FIRST_ELEMENT_NAMES = ["table", "div", "center"];
+const MAX_LEADING_COMMENTS = 32;
+const UNREACHABLE_COMMENT_COUNT = Number.MAX_SAFE_INTEGER;
+
+function first_element_name_end(html: string, index: number): number {
+  if (html.charCodeAt(index) !== 0x3c) return -1;
+
+  for (const name of FIRST_ELEMENT_NAMES) {
+    const end = index + 1 + name.length;
+
+    if (ascii_ci_at(html, index + 1, name) && word_boundary_after(html, end)) {
+      return end;
+    }
+  }
+
+  return -1;
+}
+
+interface LeadingCommentTable {
+  ends: number[];
+  resume: number[];
+  need: number[];
+  suffix_need: number[];
+}
+
+function first_comment_end_index(
+  table: LeadingCommentTable,
+  from: number,
+): number {
+  let low = 0;
+  let high = table.ends.length;
+
+  while (low < high) {
+    const middle = (low + high) >>> 1;
+
+    if (table.ends[middle] < from) {
+      low = middle + 1;
+    } else {
+      high = middle;
+    }
+  }
+
+  return low;
+}
+
+function comments_needed(
+  html: string,
+  table: LeadingCommentTable,
+  position: number,
+): number {
+  if (first_element_name_end(html, position) !== -1) return 0;
+
+  if (!html.startsWith("<!--", position)) return UNREACHABLE_COMMENT_COUNT;
+
+  const next = first_comment_end_index(table, position + 4);
+
+  if (next >= table.ends.length) return UNREACHABLE_COMMENT_COUNT;
+
+  const rest = table.suffix_need[next];
+
+  return rest === UNREACHABLE_COMMENT_COUNT
+    ? UNREACHABLE_COMMENT_COUNT
+    : rest + 1;
+}
+
+function build_leading_comment_table(html: string): LeadingCommentTable {
+  const ends: number[] = [];
+
+  for (
+    let end = html.indexOf("-->");
+    end !== -1;
+    end = html.indexOf("-->", end + 3)
+  ) {
+    ends.push(end);
+  }
+
+  const table: LeadingCommentTable = {
+    ends,
+    resume: ends.map((end) => skip_js_whitespace(html, end + 3)),
+    need: new Array<number>(ends.length).fill(UNREACHABLE_COMMENT_COUNT),
+    suffix_need: new Array<number>(ends.length + 1).fill(
+      UNREACHABLE_COMMENT_COUNT,
+    ),
+  };
+
+  for (let index = ends.length - 1; index >= 0; index -= 1) {
+    table.need[index] = comments_needed(html, table, table.resume[index]);
+    table.suffix_need[index] = Math.min(
+      table.need[index],
+      table.suffix_need[index + 1],
+    );
+  }
+
+  return table;
+}
+
+export function match_body_first_element(html: string): string | null {
+  let table: LeadingCommentTable | null = null;
+  let from = 0;
+
+  for (;;) {
+    const start = index_of_ascii_ci(html, "<body", from);
+
+    if (start === -1) return null;
+
+    const tag_end = html.indexOf(">", start + 5);
+
+    if (tag_end === -1) return null;
+
+    let position = skip_js_whitespace(html, tag_end + 1);
+
+    if (
+      first_element_name_end(html, position) === -1 &&
+      html.startsWith("<!--", position)
+    ) {
+      if (table === null) table = build_leading_comment_table(html);
+    }
+
+    if (
+      table !== null &&
+      comments_needed(html, table, position) <= MAX_LEADING_COMMENTS
+    ) {
+      let budget = MAX_LEADING_COMMENTS;
+
+      while (first_element_name_end(html, position) === -1) {
+        let next = first_comment_end_index(table, position + 4);
+
+        while (table.need[next] > budget - 1) next += 1;
+
+        position = table.resume[next];
+        budget -= 1;
+      }
+    }
+
+    const name_end = first_element_name_end(html, position);
+
+    if (name_end !== -1) {
+      const close = html.indexOf(">", name_end);
+
+      return html.slice(start, close === -1 ? html.length : close);
+    }
+
+    from = tag_end + 1;
+  }
+}
+
+export function match_head_block(html: string): string | null {
+  for (
+    let start = index_of_ascii_ci(html, "<head", 0);
+    start !== -1;
+    start = index_of_ascii_ci(html, "<head", start + 1)
+  ) {
+    const next = html.charCodeAt(start + 5);
+
+    if (next === 0x3e || is_js_whitespace(next)) {
+      const end = find_close_tag_end(html, "head", start + 6);
+
+      return end === -1 ? null : html.slice(start, end);
+    }
+  }
+
+  return null;
+}
+
+export interface StyleBlock {
+  attributes: string;
+  css: string;
+}
+
+export function extract_style_blocks(html: string): StyleBlock[] {
+  const blocks: StyleBlock[] = [];
+  let from = 0;
+
+  for (;;) {
+    const start = index_of_ascii_ci(html, "<style", from);
+
+    if (start === -1) break;
+
+    const tag_end = html.indexOf(">", start + 6);
+
+    if (tag_end === -1) break;
+
+    const close = find_close_tag(html, "style", tag_end + 1);
+
+    if (close === null) break;
+
+    blocks.push({
+      attributes: html.slice(start + 6, tag_end),
+      css: html.slice(tag_end + 1, close.start),
+    });
+    from = close.end;
+  }
+
+  return blocks;
+}
+
+export function append_style_separator(style: string): string {
+  const end = trim_end_index(style, is_js_whitespace);
+  const cut = end > 0 && style.charCodeAt(end - 1) === 0x3b ? end - 1 : end;
+
+  return `${style.slice(0, cut)}; `;
+}
 const STYLE_MEDIA_ATTRIBUTE =
   /(?:^|\s)media\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s"'=<>`]+))/i;
 
-function strip_until_stable(input: string, pattern: RegExp): string {
+function strip_until_stable(
+  input: string,
+  strip: (value: string) => string,
+): string {
   let previous: string;
   let current = input;
 
   do {
     previous = current;
-    current = current.replace(pattern, "");
+    current = strip(current);
   } while (current !== previous);
 
   return current;
 }
 
 function preview_fallback_sanitize(input: string): string {
-  let out = strip_until_stable(input, PREVIEW_FORBIDDEN_REGEX);
+  let out = strip_until_stable(input, strip_preview_forbidden_tags);
 
   out = out.replace(/\son[a-z][\w-]*\s*=\s*("[^"]*"|'[^']*'|[^\s"'>]+)/gi, "");
 
@@ -313,7 +639,7 @@ function preview_fallback_sanitize(input: string): string {
 export function sanitize_preview_html(html: string): string {
   if (!html || typeof html !== "string") return "";
 
-  const working = strip_until_stable(html, PREVIEW_STYLE_BLOCK_REGEX);
+  const working = strip_until_stable(html, strip_preview_style_blocks);
 
   if (typeof DOMParser === "undefined") {
     return preview_fallback_sanitize(working);
@@ -474,9 +800,7 @@ function sanitize_html_impl(
   };
 
   let body_background: string | undefined;
-  const body_style_match = html.match(
-    /<body[^>]*style\s*=\s*["']([^"']*)["']/i,
-  );
+  const body_style_match = match_body_style_attribute(html);
 
   if (body_style_match) {
     const bg_match = body_style_match[1].match(
@@ -493,9 +817,7 @@ function sanitize_html_impl(
   }
 
   if (!body_background) {
-    const bgcolor_match = html.match(
-      /<body[^>]*bgcolor\s*=\s*["']?([^"'\s>]+)["']?/i,
-    );
+    const bgcolor_match = match_body_bgcolor_attribute(html);
 
     if (bgcolor_match) {
       const bg_val = bgcolor_match[1].trim();
@@ -507,12 +829,9 @@ function sanitize_html_impl(
   }
 
   if (!body_background) {
-    const first_el_match = html.match(
-      /<body[^>]*>\s*(?:<!--[\s\S]*?-->\s*){0,32}<(table|div|center)\b[^>]*/i,
-    );
+    const tag_str = match_body_first_element(html);
 
-    if (first_el_match) {
-      const tag_str = first_el_match[0];
+    if (tag_str !== null) {
       const bg_attr = tag_str.match(/bgcolor\s*=\s*["']?([^"'\s>]+)["']?/i);
 
       if (bg_attr) {
@@ -546,19 +865,14 @@ function sanitize_html_impl(
   const preprocessed = repair_comment_markup(html);
 
   const head_styles: string[] = [];
-  const head_match = sandbox_mode
-    ? preprocessed.match(/<head[\s>][\s\S]*?<\/head\s*>/i)
-    : null;
+  const head_html = sandbox_mode ? match_head_block(preprocessed) : null;
 
-  if (head_match) {
-    const style_regex = /<style([^>]*)>([\s\S]*?)<\/style\s*>/gi;
-    let style_match;
-
-    while ((style_match = style_regex.exec(head_match[0])) !== null) {
-      const media_match = style_match[1].match(STYLE_MEDIA_ATTRIBUTE);
+  if (head_html !== null) {
+    for (const style_block of extract_style_blocks(head_html)) {
+      const media_match = style_block.attributes.match(STYLE_MEDIA_ATTRIBUTE);
       let sanitized_css = sanitize_css_block(
         scope_css_to_media_attribute(
-          style_match[2],
+          style_block.css,
           media_match
             ? (media_match[1] ?? media_match[2] ?? media_match[3])
             : null,
@@ -1095,7 +1409,7 @@ function sanitize_html_impl(
 
         if (width_css) {
           existing_style = existing_style
-            ? existing_style.replace(/;?\s*$/, "; ") + width_css
+            ? append_style_separator(existing_style) + width_css
             : width_css;
           new_element.setAttribute("style", existing_style);
         }
@@ -1124,7 +1438,7 @@ function sanitize_html_impl(
         if (height_css) {
           existing_style = new_element.getAttribute("style") || "";
           const combined = existing_style
-            ? existing_style.replace(/;?\s*$/, "; ") + height_css
+            ? append_style_separator(existing_style) + height_css
             : height_css;
 
           new_element.setAttribute("style", combined);

@@ -26,6 +26,8 @@ import {
   owner_key_fingerprint,
 } from "./crypto/ratchet_identity_pin";
 
+import { bracketed_tail_address } from "@/lib/address_scans";
+
 const OPPORTUNISTIC_KEY_SOURCES: ReadonlySet<string> = new Set([
   "aster",
   "autocrypt",
@@ -62,12 +64,10 @@ export function will_encrypt_opportunistically(
   return trusts_key_for_opportunistic(info, encrypt_by_default, now);
 }
 
-const ADDRESS_IN_USER_ID = /<([^<>\s]+@[^<>\s]+)>\s*$/;
-
 function user_id_address(user_id: string): string {
-  const bracketed = ADDRESS_IN_USER_ID.exec(user_id);
+  const bracketed = bracketed_tail_address(user_id);
 
-  return (bracketed ? bracketed[1] : user_id).trim().toLowerCase();
+  return (bracketed ?? user_id).trim().toLowerCase();
 }
 
 export async function key_names_address(

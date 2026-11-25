@@ -28,6 +28,47 @@ import { restore_deferred_compose_images } from "./compose_deferred_markup";
 import { repair_comment_markup } from "./html_sanitizer_utils";
 import { collapse_source_whitespace_html } from "./html_source_whitespace";
 import { normalize_url_value } from "./url_value";
+import { index_of_ascii_ci } from "./html_sanitizer_constants";
+import { trim_edges_while } from "./linear_trim";
+
+function is_semicolon_code(code: number): boolean {
+  return code === 0x3b;
+}
+
+export function strip_mso_declarations(style: string): string {
+  let result = "";
+  let copied = 0;
+  let from = 0;
+
+  for (;;) {
+    const start = index_of_ascii_ci(style, "mso-", from);
+
+    if (start === -1) break;
+
+    const colon = style.indexOf(":", start + 4);
+
+    if (colon === -1) break;
+
+    if (colon === start + 4) {
+      from = start + 1;
+      continue;
+    }
+
+    if (colon + 1 >= style.length || style.charCodeAt(colon + 1) === 0x3b) {
+      from = colon + 1;
+      continue;
+    }
+
+    const semicolon = style.indexOf(";", colon + 1);
+    const end = semicolon === -1 ? style.length : semicolon + 1;
+
+    result += style.slice(copied, start);
+    copied = end;
+    from = end;
+  }
+
+  return copied === 0 ? style : result + style.slice(copied);
+}
 
 const BACKGROUND_DECLARATION_RE = /background(?:-color)?\s*:\s*[^;]+;?/gi;
 const LEADING_ASCII_WHITESPACE_RE = /^[\t\n\f\r ]+/;
@@ -42,7 +83,7 @@ export function strip_transparent_backgrounds(el: Element): void {
   if (matches.length === 0) return;
   const last_offset = matches[matches.length - 1].index;
 
-  const cleaned = style_attr
+  const trimmed = style_attr
     .replace(BACKGROUND_DECLARATION_RE, (declaration, offset) => {
       if (offset !== last_offset) return declaration;
 
@@ -53,9 +94,8 @@ export function strip_transparent_backgrounds(el: Element): void {
 
       return is_transparent_color_value(value) ? "" : declaration;
     })
-    .trim()
-    .replace(/^;+|;+$/g, "")
     .trim();
+  const cleaned = trim_edges_while(trimmed, is_semicolon_code).trim();
 
   if (cleaned) {
     el.setAttribute("style", cleaned);
@@ -343,7 +383,7 @@ export function apply_compose_paste_dom_rules(
     if (style_attr) {
       let cleaned = style_attr;
 
-      cleaned = cleaned.replace(/mso-[^:]+:[^;]+;?/gi, "");
+      cleaned = strip_mso_declarations(cleaned);
       cleaned = sanitize_compose_style(cleaned);
 
       if (cleaned) {

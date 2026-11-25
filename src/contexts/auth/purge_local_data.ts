@@ -239,11 +239,10 @@ async function sign_out_locally(
   drop_memory_secrets();
 
   api_client.begin_intentional_logout();
-  try {
-    await logout_user();
-  } catch (caught) {
-    ignore_error("contexts/auth/purge_local_data:purge_all_local_data", caught);
-  }
+  await settle_within(
+    Promise.resolve().then(logout_user),
+    REMOTE_RELEASE_TIMEOUT_MS,
+  );
 
   await run_steps(STORAGE_STEPS, failed);
   await clear_local_caches();

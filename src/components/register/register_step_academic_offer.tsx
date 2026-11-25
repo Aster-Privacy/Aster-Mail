@@ -45,6 +45,7 @@ import {
 } from "@/components/register/academic_offer_prefill";
 import { is_composing } from "@/utils/ime";
 import { academic_error_key } from "@/components/settings/billing/academic_error_text";
+import { is_email_shape } from "@/lib/email_shape";
 
 interface RegisterStepAcademicOfferProps {
   reg: UseRegistrationReturn;
@@ -63,8 +64,7 @@ export const RegisterStepAcademicOffer = ({
   const turnstile_ref = useRef<TurnstileWidgetRef>(null);
   const captcha_required = !!TURNSTILE_SITE_KEY;
 
-  const looks_like_email = (value: string) =>
-    /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(value.trim());
+  const looks_like_email = (value: string) => is_email_shape(value.trim());
   const can_auto_send =
     prefill.has_offer &&
     prefill.role === "student" &&

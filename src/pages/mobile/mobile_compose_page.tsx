@@ -77,11 +77,12 @@ import {
   haptic_send_success,
   haptic_error,
 } from "@/native/haptic_feedback";
+import { find_angle_content, has_angle_content } from "@/lib/email_shape";
 
 function extract_recipient_address(text: string): string {
-  const angle_match = text.match(/<([^>]+)>/);
+  const angle_match = find_angle_content(text);
 
-  return (angle_match ? angle_match[1] : text).trim();
+  return (angle_match ?? text).trim();
 }
 
 function MobileComposePage({
@@ -252,7 +253,7 @@ function MobileComposePage({
       on_paste: (e: React.ClipboardEvent<HTMLInputElement>) => {
         const pasted = e.clipboardData.getData("text/plain");
 
-        if (!/[,;\n\t]/.test(pasted) && !/<[^>]+>/.test(pasted)) return;
+        if (!/[,;\n\t]/.test(pasted) && !has_angle_content(pasted)) return;
 
         e.preventDefault();
         compose.update_input(field, commit_recipients(field, pasted));

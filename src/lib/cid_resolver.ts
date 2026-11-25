@@ -31,6 +31,13 @@ import {
 } from "@/services/attachment_preview_cache";
 import { get_cached_attachment_meta } from "@/services/attachment_meta_cache";
 import { get_decrypted_mime_attachments } from "@/services/decrypted_mime_attachments";
+import {
+  char_set_predicate,
+  trim_end_index,
+  trim_end_while,
+  trim_start_index,
+} from "@/lib/linear_trim";
+import { ascii_lower, next_char_table, table_lookup } from "@/lib/html_text";
 
 const ALLOWED_IMAGE_TYPES = new Set([
   "image/png",
@@ -192,7 +199,7 @@ function parse_srcset(value: string): SrcsetCandidate[] {
     let descriptor = "";
 
     if (url.endsWith(",")) {
-      url = url.replace(/,+$/, "");
+      url = trim_end_while(url, is_comma_code);
     } else {
       const descriptor_start = position;
 
@@ -340,16 +347,118 @@ export function strip_unresolved_cid_references(
     .replace(cid_css_url_pattern(`[^"')\\s]+`), `url(${TRANSPARENT_GIF})`);
 }
 
+const is_comma_code = char_set_predicate(",");
+
+const is_open_angle_code = char_set_predicate("<");
+
+const is_close_angle_code = char_set_predicate(">");
+
+function is_quote_code(code: number): boolean {
+  return code === 34 || code === 39;
+}
+
+function previous_valid_table(
+  length: number,
+  is_valid: (index: number) => boolean,
+): Int32Array {
+  const table = new Int32Array(length);
+  let previous = -1;
+
+  for (let index = 0; index < length; index += 1) {
+    if (is_valid(index)) previous = index;
+    table[index] = previous;
+  }
+
+  return table;
+}
+
 export function extract_cid_inline_filenames(html: string): Set<string> {
-  const regex =
-    /src=["']cid:[^"']+["'][^>]*alt=["']([^"']+)["']|alt=["']([^"']+)["'][^>]*src=["']cid:[^"']+["']/gi;
   const filenames = new Set<string>();
-  let match: RegExpExecArray | null;
+  const lower = ascii_lower(html);
+  const length = html.length;
+  const next_quote = next_char_table(html, is_quote_code);
+  const next_gt = next_char_table(html, (code) => code === 62);
 
-  while ((match = regex.exec(html)) !== null) {
-    const name = (match[1] || match[2] || "").toLowerCase().trim();
+  const quoted_value_end = (open: number): number => {
+    if (!is_quote_code(html.charCodeAt(open))) return -1;
 
-    if (name) filenames.add(name);
+    const close = table_lookup(next_quote, open + 1);
+
+    return close > open + 1 ? close : -1;
+  };
+
+  const alt_end = (index: number): number =>
+    lower.startsWith("alt=", index) ? quoted_value_end(index + 4) : -1;
+
+  const src_end = (index: number): number => {
+    if (!lower.startsWith("src=", index)) return -1;
+    if (!is_quote_code(html.charCodeAt(index + 4))) return -1;
+    if (!lower.startsWith("cid:", index + 5)) return -1;
+
+    const close = table_lookup(next_quote, index + 9);
+
+    return close > index + 9 ? close : -1;
+  };
+
+  const previous_alt = previous_valid_table(
+    length,
+    (index) => alt_end(index) !== -1,
+  );
+  const previous_src = previous_valid_table(
+    length,
+    (index) => src_end(index) !== -1,
+  );
+
+  const rightmost_before_gt = (table: Int32Array, from: number): number => {
+    const gt = table_lookup(next_gt, from);
+    const limit = (gt === -1 ? length : gt) - 1;
+
+    if (limit < from) return -1;
+
+    const found = table[limit];
+
+    return found >= from ? found : -1;
+  };
+
+  let index = 0;
+
+  while (index < length) {
+    let name = "";
+    let end = -1;
+    const src_close = src_end(index);
+
+    if (src_close !== -1) {
+      const alt_start = rightmost_before_gt(previous_alt, src_close + 1);
+
+      if (alt_start !== -1) {
+        end = alt_end(alt_start) + 1;
+        name = html.slice(alt_start + 5, end - 1);
+      }
+    }
+
+    if (end === -1) {
+      const alt_close = alt_end(index);
+
+      if (alt_close !== -1) {
+        const src_start = rightmost_before_gt(previous_src, alt_close + 1);
+
+        if (src_start !== -1) {
+          end = src_end(src_start) + 1;
+          name = html.slice(index + 5, alt_close);
+        }
+      }
+    }
+
+    if (end === -1) {
+      index += 1;
+      continue;
+    }
+
+    const normalized = name.toLowerCase().trim();
+
+    if (normalized) filenames.add(normalized);
+
+    index = end;
   }
 
   return filenames;
@@ -366,10 +475,17 @@ function decode_percent(value: string): string {
 }
 
 function normalize_cid(value: string): string {
-  return decode_percent(value)
-    .replace(/^<+|>+$/g, "")
-    .trim()
-    .toLowerCase();
+  return strip_cid_brackets(decode_percent(value)).trim().toLowerCase();
+}
+
+export function strip_cid_brackets(value: string): string {
+  const start = trim_start_index(value, is_open_angle_code);
+
+  if (start === value.length) return "";
+
+  const end = Math.max(start, trim_end_index(value, is_close_angle_code));
+
+  return start === 0 && end === value.length ? value : value.slice(start, end);
 }
 
 function strip_extension(value: string): string {

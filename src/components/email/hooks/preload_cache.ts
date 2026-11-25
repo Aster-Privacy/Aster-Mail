@@ -81,6 +81,7 @@ import {
   plain_text_to_html,
 } from "@/lib/html_sanitizer";
 import { get_image_proxy_url } from "@/lib/image_proxy";
+import { strip_remote_css_fetches } from "@/lib/html_sanitizer_css";
 import { should_defer_proxied_images } from "@/lib/image_proxy_grant";
 import { defer_proxied_images } from "@/lib/deferred_proxy_images";
 import { contain_untrusted_html } from "@/lib/untrusted_sources";
@@ -405,20 +406,6 @@ function presanitize(
 }
 
 let measure_container: HTMLDivElement | null = null;
-
-// The height pre-measurement renders sanitized email markup into a top-origin
-// shadow DOM (not the script-disabled iframe used for display). Remote CSS
-// fetches there would beacon from the trusted origin even while the visible
-// render blocks them, so strip remote url()/@import for measurement only.
-// Background images and @import fonts do not affect block height, so the
-// measured height is unchanged.
-function strip_remote_css_fetches(html: string): string {
-  return html
-    .replace(/url\(\s*(['"]?)(?:https?:)?\/\/[^)]*\1\s*\)/gi, "url()")
-    .replace(/(?:-webkit-)?image-set\s*\([^)]*\)/gi, "none")
-    .replace(/cross-fade\s*\([^)]*\)/gi, "none")
-    .replace(/@import[^;]*;/gi, "");
-}
 
 function premeasure_height(
   email_id: string,

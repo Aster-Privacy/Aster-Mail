@@ -114,6 +114,7 @@ import {
   build_badge_html,
   draft_data_to_attachments,
 } from "@/components/compose/compose_draft_helpers";
+import { drop_blanks_before_newline } from "@/lib/address_scans";
 import { ignore_error } from "@/lib/ignore_error";
 import {
   app_hour12,
@@ -603,8 +604,7 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
             .querySelectorAll("p, div, tr, li")
             .forEach((el) => el.after("\n"));
 
-          return (doc.body.textContent ?? "")
-            .replace(/[ \t]+\n/g, "\n")
+          return drop_blanks_before_newline(doc.body.textContent ?? "", false)
             .replace(/\n{3,}/g, "\n\n")
             .trim();
         })();

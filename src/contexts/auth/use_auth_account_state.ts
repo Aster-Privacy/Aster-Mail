@@ -50,6 +50,7 @@ import {
 } from "./auth_helpers";
 import { clear_signed_out_account_caches } from "./signed_out_account_caches";
 import { build_restore_sign_in_path } from "./restore_sign_in_path";
+import { finish_pending_sign_out } from "./pending_sign_out";
 import { restore_from_server_vault } from "./stale_local_vault_restore";
 
 import { ensure_ratchet_keys } from "@/services/crypto/ensure_ratchet_keys";
@@ -381,6 +382,9 @@ export function use_auth_account_state() {
   useEffect(() => {
     const init = async () => {
       try {
+        await finish_pending_sign_out().catch((caught) =>
+          ignore_error("contexts/auth/use_auth_account_state:init", caught),
+        );
         const data = await initialize_accounts();
 
         const current = await get_current_account();

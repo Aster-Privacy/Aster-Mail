@@ -22,6 +22,7 @@ import { split_autolinks } from "./autolink";
 import { is_transparent_color_value } from "./html_sanitizer_css";
 import { looks_format_flowed, unflow_format_flowed } from "./format_flowed";
 import { repair_comment_markup } from "./html_sanitizer_utils";
+import { is_js_whitespace, trim_start_index } from "./linear_trim";
 import {
   LITERAL_TEXT_CLASS,
   looks_like_patch,
@@ -255,6 +256,52 @@ export function strip_quoted_sections(content: string): string {
   return strip_html_tags(own_content).trim() ? own_content : content;
 }
 
+export function trailing_background_value(declaration: string): string | null {
+  let tail_start = 0;
+
+  for (let index = declaration.length - 1; index >= 0; index -= 1) {
+    const code = declaration.charCodeAt(index);
+
+    if (code === 59 || code === 34 || code === 39) {
+      tail_start = index + 1;
+      break;
+    }
+  }
+
+  const lower = ascii_lower(declaration);
+
+  for (
+    let index = lower.indexOf("background", tail_start);
+    index !== -1;
+    index = lower.indexOf("background", index + 1)
+  ) {
+    const name_end = index + "background".length;
+    let colon = -1;
+
+    if (lower.startsWith("-color", name_end)) {
+      const after = trim_start_index(
+        declaration,
+        is_js_whitespace,
+        name_end + "-color".length,
+      );
+
+      if (declaration.charCodeAt(after) === 58) colon = after;
+    }
+
+    if (colon === -1) {
+      const after = trim_start_index(declaration, is_js_whitespace, name_end);
+
+      if (declaration.charCodeAt(after) === 58) colon = after;
+    }
+
+    if (colon === -1) continue;
+
+    return colon + 1 < declaration.length ? declaration.slice(colon + 1) : null;
+  }
+
+  return null;
+}
+
 function has_designed_background_style(content: string): boolean {
   const declarations = content.match(
     /style\s*=\s*["'][^"']*background(?:-color)?\s*:\s*[^;"']+/gi,
@@ -263,10 +310,7 @@ function has_designed_background_style(content: string): boolean {
   if (!declarations) return false;
 
   return declarations.some((declaration) => {
-    const value_match = declaration.match(
-      /background(?:-color)?\s*:\s*([^;"']+)$/i,
-    );
-    const value = value_match ? value_match[1].trim() : "";
+    const value = (trailing_background_value(declaration) ?? "").trim();
 
     return value.length > 0 && !is_transparent_color_value(value);
   });
@@ -549,7 +593,197 @@ export function strip_html_tags_bounded(
   return strip_html_tags(html);
 }
 
-const CDATA_SECTION_PATTERN = /<!\[CDATA\[[\s\S]*?\]\]>/g;
+const CDATA_OPEN = "<![CDATA[";
+
+const CDATA_CLOSE = "]]>";
+
+export function strip_cdata_sections(html: string): string {
+  let start = html.indexOf(CDATA_OPEN);
+
+  if (start === -1) return html;
+
+  let result = "";
+  let cursor = 0;
+
+  while (start !== -1) {
+    const end = html.indexOf(CDATA_CLOSE, start + CDATA_OPEN.length);
+
+    if (end === -1) break;
+
+    result += html.slice(cursor, start);
+    cursor = end + CDATA_CLOSE.length;
+    start = html.indexOf(CDATA_OPEN, cursor);
+  }
+
+  return result + html.slice(cursor);
+}
+
+export function ascii_lower(value: string): string {
+  return value.replace(/[A-Z]+/g, (run) => run.toLowerCase());
+}
+
+export function is_ascii_word_code(code: number): boolean {
+  return (
+    (code >= 48 && code <= 57) ||
+    (code >= 65 && code <= 90) ||
+    (code >= 97 && code <= 122) ||
+    code === 95
+  );
+}
+
+export function next_char_table(
+  value: string,
+  predicate: (code: number) => boolean,
+): Int32Array {
+  const table = new Int32Array(value.length + 1);
+  let next = -1;
+
+  table[value.length] = -1;
+
+  for (let index = value.length - 1; index >= 0; index -= 1) {
+    if (predicate(value.charCodeAt(index))) next = index;
+    table[index] = next;
+  }
+
+  return table;
+}
+
+export function next_hit_table(
+  length: number,
+  is_hit: (index: number) => boolean,
+): Int32Array {
+  const table = new Int32Array(length + 1);
+  let next = -1;
+
+  table[length] = -1;
+
+  for (let index = length - 1; index >= 0; index -= 1) {
+    if (is_hit(index)) next = index;
+    table[index] = next;
+  }
+
+  return table;
+}
+
+export function next_needle_table(haystack: string, needle: string): Int32Array {
+  const table = new Int32Array(haystack.length + 1).fill(-1);
+  let filled = 0;
+
+  for (
+    let found = haystack.indexOf(needle);
+    found !== -1;
+    found = haystack.indexOf(needle, found + 1)
+  ) {
+    table.fill(found, filled, found + 1);
+    filled = found + 1;
+  }
+
+  return table;
+}
+
+export function table_lookup(table: Int32Array, index: number): number {
+  return index < table.length ? table[index] : -1;
+}
+
+export interface PairedElementMatch {
+  start: number;
+  content_start: number;
+  content_end: number;
+  end: number;
+  name_index: number;
+}
+
+export interface PairedElementOptions {
+  word_boundary: boolean;
+  open_tag: boolean;
+}
+
+export function find_paired_elements(
+  html: string,
+  names: readonly string[],
+  options: PairedElementOptions,
+): PairedElementMatch[] {
+  const matches: PairedElementMatch[] = [];
+  const lower = ascii_lower(html);
+  let index = lower.indexOf("<");
+
+  if (index === -1) return matches;
+
+  const next_gt = options.open_tag
+    ? next_char_table(html, (code) => code === 62)
+    : null;
+  const closers = names.map((name) => next_needle_table(lower, `</${name}>`));
+
+  while (index !== -1) {
+    let found: PairedElementMatch | null = null;
+
+    for (let name_index = 0; name_index < names.length; name_index += 1) {
+      const name = names[name_index];
+
+      if (!lower.startsWith(name, index + 1)) continue;
+
+      const name_end = index + 1 + name.length;
+
+      if (
+        options.word_boundary &&
+        name_end < html.length &&
+        is_ascii_word_code(html.charCodeAt(name_end))
+      ) {
+        continue;
+      }
+
+      let content_start = name_end;
+
+      if (next_gt) {
+        const gt = table_lookup(next_gt, name_end);
+
+        if (gt === -1) continue;
+
+        content_start = gt + 1;
+      }
+
+      const close = table_lookup(closers[name_index], content_start);
+
+      if (close === -1) continue;
+
+      found = {
+        start: index,
+        content_start,
+        content_end: close,
+        end: close + name.length + 3,
+        name_index,
+      };
+      break;
+    }
+
+    if (found) {
+      matches.push(found);
+      index = lower.indexOf("<", found.end);
+    } else {
+      index = lower.indexOf("<", index + 1);
+    }
+  }
+
+  return matches;
+}
+
+export function replace_matched_ranges<T extends { start: number; end: number }>(
+  value: string,
+  matches: readonly T[],
+  replacer: (match: T) => string,
+): string {
+  if (matches.length === 0) return value;
+
+  let result = "";
+  let cursor = 0;
+
+  for (const match of matches) {
+    result += value.slice(cursor, match.start) + replacer(match);
+    cursor = match.end;
+  }
+
+  return result + value.slice(cursor);
+}
 
 export function strip_html_tags(html: string): string {
   if (!html || typeof html !== "string") return "";
@@ -560,7 +794,7 @@ export function strip_html_tags(html: string): string {
 
   try {
     doc = new DOMParser().parseFromString(
-      repair_comment_markup(html.replace(CDATA_SECTION_PATTERN, "")),
+      repair_comment_markup(strip_cdata_sections(html)),
       "text/html",
     );
   } catch {

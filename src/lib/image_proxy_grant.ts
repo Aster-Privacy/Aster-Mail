@@ -57,8 +57,10 @@ export type ProxiedImageFetcher = (
 let cached_grant: CachedGrant | null = null;
 let pending_grant: Promise<string | null> | null = null;
 let unavailable_until = 0;
+let grant_generation = 0;
 
 export function reset_image_proxy_grant_state(): void {
+  grant_generation += 1;
   cached_grant = null;
   pending_grant = null;
   unavailable_until = 0;
@@ -162,8 +164,13 @@ function grant_cooldown_ms(status: number | undefined): number {
 }
 
 async function request_grant(): Promise<string | null> {
+  const generation = grant_generation;
+
   try {
     const response = await api_client.post<GrantResponse>(GRANT_ENDPOINT, {});
+
+    if (generation !== grant_generation) return null;
+
     const grant = response.data?.grant;
     const expires_in = response.data?.expires_in;
 
@@ -189,7 +196,9 @@ async function request_grant(): Promise<string | null> {
 
     return grant;
   } catch {
-    unavailable_until = Date.now() + FAILURE_COOLDOWN_MS;
+    if (generation === grant_generation) {
+      unavailable_until = Date.now() + FAILURE_COOLDOWN_MS;
+    }
 
     return null;
   }
@@ -202,9 +211,11 @@ export async function get_image_proxy_grant(): Promise<string | null> {
   if (now < unavailable_until) return null;
 
   if (!pending_grant) {
-    pending_grant = request_grant().finally(() => {
-      pending_grant = null;
+    const request = request_grant().finally(() => {
+      if (pending_grant === request) pending_grant = null;
     });
+
+    pending_grant = request;
   }
 
   return pending_grant;

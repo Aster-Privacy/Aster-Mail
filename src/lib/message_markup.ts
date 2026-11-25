@@ -19,20 +19,48 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import {
+  ascii_lower,
   html_to_readable_plain_text,
+  is_ascii_word_code,
   is_html_content,
   strip_html_tags,
   strip_html_tags_bounded,
 } from "./html_text";
 
 const MEDIA_TAG_RE = /<(?:svg|video|canvas|picture|hr)\b/i;
-const IMAGE_TAG_RE = /<img\b[^>]*>/gi;
 const PIXEL_SIZE_RE = /\b(?:width|height)\s*=\s*["']?[01]["']?(?=[\s/>])/i;
 
-function has_visible_image(html: string): boolean {
-  const images = html.match(IMAGE_TAG_RE);
+export function collect_image_tags(html: string): string[] {
+  const tags: string[] = [];
+  const lower = ascii_lower(html);
+  let start = lower.indexOf("<img");
 
-  if (!images) return false;
+  while (start !== -1) {
+    const name_end = start + 4;
+
+    if (
+      name_end < html.length &&
+      is_ascii_word_code(html.charCodeAt(name_end))
+    ) {
+      start = lower.indexOf("<img", start + 1);
+      continue;
+    }
+
+    const close = html.indexOf(">", name_end);
+
+    if (close === -1) break;
+
+    tags.push(html.slice(start, close + 1));
+    start = lower.indexOf("<img", close + 1);
+  }
+
+  return tags;
+}
+
+function has_visible_image(html: string): boolean {
+  const images = collect_image_tags(html);
+
+  if (images.length === 0) return false;
 
   return images.some((tag) => !PIXEL_SIZE_RE.test(tag));
 }

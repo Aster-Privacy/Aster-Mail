@@ -18,9 +18,57 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import {
+  ascii_ci_at,
+  index_of_ascii_ci,
+  skip_js_whitespace,
+} from "./html_sanitizer_constants";
+
 export const BACKGROUND_IMAGE_MARK = "data-aster-bg-image";
 
-const BACKGROUND_IMAGE_DECLARATION = /background(?:-image)?\s*:[^;]*url\s*\(/i;
+function has_url_call(value: string, from: number, end: number): boolean {
+  for (
+    let start = index_of_ascii_ci(value, "url", from, end);
+    start !== -1;
+    start = index_of_ascii_ci(value, "url", start + 1, end)
+  ) {
+    if (value.charCodeAt(skip_js_whitespace(value, start + 3)) === 0x28) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+export function has_background_image_declaration(value: string): boolean {
+  let from = 0;
+
+  for (;;) {
+    const start = index_of_ascii_ci(value, "background", from);
+
+    if (start === -1) return false;
+
+    let position = start + 10;
+
+    if (ascii_ci_at(value, position, "-image")) position += 6;
+
+    position = skip_js_whitespace(value, position);
+
+    if (value.charCodeAt(position) !== 0x3a) {
+      from = start + 1;
+      continue;
+    }
+
+    const semicolon = value.indexOf(";", position + 1);
+    const end = semicolon === -1 ? value.length : semicolon;
+
+    if (has_url_call(value, position + 1, end)) return true;
+
+    if (semicolon === -1) return false;
+
+    from = semicolon + 1;
+  }
+}
 
 const INLINE_BACKGROUND_IMAGE_VALUE = /background-image\s*:\s*([^;]*)/gi;
 
@@ -74,7 +122,7 @@ export function selectors_with_background_image(css: string): string[] {
       continue;
     }
 
-    if (BACKGROUND_IMAGE_DECLARATION.test(css.slice(index + 1, block_end))) {
+    if (has_background_image_declaration(css.slice(index + 1, block_end))) {
       collect_selector_parts(selector_text.trim(), selectors);
     }
 

@@ -26,6 +26,7 @@ import {
   type ProxyUnsubscribeParams,
 } from "@/services/api/subscriptions";
 import { confirm_unsubscribe } from "@/components/modals/unsubscribe_confirmation_modal";
+import { is_js_whitespace, trim_start_index } from "@/lib/linear_trim";
 
 export type UnsubscribeErrorCode =
   "no_method" | "invalid_address" | "cancelled";
@@ -135,10 +136,68 @@ function extract_mailto_from_header(header: string): string | null {
   return null;
 }
 
+function is_bracketed_link_code(code: number): boolean {
+  return code !== 0x3e && !is_js_whitespace(code);
+}
+
+function http_scheme_length(value: string, at: number): number {
+  for (const scheme of ["https://", "http://"]) {
+    if (value.length - at < scheme.length) continue;
+
+    let matched = true;
+
+    for (let offset = 0; offset < scheme.length; offset += 1) {
+      const expected = scheme.charCodeAt(offset);
+      const actual = value.charCodeAt(at + offset);
+      const folded = actual >= 0x41 && actual <= 0x5a ? actual | 0x20 : actual;
+
+      if (folded !== expected) {
+        matched = false;
+        break;
+      }
+    }
+
+    if (matched) return scheme.length;
+  }
+
+  return 0;
+}
+
+export function bracketed_http_links(header: string): string[] {
+  const links: string[] = [];
+  let run_start = -1;
+  let run_end = -1;
+  let close = -1;
+  let open = header.indexOf("<");
+
+  while (open !== -1) {
+    const scheme_start = trim_start_index(header, is_js_whitespace, open + 1);
+    const scheme_length = http_scheme_length(header, scheme_start);
+    let next_search = open + 1;
+
+    if (scheme_length > 0) {
+      const target_start = scheme_start + scheme_length;
+
+      if (target_start < run_start || target_start >= run_end) {
+        run_start = target_start;
+        run_end = trim_start_index(header, is_bracketed_link_code, run_start);
+        close = trim_start_index(header, is_js_whitespace, run_end);
+      }
+
+      if (run_end > target_start && header.charCodeAt(close) === 0x3e) {
+        links.push(header.slice(scheme_start, run_end));
+        next_search = close + 1;
+      }
+    }
+
+    open = header.indexOf("<", next_search);
+  }
+
+  return links;
+}
+
 function extract_http_links_from_header(header: string): string[] {
-  const bracketed = [...header.matchAll(/<\s*(https?:\/\/[^>\s]+)\s*>/gi)]
-    .map((match) => match[1])
-    .filter(is_valid_url);
+  const bracketed = bracketed_http_links(header).filter(is_valid_url);
 
   if (bracketed.length > 0) {
     return bracketed;

@@ -18,6 +18,8 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { is_plain_address } from "@/lib/address_scans";
+import { is_js_whitespace } from "@/lib/linear_trim";
 import { escape_mailto_body } from "@/lib/mailto_link";
 import { resolve_settings_section } from "@/lib/settings_section_names";
 
@@ -202,7 +204,7 @@ register_deep_link_route("/inbox", () => {
 register_deep_link_route("/compose", (params) => {
   const safe_body = escape_mailto_body(params.body || "");
   const to_raw = params.to || "";
-  const safe_to = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(to_raw) ? to_raw : "";
+  const safe_to = is_plain_address(to_raw, is_js_whitespace) ? to_raw : "";
 
   (window as unknown as Record<string, unknown>).__aster_pending_compose = {
     to: safe_to,

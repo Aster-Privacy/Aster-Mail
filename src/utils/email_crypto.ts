@@ -29,6 +29,11 @@ import {
 } from "@/services/decrypted_mime_attachments";
 import { ignore_error } from "@/lib/ignore_error";
 import {
+  find_pgp_block,
+  replace_html_tags,
+  split_html_tags,
+} from "@/lib/address_scans";
+import {
   get_passphrase_from_memory,
   get_vault_from_memory,
   wait_for_keys_ready,
@@ -448,11 +453,8 @@ export function try_extract_mime_body(text: string): string {
 export const PGP_PASSWORD_PROTECTED_SENTINEL =
   "\x00ASTER_PGP_PASSWORD_PROTECTED\x00";
 
-const PGP_BLOCK_PATTERN =
-  /(^[ \t]*|>)(-----BEGIN PGP MESSAGE-----[\s\S]*?-----END PGP MESSAGE-----)/m;
-
 export function has_inbound_pgp_block(text: string): boolean {
-  return PGP_BLOCK_PATTERN.test(text);
+  return find_pgp_block(text) !== null;
 }
 
 const QUOTED_PGP_BEGIN_LINE = /^[ \t]*>[ \t>]*-----BEGIN PGP MESSAGE-----/m;
@@ -505,8 +507,7 @@ const HTML_LINE_BREAK_TAG = /^<(?:br\b|\/(?:p|div|pre|li|tr|blockquote)\s*>)/i;
 export function unwrap_html_armor(block: string): string {
   if (!/<[a-z/!]|&[#a-z0-9]+;/i.test(block)) return block;
 
-  const lines = block
-    .split(/(<[^>]*>)/)
+  const lines = split_html_tags(block)
     .map((part) =>
       part.startsWith("<")
         ? HTML_LINE_BREAK_TAG.test(part)
@@ -542,18 +543,17 @@ export function unwrap_html_armor(block: string): string {
 }
 
 export function split_pgp_block(text: string): PgpBlockSplit | null {
-  const match = PGP_BLOCK_PATTERN.exec(text);
+  const match = find_pgp_block(text);
 
   if (!match) return null;
 
-  const raw_block = match[2];
+  const raw_block = match.block;
   const block = unwrap_html_armor(raw_block);
-  const start = match.index + match[1].length;
+  const start = match.index + match.prefix.length;
   const before = text.slice(0, start);
   const after = text.slice(start + raw_block.length);
   const remainder = `${before}\n${after}`;
-  const visible = remainder
-    .replace(/<[^>]*>/g, " ")
+  const visible = replace_html_tags(remainder, " ")
     .replace(/&nbsp;/g, " ")
     .replace(/\s+/g, " ")
     .trim();

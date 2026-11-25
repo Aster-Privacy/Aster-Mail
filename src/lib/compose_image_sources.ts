@@ -27,10 +27,80 @@ import {
   normalize_url_value,
   to_absolute_remote_url,
 } from "@/lib/url_value";
+import {
+  ascii_lower,
+  is_ascii_word_code,
+  next_char_table,
+  next_hit_table,
+  table_lookup,
+} from "@/lib/html_text";
+import { is_js_whitespace } from "@/lib/linear_trim";
 
 const PROXY_PATH_SUFFIX = "/api/images/v1/proxy";
-const IMG_SRC_PATTERN = /(<img\b[^>]*?\ssrc=")([^"]*)(")/gi;
 const PARSE_BASE = "https://compose.invalid/";
+
+export type ImageSourceReplacer = (
+  match: string,
+  prefix: string,
+  raw_src: string,
+  suffix: string,
+) => string;
+
+export function replace_image_sources(
+  html: string,
+  replacer: ImageSourceReplacer,
+): string {
+  const lower = ascii_lower(html);
+  let start = lower.indexOf("<img");
+
+  if (start === -1) return html;
+
+  const next_gt = next_char_table(html, (code) => code === 62);
+  const next_quote = next_char_table(html, (code) => code === 34);
+  const next_src = next_hit_table(
+    html.length,
+    (index) =>
+      is_js_whitespace(html.charCodeAt(index)) &&
+      lower.startsWith('src="', index + 1),
+  );
+  let result = "";
+  let cursor = 0;
+
+  while (start !== -1) {
+    const name_end = start + 4;
+    let end = -1;
+
+    if (
+      name_end >= html.length ||
+      !is_ascii_word_code(html.charCodeAt(name_end))
+    ) {
+      const src = table_lookup(next_src, name_end);
+      const gt = table_lookup(next_gt, name_end);
+
+      if (src !== -1 && (gt === -1 || src < gt)) {
+        const value_start = src + 6;
+        const close = table_lookup(next_quote, value_start);
+
+        if (close !== -1) {
+          result +=
+            html.slice(cursor, start) +
+            replacer(
+              html.slice(start, close + 1),
+              html.slice(start, value_start),
+              html.slice(value_start, close),
+              '"',
+            );
+          end = close + 1;
+          cursor = end;
+        }
+      }
+    }
+
+    start = lower.indexOf("<img", end === -1 ? start + 1 : end);
+  }
+
+  return cursor === 0 ? html : result + html.slice(cursor);
+}
 
 export function get_compose_sanitize_options(): SanitizeOptions {
   const lockdown_mode = is_any_lockdown_active();
@@ -78,8 +148,8 @@ export function proxy_compose_image_sources(html: string): string {
 
   const proxy_url = get_image_proxy_url();
 
-  return html.replace(
-    IMG_SRC_PATTERN,
+  return replace_image_sources(
+    html,
     (match: string, prefix: string, raw_src: string, suffix: string) => {
       const src = normalize_url_value(decode_attribute(raw_src));
 
@@ -96,8 +166,8 @@ export function proxy_compose_image_sources(html: string): string {
 export function restore_compose_image_sources(html: string): string {
   if (!html || !html.includes(PROXY_PATH_SUFFIX)) return html;
 
-  return html.replace(
-    IMG_SRC_PATTERN,
+  return replace_image_sources(
+    html,
     (match: string, prefix: string, raw_src: string, suffix: string) => {
       const original = get_original_image_source(decode_attribute(raw_src));
 

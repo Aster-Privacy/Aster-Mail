@@ -24,6 +24,11 @@ import {
   rgba_to_hex,
 } from "@/lib/email_contrast_repair";
 import { relative_luminance } from "@/lib/email_ink";
+import { has_background_image_declaration } from "@/lib/html_sanitizer_background_marks";
+import {
+  has_important_suffix,
+  strip_important_suffix,
+} from "@/lib/html_sanitizer_css";
 
 export const BRAND_BACKGROUND_MARK = "data-aster-keep-bg";
 
@@ -35,11 +40,7 @@ export const NEUTRAL_PAGE_LUMINANCE_LIMIT = 0.18;
 
 const BACKGROUND_COLOR_DECLARATION = /background(?:-color)?\s*:\s*([^;]+)/i;
 
-const BACKGROUND_IMAGE_DECLARATION = /background(?:-image)?\s*:[^;]*url\s*\(/i;
-
 const BACKGROUND_PROPERTY = /^\s*background(?:-color)?\s*:/i;
-
-const IMPORTANT_FLAG = /\s*!\s*important\s*$/i;
 
 export const NEUTRALIZED_BACKGROUND_TAGS = [
   "div",
@@ -121,7 +122,7 @@ function declared_background(element: Element): string | null {
 
   const style = element.getAttribute("style") || "";
 
-  if (!style || BACKGROUND_IMAGE_DECLARATION.test(style)) return null;
+  if (!style || has_background_image_declaration(style)) return null;
 
   const match = style.match(BACKGROUND_COLOR_DECLARATION);
 
@@ -143,19 +144,18 @@ function release_background_priority(element: Element): void {
 
     if (
       !BACKGROUND_PROPERTY.test(declaration) ||
-      !IMPORTANT_FLAG.test(declaration)
+      !has_important_suffix(declaration)
     ) {
       continue;
     }
 
-    const value = declaration
-      .replace(BACKGROUND_PROPERTY, "")
-      .replace(IMPORTANT_FLAG, "")
-      .trim();
+    const value = strip_important_suffix(
+      declaration.replace(BACKGROUND_PROPERTY, ""),
+    ).trim();
 
     if (!parse_css_color(value) || !is_page_surface(value)) continue;
 
-    declarations[index] = declaration.replace(IMPORTANT_FLAG, "");
+    declarations[index] = strip_important_suffix(declaration);
     released = true;
   }
 
