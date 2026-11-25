@@ -35,6 +35,12 @@ import {
   retry_after_account_key_load,
 } from "@/services/crypto/account_data_writer";
 import { decrypt_account_context_with_fallback } from "@/services/crypto/legacy_keks";
+import {
+  floor_retired_bytes,
+  floor_retired_preferences,
+  is_plain_object,
+  type ProtectionBaseline,
+} from "@/services/crypto/retired_protection_floor";
 import { array_to_base64, base64_to_array } from "@/services/crypto/envelope";
 import {
   DEFAULT_ENABLED_CATEGORIES,
@@ -424,16 +430,29 @@ async function decrypt_preferences(
   );
   const nonce_data = Uint8Array.from(atob(nonce), (c) => c.charCodeAt(0));
 
+  const opening = { retired: false };
   const decrypted = await retry_after_account_key_load(() =>
     decrypt_account_context_with_fallback(
       "astermail-preferences-v1",
       key,
       encrypted_data,
       nonce_data,
+      () => {
+        opening.retired = true;
+      },
     ),
   );
+  const parsed = JSON.parse(new TextDecoder().decode(decrypted));
 
-  return JSON.parse(new TextDecoder().decode(decrypted));
+  if (opening.retired && is_plain_object(parsed)) {
+    floor_retired_preferences(parsed, retired_preferences_baseline());
+  }
+
+  return parsed;
+}
+
+export function retired_preferences_baseline(): ProtectionBaseline {
+  return get_cached_preferences() ?? DEFAULT_PREFERENCES;
 }
 
 export type PreferencesConversionResult =
@@ -520,6 +539,7 @@ export async function convert_preferences_to_account_key(
   if (already_converted) return "already_converted";
 
   let plaintext: Uint8Array;
+  const opening = { retired: false };
 
   try {
     plaintext = new Uint8Array(
@@ -530,10 +550,23 @@ export async function convert_preferences_to_account_key(
           : null,
         ciphertext,
         stored_nonce,
+        () => {
+          opening.retired = true;
+        },
       ),
     );
   } catch {
     return "failed";
+  }
+
+  if (opening.retired) {
+    const floored = floor_retired_bytes(plaintext, (opened) =>
+      floor_retired_preferences(opened, retired_preferences_baseline()),
+    );
+
+    plaintext.fill(0);
+    if (!floored) return "failed";
+    plaintext = floored;
   }
 
   try {
