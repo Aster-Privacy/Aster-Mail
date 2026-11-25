@@ -27,6 +27,7 @@ import { format_bytes } from "@/lib/utils";
 import { play_iconic_sound } from "@/services/iconic_sounds";
 import { prepare_image_attachments } from "@/services/image_size_reduction";
 import { strip_metadata } from "@/lib/strip_image_metadata";
+import { read_file_bytes } from "@/lib/read_file_bytes";
 import { use_attachment_session } from "@/components/compose/use_attachment_session";
 import {
   type Attachment,
@@ -121,11 +122,17 @@ export async function apply_metadata_strip(
 ): Promise<ArrayBuffer> {
   if (!enabled || !METADATA_BEARING_TYPE.test(mime_type)) return raw;
 
-  const result = await strip_metadata(raw, mime_type);
+  try {
+    const result = await strip_metadata(raw, mime_type);
 
-  if (result.status !== "stripped") unstripped.push(name);
+    if (result.status !== "stripped") unstripped.push(name);
 
-  return result.data;
+    return result.data;
+  } catch {
+    unstripped.push(name);
+
+    return raw;
+  }
 }
 
 function resolve_mime_type(file: File): string {
@@ -309,7 +316,7 @@ export function use_compose_attachments(): UseComposeAttachmentsReturn {
         const mime_type = resolve_mime_type(file);
 
         try {
-          const raw = await file.arrayBuffer();
+          const raw = await read_file_bytes(file);
           const data = await apply_metadata_strip(
             raw,
             mime_type,

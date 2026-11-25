@@ -23,9 +23,16 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   is_reducible_image,
   prepare_image_attachments,
+  reduce_image_file,
   register_image_size_prompt,
   scaled_dimensions,
 } from "./image_size_reduction";
+
+const readback = vi.hoisted(() => ({ trusted: true }));
+
+vi.mock("@/lib/canvas_readback", () => ({
+  canvas_readback_trusted: () => readback.trusted,
+}));
 
 function file_of(type: string, size: number, name = "photo"): File {
   return new File([new Uint8Array(size)], name, { type });
@@ -83,5 +90,22 @@ describe("image_size_reduction", () => {
     const result = await prepare_image_attachments([photo, pdf]);
 
     expect(result).toEqual([photo, pdf]);
+  });
+
+  it("keeps the original photo when canvas reads are altered", async () => {
+    readback.trusted = false;
+    const decode = vi.fn();
+
+    vi.stubGlobal("createImageBitmap", decode);
+
+    try {
+      const photo = file_of("image/jpeg", 900 * 1024);
+
+      expect(await reduce_image_file(photo)).toBe(photo);
+      expect(decode).not.toHaveBeenCalled();
+    } finally {
+      readback.trusted = true;
+      vi.unstubAllGlobals();
+    }
   });
 });

@@ -24,6 +24,7 @@ import * as pdfjs from "pdfjs-dist";
 import pdf_worker_url from "pdfjs-dist/build/pdf.worker.min.mjs?url";
 
 import { MAX_PDF_PASSWORD_LENGTH } from "@/lib/pdf_limits";
+import { canvas_readback_trusted } from "@/lib/canvas_readback";
 
 pdfjs.GlobalWorkerOptions.workerSrc = pdf_worker_url;
 
@@ -116,11 +117,24 @@ function render_to_canvas(
   return page.render({ canvasContext: ctx, viewport }).promise;
 }
 
+export class CanvasReadbackError extends Error {
+  constructor() {
+    super("canvas_readback_unavailable");
+    this.name = "CanvasReadbackError";
+  }
+}
+
+export function can_render_pdf_thumbnails(): boolean {
+  return canvas_readback_trusted();
+}
+
 export async function render_pdf_thumbnail(
   data: ArrayBuffer,
   width: number,
   height: number,
 ): Promise<string> {
+  if (!canvas_readback_trusted()) throw new CanvasReadbackError();
+
   const doc = await open_document_promise(data);
 
   try {
@@ -132,9 +146,14 @@ export async function render_pdf_thumbnail(
 
     await render_to_canvas(page, canvas, scaled_viewport);
 
-    const blob = await new Promise<Blob>((resolve) =>
-      canvas.toBlob((b) => resolve(b!), "image/png"),
+    const blob = await new Promise<Blob | null>((resolve) =>
+      canvas.toBlob(resolve, "image/png"),
     );
+
+    canvas.width = 0;
+    canvas.height = 0;
+
+    if (!blob) throw new Error("thumbnail_encode_failed");
 
     return URL.createObjectURL(blob);
   } finally {
