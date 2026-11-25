@@ -262,9 +262,16 @@ export const InboxEmailListItem = memo(
             ? detect_verification_code(
                 email.subject,
                 has_readable_preview ? email.preview : null,
+                email.sender_email,
               )
             : null,
-        [can_copy_code, has_readable_preview, email.subject, email.preview],
+        [
+          can_copy_code,
+          has_readable_preview,
+          email.subject,
+          email.preview,
+          email.sender_email,
+        ],
       );
 
       const current_folder_token = (current_view ?? "").startsWith("folder-")
