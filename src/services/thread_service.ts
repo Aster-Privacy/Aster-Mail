@@ -352,7 +352,7 @@ async function decode_thread_envelope(
     body_content = resolved.body;
     pgp_unresolved = !resolved.decrypted && !body_decrypted;
     body_decrypted = body_decrypted || resolved.decrypted;
-    e2e_verified = e2e_verified || resolved.decrypted;
+    e2e_verified = e2e_verified || resolved.verified;
     pgp_sender_bound = resolved.verified;
     if (resolved.decrypted) {
       pgp_sender_verification = resolved.sender_verification;
@@ -777,7 +777,7 @@ export async function fetch_and_decrypt_virtual_group(
 
       body_content = resolved.body;
       body_decrypted = body_decrypted || resolved.decrypted;
-      e2e_verified = e2e_verified || resolved.decrypted;
+      e2e_verified = e2e_verified || resolved.verified;
       pgp_sender_bound = resolved.verified;
       if (resolved.decrypted) {
         pgp_sender_verification = resolved.sender_verification;

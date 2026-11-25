@@ -43,7 +43,7 @@ import {
 } from "@/services/thread_service";
 import {
   try_decrypt_ratchet_body,
-  try_decrypt_pgp_body,
+  resolve_inbound_pgp_body,
   has_inbound_pgp_block,
   try_extract_mime_body,
   extract_subject_bundle,
@@ -545,14 +545,19 @@ export async function preload_email_detail(
         body_text,
         item.id,
       );
-      const e2e_verified =
-        ratchet_sealed || sent_encryption_scope !== undefined;
-      const e2e_sender_bound = e2e_verified;
 
       resolved_html = sealed_html_source(resolved_html, ratchet_sealed);
       const pre_pgp_text = body_text;
+      const pgp = await resolve_inbound_pgp_body(
+        body_text,
+        envelope.from?.email,
+        item.id,
+      );
 
-      body_text = await try_decrypt_pgp_body(body_text, item.id);
+      body_text = pgp.body;
+      const e2e_verified =
+        ratchet_sealed || sent_encryption_scope !== undefined || pgp.verified;
+      const e2e_sender_bound = e2e_verified;
 
       const password_protected = is_password_protected_body(body_text);
       const pre_mime_text = body_text;
