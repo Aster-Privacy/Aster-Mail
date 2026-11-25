@@ -61,6 +61,26 @@ function merge_skipped_keys(
   return merged.slice(Math.max(0, merged.length - MAX_MERGED_SKIPPED_KEYS));
 }
 
+function remote_keys_still_pending(
+  local: RatchetState,
+  remote: RatchetState,
+): SkippedMessageKey[] {
+  const remote_keys = remote.skipped_message_keys ?? [];
+
+  if (local.chain_key_recv === null) return remote_keys;
+
+  const local_ids = new Set(
+    (local.skipped_message_keys ?? []).map(skipped_key_id),
+  );
+
+  return remote_keys.filter(
+    (key) =>
+      key.dh_public !== local.dh_remote_public ||
+      key.message_number >= local.recv_message_number ||
+      local_ids.has(skipped_key_id(key)),
+  );
+}
+
 function same_epoch(a: RatchetState, b: RatchetState): boolean {
   return (
     a.dh_keypair.public_key === b.dh_keypair.public_key &&
@@ -153,7 +173,7 @@ export function merge_ratchet_states(
   const local_skipped = local.state.skipped_message_keys ?? [];
   const merged_skipped = merge_skipped_keys(
     local_skipped,
-    remote.state.skipped_message_keys ?? [],
+    remote_keys_still_pending(local.state, remote.state),
   );
 
   if (!same_epoch(local.state, remote.state)) {
@@ -185,16 +205,10 @@ export function merge_ratchet_states(
       ? local.state
       : remote.state;
 
-  const recv_behind =
-    local.state.chain_key_recv === null
-      ? remote.state
-      : remote.state.chain_key_recv === null || !remote_versioned
-        ? local.state
-        : local.state.recv_message_number <= remote.state.recv_message_number
-          ? local.state
-          : remote.state;
+  const recv_source =
+    local.state.chain_key_recv === null ? remote.state : local.state;
   const skipped_message_keys =
-    remote_versioned || local.state.chain_key_recv === null
+    local.state.chain_key_recv === null
       ? merged_skipped
       : merge_skipped_keys(local_skipped, []);
 
@@ -204,8 +218,8 @@ export function merge_ratchet_states(
       ...local.state,
       chain_key_send: send_ahead.chain_key_send,
       send_message_number: send_ahead.send_message_number,
-      chain_key_recv: recv_behind.chain_key_recv,
-      recv_message_number: recv_behind.recv_message_number,
+      chain_key_recv: recv_source.chain_key_recv,
+      recv_message_number: recv_source.recv_message_number,
       previous_chain_length: Math.max(
         local.state.previous_chain_length,
         remote.state.previous_chain_length,

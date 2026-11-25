@@ -611,6 +611,122 @@ export async function drop_server_pq_secret(key_id: number): Promise<boolean> {
   return true;
 }
 
+const PQ_CONSUMED_STORAGE_PREFIX = "pq_prekey_consumed_";
+export const MAX_PQ_CONSUMED_ENTRIES = 4096;
+
+export type PqConsumedRecord = Record<string, string>;
+
+const consumed_memory = new Map<string, PqConsumedRecord>();
+
+function consumed_storage_key(uid: string | null): string {
+  return `${PQ_CONSUMED_STORAGE_PREFIX}${uid ?? "unknown"}`;
+}
+
+export function pq_prekey_accepts(
+  consumer: string | null | undefined,
+  ephemeral_b64: string,
+): boolean {
+  return !consumer || consumer === ephemeral_b64;
+}
+
+export function with_pq_prekey_consumed(
+  record: PqConsumedRecord,
+  key_id: number,
+  ephemeral_b64: string,
+): PqConsumedRecord {
+  const id = String(key_id);
+
+  if (record[id] !== undefined) return record;
+
+  const entries = Object.entries(record);
+
+  entries.push([id, ephemeral_b64]);
+
+  return Object.fromEntries(
+    entries.slice(Math.max(0, entries.length - MAX_PQ_CONSUMED_ENTRIES)),
+  );
+}
+
+async function read_consumed(uid: string | null): Promise<PqConsumedRecord> {
+  const scope = consumed_storage_key(uid);
+  const cached = consumed_memory.get(scope);
+
+  if (cached) return cached;
+
+  try {
+    const storage_key = await get_storage_key();
+    const stored = await encrypted_get<PqConsumedRecord>(scope, storage_key);
+    const record =
+      stored && typeof stored === "object" && !Array.isArray(stored)
+        ? stored
+        : {};
+
+    consumed_memory.set(scope, record);
+
+    return record;
+  } catch {
+    return {};
+  }
+}
+
+export async function pq_prekey_consumer(
+  key_id: number,
+): Promise<string | null> {
+  const uid = await current_account_uid();
+  const record = await read_consumed(uid);
+  const consumer = record[String(key_id)];
+
+  return typeof consumer === "string" ? consumer : null;
+}
+
+export async function record_pq_prekey_consumed(
+  key_id: number,
+  ephemeral_b64: string,
+): Promise<void> {
+  const uid = await current_account_uid();
+  const scope = consumed_storage_key(uid);
+  const current = await read_consumed(uid);
+  const next = with_pq_prekey_consumed(current, key_id, ephemeral_b64);
+
+  if (next === current) return;
+
+  consumed_memory.set(scope, next);
+
+  try {
+    const storage_key = await get_storage_key();
+
+    await encrypted_set(scope, next, storage_key);
+  } catch (caught) {
+    ignore_error(
+      "services/crypto/pq_prekey_store:record_pq_prekey_consumed",
+      caught,
+    );
+  }
+}
+
+export async function consume_pq_prekey(
+  key_id: number,
+  ephemeral_b64: string,
+): Promise<void> {
+  await record_pq_prekey_consumed(key_id, ephemeral_b64);
+  await delete_local_pq_secret(key_id);
+  await delete_pq_secret_on_server(key_id);
+}
+
+export async function refuse_used_pq_prekey(
+  key_id: number,
+  ephemeral_b64: string,
+): Promise<boolean> {
+  if (pq_prekey_accepts(await pq_prekey_consumer(key_id), ephemeral_b64)) {
+    return false;
+  }
+
+  await delete_local_pq_secret(key_id);
+  await delete_pq_secret_on_server(key_id);
+
+  return true;
+}
+
 export async function fetch_server_pq_key_ids(): Promise<Set<number> | null> {
   try {
     const response = await api_client.get<{ pq_key_ids: number[] }>(

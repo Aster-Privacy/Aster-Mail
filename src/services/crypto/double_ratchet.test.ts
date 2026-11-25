@@ -21,6 +21,7 @@
 import { describe, it, expect, vi } from "vitest";
 
 import { generate_keypair, DoubleRatchet } from "./double_ratchet";
+import { array_to_base64 } from "./base64";
 
 vi.mock("./encrypted_storage", () => ({
   encrypted_get: vi.fn(),
@@ -329,5 +330,70 @@ describe("DoubleRatchet send chain catch-up", () => {
 
     expect(after.send_message_number).toBe(before.send_message_number);
     expect(after.chain_key_send).toBe(before.chain_key_send);
+  });
+});
+
+describe("DoubleRatchet skipped key bound", () => {
+  async function pair() {
+    const shared_secret = crypto.getRandomValues(new Uint8Array(32));
+    const receiver_keypair = await generate_keypair();
+    const sender = await DoubleRatchet.init_sender(
+      shared_secret,
+      receiver_keypair.public_key,
+      "conv_skip_bound",
+    );
+    const receiver = await DoubleRatchet.init_receiver(
+      shared_secret,
+      receiver_keypair,
+      "conv_skip_bound",
+    );
+
+    return { sender, receiver };
+  }
+
+  it("refuses a new chain whose two gaps add up past the limit", async () => {
+    const { sender, receiver } = await pair();
+    const first = await sender.encrypt("first");
+
+    expect(await receiver.decrypt(first)).toBe("first");
+
+    const other = await generate_keypair();
+    const before = (await receiver.serialize()).state;
+
+    await expect(
+      receiver.decrypt({
+        ...first,
+        header: {
+          ...first.header,
+          dh_public: array_to_base64(other.public_key),
+          previous_chain_length: 600,
+          message_number: 600,
+        },
+      }),
+    ).rejects.toThrow(/Too many skipped messages/);
+
+    const after = (await receiver.serialize()).state;
+
+    expect(after.recv_message_number).toBe(before.recv_message_number);
+    expect(after.root_key).toBe(before.root_key);
+    expect(after.skipped_message_keys).toHaveLength(0);
+
+    const second = await sender.encrypt("second");
+
+    expect(await receiver.decrypt(second)).toBe("second");
+  });
+
+  it("refuses a gap past the limit on the current chain", async () => {
+    const { sender, receiver } = await pair();
+    const first = await sender.encrypt("first");
+
+    await receiver.decrypt(first);
+
+    await expect(
+      receiver.decrypt({
+        ...first,
+        header: { ...first.header, message_number: 1 + 1001 },
+      }),
+    ).rejects.toThrow(/Too many skipped messages/);
   });
 });

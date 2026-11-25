@@ -268,6 +268,25 @@ describe("copies this device already sealed", () => {
     expect(mock_put).toHaveBeenCalledTimes(1);
   });
 
+  it("does not merge back the confirmed copy after sealing a newer one", async () => {
+    const key = await sync_key();
+    const confirmed_copy = await seal_copy(key, 7);
+    const ratchet = local_ratchet();
+
+    mock_get
+      .mockResolvedValueOnce(state_response(confirmed_copy, 3))
+      .mockResolvedValueOnce(state_response(confirmed_copy, 4));
+    mock_put
+      .mockResolvedValueOnce({ error: "conflict" })
+      .mockResolvedValueOnce(state_response(confirmed_copy, 5));
+
+    await sync_ratchet_to_server(as_ratchet(ratchet), key);
+
+    expect(floors.get(CONV)).toBeGreaterThan(7);
+    expect(ratchet.adopt_state).toHaveBeenCalledTimes(1);
+    expect(mock_put).toHaveBeenCalledTimes(2);
+  });
+
   it("still restores a conversation that this device no longer holds", async () => {
     const key = await sync_key();
     const other_device = await seal_copy(key, 500);

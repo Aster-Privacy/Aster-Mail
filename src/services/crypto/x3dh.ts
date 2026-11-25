@@ -20,13 +20,13 @@
 //
 import { ml_kem768 } from "@noble/post-quantum/ml-kem.js";
 
-import { base64_to_array } from "./base64";
+import { array_to_base64, base64_to_array } from "./base64";
 import {
   import_ke_public_key,
   import_ke_private_key,
   compute_agreement_bits,
 } from "./key_manager";
-import { load_pq_secret } from "./pq_prekey_store";
+import { load_pq_secret, refuse_used_pq_prekey } from "./pq_prekey_store";
 import { judge_one_time_prekey_offer } from "./one_time_prekey_watch";
 import { complete_p256_private_jwk } from "./p256_jwk";
 import {
@@ -809,6 +809,20 @@ export async function perform_x3dh_receiver(
 
   if (pq_input) {
     const from_identity = pq_input.pq_key_id === PQ_IDENTITY_KEY_ID;
+
+    if (
+      !from_identity &&
+      (await refuse_used_pq_prekey(
+        pq_input.pq_key_id,
+        array_to_base64(sender_ephemeral_raw),
+      ))
+    ) {
+      dh1.fill(0);
+      dh2.fill(0);
+      dh3.fill(0);
+      dh4?.fill(0);
+      throw new Error("One-time PQ prekey was already used");
+    }
 
     const pq_sk = from_identity
       ? pq_identity_secret_base64
