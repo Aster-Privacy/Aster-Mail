@@ -24,6 +24,8 @@ import { array_to_base64, base64_to_array } from "./base64";
 import {
   DoubleRatchet,
   InvalidRatchetStateError,
+  is_skip_limit_error,
+  SkipLimitError,
   type EncryptedMessage,
   type SerializedState,
 } from "./double_ratchet";
@@ -190,6 +192,48 @@ function build_dedupe_key(
 interface RatchetDecryptAttempt {
   plaintext: string | null;
   error: unknown;
+}
+
+const MAX_SKIP_LIMITED_MESSAGES = 1024;
+const skip_limit_hits = new Set<string>();
+const skip_limited_messages = new Map<string, string>();
+
+function note_session_decrypt_failure(
+  message_key: string,
+  error: unknown,
+): void {
+  if (message_key && is_skip_limit_error(error)) {
+    skip_limit_hits.add(message_key);
+  }
+}
+
+function remember_skip_limited_message(
+  dedupe_key: string,
+  conversation_id: string,
+): void {
+  skip_limited_messages.delete(dedupe_key);
+  skip_limited_messages.set(dedupe_key, conversation_id);
+
+  while (skip_limited_messages.size > MAX_SKIP_LIMITED_MESSAGES) {
+    const oldest = skip_limited_messages.keys().next();
+
+    if (oldest.done) return;
+
+    skip_limited_messages.delete(oldest.value);
+  }
+}
+
+function forget_skip_limited_conversation(conversation_id: string): void {
+  for (const [key, conversation] of skip_limited_messages) {
+    if (conversation === conversation_id) {
+      skip_limited_messages.delete(key);
+    }
+  }
+}
+
+export function reset_skip_limited_messages(): void {
+  skip_limit_hits.clear();
+  skip_limited_messages.clear();
 }
 
 const MAX_ESCROW_UPGRADE_MISSES = 2048;
@@ -481,8 +525,16 @@ async function attempt_ratchet_decrypt(
 
     let decrypted: RatchetSessionPlaintext | null = null;
     let decrypt_error: unknown = null;
+    const skip_limited =
+      dedupe_key !== undefined && skip_limited_messages.has(dedupe_key);
 
-    if (data) {
+    if (dedupe_key) {
+      skip_limit_hits.delete(dedupe_key);
+    }
+
+    if (data && skip_limited) {
+      decrypt_error = new SkipLimitError();
+    } else if (data) {
       try {
         decrypted = await decrypt_ratchet_for_recipient(
           our_email,
@@ -495,6 +547,14 @@ async function attempt_ratchet_decrypt(
       } catch (err) {
         decrypt_error = err;
       }
+    }
+
+    if (dedupe_key && skip_limit_hits.delete(dedupe_key) && !decrypted) {
+      remember_skip_limited_message(dedupe_key, conversation_id);
+    }
+
+    if (decrypted !== null) {
+      forget_skip_limited_conversation(conversation_id);
     }
 
     if (decrypted !== null) {
@@ -1321,7 +1381,8 @@ async function decrypt_ratchet_for_recipient(
   if (ratchet) {
     try {
       plaintext = await ratchet.decrypt(message);
-    } catch {
+    } catch (caught) {
+      note_session_decrypt_failure(message_key, caught);
       plaintext = null;
     }
   }
@@ -1357,6 +1418,7 @@ async function decrypt_ratchet_for_recipient(
         ratchet_origin = "archived";
         break;
       } catch (caught) {
+        note_session_decrypt_failure(message_key, caught);
         ignore_error(
           "services/crypto/ratchet_decrypt:archived_state_fallback",
           caught,
@@ -1421,6 +1483,7 @@ async function decrypt_ratchet_for_recipient(
         ratchet_origin = "bootstrap";
         break;
       } catch (err) {
+        note_session_decrypt_failure(message_key, err);
         last_error = err;
       }
     }
@@ -1444,8 +1507,8 @@ async function decrypt_ratchet_for_recipient(
               plaintext = await server_state.ratchet.decrypt(message);
               ratchet = server_state.ratchet;
               ratchet_origin = "replacement";
-            } catch {
-              /* server state also cannot decrypt */
+            } catch (caught) {
+              note_session_decrypt_failure(message_key, caught);
             }
           }
         } catch {
@@ -1486,6 +1549,7 @@ async function decrypt_ratchet_for_recipient(
             await adopt_refreshed_vault(refreshed);
             break;
           } catch (caught) {
+            note_session_decrypt_failure(message_key, caught);
             ignore_error(
               "services/crypto/ratchet_decrypt:decrypt_ratchet_for_recipient",
               caught,
@@ -1523,6 +1587,7 @@ async function decrypt_ratchet_for_recipient(
           ratchet_origin = "bootstrap";
           break;
         } catch (caught) {
+          note_session_decrypt_failure(message_key, caught);
           ignore_error(
             "services/crypto/ratchet_decrypt:recovered_key_bootstrap",
             caught,
