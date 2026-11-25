@@ -87,7 +87,7 @@ describe("ratchet state merge", () => {
     });
   });
 
-  it("keeps the earliest receive chain so nothing becomes undecryptable", () => {
+  it("keeps this device's receive chain", () => {
     const local = make_state({
       chain_key_recv: "recv-chain-7",
       recv_message_number: 7,
@@ -98,14 +98,100 @@ describe("ratchet state merge", () => {
     });
 
     expect(merge_ratchet_states(local, remote).state).toMatchObject({
-      chain_key_recv: "recv-chain-3",
-      recv_message_number: 3,
+      chain_key_recv: "recv-chain-7",
+      recv_message_number: 7,
     });
 
     expect(merge_ratchet_states(remote, local).state).toMatchObject({
       chain_key_recv: "recv-chain-3",
       recv_message_number: 3,
     });
+  });
+
+  it("an older stored copy does not rewind the receive chain", () => {
+    const local = make_state({
+      chain_key_recv: "recv-chain-2",
+      recv_message_number: 2,
+      skipped_message_keys: [skipped("remote-dh-pub", 0, 10)],
+    });
+    const stale = make_state({
+      chain_key_recv: "recv-chain-1",
+      recv_message_number: 1,
+      skipped_message_keys: [skipped("remote-dh-pub", 0, 10)],
+    });
+
+    expect(merge_ratchet_states(local, stale).state).toMatchObject({
+      chain_key_recv: "recv-chain-2",
+      recv_message_number: 2,
+    });
+  });
+
+  it("does not bring back a key this device already used", () => {
+    const local = make_state({
+      chain_key_recv: "recv-chain-3",
+      recv_message_number: 3,
+    });
+    const stale = make_state({
+      chain_key_recv: "recv-chain-0",
+      recv_message_number: 0,
+      skipped_message_keys: [
+        skipped("remote-dh-pub", 1, 10),
+        skipped("remote-dh-pub", 5, 20),
+        skipped("older-dh-pub", 1, 30),
+      ],
+    });
+
+    expect(
+      merge_ratchet_states(local, stale).state.skipped_message_keys.map(
+        (key) => `${key.dh_public}:${key.message_number}`,
+      ),
+    ).toEqual(["remote-dh-pub:5", "older-dh-pub:1"]);
+  });
+
+  it("a device behind keeps its own chain so mail read elsewhere stays readable", () => {
+    const local = make_state({
+      chain_key_recv: "recv-chain-1",
+      recv_message_number: 1,
+      skipped_message_keys: [skipped("remote-dh-pub", 0, 10)],
+    });
+    const remote = make_state({
+      chain_key_recv: "recv-chain-3",
+      recv_message_number: 3,
+    });
+
+    const merged = merge_ratchet_states(local, remote).state;
+
+    expect(merged).toMatchObject({
+      chain_key_recv: "recv-chain-1",
+      recv_message_number: 1,
+    });
+    expect(
+      merged.skipped_message_keys.map(
+        (key) => `${key.dh_public}:${key.message_number}`,
+      ),
+    ).toEqual(["remote-dh-pub:0"]);
+  });
+
+  it("a device that moved ahead drops keys it already used", () => {
+    const ahead = make_state({
+      chain_key_recv: "recv-chain-3",
+      recv_message_number: 3,
+    });
+    const lagging = make_state({
+      chain_key_recv: "recv-chain-3",
+      recv_message_number: 3,
+      skipped_message_keys: [
+        skipped("remote-dh-pub", 1, 10),
+        skipped("remote-dh-pub", 2, 10),
+      ],
+    });
+
+    expect(
+      merge_ratchet_states(ahead, lagging).state.skipped_message_keys,
+    ).toHaveLength(0);
+    expect(
+      merge_ratchet_states(lagging, ahead).state.skipped_message_keys,
+    ).toHaveLength(2);
   });
 
   it("adopts a receive chain the other device established first", () => {
