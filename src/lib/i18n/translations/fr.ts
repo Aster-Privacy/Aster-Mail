@@ -13160,6 +13160,7 @@ export const fr = {
     require_encryption_title: "Exiger le chiffrement, chiffrement obligatoire, bloquer le non chiffré, forcer PGP",
     show_encryption_indicators_title: "Afficher les indicateurs de chiffrement, icône de cadenas, badge chiffré, indicateur",
     publish_keys_wkd_title: "Publier les clés dans WKD, WKD, Web Key Directory, publier la clé, clé publique",
+    alias_pgp_title: "alias, PGP, signature, signer, clé publique, partage de clé",
     publish_to_keyservers_title: "Publier sur les serveurs de clés, serveur de clés, keys.openpgp.org, publier la clé",
     keyserver_addresses_title: "Adresses à publier, serveur de clés, publier les adresses, adresses de la clé publique",
     key_fingerprint: "Code de vérification, empreinte, identifiant de clé",

@@ -360,6 +360,7 @@ export interface SettingsKeywordsTranslations {
   require_encryption_title: string;
   show_encryption_indicators_title: string;
   publish_keys_wkd_title: string;
+  alias_pgp_title: string;
   publish_to_keyservers_title: string;
   keyserver_addresses_title: string;
   key_fingerprint: string;

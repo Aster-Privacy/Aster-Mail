@@ -13020,6 +13020,7 @@ export const es = {
     require_encryption_title: "Exigir cifrado, cifrado obligatorio, bloquear sin cifrar, forzar PGP",
     show_encryption_indicators_title: "Mostrar indicadores de cifrado, icono de candado, insignia de cifrado, indicador",
     publish_keys_wkd_title: "Publicar claves en WKD, WKD, Web Key Directory, publicar clave, clave pública",
+    alias_pgp_title: "alias, PGP, firma, firmar, clave pública, compartir clave",
     publish_to_keyservers_title: "Publicar en servidores de claves, servidor de claves, keys.openpgp.org, publicar clave",
     keyserver_addresses_title: "Direcciones para publicar, servidor de claves, publicar direcciones, direcciones de la clave pública",
     key_fingerprint: "Código de verificación, huella digital, ID de clave",

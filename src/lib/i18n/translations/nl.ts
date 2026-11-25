@@ -13005,6 +13005,7 @@ export const nl = {
     require_encryption_title: "versleuteling verplichten, onversleuteld blokkeren, PGP afdwingen",
     show_encryption_indicators_title: "slotje, versleuteld badge, indicator, versleutelingsindicator",
     publish_keys_wkd_title: "WKD, web key directory, sleutel publiceren, openbare sleutel",
+    alias_pgp_title: "alias, PGP, handtekening, ondertekenen, openbare sleutel, sleutel delen",
     publish_to_keyservers_title: "sleutelserver, keys.openpgp.org, sleutel publiceren",
     keyserver_addresses_title: "sleutelserver, adressen publiceren, adressen openbare sleutel",
     key_fingerprint: "vingerafdruk, verificatiecode, sleutel-id",

@@ -12768,6 +12768,7 @@ export const ar = {
     require_encryption_title: "طلب التشفير, فرض التشفير, حظر غير المشفر, فرض PGP",
     show_encryption_indicators_title: "إظهار مؤشرات التشفير, أيقونة القفل, شارة مشفر, مؤشر",
     publish_keys_wkd_title: "نشر المفاتيح في WKD, WKD, دليل مفاتيح الويب, نشر المفتاح, المفتاح العام",
+    alias_pgp_title: "اسم مستعار, PGP, توقيع, التوقيع, مفتاح عام, مشاركة المفتاح",
     publish_to_keyservers_title: "النشر على خوادم المفاتيح, خادم المفاتيح, keys.openpgp.org, نشر المفتاح",
     keyserver_addresses_title: "العناوين المراد نشرها, خادم المفاتيح, نشر العناوين, عناوين المفتاح العام",
     key_fingerprint: "رمز التحقق, البصمة, بصمة المفتاح, معرف المفتاح",

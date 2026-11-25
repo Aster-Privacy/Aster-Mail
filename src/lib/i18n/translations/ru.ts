@@ -13222,6 +13222,7 @@ export const ru = {
     require_encryption_title: "требовать шифрование, блокировать незашифрованные, принудительный PGP",
     show_encryption_indicators_title: "значок замка, значок шифрования, индикатор шифрования",
     publish_keys_wkd_title: "WKD, web key directory, опубликовать ключ, открытый ключ",
+    alias_pgp_title: "псевдоним, PGP, подпись, подписание, открытый ключ, передача ключа",
     publish_to_keyservers_title: "сервер ключей, keys.openpgp.org, опубликовать ключ",
     keyserver_addresses_title: "сервер ключей, публикуемые адреса, адреса открытого ключа",
     key_fingerprint: "отпечаток, код проверки, id ключа",

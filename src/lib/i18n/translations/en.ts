@@ -12727,6 +12727,7 @@ export const en: Translations = {
     require_encryption_title: "require encryption, block unencrypted, force pgp",
     show_encryption_indicators_title: "lock icon, encrypted badge, indicator",
     publish_keys_wkd_title: "wkd, web key directory, publish key, public key",
+    alias_pgp_title: "alias, pgp, signature, signing, public key, key sharing",
     publish_to_keyservers_title: "keyserver, keys.openpgp.org, publish key",
     keyserver_addresses_title: "keyserver, publish addresses, public key addresses",
     key_fingerprint: "fingerprint, verification code, key id",

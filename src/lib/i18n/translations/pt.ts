@@ -13129,6 +13129,7 @@ export const pt = {
     require_encryption_title: "exigir encriptação, bloquear não encriptados, forçar PGP, encriptação obrigatória",
     show_encryption_indicators_title: "indicadores de encriptação, ícone de cadeado, emblema encriptado, indicador",
     publish_keys_wkd_title: "publicar chaves no WKD, WKD, web key directory, publicar chave, chave pública",
+    alias_pgp_title: "alias, PGP, assinatura, assinar, chave pública, partilha de chave",
     publish_to_keyservers_title: "publicar em servidores de chaves, servidor de chaves, keys.openpgp.org, publicar chave",
     keyserver_addresses_title: "endereços a publicar, servidor de chaves, publicar endereços, endereços da chave pública",
     key_fingerprint: "código de verificação, impressão digital, fingerprint, ID da chave",

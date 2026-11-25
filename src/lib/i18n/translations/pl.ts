@@ -13253,6 +13253,7 @@ export const pl = {
     require_encryption_title: "wymagaj szyfrowania, blokuj nieszyfrowane, wymuś PGP",
     show_encryption_indicators_title: "ikona kłódki, plakietka szyfrowania, wskaźnik szyfrowania",
     publish_keys_wkd_title: "WKD, web key directory, opublikuj klucz, klucz publiczny",
+    alias_pgp_title: "alias, PGP, podpis, podpisywanie, klucz publiczny, udostępnianie klucza",
     publish_to_keyservers_title: "serwer kluczy, keys.openpgp.org, opublikuj klucz",
     keyserver_addresses_title: "serwer kluczy, publikowane adresy, adresy klucza publicznego",
     key_fingerprint: "odcisk klucza, kod weryfikacyjny, identyfikator klucza",

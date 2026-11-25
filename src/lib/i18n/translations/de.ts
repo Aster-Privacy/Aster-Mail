@@ -13177,6 +13177,7 @@ export const de = {
     require_encryption_title: "Verschlüsselung erzwingen, Verschlüsselung erforderlich, Unverschlüsseltes blockieren, PGP erzwingen",
     show_encryption_indicators_title: "Verschlüsselungshinweise anzeigen, Schloss-Symbol, Verschlüsselt-Badge, Hinweis",
     publish_keys_wkd_title: "Schlüssel in WKD veröffentlichen, WKD, Web Key Directory, Schlüssel veröffentlichen, öffentlicher Schlüssel",
+    alias_pgp_title: "Alias, PGP, Signatur, Signieren, öffentlicher Schlüssel, Schlüsselfreigabe",
     publish_to_keyservers_title: "Auf Keyservern veröffentlichen, Keyserver, keys.openpgp.org, Schlüssel veröffentlichen",
     keyserver_addresses_title: "Zu veröffentlichende Adressen, Keyserver, Adressen veröffentlichen, Adressen des öffentlichen Schlüssels",
     key_fingerprint: "Bestätigungscode, Fingerabdruck, Prüfcode, Schlüssel-ID",
