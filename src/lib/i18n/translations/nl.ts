@@ -9730,6 +9730,9 @@ export const nl = {
     empty_spam: "Spam legen",
     report_phishing: "Spam melden",
     not_spam: "Geen spam",
+    pending_send_failed: "Dit bericht kan niet worden verstuurd.",
+    pending_send_offline:
+      "Wachten op verbinding. Dit bericht wordt verstuurd zodra je weer online bent.",
     send_failed_title: "Dit bericht is niet bezorgd.",
     send_failed_help: "Controleer het adres en verstuur het bericht opnieuw.",
     spam_reasons_title: "Dit bericht is naar spam verplaatst",

@@ -9653,6 +9653,9 @@ export const tr = {
     empty_spam: "Spam'i boşalt",
     report_phishing: "Spam bildir",
     not_spam: "Spam değil",
+    pending_send_failed: "Bu ileti gönderilemedi.",
+    pending_send_offline:
+      "Bağlantı bekleniyor. Tekrar çevrimiçi olduğunuzda bu ileti gönderilecek.",
     send_failed_title: "Bu ileti teslim edilmedi.",
     send_failed_help: "Adresi kontrol edin, sonra iletiyi yeniden gönderin.",
     spam_reasons_title: "Bu ileti spam klasörüne taşındı",

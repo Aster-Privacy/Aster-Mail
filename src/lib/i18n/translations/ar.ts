@@ -9578,6 +9578,9 @@ export const ar = {
     empty_spam: "تفريغ الرسائل المزعجة",
     report_phishing: "الإبلاغ عن بريد مزعج",
     not_spam: "ليس مزعجًا",
+    pending_send_failed: "تعذّر إرسال هذه الرسالة.",
+    pending_send_offline:
+      "في انتظار الاتصال. سيتم إرسال هذه الرسالة عند عودتك إلى الإنترنت.",
     send_failed_title: "لم يتم تسليم هذه الرسالة.",
     send_failed_help: "تحقق من العنوان، ثم أرسل الرسالة مرة أخرى.",
     spam_reasons_title: "تم نقل هذه الرسالة إلى البريد المزعج",

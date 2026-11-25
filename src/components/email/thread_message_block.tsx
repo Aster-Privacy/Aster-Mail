@@ -92,6 +92,7 @@ import { get_cached_iframe_height } from "@/components/email/sandboxed_email_ren
 import { UNMEASURED_PLACEHOLDER_HEIGHT } from "@/components/email/sandboxed_email_renderer/helpers";
 import { SpamReasonsBanner } from "@/components/email/banners/spam_reasons_banner";
 import { TranslationBanner } from "@/components/email/banners/translation_banner";
+import { PendingSendStatus } from "@/components/email/pending_send_status";
 import { ThreadMessageActions } from "@/components/email/thread_message_actions";
 import {
   MessageNoticeRow,
@@ -906,6 +907,13 @@ export function ThreadMessageBlock(
       <div
         className={`${is_plain_text || show_as_text ? "ps-[52px] pb-4" : "pb-0"} pt-1`}
       >
+        {message.is_sending === true && (
+          <div
+            className={`min-w-0 ${is_plain_text || show_as_text ? "pe-4" : "ps-[52px] pe-4"}`}
+          >
+            <PendingSendStatus message_id={message.id} />
+          </div>
+        )}
         {!is_ratchet_undecryptable && (
           <div
             className={`min-w-0 ${is_plain_text || show_as_text ? "pe-4" : "ps-[52px] pe-4"}`}

@@ -8948,6 +8948,8 @@ export interface MailTranslations {
   empty_spam: string;
   report_phishing: string;
   not_spam: string;
+  pending_send_failed: string;
+  pending_send_offline: string;
   send_failed_title: string;
   send_failed_help: string;
   spam_reasons_title: string;
