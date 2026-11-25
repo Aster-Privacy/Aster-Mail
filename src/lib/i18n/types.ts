@@ -9772,6 +9772,7 @@ export interface AuthTranslations {
   authenticating: string;
   fetching_auth_data: string;
   verifying_credentials: string;
+  sign_in_enhanced_unavailable: string;
   sign_in_standard_protection: string;
   decrypting_vault: string;
   getting_user_info: string;

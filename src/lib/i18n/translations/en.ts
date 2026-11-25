@@ -10457,6 +10457,7 @@ export const en: Translations = {
     authenticating: "Authenticating...",
     fetching_auth_data: "Fetching authentication data...",
     verifying_credentials: "Verifying credentials...",
+    sign_in_enhanced_unavailable: "Aster Mail couldn't use enhanced sign-in protection for this account, so you aren't signed in yet. If you changed your password on another device, sign in again to continue with standard protection.",
     sign_in_standard_protection: "Enhanced sign-in protection is unavailable right now, so you signed in with standard protection.",
     decrypting_vault: "Decrypting your key vault...",
     getting_user_info: "Getting user info...",

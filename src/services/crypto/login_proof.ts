@@ -723,6 +723,7 @@ let pending_login_enrollment: {
   salt: Uint8Array | null;
   rotation: Promise<LoginSaltRotation | null> | null;
   enroll_v3: boolean;
+  user_hash: string | null;
   created_at: number;
 } | null = null;
 
@@ -732,6 +733,7 @@ export function set_pending_login_enrollment(
   salt: Uint8Array | null = null,
   rotation: Promise<LoginSaltRotation | null> | null = null,
   enroll_v3 = false,
+  user_hash: string | null = null,
 ): void {
   pending_login_enrollment = {
     proof,
@@ -739,6 +741,7 @@ export function set_pending_login_enrollment(
     salt,
     rotation,
     enroll_v3,
+    user_hash,
     created_at: Date.now(),
   };
 }
@@ -794,6 +797,7 @@ export async function flush_pending_login_enrollment(
     await enroll_login_v3(
       rotated ? rotated.v1_proof : pending.proof.v1_proof,
       rotated ? rotated.hash_v2 : pending.proof.password_hash,
+      pending.user_hash,
     );
   }
 
@@ -830,6 +834,7 @@ export async function derive_sign_in_proof(
     salt,
     rotation,
     !has_login_v3 && read_login_v3_flag(signals.login_v3_enroll),
+    user_hash,
   );
 
   if (has_login_v3) {
