@@ -30,17 +30,16 @@ import {
 import {
   cap_lane_replay,
   lane_replay_message,
+  MAX_LANE_REPLAY_ENTRIES,
   merge_lane_replay,
   normalize_lane_replay,
   type LaneReplayRecord,
 } from "./lane_replay";
 
-export const BOOTSTRAP_RECORD_MAX_AGE_MS = 365 * 24 * 60 * 60 * 1000;
-
 export type BootstrapClaim = "first" | "same_message" | "replayed" | "unknown";
 
 export interface BootstrapRecordClaim {
-  claim: Exclude<BootstrapClaim, "unknown">;
+  claim: BootstrapClaim;
   record: LaneReplayRecord;
   changed: boolean;
 }
@@ -73,27 +72,28 @@ export function claim_bootstrap_record(
   key: string,
   message: string,
   now: number,
+  may_evict = true,
 ): BootstrapRecordClaim {
   const normalized = normalize_lane_replay(stored);
-  const live = normalized.e.filter(
-    (entry) => now - entry.t <= BOOTSTRAP_RECORD_MAX_AGE_MS,
-  );
-  const pruned = live.length !== normalized.e.length;
-  const prior = live.find((entry) => entry.k === key);
+  const prior = normalized.e.find((entry) => entry.k === key);
 
   if (prior) {
     return {
       claim: prior.m === message ? "same_message" : "replayed",
-      record: { f: normalized.f, e: live },
-      changed: pruned,
+      record: normalized,
+      changed: false,
     };
   }
 
+  if (!may_evict && normalized.e.length >= MAX_LANE_REPLAY_ENTRIES) {
+    return { claim: "unknown", record: normalized, changed: false };
+  }
+
   return {
-    claim: "first",
+    claim: normalized.f > 0 ? "unknown" : "first",
     record: cap_lane_replay({
       f: normalized.f,
-      e: [...live, { k: key, m: message, t: now }],
+      e: [...normalized.e, { k: key, m: message, t: Math.max(now, 1) }],
     }),
     changed: true,
   };
@@ -104,6 +104,7 @@ export async function claim_bootstrap(
   sender_identity_key: string,
   data: BootstrapRecordData,
   message_id: string,
+  sender_verified = true,
 ): Promise<BootstrapClaim> {
   const sender = sender_email.trim().toLowerCase();
 
@@ -140,6 +141,7 @@ export async function claim_bootstrap(
         key,
         message,
         Date.now(),
+        sender_verified,
       );
 
       if (outcome.changed) {

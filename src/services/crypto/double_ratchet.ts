@@ -149,6 +149,35 @@ function assert_well_formed_header(header: MessageHeader): void {
   }
 }
 
+export class SkipLimitError extends Error {
+  constructor() {
+    super("Too many skipped messages");
+    this.name = "SkipLimitError";
+  }
+}
+
+export function is_skip_limit_error(error: unknown): boolean {
+  return error instanceof SkipLimitError;
+}
+
+function header_skip_total(
+  state: RatchetState,
+  header: MessageHeader,
+): number {
+  if (
+    state.dh_remote_public === null ||
+    header.dh_public !== state.dh_remote_public
+  ) {
+    const rest_of_chain = state.chain_key_recv
+      ? Math.max(0, header.previous_chain_length - state.recv_message_number)
+      : 0;
+
+    return rest_of_chain + header.message_number;
+  }
+
+  return Math.max(0, header.message_number - state.recv_message_number);
+}
+
 function clone_state(state: RatchetState): RatchetState {
   return {
     dh_keypair: { ...state.dh_keypair },
@@ -665,6 +694,10 @@ export class DoubleRatchet {
       return new TextDecoder().decode(skipped.plaintext);
     }
 
+    if (header_skip_total(this.state, message.header) > MAX_SKIP) {
+      throw new SkipLimitError();
+    }
+
     const work = clone_state(this.state);
     const header_dh_public = base64_to_array(message.header.dh_public);
 
@@ -785,7 +818,7 @@ export class DoubleRatchet {
     }
 
     if (until - state.recv_message_number > MAX_SKIP) {
-      throw new Error("Too many skipped messages");
+      throw new SkipLimitError();
     }
 
     let chain_key = base64_to_array(state.chain_key_recv);
