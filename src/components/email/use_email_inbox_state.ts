@@ -41,6 +41,7 @@ import {
 } from "@/services/category_index";
 import { use_category_drop } from "@/components/email/inbox/use_category_drop";
 import { use_settled_empty_state } from "@/components/email/inbox/use_settled_empty_state";
+import { use_removal_emptied } from "@/components/email/inbox/use_removal_emptied";
 import { use_delayed_flag } from "@/hooks/use_delayed_flag";
 import { builtin_category_def } from "@/data/category_catalog";
 import { type BulkScopeFilter } from "@/services/api/mail";
@@ -333,13 +334,21 @@ export function use_email_inbox_state(props: EmailInboxProps) {
     !folders_loading_for_view &&
     !manual_refresh_active &&
     (!categories.enabled || is_index_settled());
+  const emptied_by_removal = use_removal_emptied({
+    view_key: empty_state_key,
+    row_count: filtered_emails.length,
+  });
   const empty_state_visible = use_settled_empty_state({
     view_key: empty_state_key,
     is_empty: filtered_emails.length === 0,
-    is_settled: empty_state_settled,
+    is_settled:
+      empty_state_settled && !(emptied_by_removal && email_state.has_more),
+    immediate: emptied_by_removal,
   });
   const skeleton_visible = use_delayed_flag(
-    !empty_state_visible && (skeleton_pending || filtered_emails.length === 0),
+    !emptied_by_removal &&
+      !empty_state_visible &&
+      (skeleton_pending || filtered_emails.length === 0),
   );
 
   const is_client_filtered = active_filter !== "all";

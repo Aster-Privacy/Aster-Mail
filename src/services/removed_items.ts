@@ -23,6 +23,8 @@ const REMOVAL_MEMORY_MS = 300_000;
 const RECENT_REMOVAL_MS = 20_000;
 
 const removed_at = new Map<string, number>();
+const held_ids = new Map<string, number>();
+let last_removal_at = 0;
 
 function prune(now: number): void {
   if (removed_at.size === 0) return;
@@ -30,7 +32,7 @@ function prune(now: number): void {
   const cutoff = now - REMOVAL_MEMORY_MS;
 
   for (const [id, at] of removed_at) {
-    if (at <= cutoff) removed_at.delete(id);
+    if (at <= cutoff && !held_ids.has(id)) removed_at.delete(id);
   }
 }
 
@@ -42,23 +44,60 @@ export function note_removed_ids(ids: string[]): void {
   for (const id of ids) {
     if (id) removed_at.set(id, now);
   }
+  if (ids.length > 0) last_removal_at = now;
+}
+
+export function hold_removed_ids(ids: string[]): void {
+  note_removed_ids(ids);
+  for (const id of ids) {
+    if (id) held_ids.set(id, (held_ids.get(id) ?? 0) + 1);
+  }
+}
+
+export function release_removed_ids(ids: string[]): void {
+  const now = Date.now();
+
+  for (const id of ids) {
+    const holds = held_ids.get(id);
+
+    if (holds === undefined) continue;
+    if (holds > 1) {
+      held_ids.set(id, holds - 1);
+      continue;
+    }
+    held_ids.delete(id);
+    if (removed_at.has(id)) removed_at.set(id, now);
+  }
 }
 
 export function forget_removed_ids(ids: string[]): void {
-  for (const id of ids) removed_at.delete(id);
+  for (const id of ids) {
+    removed_at.delete(id);
+    held_ids.delete(id);
+  }
 }
 
 export function clear_removed_items(): void {
   removed_at.clear();
+  held_ids.clear();
+  last_removal_at = 0;
+}
+
+export function removed_within(ms: number): boolean {
+  return last_removal_at > 0 && Date.now() - last_removal_at < ms;
 }
 
 export function was_removed_after(id: string, since: number): boolean {
+  if (held_ids.has(id)) return true;
+
   const at = removed_at.get(id);
 
   return at !== undefined && at >= since;
 }
 
 export function is_recently_removed(id: string): boolean {
+  if (held_ids.has(id)) return true;
+
   const at = removed_at.get(id);
 
   return at !== undefined && Date.now() - at < RECENT_REMOVAL_MS;

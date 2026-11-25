@@ -24,17 +24,21 @@ import type {
   BulkDeleteOptions,
   FetchPageOptions,
 } from "@/hooks/email_list_types";
+import type { RestoredEmailEntry } from "@/hooks/email_list_helpers";
+import type { ListRemovalTarget } from "@/hooks/list_removal";
 
-import { useCallback, type MutableRefObject } from "react";
+import { useCallback, useMemo, type MutableRefObject } from "react";
 
 import { archive_keeps_row, unarchive_keeps_row } from "./view_membership";
 import {
   DEFAULT_PAGE_SIZE,
   expand_email_ids,
   grow_list_total,
+  insert_emails_at,
   trashes_whole_thread,
 } from "./email_list_helpers";
 
+import { begin_list_removal } from "@/hooks/list_removal";
 import { bulk_action_result } from "@/hooks/bulk_action_result";
 import { bulk_update_metadata_by_ids } from "@/services/crypto/mail_metadata";
 import { set_threads_trashed } from "@/services/trash_state";
@@ -51,7 +55,6 @@ import {
   remove_email_from_view_cache,
 } from "@/hooks/email_list_cache";
 import { MAIL_EVENTS } from "@/hooks/mail_events";
-import { compare_timestamps_desc } from "@/utils/email_timestamp";
 import {
   remove_ids as remove_index_ids,
   remove_thread_entries,
@@ -112,15 +115,6 @@ function count_deltas(
   };
 }
 
-function sort_by_timestamp_desc(emails: InboxEmail[]): InboxEmail[] {
-  return [...emails].sort((a, b) =>
-    compare_timestamps_desc(
-      a.raw_timestamp || a.timestamp,
-      b.raw_timestamp || b.timestamp,
-    ),
-  );
-}
-
 export function use_email_list_bulk({
   state,
   set_state,
@@ -142,25 +136,44 @@ export function use_email_list_bulk({
     [set_state],
   );
 
-  const restore_emails = useCallback(
-    (emails: InboxEmail[]) => {
-      if (emails.length === 0) return;
-      set_state((prev) => {
-        const already_present = new Set(prev.emails.map((e) => e.id));
-        const fresh_restores = emails.filter((e) => !already_present.has(e.id));
+  const removal_target = useMemo<ListRemovalTarget>(
+    () => ({
+      remove_emails: (ids) => {
+        const id_set = new Set(ids);
 
-        if (fresh_restores.length === 0) return prev;
+        set_state((prev) => {
+          const emails = prev.emails.filter((e) => !id_set.has(e.id));
 
-        return {
-          ...prev,
-          emails: sort_by_timestamp_desc([...prev.emails, ...fresh_restores]),
-          total_messages: grow_list_total(
-            prev.total_messages,
-            fresh_restores.length,
-          ),
-        };
-      });
-    },
+          if (emails.length === prev.emails.length) return prev;
+
+          return {
+            ...prev,
+            emails,
+            total_messages: Math.max(
+              0,
+              prev.total_messages - (prev.emails.length - emails.length),
+            ),
+          };
+        });
+      },
+      restore_emails: (entries: RestoredEmailEntry[]) => {
+        if (entries.length === 0) return;
+        set_state((prev) => {
+          const emails = insert_emails_at(prev.emails, entries);
+
+          if (emails === prev.emails) return prev;
+
+          return {
+            ...prev,
+            emails,
+            total_messages: grow_list_total(
+              prev.total_messages,
+              emails.length - prev.emails.length,
+            ),
+          };
+        });
+      },
+    }),
     [set_state],
   );
 
@@ -171,7 +184,10 @@ export function use_email_list_bulk({
           ? Math.max(0, page_ref?.current ?? 0)
           : 0;
 
-        fetch_page_ref.current?.(page, page_size);
+        void fetch_page_ref.current?.(page, page_size, {
+          silent: true,
+          force: true,
+        });
       }
 
       return prev;
@@ -195,12 +211,7 @@ export function use_email_list_bulk({
       );
       const non_threaded_ids = non_threaded_emails.flatMap(expand_email_ids);
       const deltas = count_deltas(selected_emails, is_whole_thread);
-
-      set_state((prev) => ({
-        ...prev,
-        emails: prev.emails.filter((e) => !id_set.has(e.id)),
-        total_messages: Math.max(0, prev.total_messages - ids.length),
-      }));
+      const removal = begin_list_removal(state.emails, ids, removal_target);
 
       const thread_removed_ids = new Map<string, string[]>();
 
@@ -313,8 +324,8 @@ export function use_email_list_bulk({
           adjust_sent_count(restored.sent);
         }
         adjust_trash_count(-restored.message_count);
-        restore_emails(failed_emails);
       }
+      removal.settle(failed_email_ids);
       if (failed_email_ids.size < ids.length) {
         refill_if_empty();
         setTimeout(() => {
@@ -322,9 +333,9 @@ export function use_email_list_bulk({
         }, 300);
       }
 
-      return bulk_action_result(ids, failed_email_ids);
+      return { ...bulk_action_result(ids, failed_email_ids), removal };
     },
-    [state.emails, set_state, restore_emails, refill_if_empty],
+    [state.emails, removal_target, refill_if_empty],
   );
 
   const bulk_archive = useCallback(
@@ -339,15 +350,11 @@ export function use_email_list_bulk({
       const deltas = count_deltas(selected_emails);
       const keeps_row = archive_keeps_row(current_view);
 
-      if (keeps_row) {
-        set_archived_flag(id_set, true);
-      } else {
-        set_state((prev) => ({
-          ...prev,
-          emails: prev.emails.filter((e) => !id_set.has(e.id)),
-          total_messages: Math.max(0, prev.total_messages - ids.length),
-        }));
-      }
+      const removal = keeps_row
+        ? null
+        : begin_list_removal(state.emails, ids, removal_target);
+
+      if (keeps_row) set_archived_flag(id_set, true);
       remove_index_ids(expanded_ids);
       if (deltas.unread_received > 0) {
         adjust_unread_count(-deltas.unread_received);
@@ -389,10 +396,9 @@ export function use_email_list_bulk({
         adjust_stats_archived(-restored_ids.length);
         if (keeps_row) {
           set_archived_flag(new Set(failed_emails.map((e) => e.id)), false);
-        } else {
-          restore_emails(failed_emails);
         }
       }
+      removal?.settle(failed_emails.map((e) => e.id));
 
       const archived_ids = expanded_ids.filter(
         (id) => !failed_message_set.has(id),
@@ -416,15 +422,17 @@ export function use_email_list_bulk({
         refill_if_empty();
       }
 
-      return bulk_action_result(
-        ids,
-        failed_emails.map((e) => e.id),
-      );
+      return {
+        ...bulk_action_result(
+          ids,
+          failed_emails.map((e) => e.id),
+        ),
+        ...(removal ? { removal } : {}),
+      };
     },
     [
       state.emails,
-      set_state,
-      restore_emails,
+      removal_target,
       refill_if_empty,
       current_view,
       set_archived_flag,
@@ -443,15 +451,11 @@ export function use_email_list_bulk({
       const deltas = count_deltas(selected_emails);
       const keeps_row = unarchive_keeps_row(current_view);
 
-      if (keeps_row) {
-        set_archived_flag(id_set, false);
-      } else {
-        set_state((prev) => ({
-          ...prev,
-          emails: prev.emails.filter((e) => !id_set.has(e.id)),
-          total_messages: Math.max(0, prev.total_messages - ids.length),
-        }));
-      }
+      const removal = keeps_row
+        ? null
+        : begin_list_removal(state.emails, ids, removal_target);
+
+      if (keeps_row) set_archived_flag(id_set, false);
       if (deltas.unread_received > 0) {
         adjust_unread_count(deltas.unread_received);
       }
@@ -491,10 +495,9 @@ export function use_email_list_bulk({
         adjust_stats_archived(restored_ids.length);
         if (keeps_row) {
           set_archived_flag(new Set(failed_emails.map((e) => e.id)), true);
-        } else {
-          restore_emails(failed_emails);
         }
       }
+      removal?.settle(failed_emails.map((e) => e.id));
 
       const unarchived_ids = expanded_ids.filter(
         (id) => !failed_message_set.has(id),
@@ -516,15 +519,17 @@ export function use_email_list_bulk({
         }, 300);
       }
 
-      return bulk_action_result(
-        ids,
-        failed_emails.map((e) => e.id),
-      );
+      return {
+        ...bulk_action_result(
+          ids,
+          failed_emails.map((e) => e.id),
+        ),
+        ...(removal ? { removal } : {}),
+      };
     },
     [
       state.emails,
-      set_state,
-      restore_emails,
+      removal_target,
       refill_if_empty,
       current_view,
       set_archived_flag,

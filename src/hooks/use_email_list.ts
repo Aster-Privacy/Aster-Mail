@@ -29,7 +29,11 @@ import type {
 import { useState, useCallback, useEffect, useRef, useMemo } from "react";
 import { Capacitor } from "@capacitor/core";
 
-import { drop_removed_after } from "@/services/removed_items";
+import {
+  drop_removed_after,
+  forget_removed_ids,
+  note_removed_ids,
+} from "@/services/removed_items";
 import { apply_flag_intents } from "@/services/read_intent";
 import {
   merge_silent_refresh_emails,
@@ -1334,6 +1338,7 @@ export function use_email_list(
   );
 
   const remove_email = useCallback((id: string): void => {
+    note_removed_ids([id]);
     page_cache_ref.current.clear();
     const removed_rows = loaded_emails_ref.current.filter((e) => e.id === id);
     const absorbed = Math.min(
@@ -1356,6 +1361,7 @@ export function use_email_list(
   const remove_emails = useCallback((ids: string[]): void => {
     const id_set = new Set(ids);
 
+    note_removed_ids(ids);
     page_cache_ref.current.clear();
     const removed_rows = loaded_emails_ref.current.filter((e) =>
       id_set.has(e.id),
@@ -1387,6 +1393,7 @@ export function use_email_list(
 
   const restore_emails = useCallback((entries: RestoredEmailEntry[]): void => {
     if (entries.length === 0) return;
+    forget_removed_ids(entries.map((entry) => entry.email.id));
     page_cache_ref.current.clear();
     set_state((prev) => {
       const emails = insert_emails_at(prev.emails, entries);

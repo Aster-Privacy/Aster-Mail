@@ -93,7 +93,8 @@ import {
 } from "@/services/category_index";
 import { invalidate_mail_stats } from "@/hooks/use_mail_stats";
 import { request_cache } from "@/services/api/request_cache";
-import { drop_removed_after } from "@/services/removed_items";
+import { drop_removed_after, removed_within } from "@/services/removed_items";
+import { REMOVAL_SETTLE_MS } from "@/hooks/list_removal";
 import {
   read_list_snapshot,
   schedule_list_snapshot,
@@ -1209,7 +1210,7 @@ export function use_category_inbox(
 
     const same_scope =
       last_signature_ref.current.startsWith(scope) &&
-      rendered_rows_ref.current > 0;
+      (rendered_rows_ref.current > 0 || removed_within(REMOVAL_SETTLE_MS));
 
     last_signature_ref.current = signature;
     void fetch_page(page, page_size, same_scope ? { silent: true } : undefined);
