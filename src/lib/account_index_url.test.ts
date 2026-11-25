@@ -120,11 +120,12 @@ describe("account_index_url", () => {
     expect(window.location.pathname).toBe("/u/99/all");
   });
 
-  it("uses the exact matched prefix as the basename", () => {
+  it("uses the plain index as the basename", () => {
     set_location("/u/007/settings");
 
-    expect(resolve_account_basename()).toBe("/u/007");
+    expect(resolve_account_basename()).toBe("/u/7");
     expect(get_active_account_index()).toBe(7);
+    expect(window.location.pathname).toBe("/u/7/settings");
   });
 
   it("reports the app path with the prefix removed", () => {
