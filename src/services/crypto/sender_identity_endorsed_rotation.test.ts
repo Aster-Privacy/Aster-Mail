@@ -265,6 +265,16 @@ describe("endorsed sender key rotation", () => {
     );
   });
 
+  it("does not report a check-only match over an unacknowledged change to a different key", async () => {
+    await seed_history([OLD_KEY]);
+    await seed_pin(STRANGER_KEY, true);
+    publish(NEW_KEY, [OLD_KEY]);
+
+    expect(await accept_endorsed_sender_rotation(SENDER, NEW_KEY, false)).toBe(
+      false,
+    );
+  });
+
   it("does not trust a pinned key that is itself an unacknowledged change", async () => {
     await seed_pin(OLD_KEY, true);
     publish(NEW_KEY, [OLD_KEY]);

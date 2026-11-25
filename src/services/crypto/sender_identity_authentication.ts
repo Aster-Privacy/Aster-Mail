@@ -366,9 +366,22 @@ export async function check_sender_identity_continuity(
 
 async function is_endorsed_by_known_key(
   peer: SenderPeer,
+  sender_identity_key: string,
   endorsers: string[],
 ): Promise<boolean> {
   if (!peer.slot || endorsers.length === 0) return false;
+
+  const pinned = await lookup_identity_pin_record(peer.address);
+
+  if (pinned === "unreadable") return false;
+
+  if (
+    pinned?.rotated &&
+    pinned.fingerprint !==
+      (await compute_hash(base64_to_array(sender_identity_key)))
+  ) {
+    return false;
+  }
 
   const history = await read_sender_history(peer.slot);
 
@@ -378,9 +391,7 @@ async function is_endorsed_by_known_key(
 
   if (endorsers.some((endorser) => remembered.includes(endorser))) return true;
 
-  const pinned = await lookup_identity_pin_record(peer.address);
-
-  if (!pinned || pinned === "unreadable" || pinned.rotated) return false;
+  if (!pinned || pinned.rotated) return false;
 
   for (const endorser of endorsers) {
     if ((await compute_hash(base64_to_array(endorser))) === pinned.fingerprint) {
@@ -420,7 +431,11 @@ export async function accept_endorsed_sender_rotation(
     if (!verification.valid) return false;
 
     const accepted = await with_contact_lock(slot, async () => {
-      if (!(await is_endorsed_by_known_key(peer, verification.endorsers))) {
+      if (!(await is_endorsed_by_known_key(
+          peer,
+          sender_identity_key,
+          verification.endorsers,
+        ))) {
         return false;
       }
 
