@@ -57,6 +57,7 @@ import {
   UpgradeModalHost,
 } from "@/components/upgrade/upgrade_modal_hosts";
 import { EmailNotificationManager } from "@/components/email/email_notification_manager";
+import { RemoteImagePrefetcher } from "@/components/email/remote_image_prefetcher";
 import { UndoSendPreviewModal } from "@/components/toast/undo_send_preview_modal";
 import { Family2faDialog } from "@/components/common/family_2fa_dialog";
 import { BillingAlertBanner } from "@/components/common/billing_alert_banner";
@@ -948,6 +949,7 @@ function MobileApp() {
           <OfferModalHost />
         </ErrorBoundary>
         <EmailNotificationManager />
+        <RemoteImagePrefetcher />
       </div>
     </AppLock>
   );

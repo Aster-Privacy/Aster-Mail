@@ -212,6 +212,9 @@ async function clear_local_caches(): Promise<void> {
   await import("@/services/calendar/sync_store")
     .then((module) => module.clear_calendar_sync_cache())
     .catch(() => undefined);
+  await import("@/lib/remote_image_cache")
+    .then((module) => module.clear_remote_image_cache())
+    .catch(() => undefined);
   clear_drafts_cache();
   clear_scheduled_cache();
   clear_recovery_email_cache();

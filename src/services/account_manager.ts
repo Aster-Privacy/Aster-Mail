@@ -56,6 +56,12 @@ async function clear_offline_email_cache(
     .then((module) => module.clear_calendar_sync_state(removed_account_id))
     .catch(() => undefined);
 
+  if (removed_account_id) {
+    await import("@/lib/remote_image_cache")
+      .then((module) => module.clear_remote_image_cache(removed_account_id))
+      .catch(() => undefined);
+  }
+
   try {
     const { clear_search_snapshots } = await import(
       "@/services/search_index_store"

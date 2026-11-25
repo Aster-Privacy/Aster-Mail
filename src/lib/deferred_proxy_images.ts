@@ -19,10 +19,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 //
-import {
-  fetch_proxied_image,
-  type ProxiedImageResult,
-} from "@/lib/image_proxy_grant";
+import type { ProxiedImageResult } from "@/lib/image_proxy_grant";
+
+import { load_proxied_image_cached } from "@/lib/cached_proxied_image";
 import { parse_srcset_candidates, type SrcsetCandidate } from "@/lib/url_value";
 
 export const DEFERRED_SRC_ATTRIBUTE = "data-deferred-src";
@@ -333,7 +332,7 @@ export function create_deferred_image_session(
   proxy_url: string,
   options: { load?: ProxiedImageLoader; retry_delay_ms?: number } = {},
 ): DeferredImageSession {
-  const load: ProxiedImageLoader = options.load ?? fetch_proxied_image;
+  const load: ProxiedImageLoader = options.load ?? load_proxied_image_cached;
   const retry_delay_ms = options.retry_delay_ms ?? RETRY_DELAY_MS;
   const controller = new AbortController();
   const object_urls: string[] = [];
