@@ -229,6 +229,7 @@ export const en: Translations = {
     profile_picture_upload_hint: "JPEG, PNG, or WebP, up to 5 MB",
     profile_picture_gallery_failed:
       "The gallery didn't load. Check your connection, and then try again.",
+    profile_picture_categories: "Gallery categories",
     profile_picture_cat_all: "All",
     profile_picture_cat_space: "Space",
     profile_picture_cat_night_sky: "Night sky",

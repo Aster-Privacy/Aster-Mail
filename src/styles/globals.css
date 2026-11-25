@@ -29,6 +29,21 @@
     cursor: not-allowed;
   }
 
+  :where(
+      [role="menuitem"],
+      [role="menuitemcheckbox"],
+      [role="menuitemradio"],
+      [role="option"]
+    )
+    + :where(
+      [role="menuitem"],
+      [role="menuitemcheckbox"],
+      [role="menuitemradio"],
+      [role="option"]
+    ) {
+    margin-top: 2px;
+  }
+
   button,
   [role="button"],
   [role="tab"],
@@ -2105,6 +2120,16 @@ textarea.aster_input {
 
 .aster_simple_toast_host .bg-modal-bg.border button {
   border-radius: 9999px;
+}
+
+.aster_simple_toast_host .bg-modal-bg.border {
+  max-width: min(92vw, 28rem);
+}
+
+.aster_simple_toast_host .bg-modal-bg.border > span.font-medium {
+  min-width: 0;
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 
 .aster_input.aster_input_tonal {
@@ -5220,6 +5245,32 @@ html[data-input-modality="keyboard"]
 
 .profile_picture_chips {
   scrollbar-width: none;
+  scroll-behavior: smooth;
+  overscroll-behavior-x: contain;
+  --chips_fade_left: 0px;
+  --chips_fade_right: 0px;
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent,
+    #000 var(--chips_fade_left),
+    #000 calc(100% - var(--chips_fade_right)),
+    transparent
+  );
+  mask-image: linear-gradient(
+    to right,
+    transparent,
+    #000 var(--chips_fade_left),
+    #000 calc(100% - var(--chips_fade_right)),
+    transparent
+  );
+}
+
+.profile_picture_chips.has_fade_left {
+  --chips_fade_left: 28px;
+}
+
+.profile_picture_chips.has_fade_right {
+  --chips_fade_right: 28px;
 }
 
 .profile_picture_chips::-webkit-scrollbar {
@@ -5263,12 +5314,28 @@ html[data-input-modality="keyboard"]
   outline-offset: 2px;
 }
 
+.profile_picture_chip.is_active:focus-visible {
+  outline-color: var(--text-primary);
+}
+
+.profile_picture_tile:disabled {
+  cursor: default;
+}
+
+.profile_picture_tile:disabled:not(:has(.aster_scrim)) img {
+  opacity: 0.6;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .profile_picture_stage,
   .profile_picture_option,
   .profile_picture_chip,
   .profile_picture_tile img {
     transition: none;
+  }
+
+  .profile_picture_chips {
+    scroll-behavior: auto;
   }
 }
 

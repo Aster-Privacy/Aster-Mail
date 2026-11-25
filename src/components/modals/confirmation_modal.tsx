@@ -147,7 +147,7 @@ export function ConfirmationModal({
       }}
     >
       <AlertDialogContent
-        className="gap-0 p-0 overflow-hidden max-w-[380px]"
+        className="gap-0 p-0 max-h-[calc(100dvh-24px)] w-[calc(100vw-24px)] overflow-y-auto overscroll-contain max-w-[380px]"
         on_overlay_click={handle_cancel}
         onEscapeKeyDown={(e) => e.stopPropagation()}
         onOpenAutoFocus={(e) => {
@@ -160,7 +160,7 @@ export function ConfirmationModal({
             <AlertDialogTitle className="text-[16px] font-semibold">
               {title}
             </AlertDialogTitle>
-            <AlertDialogDescription className="text-[14px] leading-normal">
+            <AlertDialogDescription className="text-[14px] leading-normal [overflow-wrap:anywhere]">
               {message}
             </AlertDialogDescription>
             {learn_more_url && (

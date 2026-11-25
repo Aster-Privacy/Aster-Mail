@@ -154,6 +154,7 @@ export const tr = {
     profile_picture_upload_hint: "JPEG, PNG veya WebP, en fazla 5 MB",
     profile_picture_gallery_failed:
       "Galeri yüklenemedi. Bağlantınızı kontrol edip yeniden deneyin.",
+    profile_picture_categories: "Galeri kategorileri",
     profile_picture_cat_all: "Tümü",
     profile_picture_cat_space: "Uzay",
     profile_picture_cat_night_sky: "Gece gökyüzü",

@@ -148,6 +148,7 @@ export const ar = {
     profile_picture_upload_hint: "JPEG أو PNG أو WebP، حتى 5 ميغابايت",
     profile_picture_gallery_failed:
       "تعذّر تحميل المعرض. تحقق من اتصالك ثم حاول مرة أخرى.",
+    profile_picture_categories: "فئات المعرض",
     profile_picture_cat_all: "الكل",
     profile_picture_cat_space: "الفضاء",
     profile_picture_cat_night_sky: "سماء الليل",

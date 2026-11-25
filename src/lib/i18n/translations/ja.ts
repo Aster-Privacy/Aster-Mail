@@ -203,6 +203,7 @@ export const ja = {
     profile_picture_upload_hint: "JPEG、PNG、WebP、5 MBまで",
     profile_picture_gallery_failed:
       "ギャラリーを読み込めませんでした。接続を確認して、もう一度お試しください。",
+    profile_picture_categories: "ギャラリーのカテゴリ",
     profile_picture_cat_all: "すべて",
     profile_picture_cat_space: "宇宙",
     profile_picture_cat_night_sky: "夜空",

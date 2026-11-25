@@ -178,6 +178,7 @@ export const zh_CN = {
     profile_picture_upload: "从设备上传",
     profile_picture_upload_hint: "JPEG、PNG 或 WebP，最大 5 MB",
     profile_picture_gallery_failed: "图库未能加载。请检查网络连接，然后重试。",
+    profile_picture_categories: "图库类别",
     profile_picture_cat_all: "全部",
     profile_picture_cat_space: "太空",
     profile_picture_cat_night_sky: "夜空",
