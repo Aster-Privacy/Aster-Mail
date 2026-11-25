@@ -28,7 +28,7 @@ import {
 type PixelFilter = (pixels: Uint8ClampedArray) => void;
 
 function fake_context(filter: PixelFilter) {
-  const size = 8;
+  const size = 32;
   const pixels = new Uint8ClampedArray(size * size * 4);
   let fill: [number, number, number] = [0, 0, 0];
 
