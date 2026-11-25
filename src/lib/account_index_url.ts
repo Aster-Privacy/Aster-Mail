@@ -105,10 +105,23 @@ export function resolve_account_basename(): string {
 
   if (raw) {
     const index = Number(raw[1]);
+    const canonical = `/u/${index}`;
 
     active_account_index = index;
 
-    return raw[0];
+    if (raw[0] === canonical) return raw[0];
+
+    try {
+      window.history.replaceState(
+        window.history.state,
+        "",
+        `${canonical}${pathname.slice(raw[0].length)}${window.location.search}${window.location.hash}`,
+      );
+    } catch {
+      return raw[0];
+    }
+
+    return canonical;
   }
 
   active_account_index = 0;

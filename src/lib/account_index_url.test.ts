@@ -75,6 +75,16 @@ describe("account_index_url", () => {
     expect(window.location.search).toBe("?q=hi");
   });
 
+  it("rewrites an index with leading zeros to its plain form", () => {
+    set_location("/u/007/starred", "?q=hi", "#msg");
+
+    expect(resolve_account_basename()).toBe("/u/7");
+    expect(get_active_account_index()).toBe(7);
+    expect(window.location.pathname).toBe("/u/7/starred");
+    expect(window.location.search).toBe("?q=hi");
+    expect(window.location.hash).toBe("#msg");
+  });
+
   it("treats a plain path as the first account and adds the prefix", () => {
     set_location("/archive", "?q=hi", "#msg");
 
