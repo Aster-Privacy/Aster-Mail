@@ -28,6 +28,11 @@ import {
 const MAX_CSS_LENGTH = 400_000;
 const MAX_STYLE_RULES = 4_000;
 const INLINE_STYLE_RANK = Number.MAX_SAFE_INTEGER;
+const MAX_SELECTORS = 8_000;
+const MAX_SELECTOR_LENGTH = 512;
+const MAX_SELECTOR_STEPS = 16;
+const SELECTOR_TIME_BUDGET_MS = 250;
+const SELECTOR_GAP_CODES = new Set([9, 10, 12, 13, 32, 43, 62, 126]);
 
 interface DeclarationRank {
   important: boolean;
@@ -286,18 +291,44 @@ function apply_declarations(
   }
 }
 
+function count_selector_steps(selector: string): number {
+  let steps = 0;
+  let in_gap = false;
+
+  for (let index = 0; index < selector.length; index += 1) {
+    const is_gap = SELECTOR_GAP_CODES.has(selector.charCodeAt(index));
+
+    if (is_gap && !in_gap) steps += 1;
+    in_gap = is_gap;
+  }
+
+  return steps;
+}
+
+function is_affordable_selector(selector: string): boolean {
+  if (selector.length > MAX_SELECTOR_LENGTH) return false;
+  if (selector.toLowerCase().includes(":has(")) return false;
+
+  return count_selector_steps(selector) <= MAX_SELECTOR_STEPS;
+}
+
 function apply_stylesheet_to_document(doc: Document, css_text: string): void {
   const style_rules = collect_style_rules(parse_css_rules(css_text));
 
   if (style_rules.length === 0 || style_rules.length > MAX_STYLE_RULES) return;
 
   const winners = snapshot_inline_styles(doc);
+  const deadline = performance.now() + SELECTOR_TIME_BUDGET_MS;
+  let evaluated = 0;
 
-  style_rules.forEach((rule, order) => {
+  for (const [order, rule] of style_rules.entries()) {
     for (const raw_selector of rule.selectorText.split(",")) {
       const selector = raw_selector.trim();
 
-      if (!selector) continue;
+      if (!selector || !is_affordable_selector(selector)) continue;
+      if (evaluated >= MAX_SELECTORS || performance.now() > deadline) return;
+
+      evaluated += 1;
 
       let matched: Element[];
 
@@ -323,7 +354,7 @@ function apply_stylesheet_to_document(doc: Document, css_text: string): void {
         );
       }
     }
-  });
+  }
 }
 
 function is_safe_presentational_value(value: string): boolean {
