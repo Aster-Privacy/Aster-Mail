@@ -190,6 +190,29 @@ describe("imported attachment details", () => {
     expect(outcomes).toEqual(["failed"]);
   });
 
+  it("stops when the cursor does not advance", async () => {
+    list_imported_password_meta.mockResolvedValue({
+      data: { attachments: [row("a1", "sealed:new-pw")], next_cursor: "a1" },
+    });
+
+    const outcomes = await collect("old-pw", "new-pw");
+
+    expect(list_imported_password_meta).toHaveBeenCalledTimes(2);
+    expect(outcomes).toEqual(["skipped", "skipped"]);
+  });
+
+  it("treats a server without the listing as having no rows", async () => {
+    list_imported_password_meta.mockResolvedValue({
+      error: "not found",
+      status: 404,
+    });
+
+    const outcomes = await collect("old-pw", "new-pw");
+
+    expect(list_imported_password_meta).toHaveBeenCalledTimes(1);
+    expect(outcomes).toEqual([]);
+  });
+
   it("finds details the current password cannot open", async () => {
     list_imported_password_meta.mockResolvedValue({
       data: {

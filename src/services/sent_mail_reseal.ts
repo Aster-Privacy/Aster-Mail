@@ -342,7 +342,10 @@ export async function reencrypt_all_sent_mail(
 
           if (outcome === "rewritten") summary.rewritten += 1;
           else if (outcome === "unreadable") summary.unreadable += 1;
-          else if (outcome === "failed") summary.failed += 1;
+          else if (outcome === "failed") {
+        summary.failed += 1;
+        summary.locked_attachments += 1;
+      }
 
           options.on_progress?.({ ...summary });
         }
@@ -356,7 +359,10 @@ export async function reencrypt_all_sent_mail(
     await reseal_imported_attachments(old_bytes, new_bytes, kek, (outcome) => {
       if (outcome === "rewritten") summary.rewritten += 1;
       else if (outcome === "unreadable") summary.locked_attachments += 1;
-      else if (outcome === "failed") summary.failed += 1;
+      else if (outcome === "failed") {
+        summary.failed += 1;
+        summary.locked_attachments += 1;
+      }
 
       options.on_progress?.({ ...summary });
     });

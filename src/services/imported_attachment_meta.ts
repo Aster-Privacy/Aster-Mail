@@ -54,6 +54,9 @@ export async function list_imported_password_meta_page(
       const response = await list_imported_password_meta(after, limit);
 
       if (response.data) return response.data;
+      if (response.status === 404) {
+        return { attachments: [], next_cursor: null };
+      }
 
       last_error = new Error(
         response.error ?? "imported attachment listing failed",
@@ -74,9 +77,11 @@ export async function* imported_password_meta_rows(): AsyncGenerator<AttachmentM
 
     for (const row of page.attachments ?? []) yield row;
 
-    after = page.next_cursor ?? undefined;
+    const next = page.next_cursor ?? undefined;
 
-    if (!after) return;
+    if (!next || next === after) return;
+
+    after = next;
   }
 }
 

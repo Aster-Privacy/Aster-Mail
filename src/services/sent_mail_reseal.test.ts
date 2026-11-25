@@ -102,6 +102,24 @@ describe("reencrypt_all_sent_mail", () => {
     expect(locked_after_reseal(summary)).toBe(1);
   });
 
+  it("keeps imported details that could not be rewritten flagged as locked", async () => {
+    list_encrypted_mail_items.mockResolvedValue({
+      data: { items: [], next_cursor: null },
+    });
+    list_imported_password_meta.mockResolvedValue({
+      data: {
+        attachments: [{ id: "imp-old", encrypted_meta: "sealed:old-pw" }],
+        next_cursor: null,
+      },
+    });
+    update_attachment_meta.mockResolvedValue({ error: "offline" });
+
+    const summary = await reencrypt_all_sent_mail("old-pw", "new-pw");
+
+    expect(summary).toMatchObject({ failed: 1, locked_attachments: 1 });
+    expect(locked_after_reseal(summary)).toBe(1);
+  });
+
   it("reseals password-sealed attachment details on an already converted item", async () => {
     list_encrypted_mail_items.mockResolvedValue({
       data: {
