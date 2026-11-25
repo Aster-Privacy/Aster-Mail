@@ -42,6 +42,7 @@ import { base64_to_array } from "@/services/crypto/key_manager";
 import { DEFAULT_KEYSERVERS } from "@/components/settings/encryption/encryption_settings_form";
 import { trigger_download } from "@/utils/download_blob";
 import { use_preferences } from "@/contexts/preferences_context";
+import { require_encryption_after_server_load } from "@/components/settings/hooks/require_encryption_floor";
 import {
   publish_key_to_wkd,
   unpublish_key_from_wkd,
@@ -396,13 +397,15 @@ export function use_encryption() {
             true,
           );
         }
-        if (
-          enc_response.data.require_encryption !==
-          preferences.require_encryption
-        ) {
+        const require_encryption_next = require_encryption_after_server_load(
+          preferences.require_encryption,
+          enc_response.data.require_encryption,
+        );
+
+        if (require_encryption_next !== preferences.require_encryption) {
           update_preference(
             "require_encryption",
-            enc_response.data.require_encryption,
+            require_encryption_next,
             true,
           );
         }
