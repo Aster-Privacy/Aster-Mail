@@ -2324,6 +2324,7 @@ export interface CommonTranslations {
   external_account_token_missing: string;
   failed_to_send_via_external: string;
   offline_change_failed: string;
+  storage_key_update_pending: string;
   offline_send_failed: string;
   offline_email_queued: string;
   failed_to_queue_offline: string;
@@ -9771,6 +9772,7 @@ export interface AuthTranslations {
   authenticating: string;
   fetching_auth_data: string;
   verifying_credentials: string;
+  sign_in_enhanced_unavailable: string;
   sign_in_standard_protection: string;
   decrypting_vault: string;
   getting_user_info: string;

@@ -797,6 +797,7 @@ export async function decrypt_account_context_with_fallback(
   primary_key: CryptoKey | null,
   ciphertext: BufferSource,
   iv: BufferSource,
+  on_retired_key?: () => void,
 ): Promise<ArrayBuffer> {
   try {
     return await decrypt_aes_gcm_with_fallback(primary_key, ciphertext, iv);
@@ -822,6 +823,8 @@ export async function decrypt_account_context_with_fallback(
 
       throw primary_error;
     }
+
+    on_retired_key?.();
 
     return opened;
   }

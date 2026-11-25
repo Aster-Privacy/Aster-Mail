@@ -588,17 +588,14 @@ export async function derive_current_account_proof(
 
   const pin_keys = [...(await current_account_pin_keys()), ...extra_pin_keys];
   const record_keys = await current_account_record_keys();
-  const rotated = await rotate_untrusted_session_salt(
+
+  await refuse_unrecorded_short_salt(
     password,
     salt,
     kdf_version,
     pin_keys,
     record_keys,
   );
-
-  if (rotated) {
-    return rotated;
-  }
 
   const proof = await derive_account_proof(
     password,
@@ -636,108 +633,32 @@ async function check_session_password(
   }
 }
 
-async function current_salt_proof(
-  password: string,
-  salt: Uint8Array,
-): Promise<string | null> {
-  try {
-    const { hash } = await derive_password_hash(password, salt);
-
-    return hash;
-  } catch {
-    return null;
-  }
-}
-
-async function rotate_untrusted_session_salt(
+async function refuse_unrecorded_short_salt(
   password: string,
   salt: Uint8Array,
   kdf_version: KdfVersion,
   pin_keys: readonly string[],
   record_keys: readonly string[],
-): Promise<string | null> {
+): Promise<void> {
   if (kdf_version !== 1 || !is_short_login_salt(salt)) {
-    return null;
+    return;
   }
 
   if (!v1_proofs_allowed(pin_keys)) {
-    return null;
+    return;
   }
 
-  if (match_login_salt_record([...pin_keys, ...record_keys], salt) !== "none") {
-    return null;
+  if (
+    match_login_salt_record([...pin_keys, ...record_keys], salt) === "match"
+  ) {
+    return;
   }
 
-  const user_id = await current_account_id();
-
-  if (!user_id || read_session_login_salt(user_id)) {
-    return null;
-  }
-
-  const session_check = await check_session_password(password);
-
-  if (session_check === "mismatch") {
+  if ((await check_session_password(password)) === "mismatch") {
     throw new IncorrectCurrentPasswordError();
   }
 
-  if (session_check !== "match") {
-    throw new LegacyLoginSaltError("step_up");
-  }
-
-  const rotation = await prepare_login_salt_rotation(password);
-  const current_proof = rotation
-    ? await current_salt_proof(password, salt)
-    : null;
-
-  if (!rotation || !current_proof) {
-    throw new LegacyLoginSaltError("step_up");
-  }
-
-  let rotated = false;
-  let wrong_password = false;
-  let reply_lost = false;
-
-  try {
-    const response = await api_client.post<{ kdf_version?: number }>(
-      "/core/v1/auth/me/login-salt",
-      {
-        password_hash: current_proof,
-        new_password_salt: array_to_base64(rotation.new_salt),
-        new_password_hash_v2: rotation.hash_v2,
-      },
-    );
-
-    wrong_password = response.status === 401;
-    rotated = Boolean(
-      response.data && read_kdf_version(response.data.kdf_version) === 2,
-    );
-    reply_lost = !rotated && response_may_be_lost(response);
-  } catch (error) {
-    reply_lost = thrown_reply_may_be_lost(error);
-  }
-
-  if (wrong_password) {
-    throw new IncorrectCurrentPasswordError();
-  }
-
-  if (!rotated && reply_lost) {
-    rotated = await server_kept_rotated_salt(
-      await current_account_user_hash(),
-      rotation.new_salt,
-    );
-  }
-
-  if (!rotated) {
-    throw new LegacyLoginSaltError("step_up");
-  }
-
-  const all_keys = [...pin_keys, ...record_keys];
-
-  pin_accounts(pin_keys);
-  record_login_salt(all_keys, rotation.new_salt);
-  store_session_login_salt(user_id, rotation.new_salt);
-
-  return rotation.hash_v2;
+  throw new LegacyLoginSaltError("step_up");
 }
 
 async function current_account_record_keys(): Promise<string[]> {
@@ -802,6 +723,7 @@ let pending_login_enrollment: {
   salt: Uint8Array | null;
   rotation: Promise<LoginSaltRotation | null> | null;
   enroll_v3: boolean;
+  user_hash: string | null;
   created_at: number;
 } | null = null;
 
@@ -811,6 +733,7 @@ export function set_pending_login_enrollment(
   salt: Uint8Array | null = null,
   rotation: Promise<LoginSaltRotation | null> | null = null,
   enroll_v3 = false,
+  user_hash: string | null = null,
 ): void {
   pending_login_enrollment = {
     proof,
@@ -818,6 +741,7 @@ export function set_pending_login_enrollment(
     salt,
     rotation,
     enroll_v3,
+    user_hash,
     created_at: Date.now(),
   };
 }
@@ -873,6 +797,7 @@ export async function flush_pending_login_enrollment(
     await enroll_login_v3(
       rotated ? rotated.v1_proof : pending.proof.v1_proof,
       rotated ? rotated.hash_v2 : pending.proof.password_hash,
+      pending.user_hash,
     );
   }
 
@@ -909,6 +834,7 @@ export async function derive_sign_in_proof(
     salt,
     rotation,
     !has_login_v3 && read_login_v3_flag(signals.login_v3_enroll),
+    user_hash,
   );
 
   if (has_login_v3) {

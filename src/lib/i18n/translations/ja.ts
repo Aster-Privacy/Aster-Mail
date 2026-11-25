@@ -1250,6 +1250,8 @@ export const ja = {
     failed_to_send_via_external:
       "リンクした外部アカウントからの送信がうまくいきませんでした。もう一度お試しください。下書きは保存されています。",
     offline_change_failed: "オフライン中に行った変更を保存できませんでした。",
+    storage_key_update_pending:
+      "Aster Mail は保存済みデータを保護するキーの更新を完了できませんでした。変更は引き続き保存され、Aster Mail はバックグラウンドで再試行を続けます。",
     offline_send_failed: "オフライン中に作成したメールを送信できませんでした。",
     offline_email_queued:
       "現在オフラインです。このメールは接続が戻り次第、送信されます。",
@@ -10333,6 +10335,7 @@ export const ja = {
     authenticating: "認証中...",
     fetching_auth_data: "認証データを取得中...",
     verifying_credentials: "認証情報を確認中...",
+    sign_in_enhanced_unavailable: "Aster Mail はこのアカウントで強化されたサインイン保護を使用できなかったため、まだサインインしていません。別のデバイスでパスワードを変更した場合は、もう一度サインインすると標準の保護で続行できます。",
     sign_in_standard_protection: "強化されたサインイン保護は現在利用できないため、標準の保護でサインインしました。",
     decrypting_vault: "キー保管庫を復号中...",
     getting_user_info: "ユーザー情報を取得中...",

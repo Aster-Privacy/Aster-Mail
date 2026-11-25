@@ -42,7 +42,11 @@ vi.mock("@/services/account_manager", () => ({
 }));
 
 import { get_active_translations } from "@/lib/i18n/translations";
-import { login_user } from "@/services/api/auth";
+import {
+  forget_standard_sign_in_consent,
+  LOGIN_V3_UNAVAILABLE,
+  login_user,
+} from "@/services/api/auth";
 import { array_to_base64, base64_to_array } from "@/services/crypto/base64";
 import { derive_password_hash } from "@/services/crypto/key_manager_pgp_keygen";
 import {
@@ -237,6 +241,7 @@ beforeAll(async () => {
 beforeEach(() => {
   localStorage.clear();
   clear_pending_login_enrollment();
+  forget_standard_sign_in_consent();
   h.post.mockReset();
   h.get.mockReset();
   h.toast.mockReset();
@@ -480,7 +485,7 @@ describe("an account that signed in with its record", () => {
     expect(take_pending_login_v3("abc")).toBeNull();
   });
 
-  it("signs in with the proof when the record sign-in is unavailable", async () => {
+  it("does not send the proof when the record sign-in is unavailable", async () => {
     await sign_in_once(PASSWORD);
 
     const response = await login_user({
@@ -488,9 +493,24 @@ describe("an account that signed in with its record", () => {
       password_hash: "proof",
     });
 
-    expect(response.status).not.toBe(503);
+    expect(response.data).toBeUndefined();
+    expect(response.server_code).toBe(LOGIN_V3_UNAVAILABLE);
+    expect(h.post).not.toHaveBeenCalled();
+    expect(is_login_v3_pinned("abc")).toBe(true);
+    expect(h.toast).not.toHaveBeenCalled();
+  });
+
+  it("signs in with the proof when the person tries again", async () => {
+    await sign_in_once(PASSWORD);
+
+    await login_user({ user_hash: "abc", password_hash: "proof" });
+    const response = await login_user({
+      user_hash: "abc",
+      password_hash: "proof",
+    });
+
     expect(response.data).toBeDefined();
-    expect(paths()).toContain("/core/v1/auth/login");
+    expect(paths()).toEqual(["/core/v1/auth/login"]);
     expect(is_login_v3_pinned("abc")).toBe(false);
     await vi.waitFor(() =>
       expect(h.toast).toHaveBeenCalledWith(
@@ -509,18 +529,38 @@ describe("an account that signed in with its record", () => {
       }),
     });
 
+    await login_user({ user_hash: "abc", password_hash: "proof" });
     const response = await login_user({
       user_hash: "abc",
       password_hash: "proof",
     });
 
+    expect(paths()).toContain("/core/v1/auth/login");
     expect(response.data).toBeUndefined();
+    expect(is_login_v3_pinned("abc")).toBe(true);
+  });
+
+  it("does not send the proof when the record start is unavailable", async () => {
+    await sign_in_once(PASSWORD);
+    serve({ [START]: () => ({ error: "unavailable", status: 503 }) });
+
+    await derive_sign_in_proof(PASSWORD, salt, 2, "abc", { login_v3: true });
+    const response = await login_user({
+      user_hash: "abc",
+      password_hash: "proof",
+    });
+
+    expect(response.server_code).toBe(LOGIN_V3_UNAVAILABLE);
+    expect(paths()).toContain(START);
+    expect(paths()).not.toContain("/core/v1/auth/login");
     expect(is_login_v3_pinned("abc")).toBe(true);
   });
 
   it("pins the account again after the next record sign-in", async () => {
     await sign_in_once(PASSWORD);
     await login_user({ user_hash: "abc", password_hash: "proof" });
+    await login_user({ user_hash: "abc", password_hash: "proof" });
+    expect(is_login_v3_pinned("abc")).toBe(false);
     await sign_in_once(PASSWORD);
 
     expect(is_login_v3_pinned("abc")).toBe(true);
@@ -568,6 +608,31 @@ describe("enrollment after sign-in", () => {
     expect(
       (await sign_in_v3<{ user_id: string }>({ user_hash: "abc" }, hash))?.data,
     ).toEqual({ user_id: "user-1" });
+  });
+
+  it("holds the account to its record once enrollment finishes", async () => {
+    serve();
+
+    await derive_sign_in_proof(PASSWORD, salt, 2, "abc", {
+      login_v3_enroll: true,
+    });
+    expect(is_login_v3_pinned("abc")).toBe(false);
+
+    await flush_pending_login_enrollment("user-1");
+
+    expect(is_login_v3_pinned("abc")).toBe(true);
+    expect(is_login_v3_pinned("other")).toBe(false);
+  });
+
+  it("does not hold the account when enrollment fails", async () => {
+    serve({ [ENROLL_FINISH]: () => ({ error: "nope", status: 500 }) });
+
+    await derive_sign_in_proof(PASSWORD, salt, 2, "abc", {
+      login_v3_enroll: true,
+    });
+    await flush_pending_login_enrollment("user-1");
+
+    expect(is_login_v3_pinned("abc")).toBe(false);
   });
 
   it("does not enroll an account that already has a record", async () => {

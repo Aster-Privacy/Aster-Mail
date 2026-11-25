@@ -1209,6 +1209,8 @@ export const tr = {
       "Bağlı harici hesabınız üzerinden gönderim yapılamadı. Tekrar deneyin. Taslağınız kaydedildi.",
     offline_change_failed:
       "Çevrimdışıyken yaptığınız bir değişiklik kaydedilemedi.",
+    storage_key_update_pending:
+      "Aster Mail, kayıtlı verilerinizi koruyan anahtarı güncellemeyi tamamlayamadı. Değişiklikleriniz kaydedilmeye devam ediyor ve Aster Mail arka planda denemeyi sürdürüyor.",
     offline_send_failed: "Çevrimdışıyken yazdığınız bir e-posta gönderilemedi.",
     offline_email_queued:
       "Şu anda çevrimdışısınız. Bu e-posta yeniden bağlanır bağlanmaz gönderilir.",
@@ -10486,6 +10488,7 @@ export const tr = {
     authenticating: "Kimlik doğrulanıyor...",
     fetching_auth_data: "Kimlik doğrulama verileri alınıyor...",
     verifying_credentials: "Kimlik bilgileri doğrulanıyor...",
+    sign_in_enhanced_unavailable: "Aster Mail bu hesap için gelişmiş oturum açma korumasını kullanamadı, bu nedenle henüz oturum açmadınız. Parolanızı başka bir cihazda değiştirdiyseniz standart korumayla devam etmek için yeniden oturum açın.",
     sign_in_standard_protection: "Gelişmiş oturum açma koruması şu anda kullanılamıyor, bu yüzden standart korumayla oturum açtınız.",
     decrypting_vault: "Anahtar kasanız çözülüyor...",
     getting_user_info: "Kullanıcı bilgileri alınıyor...",

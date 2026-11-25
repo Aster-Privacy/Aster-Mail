@@ -320,6 +320,54 @@ async function notify_standard_protection(): Promise<void> {
   }
 }
 
+const STANDARD_SIGN_IN_CONSENT_MS = 5 * 60 * 1000;
+export const LOGIN_V3_UNAVAILABLE = "LOGIN_V3_UNAVAILABLE";
+
+let standard_sign_in_consent: { user_hash: string; until: number } | null =
+  null;
+
+function take_standard_sign_in_consent(user_hash: string): boolean {
+  const consent = standard_sign_in_consent;
+
+  standard_sign_in_consent = null;
+
+  return (
+    !!consent && consent.user_hash === user_hash && Date.now() < consent.until
+  );
+}
+
+export function forget_standard_sign_in_consent(): void {
+  standard_sign_in_consent = null;
+}
+
+async function enhanced_sign_in_unavailable<T>(
+  user_hash: string,
+): Promise<ApiResponse<T>> {
+  standard_sign_in_consent = {
+    user_hash,
+    until: Date.now() + STANDARD_SIGN_IN_CONSENT_MS,
+  };
+
+  let message = "";
+
+  try {
+    const { get_active_translations } = await import(
+      "@/lib/i18n/translations"
+    );
+
+    message = get_active_translations().auth.sign_in_enhanced_unavailable;
+  } catch (caught) {
+    ignore_error("services/api/auth:enhanced_unavailable_message", caught);
+  }
+
+  return {
+    error: message || LOGIN_V3_UNAVAILABLE,
+    code: "CONFLICT",
+    status: 409,
+    server_code: LOGIN_V3_UNAVAILABLE,
+  };
+}
+
 export async function login_user(
   request: LoginRequest,
 ): Promise<ApiResponse<LoginResponse>> {
@@ -327,6 +375,15 @@ export async function login_user(
   const v3_response = v1_proof
     ? await sign_in_v3<LoginResponse>(request, v1_proof)
     : null;
+  const expects_enhanced =
+    !v3_response && (!!v1_proof || is_login_v3_pinned(request.user_hash));
+
+  if (expects_enhanced && !take_standard_sign_in_consent(request.user_hash)) {
+    return enhanced_sign_in_unavailable<LoginResponse>(request.user_hash);
+  }
+
+  if (v3_response) forget_standard_sign_in_consent();
+
   const left_pinned_method =
     !v3_response && is_login_v3_pinned(request.user_hash);
   const response =
@@ -367,6 +424,7 @@ export async function get_user_info(): Promise<ApiResponse<UserInfoResponse>> {
 
 export async function logout_user(): Promise<void> {
   forget_totp_required();
+  forget_standard_sign_in_consent();
   try {
     await api_client.post("/core/v1/auth/logout", {});
   } finally {
