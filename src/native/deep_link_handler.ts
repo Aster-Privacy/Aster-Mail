@@ -33,10 +33,10 @@ interface DeepLinkRoute {
 
 const routes: DeepLinkRoute[] = [];
 
-export function register_deep_link_route(
-  pattern: string,
-  handler: DeepLinkHandler,
-): void {
+function compile_route_pattern(pattern: string): {
+  regex: RegExp;
+  param_names: string[];
+} {
   const param_names: string[] = [];
   const regex_pattern = pattern
     .replace(/\\/g, "\\\\")
@@ -47,11 +47,131 @@ export function register_deep_link_route(
     })
     .replace(/\//g, "\\/");
 
-  routes.push({
-    pattern: new RegExp(`^${regex_pattern}$`),
-    param_names,
-    handler,
-  });
+  return { regex: new RegExp(`^${regex_pattern}$`), param_names };
+}
+
+export function register_deep_link_route(
+  pattern: string,
+  handler: DeepLinkHandler,
+): void {
+  const { regex, param_names } = compile_route_pattern(pattern);
+
+  routes.push({ pattern: regex, param_names, handler });
+}
+
+interface AllowedAppRoute {
+  pattern: RegExp;
+  query_keys: ReadonlySet<string>;
+}
+
+const MAILBOX_QUERY_KEYS = ["page", "direction", "account"];
+
+const SIGN_IN_QUERY_KEYS = [
+  "next",
+  "reason",
+  "billing",
+  "checkout",
+  "plan",
+  "u",
+  "en",
+  "ep",
+  "academic",
+  "academic_email",
+  "role",
+  "username",
+  "domain",
+  "ref",
+  "promo",
+  "coupon",
+  "mobile",
+];
+
+const ALLOWED_APP_ROUTE_SPECS: ReadonlyArray<
+  readonly [string, readonly string[]]
+> = [
+  [
+    "/",
+    [
+      ...MAILBOX_QUERY_KEYS,
+      "compose",
+      "to",
+      "subject",
+      "body",
+      "crypto",
+      "oauth",
+      "provider",
+      "reason",
+      "billing",
+      "addon_purchase",
+      "stripe_redirect",
+      "redirect_status",
+      "cancelled",
+      "domain_order",
+      "academic",
+      "ref",
+      "promo",
+      "coupon",
+      "mobile",
+    ],
+  ],
+  ["/all", MAILBOX_QUERY_KEYS],
+  ["/scheduled", MAILBOX_QUERY_KEYS],
+  ["/snoozed", MAILBOX_QUERY_KEYS],
+  ["/folder/:folder_token", MAILBOX_QUERY_KEYS],
+  ["/tag/:tag_token", MAILBOX_QUERY_KEYS],
+  ["/alias/:alias_address", MAILBOX_QUERY_KEYS],
+  ["/search", []],
+  ["/subscriptions", []],
+  ["/welcome", SIGN_IN_QUERY_KEYS],
+  ["/sign-in", SIGN_IN_QUERY_KEYS],
+  ["/register", SIGN_IN_QUERY_KEYS],
+  ["/signup", SIGN_IN_QUERY_KEYS],
+  ["/invite/:code", ["ref"]],
+  ["/forgot-password", []],
+  ["/guard/veto", ["id", "t"]],
+  ["/cancel", []],
+  ["/cancel/confirm", ["token"]],
+  ["/reset-password", ["token", "email"]],
+  ["/verify-recovery-email", []],
+  ["/view/:token", []],
+  ["/join/family", ["token"]],
+  ["/family/claim/:token", []],
+  ["/link-device", []],
+  ["/terms", []],
+  ["/privacy", []],
+  ["/crypto-invoice/:id", ["address", "amount", "tx_amount", "value"]],
+  ["/calendar/billing", ["billing"]],
+];
+
+const ALLOWED_APP_ROUTES: AllowedAppRoute[] = ALLOWED_APP_ROUTE_SPECS.map(
+  ([pattern, query_keys]) => ({
+    pattern: compile_route_pattern(pattern).regex,
+    query_keys: new Set(query_keys),
+  }),
+);
+
+const DOT_SEGMENT = /^(\.|%2e){1,2}$/i;
+
+function find_allowed_app_route(path: string): AllowedAppRoute | undefined {
+  if (path.split("/").some((segment) => DOT_SEGMENT.test(segment))) {
+    return undefined;
+  }
+
+  const without_trailing_slash =
+    path.length > 1 && path.endsWith("/") ? path.slice(0, -1) : path;
+
+  return ALLOWED_APP_ROUTES.find((route) =>
+    route.pattern.test(without_trailing_slash),
+  );
+}
+
+function pick_allowed_query_params(
+  query_params: Record<string, string>,
+  allowed_keys: ReadonlySet<string>,
+): Record<string, string> {
+  return Object.fromEntries(
+    Object.entries(query_params).filter(([key]) => allowed_keys.has(key)),
+  );
 }
 
 export function handle_deep_link(url: string): boolean {
@@ -85,7 +205,14 @@ export function handle_deep_link(url: string): boolean {
 
   if (!is_app_local_path(parsed.path)) return false;
 
-  navigate_to_path(parsed.path, parsed.query_params);
+  const allowed_route = find_allowed_app_route(parsed.path);
+
+  if (!allowed_route) return false;
+
+  navigate_to_path(
+    parsed.path,
+    pick_allowed_query_params(parsed.query_params, allowed_route.query_keys),
+  );
 
   return true;
 }
