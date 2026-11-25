@@ -21,7 +21,6 @@
 import { describe, it, expect } from "vitest";
 
 import {
-  BOOTSTRAP_RECORD_MAX_AGE_MS,
   bootstrap_record_key,
   claim_bootstrap_record,
 } from "./bootstrap_replay";
@@ -44,12 +43,73 @@ describe("bootstrap record", () => {
     );
   });
 
-  it("forgets entries older than the age limit", () => {
+  it("keeps entries however old they are", () => {
     const first = claim_bootstrap_record(null, "k1", "m1", NOW);
-    const later = NOW + BOOTSTRAP_RECORD_MAX_AGE_MS + 1;
-    const again = claim_bootstrap_record(first.record, "k2", "m2", later);
+    const later = NOW + 3 * 365 * 24 * 60 * 60 * 1000;
+    const again = claim_bootstrap_record(first.record, "k1", "m2", later);
 
-    expect(again.record.e.map((entry) => entry.k)).toEqual(["k2"]);
+    expect(again.claim).toBe("replayed");
+    expect(again.record.e.map((entry) => entry.k)).toEqual(["k1"]);
+  });
+
+  it("never calls an unrecorded start first once older entries were trimmed", () => {
+    let record: unknown = null;
+
+    for (let i = 0; i < MAX_LANE_REPLAY_ENTRIES; i++) {
+      const outcome = claim_bootstrap_record(record, `k${i}`, `m${i}`, NOW + i);
+
+      expect(outcome.claim).toBe("first");
+      record = outcome.record;
+    }
+
+    const overflow = claim_bootstrap_record(record, "k-new", "m-new", NOW + 5000);
+
+    expect(overflow.claim).toBe("first");
+    expect(overflow.record.f).toBe(NOW);
+    expect(overflow.record.e.some((entry) => entry.k === "k0")).toBe(false);
+
+    const evicted = claim_bootstrap_record(
+      overflow.record,
+      "k0",
+      "m-again",
+      NOW + 6000,
+    );
+
+    expect(evicted.claim).toBe("unknown");
+    expect(
+      claim_bootstrap_record(evicted.record, "k0", "m-third", NOW + 7000).claim,
+    ).toBe("replayed");
+    expect(
+      claim_bootstrap_record({ f: 5, e: [] }, "other", "m", NOW).claim,
+    ).toBe("unknown");
+  });
+
+  it("does not let an unverified start push out recorded ones", () => {
+    let record: unknown = null;
+
+    for (let i = 0; i < MAX_LANE_REPLAY_ENTRIES; i++) {
+      record = claim_bootstrap_record(record, `k${i}`, `m${i}`, NOW + i).record;
+    }
+
+    const unverified = claim_bootstrap_record(
+      record,
+      "k-forged",
+      "m-forged",
+      NOW + 5000,
+      false,
+    );
+
+    expect(unverified.claim).toBe("unknown");
+    expect(unverified.changed).toBe(false);
+    expect(
+      claim_bootstrap_record(unverified.record, "k0", "m-other", NOW + 6000)
+        .claim,
+    ).toBe("replayed");
+
+    const roomy = claim_bootstrap_record(null, "k1", "m1", NOW, false);
+
+    expect(roomy.claim).toBe("first");
+    expect(roomy.changed).toBe(true);
   });
 
   it("keeps the record within its size limit", () => {

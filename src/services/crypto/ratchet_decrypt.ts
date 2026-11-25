@@ -1306,6 +1306,7 @@ async function decrypt_ratchet_for_recipient(
       sender_identity_key,
       data,
       message_key,
+      identity_status === "verified",
     );
 
     if (bootstrap_seen.claim !== "replayed") return true;
