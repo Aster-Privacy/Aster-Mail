@@ -24,16 +24,26 @@ import {
   PRESS_ATTRIBUTE,
   PRESS_MIN_HOLD_MS,
   PRESS_RELEASE_MS,
+  PRESS_SLOP_PX,
   find_press_target,
   start_press_feedback,
 } from "./press_feedback";
 
-function pointer(type: string, target: Element, pointer_type = "mouse") {
+function pointer(
+  type: string,
+  target: Element,
+  pointer_type = "mouse",
+  x = 0,
+  y = 0,
+) {
   const event = new PointerEvent(type, {
     bubbles: true,
     cancelable: true,
     button: 0,
+    pointerId: 1,
     pointerType: pointer_type,
+    clientX: x,
+    clientY: y,
   });
 
   target.dispatchEvent(event);
@@ -70,6 +80,8 @@ describe("press_feedback", () => {
       <div id="body"><p id="text">hello world</p></div>
       <div contenteditable="true"><button id="inside_editor">b</button></div>
       <textarea id="area"></textarea>
+      <div role="switch" id="toggle" tabindex="0"></div>
+      <button id="code_button"><span id="code" class="select-text">123456</span></button>
     `;
     button = document.getElementById("menu") as HTMLButtonElement;
     clicks = 0;
@@ -184,5 +196,32 @@ describe("press_feedback", () => {
     pointer("pointerdown", button, "touch");
     pointer("pointerup", button, "touch");
     expect(button.getAttribute(PRESS_ATTRIBUTE)).toBe("down");
+  });
+
+  it("cancels the press when the pointer moves past the slop", () => {
+    pointer("pointerdown", button, "mouse", 10, 10);
+    pointer("pointermove", button, "mouse", 13, 12);
+    expect(button.getAttribute(PRESS_ATTRIBUTE)).toBe("down");
+    pointer("pointermove", button, "mouse", 10 + PRESS_SLOP_PX + 1, 10);
+    expect(button.hasAttribute(PRESS_ATTRIBUTE)).toBe(false);
+  });
+
+  it("cancels the press when the page scrolls", () => {
+    pointer("pointerdown", button);
+    document.dispatchEvent(new Event("scroll"));
+    expect(button.hasAttribute(PRESS_ATTRIBUTE)).toBe(false);
+  });
+
+  it("presses switches and keeps marked text selectable", () => {
+    pointer("pointerdown", document.getElementById("toggle")!);
+    expect(
+      document.getElementById("toggle")!.getAttribute(PRESS_ATTRIBUTE),
+    ).toBe("down");
+    expect(
+      mouse_down(document.getElementById("code")!, 2).defaultPrevented,
+    ).toBe(false);
+    expect(
+      mouse_down(document.getElementById("code_button")!, 2).defaultPrevented,
+    ).toBe(true);
   });
 });

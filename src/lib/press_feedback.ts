@@ -23,6 +23,7 @@ export const PRESS_MODE_ATTRIBUTE = "data-aster-press-mode";
 export const PRESS_MIN_HOLD_MS = 100;
 export const PRESS_RELEASE_MS = 160;
 export const PRESS_TOUCH_DELAY_MS = 60;
+export const PRESS_SLOP_PX = 8;
 
 const INTERACTIVE_SELECTOR = [
   "button",
@@ -32,6 +33,11 @@ const INTERACTIVE_SELECTOR = [
   '[role="menuitemradio"]',
   '[role="option"]',
   '[role="tab"]',
+  '[role="switch"]',
+  '[role="checkbox"]',
+  '[role="radio"]',
+  '[role="treeitem"]',
+  '[role="link"]',
   "summary",
   "a[href]",
   "[data-pressable]",
@@ -42,6 +48,8 @@ const EDITABLE_SELECTOR =
 
 const DISABLED_SELECTOR =
   ':disabled, [aria-disabled="true"], [data-disabled], [data-no-press]';
+
+const SELECTABLE_SELECTOR = "[data-selectable], .select-text";
 
 const MAX_POINTER_FALLBACK_DEPTH = 8;
 const MAX_FALLBACK_VIEWPORT_SHARE = 0.25;
@@ -64,7 +72,7 @@ function find_pointer_cursor_host(start: Element): HTMLElement | null {
     const cursor = getComputedStyle(node).cursor;
 
     if (cursor !== "pointer") return null;
-    const parent = node.parentElement;
+    const parent: HTMLElement | null = node.parentElement;
     const parent_cursor = parent ? getComputedStyle(parent).cursor : "auto";
 
     if (parent_cursor !== "pointer") {
@@ -98,7 +106,9 @@ export function find_press_target(
 
   if (!target) return null;
   if (target.closest(DISABLED_SELECTOR)) return null;
-  if (target.matches("a[href]") && is_inline_text(target)) return null;
+  if (target.matches('a[href], [role="link"]') && is_inline_text(target)) {
+    return null;
+  }
 
   return target;
 }
@@ -157,6 +167,9 @@ export function start_press_feedback(): () => void {
   let release_timer: ReturnType<typeof setTimeout> | null = null;
   let touch_timer: ReturnType<typeof setTimeout> | null = null;
   let pending_touch: HTMLElement | null = null;
+  let tracked_pointer: number | null = null;
+  let origin_x = 0;
+  let origin_y = 0;
 
   const clear_timers = () => {
     if (hold_timer) clearTimeout(hold_timer);
@@ -204,6 +217,7 @@ export function start_press_feedback(): () => void {
   const cancel = () => {
     clear_timers();
     pending_touch = null;
+    tracked_pointer = null;
     is_down = false;
     if (current) clear_element(current);
     current = null;
@@ -214,6 +228,9 @@ export function start_press_feedback(): () => void {
     const target = find_press_target(e.target);
 
     if (!target) return;
+    tracked_pointer = e.pointerId;
+    origin_x = e.clientX;
+    origin_y = e.clientY;
     if (e.pointerType === "touch") {
       if (touch_timer) clearTimeout(touch_timer);
       pending_touch = target;
@@ -227,7 +244,21 @@ export function start_press_feedback(): () => void {
     press(target);
   };
 
+  const handle_pointer_move = (e: PointerEvent) => {
+    if (tracked_pointer === null || e.pointerId !== tracked_pointer) return;
+    if (!is_down && !pending_touch) return;
+    const dx = e.clientX - origin_x;
+    const dy = e.clientY - origin_y;
+
+    if (dx * dx + dy * dy > PRESS_SLOP_PX * PRESS_SLOP_PX) cancel();
+  };
+
+  const handle_scroll = () => {
+    if (is_down || pending_touch) cancel();
+  };
+
   const handle_pointer_up = () => {
+    tracked_pointer = null;
     if (pending_touch) {
       const el = pending_touch;
 
@@ -252,6 +283,9 @@ export function start_press_feedback(): () => void {
 
   const handle_mouse_down = (e: MouseEvent) => {
     if (e.detail < 2) return;
+    if (e.target instanceof Element && e.target.closest(SELECTABLE_SELECTOR)) {
+      return;
+    }
     if (!find_press_target(e.target)) return;
     e.preventDefault();
   };
@@ -262,7 +296,12 @@ export function start_press_feedback(): () => void {
     const origin =
       e.target instanceof Element ? e.target : e.target.parentElement;
 
-    if (origin && origin.closest(EDITABLE_SELECTOR)) return;
+    if (
+      origin &&
+      origin.closest(`${EDITABLE_SELECTOR}, ${SELECTABLE_SELECTOR}`)
+    ) {
+      return;
+    }
     if (current.contains(e.target)) e.preventDefault();
   };
 
@@ -270,6 +309,8 @@ export function start_press_feedback(): () => void {
 
   document.addEventListener("pointerdown", handle_pointer_down, options);
   document.addEventListener("pointerup", handle_pointer_up, options);
+  document.addEventListener("pointermove", handle_pointer_move, options);
+  document.addEventListener("scroll", handle_scroll, options);
   document.addEventListener("pointercancel", cancel, options);
   document.addEventListener("dragstart", cancel, options);
   document.addEventListener("keydown", handle_key_down, options);
@@ -282,6 +323,8 @@ export function start_press_feedback(): () => void {
     cancel();
     document.removeEventListener("pointerdown", handle_pointer_down, options);
     document.removeEventListener("pointerup", handle_pointer_up, options);
+    document.removeEventListener("pointermove", handle_pointer_move, options);
+    document.removeEventListener("scroll", handle_scroll, options);
     document.removeEventListener("pointercancel", cancel, options);
     document.removeEventListener("dragstart", cancel, options);
     document.removeEventListener("keydown", handle_key_down, options);

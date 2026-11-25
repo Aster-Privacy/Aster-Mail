@@ -6108,7 +6108,7 @@ html[data-input-modality="keyboard"]
 }
 
 [data-aster-press]:not([data-aster-press-mode="filter"]) {
-  --aster-press-layer: color-mix(in srgb, currentColor 13%, transparent);
+  --aster-press-layer: color-mix(in srgb, currentColor 11%, transparent);
   background-image: linear-gradient(
     var(--aster-press-layer),
     var(--aster-press-layer)
@@ -6144,5 +6144,13 @@ html[data-input-modality="keyboard"]
   }
   to {
     filter: brightness(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-aster-press="release"] {
+    animation: none !important;
+    --aster-press-layer: transparent;
+    filter: none;
   }
 }
