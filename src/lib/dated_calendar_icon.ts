@@ -21,6 +21,7 @@
 import { useEffect, useState, useSyncExternalStore } from "react";
 
 import app_icon_src from "@/assets/app_icons/calendar.png?inline";
+import rail_icon_src from "@/assets/app_rail/calendar.png?inline";
 
 type Rect = readonly [number, number, number, number];
 
@@ -90,7 +91,7 @@ const SPECS: Record<DatedCalendarIcon, DatedIconSpec> = {
     output_height: 132,
   },
   rail: {
-    src: "/icons/calendar/calendar_rail_256.png",
+    src: rail_icon_src,
     natural_size: [256, 256],
     panel: [95, 100, 231, 223],
     erase: null,
