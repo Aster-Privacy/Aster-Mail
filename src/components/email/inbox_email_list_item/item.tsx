@@ -21,15 +21,7 @@
 import type {} from "@/types/email";
 import type {} from "@/hooks/use_attachment_previews";
 
-import {
-  forwardRef,
-  memo,
-  useCallback,
-  useMemo,
-  useState,
-  useRef,
-  useEffect,
-} from "react";
+import { forwardRef, memo, useMemo, useState, useRef, useEffect } from "react";
 import {
   ArchiveBoxArrowDownIcon,
   ArrowUturnLeftIcon,
@@ -45,10 +37,11 @@ import {
   FaceSmileIcon,
   StarIcon as StarIconSolid,
 } from "@heroicons/react/24/solid";
-import { Checkbox, Tooltip } from "@aster/ui";
+import { Checkbox } from "@aster/ui";
 
 import {
   InboxEmailListItemProps,
+  RowActionButton,
   StarToggleButton,
   format_email_size,
   format_mobile_timestamp,
@@ -289,11 +282,6 @@ export const InboxEmailListItem = memo(
       );
 
       const [is_dragging, set_is_dragging] = useState(false);
-      const [row_engaged, set_row_engaged] = useState(false);
-
-      const engage_row = useCallback(() => {
-        set_row_engaged(true);
-      }, []);
       const drag_image_ref = useRef<HTMLDivElement | null>(null);
 
       useEffect(() => {
@@ -476,7 +464,6 @@ export const InboxEmailListItem = memo(
           }
           onDragEnd={handle_drag_end}
           onDragStart={handle_drag_start}
-          onFocusCapture={engage_row}
           onKeyDown={(e) => {
             if (e["key"] === "Enter" || e["key"] === " ") {
               e.preventDefault();
@@ -486,112 +473,108 @@ export const InboxEmailListItem = memo(
           onMouseDown={(e) => {
             if (e.shiftKey && e.button === 0) e.preventDefault();
           }}
-          onMouseEnter={engage_row}
           {...props}
         >
-          <Tooltip delay={600} tip={t("mail.select")}>
-            <div
-              className={cn(
-                "group/avatar aster_select_focus relative flex-shrink-0 flex items-center justify-center cursor-pointer",
-                select_slot_class,
-              )}
-              role="button"
-              tabIndex={0}
-              onClick={(e) => {
+          <div
+            aria-label={t("mail.select")}
+            className={cn(
+              "group/avatar aster_select_focus relative flex-shrink-0 flex items-center justify-center cursor-pointer",
+              select_slot_class,
+            )}
+            role="button"
+            tabIndex={0}
+            title={t("mail.select")}
+            onClick={(e) => {
+              e.stopPropagation();
+              on_toggle_select(email.id);
+            }}
+            onKeyDown={(e) => {
+              if (e["key"] === "Enter" || e["key"] === " ") {
+                e.preventDefault();
                 e.stopPropagation();
                 on_toggle_select(email.id);
-              }}
-              onKeyDown={(e) => {
-                if (e["key"] === "Enter" || e["key"] === " ") {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  on_toggle_select(email.id);
-                }
-              }}
-            >
-              {!show_avatar_column ? (
-                <Checkbox
-                  checked={email.is_selected === true}
-                  className="pointer-events-none"
+              }
+            }}
+          >
+            {!show_avatar_column ? (
+              <Checkbox
+                checked={email.is_selected === true}
+                className="pointer-events-none"
+              />
+            ) : preferences.low_network_mode ? (
+              <div
+                className={cn(
+                  "rounded-full border-2 flex items-center justify-center transition-colors duration-150",
+                  avatar_size_class,
+                  email.is_selected
+                    ? "bg-[var(--accent-color,#3b82f6)] border-[var(--accent-color,#3b82f6)]"
+                    : "border-edge-primary group-hover/avatar:border-[var(--accent-color,#3b82f6)]",
+                )}
+              >
+                <CheckIcon
+                  className={cn(
+                    "w-4 h-4 transition-opacity duration-150",
+                    email.is_selected
+                      ? "text-[var(--accent-fg,#ffffff)] opacity-100"
+                      : "text-[var(--accent-color,#3b82f6)] opacity-0 group-hover/avatar:opacity-100",
+                  )}
                 />
-              ) : preferences.low_network_mode ? (
+              </div>
+            ) : (
+              <>
                 <div
                   className={cn(
-                    "rounded-full border-2 flex items-center justify-center transition-colors duration-150",
+                    "transition-opacity duration-150",
                     avatar_size_class,
-                    email.is_selected
-                      ? "bg-[var(--accent-color,#3b82f6)] border-[var(--accent-color,#3b82f6)]"
-                      : "border-edge-primary group-hover/avatar:border-[var(--accent-color,#3b82f6)]",
+                    email.is_selected && "opacity-0",
                   )}
                 >
-                  <CheckIcon
-                    className={cn(
-                      "w-4 h-4 transition-opacity duration-150",
-                      email.is_selected
-                        ? "text-[var(--accent-fg,#ffffff)] opacity-100"
-                        : "text-[var(--accent-color,#3b82f6)] opacity-0 group-hover/avatar:opacity-100",
-                    )}
-                  />
+                  {is_system_email(email) ? (
+                    <img
+                      alt={t("common.aster_mail")}
+                      className={cn(
+                        "rounded-full object-cover",
+                        avatar_size_class,
+                      )}
+                      decoding="async"
+                      draggable={false}
+                      {...fetch_priority_attr("high")}
+                      src={mail_logo_url}
+                    />
+                  ) : (
+                    <ProfileAvatar
+                      email={show_sender_email}
+                      image_url={
+                        marks_hidden
+                          ? undefined
+                          : (peer_profile?.profile_picture ?? email.avatar_url)
+                      }
+                      name={list_sender_name}
+                      plain={marks_hidden}
+                      sender_authenticated={
+                        !marks_hidden &&
+                        is_system_email(
+                          trust_source_for_display(email, show_sender_email),
+                        )
+                      }
+                      size={compact_rows ? "sm_compact" : "sm"}
+                      use_domain_logo={show_profile_pictures && !email.is_spam}
+                    />
+                  )}
                 </div>
-              ) : (
-                <>
-                  <div
-                    className={cn(
-                      "transition-opacity duration-150",
-                      avatar_size_class,
-                      email.is_selected && "opacity-0",
-                    )}
-                  >
-                    {is_system_email(email) ? (
-                      <img
-                        alt={t("common.aster_mail")}
-                        className={cn(
-                          "rounded-full object-cover",
-                          avatar_size_class,
-                        )}
-                        decoding="async"
-                        draggable={false}
-                        {...fetch_priority_attr("high")}
-                        src={mail_logo_url}
-                      />
-                    ) : (
-                      <ProfileAvatar
-                        email={show_sender_email}
-                        image_url={
-                          marks_hidden
-                            ? undefined
-                            : (peer_profile?.profile_picture ??
-                              email.avatar_url)
-                        }
-                        name={list_sender_name}
-                        plain={marks_hidden}
-                        sender_authenticated={
-                          !marks_hidden &&
-                          is_system_email(
-                            trust_source_for_display(email, show_sender_email),
-                          )
-                        }
-                        size={compact_rows ? "sm_compact" : "sm"}
-                        use_domain_logo={
-                          show_profile_pictures && !email.is_spam
-                        }
-                      />
-                    )}
-                  </div>
-                  <div
-                    className={cn(
-                      "absolute inset-0 rounded-full flex items-center justify-center transition-opacity duration-150",
-                      email.is_selected
-                        ? "opacity-100 bg-[var(--accent-color,#3b82f6)]"
-                        : "opacity-0 group-hover/avatar:opacity-100 bg-[color-mix(in_srgb,var(--accent-color,#3b82f6)_75%,transparent)]",
-                    )}
-                  >
-                    <CheckIcon className="w-4 h-4 text-[var(--accent-fg,#ffffff)]" />
-                  </div>
-                </>
-              )}
-            </div>
-          </Tooltip>
+                <div
+                  className={cn(
+                    "absolute inset-0 rounded-full flex items-center justify-center transition-opacity duration-150",
+                    email.is_selected
+                      ? "opacity-100 bg-[var(--accent-color,#3b82f6)]"
+                      : "opacity-0 group-hover/avatar:opacity-100 bg-[color-mix(in_srgb,var(--accent-color,#3b82f6)_75%,transparent)]",
+                  )}
+                >
+                  <CheckIcon className="w-4 h-4 text-[var(--accent-fg,#ffffff)]" />
+                </div>
+              </>
+            )}
+          </div>
 
           <div className="flex-1 min-w-0 flex items-center gap-3 sm:gap-6 overflow-hidden">
             <div className="flex items-center gap-1.5 min-w-0 sm:w-44 sm:shrink-0 sm:max-w-[45%] overflow-hidden pe-px">
@@ -858,19 +841,18 @@ export const InboxEmailListItem = memo(
               )}
 
               {email.has_attachment && (
-                <Tooltip tip={t("mail.has_attachments")}>
-                  <span
-                    aria-label={t("mail.has_attachments")}
-                    className={cn(
-                      "flex-shrink-0 inline-flex items-center",
-                      email.is_read ? "text-txt-muted" : "text-txt-secondary",
-                    )}
-                    data-testid="attachment-indicator"
-                    role="img"
-                  >
-                    <PaperClipIcon className="w-3.5 h-3.5" />
-                  </span>
-                </Tooltip>
+                <span
+                  aria-label={t("mail.has_attachments")}
+                  className={cn(
+                    "flex-shrink-0 inline-flex items-center",
+                    email.is_read ? "text-txt-muted" : "text-txt-secondary",
+                  )}
+                  data-testid="attachment-indicator"
+                  role="img"
+                  title={t("mail.has_attachments")}
+                >
+                  <PaperClipIcon className="w-3.5 h-3.5" />
+                </span>
               )}
 
               <div
@@ -913,9 +895,7 @@ export const InboxEmailListItem = memo(
                 <span
                   className={cn(
                     "hidden sm:inline-flex flex-shrink-0",
-                    show_hover_actions &&
-                      row_engaged &&
-                      "group-hover:invisible",
+                    show_hover_actions && "group-hover:invisible",
                   )}
                 >
                   <RowCodeCopyButton
@@ -989,39 +969,36 @@ export const InboxEmailListItem = memo(
 
           <div className="hidden sm:flex items-center gap-2 flex-shrink-0 ms-auto">
             {has_new_reaction && (
-              <Tooltip tip={t("mail.new_reaction")}>
-                <span
-                  aria-label={t("mail.new_reaction")}
-                  className={cn(
-                    "flex-shrink-0 inline-flex items-center text-[var(--accent-color,#3b82f6)]",
-                    show_hover_actions && "group-hover:opacity-0",
-                  )}
-                  data-testid="new-reaction-badge"
-                  role="img"
-                >
-                  <FaceSmileIcon className="h-4 w-4" />
-                </span>
-              </Tooltip>
+              <span
+                aria-label={t("mail.new_reaction")}
+                className={cn(
+                  "flex-shrink-0 inline-flex items-center text-[var(--accent-color,#3b82f6)]",
+                  show_hover_actions && "group-hover:opacity-0",
+                )}
+                data-testid="new-reaction-badge"
+                role="img"
+                title={t("mail.new_reaction")}
+              >
+                <FaceSmileIcon className="h-4 w-4" />
+              </span>
             )}
 
             {alias_delivery && (
-              <Tooltip
-                tip={t("mail.received_via_alias", {
+              <span
+                aria-label={t("mail.received_via_alias", {
+                  address: alias_delivery.address,
+                })}
+                className={cn(
+                  "flex-shrink-0 inline-flex items-center text-txt-muted",
+                  show_hover_actions && "group-hover:opacity-0",
+                )}
+                role="img"
+                title={t("mail.received_via_alias", {
                   address: alias_delivery.address,
                 })}
               >
-                <span
-                  aria-label={t("mail.received_via_alias", {
-                    address: alias_delivery.address,
-                  })}
-                  className={cn(
-                    "flex-shrink-0 inline-flex items-center text-txt-muted",
-                    show_hover_actions && "group-hover:opacity-0",
-                  )}
-                >
-                  <AtSymbolIcon className="h-3.5 w-3.5" />
-                </span>
-              </Tooltip>
+                <AtSymbolIcon className="h-3.5 w-3.5" />
+              </span>
             )}
 
             {email.is_starred && (
@@ -1050,7 +1027,7 @@ export const InboxEmailListItem = memo(
                 )}
             </span>
 
-            {show_hover_actions && row_engaged && (
+            {show_hover_actions && (
               <div
                 className={cn(
                   "absolute end-3 sm:end-4 flex items-center gap-0.5 opacity-0 group-hover:opacity-100 ps-10",
@@ -1060,6 +1037,7 @@ export const InboxEmailListItem = memo(
                       ? "bg-[linear-gradient(to_right,transparent,var(--color-surf-hover)_2.5rem)]"
                       : "bg-[linear-gradient(to_right,transparent,var(--color-surf-primary)_2.5rem)] group-hover:bg-[linear-gradient(to_right,transparent,var(--color-surf-hover)_2.5rem)]",
                 )}
+                data-testid="row-hover-actions"
                 role="button"
                 tabIndex={0}
                 onClick={(e) => e.stopPropagation()}
@@ -1081,24 +1059,20 @@ export const InboxEmailListItem = memo(
                 {show_unsubscribe_chip && <RowUnsubscribeChip email={email} />}
 
                 {on_toggle_read && (
-                  <Tooltip
-                    tip={
+                  <RowActionButton
+                    label={
                       email.is_read
                         ? t("mail.mark_as_unread")
                         : t("mail.mark_as_read")
                     }
+                    on_click={() => on_toggle_read(email)}
                   >
-                    <button
-                      className="p-1.5 rounded-[14px] hover:bg-black/10 dark:hover:bg-white/10"
-                      onClick={() => on_toggle_read(email)}
-                    >
-                      {email.is_read ? (
-                        <EnvelopeIcon className="w-4 h-4 text-txt-muted" />
-                      ) : (
-                        <EnvelopeOpenIcon className="w-4 h-4 text-txt-muted" />
-                      )}
-                    </button>
-                  </Tooltip>
+                    {email.is_read ? (
+                      <EnvelopeIcon className="w-4 h-4 text-txt-muted" />
+                    ) : (
+                      <EnvelopeOpenIcon className="w-4 h-4 text-txt-muted" />
+                    )}
+                  </RowActionButton>
                 )}
 
                 {on_toggle_star && (
@@ -1109,75 +1083,61 @@ export const InboxEmailListItem = memo(
                 )}
 
                 {is_trash_view && on_restore && (
-                  <Tooltip tip={t("mail.restore")}>
-                    <button
-                      className="p-1.5 rounded-[14px] hover:bg-black/10 dark:hover:bg-white/10"
-                      onClick={() => on_restore(email)}
-                    >
-                      <ArrowUturnLeftIcon className="w-4 h-4 text-txt-muted rtl:-scale-x-100" />
-                    </button>
-                  </Tooltip>
+                  <RowActionButton
+                    label={t("mail.restore")}
+                    on_click={() => on_restore(email)}
+                  >
+                    <ArrowUturnLeftIcon className="w-4 h-4 text-txt-muted rtl:-scale-x-100" />
+                  </RowActionButton>
                 )}
 
                 {is_archive_view && on_move_to_inbox && (
-                  <Tooltip tip={t("mail.move_to_inbox")}>
-                    <button
-                      className="p-1.5 rounded-[14px] hover:bg-black/10 dark:hover:bg-white/10"
-                      onClick={() => on_move_to_inbox(email)}
-                    >
-                      <InboxIcon className="w-4 h-4 text-txt-muted" />
-                    </button>
-                  </Tooltip>
+                  <RowActionButton
+                    label={t("mail.move_to_inbox")}
+                    on_click={() => on_move_to_inbox(email)}
+                  >
+                    <InboxIcon className="w-4 h-4 text-txt-muted" />
+                  </RowActionButton>
                 )}
 
                 {is_spam_view && on_mark_not_spam && (
-                  <Tooltip tip={t("mail.not_spam")}>
-                    <button
-                      className="p-1.5 rounded-[14px] hover:bg-black/10 dark:hover:bg-white/10"
-                      onClick={() => on_mark_not_spam(email)}
-                    >
-                      <NotSpamIcon className="w-4 h-4 text-txt-muted" />
-                    </button>
-                  </Tooltip>
+                  <RowActionButton
+                    label={t("mail.not_spam")}
+                    on_click={() => on_mark_not_spam(email)}
+                  >
+                    <NotSpamIcon className="w-4 h-4 text-txt-muted" />
+                  </RowActionButton>
                 )}
 
                 {!is_trash_view && !is_archive_view && on_archive && (
-                  <Tooltip tip={t("mail.archive_action")}>
-                    <button
-                      className="p-1.5 rounded-[14px] hover:bg-black/10 dark:hover:bg-white/10"
-                      onClick={() => on_archive(email)}
-                    >
-                      <ArchiveBoxArrowDownIcon className="w-4 h-4 text-txt-muted" />
-                    </button>
-                  </Tooltip>
+                  <RowActionButton
+                    label={t("mail.archive_action")}
+                    on_click={() => on_archive(email)}
+                  >
+                    <ArchiveBoxArrowDownIcon className="w-4 h-4 text-txt-muted" />
+                  </RowActionButton>
                 )}
 
                 {!is_trash_view && !is_spam_view && !is_outgoing && on_spam && (
-                  <Tooltip tip={t("mail.report_spam")}>
-                    <button
-                      className="p-1.5 rounded-[14px] hover:bg-black/10 dark:hover:bg-white/10"
-                      onClick={() => on_spam(email)}
-                    >
-                      <ReportSpamIcon className="w-4 h-4 text-txt-muted" />
-                    </button>
-                  </Tooltip>
+                  <RowActionButton
+                    label={t("mail.report_spam")}
+                    on_click={() => on_spam(email)}
+                  >
+                    <ReportSpamIcon className="w-4 h-4 text-txt-muted" />
+                  </RowActionButton>
                 )}
 
                 {on_delete && (
-                  <Tooltip
-                    tip={
+                  <RowActionButton
+                    label={
                       is_list_email_in_trash(email, current_view)
                         ? t("mail.delete_permanently")
                         : t("mail.move_to_trash")
                     }
+                    on_click={() => on_delete(email)}
                   >
-                    <button
-                      className="p-1.5 rounded-[14px] hover:bg-black/10 dark:hover:bg-white/10"
-                      onClick={() => on_delete(email)}
-                    >
-                      <TrashIcon className="w-4 h-4 text-txt-muted" />
-                    </button>
-                  </Tooltip>
+                    <TrashIcon className="w-4 h-4 text-txt-muted" />
+                  </RowActionButton>
                 )}
               </div>
             )}
