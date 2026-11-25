@@ -360,6 +360,7 @@ export async function list_mail_items(
 
   const response = await api_client.get<MailItemsListResponse>(endpoint, {
     retry: 2,
+    retry_on_timeout: false,
     ...(is_bulk_scan ? { request_priority: "background" as const } : {}),
     ...(unlock_token ? { folder_unlock_token: unlock_token } : {}),
   });

@@ -1969,6 +1969,7 @@ export class ApiClient {
       timeout = get_effective_timeout(DEFAULT_TIMEOUT),
       retry = get_effective_retry_count(DEFAULT_RETRY_COUNT),
       retry_delay = get_effective_retry_delay(DEFAULT_RETRY_DELAY),
+      retry_on_timeout = true,
       cache_ttl: _cache_ttl,
       skip_cache: _skip_cache,
       skip_session_refresh = false,
@@ -2635,7 +2636,9 @@ export class ApiClient {
 
         background?.stalled();
 
-        if (attempt < retry && replay_safe) {
+        const timed_out = last_error.code === "TIMEOUT_ERROR";
+
+        if (attempt < retry && replay_safe && (retry_on_timeout || !timed_out)) {
           await this.delay(retry_delay * (attempt + 1));
           continue;
         }
