@@ -28,12 +28,12 @@ export interface SelectorBudget {
 
 function count_selector_steps(selector: string): number {
   let steps = 0;
-  let in_gap = false;
+  let in_gap = true;
 
   for (let index = 0; index < selector.length; index += 1) {
     const is_gap = SELECTOR_GAP_CODES.has(selector.charCodeAt(index));
 
-    if (is_gap && !in_gap) steps += 1;
+    if (!is_gap && in_gap) steps += 1;
     in_gap = is_gap;
   }
 
