@@ -10180,6 +10180,9 @@ export const ko = {
       "{{sender}}의 메일을 {{category}}(으)로 자주 옮기고 있습니다. 자동으로 처리할까요?",
   },
   auth: {
+    account_chooser_title: "계정 선택",
+    account_chooser_body: "이 주소는 이 기기에 로그인된 계정과 일치하지 않습니다. 계속하려면 계정을 선택하세요.",
+    account_chooser_empty: "이 기기에 로그인된 계정이 없습니다.",
     continue_with_app: "{{app}}(으)로 계속",
     sibling_waiting: "열린 창에서 로그인을 확인하세요.",
     sibling_popup_blocked: "확인 창이 차단되었습니다. 이 사이트의 팝업을 허용한 후 다시 시도하세요.",

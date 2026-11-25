@@ -10601,6 +10601,9 @@ export const nl = {
       "Je verplaatst berichten van {{sender}} vaak naar {{category}}. Wil je dat automatisch doen?",
   },
   auth: {
+    account_chooser_title: "Kies een account",
+    account_chooser_body: "Dit adres hoort niet bij een account dat op dit apparaat is ingelogd. Kies een account om door te gaan.",
+    account_chooser_empty: "Er is geen account ingelogd op dit apparaat.",
     continue_with_app: "Doorgaan met {{app}}",
     sibling_waiting: "Bevestig het inloggen in het venster dat is geopend.",
     sibling_popup_blocked: "Het bevestigingsvenster is geblokkeerd. Sta pop-ups toe voor deze site en probeer het opnieuw.",

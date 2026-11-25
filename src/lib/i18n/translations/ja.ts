@@ -10354,6 +10354,9 @@ export const ja = {
       "{{sender}} からのメールを {{category}} によく移動しています。今後は自動的に振り分けますか。",
   },
   auth: {
+    account_chooser_title: "アカウントを選択",
+    account_chooser_body: "このアドレスは、このデバイスでサインインしているどのアカウントとも一致しません。続行するアカウントを選択してください。",
+    account_chooser_empty: "このデバイスでサインインしているアカウントはありません。",
     continue_with_app: "{{app}} で続行",
     sibling_waiting: "開いたウィンドウでサインインを確認してください。",
     sibling_popup_blocked: "確認ウィンドウがブロックされました。このサイトのポップアップを許可してから、もう一度お試しください。",

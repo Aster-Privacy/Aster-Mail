@@ -24,6 +24,11 @@ import type { LanguageCode } from "@/lib/i18n/types";
 import type { SkinTone } from "@/config/emoji/skin_tones";
 
 import { api_client } from "./client";
+import {
+  get_tab_account_id,
+  read_tab_account_binding,
+  tab_shares_session_cookies,
+} from "@/lib/tab_account";
 
 import { HASH_ALG } from "@/services/crypto/constants";
 import {
@@ -621,6 +626,24 @@ const UNCACHED_PREFERENCE_KEYS: readonly string[] = [
 const TEXT_SIZE_CACHE_KEY = "aster_text_size";
 const MIGRATION_FLAGS_KEY = "aster_pref_migrations_done";
 
+export function forget_account_preferences_cache(account_id: string): void {
+  try {
+    localStorage.removeItem(`${PREFS_CACHE_KEY}:${account_id}`);
+    localStorage.removeItem(`${TEXT_SIZE_CACHE_KEY}:${account_id}`);
+  } catch (caught) {
+    ignore_error(
+      "services/api/preferences:forget_account_preferences_cache",
+      caught,
+    );
+  }
+}
+
+function tab_scoped_key(base: string): string {
+  const id = get_tab_account_id() ?? read_tab_account_binding()?.id ?? null;
+
+  return id ? `${base}:${id}` : base;
+}
+
 type MigrationFlag =
   | "migration_haptic_v1_done"
   | "migration_tracker_blocking_v2_done"
@@ -710,17 +733,19 @@ export function cache_preferences_locally(prefs: UserPreferences): void {
   apply_loaded_error_report_preference(prefs.send_error_reports);
 
   try {
-    localStorage.setItem(
-      PREFS_CACHE_KEY,
-      JSON.stringify(strip_uncached_fields(prefs)),
-    );
-    localStorage.setItem(
-      TEXT_SIZE_CACHE_KEY,
-      JSON.stringify({
-        font_size_scale: prefs.font_size_scale,
-        compact_mode: prefs.compact_mode === true,
-      }),
-    );
+    const prefs_json = JSON.stringify(strip_uncached_fields(prefs));
+    const text_size_json = JSON.stringify({
+      font_size_scale: prefs.font_size_scale,
+      compact_mode: prefs.compact_mode === true,
+    });
+    const scoped_prefs_key = tab_scoped_key(PREFS_CACHE_KEY);
+
+    localStorage.setItem(scoped_prefs_key, prefs_json);
+    localStorage.setItem(tab_scoped_key(TEXT_SIZE_CACHE_KEY), text_size_json);
+    if (scoped_prefs_key !== PREFS_CACHE_KEY && tab_shares_session_cookies()) {
+      localStorage.setItem(PREFS_CACHE_KEY, prefs_json);
+      localStorage.setItem(TEXT_SIZE_CACHE_KEY, text_size_json);
+    }
   } catch (caught) {
     ignore_error("services/api/preferences:cache_preferences_locally", caught);
   }
@@ -731,7 +756,7 @@ export function get_cached_text_size(): {
   compact_mode?: boolean;
 } | null {
   try {
-    const cached = localStorage.getItem(TEXT_SIZE_CACHE_KEY);
+    const cached = localStorage.getItem(tab_scoped_key(TEXT_SIZE_CACHE_KEY));
 
     if (cached) {
       const parsed = JSON.parse(cached) as Record<string, unknown>;
@@ -753,6 +778,7 @@ export function clear_preferences_cache(): void {
 
   try {
     localStorage.removeItem(PREFS_CACHE_KEY);
+    localStorage.removeItem(tab_scoped_key(PREFS_CACHE_KEY));
   } catch (caught) {
     ignore_error("services/api/preferences:clear_preferences_cache", caught);
   }
@@ -760,7 +786,7 @@ export function clear_preferences_cache(): void {
 
 export function get_cached_preferences(): UserPreferences | null {
   try {
-    const cached = localStorage.getItem(PREFS_CACHE_KEY);
+    const cached = localStorage.getItem(tab_scoped_key(PREFS_CACHE_KEY));
 
     if (cached) {
       const parsed = JSON.parse(cached) as Record<string, unknown>;
@@ -768,7 +794,10 @@ export function get_cached_preferences(): UserPreferences | null {
       if (UNCACHED_PREFERENCE_KEYS.some((key) => key in parsed)) {
         const stripped = strip_uncached_fields(parsed);
 
-        localStorage.setItem(PREFS_CACHE_KEY, JSON.stringify(stripped));
+        localStorage.setItem(
+          tab_scoped_key(PREFS_CACHE_KEY),
+          JSON.stringify(stripped),
+        );
 
         return build_merged_preferences(stripped, null);
       }

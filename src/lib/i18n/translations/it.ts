@@ -10669,6 +10669,9 @@ export const it = {
       "Sposti spesso i messaggi di {{sender}} in {{category}}. Vuoi farlo automaticamente?",
   },
   auth: {
+    account_chooser_title: "Scegli un account",
+    account_chooser_body: "Questo indirizzo non corrisponde a nessun account connesso su questo dispositivo. Scegli un account per continuare.",
+    account_chooser_empty: "Nessun account è connesso su questo dispositivo.",
     continue_with_app: "Continua con {{app}}",
     sibling_waiting: "Conferma l'accesso nella finestra che si è aperta.",
     sibling_popup_blocked: "La finestra di conferma è stata bloccata. Consenti i pop-up per questo sito, quindi riprova.",

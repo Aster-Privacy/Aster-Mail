@@ -9694,6 +9694,9 @@ export interface MailTranslations {
 }
 
 export interface AuthTranslations {
+  account_chooser_title: string;
+  account_chooser_body: string;
+  account_chooser_empty: string;
   continue_with_app: string;
   sibling_waiting: string;
   sibling_popup_blocked: string;

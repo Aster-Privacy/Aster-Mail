@@ -10857,6 +10857,9 @@ export const pl = {
       "Często przenosisz wiadomości od {{sender}} do {{category}}. Robić to automatycznie?",
   },
   auth: {
+    account_chooser_title: "Wybierz konto",
+    account_chooser_body: "Ten adres nie odpowiada żadnemu kontu zalogowanemu na tym urządzeniu. Wybierz konto, aby kontynuować.",
+    account_chooser_empty: "Na tym urządzeniu nie jest zalogowane żadne konto.",
     continue_with_app: "Kontynuuj z {{app}}",
     sibling_waiting: "Potwierdź logowanie w otwartym oknie.",
     sibling_popup_blocked: "Okno potwierdzenia zostało zablokowane. Zezwól na wyskakujące okna dla tej witryny i spróbuj ponownie.",

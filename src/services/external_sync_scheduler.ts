@@ -24,6 +24,10 @@ import {
   type DecryptedExternalAccount,
 } from "@/services/api/external_accounts";
 import { get_storage_write_crypto_key } from "@/services/crypto/storage_write_key";
+import {
+  tab_scoped_storage_key,
+  tab_shares_session_cookies,
+} from "@/lib/tab_account";
 import { array_to_base64, base64_to_array } from "@/services/api/sender_utils";
 import { fetches_on_server } from "@/lib/external_account_modes";
 
@@ -561,8 +565,18 @@ class ExternalSyncScheduler {
   }
 
   private async load_configs(): Promise<SyncScheduleConfig[]> {
+    let storage_key = tab_scoped_storage_key(STORAGE_KEY);
+
     try {
-      const raw = localStorage.getItem(STORAGE_KEY);
+      if (
+        storage_key !== STORAGE_KEY &&
+        localStorage.getItem(storage_key) === null &&
+        tab_shares_session_cookies()
+      ) {
+        storage_key = STORAGE_KEY;
+      }
+
+      const raw = localStorage.getItem(storage_key);
 
       if (!raw) {
         return [];
@@ -573,7 +587,7 @@ class ExternalSyncScheduler {
       try {
         parsed = JSON.parse(raw);
       } catch {
-        localStorage.removeItem(STORAGE_KEY);
+        localStorage.removeItem(storage_key);
 
         return [];
       }
@@ -584,7 +598,7 @@ class ExternalSyncScheduler {
         !("iv" in parsed) ||
         !("data" in parsed)
       ) {
-        localStorage.removeItem(STORAGE_KEY);
+        localStorage.removeItem(storage_key);
 
         return [];
       }
@@ -597,7 +611,7 @@ class ExternalSyncScheduler {
         envelope.iv.length === 0 ||
         envelope.data.length === 0
       ) {
-        localStorage.removeItem(STORAGE_KEY);
+        localStorage.removeItem(storage_key);
 
         return [];
       }
@@ -636,7 +650,7 @@ class ExternalSyncScheduler {
       );
     } catch {
       try {
-        localStorage.removeItem(STORAGE_KEY);
+        localStorage.removeItem(storage_key);
       } catch {
         /* localStorage may be unavailable */
       }
@@ -670,7 +684,10 @@ class ExternalSyncScheduler {
       };
 
       try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(stored));
+        localStorage.setItem(
+          tab_scoped_storage_key(STORAGE_KEY),
+          JSON.stringify(stored),
+        );
       } catch {
         /* localStorage may be full or unavailable */
       }

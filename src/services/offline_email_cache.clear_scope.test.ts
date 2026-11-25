@@ -118,10 +118,11 @@ describe("clearing the stored mail lists", () => {
       original_indexed_db;
   });
 
-  it("removes only the current account's snapshots by default", async () => {
+  it("removes only the current account's lists and snapshots by default", async () => {
     await clear_email_cache();
 
     expect([...h.disk.keys()].sort()).toEqual([
+      "acct-2:inbox",
       "snapshot:acct-1x:view:sent",
       "snapshot:acct-2:category:primary",
     ]);
@@ -144,6 +145,7 @@ describe("clearing the stored mail lists", () => {
     await clear_email_cache({ account_id: "acct-2" });
 
     expect([...h.disk.keys()].sort()).toEqual([
+      "acct-1:inbox",
       "snapshot:acct-1:category:primary",
       "snapshot:acct-1:view:sent",
       "snapshot:acct-1x:view:sent",

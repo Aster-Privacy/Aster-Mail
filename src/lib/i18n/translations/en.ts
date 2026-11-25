@@ -10371,6 +10371,9 @@ export const en: Translations = {
       "You keep moving mail from {{sender}} to {{category}}. Do it automatically?",
   },
   auth: {
+    account_chooser_title: "Choose an account",
+    account_chooser_body: "This address doesn't match an account that's signed in on this device. Choose an account to continue.",
+    account_chooser_empty: "No accounts are signed in on this device.",
     continue_with_app: "Continue with {{app}}",
     sibling_waiting: "Confirm the sign-in in the window that opened.",
     sibling_popup_blocked: "The confirmation window was blocked. Allow pop-ups for this site, then try again.",
