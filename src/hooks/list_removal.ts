@@ -56,8 +56,20 @@ export function begin_list_removal(
   hold_removed_ids(unique_ids);
   if (unique_ids.length > 0) target.remove_emails(unique_ids);
 
-  const entries_for = (subset: Set<string>) =>
-    entries.filter((entry) => subset.has(entry.email.id));
+  const entries_for = (
+    subset: Set<string>,
+    absent: Set<string> = new Set(),
+  ): RestoredEmailEntry[] =>
+    entries
+      .filter((entry) => subset.has(entry.email.id))
+      .map((entry) => ({
+        email: entry.email,
+        index:
+          entry.index -
+          entries.filter(
+            (other) => absent.has(other.email.id) && other.index < entry.index,
+          ).length,
+      }));
 
   return {
     ids: unique_ids,
@@ -74,7 +86,9 @@ export function begin_list_removal(
 
       if (reverted.length > 0) {
         forget_removed_ids(reverted);
-        target.restore_emails(entries_for(new Set(reverted)));
+        target.restore_emails(
+          entries_for(new Set(reverted), new Set(committed)),
+        );
       }
 
       return committed;

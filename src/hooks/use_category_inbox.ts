@@ -93,7 +93,11 @@ import {
 } from "@/services/category_index";
 import { invalidate_mail_stats } from "@/hooks/use_mail_stats";
 import { request_cache } from "@/services/api/request_cache";
-import { drop_removed_after, removed_within } from "@/services/removed_items";
+import {
+  drop_removed_after,
+  removed_within,
+  was_removed_after,
+} from "@/services/removed_items";
 import { REMOVAL_SETTLE_MS } from "@/hooks/list_removal";
 import {
   read_list_snapshot,
@@ -767,13 +771,14 @@ export function use_category_inbox(
       };
 
       const fetch_category = scope_key;
+      const removal_window_start = Date.now() - REMOVAL_SETTLE_MS;
       const ids = get_page_ids(
         active_category,
         target_page,
         limit,
         read_filter,
         kept_ids_ref.current,
-      );
+      ).filter((id) => !was_removed_after(id, removal_window_start));
 
       if (read_filter !== "all") {
         for (const id of ids) kept_ids_ref.current.add(id);
@@ -789,7 +794,9 @@ export function use_category_inbox(
       abort_ref.current?.abort();
 
       if (ids.length === 0) {
-        const built = is_index_readable() && get_index_entry_count() > 0;
+        const built =
+          is_index_readable() &&
+          (get_index_entry_count() > 0 || removed_within(REMOVAL_SETTLE_MS));
 
         abort_ref.current = null;
         set_state({
