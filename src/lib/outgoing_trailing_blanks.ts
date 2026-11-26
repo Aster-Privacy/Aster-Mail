@@ -109,15 +109,16 @@ function trim_trailing_nodes(root: Node): boolean {
 }
 
 export function trim_outgoing_trailing_blanks(html: string): string {
-  if (!html || typeof document === "undefined") return html;
+  if (!html || typeof DOMParser === "undefined") return html;
 
-  const template = document.createElement("template");
+  const doc = new DOMParser().parseFromString(
+    `<!DOCTYPE html><html><body>${html}</body></html>`,
+    "text/html",
+  );
 
-  template.innerHTML = html;
+  if (!doc.body || !trim_trailing_nodes(doc.body)) return html;
 
-  if (!trim_trailing_nodes(template.content)) return html;
-
-  return template.innerHTML;
+  return doc.body.innerHTML;
 }
 
 export function prepare_outgoing_html(html: string): string {
