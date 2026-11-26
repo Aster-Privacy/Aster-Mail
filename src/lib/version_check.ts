@@ -21,6 +21,7 @@
 
 import { kept_across_updates } from "@/lib/app_update_caches";
 import { ignore_error } from "@/lib/ignore_error";
+import { settle_within } from "@/lib/settle_within";
 
 declare const __BUILD_HASH__: string;
 declare const __APP_VERSION__: string;
@@ -142,6 +143,8 @@ async function request_manifest(): Promise<VersionManifest | null> {
   }
 }
 
+export const FLUSH_STEP_TIMEOUT_MS = 3000;
+
 export async function hard_flush_and_reload(): Promise<void> {
   if (is_flushing) return;
   is_flushing = true;
@@ -158,10 +161,17 @@ export async function hard_flush_and_reload(): Promise<void> {
 
   try {
     if ("serviceWorker" in navigator) {
-      const registrations = await navigator.serviceWorker.getRegistrations();
+      const registrations =
+        (await settle_within(
+          navigator.serviceWorker.getRegistrations(),
+          FLUSH_STEP_TIMEOUT_MS,
+        )) ?? [];
 
-      await Promise.all(
-        registrations.map((r) => r.unregister().catch(() => false)),
+      await settle_within(
+        Promise.all(
+          registrations.map((r) => r.unregister().catch(() => false)),
+        ),
+        FLUSH_STEP_TIMEOUT_MS,
       );
     }
   } catch (caught) {
@@ -170,12 +180,16 @@ export async function hard_flush_and_reload(): Promise<void> {
 
   try {
     if ("caches" in window) {
-      const keys = await caches.keys();
+      const keys =
+        (await settle_within(caches.keys(), FLUSH_STEP_TIMEOUT_MS)) ?? [];
 
-      await Promise.all(
-        keys
-          .filter((k) => !kept_across_updates(k))
-          .map((k) => caches.delete(k).catch(() => false)),
+      await settle_within(
+        Promise.all(
+          keys
+            .filter((k) => !kept_across_updates(k))
+            .map((k) => caches.delete(k).catch(() => false)),
+        ),
+        FLUSH_STEP_TIMEOUT_MS,
       );
     }
   } catch (caught) {

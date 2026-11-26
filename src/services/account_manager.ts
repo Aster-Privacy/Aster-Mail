@@ -28,6 +28,7 @@ import {
   app_pathname,
   get_active_account_index,
   is_public_entry_path,
+  is_signed_in_entry_path,
 } from "@/lib/account_index_url";
 import {
   bind_tab_account,
@@ -532,7 +533,11 @@ function resolve_tab_current_id(data: AccountsData): string | null {
     return data.accounts.some((a) => a.id === bound) ? bound : null;
   }
 
-  if (is_public_entry_path(app_pathname())) return null;
+  const entry_path = app_pathname();
+
+  if (is_public_entry_path(entry_path) && !is_signed_in_entry_path(entry_path)) {
+    return null;
+  }
 
   const choice = choose_tab_account(
     data.accounts.map((a) => a.id),

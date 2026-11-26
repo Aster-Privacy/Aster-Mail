@@ -21,6 +21,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
+import { MemoryRouter } from "react-router-dom";
 
 const h = vi.hoisted(() => ({
   preferences: { external_link_warning_dismissed: false as boolean },
@@ -94,9 +95,11 @@ function render_provider() {
   root = createRoot(container);
   act(() => {
     root!.render(
-      <ExternalLinkProvider>
-        <span />
-      </ExternalLinkProvider>,
+      <MemoryRouter>
+        <ExternalLinkProvider>
+          <span />
+        </ExternalLinkProvider>
+      </MemoryRouter>,
     );
   });
 }
