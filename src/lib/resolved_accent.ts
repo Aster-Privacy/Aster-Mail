@@ -18,10 +18,15 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { useSyncExternalStore } from "react";
+import { useMemo, useSyncExternalStore } from "react";
 
 import { css_color_to_hex } from "@/lib/avatar_color";
-import { contrast_ratio, LARGE_TEXT_CONTRAST } from "@/lib/email_ink";
+import {
+  adjust_lightness_for_contrast,
+  BODY_TEXT_CONTRAST,
+  contrast_ratio,
+  LARGE_TEXT_CONTRAST,
+} from "@/lib/email_ink";
 
 export const DEFAULT_ACCENT_COLOR = "#3b82f6";
 export const DEFAULT_ACCENT_COLOR_HOVER = "#2563eb";
@@ -52,6 +57,29 @@ export function accent_foreground_for(accent: string): AccentForeground {
   return contrast_ratio(hex, LIGHT_FOREGROUND) < LARGE_TEXT_CONTRAST
     ? DARK_FOREGROUND
     : LIGHT_FOREGROUND;
+}
+
+export interface ReadableAccentFill {
+  fill: string;
+  fill_hover: string;
+  fg: AccentForeground;
+}
+
+const READABLE_HOVER_CONTRAST = BODY_TEXT_CONTRAST + 1;
+
+export function readable_accent_fill(accent: string): ReadableAccentFill {
+  const hex = css_color_to_hex(accent) ?? DEFAULT_ACCENT_COLOR;
+  const fg = accent_foreground_for(hex);
+
+  return {
+    fill: adjust_lightness_for_contrast(hex, fg, BODY_TEXT_CONTRAST),
+    fill_hover: adjust_lightness_for_contrast(
+      hex,
+      fg,
+      READABLE_HOVER_CONTRAST,
+    ),
+    fg,
+  };
 }
 
 let current: ResolvedAccent = {
@@ -178,4 +206,10 @@ export function use_resolved_appearance(): ResolvedAppearance {
     get_resolved_appearance,
     get_resolved_appearance,
   );
+}
+
+export function use_readable_accent_fill(): ReadableAccentFill {
+  const { accent } = use_resolved_accent();
+
+  return useMemo(() => readable_accent_fill(accent), [accent]);
 }

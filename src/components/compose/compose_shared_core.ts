@@ -33,6 +33,10 @@ import {
   get_display_time_zone,
 } from "@/utils/date_format";
 import { is_email_shape } from "@/lib/email_shape";
+import {
+  is_known_placeholder_pixel,
+  is_placeholder_pixel,
+} from "@/lib/placeholder_pixel";
 
 export interface ComposeToolbarState {
   scheduled_time: Date | null;
@@ -314,13 +318,24 @@ export function extract_inline_images(html: string): {
 
     const binary = atob(b64_data);
 
-    if (binary.length === 0) continue;
+    if (binary.length === 0) {
+      img.remove();
+      continue;
+    }
 
     const buffer = new ArrayBuffer(binary.length);
     const view = new Uint8Array(buffer);
 
     for (let i = 0; i < binary.length; i++) {
       view[i] = binary.charCodeAt(i);
+    }
+
+    if (
+      is_known_placeholder_pixel(view) ||
+      (img.closest("blockquote, .aster_quote") && is_placeholder_pixel(view))
+    ) {
+      img.remove();
+      continue;
     }
 
     if (buffer.byteLength > MAX_INLINE_IMAGE_SIZE) continue;

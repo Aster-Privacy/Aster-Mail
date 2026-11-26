@@ -25,6 +25,7 @@ import {
   account_index_url,
   app_pathname,
   is_public_entry_path,
+  is_signed_in_entry_path,
   get_active_account_index,
   parse_account_index,
   resolve_account_basename,
@@ -109,6 +110,17 @@ describe("account_index_url", () => {
       expect(resolve_account_basename()).toBe("/u/0");
       expect(window.location.pathname).toBe(`/u/0${path}`);
       expect(is_public_entry_path(app_pathname())).toBe(true);
+    }
+  });
+
+  it("treats invite pages as public pages that keep the signed-in account", () => {
+    for (const path of ["/join/family", "/family/claim/abc"]) {
+      expect(is_public_entry_path(path)).toBe(true);
+      expect(is_signed_in_entry_path(path)).toBe(true);
+    }
+
+    for (const path of ["/sign-in", "/register", "/view/token", "/joined"]) {
+      expect(is_signed_in_entry_path(path)).toBe(false);
     }
   });
 

@@ -612,6 +612,46 @@ export async function derive_current_account_proof(
   return proof.password_hash;
 }
 
+export async function derive_reset_account_proof(
+  password: string,
+  salt: Uint8Array,
+  kdf_version: KdfVersion,
+  address: string,
+): Promise<string> {
+  convert_stored_login_records();
+
+  const user_hash = address ? await hash_email(address) : undefined;
+  const pin_keys = user_hash ? [user_hash_pin_key(user_hash)] : [];
+  const same_account =
+    !!user_hash && (await current_account_user_hash()) === user_hash;
+
+  if (same_account) {
+    await seed_login_salt_record_from_session();
+  }
+
+  const record_keys = same_account ? await current_account_record_keys() : [];
+
+  if (same_account) {
+    await refuse_unrecorded_short_salt(
+      password,
+      salt,
+      kdf_version,
+      pin_keys,
+      record_keys,
+    );
+  }
+
+  const proof = await derive_account_proof(
+    password,
+    salt,
+    kdf_version,
+    pin_keys,
+    { context: "step_up", record_keys },
+  );
+
+  return proof.password_hash;
+}
+
 type SessionPasswordCheck = "match" | "mismatch" | "unavailable";
 
 async function check_session_password(

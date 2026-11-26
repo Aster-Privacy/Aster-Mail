@@ -31,7 +31,6 @@ import {
 
 import { ignore_error } from "@/lib/ignore_error";
 import { use_i18n } from "@/lib/i18n/context";
-import { use_should_reduce_motion } from "@/provider";
 import { use_preferences } from "@/contexts/preferences_context";
 import { use_signatures } from "@/contexts/signatures_context";
 import { use_editor } from "@/hooks/use_editor";
@@ -65,7 +64,6 @@ import {
 
 export function use_signature_section() {
   const { t } = use_i18n();
-  const reduce_motion = use_should_reduce_motion();
   const { preferences, update_preference } = use_preferences();
   const { reload_signatures: reload_context_signatures } = use_signatures();
   const { sender_options } = use_sender_aliases();
@@ -73,7 +71,6 @@ export function use_signature_section() {
   const { limits } = use_plan_limits();
   const is_paid_plan = !!limits && limits.plan_code !== "free";
   const [signatures, set_signatures] = useState<DecryptedSignature[]>([]);
-  const [is_loading, set_is_loading] = useState(true);
   const [is_initial_load, set_is_initial_load] = useState(true);
   const [has_badges, set_has_badges] = useState(false);
 
@@ -202,7 +199,6 @@ export function use_signature_section() {
   }, [preferences.signature_placement]);
 
   const load_signatures = useCallback(async () => {
-    set_is_loading(true);
     set_error(null);
 
     const response = await list_signatures();
@@ -217,7 +213,6 @@ export function use_signature_section() {
       );
     }
 
-    set_is_loading(false);
     set_is_initial_load(false);
   }, []);
 
@@ -485,13 +480,11 @@ export function use_signature_section() {
 
   return {
     t,
-    reduce_motion,
     preferences,
     update_preference,
     sender_aliases,
     is_paid_plan,
     signatures,
-    is_loading,
     is_initial_load,
     has_badges,
     error,

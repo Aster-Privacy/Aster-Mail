@@ -718,7 +718,11 @@ ${preferences.hide_scrollbars === true ? `<style>html, body { scrollbar-width: n
     dom_cleanup.reveal_fully_hidden_content(iframe.contentDocument);
     if (!preserve_formatting) {
       collapse_empty_block_runs(iframe.contentDocument);
-      if (is_plain_text || !has_rich_layout) {
+      if (
+        is_plain_text ||
+        !has_rich_layout ||
+        dom_cleanup.has_aster_compose_markup(iframe.contentDocument)
+      ) {
         trim_trailing_empty_blocks(iframe.contentDocument);
       }
     }
@@ -1133,6 +1137,8 @@ ${preferences.hide_scrollbars === true ? `<style>html, body { scrollbar-width: n
             backgroundColor: frame_bg,
             colorScheme: document_scheme,
             touchAction: "pan-y",
+            userSelect: "none",
+            WebkitUserSelect: "none",
           }}
           title={t("mail.email_content")}
           onLoad={handle_load}

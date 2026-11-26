@@ -876,6 +876,7 @@ export function SearchResultsPage(props: SearchResultsPageProps) {
             on_navigate_prev={
               is_split_view ? handle_search_navigate_prev : undefined
             }
+            on_jump_to_page={set_search_page}
             on_page_change={is_split_view ? undefined : set_search_page}
             on_quick_settings_click={on_quick_settings_click}
             on_search_result_click={on_result_click}

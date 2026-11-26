@@ -23,6 +23,23 @@ import type { ContextMenuActions } from "./inbox_context_menu_types";
 
 import { useCallback, useEffect, useMemo, useRef } from "react";
 
+export function row_covers_open_email(
+  row: InboxEmail,
+  open_id: string | null | undefined,
+  emails: readonly InboxEmail[],
+): boolean {
+  if (!open_id) return false;
+  if (row.id === open_id) return true;
+  if (row.grouped_email_ids?.includes(open_id)) return true;
+  if (!row.thread_token) return false;
+  const open_row = emails.find(
+    (email) =>
+      email.id === open_id || email.grouped_email_ids?.includes(open_id),
+  );
+
+  return open_row?.thread_token === row.thread_token;
+}
+
 interface UseSplitReaderAdvanceOptions {
   context_menu_actions: ContextMenuActions;
   split_email_id?: string | null;
@@ -47,8 +64,12 @@ export function use_split_reader_advance({
 } {
   const leaving_id_ref = useRef<string | null>(null);
   const split_email_id_ref = useRef(split_email_id);
+  const emails_ref = useRef(emails);
+  const on_split_close_ref = useRef(on_split_close);
 
   split_email_id_ref.current = split_email_id;
+  emails_ref.current = emails;
+  on_split_close_ref.current = on_split_close;
 
   const mark_leaving = useCallback((email_id: string) => {
     if (email_id === split_email_id_ref.current) {
@@ -65,8 +86,24 @@ export function use_split_reader_advance({
         return action(email, ...rest);
       };
 
+    const handle_toggle_read = (email: InboxEmail): Promise<void> => {
+      const closes =
+        email.is_read &&
+        row_covers_open_email(
+          email,
+          split_email_id_ref.current,
+          emails_ref.current,
+        );
+      const result = context_menu_actions.handle_toggle_read(email);
+
+      if (closes) on_split_close_ref.current?.();
+
+      return result;
+    };
+
     return {
       ...context_menu_actions,
+      handle_toggle_read,
       handle_archive: watch(context_menu_actions.handle_archive),
       handle_delete: watch(context_menu_actions.handle_delete),
       handle_spam: watch(context_menu_actions.handle_spam),

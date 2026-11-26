@@ -31,6 +31,7 @@ interface PublicKeyResponse {
   username: string;
   public_key: string;
   internal?: boolean;
+  previous_public_keys?: string[];
 }
 
 export interface ExternalKeyFingerprintChange {

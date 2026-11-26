@@ -3467,7 +3467,7 @@ export const tr = {
     alias_pref_unsubscribe_block_contact: "Göndereni engelle",
     alias_pref_disabled_response: "Engellenen postaya yanıt",
     alias_pref_disabled_response_desc:
-      "Postaları sessizce düşürüldüğünde gönderenin gördüğü şey.",
+      "Engellediğiniz bir gönderen size e-posta gönderdiğinde veya biri devre dışı bir rumuza ya da adrese yazdığında ne olacağı.",
     alias_pref_disabled_ignore: "Sessizce yok say",
     alias_pref_disabled_reject: "Reddet (geri döndür)",
     alias_pref_delete_action: "Bir rumuz silinirken",
@@ -3482,7 +3482,7 @@ export const tr = {
     alias_pref_unsubscribe_action_info:
       "İletilen bir e-postada abonelikten çık düğmesine tıkladığınızda ne olacağı.",
     alias_pref_disabled_response_info:
-      "Gönderen devre dışı bir rumuza veya engellenen bir kişiye yazdığında ne gördüğü.",
+      "Yok saymayı seçerseniz gönderene hiçbir şey bildirilmez. Engellenen bir göndericinin postası, Spam'e taşınmak gibi engelleme ayarınıza göre işlenir ve devre dışı bir rumuza ya da adrese gelen posta silinir. Reddetmeyi seçerseniz posta reddedilir ve gönderen, postanın teslim edilmediğine dair bir bildirim alır.",
     alias_pref_delete_action_info:
       "Çöpe taşımak silinen rumuzları 30 gün boyunca kurtarılabilir tutar. Hemen sil onları kalıcı olarak kaldırır.",
     alias_pref_delete_trash: "Çöpe taşı",
@@ -3762,7 +3762,7 @@ export const tr = {
     fam_org_ret_trash: "Çöp",
     fam_org_ret_trash_hint: "Çöpteki postayı otomatik sil",
     fam_org_ret_trash_info:
-      "Çöpteki bu kadar günden eski mesajlar kalıcı olarak silinir.",
+      "Mesajlar, Çöp Kutusu'na taşındıktan bu kadar gün sonra kalıcı olarak silinir.",
     fam_org_ret_spam: "Önemsiz",
     fam_org_ret_spam_hint: "Spam'i otomatik sil (varsayılan 30 gün)",
     fam_org_ret_spam_info:
@@ -6536,7 +6536,7 @@ export const tr = {
     auto_delete_spam_after: "Spam'i şu süre sonra otomatik sil:",
     auto_delete_trash_after: "Çöp kutusunu şu süre sonra otomatik sil:",
     auto_delete_trash_description:
-      "Bu süreden eski Çöp Kutusu e-postaları kalıcı olarak silinir.",
+      "E-postalar, Çöp Kutusu'na taşındıktan bu süre sonra kalıcı olarak silinir.",
     spam_delete_hint: "Bu süreden eski spam e-postalar kalıcı olarak silinecek",
     save_changes: "Değişiklikleri Kaydet",
     spam_low: "Düşük",
@@ -8217,6 +8217,15 @@ export const tr = {
     remote_images_always: "Her zaman yükle",
     remote_images_ask: "Yüklemeden önce sor",
     remote_images_never: "Hiçbir zaman yükleme",
+    image_cache_label: "Yüklenen görselleri bu cihazda sakla",
+    image_cache_description: "Yüklediğiniz görselleri bu cihazda şifreli olarak saklar, böylece bir iletiyi yeniden açmak gönderene hiçbir şey göndermez.",
+    image_prefetch_label: "Posta geldiğinde görselleri yükle",
+    image_prefetch_description: "Yeni posta bu cihaza ulaşır ulaşmaz görselleri Aster üzerinden getirir, böylece gönderenler iletiyi ne zaman açtığınızı bilemez.",
+    image_prefetch_unavailable: "Uzak görseller otomatik yüklendiğinde ve kayıtlı görseller açık olduğunda kullanılabilir.",
+    image_cache_clear_label: "Kayıtlı görseller",
+    image_cache_clear_description: "Bu cihazda kayıtlı tüm görselleri kaldırır.",
+    image_cache_clear_button: "Temizle",
+    image_cache_cleared: "Kayıtlı görseller temizlendi",
     tracking_protection_title: "İzleme Koruması",
     tracking_protection_enabled: "İzleme Korumasını Etkinleştir",
     tracking_protection_enabled_description:
@@ -10181,6 +10190,11 @@ export const tr = {
     spam_label: "Önemsiz",
     attachment_chips_more: "+{{count}} daha",
     page_of_total: "Sayfa {{current}} / {{total}}",
+    page_jump_newest: "En yeni",
+    page_jump_oldest: "En eski",
+    page_jump_go_to: "Sayfaya git",
+    page_jump_input: "Sayfa numarası",
+    page_jump_invalid: "1 ile {{total}} arasında bir sayfa girin",
     total_pages_label: "{{count}} sayfa",
     total_pages_label_one: "{{count}} sayfa",
     loading_preview: "Önizleme yükleniyor…",
@@ -10273,11 +10287,11 @@ export const tr = {
     fonts: "yazı tipleri",
     stylesheet: "stil sayfası",
     trash_auto_delete_notice:
-      "Çöp Kutusu'ndaki iletiler {{ days }} gün sonra silinir.",
+      "İletiler, Çöp Kutusu'na taşındıktan {{ days }} gün sonra silinir.",
     spam_auto_delete_notice:
       "Önemsiz klasöründeki iletiler {{ days }} gün sonra silinir.",
     trash_auto_delete_notice_family:
-      "Çöp Kutusu'ndaki iletiler, aile yöneticisinin ayarına göre {{ days }} gün sonra silinir.",
+      "İletiler, aile yöneticisinin ayarına göre Çöp Kutusu'na taşındıktan {{ days }} gün sonra silinir.",
     spam_auto_delete_notice_family:
       "Önemsiz klasöründeki iletiler, aile yöneticisinin ayarına göre {{ days }} gün sonra silinir.",
     insert_link_title: "Bağlantı Ekle",
@@ -10827,6 +10841,8 @@ export const tr = {
       "Şifreleme anahtarlarınızın aynı kalması ve e-postalarınızın okunabilir kalması için mevcut şifrenizi girin. Bilmiyorsanız bunun yerine bir kurtarma kodu kullanın.",
     reset_current_password_required:
       "Mevcut şifrenizi girin veya bunun yerine bir kurtarma kodu kullanın.",
+    reset_legacy_login_salt:
+      "Önceki e-postalarınızı mevcut şifrenizle korumak için bu sıfırlama bağlantısını daha önce Aster ile kullandığınız bir cihazda açın. Bunu yapamıyorsanız bunun yerine bir kurtarma kodu kullanın.",
     reset_lost_everything:
       "Şifremi ve kurtarma kodlarımı kaybettim",
     reset_remember_password:
@@ -12817,6 +12833,9 @@ export const tr = {
     remote_image_loading: "uzak görsel yükleme, uzak görselleri engelle, görselleri yükle, harici görseller, yüklemeden önce sor",
     block_remote_fonts_label: "uzak yazı tiplerini engelle, harici yazı tipleri, web yazı tipleri",
     block_remote_css_label: "uzak CSS'i engelle, harici stil sayfaları, uzak stiller",
+    image_cache_label: "görsel önbelleği, kayıtlı görseller, görselleri sakla",
+    image_prefetch_label: "görselleri önceden yükle, gelince görselleri yükle, açılma takibi",
+    image_cache_clear_label: "kayıtlı görselleri temizle, görsel önbelleğini sil",
     strip_exif_on_compose_label: "görsel meta verilerini kaldır, exif, meta veri temizleme, görsel gizliliği",
     send_error_reports_label: "hata raporları gönder, telemetri, tanılama, çökme raporları",
     prefer_plain_text_label: "düz metni tercih et, düz metin sürümü, metin alternatifi, multipart",

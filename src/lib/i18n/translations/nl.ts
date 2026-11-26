@@ -3450,7 +3450,7 @@ export const nl = {
     alias_pref_unsubscribe_block_contact: "Afzender blokkeren",
     alias_pref_disabled_response: "Reactie op geblokkeerde e-mail",
     alias_pref_disabled_response_desc:
-      "Wat de afzender ziet wanneer hun e-mail stilzwijgend wordt verwijderd.",
+      "Wat er gebeurt als een geblokkeerde afzender je mailt, of als iemand mailt naar een uitgeschakelde alias of een uitgeschakeld adres.",
     alias_pref_disabled_ignore: "Stilzwijgend negeren",
     alias_pref_disabled_reject: "Weigeren (bounce)",
     alias_pref_delete_action: "Bij het verwijderen van een alias",
@@ -3465,7 +3465,7 @@ export const nl = {
     alias_pref_unsubscribe_action_info:
       "Wat er gebeurt wanneer je op de afmeldknop klikt in een doorgestuurde e-mail.",
     alias_pref_disabled_response_info:
-      "Wat de afzender ziet wanneer hij naar een uitgeschakelde alias of een geblokkeerd contact mailt.",
+      "Als je kiest voor negeren, krijgt de afzender niets te horen. Mail van een geblokkeerde afzender volgt je blokkeerinstelling, zoals verplaatsen naar Spam, en mail naar een uitgeschakelde alias of een uitgeschakeld adres wordt verwijderd. Als je kiest voor weigeren, wordt de mail geweigerd en krijgt de afzender een melding dat die niet is afgeleverd.",
     alias_pref_delete_action_info:
       "Naar prullenbak verplaatsen houdt verwijderde aliassen 30 dagen herstelbaar. Direct verwijderen verwijdert ze permanent.",
     alias_pref_delete_trash: "Naar prullenbak verplaatsen",
@@ -3753,7 +3753,7 @@ export const nl = {
     fam_org_ret_trash: "Prullenbak",
     fam_org_ret_trash_hint: "Verwijderde mail automatisch wissen",
     fam_org_ret_trash_info:
-      "Berichten in de prullenbak die ouder zijn dan dit aantal dagen worden permanent verwijderd.",
+      "Berichten worden permanent verwijderd dit aantal dagen nadat ze naar de prullenbak zijn verplaatst.",
     fam_org_ret_spam: "Spam",
     fam_org_ret_spam_hint: "Spam automatisch verwijderen (standaard 30 dagen)",
     fam_org_ret_spam_info:
@@ -6475,7 +6475,7 @@ export const nl = {
     auto_delete_spam_after: "Spam automatisch verwijderen na",
     auto_delete_trash_after: "Prullenbak automatisch legen na",
     auto_delete_trash_description:
-      "E-mails in de Prullenbak die ouder zijn dan dit worden definitief verwijderd.",
+      "Berichten worden definitief verwijderd zodra deze periode voorbij is sinds je ze naar de Prullenbak hebt verplaatst.",
     spam_delete_hint: "Spam-e-mails ouder dan dit worden permanent verwijderd",
     save_changes: "Wijzigingen opslaan",
     spam_low: "Laag",
@@ -8985,6 +8985,15 @@ export const nl = {
     remote_images_always: "Altijd laden",
     remote_images_ask: "Vragen",
     remote_images_never: "Nooit laden",
+    image_cache_label: "Geladen afbeeldingen op dit apparaat bewaren",
+    image_cache_description: "Bewaart de afbeeldingen die je laadt versleuteld op dit apparaat, zodat het opnieuw openen van een bericht niets naar de afzender stuurt.",
+    image_prefetch_label: "Afbeeldingen laden bij binnenkomst van e-mail",
+    image_prefetch_description: "Haalt afbeeldingen via Aster op zodra nieuwe e-mail dit apparaat bereikt, zodat afzenders niet kunnen zien wanneer je die opent.",
+    image_prefetch_unavailable: "Beschikbaar wanneer externe afbeeldingen automatisch laden en bewaarde afbeeldingen aan staan.",
+    image_cache_clear_label: "Bewaarde afbeeldingen",
+    image_cache_clear_description: "Verwijdert alle afbeeldingen die op dit apparaat zijn bewaard.",
+    image_cache_clear_button: "Wissen",
+    image_cache_cleared: "Bewaarde afbeeldingen gewist",
     remove_key: "Sleutel verwijderen",
     rotate_dkim_description:
       "Roteer je DKIM-sleutel om de beveiliging te verbeteren. Je moet je DNS-records bijwerken na de rotatie.",
@@ -10273,6 +10282,11 @@ export const nl = {
     spam_label: "Spam",
     attachment_chips_more: "+{{count}} meer",
     page_of_total: "Pagina {{current}} van {{total}}",
+    page_jump_newest: "Nieuwste",
+    page_jump_oldest: "Oudste",
+    page_jump_go_to: "Ga naar pagina",
+    page_jump_input: "Paginanummer",
+    page_jump_invalid: "Voer een pagina van 1 tot {{total}} in",
     total_pages_label: "{{count}} pagina's",
     total_pages_label_one: "{{count}} pagina",
     loading_preview: "Voorbeeld laden…",
@@ -10353,11 +10367,11 @@ export const nl = {
     forwarded_by_label: "Doorgestuurd door",
     new_reaction: "Nieuwe reactie",
     trash_auto_delete_notice:
-      "Berichten in de Prullenbak worden na {{ days }} dagen verwijderd.",
+      "Berichten worden {{ days }} dagen nadat ze naar de Prullenbak zijn verplaatst verwijderd.",
     spam_auto_delete_notice:
       "Berichten in Spam worden na {{ days }} dagen verwijderd.",
     trash_auto_delete_notice_family:
-      "Berichten in de Prullenbak worden na {{ days }} dagen verwijderd, zoals ingesteld door de familiebeheerder.",
+      "Berichten worden {{ days }} dagen nadat ze naar de Prullenbak zijn verplaatst verwijderd, zoals ingesteld door de familiebeheerder.",
     spam_auto_delete_notice_family:
       "Berichten in Spam worden na {{ days }} dagen verwijderd, zoals ingesteld door de familiebeheerder.",
     insert_link_title: "Link invoegen",
@@ -10917,6 +10931,8 @@ export const nl = {
       "Voer je huidige wachtwoord in zodat je versleutelingssleutels hetzelfde blijven en je e-mail leesbaar blijft. Weet je het niet, gebruik dan een herstelcode.",
     reset_current_password_required:
       "Voer je huidige wachtwoord in of gebruik een herstelcode.",
+    reset_legacy_login_salt:
+      "Open deze resetlink op een apparaat dat je eerder met Aster hebt gebruikt om je eerdere e-mail met je huidige wachtwoord te behouden. Lukt dat niet, gebruik dan een herstelcode.",
     reset_lost_everything:
       "Ik ben mijn wachtwoord en herstelcodes kwijt",
     reset_remember_password:
@@ -12950,6 +12966,9 @@ export const nl = {
     remote_image_loading: "externe afbeeldingen blokkeren, afbeeldingen laden, externe afbeeldingen, vragen voor laden",
     block_remote_fonts_label: "externe lettertypen, weblettertypen, lettertypen blokkeren",
     block_remote_css_label: "externe stijlbladen, externe stijlen, CSS blokkeren",
+    image_cache_label: "afbeeldingscache, opgeslagen afbeeldingen, afbeeldingen bewaren",
+    image_prefetch_label: "afbeeldingen vooraf laden, afbeeldingen laden bij ontvangst, open-tracking",
+    image_cache_clear_label: "opgeslagen afbeeldingen wissen, afbeeldingscache legen",
     strip_exif_on_compose_label: "exif, metadata verwijderen, privacy afbeeldingen, afbeeldingsmetadata",
     send_error_reports_label: "telemetrie, diagnose, crashrapporten, foutrapporten",
     prefer_plain_text_label: "platte tekst versie, tekstalternatief, multipart, platte tekst",

@@ -38,6 +38,7 @@ import {
   trim_start_index,
 } from "@/lib/linear_trim";
 import { ascii_lower, next_char_table, table_lookup } from "@/lib/html_text";
+import { email_timestamp_ms } from "@/utils/email_timestamp";
 
 const ALLOWED_IMAGE_TYPES = new Set([
   "image/png",
@@ -495,14 +496,32 @@ function strip_extension(value: string): string {
 export interface BodyInlineRefs {
   cids: Set<string>;
   filenames: Set<string>;
+  embeds_data_images?: boolean;
 }
+
+const GENERATED_INLINE_CID_PATTERN =
+  /^img_[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}@astermail\.org$/;
+
+export function is_generated_inline_cid(content_id: string): boolean {
+  return GENERATED_INLINE_CID_PATTERN.test(normalize_cid(content_id));
+}
+
+const EMBEDDED_DATA_IMAGE_TAG =
+  /<img\b[^>]*?\ssrc\s*=\s*["']?\s*data:image\//i;
 
 export function extract_body_inline_refs(
   html: string,
+  own_message = false,
 ): BodyInlineRefs | undefined {
   const refs = extract_cid_references(html);
+  const embeds_data_images =
+    own_message && EMBEDDED_DATA_IMAGE_TAG.test(html);
 
-  if (refs.length === 0) return undefined;
+  if (refs.length === 0) {
+    return embeds_data_images
+      ? { cids: new Set(), filenames: new Set(), embeds_data_images }
+      : undefined;
+  }
 
   const filenames = new Set<string>();
 
@@ -510,7 +529,11 @@ export function extract_body_inline_refs(
     filenames.add(name.replace(/^cid:/, ""));
   }
 
-  return { cids: new Set(refs.map(normalize_cid)), filenames };
+  return {
+    cids: new Set(refs.map(normalize_cid)),
+    filenames,
+    embeds_data_images,
+  };
 }
 
 export interface InlineImageCandidate {
@@ -534,6 +557,15 @@ export function is_body_inline_image(
   if (as_image === null) return false;
 
   if (item.content_id && refs.cids.has(normalize_cid(item.content_id))) {
+    return true;
+  }
+
+  if (
+    refs.embeds_data_images &&
+    item.content_id &&
+    is_generated_inline_cid(item.content_id) &&
+    ascii_lower(item.content_type ?? "").startsWith("image/")
+  ) {
     return true;
   }
 
@@ -626,10 +658,227 @@ function apply_cid_plan(plan: CidResolutionPlan): CidResolutionResult {
   };
 }
 
+const MAX_RELATED_MESSAGES = 20;
+const MAX_RELATED_IMAGE_BYTES = 5 * 1024 * 1024;
+const MAX_RELATED_TOTAL_BYTES = 10 * 1024 * 1024;
+
+export function earlier_thread_message_ids(
+  messages: readonly { id: string; timestamp: string }[],
+  current_id: string,
+): string[] {
+  const current = messages.find((message) => message.id === current_id);
+  const current_ms = current ? email_timestamp_ms(current.timestamp) : 0;
+
+  if (current_ms <= 0) return [];
+
+  return messages
+    .map((message) => ({
+      id: message.id,
+      ms: email_timestamp_ms(message.timestamp),
+    }))
+    .filter(
+      (entry) =>
+        entry.id !== current_id && entry.ms > 0 && entry.ms < current_ms,
+    )
+    .sort((a, b) => b.ms - a.ms)
+    .slice(0, MAX_RELATED_MESSAGES)
+    .map((entry) => entry.id);
+}
+
+function image_replacement(
+  original_cid: string,
+  data: ArrayBuffer | Uint8Array,
+  content_type: string,
+  url_mode: CidUrlMode,
+): CidReplacement {
+  const bytes = data instanceof Uint8Array ? data : new Uint8Array(data);
+
+  return url_mode === "data"
+    ? {
+        original_cid,
+        data_url: `data:${content_type};base64,${array_to_base64(bytes)}`,
+      }
+    : {
+        original_cid,
+        blob: new Blob([bytes as BlobPart], { type: content_type }),
+      };
+}
+
+async function plan_related_cid_replacements(
+  missing: Map<string, string>,
+  related_mail_item_ids: readonly string[],
+  url_mode: CidUrlMode,
+): Promise<CidReplacement[]> {
+  const replacements: CidReplacement[] = [];
+  let total_bytes = 0;
+
+  for (const related_id of related_mail_item_ids.slice(
+    0,
+    MAX_RELATED_MESSAGES,
+  )) {
+    if (missing.size === 0) break;
+
+    const local_parts = get_decrypted_mime_attachments(related_id);
+
+    if (local_parts.length > 0) {
+      for (const part of local_parts) {
+        if (!part.content_id) continue;
+
+        const key = normalize_cid(part.content_id);
+        const original_cid = missing.get(key);
+        const content_type = resolved_image_content_type(part);
+
+        if (!original_cid || content_type === null) continue;
+
+        const part_bytes = part.data.byteLength;
+
+        if (
+          part_bytes > MAX_RELATED_IMAGE_BYTES ||
+          total_bytes + part_bytes > MAX_RELATED_TOTAL_BYTES
+        ) {
+          continue;
+        }
+
+        total_bytes += part_bytes;
+        replacements.push(
+          image_replacement(original_cid, part.data, content_type, url_mode),
+        );
+        missing.delete(key);
+      }
+
+      continue;
+    }
+
+    let records: Awaited<ReturnType<typeof fetch_attachment_records>>;
+
+    try {
+      records = await fetch_attachment_records(related_id);
+    } catch {
+      continue;
+    }
+
+    const cached_by_id = new Map(
+      (get_cached_attachment_meta(related_id) ?? []).map((item) => [
+        item.id,
+        item,
+      ]),
+    );
+
+    for (const att of records) {
+      if (missing.size === 0) break;
+      if (
+        att.size_bytes > MAX_RELATED_IMAGE_BYTES ||
+        total_bytes + att.size_bytes > MAX_RELATED_TOTAL_BYTES
+      ) {
+        continue;
+      }
+
+      const cached = cached_by_id.get(att.id);
+
+      if (
+        cached &&
+        (!cached.content_id || !missing.has(normalize_cid(cached.content_id)))
+      ) {
+        continue;
+      }
+
+      try {
+        const meta = await decrypt_attachment_meta(
+          att.encrypted_meta,
+          att.meta_nonce,
+          att.mail_item_id,
+          att.seq_num,
+        );
+
+        if (!meta.content_id) continue;
+
+        const key = normalize_cid(meta.content_id);
+        const original_cid = missing.get(key);
+        const content_type = resolved_image_content_type(meta);
+
+        if (!original_cid || content_type === null) continue;
+
+        const data = await decrypt_attachment_data(
+          att.encrypted_data,
+          att.data_nonce,
+          meta.session_key,
+          att.mail_item_id,
+          att.seq_num,
+        );
+        const data_bytes = data.byteLength;
+
+        if (
+          data_bytes > MAX_RELATED_IMAGE_BYTES ||
+          total_bytes + data_bytes > MAX_RELATED_TOTAL_BYTES
+        ) {
+          continue;
+        }
+
+        total_bytes += data_bytes;
+        replacements.push(
+          image_replacement(original_cid, data, content_type, url_mode),
+        );
+        missing.delete(key);
+      } catch {
+        continue;
+      }
+    }
+  }
+
+  return replacements;
+}
+
+async function with_related_replacements(
+  html: string,
+  cid_refs: string[],
+  plan: CidResolutionPlan,
+  mail_item_id: string,
+  related_mail_item_ids: readonly string[],
+  url_mode: CidUrlMode,
+): Promise<CidResolutionPlan> {
+  const related = related_mail_item_ids.filter(
+    (id) => id.length > 0 && id !== mail_item_id,
+  );
+
+  if (related.length === 0 || plan.records_unavailable) return plan;
+
+  const own_replacements = plan.is_final ? [] : plan.replacements;
+  const matched = new Set(
+    own_replacements.map((replacement) =>
+      normalize_cid(replacement.original_cid),
+    ),
+  );
+  const missing = new Map<string, string>();
+
+  for (const ref of cid_refs) {
+    const key = normalize_cid(ref);
+
+    if (!matched.has(key)) missing.set(key, ref);
+  }
+
+  if (missing.size === 0) return plan;
+
+  const extra = await plan_related_cid_replacements(
+    missing,
+    related,
+    url_mode,
+  );
+
+  if (extra.length === 0) return plan;
+
+  return {
+    html: plan.is_final ? html : plan.html,
+    replacements: [...own_replacements, ...extra],
+    unresolved: Math.max(plan.unresolved - extra.length, 0),
+    is_final: false,
+  };
+}
+
 export async function resolve_cid_references(
   html: string,
   mail_item_id: string,
   url_mode: CidUrlMode = "blob",
+  related_mail_item_ids: readonly string[] = [],
 ): Promise<CidResolutionResult> {
   const cid_refs = extract_cid_references(html);
 
@@ -656,7 +905,16 @@ export async function resolve_cid_references(
     task = created;
   }
 
-  return apply_cid_plan(await task);
+  return apply_cid_plan(
+    await with_related_replacements(
+      html,
+      cid_refs,
+      await task,
+      mail_item_id,
+      related_mail_item_ids,
+      url_mode,
+    ),
+  );
 }
 
 async function plan_cid_resolution(

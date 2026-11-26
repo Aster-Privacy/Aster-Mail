@@ -27,6 +27,11 @@ import type {
 import { sha256 } from "@noble/hashes/sha256";
 import { bytesToHex } from "@noble/hashes/utils";
 
+import {
+  record_received_chain,
+  type ReceivedChain,
+} from "./ratchet_received_chains";
+
 const MAX_MERGED_SKIPPED_KEYS = 2000;
 const MAX_RETIRED_SEND_CATCH_UP = 1000;
 
@@ -61,22 +66,46 @@ function merge_skipped_keys(
   return merged.slice(Math.max(0, merged.length - MAX_MERGED_SKIPPED_KEYS));
 }
 
+export function local_received_chains(state: RatchetState): ReceivedChain[] {
+  const chains = state.received_chains ?? [];
+
+  if (state.chain_key_recv === null || state.dh_remote_public === null) {
+    return chains.map((chain) => ({ ...chain }));
+  }
+
+  return record_received_chain(
+    chains,
+    state.dh_remote_public,
+    state.recv_message_number,
+  );
+}
+
+function receive_floors(state: RatchetState): Map<string, number> {
+  const floors = new Map<string, number>();
+
+  for (const chain of local_received_chains(state)) {
+    floors.set(
+      chain.dh_public,
+      Math.max(floors.get(chain.dh_public) ?? 0, chain.next),
+    );
+  }
+
+  return floors;
+}
+
 function remote_keys_still_pending(
   local: RatchetState,
   remote: RatchetState,
 ): SkippedMessageKey[] {
   const remote_keys = remote.skipped_message_keys ?? [];
-
-  if (local.chain_key_recv === null) return remote_keys;
-
+  const floors = receive_floors(local);
   const local_ids = new Set(
     (local.skipped_message_keys ?? []).map(skipped_key_id),
   );
 
   return remote_keys.filter(
     (key) =>
-      key.dh_public !== local.dh_remote_public ||
-      key.message_number >= local.recv_message_number ||
+      key.message_number >= (floors.get(key.dh_public) ?? 0) ||
       local_ids.has(skipped_key_id(key)),
   );
 }
@@ -194,6 +223,7 @@ export function merge_ratchet_states(
         skipped_message_keys: keep_local_skipped
           ? merge_skipped_keys(local_skipped, [])
           : merged_skipped,
+        received_chains: local_received_chains(local.state),
         dirty_since_sync: true,
         updated_at: Math.max(local.state.updated_at, remote.state.updated_at),
       },
@@ -230,9 +260,9 @@ export function merge_ratchet_states(
         local.state.remote_identity_key || remote.state.remote_identity_key,
       header_bound:
         local.state.header_bound || remote.state.header_bound || undefined,
-      weak_bootstrap:
-        local.state.weak_bootstrap || remote.state.weak_bootstrap,
+      weak_bootstrap: local.state.weak_bootstrap || remote.state.weak_bootstrap,
       skipped_message_keys,
+      received_chains: local_received_chains(local.state),
       dirty_since_sync: true,
       updated_at: Math.max(local.state.updated_at, remote.state.updated_at),
     },

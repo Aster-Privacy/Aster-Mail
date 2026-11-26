@@ -3186,7 +3186,7 @@ export const zh_CN = {
     alias_pref_unsubscribe_block_contact: "屏蔽发件人",
     alias_pref_disabled_response: "对被屏蔽邮件的响应",
     alias_pref_disabled_response_desc:
-      "当发件人的邮件被静默丢弃时，他们会看到的内容。",
+      "已屏蔽的发件人给你发邮件，或有人向已停用的别名或地址发邮件时的处理方式。",
     alias_pref_disabled_ignore: "静默忽略",
     alias_pref_disabled_reject: "拒收（退信）",
     alias_pref_delete_action: "删除别名时",
@@ -3200,7 +3200,7 @@ export const zh_CN = {
     alias_pref_unsubscribe_action_info:
       "在转发邮件中点击退订按钮时会发生什么。",
     alias_pref_disabled_response_info:
-      "发件人向已停用的别名或被屏蔽的联系人发邮件时看到的内容。",
+      "如果选择忽略，发件人不会收到任何通知。已屏蔽发件人的邮件会按照你的屏蔽设置处理，例如移到垃圾邮件；发往已停用别名或地址的邮件会被丢弃。如果选择拒收，邮件会被拒绝，发件人会收到未送达的通知。",
     alias_pref_delete_action_info:
       "移至垃圾箱可在 30 天内恢复已删除的别名。立即删除会将其永久移除。",
     alias_pref_delete_trash: "移至垃圾箱",
@@ -3457,7 +3457,7 @@ export const zh_CN = {
     fam_org_ret_loading: "加载中…",
     fam_org_ret_trash: "垃圾箱",
     fam_org_ret_trash_hint: "自动删除垃圾箱中的邮件",
-    fam_org_ret_trash_info: "垃圾箱中超过指定天数的邮件将被永久删除。",
+    fam_org_ret_trash_info: "邮件移入垃圾箱满指定天数后将被永久删除。",
     fam_org_ret_spam: "垃圾邮件",
     fam_org_ret_spam_hint: "自动删除垃圾邮件（默认 30 天）",
     fam_org_ret_spam_info:
@@ -5940,7 +5940,7 @@ export const zh_CN = {
     spam_sensitivity: "垃圾邮件敏感度",
     auto_delete_spam_after: "自动删除垃圾邮件的时间",
     auto_delete_trash_after: "自动清空回收站的时间",
-    auto_delete_trash_description: "超过此期限的回收站邮件将被永久删除",
+    auto_delete_trash_description: "邮件移入回收站满此期限后将被永久删除。",
     spam_delete_hint: "超过此时间的垃圾邮件将被永久删除",
     save_changes: "保存更改",
     spam_low: "低",
@@ -7498,6 +7498,15 @@ export const zh_CN = {
     remote_image_loading: "远程图片加载",
     remote_image_loading_description: "控制何时从外部服务器加载图片",
     remote_images_never: "永不",
+    image_cache_label: "在此设备上保留已加载的图片",
+    image_cache_description: "将你加载的图片加密保存在此设备上，再次打开邮件时不会向发件人发送任何内容。",
+    image_prefetch_label: "收到邮件时加载图片",
+    image_prefetch_description: "新邮件一到达此设备，就通过 Aster 获取图片，发件人无法得知你何时打开邮件。",
+    image_prefetch_unavailable: "在远程图片自动加载且已开启保存图片时可用。",
+    image_cache_clear_label: "已保存的图片",
+    image_cache_clear_description: "删除此设备上保存的所有图片。",
+    image_cache_clear_button: "清除",
+    image_cache_cleared: "已清除保存的图片",
     remote_images_ask: "询问",
     remote_images_always: "始终",
     block_remote_images_label: "屏蔽远程图片",
@@ -9158,6 +9167,11 @@ export const zh_CN = {
     spam_label: "垃圾邮件",
     attachment_chips_more: "+{{count}}更多",
     page_of_total: "第{{current}}页，共{{total}}页",
+    page_jump_newest: "最新",
+    page_jump_oldest: "最早",
+    page_jump_go_to: "前往页面",
+    page_jump_input: "页码",
+    page_jump_invalid: "请输入 1 到 {{total}} 之间的页码",
     total_pages_label: "{{count}}页",
     loading_preview: "正在加载预览…",
     preview_failed: "预览未能加载，打开邮件就可以看到。",
@@ -9249,10 +9263,10 @@ export const zh_CN = {
     add_link_to_selection: '为"{{text}}"添加链接',
     url_label: "URL",
     link_text_optional: "链接文字（可选）",
-    trash_auto_delete_notice: "回收站中的邮件将在 {{ days }} 天后删除。",
+    trash_auto_delete_notice: "邮件移入回收站 {{ days }} 天后将被删除。",
     spam_auto_delete_notice: "垃圾邮件文件夹中的邮件将在 {{ days }} 天后删除。",
     trash_auto_delete_notice_family:
-      "根据家庭管理员的设置，回收站中的邮件将在 {{ days }} 天后删除。",
+      "根据家庭管理员的设置，邮件移入回收站 {{ days }} 天后将被删除。",
     spam_auto_delete_notice_family:
       "根据家庭管理员的设置，垃圾邮件文件夹中的邮件将在 {{ days }} 天后删除。",
     advanced_search: "高级搜索",
@@ -9767,6 +9781,8 @@ export const zh_CN = {
       "输入你的当前密码，这样你的加密密钥保持不变，邮件也能继续阅读。如果你不知道当前密码，请改用恢复码。",
     reset_current_password_required:
       "请输入你的当前密码，或改用恢复码。",
+    reset_legacy_login_salt:
+      "要使用当前密码保留之前的邮件，请在你以前用过 Aster 的设备上打开此重置链接。如果无法做到，请改用恢复码。",
     reset_lost_everything:
       "我丢失了密码和恢复码",
     reset_remember_password:
@@ -11629,6 +11645,9 @@ export const zh_CN = {
     remote_image_loading: "远程图片加载, 拦截远程图片, 加载图片, 外部图片, 加载前询问",
     block_remote_fonts_label: "拦截远程字体, 外部字体, 网络字体",
     block_remote_css_label: "拦截远程 CSS, 外部样式表, 远程样式",
+    image_cache_label: "图片缓存, 已保存的图片, 保留图片",
+    image_prefetch_label: "预加载图片, 收到邮件时加载图片, 打开追踪",
+    image_cache_clear_label: "清除已保存的图片, 删除图片缓存",
     strip_exif_on_compose_label: "移除图片元数据, EXIF, 删除元数据, 图片隐私",
     send_error_reports_label: "发送错误报告, 遥测, 诊断, 崩溃报告",
     prefer_plain_text_label: "优先纯文本, 纯文本版本, 文本替代, multipart",

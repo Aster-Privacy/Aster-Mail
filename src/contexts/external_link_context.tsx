@@ -28,6 +28,7 @@ import {
   ReactNode,
   useMemo,
 } from "react";
+import { useNavigate } from "react-router-dom";
 
 import { ExternalLinkWarningModal } from "@/components/modals/external_link_warning_modal";
 import { use_preferences } from "@/contexts/preferences_context";
@@ -38,6 +39,8 @@ import {
 } from "@/services/lockdown_store";
 import { is_trusted_link } from "@/lib/trusted_link_domains";
 import { describe_link } from "@/lib/link_destination";
+import { in_app_route_for } from "@/lib/in_app_link";
+import { PUBLIC_WEB_APP_ORIGIN } from "@/lib/public_origin";
 import {
   EXTERNAL_LINK_EVENT,
   type ExternalLinkRequestDetail,
@@ -62,6 +65,7 @@ type ExternalLinkClickEvent = CustomEvent<
 
 export function ExternalLinkProvider({ children }: { children: ReactNode }) {
   const { preferences, update_preference } = use_preferences();
+  const navigate = useNavigate();
   const [is_modal_open, set_is_modal_open] = useState(false);
   const [pending_url, set_pending_url] = useState<string>("");
   const [pending_text, set_pending_text] = useState<string>("");
@@ -128,6 +132,18 @@ export function ExternalLinkProvider({ children }: { children: ReactNode }) {
       link_text?: string | null,
       trigger?: HTMLElement | null,
     ) => {
+      const in_app_route = in_app_route_for(url, [
+        window.location.origin,
+        PUBLIC_WEB_APP_ORIGIN,
+      ]);
+
+      if (in_app_route) {
+        navigate(in_app_route);
+        on_result?.(true);
+
+        return;
+      }
+
       const currently_locked = lockdown_active || is_any_lockdown_active();
       const is_blocked = describe_link(url).kind === "blocked";
 
@@ -154,6 +170,7 @@ export function ExternalLinkProvider({ children }: { children: ReactNode }) {
       preferences.external_link_warning_dismissed,
       open_url,
       settle_pending_result,
+      navigate,
     ],
   );
 

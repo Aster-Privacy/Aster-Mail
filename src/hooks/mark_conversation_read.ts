@@ -214,6 +214,17 @@ export async function mark_conversation_threads_read(
   return bulk_action_result(thread_tokens, failed_tokens);
 }
 
+export function conversation_marked_unread(
+  thread_token: string | null | undefined,
+  ids: readonly string[] = [],
+): boolean {
+  const candidates = thread_token
+    ? [...ids, ...get_thread_entry_ids(thread_token)]
+    : [...ids];
+
+  return candidates.some((id) => get_read_intent(id) === false);
+}
+
 export function mark_conversation_read(
   options: MarkConversationReadOptions,
 ): void {

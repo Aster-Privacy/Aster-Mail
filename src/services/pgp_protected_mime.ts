@@ -302,7 +302,7 @@ export function server_visible_subject(params: {
 
 export function build_protected_mime_entity(input: ProtectedMimeInput): string {
   const boundary = `--=_astermail_protected_${random_token()}`;
-  const obscure_subject = input.obscure_subject !== false;
+  const obscure_subject = input.obscure_subject === true;
   const safe_subject = encode_header_value(input.subject);
   const outer_subject = encode_header_value(
     outer_subject_for(input.subject, obscure_subject),

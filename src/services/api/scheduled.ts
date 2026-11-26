@@ -37,7 +37,7 @@ import { build_sealed_details } from "@/utils/sealed_message_details";
 import { exceeds_sealed_schedule_window } from "@/lib/schedule_window";
 import { is_future_instant } from "@/utils/schedule_targets";
 import { sanitize_header_value } from "@/services/pgp_protected_mime";
-import { strip_outgoing_markers } from "@/lib/outgoing_markers";
+import { prepare_outgoing_html } from "@/lib/outgoing_trailing_blanks";
 import { HASH_ALG } from "@/services/crypto/constants";
 import {
   is_usable_identity_key,
@@ -814,7 +814,7 @@ export async function create_scheduled_email(
   const content: ScheduledEmailContent = {
     ...input_content,
     subject: sanitize_header_value(input_content.subject),
-    body: strip_outgoing_markers(input_content.body),
+    body: prepare_outgoing_html(input_content.body),
     ...(input_content.from
       ? {
           from: {

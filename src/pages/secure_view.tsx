@@ -161,6 +161,8 @@ function SecureMessageBody({ html, title }: { html: string; title: string }) {
         display: "block",
         backgroundColor: "transparent",
         colorScheme: "dark",
+        userSelect: "none",
+        WebkitUserSelect: "none",
       }}
       title={title}
     />

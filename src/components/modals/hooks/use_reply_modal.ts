@@ -126,6 +126,10 @@ import { app_locale, get_display_time_zone } from "@/utils/date_format";
 import { user_facing_error } from "@/utils/user_facing_error";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
 import {
+  QUOTE_IMAGE_WAIT_MS,
+  settle_within,
+} from "@/lib/quoted_inline_images";
+import {
   find_locked_expiry_feature,
   prompt_expiry_upgrade,
 } from "@/components/compose/expiry_plan_gate";
@@ -244,6 +248,7 @@ export function use_reply_modal(props: UseReplyModalProps) {
     commit_pending_recipient_inputs,
     is_mobile,
     build_quoted_content,
+    await_quote_images,
     exec_format_command,
   } = use_reply_modal_state(props);
   const [priority, set_priority] = useState<MailPriority>("normal");
@@ -550,6 +555,10 @@ export function use_reply_modal(props: UseReplyModalProps) {
       cc: original_cc,
       to: original_to,
     };
+
+    if (include_quoted && !is_plain_text_mode) {
+      await settle_within(await_quote_images(), QUOTE_IMAGE_WAIT_MS);
+    }
 
     const quoted_content = include_quoted
       ? build_quoted_content(is_plain_text_mode ? "plain" : false)
@@ -1034,6 +1043,7 @@ export function use_reply_modal(props: UseReplyModalProps) {
     plan_limits,
     is_feature_locked,
     build_quoted_content,
+    await_quote_images,
     include_quoted,
     user,
     is_plain_text_mode,
@@ -1170,6 +1180,10 @@ export function use_reply_modal(props: UseReplyModalProps) {
     set_is_scheduling(true);
     set_error_message(null);
 
+    if (include_quoted && !is_plain_text_mode) {
+      await settle_within(await_quote_images(), QUOTE_IMAGE_WAIT_MS);
+    }
+
     const quoted_content = include_quoted
       ? build_quoted_content(is_plain_text_mode ? "plain" : false)
       : "";
@@ -1272,6 +1286,7 @@ export function use_reply_modal(props: UseReplyModalProps) {
     original_subject,
 
     build_quoted_content,
+    await_quote_images,
     include_quoted,
     on_close,
     discard_sent_draft,

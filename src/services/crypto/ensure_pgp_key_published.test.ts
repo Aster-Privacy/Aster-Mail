@@ -28,7 +28,10 @@ import {
 } from "./ensure_pgp_key_published";
 
 import { api_client } from "@/services/api/client";
-import { republish_pgp_key } from "@/services/api/key_rotation";
+import {
+  get_identity_key_status,
+  republish_pgp_key,
+} from "@/services/api/key_rotation";
 import { rekey_pgp_if_needed } from "@/services/pgp_rekey_service";
 import { install_missing_identity_key } from "@/services/crypto/install_missing_identity_key";
 import { recover_published_identity_key } from "@/services/crypto/recover_published_identity_key";
@@ -45,6 +48,7 @@ vi.mock("@/services/api/client", () => ({
 }));
 
 vi.mock("@/services/api/key_rotation", () => ({
+  get_identity_key_status: vi.fn(),
   republish_pgp_key: vi.fn(),
 }));
 
@@ -109,6 +113,14 @@ describe("ensure_pgp_key_published", () => {
     vi.mocked(get_passphrase_from_memory).mockReturnValue(PASSPHRASE);
     vi.mocked(is_vault_owned_by).mockReturnValue(true);
     vi.mocked(rekey_pgp_if_needed).mockResolvedValue(true);
+    vi.mocked(get_identity_key_status).mockResolvedValue({
+      data: {
+        key_created_at: null,
+        key_age_hours: null,
+        key_fingerprint: null,
+        current_public_key: null,
+      },
+    });
   });
 
   it("republishes the vault PGP key when the server has none", async () => {
@@ -210,6 +222,86 @@ describe("ensure_pgp_key_published", () => {
     } as never);
     vi.mocked(api_client.get).mockResolvedValue({
       data: { fingerprint: "PREV", public_key_armored: previous_public },
+    });
+
+    const result = await ensure_pgp_key_published();
+
+    expect(result).toBe("already_published");
+    expect(republish_pgp_key).not.toHaveBeenCalled();
+  });
+
+  it("republishes the rotated identity key when the server still lists the key it replaced", async () => {
+    const rotated = await generate_armored_private_key();
+    const previous = await generate_armored_private_key();
+    const rotated_key = await openpgp.readPrivateKey({ armoredKey: rotated });
+    const previous_public = (
+      await openpgp.readPrivateKey({ armoredKey: previous })
+    )
+      .toPublic()
+      .armor();
+
+    vi.mocked(get_vault_from_memory).mockReturnValue({
+      identity_key: rotated,
+      previous_keys: [previous],
+    } as never);
+    vi.mocked(api_client.get).mockResolvedValue({
+      data: { fingerprint: "PREV", public_key_armored: previous_public },
+    });
+    vi.mocked(get_identity_key_status).mockResolvedValue({
+      data: {
+        key_created_at: null,
+        key_age_hours: 0,
+        key_fingerprint: null,
+        current_public_key: btoa(rotated_key.toPublic().armor()),
+      },
+    });
+    vi.mocked(republish_pgp_key).mockResolvedValue({
+      data: { fingerprint: "NEW", success: true },
+    });
+
+    const result = await ensure_pgp_key_published();
+
+    expect(result).toBe("healed");
+    expect(republish_pgp_key).toHaveBeenCalledTimes(1);
+
+    const payload = vi.mocked(republish_pgp_key).mock.calls[0][0] as Record<
+      string,
+      string
+    >;
+    const published = await openpgp.readKey({
+      armoredKey: payload.public_key_armored,
+    });
+
+    expect(published.getFingerprint()).toBe(rotated_key.getFingerprint());
+  });
+
+  it("keeps the published key when the server identity key is not the vault's", async () => {
+    const stale = await generate_armored_private_key();
+    const previous = await generate_armored_private_key();
+    const other = await generate_armored_private_key();
+    const previous_public = (
+      await openpgp.readPrivateKey({ armoredKey: previous })
+    )
+      .toPublic()
+      .armor();
+    const other_public = (await openpgp.readPrivateKey({ armoredKey: other }))
+      .toPublic()
+      .armor();
+
+    vi.mocked(get_vault_from_memory).mockReturnValue({
+      identity_key: stale,
+      previous_keys: [previous],
+    } as never);
+    vi.mocked(api_client.get).mockResolvedValue({
+      data: { fingerprint: "PREV", public_key_armored: previous_public },
+    });
+    vi.mocked(get_identity_key_status).mockResolvedValue({
+      data: {
+        key_created_at: null,
+        key_age_hours: 0,
+        key_fingerprint: null,
+        current_public_key: btoa(other_public),
+      },
     });
 
     const result = await ensure_pgp_key_published();

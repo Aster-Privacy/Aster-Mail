@@ -32,9 +32,14 @@ import { claim_rotation_notice } from "@/services/crypto/rotation_notice";
 
 const RESOLVER_CACHE_TTL_MS = 5 * 60 * 1000;
 const MAX_RESOLVER_CACHE = 1000;
-const resolver_cache = new Map<string, { keys: string[]; timestamp: number }>();
+const resolver_cache = new Map<
+  string,
+  { keys: string[]; previous_keys: string[]; timestamp: number }
+>();
 
-function read_cache(email: string): string[] | null {
+function read_entry(
+  email: string,
+): { keys: string[]; previous_keys: string[] } | null {
   const entry = resolver_cache.get(email.toLowerCase());
 
   if (!entry) return null;
@@ -45,12 +50,21 @@ function read_cache(email: string): string[] | null {
     return null;
   }
 
-  return entry.keys;
+  return entry;
 }
 
-function write_cache(email: string, keys: string[]): void {
+function read_cache(email: string): string[] | null {
+  return read_entry(email)?.keys ?? null;
+}
+
+function write_cache(
+  email: string,
+  keys: string[],
+  previous_keys: string[] = [],
+): void {
   resolver_cache.set(email.toLowerCase(), {
     keys,
+    previous_keys,
     timestamp: Date.now(),
   });
 
@@ -89,13 +103,46 @@ export async function resolve_sender_verification_keys(
     }
 
     const keys = [response.data.public_key];
+    const previous_keys = (response.data.previous_public_keys ?? []).filter(
+      (key) => typeof key === "string" && key.length > 0,
+    );
 
-    write_cache(sender_email, keys);
+    write_cache(sender_email, keys, previous_keys);
 
     return keys;
   } catch {
     return [];
   }
+}
+
+async function resolve_sender_previous_keys(
+  sender_email: string,
+): Promise<string[]> {
+  if (!sender_email || !is_internal_email(sender_email)) return [];
+
+  if (!read_entry(sender_email)) {
+    await resolve_sender_verification_keys(sender_email);
+  }
+
+  return read_entry(sender_email)?.previous_keys ?? [];
+}
+
+export async function verify_with_sender_key_history<Status extends string>(
+  sender_email: string,
+  sender_keys: string[],
+  verify: (keys: string[]) => Promise<Status>,
+): Promise<Status> {
+  const first = await verify(sender_keys);
+
+  if (first === "verified" || sender_keys.length === 0) return first;
+
+  const previous_keys = await resolve_sender_previous_keys(sender_email);
+
+  if (previous_keys.length === 0) return first;
+
+  const retry = await verify([...sender_keys, ...previous_keys]);
+
+  return retry === "verified" ? retry : first;
 }
 
 export async function resolve_inline_pgp_sender_keys(
