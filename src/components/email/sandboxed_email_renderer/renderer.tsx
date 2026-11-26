@@ -1133,6 +1133,8 @@ ${preferences.hide_scrollbars === true ? `<style>html, body { scrollbar-width: n
             backgroundColor: frame_bg,
             colorScheme: document_scheme,
             touchAction: "pan-y",
+            userSelect: "none",
+            WebkitUserSelect: "none",
           }}
           title={t("mail.email_content")}
           onLoad={handle_load}

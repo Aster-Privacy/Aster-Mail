@@ -3408,6 +3408,8 @@ html:not([data-input-modality="keyboard"])
   width: 100%;
   border: none;
   display: block;
+  -webkit-user-select: none;
+  user-select: none;
 }
 
 .aster_island .email-frame-canvas {
