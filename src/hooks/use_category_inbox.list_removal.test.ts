@@ -273,9 +273,19 @@ describe("use_category_inbox list removal", () => {
     });
     await flush();
 
-    expect(states.slice(settled).some((s) => s.ids.includes("id1"))).toBe(
-      false,
-    );
+    const after_removal = states.slice(settled);
+    const gone_at = after_removal.findIndex((s) => !s.ids.includes("id1"));
+
+    expect(gone_at).toBeGreaterThanOrEqual(0);
+    expect(
+      after_removal.slice(gone_at).some((s) => s.ids.includes("id1")),
+    ).toBe(false);
+    expect(states.at(-1)!.ids).toEqual(["id2", "id3"]);
+    expect(
+      mocks.fetch_mail_by_ids_reconciled.mock.calls.some(
+        (call, index) => index > 0 && call[0].includes("id1"),
+      ),
+    ).toBe(false);
 
     act(() => root.unmount());
   });
