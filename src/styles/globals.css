@@ -72,6 +72,8 @@
   button pre,
   [role="button"] code,
   [role="button"] pre,
+  [data-selectable],
+  [data-selectable] *,
   label input,
   label textarea {
     -webkit-user-select: auto;
