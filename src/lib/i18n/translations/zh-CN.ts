@@ -8676,6 +8676,7 @@ export const zh_CN = {
     not_spam: "非垃圾邮件",
     pending_send_failed: "无法发送此邮件。",
     pending_send_offline: "正在等待网络连接。恢复联网后将发送此邮件。",
+    offline_saved_copy: "您处于离线状态。这是保存在此设备上的副本。",
     send_failed_title: "此邮件未送达。",
     send_failed_help: "请检查地址，然后重新发送邮件。",
     spam_reasons_title: "此邮件已被移至垃圾邮件",

@@ -382,6 +382,7 @@ export function EmailPopupViewer({
         decrypt_failed={viewer.decrypt_failed}
         decrypt_failed_created_at={viewer.decrypt_failed_created_at}
         email={viewer.email}
+        email_id={email_id}
         error={viewer.error}
         existing_draft={memoized_draft}
         external_content_mode={viewer.external_content_mode}
@@ -389,6 +390,7 @@ export function EmailPopupViewer({
         extraction_result={viewer.extraction_result}
         format_email_popup={viewer.format_email_popup}
         is_fullscreen={viewer.is_fullscreen}
+        is_offline_copy={viewer.is_offline_copy}
         is_spam={viewer.mail_item?.is_spam === true}
         is_trashed={viewer.mail_item?.is_trashed === true}
         label_hints={label_hints}

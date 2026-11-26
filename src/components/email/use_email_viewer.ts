@@ -100,6 +100,10 @@ import { normalize_address_ignoring_dots } from "@/utils/address_dots";
 import { viewer_still_showing } from "@/components/email/thread_reply_target";
 import { use_thread_draft_removal } from "@/components/email/hooks/use_thread_draft_removal";
 import { use_pending_reply_messages } from "@/hooks/pending_reply_messages";
+import {
+  is_offline_load_failure,
+  offline_cached_copy,
+} from "@/components/email/hooks/offline_reopen";
 import { use_reactions_seen } from "@/hooks/use_reactions_seen";
 import {
   carry_local_reply_bodies,
@@ -269,6 +273,7 @@ export function use_email_viewer({
     created_at: string | null;
   } | null>(null);
   const [unavailable_id, set_unavailable_id] = useState<string | null>(null);
+  const [offline_id, set_offline_id] = useState<string | null>(null);
   const [is_read, set_is_read] = useState(false);
   const [is_pinned, set_is_pinned] = useState(false);
   const [is_archive_loading, set_is_archive_loading] = useState(false);
@@ -513,6 +518,7 @@ export function use_email_viewer({
       }
       set_error(null);
       set_unavailable_id(null);
+      set_offline_id(null);
       set_sending_message(null);
       set_pending_thread_count(0);
       thread_sanitized_ref.current = preloaded.thread_sanitized;
@@ -693,6 +699,23 @@ export function use_email_viewer({
           return;
         }
 
+        if (!cancelled && is_offline_load_failure(result)) {
+          const offline_copy = offline_cached_copy(
+            email_id,
+            preferences.conversation_grouping !== false,
+            user?.email,
+          );
+
+          if (offline_copy) {
+            commit_preloaded(offline_copy);
+            set_offline_id(email_id);
+
+            return;
+          }
+
+          set_offline_id(email_id);
+        }
+
         if (!cancelled && !reloading_same_email) {
           set_error(t("common.failed_to_load_email"));
           set_is_loading(false);
@@ -702,6 +725,8 @@ export function use_email_viewer({
       }
 
       const item = result.data;
+
+      if (!cancelled) set_offline_id(null);
 
       if (item.payload_unavailable === true) {
         if (!cancelled && !reloading_same_email) {
@@ -1684,6 +1709,19 @@ export function use_email_viewer({
     set_refresh_key((k) => k + 1);
   }, [email_id]);
 
+  useEffect(() => {
+    if (!email_id || offline_id !== email_id) return;
+
+    const handle_online = () => {
+      set_error(null);
+      set_refresh_key((k) => k + 1);
+    };
+
+    window.addEventListener("online", handle_online);
+
+    return () => window.removeEventListener("online", handle_online);
+  }, [email_id, offline_id]);
+
   const payload_unavailable = error !== null && unavailable_id === email_id;
   const decrypt_failed =
     error !== null && decrypt_failure?.id === email_id && !payload_unavailable;
@@ -1699,6 +1737,7 @@ export function use_email_viewer({
       ? (decrypt_failure?.created_at ?? null)
       : null,
     retry_load,
+    is_offline_copy: offline_id === email_id && error === null && !!email,
     is_read,
     is_pinned,
     is_archive_loading,

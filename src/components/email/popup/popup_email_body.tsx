@@ -41,6 +41,10 @@ import { invite_attachment_hints } from "@/services/calendar/invite_detect";
 import { ThreadMessagesList } from "@/components/email/thread_message_block";
 import { get_latest_expanded_id } from "@/services/thread_service";
 import { use_preferences } from "@/contexts/preferences_context";
+import {
+  FailedOpenPendingReplies,
+  OfflineCopyNotice,
+} from "@/components/email/failed_open_pending_replies";
 import { PopupEmailHeader } from "@/components/email/popup/popup_email_header";
 import { EmailOpenSkeleton } from "@/components/email/viewer_shared/email_open_skeleton";
 import { LockedMailNotice } from "@/components/email/viewer_shared/locked_mail_notice";
@@ -111,6 +115,8 @@ interface PopupEmailBodyProps {
     content: DraftContent;
   } | null;
   thread_token?: string;
+  email_id?: string | null;
+  is_offline_copy?: boolean;
   label_hints?: {
     token: string;
     name: string;
@@ -159,6 +165,8 @@ export function PopupEmailBody({
   on_draft_saved,
   existing_draft,
   thread_token,
+  email_id = null,
+  is_offline_copy = false,
   label_hints,
 }: PopupEmailBodyProps) {
   const { preferences } = use_preferences();
@@ -265,6 +273,10 @@ export function PopupEmailBody({
           <Button size="md" variant="outline" onClick={on_close}>
             {t("common.close")}
           </Button>
+          <FailedOpenPendingReplies
+            email_id={email_id}
+            thread_token={thread_token}
+          />
         </div>
       </div>
     );
@@ -279,104 +291,107 @@ export function PopupEmailBody({
   }
 
   return (
-    <div className="flex-1 overflow-y-auto px-3 sm:px-4 md:px-6 pt-3 sm:pt-4 pb-6">
-      <div className="w-full min-w-0">
-        {extraction_result?.has_purchase_details &&
-          extraction_result.purchase && (
-            <PurchaseDetailsBanner
-              className="mb-4 sm:mb-6"
-              details={extraction_result.purchase}
-              email_id={email?.id}
-            />
-          )}
+    <>
+      {is_offline_copy && <OfflineCopyNotice />}
+      <div className="flex-1 overflow-y-auto px-3 sm:px-4 md:px-6 pt-3 sm:pt-4 pb-6">
+        <div className="w-full min-w-0">
+          {extraction_result?.has_purchase_details &&
+            extraction_result.purchase && (
+              <PurchaseDetailsBanner
+                className="mb-4 sm:mb-6"
+                details={extraction_result.purchase}
+                email_id={email?.id}
+              />
+            )}
 
-        {extraction_result?.has_shipping_details &&
-          extraction_result.shipping && (
-            <ShippingDetailsBanner
-              className="mb-4 sm:mb-6"
-              details={extraction_result.shipping}
-              sender_email={email.sender_email}
-              sender_name={email.sender}
-            />
-          )}
+          {extraction_result?.has_shipping_details &&
+            extraction_result.shipping && (
+              <ShippingDetailsBanner
+                className="mb-4 sm:mb-6"
+                details={extraction_result.shipping}
+                sender_email={email.sender_email}
+                sender_name={email.sender}
+              />
+            )}
 
-        <CalendarInviteCard
-          attachments={invite_attachments}
-          body={email.body}
-          className="mb-4 sm:mb-6"
-          email_id={email.id}
-          html_content={email.html_content}
-          sender_email={email.sender_email}
-        />
-
-        <PopupEmailHeader
-          email={email}
-          format_email_popup={format_email_popup}
-          is_fullscreen={is_fullscreen}
-          label_hints={label_hints}
-          mail_item={mail_item}
-          on_close={on_close}
-          on_compose={on_compose}
-          pending_thread_count={pending_thread_count}
-          snoozed_until={snoozed_until}
-          t={t}
-          thread_messages={thread_messages}
-          timestamp_date={timestamp_date}
-          tracking_report={external_content_state.report}
-        />
-
-        <div className="mt-4">
-          <ThreadMessagesList
-            hide_counter
-            bin_source={is_trashed ? "trash" : is_spam ? "spam" : undefined}
-            current_user_email={current_user_email}
-            default_expanded_id={get_latest_expanded_id(thread_messages)}
-            existing_draft={existing_draft}
-            external_content_mode={external_content_mode}
-            force_all_dark_mode={preferences.force_dark_mode_emails}
-            inline_mode={inline_mode}
-            inline_reply_is_external={is_external_thread}
-            inline_reply_msg={inline_reply_msg}
-            inline_reply_thread_token={thread_token}
-            main_email_id={email?.id}
-            messages={thread_messages}
-            on_archive={on_per_message_archive}
-            on_close_inline_reply={handle_close_inline_reply}
-            on_draft_saved={on_draft_saved}
-            on_external_content_detected={on_external_content_detected}
-            on_forward={handle_inline_forward}
-            on_load_external_content={on_load_external_content}
-            remote_content_grants={remote_content_grants}
-            on_manual_unsubscribed={() => {
-              if (!email) return;
-              persist_unsubscribe(email.sender_email, email.sender || "", {
-                unsubscribe_link: email.unsubscribe_info?.unsubscribe_link,
-                list_unsubscribe_header:
-                  email.unsubscribe_info?.list_unsubscribe_header,
-              });
-            }}
-            on_not_spam={is_spam ? on_per_message_not_spam : undefined}
-            on_print={on_per_message_print}
-            on_reply={handle_inline_reply}
-            on_reply_all={handle_inline_reply_all}
-            on_report_phishing={on_per_message_report_phishing}
-            on_set_inline_mode={set_inline_mode}
-            on_toggle_message_read={on_toggle_message_read}
-            on_trash={on_per_message_trash}
-            on_unsubscribe={
-              email.unsubscribe_info?.has_unsubscribe &&
-              !is_system_email(email) &&
-              !is_unsubscribed(email.sender_email)
-                ? handle_unsubscribe
-                : undefined
-            }
-            pending_earlier_count={pending_thread_count}
-            subject={email.subject}
-            thread_token={thread_token}
-            unsubscribe_url={email.unsubscribe_info?.unsubscribe_link}
+          <CalendarInviteCard
+            attachments={invite_attachments}
+            body={email.body}
+            className="mb-4 sm:mb-6"
+            email_id={email.id}
+            html_content={email.html_content}
+            sender_email={email.sender_email}
           />
+
+          <PopupEmailHeader
+            email={email}
+            format_email_popup={format_email_popup}
+            is_fullscreen={is_fullscreen}
+            label_hints={label_hints}
+            mail_item={mail_item}
+            on_close={on_close}
+            on_compose={on_compose}
+            pending_thread_count={pending_thread_count}
+            snoozed_until={snoozed_until}
+            t={t}
+            thread_messages={thread_messages}
+            timestamp_date={timestamp_date}
+            tracking_report={external_content_state.report}
+          />
+
+          <div className="mt-4">
+            <ThreadMessagesList
+              hide_counter
+              bin_source={is_trashed ? "trash" : is_spam ? "spam" : undefined}
+              current_user_email={current_user_email}
+              default_expanded_id={get_latest_expanded_id(thread_messages)}
+              existing_draft={existing_draft}
+              external_content_mode={external_content_mode}
+              force_all_dark_mode={preferences.force_dark_mode_emails}
+              inline_mode={inline_mode}
+              inline_reply_is_external={is_external_thread}
+              inline_reply_msg={inline_reply_msg}
+              inline_reply_thread_token={thread_token}
+              main_email_id={email?.id}
+              messages={thread_messages}
+              on_archive={on_per_message_archive}
+              on_close_inline_reply={handle_close_inline_reply}
+              on_draft_saved={on_draft_saved}
+              on_external_content_detected={on_external_content_detected}
+              on_forward={handle_inline_forward}
+              on_load_external_content={on_load_external_content}
+              remote_content_grants={remote_content_grants}
+              on_manual_unsubscribed={() => {
+                if (!email) return;
+                persist_unsubscribe(email.sender_email, email.sender || "", {
+                  unsubscribe_link: email.unsubscribe_info?.unsubscribe_link,
+                  list_unsubscribe_header:
+                    email.unsubscribe_info?.list_unsubscribe_header,
+                });
+              }}
+              on_not_spam={is_spam ? on_per_message_not_spam : undefined}
+              on_print={on_per_message_print}
+              on_reply={handle_inline_reply}
+              on_reply_all={handle_inline_reply_all}
+              on_report_phishing={on_per_message_report_phishing}
+              on_set_inline_mode={set_inline_mode}
+              on_toggle_message_read={on_toggle_message_read}
+              on_trash={on_per_message_trash}
+              on_unsubscribe={
+                email.unsubscribe_info?.has_unsubscribe &&
+                !is_system_email(email) &&
+                !is_unsubscribed(email.sender_email)
+                  ? handle_unsubscribe
+                  : undefined
+              }
+              pending_earlier_count={pending_thread_count}
+              subject={email.subject}
+              thread_token={thread_token}
+              unsubscribe_url={email.unsubscribe_info?.unsubscribe_link}
+            />
+          </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }

@@ -9849,6 +9849,7 @@ export const de = {
     pending_send_failed: "Diese Nachricht konnte nicht gesendet werden.",
     pending_send_offline:
       "Warten auf eine Verbindung. Diese Nachricht wird gesendet, sobald Sie wieder online sind.",
+    offline_saved_copy: "Sie sind offline. Das ist die auf diesem Gerät gespeicherte Kopie.",
     send_failed_title: "Diese Nachricht wurde nicht zugestellt.",
     send_failed_help:
       "Prüfen Sie die Adresse und senden Sie die Nachricht erneut.",

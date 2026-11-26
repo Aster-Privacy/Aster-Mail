@@ -9844,6 +9844,7 @@ export const pt = {
     pending_send_failed: "Não foi possível enviar esta mensagem.",
     pending_send_offline:
       "A aguardar ligação. Esta mensagem será enviada assim que voltar a estar online.",
+    offline_saved_copy: "Está offline. Esta é a cópia guardada neste dispositivo.",
     send_failed_title: "Esta mensagem não foi entregue.",
     send_failed_help: "Verifique o endereço e envie a mensagem novamente.",
     spam_reasons_title: "Esta mensagem foi movida para o spam",

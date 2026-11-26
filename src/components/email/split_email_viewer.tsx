@@ -26,6 +26,7 @@ import { ArrowsPointingOutIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import { Tooltip } from "@aster/ui";
 
 import { use_i18n } from "@/lib/i18n/context";
+import { OfflineCopyNotice } from "@/components/email/failed_open_pending_replies";
 import { EncryptionInfoDropdown } from "@/components/common/encryption_info_dropdown";
 import { TrackingProtectionShield } from "@/components/email/tracking_protection_shield";
 import {
@@ -462,6 +463,7 @@ export function SplitEmailViewer({
           decrypt_failed={viewer.decrypt_failed}
           message_created_at={viewer.decrypt_failed_created_at}
           payload_unavailable={viewer.payload_unavailable}
+          email_id={email_id}
           error={viewer.error}
           on_dismiss={on_close}
           on_retry={viewer.retry_load}
@@ -565,6 +567,7 @@ export function SplitEmailViewer({
           <XMarkIcon className="w-5 h-5" />
         </button>
       </div>
+      {viewer.is_offline_copy && <OfflineCopyNotice />}
 
       <div className="relative flex-1 min-h-0">
         {show_content_skeleton && <EmailOpenSkeleton variant="split" />}

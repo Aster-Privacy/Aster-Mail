@@ -9860,6 +9860,7 @@ export const fr = {
     pending_send_failed: "Impossible d’envoyer ce message.",
     pending_send_offline:
       "En attente de connexion. Ce message sera envoyé dès que vous serez de nouveau en ligne.",
+    offline_saved_copy: "Vous êtes hors ligne. Ceci est la copie enregistrée sur cet appareil.",
     send_failed_title: "Ce message n’a pas été remis.",
     send_failed_help: "Vérifiez l’adresse, puis envoyez à nouveau le message.",
     spam_reasons_title: "Ce message a été déplacé vers les indésirables",

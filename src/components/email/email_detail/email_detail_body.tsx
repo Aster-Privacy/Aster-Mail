@@ -51,6 +51,10 @@ import { priority_from_headers } from "@/services/mail_priority";
 import { use_preferences } from "@/contexts/preferences_context";
 import { is_system_email } from "@/lib/utils";
 import { is_mail_item_in_trash } from "@/components/email/viewer_shared/trash_placement";
+import {
+  FailedOpenPendingReplies,
+  OfflineCopyNotice,
+} from "@/components/email/failed_open_pending_replies";
 
 interface EmailDetailBodyProps {
   t: (key: TranslationKey, params?: Record<string, string | number>) => string;
@@ -60,6 +64,8 @@ interface EmailDetailBodyProps {
   mail_item: MailItem | null;
   is_loading: boolean;
   error: string | null;
+  email_id?: string | null;
+  is_offline_copy?: boolean;
   thread_messages: DecryptedThreadMessage[];
   thread_truncated?: boolean;
   pending_thread_count?: number;
@@ -87,6 +93,8 @@ export function EmailDetailBody({
   mail_item,
   is_loading,
   error,
+  email_id = null,
+  is_offline_copy = false,
   thread_messages,
   thread_truncated,
   pending_thread_count = 0,
@@ -168,9 +176,15 @@ export function EmailDetailBody({
           <Button onClick={() => navigate(-1)}>
             {t("common.go_back" as TranslationKey)}
           </Button>
+          <FailedOpenPendingReplies email_id={email_id} thread_token={null} />
         </div>
       ) : email ? (
         <div className="max-w-4xl mx-auto flex flex-col h-full">
+          {is_offline_copy && (
+            <div className="mb-4">
+              <OfflineCopyNotice />
+            </div>
+          )}
           <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between mb-4 sm:mb-6 gap-2 sm:gap-0">
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-1 sm:mb-2">

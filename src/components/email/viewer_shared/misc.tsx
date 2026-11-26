@@ -31,6 +31,7 @@ import { NoSymbolIcon } from "@heroicons/react/24/outline";
 import { use_i18n } from "@/lib/i18n/context";
 import { ViewSourceModal } from "@/components/modals/view_source_modal";
 import { LockedMailNotice } from "@/components/email/viewer_shared/locked_mail_notice";
+import { FailedOpenPendingReplies } from "@/components/email/failed_open_pending_replies";
 
 export interface ViewerViewSourceProps {
   view_source_message: DecryptedThreadMessage | null;
@@ -59,6 +60,7 @@ export interface ViewerErrorStateProps {
   decrypt_failed?: boolean;
   payload_unavailable?: boolean;
   message_created_at?: string | null;
+  email_id?: string | null;
 }
 
 export function ViewerErrorState({
@@ -69,6 +71,7 @@ export function ViewerErrorState({
   decrypt_failed = false,
   payload_unavailable = false,
   message_created_at = null,
+  email_id = null,
 }: ViewerErrorStateProps): React.ReactElement {
   const { t } = use_i18n();
 
@@ -109,6 +112,7 @@ export function ViewerErrorState({
             {t("common.back_to_inbox")}
           </button>
         )}
+        <FailedOpenPendingReplies email_id={email_id} thread_token={null} />
       </div>
     </div>
   );

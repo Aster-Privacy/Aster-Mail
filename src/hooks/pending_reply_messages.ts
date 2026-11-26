@@ -327,6 +327,10 @@ function get_version(): number {
   return version;
 }
 
+export function use_pending_reply_version(): number {
+  return useSyncExternalStore(subscribe, get_version, get_version);
+}
+
 export function use_pending_reply_status(
   optimistic_id: string | null | undefined,
 ): PendingReplyStatus | null {
