@@ -96,6 +96,7 @@ import {
   revert_stat_deltas,
 } from "@/hooks/use_stat_helpers";
 import { report_spam_sender, remove_spam_sender } from "@/services/api/mail";
+import { report_not_phishing_message } from "@/lib/phishing_blocklist";
 import { reindex_ids } from "@/services/category_index";
 import { sync_thread_spam } from "@/services/trash_state";
 import { mark_conversation_read } from "@/hooks/mark_conversation_read";
@@ -750,6 +751,18 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
         remove_spam_sender(sender).catch((caught) =>
           ignore_error(
             "components/email/email_viewer_actions:clear_clipboard_after_timeout",
+            caught,
+          ),
+        );
+      }
+      if (deps.email && deps.mail_item) {
+        report_not_phishing_message({
+          ...deps.email,
+          item_type: deps.mail_item.item_type,
+          is_external: deps.is_external,
+        }).catch((caught) =>
+          ignore_error(
+            "components/email/email_viewer_actions:report_not_phishing",
             caught,
           ),
         );

@@ -18,6 +18,8 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import type { InboxEmail } from "@/types/email";
+
 import { api_client } from "@/services/api/client";
 import { ignore_error } from "@/lib/ignore_error";
 import { release_on_version_change } from "@/lib/idb_release";
@@ -257,6 +259,132 @@ function extract_domain(url: string): string {
 
     return without_scheme;
   }
+}
+
+const MAX_REPORTED_DOMAINS = 50;
+const TEXT_URL = /https?:\/\/[^\s<>"'()]+/gi;
+const IPV4 = /^\d{1,3}(\.\d{1,3}){3}$/;
+
+export interface ReportableMessage {
+  item_type: string;
+  is_external: boolean;
+  sender_email?: string;
+  html_content?: string;
+  text_part?: string;
+  body?: string;
+}
+
+function reportable_host(url: string): string {
+  try {
+    const parsed = new URL(url);
+
+    if (parsed.protocol !== "http:" && parsed.protocol !== "https:") return "";
+    const host = parsed.hostname.toLowerCase().replace(/\.$/, "");
+
+    if (!host.includes(".") || IPV4.test(host) || host.startsWith("[")) {
+      return "";
+    }
+
+    return host;
+  } catch {
+    return "";
+  }
+}
+
+function message_links(msg: ReportableMessage): string[] {
+  const html = msg.html_content || msg.body || "";
+  const links: string[] = [];
+
+  if (html) {
+    const doc = new DOMParser().parseFromString(html, "text/html");
+
+    for (const anchor of doc.querySelectorAll("a[href]")) {
+      links.push((anchor.getAttribute("href") || "").trim());
+    }
+  }
+
+  if (links.length === 0) {
+    links.push(...((msg.text_part || msg.body || "").match(TEXT_URL) ?? []));
+  }
+
+  return links;
+}
+
+export function inbox_email_reportable(email: InboxEmail): ReportableMessage {
+  return {
+    item_type: email.item_type,
+    is_external: email.is_external === true,
+    sender_email: email.sender_email,
+    html_content: email.body_html,
+  };
+}
+
+export function report_phishing_message(msg: ReportableMessage): Promise<void> {
+  return send_phishing_verdict(msg, "phishing");
+}
+
+export function report_not_phishing_message(
+  msg: ReportableMessage,
+): Promise<void> {
+  return send_phishing_verdict(msg, "not_phishing");
+}
+
+export function report_not_phishing_once_per_sender(
+  emails: InboxEmail[],
+): void {
+  const seen = new Set<string>();
+
+  for (const email of emails) {
+    const sender = (email.sender_email || "").trim().toLowerCase();
+
+    if (!sender || seen.has(sender)) continue;
+    seen.add(sender);
+    report_not_phishing_message(inbox_email_reportable(email)).catch((caught) =>
+      ignore_error("lib/phishing_blocklist:report_not_phishing", caught),
+    );
+  }
+}
+
+async function send_phishing_verdict(
+  msg: ReportableMessage,
+  verdict: "phishing" | "not_phishing",
+): Promise<void> {
+  if (msg.item_type !== "received" || !msg.is_external) return;
+
+  const hosts = new Set<string>();
+
+  for (const link of message_links(msg)) {
+    if (hosts.size >= MAX_REPORTED_DOMAINS) break;
+    const host = reportable_host(link);
+
+    if (host) hosts.add(host);
+  }
+
+  const sender_email = msg.sender_email || "";
+  const at = sender_email.lastIndexOf("@");
+  const sender_domain =
+    at >= 0
+      ? reportable_host(`https://${sender_email.slice(at + 1).trim()}`)
+      : "";
+
+  if (hosts.size === 0 && !sender_domain) return;
+
+  const body: {
+    verdict: "phishing" | "not_phishing";
+    domain_hashes: string[];
+    sender_domain_hash?: string;
+  } = {
+    verdict,
+    domain_hashes: await Promise.all(
+      [...hosts].map(async (host) => bytes_to_hex(await sha256_hash(host))),
+    ),
+  };
+
+  if (sender_domain) {
+    body.sender_domain_hash = bytes_to_hex(await sha256_hash(sender_domain));
+  }
+
+  await api_client.post("/phishing/v1/report", body);
 }
 
 export function cleanup_blocklist(): void {

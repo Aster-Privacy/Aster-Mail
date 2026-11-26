@@ -62,6 +62,10 @@ import { adjust_stats_unread } from "@/hooks/use_mail_stats";
 import { conversation_has_unread_sibling } from "@/hooks/unread_read_delta";
 import { report_spam_sender, remove_spam_sender } from "@/services/api/mail";
 import {
+  report_not_phishing_message,
+  report_phishing_message,
+} from "@/lib/phishing_blocklist";
+import {
   is_mail_item_in_trash,
   is_thread_message_in_trash,
   permanently_delete_message_ids,
@@ -316,6 +320,18 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
         remove_spam_sender(sender).catch((caught) =>
           ignore_error(
             "components/email/hooks/popup_viewer_actions:use_popup_viewer_actions",
+            caught,
+          ),
+        );
+      }
+      if (deps.email && deps.mail_item) {
+        report_not_phishing_message({
+          ...deps.email,
+          item_type: deps.mail_item.item_type,
+          is_external: !!deps.mail_item.is_external,
+        }).catch((caught) =>
+          ignore_error(
+            "components/email/hooks/popup_viewer_actions:report_not_phishing",
             caught,
           ),
         );
@@ -1024,6 +1040,12 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
             ),
           );
         }
+        report_phishing_message(msg).catch((caught) =>
+          ignore_error(
+            "components/email/hooks/popup_viewer_actions:report_phishing",
+            caught,
+          ),
+        );
         show_toast(deps.t("common.reported_as_phishing"), "success");
         if (msg.id === deps.email_id) close_or_advance(deps.email_id);
       } else {
@@ -1054,6 +1076,12 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
             ),
           );
         }
+        report_not_phishing_message(msg).catch((caught) =>
+          ignore_error(
+            "components/email/hooks/popup_viewer_actions:report_not_phishing",
+            caught,
+          ),
+        );
         show_toast(deps.t("common.marked_as_not_spam"), "success");
         if (msg.id === deps.email_id) close_or_advance(deps.email_id);
       } else {
