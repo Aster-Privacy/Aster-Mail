@@ -67,6 +67,17 @@ const SELECTABLE_SELECTOR = "[data-selectable], .select-text";
 
 const SKIP_SELECTOR = "[data-press-skip]";
 
+const CLOSING_SURFACE_SELECTOR = [
+  '[role="dialog"][data-state="closed"]',
+  '[role="alertdialog"][data-state="closed"]',
+  '[role="menu"][data-state="closed"]',
+  '[role="listbox"][data-state="closed"]',
+].join(",");
+
+const OWNER_DRIFT_PX = 2;
+const OWNER_MIN_SCALE = 0.5;
+const OWNER_FADE_TOLERANCE = 0.05;
+
 const MAX_HIDDEN_CHECK_DEPTH = 6;
 
 const MAX_POINTER_FALLBACK_DEPTH = 8;
@@ -93,6 +104,27 @@ function is_visually_hidden(el: Element): boolean {
   }
 
   return false;
+}
+
+function ancestor_opacity(el: Element): number {
+  let node: Element | null = el.parentElement;
+  let opacity = 1;
+
+  while (node && node !== document.documentElement) {
+    opacity *= parseFloat(getComputedStyle(node).opacity) || 0;
+    if (opacity === 0) return 0;
+    node = node.parentElement;
+  }
+
+  return opacity;
+}
+
+export function is_point_inside(
+  rect: { left: number; top: number; right: number; bottom: number },
+  x: number,
+  y: number,
+): boolean {
+  return x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom;
 }
 
 function find_pointer_cursor_host(start: Element): HTMLElement | null {
@@ -260,8 +292,12 @@ export function start_press_feedback(): () => void {
   let origin_x = 0;
   let origin_y = 0;
   let wave = 0;
+  let tracked_type = "";
   let overlay: HTMLElement | null = null;
   let overlay_owner: HTMLElement | null = null;
+  let overlay_rect: DOMRect | null = null;
+  let overlay_opacity = 1;
+  let watch_frame: number | null = null;
 
   const get_overlay = (): HTMLElement => {
     if (overlay && overlay.isConnected) return overlay;
@@ -273,7 +309,14 @@ export function start_press_feedback(): () => void {
     return overlay;
   };
 
+  const stop_watch = () => {
+    if (watch_frame !== null) cancelAnimationFrame(watch_frame);
+    watch_frame = null;
+  };
+
   const hide_overlay = () => {
+    stop_watch();
+    overlay_rect = null;
     if (!overlay) return;
     overlay.removeAttribute(PRESS_ATTRIBUTE);
     overlay.removeAttribute(PRESS_MODE_ATTRIBUTE);
@@ -288,6 +331,60 @@ export function start_press_feedback(): () => void {
     hold_timer = null;
     release_timer = null;
     touch_timer = null;
+  };
+
+  const is_owner_gone = (owner: HTMLElement): boolean => {
+    if (!owner.isConnected) return true;
+    if (owner.closest(CLOSING_SURFACE_SELECTOR)) return true;
+    const rect = owner.getBoundingClientRect();
+
+    if (rect.width === 0 || rect.height === 0) return true;
+    if (overlay_rect) {
+      const center_dx =
+        rect.left +
+        rect.width / 2 -
+        (overlay_rect.left + overlay_rect.width / 2);
+      const center_dy =
+        rect.top +
+        rect.height / 2 -
+        (overlay_rect.top + overlay_rect.height / 2);
+
+      if (
+        Math.abs(center_dx) > OWNER_DRIFT_PX ||
+        Math.abs(center_dy) > OWNER_DRIFT_PX ||
+        rect.width < overlay_rect.width * OWNER_MIN_SCALE ||
+        rect.height < overlay_rect.height * OWNER_MIN_SCALE
+      ) {
+        return true;
+      }
+    }
+
+    return ancestor_opacity(owner) < overlay_opacity - OWNER_FADE_TOLERANCE;
+  };
+
+  const follow_owner = (owner: HTMLElement) => {
+    if (!overlay) return;
+    const rect = owner.getBoundingClientRect();
+
+    overlay.style.left = `${rect.left}px`;
+    overlay.style.top = `${rect.top}px`;
+    overlay.style.width = `${rect.width}px`;
+    overlay.style.height = `${rect.height}px`;
+  };
+
+  const guard_overlay = (): boolean => {
+    if (!overlay_owner) return false;
+    if (!is_owner_gone(overlay_owner)) return false;
+    hide_overlay();
+
+    return true;
+  };
+
+  const watch_overlay = () => {
+    watch_frame = null;
+    if (!overlay_owner || guard_overlay()) return;
+    follow_owner(overlay_owner);
+    watch_frame = requestAnimationFrame(watch_overlay);
   };
 
   const clear_element = (el: HTMLElement) => {
@@ -336,6 +433,10 @@ export function start_press_feedback(): () => void {
       layer.setAttribute(PRESS_MODE_ATTRIBUTE, "tint");
       layer.setAttribute(PRESS_WAVE_ATTRIBUTE, wave_name);
       overlay_owner = el;
+      overlay_rect = rect;
+      overlay_opacity = ancestor_opacity(el);
+      stop_watch();
+      watch_frame = requestAnimationFrame(watch_overlay);
     } else {
       apply_ripple(el, geometry);
     }
@@ -353,11 +454,14 @@ export function start_press_feedback(): () => void {
     const el = current;
     const wait = Math.max(0, PRESS_MIN_HOLD_MS - (performance.now() - down_at));
 
+    guard_overlay();
     hold_timer = setTimeout(() => {
       hold_timer = null;
+      guard_overlay();
       set_state(el, "release");
       release_timer = setTimeout(() => {
         release_timer = null;
+        guard_overlay();
         if (el.getAttribute(PRESS_ATTRIBUTE) === "release") clear_element(el);
         if (current === el) current = null;
       }, PRESS_RELEASE_MS);
@@ -379,6 +483,7 @@ export function start_press_feedback(): () => void {
 
     if (!target) return;
     tracked_pointer = e.pointerId;
+    tracked_type = e.pointerType;
     origin_x = e.clientX;
     origin_y = e.clientY;
     const point = { x: e.clientX, y: e.clientY };
@@ -399,10 +504,18 @@ export function start_press_feedback(): () => void {
   const handle_pointer_move = (e: PointerEvent) => {
     if (tracked_pointer === null || e.pointerId !== tracked_pointer) return;
     if (!is_down && !pending_touch) return;
-    const dx = e.clientX - origin_x;
-    const dy = e.clientY - origin_y;
+    if (tracked_type === "touch") {
+      const dx = e.clientX - origin_x;
+      const dy = e.clientY - origin_y;
 
-    if (dx * dx + dy * dy > PRESS_SLOP_PX * PRESS_SLOP_PX) cancel();
+      if (dx * dx + dy * dy > PRESS_SLOP_PX * PRESS_SLOP_PX) cancel();
+
+      return;
+    }
+    if (!current) return;
+    const rect = current.getBoundingClientRect();
+
+    if (!is_point_inside(rect, e.clientX, e.clientY)) cancel();
   };
 
   const handle_scroll = () => {
@@ -438,12 +551,15 @@ export function start_press_feedback(): () => void {
     if (e.target instanceof Element && e.target.closest(SELECTABLE_SELECTOR)) {
       return;
     }
-    if (!find_press_target(e.target)) return;
+    const target = find_press_target(e.target);
+
+    if (!target || !target.matches(INTERACTIVE_SELECTOR)) return;
     e.preventDefault();
   };
 
   const handle_select_start = (e: Event) => {
     if (!is_down || !current) return;
+    if (!current.matches(INTERACTIVE_SELECTOR)) return;
     if (!(e.target instanceof Node)) return;
     const origin =
       e.target instanceof Element ? e.target : e.target.parentElement;

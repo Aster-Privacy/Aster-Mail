@@ -52,6 +52,27 @@ function pointer(
   return event;
 }
 
+function set_rect(
+  el: Element,
+  left: number,
+  top: number,
+  w: number,
+  h: number,
+) {
+  el.getBoundingClientRect = () =>
+    ({
+      left,
+      top,
+      right: left + w,
+      bottom: top + h,
+      width: w,
+      height: h,
+      x: left,
+      y: top,
+      toJSON: () => ({}),
+    }) as DOMRect;
+}
+
 function mouse_down(target: Element, detail: number) {
   const event = new MouseEvent("mousedown", {
     bubbles: true,
@@ -72,7 +93,13 @@ describe("press_feedback", () => {
 
   beforeEach(() => {
     vi.useFakeTimers({
-      toFake: ["setTimeout", "clearTimeout", "performance"],
+      toFake: [
+        "setTimeout",
+        "clearTimeout",
+        "performance",
+        "requestAnimationFrame",
+        "cancelAnimationFrame",
+      ],
     });
     document.body.innerHTML = `
       <button id="menu"><span id="icon">i</span></button>
@@ -85,6 +112,8 @@ describe("press_feedback", () => {
       <button id="code_button"><span id="code" class="select-text">123456</span></button>
       <div role="button" id="strip" data-press-skip tabindex="0"><span id="strip_gap">g</span><button id="strip_action">a</button></div>
       <div style="opacity: 0"><button id="hidden_action">h</button></div>
+      <div id="sender" style="cursor: pointer">sender@example.com</div>
+      <button id="grad">g</button>
     `;
     button = document.getElementById("menu") as HTMLButtonElement;
     clicks = 0;
@@ -201,12 +230,65 @@ describe("press_feedback", () => {
     expect(button.getAttribute(PRESS_ATTRIBUTE)).toBe("down");
   });
 
-  it("cancels the press when the pointer moves past the slop", () => {
-    pointer("pointerdown", button, "mouse", 10, 10);
-    pointer("pointermove", button, "mouse", 13, 12);
+  it("cancels a touch press when the finger moves past the slop", () => {
+    pointer("pointerdown", button, "touch", 10, 10);
+    vi.advanceTimersByTime(200);
+    pointer("pointermove", button, "touch", 13, 12);
     expect(button.getAttribute(PRESS_ATTRIBUTE)).toBe("down");
-    pointer("pointermove", button, "mouse", 10 + PRESS_SLOP_PX + 1, 10);
+    pointer("pointermove", button, "touch", 10 + PRESS_SLOP_PX + 1, 10);
     expect(button.hasAttribute(PRESS_ATTRIBUTE)).toBe(false);
+  });
+
+  it("keeps a mouse press through a wiggle until it leaves the control", () => {
+    set_rect(button, 0, 0, 100, 40);
+    pointer("pointerdown", button, "mouse", 10, 10);
+    pointer("pointermove", button, "mouse", 10 + PRESS_SLOP_PX * 3, 20);
+    expect(button.getAttribute(PRESS_ATTRIBUTE)).toBe("down");
+    pointer("pointermove", button, "pen", 150, 20);
+    expect(button.hasAttribute(PRESS_ATTRIBUTE)).toBe(false);
+  });
+
+  it("leaves text selection alone on pointer cursor hosts", () => {
+    const sender = document.getElementById("sender")!;
+
+    expect(mouse_down(sender, 2).defaultPrevented).toBe(false);
+    pointer("pointerdown", sender);
+    const select = new Event("selectstart", {
+      bubbles: true,
+      cancelable: true,
+    });
+
+    sender.firstChild!.dispatchEvent(select);
+    expect(select.defaultPrevented).toBe(false);
+  });
+
+  it("hides the gradient overlay when its owner goes away", () => {
+    const grad = document.getElementById("grad")!;
+
+    grad.style.backgroundImage = "url(a.png)";
+    set_rect(grad, 0, 0, 100, 40);
+    pointer("pointerdown", grad, "mouse", 10, 10);
+    const overlay = document.querySelector(".aster_press_overlay")!;
+
+    expect(overlay.hasAttribute(PRESS_ATTRIBUTE)).toBe(true);
+    grad.remove();
+    pointer("pointerup", document.body, "mouse", 10, 10);
+    expect(overlay.hasAttribute(PRESS_ATTRIBUTE)).toBe(false);
+  });
+
+  it("hides the gradient overlay when its owner moves away", () => {
+    const grad = document.getElementById("grad")!;
+
+    grad.style.backgroundImage = "url(a.png)";
+    set_rect(grad, 0, 0, 100, 40);
+    pointer("pointerdown", grad, "mouse", 10, 10);
+    const overlay = document.querySelector(".aster_press_overlay")!;
+
+    vi.advanceTimersByTime(32);
+    expect(overlay.hasAttribute(PRESS_ATTRIBUTE)).toBe(true);
+    set_rect(grad, 0, 300, 100, 40);
+    vi.advanceTimersByTime(32);
+    expect(overlay.hasAttribute(PRESS_ATTRIBUTE)).toBe(false);
   });
 
   it("cancels the press when the page scrolls", () => {
