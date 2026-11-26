@@ -63,6 +63,45 @@ describe("compute_total_pages", () => {
     ).toBe(1);
   });
 
+  it("keeps a loaded last page when the total undercounts it", () => {
+    expect(
+      compute_total_pages({
+        effective_total: 97,
+        page_size: 50,
+        current_page: 2,
+        has_more: false,
+        server_paged: true,
+        page_has_rows: true,
+      }),
+    ).toBe(3);
+  });
+
+  it("drops an emptied last page so the view can step back", () => {
+    expect(
+      compute_total_pages({
+        effective_total: 97,
+        page_size: 50,
+        current_page: 2,
+        has_more: false,
+        server_paged: true,
+        page_has_rows: false,
+      }),
+    ).toBe(2);
+  });
+
+  it("does not extend client-paged views by the loaded page", () => {
+    expect(
+      compute_total_pages({
+        effective_total: 30,
+        page_size: 50,
+        current_page: 1,
+        has_more: false,
+        server_paged: false,
+        page_has_rows: true,
+      }),
+    ).toBe(1);
+  });
+
   it("trusts the client-filtered count without adding a page", () => {
     expect(
       compute_total_pages({

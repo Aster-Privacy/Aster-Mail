@@ -75,11 +75,16 @@ export function compute_total_pages(params: {
   current_page: number;
   has_more: boolean;
   server_paged: boolean;
+  page_has_rows?: boolean;
 }): number {
-  const floor =
-    params.server_paged && params.has_more
-      ? (params.current_page + 2) * params.page_size
-      : 0;
+  const reached_pages = !params.server_paged
+    ? 0
+    : params.has_more
+      ? params.current_page + 2
+      : params.page_has_rows
+        ? params.current_page + 1
+        : 0;
+  const floor = reached_pages * params.page_size;
   const total = Math.max(params.effective_total, floor);
 
   return Math.max(1, Math.ceil(total / params.page_size));
