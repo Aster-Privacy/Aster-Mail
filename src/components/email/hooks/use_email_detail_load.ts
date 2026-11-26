@@ -71,7 +71,10 @@ import {
   revert_user_opened_mail,
 } from "@/services/user_opened_mail";
 import { read_clears_conversation } from "@/hooks/unread_read_delta";
-import { mark_conversation_read } from "@/hooks/mark_conversation_read";
+import {
+  conversation_marked_unread,
+  mark_conversation_read,
+} from "@/hooks/mark_conversation_read";
 import { use_document_title } from "@/hooks/use_document_title";
 import { use_date_format } from "@/hooks/use_date_format";
 import { use_preferences } from "@/contexts/preferences_context";
@@ -517,6 +520,14 @@ export function use_email_detail_load() {
     if (!email || !email.is_read) return;
     if (!thread_messages.some((message) => !message.is_read)) return;
     if (swept_threads_ref.current.has(thread_token)) return;
+    if (
+      conversation_marked_unread(thread_token, [
+        mail_item.id,
+        ...thread_messages.map((message) => message.id),
+      ])
+    ) {
+      return;
+    }
 
     swept_threads_ref.current.add(thread_token);
     adjust_stats_unread(-1);

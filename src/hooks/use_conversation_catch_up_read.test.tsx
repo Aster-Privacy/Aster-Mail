@@ -29,19 +29,29 @@ const state = vi.hoisted(() => ({
   marked: [] as { thread_token?: string | null; acted_id?: string }[],
 }));
 
-vi.mock("@/hooks/mark_conversation_read", () => ({
-  mark_conversation_read: (options: {
-    thread_token?: string | null;
-    acted_id?: string;
-  }) => {
-    state.marked.push(options);
-  },
-}));
+vi.mock("@/hooks/mark_conversation_read", async () => {
+  const { get_read_intent } = await import("@/services/read_intent");
+
+  return {
+    conversation_marked_unread: (
+      _thread_token: string | null | undefined,
+      ids: readonly string[] = [],
+    ) => ids.some((id) => get_read_intent(id) === false),
+    mark_conversation_read: (options: {
+      thread_token?: string | null;
+      acted_id?: string;
+    }) => {
+      state.marked.push(options);
+    },
+  };
+});
 
 vi.mock("@/services/category_index", () => ({
   thread_has_unread_entries: () => state.indexed_unread,
 }));
 
+const { clear_all_read_intents, note_read_intent } =
+  await import("@/services/read_intent");
 const { use_conversation_catch_up_read, catch_up_delay_ms } =
   await import("@/hooks/use_conversation_catch_up_read");
 
@@ -93,6 +103,7 @@ beforeEach(() => {
   vi.useFakeTimers();
   state.indexed_unread = false;
   state.marked = [];
+  clear_all_read_intents();
   container = document.createElement("div");
   document.body.appendChild(container);
   root = createRoot(container);
@@ -207,5 +218,29 @@ describe("use_conversation_catch_up_read", () => {
     });
 
     expect(state.marked).toHaveLength(1);
+  });
+
+  it("keeps a conversation unread after the user marks it unread while it is open", () => {
+    render({
+      is_read: true,
+      delay: "immediate",
+      messages: [message("a", true), message("b", true)],
+    });
+    act(() => {
+      vi.runAllTimers();
+    });
+
+    note_read_intent(["b"], false);
+    state.indexed_unread = true;
+    render({
+      is_read: true,
+      delay: "immediate",
+      messages: [message("a", true), message("b", false)],
+    });
+    act(() => {
+      vi.runAllTimers();
+    });
+
+    expect(state.marked).toHaveLength(0);
   });
 });
