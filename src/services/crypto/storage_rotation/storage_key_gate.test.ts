@@ -120,7 +120,18 @@ import {
   storage_key_waiter_count,
 } from "../storage_key_gate";
 
-import { prepare_storage_key_gate, run_vault_step } from "./background";
+import {
+  STORAGE_KEY_PENDING_RETRY_DELAYS_MS,
+  is_storage_key_rotation_pending,
+  prepare_storage_key_gate,
+  retry_storage_key_step,
+  run_vault_step,
+  stop_storage_key_retries,
+} from "./background";
+import {
+  STORAGE_KEY_PENDING_EVENT,
+  type StorageKeyPendingDetail,
+} from "./pending_event";
 
 const PASSWORD = "Gate-Step-Passw0rd-31";
 const USER_ID = "11111111-2222-4333-8444-555555555555";
@@ -219,6 +230,7 @@ describe("storage key gate", () => {
   });
 
   afterEach(() => {
+    stop_storage_key_retries();
     set_storage_key_runner(null);
     clear_vault_from_memory();
   });
@@ -280,19 +292,108 @@ describe("storage key gate", () => {
     );
   });
 
-  it("releases saves when the server cannot take a guarded write", LONG_TEST, async () => {
+  it("lets saves continue but records the step as pending when the server withholds the vault hash", LONG_TEST, async () => {
     await unlock_weak_session();
     server.legacy = true;
 
-    const writer = track_writer();
-    const outcome = await run_vault_step(PASSWORD);
+    const announced: boolean[] = [];
+    const listener = (event: Event) =>
+      announced.push(
+        (event as CustomEvent<StorageKeyPendingDetail>).detail.pending,
+      );
 
-    await writer.promise;
+    window.addEventListener(STORAGE_KEY_PENDING_EVENT, listener);
 
-    expect(outcome).toEqual({ status: "skipped", reason: "unsupported" });
-    expect(writer.failed).toBeNull();
-    expect(writer.done).toBe(true);
-    expect(array_to_base64(writer.bytes!)).toBe(password_key_b64);
+    try {
+      const writer = track_writer();
+      const outcome = await run_vault_step(PASSWORD);
+
+      await writer.promise;
+
+      expect(outcome).toEqual({ status: "skipped", reason: "unsupported" });
+      expect(writer.failed).toBeNull();
+      expect(writer.done).toBe(true);
+      expect(is_storage_key_rotation_pending()).toBe(true);
+      expect(announced).toEqual([true]);
+    } finally {
+      window.removeEventListener(STORAGE_KEY_PENDING_EVENT, listener);
+    }
+  });
+
+  it("keeps the pending state and announces it again when a retry still has no vault hash", LONG_TEST, async () => {
+    await unlock_weak_session();
+    server.legacy = true;
+    await run_vault_step(PASSWORD);
+
+    const announced: boolean[] = [];
+    const listener = (event: Event) =>
+      announced.push(
+        (event as CustomEvent<StorageKeyPendingDetail>).detail.pending,
+      );
+
+    window.addEventListener(STORAGE_KEY_PENDING_EVENT, listener);
+
+    try {
+      await expect(retry_storage_key_step()).resolves.toBe(true);
+      expect(is_storage_key_rotation_pending()).toBe(true);
+      expect(announced).toEqual([true]);
+      expect((await read_server_vault()).data_kek_random).not.toBe(true);
+    } finally {
+      window.removeEventListener(STORAGE_KEY_PENDING_EVENT, listener);
+    }
+  });
+
+  it("installs a random key and clears the pending state once the server sends the vault hash", LONG_TEST, async () => {
+    await unlock_weak_session();
+    server.legacy = true;
+    await run_vault_step(PASSWORD);
+    expect(is_storage_key_rotation_pending()).toBe(true);
+
+    const announced: boolean[] = [];
+    const listener = (event: Event) =>
+      announced.push(
+        (event as CustomEvent<StorageKeyPendingDetail>).detail.pending,
+      );
+
+    window.addEventListener(STORAGE_KEY_PENDING_EVENT, listener);
+
+    try {
+      server.legacy = false;
+
+      await expect(retry_storage_key_step()).resolves.toBe(false);
+
+      const stored = await read_server_vault();
+      const writer = track_writer();
+
+      await writer.promise;
+
+      expect(is_storage_key_rotation_pending()).toBe(false);
+      expect(announced).toEqual([false]);
+      expect(stored.data_kek_random).toBe(true);
+      expect(array_to_base64(writer.bytes!)).toBe(stored.data_kek);
+      expect(array_to_base64(writer.bytes!)).not.toBe(password_key_b64);
+    } finally {
+      window.removeEventListener(STORAGE_KEY_PENDING_EVENT, listener);
+    }
+  });
+
+  it("schedules another attempt while the step is pending", LONG_TEST, async () => {
+    await unlock_weak_session();
+    server.legacy = true;
+
+    const timeout_spy = vi.spyOn(globalThis, "setTimeout");
+
+    try {
+      await run_vault_step(PASSWORD);
+
+      expect(
+        timeout_spy.mock.calls.some(
+          ([, delay]) => delay === STORAGE_KEY_PENDING_RETRY_DELAYS_MS[0],
+        ),
+      ).toBe(true);
+    } finally {
+      timeout_spy.mockRestore();
+    }
   });
 
   it("does not hold saves when no unlock registered the step", LONG_TEST, async () => {

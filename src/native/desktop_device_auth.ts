@@ -88,6 +88,16 @@ async function invoke<T>(
 }
 
 export const PASSPHRASE_PIN_LOCKED = "passphrase_pin_locked";
+const DEVICE_ACCOUNT_MISMATCH = "device_account_mismatch";
+
+let verified_device_login: { account_id: string; device_id: string } | null =
+  null;
+
+export function device_id_verified_for(account_id: string): string | null {
+  return verified_device_login?.account_id === account_id
+    ? verified_device_login.device_id
+    : null;
+}
 
 function is_pin_locked_error(error: unknown): boolean {
   const message = error instanceof Error ? error.message : String(error);
@@ -157,6 +167,7 @@ export async function device_login(
 async function silent_device_login(
   device_id: string,
   notify = true,
+  expected_account_id: string | null = null,
 ): Promise<void> {
   const challenge = await device_challenge(device_id);
   const signature = await invoke<string>("device_sign_challenge", {
@@ -168,7 +179,16 @@ async function silent_device_login(
     access_token?: string;
     csrf_token?: string;
     refresh_token?: string;
+    user_id?: unknown;
   };
+
+  if (expected_account_id && resp.user_id !== expected_account_id) {
+    throw new Error(DEVICE_ACCOUNT_MISMATCH);
+  }
+  verified_device_login =
+    typeof resp.user_id === "string" && resp.user_id
+      ? { account_id: resp.user_id, device_id }
+      : null;
 
   if (resp.access_token) {
     const { api_client } = await import("@/services/api/client");
@@ -232,7 +252,11 @@ async function relogin_step(device_id: string): Promise<ReloginStep> {
   if (!is_tauri()) return "unavailable";
 
   try {
-    await silent_device_login(device_id);
+    await silent_device_login(
+      device_id,
+      true,
+      await current_account_id_or_null(),
+    );
 
     return "signed_in";
   } catch (caught) {
@@ -530,12 +554,55 @@ export async function resume_device_login_after_unlock(
 
 let desktop_device_auth_run: Promise<void> | null = null;
 
+export async function resolve_current_account_device_id(
+  account_device_id: string | null | undefined,
+  last_paired_device_id: string | null | undefined,
+): Promise<string | null> {
+  if (account_device_id) return account_device_id;
+  if (!last_paired_device_id) return null;
+
+  try {
+    const {
+      get_all_accounts,
+      get_current_account_id,
+      device_id_claimed_by_other_account,
+    } = await import("@/services/account_manager");
+    const current_id = await get_current_account_id();
+    const others = (await get_all_accounts()).filter(
+      (account) => account.id !== current_id,
+    );
+
+    if (others.length > 0) return null;
+    const claimed = await device_id_claimed_by_other_account(
+      current_id,
+      last_paired_device_id,
+    );
+
+    return claimed ? null : last_paired_device_id;
+  } catch (caught) {
+    ignore_error("native/desktop_device_auth:resolve_device_id", caught);
+
+    return null;
+  }
+}
+
+async function current_account_id_or_null(): Promise<string | null> {
+  const { get_current_account_id } = await import(
+    "@/services/account_manager"
+  );
+
+  return get_current_account_id();
+}
+
 async function run_desktop_device_auth(
   account_device_id?: string | null,
 ): Promise<void> {
   try {
     const pubkeys = await invoke<DevicePubkeys>("device_get_pubkeys");
-    const device_id = account_device_id || pubkeys.device_id;
+    const device_id = await resolve_current_account_device_id(
+      account_device_id,
+      pubkeys.device_id,
+    );
 
     if (!device_id) {
       window.dispatchEvent(
@@ -547,7 +614,9 @@ async function run_desktop_device_auth(
       return;
     }
 
-    await silent_device_login(device_id);
+    const expected_account_id = await current_account_id_or_null();
+
+    await silent_device_login(device_id, true, expected_account_id);
   } catch (caught) {
     ignore_error("native/desktop_device_auth:init", caught);
   }
@@ -566,12 +635,12 @@ export function init_desktop_device_auth(
 export async function read_device_passphrase(
   device_id: string | null | undefined,
 ): Promise<string | null> {
-  if (!is_tauri()) return null;
+  if (!is_tauri() || !device_id) return null;
 
   try {
     const raw_b64 = await invoke<string | null>(
       "device_get_stored_passphrase",
-      { deviceId: device_id ?? null },
+      { deviceId: device_id },
     );
 
     if (!raw_b64) return null;
@@ -637,16 +706,12 @@ export async function forget_device_account(
   pending_device_login = null;
   locked_device_login = null;
 
-  let target = device_id ?? null;
-
-  if (!target) {
-    const pubkeys = await invoke<DevicePubkeys>("device_get_pubkeys");
-
-    target = pubkeys.device_id;
+  if (!device_id) return;
+  if (verified_device_login?.device_id === device_id) {
+    verified_device_login = null;
   }
-  if (!target) return;
 
-  await invoke("device_forget_account", { deviceId: target });
+  await invoke("device_forget_account", { deviceId: device_id });
 }
 
 async function reset_device_auth(command: string): Promise<void> {

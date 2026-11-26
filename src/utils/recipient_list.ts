@@ -18,9 +18,11 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { is_plain_address, whitespace_or_chars } from "@/lib/address_scans";
+
 const SEPARATORS = new Set([",", ";", "\n", "\r", "\t"]);
 
-const BARE_EMAIL_PATTERN = /^[^\s@<>,;"]+@[^\s@<>,;"]+\.[^\s@<>,;"]+$/;
+const is_bare_email_excluded = whitespace_or_chars('@<>,;"');
 
 function split_space_separated(part: string): string[] {
   if (/["<>]/.test(part)) return [part];
@@ -28,7 +30,9 @@ function split_space_separated(part: string): string[] {
   const tokens = part.split(/\s+/).filter(Boolean);
 
   if (tokens.length < 2) return [part];
-  if (!tokens.every((token) => BARE_EMAIL_PATTERN.test(token))) return [part];
+  if (!tokens.every((token) => is_plain_address(token, is_bare_email_excluded))) {
+    return [part];
+  }
 
   return tokens;
 }

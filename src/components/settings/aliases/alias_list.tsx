@@ -353,7 +353,8 @@ export function AliasList({
         (a) =>
           `${a.local_part}@${a.domain_name}`.toLowerCase().includes(query) ||
           (a.display_name ?? "").toLowerCase().includes(query) ||
-          (a.note ?? "").toLowerCase().includes(query),
+          (a.note ?? "").toLowerCase().includes(query) ||
+          (a.websites ?? []).some((url) => url.toLowerCase().includes(query)),
       );
     }
     if (filter_mode === "enabled") {
@@ -805,10 +806,9 @@ export function AliasList({
               {t("settings.alias_bulk_disable")}
             </Button>
             <Button
-              className="text-[var(--color-danger)] hover:text-[var(--color-danger)]"
               disabled={selected_ids.size === 0}
               size="sm"
-              variant="outline"
+              variant="depth_destructive"
               onClick={() => set_show_bulk_delete_confirm(true)}
             >
               <TrashIcon className="w-3.5 h-3.5" />

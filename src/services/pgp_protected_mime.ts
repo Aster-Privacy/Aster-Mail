@@ -18,6 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { trim_js_whitespace_end } from "@/lib/linear_trim";
 
 export interface ProtectedMimeAttachment {
   filename: string;
@@ -105,7 +106,7 @@ export function encode_address_header(value: string): string {
 
   if (!needs_encoded_word(sanitized)) return sanitized;
 
-  const trimmed = sanitized.replace(/\s+$/, "");
+  const trimmed = trim_js_whitespace_end(sanitized);
   const open = trimmed.lastIndexOf("<");
 
   if (open !== -1 && trimmed.endsWith(">")) {
@@ -219,7 +220,7 @@ export function html_to_plain_text(html: string): string {
   let blank_run = 0;
 
   for (const line of decoded.split(/\r\n|\r|\n/)) {
-    const trimmed = line.replace(/\s+$/, "");
+    const trimmed = trim_js_whitespace_end(line);
 
     if (trimmed.trim().length === 0) {
       blank_run += 1;
@@ -301,7 +302,7 @@ export function server_visible_subject(params: {
 
 export function build_protected_mime_entity(input: ProtectedMimeInput): string {
   const boundary = `--=_astermail_protected_${random_token()}`;
-  const obscure_subject = input.obscure_subject !== false;
+  const obscure_subject = input.obscure_subject === true;
   const safe_subject = encode_header_value(input.subject);
   const outer_subject = encode_header_value(
     outer_subject_for(input.subject, obscure_subject),

@@ -40,6 +40,7 @@ import {
   type TurnstileWidgetRef,
 } from "@/components/auth/turnstile_widget";
 import { is_composing } from "@/utils/ime";
+import { academic_error_key } from "@/components/settings/billing/academic_error_text";
 import {
   BillingMoreRow,
   billing_row_icon,
@@ -113,18 +114,7 @@ export function AcademicDiscountSection({
       if (res.error) {
         turnstile_ref.current?.reset();
         set_turnstile_token("");
-        if (res.error.includes("NOT_ACADEMIC_DOMAIN")) {
-          show_toast(t("settings.academic_invalid_email"), "error");
-        } else if (
-          res.error.includes("EMAIL_ALREADY_USED") ||
-          res.error.includes("ALREADY_VERIFIED")
-        ) {
-          show_toast(t("settings.academic_email_in_use"), "error");
-        } else if (res.error.includes("CAPTCHA")) {
-          show_toast(t("settings.academic_captcha_required"), "error");
-        } else {
-          show_toast(t("settings.academic_request_failed"), "error");
-        }
+        show_toast(t(academic_error_key(res, captcha_required)), "error");
 
         return;
       }
@@ -153,7 +143,8 @@ export function AcademicDiscountSection({
       set_turnstile_token("");
 
       if (res.error) {
-        show_toast(t("settings.academic_request_failed"), "error");
+        show_toast(t(academic_error_key(res, captcha_required)), "error");
+        if (res.server_code === "NOT_FOUND") await refresh_academic_status();
 
         return;
       }

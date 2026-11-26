@@ -23,6 +23,8 @@ import type { DecryptedThreadMessage } from "@/types/thread";
 
 import { is_internal_email } from "./api/keys";
 
+import { first_angle_capture } from "@/lib/address_scans";
+
 export const max_reaction_recipients = 20;
 export const max_reaction_emojis = 20;
 export const max_own_reactions = 2;
@@ -72,9 +74,9 @@ export function extract_addresses(value: string): string[] {
   return value
     .split(",")
     .map((part) => {
-      const angled = part.match(/<([^>]+)>/);
+      const angled = first_angle_capture(part);
 
-      return normalize(angled ? angled[1] : part);
+      return normalize(angled ?? part);
     })
     .filter((address) => address.includes("@"));
 }

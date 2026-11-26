@@ -19,9 +19,11 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { ignore_error } from "@/lib/ignore_error";
+import { tab_shares_session_cookies } from "@/lib/tab_account";
 
 export function update_pwa_badge(unread_count: number): void {
   if (!("setAppBadge" in navigator)) return;
+  if (!tab_shares_session_cookies()) return;
 
   if (unread_count > 0) {
     navigator

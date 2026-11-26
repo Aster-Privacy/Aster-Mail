@@ -525,10 +525,9 @@ export function VacationReplySection() {
             <div>
               {vacation && (
                 <Button
-                  className="text-red-500 hover:text-red-600 hover:bg-red-500/10"
                   disabled={is_deleting}
                   is_loading={is_deleting}
-                  variant="ghost"
+                  variant="depth_destructive"
                   onClick={() => set_confirm_delete_open(true)}
                 >
                   {t("settings.vacation_reply_delete")}

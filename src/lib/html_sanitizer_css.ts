@@ -24,7 +24,12 @@ import {
   COMPOSE_ALLOWED_CSS_PROPERTIES,
   COMPOSE_ALLOWED_DISPLAY_VALUES,
   COMPOSE_ALLOWED_VERTICAL_ALIGN_VALUES,
+  ascii_ci_at,
+  index_of_ascii_ci,
+  replace_up_to_last,
+  skip_js_whitespace,
 } from "./html_sanitizer_constants";
+import { is_js_whitespace, trim_end_index } from "./linear_trim";
 import {
   is_remote_url_value,
   normalize_url_value,
@@ -784,10 +789,200 @@ const UNIT_TO_PX: Record<string, number> = {
   vmax: 6,
 };
 
-const IMPORTANT_SUFFIX = /\s*!\s*important\s*$/i;
+const IMPORTANT_KEYWORD = "important";
 
-const EMPTY_CONTENT_VALUE =
-  /^\s*(?:none|""|''|"\s*"|'\s*')?\s*(?:!\s*important\s*)?$/i;
+export function important_suffix_start(value: string): number {
+  const keyword_end = trim_end_index(value, is_js_whitespace);
+  const keyword_start = keyword_end - IMPORTANT_KEYWORD.length;
+
+  if (!ascii_ci_at(value, keyword_start, IMPORTANT_KEYWORD)) return -1;
+
+  const bang = trim_end_index(value, is_js_whitespace, keyword_start) - 1;
+
+  if (bang < 0 || value.charCodeAt(bang) !== 0x21) return -1;
+
+  return trim_end_index(value, is_js_whitespace, bang);
+}
+
+export function has_important_suffix(value: string): boolean {
+  return important_suffix_start(value) !== -1;
+}
+
+export function strip_important_suffix(value: string): string {
+  const start = important_suffix_start(value);
+
+  return start === -1 ? value : value.slice(0, start);
+}
+
+function empty_content_token_end(value: string, index: number): number {
+  if (ascii_ci_at(value, index, "none")) return index + 4;
+
+  const quote = value.charCodeAt(index);
+
+  if (quote !== 0x22 && quote !== 0x27) return index;
+
+  const close = skip_js_whitespace(value, index + 1);
+
+  return value.charCodeAt(close) === quote ? close + 1 : index;
+}
+
+export function is_empty_content_value(value: string): boolean {
+  const token_start = skip_js_whitespace(value, 0);
+  let position = skip_js_whitespace(
+    value,
+    empty_content_token_end(value, token_start),
+  );
+
+  if (position === value.length) return true;
+
+  if (value.charCodeAt(position) !== 0x21) return false;
+
+  position = skip_js_whitespace(value, position + 1);
+
+  if (!ascii_ci_at(value, position, IMPORTANT_KEYWORD)) return false;
+
+  return (
+    skip_js_whitespace(value, position + IMPORTANT_KEYWORD.length) ===
+    value.length
+  );
+}
+
+const CSS_EXPRESSION_CALL = /expression\s*\([^)]*\)/gi;
+
+export function strip_css_expressions(css: string): string {
+  return replace_up_to_last(css, ")", CSS_EXPRESSION_CALL, "");
+}
+
+function remote_url_prefix_end(css: string, start: number): number {
+  let position = skip_js_whitespace(css, start + 4);
+  const quote = css.charCodeAt(position);
+
+  if (quote === 0x22 || quote === 0x27) position += 1;
+
+  if (ascii_ci_at(css, position, "https:")) {
+    position += 6;
+  } else if (ascii_ci_at(css, position, "http:")) {
+    position += 5;
+  }
+
+  return css.startsWith("//", position) ? position + 2 : -1;
+}
+
+export function strip_remote_url_calls(css: string): string {
+  let result = "";
+  let copied = 0;
+  let from = 0;
+  let close = -1;
+  let close_space_start = -1;
+
+  for (;;) {
+    const start = index_of_ascii_ci(css, "url(", from);
+
+    if (start === -1) break;
+
+    const body_start = remote_url_prefix_end(css, start);
+
+    if (body_start === -1) {
+      from = start + 1;
+      continue;
+    }
+
+    if (close < body_start) {
+      close = css.indexOf(")", body_start);
+
+      if (close === -1) break;
+
+      close_space_start = trim_end_index(css, is_js_whitespace, close);
+    }
+
+    const quote = skip_js_whitespace(css, start + 4);
+    const quote_code = css.charCodeAt(quote);
+    const quoted = quote_code === 0x22 || quote_code === 0x27;
+
+    if (
+      quoted &&
+      (close_space_start - 1 < body_start ||
+        css.charCodeAt(close_space_start - 1) !== quote_code)
+    ) {
+      from = start + 1;
+      continue;
+    }
+
+    result += `${css.slice(copied, start)}url()`;
+    copied = close + 1;
+    from = close + 1;
+  }
+
+  return copied === 0 ? css : result + css.slice(copied);
+}
+
+const IMAGE_SET_CALL = /(?:-webkit-)?image-set\s*\([^)]*\)/gi;
+const CROSS_FADE_CALL = /cross-fade\s*\([^)]*\)/gi;
+const IMPORT_RULE = /@import[^;]*;/gi;
+
+export function strip_remote_css_fetches(html: string): string {
+  const without_urls = strip_remote_url_calls(html);
+  const without_image_sets = replace_up_to_last(
+    without_urls,
+    ")",
+    IMAGE_SET_CALL,
+    "none",
+  );
+  const without_cross_fades = replace_up_to_last(
+    without_image_sets,
+    ")",
+    CROSS_FADE_CALL,
+    "none",
+  );
+
+  return replace_up_to_last(without_cross_fades, ";", IMPORT_RULE, "");
+}
+
+const MOZ_DOCUMENT_PREFIX = "-moz-document";
+
+function next_semicolon_or_brace(css: string, from: number): number {
+  for (let index = from; index < css.length; index += 1) {
+    const code = css.charCodeAt(index);
+
+    if (code === 0x3b || code === 0x7b) return index;
+  }
+
+  return -1;
+}
+
+export function strip_moz_document_rules(css: string): string {
+  let result = "";
+  let copied = 0;
+  let from = 0;
+
+  for (;;) {
+    const start = index_of_ascii_ci(css, MOZ_DOCUMENT_PREFIX, from);
+
+    if (start === -1) break;
+
+    const stop = next_semicolon_or_brace(
+      css,
+      start + MOZ_DOCUMENT_PREFIX.length,
+    );
+
+    if (stop === -1) break;
+
+    if (css.charCodeAt(stop) === 0x3b) {
+      from = stop + 1;
+      continue;
+    }
+
+    const close = css.indexOf("}", stop + 1);
+
+    if (close === -1) break;
+
+    result += css.slice(copied, start);
+    copied = close + 1;
+    from = close + 1;
+  }
+
+  return copied === 0 ? css : result + css.slice(copied);
+}
 
 const CSS_URL_CALL = /url\s*\(/i;
 
@@ -808,7 +1003,7 @@ function parse_declaration(declaration: string): CssDeclaration | null {
 }
 
 function position_keyword(value: string): string {
-  return value.replace(IMPORTANT_SUFFIX, "").trim().toLowerCase();
+  return strip_important_suffix(value).trim().toLowerCase();
 }
 
 function reaches_off_page(value: string): boolean {
@@ -861,7 +1056,7 @@ function keep_declaration_in_flow(
   const { property, value } = parsed;
 
   if (property === "content") {
-    return EMPTY_CONTENT_VALUE.test(value) ? declaration : "content: none";
+    return is_empty_content_value(value) ? declaration : "content: none";
   }
 
   if (property === "cursor") {
@@ -930,7 +1125,7 @@ export function sanitize_style(
 
   let result = decoded;
 
-  result = result.replace(/expression\s*\([^)]*\)/gi, "");
+  result = strip_css_expressions(result);
   result = result.replace(/javascript\s*:[^;]*/gi, "");
   result = result.replace(/vbscript\s*:[^;]*/gi, "");
 
@@ -1075,17 +1270,19 @@ export function strip_dark_mode_media(css: string): string {
 const BLOCKED_CSS_RULE_PASS_LIMIT = 8;
 
 function strip_blocked_css_rules(css: string): string {
-  return css
-    .replace(/@import[^;]*;?/gi, "")
-    .replace(/@charset[^;]*;?/gi, "")
-    .replace(/expression\s*\([^)]*\)/gi, "")
-    .replace(/javascript\s*:[^;]*/gi, "")
-    .replace(/vbscript\s*:[^;]*/gi, "")
-    .replace(/-moz-binding\s*:[^;]*/gi, "")
-    .replace(/behavior\s*:[^;]*/gi, "")
-    .replace(/@namespace[^;]*;?/gi, "")
-    .replace(/@document[^;]*;?/gi, "")
-    .replace(/-moz-document[^;{]*\{[^}]*\}/gi, "");
+  return strip_moz_document_rules(
+    strip_css_expressions(
+      css
+        .replace(/@import[^;]*;?/gi, "")
+        .replace(/@charset[^;]*;?/gi, ""),
+    )
+      .replace(/javascript\s*:[^;]*/gi, "")
+      .replace(/vbscript\s*:[^;]*/gi, "")
+      .replace(/-moz-binding\s*:[^;]*/gi, "")
+      .replace(/behavior\s*:[^;]*/gi, "")
+      .replace(/@namespace[^;]*;?/gi, "")
+      .replace(/@document[^;]*;?/gi, ""),
+  );
 }
 
 export function sanitize_css_block(css: string, _sandbox_mode = false): string {

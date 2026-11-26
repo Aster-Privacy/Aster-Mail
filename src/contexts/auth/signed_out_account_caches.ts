@@ -31,6 +31,7 @@ import { clear_family_cache } from "@/components/settings/billing/family_section
 import { ignore_error } from "@/lib/ignore_error";
 import { clear_icon_cache } from "@/lib/icon_cache";
 import { purge_favicon_cache } from "@/lib/favicon_cache_db";
+import { clear_remote_image_cache } from "@/lib/remote_image_cache";
 import { delete_account_storage } from "@/services/crypto/storage_key_names";
 import { forget_external_account_problems } from "@/stores/external_account_health_store";
 import { clear_desktop_notifications } from "@/services/notification_service";
@@ -65,6 +66,10 @@ export async function clear_signed_out_account_caches(
       ),
     );
   }
+
+  await clear_remote_image_cache(account_id).catch((caught) =>
+    ignore_error("contexts/auth/signed_out_account_caches:images", caught),
+  );
 
   await purge_favicon_cache().catch((caught) =>
     ignore_error("contexts/auth/signed_out_account_caches:favicons", caught),

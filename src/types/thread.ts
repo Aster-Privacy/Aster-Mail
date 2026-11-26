@@ -27,6 +27,7 @@ export interface ThreadMessage {
   item_type: "received" | "sent" | "draft";
   encrypted_envelope: string;
   envelope_nonce: string;
+  payload_unavailable?: boolean;
   is_read: boolean;
   is_trashed: boolean;
   message_ts: string;
@@ -46,6 +47,7 @@ export interface DecryptedThreadMessage {
   sender_aligned?: boolean;
   subject: string;
   body: string;
+  payload_unavailable?: boolean;
   html_content?: string;
   text_part?: string;
   timestamp: string;

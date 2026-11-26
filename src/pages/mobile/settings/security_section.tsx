@@ -49,7 +49,7 @@ import { use_preferences } from "@/contexts/preferences_context";
 import { show_toast } from "@/components/toast/simple_toast";
 import { use_i18n } from "@/lib/i18n/context";
 import { clamp_password } from "@/services/sanitize";
-import { ButtonSpinner } from "@/components/ui/spinner";
+import { ButtonSpinner, Spinner } from "@/components/ui/spinner";
 import { Input } from "@/components/ui/input";
 import { api_client } from "@/services/api/client";
 import { get_totp_status, type TotpStatusResponse } from "@/services/api/totp";
@@ -62,6 +62,7 @@ import { ConfirmationModal } from "@/components/modals/confirmation_modal";
 import { check_password_breach } from "@/services/breach_check";
 import { UpgradeGate } from "@/components/common/upgrade_gate";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
+import { use_guard_status } from "@/hooks/use_guard_status";
 import {
   append_password_notice,
   password_change_failure_message,
@@ -81,6 +82,7 @@ export function SecuritySection({
   const { user } = use_auth();
   const { preferences, update_preference } = use_preferences();
   const { is_feature_locked } = use_plan_limits();
+  const guard_status = use_guard_status(true);
   const navigate = useNavigate();
   const [show_delete_modal, set_show_delete_modal] = useState(false);
 
@@ -337,6 +339,26 @@ export function SecuritySection({
     { value: 25, label: t("settings.twenty_five_keys") },
     { value: 0, label: t("settings.unlimited") },
   ];
+
+  const is_ready =
+    (totp_status !== null || totp_failed) &&
+    (login_alerts_loaded || login_alerts_failed) &&
+    !guard_status.loading;
+
+  if (!is_ready) {
+    return (
+      <div className="flex h-full flex-col">
+        <SettingsHeader
+          on_back={on_back}
+          on_close={on_close}
+          title={t("settings.security")}
+        />
+        <div className="flex flex-1 items-center justify-center py-12">
+          <Spinner size="md" />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-full flex-col">

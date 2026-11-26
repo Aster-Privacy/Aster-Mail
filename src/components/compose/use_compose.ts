@@ -25,6 +25,7 @@ import type { SenderOption } from "@/hooks/use_sender_aliases";
 import type { Badge } from "@/services/api/user";
 import type { UseEditorReturn } from "@/hooks/use_editor";
 import type { RecipientLockScope } from "@/services/recipient_lock_state";
+import type { ReplyFromMismatchState } from "@/components/modals/reply_from_mismatch_modal";
 
 import {
   useState,
@@ -51,6 +52,7 @@ import {
 } from "@/lib/preferred_sender";
 import { use_preferred_sender_ready } from "@/hooks/use_preferred_sender_ready";
 import { resolve_from_sender } from "@/components/compose/resolve_from_sender";
+import { reply_from_guard_state } from "@/components/compose/reply_from_guard";
 import { sender_is_pending } from "@/components/compose/sender_pending";
 import { compose_selected_alias } from "@/components/compose/selected_alias";
 import {
@@ -92,10 +94,11 @@ import {
   SIGNATURE_GAP_BLOCK,
   insert_signature_node,
 } from "@/lib/signature_html";
+import { extract_cid_references } from "@/lib/cid_resolver";
 import {
-  extract_cid_references,
-  resolve_cid_references,
-} from "@/lib/cid_resolver";
+  cap_scoped_quote_images,
+  embed_quoted_cid_images,
+} from "@/lib/quoted_inline_images";
 import { load_forward_attachments } from "@/services/forward_attachments";
 import { show_toast } from "@/components/toast/simple_toast";
 import {
@@ -189,6 +192,7 @@ export interface UseComposeReturn {
   set_expires_at: (val: Date | null) => void;
   expiry_password: string | null;
   set_expiry_password: (val: string | null) => void;
+  reply_from_mismatch: ReplyFromMismatchState;
 
   attachments_scroll_ref: React.RefObject<HTMLDivElement>;
   file_input_ref: React.RefObject<HTMLInputElement>;
@@ -241,18 +245,16 @@ function inject_html_with_inline_images(
   apply: (resolved_html: string) => void,
 ): void {
   if (!source_mail_id || extract_cid_references(html).length === 0) {
-    apply(html);
+    apply(cap_scoped_quote_images(html));
 
     return;
   }
 
-  resolve_cid_references(html, source_mail_id, "data")
-    .then((result) => {
-      if (is_active()) apply(result.html);
-    })
-    .catch(() => {
-      if (is_active()) apply(html);
-    });
+  void embed_quoted_cid_images(html, source_mail_id, false, true).then(
+    (resolved_html) => {
+      if (is_active()) apply(resolved_html);
+    },
+  );
 }
 
 export function use_compose({
@@ -378,9 +380,11 @@ export function use_compose({
   const [typed_sender_email, set_typed_sender_email] = useState<
     string | null
   >(null);
+  const thread_addresses = edit_draft?.thread_addresses;
   const { sender_options, loading: aliases_loading } = use_sender_aliases([
     edit_draft?.from_email,
     typed_sender_email,
+    ...(thread_addresses ?? []),
   ]);
   const [selected_sender, set_selected_sender_state] =
     useState<SenderOption | null>(null);
@@ -537,9 +541,11 @@ export function use_compose({
           sender_manually_selected_ref.current || ghost_mode.is_ghost_enabled,
         draft_from: edit_draft?.from_email,
         selected_email: selected_sender?.email,
+        thread_bound: (thread_addresses?.length ?? 0) > 0,
         resolution_ready: preferred_sender_ready || !!preferred_sender_id,
       }),
     [
+      thread_addresses,
       aliases_loading,
       ghost_mode.is_ghost_enabled,
       edit_draft?.from_email,
@@ -599,6 +605,7 @@ export function use_compose({
     const resolved = resolve_from_sender({
       options: sender_options,
       draft_from: edit_draft?.from_email,
+      thread_addresses,
       preferred_sender_id,
       selected_alias: effective_selected_alias,
     });
@@ -609,6 +616,7 @@ export function use_compose({
       chosen_by_user: false,
       draft_from: edit_draft?.from_email,
       selected_email: resolved.option.email,
+      thread_bound: (thread_addresses?.length ?? 0) > 0,
     });
     if (resolved.option.id === selected_sender?.id) return;
 
@@ -753,28 +761,96 @@ export function use_compose({
 
   send_hook_ref.current = send_hook;
 
-  const handle_send = useCallback(async () => {
-    flush_editor_input_now();
+  const [reply_from_prompt, set_reply_from_prompt] = useState<
+    "send" | "schedule" | null
+  >(null);
+  const pending_send_ack_ref = useRef(false);
+  const reply_from_guard = reply_from_guard_state({
+    draft_type: edit_draft?.draft_type,
+    thread_addresses,
+    sender_options,
+    selected_email: selected_sender?.email,
+    sender_chosen:
+      sender_manually_selected_ref.current || ghost_mode.is_ghost_enabled,
+  });
+  const reply_from_guard_ref = useRef(reply_from_guard);
 
-    if (flush_pending_recipients("send")) return;
+  reply_from_guard_ref.current = reply_from_guard;
 
-    await send_hook_ref.current.handle_send();
-  }, [flush_editor_input_now, flush_pending_recipients]);
+  const needs_reply_from_prompt = useCallback(
+    (kind: "send" | "schedule", acknowledged: boolean): boolean => {
+      if (acknowledged) return false;
+      if (is_sender_pending()) return false;
+      if (!reply_from_guard_ref.current.needs_confirm) return false;
+      set_reply_from_prompt(kind);
 
-  const handle_scheduled_send = useCallback(async () => {
-    flush_editor_input_now();
+      return true;
+    },
+    [is_sender_pending],
+  );
 
-    if (flush_pending_recipients("schedule")) return;
+  const run_send = useCallback(
+    async (kind: "send" | "schedule", acknowledged: boolean) => {
+      flush_editor_input_now();
+      pending_send_ack_ref.current = acknowledged;
 
-    await send_hook_ref.current.handle_scheduled_send();
-  }, [flush_editor_input_now, flush_pending_recipients]);
+      if (flush_pending_recipients(kind)) return;
+      if (needs_reply_from_prompt(kind, acknowledged)) return;
+
+      if (kind === "schedule") {
+        await send_hook_ref.current.handle_scheduled_send();
+
+        return;
+      }
+      await send_hook_ref.current.handle_send();
+    },
+    [flush_editor_input_now, flush_pending_recipients, needs_reply_from_prompt],
+  );
+
+  const handle_send = useCallback(() => run_send("send", false), [run_send]);
+
+  const handle_scheduled_send = useCallback(
+    () => run_send("schedule", false),
+    [run_send],
+  );
+
+  const reply_from_mismatch: ReplyFromMismatchState = {
+    open: reply_from_prompt !== null,
+    received: reply_from_guard.received ?? "",
+    selected: selected_sender?.email ?? "",
+    can_use_received: !!reply_from_guard.received_option,
+    on_cancel: () => {
+      set_reply_from_prompt(null);
+    },
+    on_send_anyway: () => {
+      const kind = reply_from_prompt;
+
+      set_reply_from_prompt(null);
+      if (kind) void run_send(kind, true);
+    },
+    on_use_received: () => {
+      const option = reply_from_guard.received_option;
+
+      set_reply_from_prompt(null);
+      if (!option) return;
+      if (option.sending_disabled) {
+        show_toast(t("errors.alias_sending_disabled"), "error");
+
+        return;
+      }
+      set_selected_sender(option);
+    },
+  };
 
   useEffect(() => {
     if (!pending_send_mode) return;
 
     const mode = pending_send_mode;
+    const acknowledged = pending_send_ack_ref.current;
 
+    pending_send_ack_ref.current = false;
     set_pending_send_mode(null);
+    if (needs_reply_from_prompt(mode, acknowledged)) return;
     if (mode === "schedule") {
       void send_hook.handle_scheduled_send();
 
@@ -783,6 +859,7 @@ export function use_compose({
     void send_hook.handle_send();
   }, [
     pending_send_mode,
+    needs_reply_from_prompt,
     send_hook.handle_send,
     send_hook.handle_scheduled_send,
   ]);
@@ -1412,6 +1489,7 @@ export function use_compose({
     set_expires_at,
     expiry_password,
     set_expiry_password,
+    reply_from_mismatch,
 
     attachments_scroll_ref:
       attachment_hook.attachments_scroll_ref as React.RefObject<HTMLDivElement>,

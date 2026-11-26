@@ -146,8 +146,8 @@ function format_last_seen(t: Translate, value: string | null): string {
 
 export function TrustedDevicesPanel() {
   const { t } = use_i18n();
-  const { limits } = use_plan_limits();
-  const is_free_plan = !!limits && limits.plan_code === "free";
+  const { limits, plan_code } = use_plan_limits();
+  const is_free_plan = plan_code === "free";
   const {
     data: cached,
     error: load_error,
@@ -312,9 +312,9 @@ export function TrustedDevicesPanel() {
         trailing={
           devices.length > 1 ? (
             <Button
-              className="whitespace-nowrap flex-shrink-0 text-[var(--color-danger)] hover:text-[var(--color-danger)]"
+              className="whitespace-nowrap flex-shrink-0"
               disabled={is_revoking_all}
-              variant="outline"
+              variant="depth_destructive"
               onClick={() => set_pending_revoke_all(true)}
             >
               <TrashIcon className="w-3.5 h-3.5 me-1.5" />
@@ -371,8 +371,7 @@ export function TrustedDevicesPanel() {
                   <Button
                     className="flex-shrink-0"
                     disabled={revoking_id === device.id}
-                    style={{ color: "var(--color-danger)" }}
-                    variant="secondary"
+                    variant="depth_destructive"
                     onClick={() => set_pending_revoke(device)}
                   >
                     {t("settings.trusted_devices_revoke")}

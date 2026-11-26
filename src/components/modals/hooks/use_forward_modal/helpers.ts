@@ -32,12 +32,13 @@ import {
 } from "@/components/compose/compose_shared";
 import { array_to_base64 } from "@/services/crypto/envelope";
 import { clamp_subject } from "@/lib/reply_subject";
+import { strip_angle_edges } from "@/lib/address_scans";
 
 export const escape_regexp = (value: string): string =>
   value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
 export const normalize_cid = (value: string): string =>
-  value.replace(/^<+|>+$/g, "").trim();
+  strip_angle_edges(value).trim();
 
 export const escape_html_attr = (value: string): string =>
   value

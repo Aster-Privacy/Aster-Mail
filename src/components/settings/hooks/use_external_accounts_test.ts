@@ -42,6 +42,7 @@ import {
   list_oauth_folders,
   type OAuthFolderInfo,
 } from "@/services/api/external_accounts/api";
+import { is_email_shape } from "@/lib/email_shape";
 
 interface FormFields {
   form_email: string;
@@ -149,9 +150,7 @@ export function use_external_accounts_test(
     if (!fields.form_email.trim()) {
       errors.push(t("settings.email_required"));
     } else {
-      const email_regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-      if (!email_regex.test(fields.form_email.trim())) {
+      if (!is_email_shape(fields.form_email.trim())) {
         errors.push(t("settings.valid_email_required"));
       }
     }

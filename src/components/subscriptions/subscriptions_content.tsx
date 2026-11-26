@@ -44,6 +44,11 @@ import { calendar_day_diff } from "@/utils/date_format";
 import { get_manual_unsubscribe_url } from "@/utils/unsubscribe_detector";
 import { ConfirmationModal } from "@/components/modals/confirmation_modal";
 import {
+  BulkUnsubscribeDialog,
+  is_automatic_unsubscribe,
+  manual_page_url,
+} from "@/components/subscriptions/bulk_unsubscribe_dialog";
+import {
   reduce_subscription_selection,
   subscription_bar_actions,
   type SubscriptionBarAction,
@@ -88,6 +93,7 @@ export function SubscriptionsContent({
     is_loading,
     unsubscribe,
     bulk_unsubscribe,
+    mark_unsubscribed,
     reactivate,
     delete_senders,
   } = use_subscriptions();
@@ -103,6 +109,10 @@ export function SubscriptionsContent({
   );
   const [pending_delete, set_pending_delete] = useState<string[]>([]);
   const [is_deleting, set_is_deleting] = useState(false);
+  const [unsubscribe_flow, set_unsubscribe_flow] = useState<{
+    senders: CachedSubscription[];
+    start_phase: "confirm" | "pages";
+  } | null>(null);
 
   const active_subscriptions = useMemo(
     () => subscriptions.filter((s) => s.status === "active"),
@@ -240,18 +250,40 @@ export function SubscriptionsContent({
   }, [visible_selected_count, current_list]);
 
   const handle_bulk_unsubscribe = useCallback(
-    async (emails: string[]) => {
-      const failed = await bulk_unsubscribe(emails);
+    (emails: string[]) => {
+      const wanted = new Set(emails);
+      const senders = active_subscriptions.filter((s) =>
+        wanted.has(s.sender_email),
+      );
 
-      if (!failed) return;
+      if (senders.length === 0) return;
+      set_unsubscribe_flow({ senders, start_phase: "confirm" });
+    },
+    [active_subscriptions],
+  );
 
-      set_selected_ids(new Set(failed));
+  const handle_unsubscribe_flow_close = useCallback(
+    (remaining: string[]) => {
+      const flow = unsubscribe_flow;
 
-      if (failed.length > 0) {
-        set_failed_unsub_ids((prev) => new Set([...prev, ...failed]));
+      set_unsubscribe_flow(null);
+      if (!flow) return;
+
+      const by_email = new Map(flow.senders.map((s) => [s.sender_email, s]));
+      const with_page = remaining.filter((email) => {
+        const sub = by_email.get(email);
+
+        return sub ? Boolean(manual_page_url(sub)) : false;
+      });
+
+      if (with_page.length > 0) {
+        set_failed_unsub_ids((prev) => new Set([...prev, ...with_page]));
+      }
+      if (flow.start_phase === "confirm") {
+        set_selected_ids(new Set(remaining));
       }
     },
-    [bulk_unsubscribe],
+    [unsubscribe_flow],
   );
 
   const handle_bar_action = useCallback(
@@ -318,13 +350,22 @@ export function SubscriptionsContent({
   const handle_unsubscribe = useCallback(
     async (e: React.MouseEvent, sender_email: string) => {
       e.stopPropagation();
+      const sub = active_subscriptions.find(
+        (s) => s.sender_email === sender_email,
+      );
+
+      if (sub && !is_automatic_unsubscribe(sub) && manual_page_url(sub)) {
+        set_unsubscribe_flow({ senders: [sub], start_phase: "pages" });
+
+        return;
+      }
       const result = await unsubscribe(sender_email);
 
       if (result === "failed" || result === "manual") {
         set_failed_unsub_ids((prev) => new Set([...prev, sender_email]));
       }
     },
-    [unsubscribe],
+    [unsubscribe, active_subscriptions],
   );
 
   const handle_open_unsubscribe_page = useCallback(
@@ -406,22 +447,26 @@ export function SubscriptionsContent({
       ) : (
         <div className="aster_scrollbar_thin flex-1 overflow-y-auto px-4 pb-4 pt-1">
           {current_list.length > 0 && (
-            <div className="flex items-center gap-3 px-4 pb-2 pt-1">
+            <div className="mb-1 flex min-h-10 w-full items-stretch rounded-lg hover:bg-black/[0.02] dark:hover:bg-white/[0.02]">
               <Checkbox
                 checked={
                   visible_selected_count > 0 &&
                   visible_selected_count === current_list.length
                 }
-                className="flex-shrink-0"
+                className="flex-shrink-0 ps-4 pe-3"
+                id="subscriptions-select-all"
                 indeterminate={
                   visible_selected_count > 0 &&
                   visible_selected_count < current_list.length
                 }
                 onCheckedChange={handle_toggle_select_all}
               />
-              <span className="text-xs text-txt-muted">
+              <label
+                className="flex flex-1 cursor-pointer select-none items-center pe-4 text-xs text-txt-muted"
+                htmlFor="subscriptions-select-all"
+              >
                 {t("common.select_all")}
-              </span>
+              </label>
             </div>
           )}
           <div className="aster_island aster_island_divided">
@@ -496,6 +541,16 @@ export function SubscriptionsContent({
         }}
         on_confirm={handle_confirm_delete}
       />
+
+      {unsubscribe_flow && (
+        <BulkUnsubscribeDialog
+          mark_unsubscribed={mark_unsubscribed}
+          on_close={handle_unsubscribe_flow_close}
+          run_bulk={bulk_unsubscribe}
+          senders={unsubscribe_flow.senders}
+          start_phase={unsubscribe_flow.start_phase}
+        />
+      )}
     </div>
   );
 }
@@ -567,9 +622,14 @@ function SubscriptionRow({
       }}
       onClick={is_clickable ? () => on_click(sub) : undefined}
     >
-      <div className="flex-shrink-0" onClick={(e) => e.stopPropagation()}>
+      <div
+        className="-my-2 -ms-2 flex flex-shrink-0 items-stretch self-stretch"
+        onClick={(e) => e.stopPropagation()}
+      >
         <Checkbox
+          aria-label={shown_name}
           checked={is_selected}
+          className="p-2"
           onCheckedChange={() => on_toggle_select(sub.sender_email)}
         />
       </div>

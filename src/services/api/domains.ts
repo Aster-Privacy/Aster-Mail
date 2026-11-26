@@ -31,6 +31,11 @@ import {
 } from "@/services/crypto/storage_write_key";
 import { zero_uint8_array } from "@/services/crypto/secure_memory";
 import { app_locale } from "@/utils/date_format";
+import {
+  MAX_ALIAS_WEBSITES,
+  normalize_website_url,
+  parse_websites_payload,
+} from "@/services/api/aliases/website";
 
 export interface DnsRecord {
   record_type: string;
@@ -84,6 +89,8 @@ export interface CustomDomain {
   can_create_aliases?: boolean;
   bimi_available?: boolean;
   bimi_state?: string | null;
+  mta_sts_available?: boolean;
+  mta_sts_state?: string | null;
 }
 
 export interface DomainListResponse {
@@ -217,6 +224,8 @@ export interface DomainAddress {
   profile_picture?: string;
   encrypted_note?: string | null;
   note_nonce?: string | null;
+  encrypted_websites?: string | null;
+  websites_nonce?: string | null;
   is_enabled: boolean;
   is_primary: boolean;
   sidebar_order?: number | null;
@@ -232,6 +241,7 @@ export interface DecryptedDomainAddress {
   display_name?: string;
   profile_picture?: string;
   note?: string;
+  websites?: string[];
   is_enabled: boolean;
   is_primary: boolean;
   sidebar_order?: number | null;
@@ -477,6 +487,23 @@ export async function decrypt_domain_address(
     }
   }
 
+  let websites: string[] | undefined;
+
+  if (address.encrypted_websites && address.websites_nonce) {
+    try {
+      const parsed = parse_websites_payload(
+        await decrypt_address_field(
+          address.encrypted_websites,
+          address.websites_nonce,
+        ),
+      );
+
+      if (parsed.length > 0) websites = parsed;
+    } catch {
+      websites = undefined;
+    }
+  }
+
   return {
     id: address.id,
     domain_id: address.domain_id,
@@ -485,6 +512,7 @@ export async function decrypt_domain_address(
     display_name,
     profile_picture: address.profile_picture,
     note: note || undefined,
+    websites,
     is_enabled: address.is_enabled,
     is_primary: address.is_primary,
     sidebar_order: address.sidebar_order ?? null,
@@ -744,6 +772,7 @@ export async function update_domain_address(
     profile_picture?: string | null;
     display_name?: string;
     note?: string;
+    websites?: string[] | null;
     is_enabled?: boolean;
   },
 ): Promise<ApiResponse<{ success: boolean }>> {
@@ -753,6 +782,8 @@ export async function update_domain_address(
     display_name_nonce?: string;
     encrypted_note?: string | null;
     note_nonce?: string | null;
+    encrypted_websites?: string | null;
+    websites_nonce?: string | null;
     is_enabled?: boolean;
   } = {};
 
@@ -782,6 +813,25 @@ export async function update_domain_address(
     } else {
       body.encrypted_note = null;
       body.note_nonce = null;
+    }
+  }
+
+  if (updates.websites !== undefined) {
+    const normalized = (updates.websites ?? [])
+      .map((url) => normalize_website_url(url))
+      .filter((url): url is string => url !== null)
+      .slice(0, MAX_ALIAS_WEBSITES);
+
+    if (normalized.length === 0) {
+      body.encrypted_websites = null;
+      body.websites_nonce = null;
+    } else {
+      const { encrypted, nonce } = await encrypt_address_field(
+        JSON.stringify(normalized),
+      );
+
+      body.encrypted_websites = encrypted;
+      body.websites_nonce = nonce;
     }
   }
 

@@ -20,7 +20,10 @@
 //
 import { load_openpgp } from "@/services/crypto/openpgp_loader";
 import { api_client } from "@/services/api/client";
-import { republish_pgp_key } from "@/services/api/key_rotation";
+import {
+  get_identity_key_status,
+  republish_pgp_key,
+} from "@/services/api/key_rotation";
 import { prepare_pgp_key_data } from "@/services/crypto/key_manager";
 import { is_known_bad_key } from "@/services/crypto/pgp_key_policy";
 import { get_current_account } from "@/services/account_manager";
@@ -112,8 +115,14 @@ export async function ensure_pgp_key_published(options?: {
 
   if (!existing) return "skipped";
   if (existing.data) {
+    const held_as = await published_key_holder(existing.data, vault);
+    const should_republish =
+      held_as === "not_held" ||
+      (held_as === "previous_key" &&
+        (await server_identity_matches_vault(vault.identity_key)));
+
     if (
-      !(await published_key_is_held(existing.data, vault)) &&
+      should_republish &&
       (await identity_key_state(vault.identity_key)) === "publishable" &&
       (await republish_identity_key(vault.identity_key, passphrase))
     ) {
@@ -153,14 +162,16 @@ export async function ensure_pgp_key_published(options?: {
   return "failed";
 }
 
-async function published_key_is_held(
+type PublishedKeyHolder = "identity_key" | "previous_key" | "not_held";
+
+async function published_key_holder(
   published: unknown,
   vault: { identity_key: string; previous_keys?: string[] },
-): Promise<boolean> {
+): Promise<PublishedKeyHolder> {
   const armored = (published as { public_key_armored?: unknown })
     .public_key_armored;
 
-  if (typeof armored !== "string" || !armored) return true;
+  if (typeof armored !== "string" || !armored) return "identity_key";
 
   const openpgp = await load_openpgp();
   let published_fingerprint: string;
@@ -170,25 +181,81 @@ async function published_key_is_held(
 
     published_fingerprint = public_key.getFingerprint();
   } catch {
-    return true;
+    return "identity_key";
   }
 
-  const candidates = [vault.identity_key, ...(vault.previous_keys ?? [])];
+  const identity_fingerprint = await private_key_fingerprint(
+    vault.identity_key,
+  );
 
-  for (const candidate of candidates) {
-    if (typeof candidate !== "string" || !candidate) continue;
-    try {
-      const private_key = await openpgp.readPrivateKey({
-        armoredKey: candidate,
-      });
+  if (identity_fingerprint === published_fingerprint) return "identity_key";
 
-      if (private_key.getFingerprint() === published_fingerprint) return true;
-    } catch {
-      continue;
+  for (const candidate of vault.previous_keys ?? []) {
+    if ((await private_key_fingerprint(candidate)) === published_fingerprint) {
+      return "previous_key";
     }
   }
 
-  return false;
+  return identity_fingerprint === null ? "identity_key" : "not_held";
+}
+
+async function private_key_fingerprint(
+  armored: unknown,
+): Promise<string | null> {
+  if (typeof armored !== "string" || !armored) return null;
+
+  const openpgp = await load_openpgp();
+
+  try {
+    const private_key = await openpgp.readPrivateKey({ armoredKey: armored });
+
+    return private_key.getFingerprint();
+  } catch {
+    return null;
+  }
+}
+
+function decode_server_identity_key(encoded: string): string | null {
+  try {
+    const binary = atob(encoded);
+    const bytes = Uint8Array.from(binary, (char) => char.charCodeAt(0));
+
+    return new TextDecoder("utf-8", { fatal: true }).decode(bytes);
+  } catch {
+    return null;
+  }
+}
+
+async function server_identity_matches_vault(
+  armored_identity_key: string,
+): Promise<boolean> {
+  let encoded: string | null | undefined;
+
+  try {
+    encoded = (await get_identity_key_status()).data?.current_public_key;
+  } catch {
+    return false;
+  }
+
+  if (!encoded) return false;
+
+  const server_armored = decode_server_identity_key(encoded);
+
+  if (!server_armored) return false;
+
+  const vault_fingerprint = await private_key_fingerprint(armored_identity_key);
+
+  if (!vault_fingerprint) return false;
+
+  const openpgp = await load_openpgp();
+
+  try {
+    const server_key = await openpgp.readKey({ armoredKey: server_armored });
+
+    return server_key.getFingerprint() === vault_fingerprint;
+  } catch {
+    return false;
+  }
 }
 
 async function heal_published_key_addresses(

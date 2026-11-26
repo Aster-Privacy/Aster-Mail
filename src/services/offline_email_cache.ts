@@ -180,6 +180,10 @@ export async function clear_email_cache(
 
   try {
     const snapshot_prefix = await resolve_snapshot_prefix(snapshots);
+    const list_prefix =
+      snapshot_prefix !== null && snapshot_prefix !== SNAPSHOT_KEY_PREFIX
+        ? snapshot_prefix.slice(SNAPSHOT_KEY_PREFIX.length)
+        : null;
     const db = await open_db();
 
     await new Promise<void>((resolve, reject) => {
@@ -192,10 +196,16 @@ export async function clear_email_cache(
           const is_snapshot =
             typeof key === "string" && key.startsWith(SNAPSHOT_KEY_PREFIX);
 
-          if (
-            !is_snapshot ||
-            (snapshot_prefix !== null &&
-              (key as string).startsWith(snapshot_prefix))
+          if (is_snapshot) {
+            if (
+              snapshot_prefix !== null &&
+              (key as string).startsWith(snapshot_prefix)
+            ) {
+              store.delete(key);
+            }
+          } else if (
+            list_prefix === null ||
+            (typeof key === "string" && key.startsWith(list_prefix))
           ) {
             store.delete(key);
           }

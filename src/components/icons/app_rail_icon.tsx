@@ -18,85 +18,52 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { useCallback, useState } from "react";
-import { CalendarDaysIcon, UsersIcon } from "@heroicons/react/24/outline";
-
-import { AsterSecurityMark } from "@/components/icons/aster_security_mark";
+import contacts_icon_src from "@/assets/app_rail/contacts.png?inline";
+import security_icon_src from "@/assets/app_rail/security.png?inline";
 import { DatedCalendarImage } from "@/components/icons/dated_calendar_image";
 
 export type AppRailIconName = "calendar" | "contacts" | "security";
+
+type BrandIconName = Exclude<AppRailIconName, "calendar">;
 
 interface AppRailIconProps {
   name: AppRailIconName;
 }
 
 const ICON_SIZE = 24;
-const FALLBACK_CLASS = "h-5 w-5 shrink-0";
+const ICON_CLASS = "app_rail_icon";
 
-function FallbackIcon({ name }: AppRailIconProps) {
-  if (name === "calendar") {
-    return <CalendarDaysIcon className={FALLBACK_CLASS} />;
-  }
+const BRAND_ICON_SRC: Record<BrandIconName, string> = {
+  contacts: contacts_icon_src,
+  security: security_icon_src,
+};
 
-  return name === "contacts" ? (
-    <UsersIcon className={FALLBACK_CLASS} />
-  ) : (
-    <AsterSecurityMark className={FALLBACK_CLASS} />
-  );
-}
-
-interface RailImageProps {
-  name: AppRailIconName;
-  src: string;
-  src_set?: string;
-}
-
-function RailImage({ name, src, src_set }: RailImageProps) {
-  const [failed_src, set_failed_src] = useState<string | null>(null);
-
-  const handle_error = useCallback(() => {
-    set_failed_src(src);
-  }, [src]);
-
-  if (failed_src === src) return <FallbackIcon name={name} />;
-
+function BrandIcon({ name }: { name: BrandIconName }) {
   return (
-    <img
-      alt=""
+    <svg
       aria-hidden="true"
-      className="app_rail_icon app_rail_tinted"
-      decoding="sync"
-      draggable={false}
+      className={ICON_CLASS}
+      data-app-rail-icon={name}
+      focusable="false"
       height={ICON_SIZE}
-      loading="eager"
-      src={src}
-      srcSet={src_set}
+      viewBox={`0 0 ${ICON_SIZE} ${ICON_SIZE}`}
       width={ICON_SIZE}
-      onError={handle_error}
-    />
-  );
-}
-
-function CalendarRailIcon() {
-  return (
-    <DatedCalendarImage
-      className="app_rail_icon app_rail_tinted"
-      fallback={<FallbackIcon name="calendar" />}
-      kind="rail"
-    />
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <image
+        height={ICON_SIZE}
+        href={BRAND_ICON_SRC[name]}
+        preserveAspectRatio="xMidYMid meet"
+        width={ICON_SIZE}
+      />
+    </svg>
   );
 }
 
 export function AppRailIcon({ name }: AppRailIconProps) {
-  if (name === "calendar") return <CalendarRailIcon />;
+  if (name === "calendar") {
+    return <DatedCalendarImage className={ICON_CLASS} kind="rail" />;
+  }
 
-  const base = `/icons/${name}/${name}_rail`;
-
-  return (
-    <RailImage
-      name={name}
-      src={`${base}_24.png`}
-      src_set={`${base}_24.png 1x, ${base}_48.png 2x, ${base}_72.png 3x`}
-    />
-  );
+  return <BrandIcon name={name} />;
 }

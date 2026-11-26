@@ -38,7 +38,6 @@ import { show_toast } from "@/components/toast/simple_toast";
 import {
   AlertDialog,
   AlertDialogContent,
-  AlertDialogDescription,
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
@@ -303,12 +302,13 @@ export function ExternalLinkWarningModal({
               <AlertDialogTitle className="text-[16px] font-semibold">
                 {title}
               </AlertDialogTitle>
-              <AlertDialogDescription
+              <p
                 className="text-[14px] leading-5"
                 id={description_id}
+                style={{ color: "var(--text-tertiary)" }}
               >
                 {body}
-              </AlertDialogDescription>
+              </p>
             </AlertDialogHeader>
 
             <div className="mt-5">

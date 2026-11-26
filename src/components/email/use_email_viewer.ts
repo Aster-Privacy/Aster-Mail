@@ -78,6 +78,7 @@ import {
   await_preloaded_email,
   delete_preloaded_email,
   get_preloaded_email,
+  is_preloaded_email_fresh,
   type PreloadedEmail,
   type PreloadedSanitizedContent,
 } from "@/components/email/hooks/preload_cache";
@@ -268,6 +269,7 @@ export function use_email_viewer({
     id: string;
     created_at: string | null;
   } | null>(null);
+  const [unavailable_id, set_unavailable_id] = useState<string | null>(null);
   const [is_read, set_is_read] = useState(false);
   const [is_pinned, set_is_pinned] = useState(false);
   const [is_archive_loading, set_is_archive_loading] = useState(false);
@@ -511,6 +513,7 @@ export function use_email_viewer({
         set_current_user_name(preloaded.current_user_name);
       }
       set_error(null);
+      set_unavailable_id(null);
       set_sending_message(null);
       set_pending_thread_count(0);
       thread_sanitized_ref.current = preloaded.thread_sanitized;
@@ -519,6 +522,43 @@ export function use_email_viewer({
       set_committed_email_id(preloaded.email.id);
       loaded_email_id_ref.current = preloaded.email.id;
     };
+
+    async function revalidate_preloaded_thread(preloaded: PreloadedEmail) {
+      const thread_token = preloaded.mail_item.thread_token;
+
+      if (!thread_token || preferences.conversation_grouping === false) return;
+
+      try {
+        if (!is_preloaded_email_fresh(preloaded)) {
+          request_cache.invalidate(
+            `messages/threads/${encodeURIComponent(thread_token)}/messages`,
+          );
+        }
+        const thread_result = await fetch_and_decrypt_thread_messages(
+          thread_token,
+          preloaded.current_user_email || user?.email || undefined,
+          {
+            is_trashed: !!preloaded.mail_item.is_trashed,
+            is_spam: !!preloaded.mail_item.is_spam,
+          },
+        );
+
+        if (cancelled || thread_result.messages.length === 0) return;
+
+        set_thread_messages((prev) =>
+          keep_unchanged_messages(
+            prev,
+            reconcile_thread_messages(
+              prev,
+              thread_result.messages,
+              preloaded.email.id,
+            ),
+          ),
+        );
+      } catch (caught) {
+        if (import.meta.env.DEV) console.error(caught);
+      }
+    }
 
     async function load_email(reloading_same_email: boolean) {
       const cached = usable_preloaded(
@@ -531,6 +571,7 @@ export function use_email_viewer({
       } else if (!reloading_same_email) {
         set_is_loading(true);
         set_error(null);
+        set_unavailable_id(null);
         set_email(null);
         set_mail_item(null);
         set_thread_messages([]);
@@ -575,6 +616,8 @@ export function use_email_viewer({
               if (import.meta.env.DEV) console.error(e);
             }
           }
+
+          void revalidate_preloaded_thread(preloaded);
         }
 
         if (!pe.is_read && preferences.mark_as_read_delay !== "never") {
@@ -699,6 +742,16 @@ export function use_email_viewer({
       }
 
       const item = result.data;
+
+      if (item.payload_unavailable === true) {
+        if (!cancelled && !reloading_same_email) {
+          set_unavailable_id(email_id);
+          set_error(t("common.message_temporarily_unavailable"));
+          set_is_loading(false);
+        }
+
+        return;
+      }
 
       if (!item.encrypted_envelope || item.envelope_nonce == null) {
         if (!cancelled && !reloading_same_email) {
@@ -1663,20 +1716,28 @@ export function use_email_viewer({
   );
 
   const retry_load = useCallback(() => {
+    if (email_id) {
+      request_cache.invalidate(`/mail/v1/messages/${email_id}`);
+      delete_preloaded_email(email_id);
+    }
     set_error(null);
     set_refresh_key((k) => k + 1);
-  }, []);
+  }, [email_id]);
+
+  const payload_unavailable = error !== null && unavailable_id === email_id;
+  const decrypt_failed =
+    error !== null && decrypt_failure?.id === email_id && !payload_unavailable;
 
   return {
     email,
     mail_item,
     is_loading,
     error,
-    decrypt_failed: error !== null && decrypt_failure?.id === email_id,
-    decrypt_failed_created_at:
-      error !== null && decrypt_failure?.id === email_id
-        ? decrypt_failure.created_at
-        : null,
+    payload_unavailable,
+    decrypt_failed,
+    decrypt_failed_created_at: decrypt_failed
+      ? (decrypt_failure?.created_at ?? null)
+      : null,
     retry_load,
     is_read,
     is_pinned,

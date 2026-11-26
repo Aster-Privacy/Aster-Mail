@@ -37,6 +37,13 @@ import { clear_recipient_classification_cache } from "@/services/recipient_class
 import { reset_account_key_capabilities_cache } from "@/services/api/account_key";
 import { forget_current_user } from "@/services/current_identity";
 import { clear_external_account_health } from "@/stores/external_account_health_store";
+import { clear_offer_preferences_cache } from "@/hooks/use_offer_preferences";
+import { clear_source_notify_cache } from "@/hooks/use_source_notify";
+import { clear_product_updates_cache } from "@/services/api/product_updates";
+import { clear_guard_status_cache } from "@/hooks/use_guard_status";
+import { clear_recovery_section_cache } from "@/components/settings/security/recovery_section_cache";
+import { clear_behavior_load_cache } from "@/components/settings/behavior_section/behavior_load_cache";
+import { reset_image_proxy_grant_state } from "@/lib/image_proxy_grant";
 import { ignore_error } from "@/lib/ignore_error";
 
 const ACCOUNT_MEMORY_CLEARERS: ReadonlyArray<() => void> = [
@@ -59,6 +66,13 @@ const ACCOUNT_MEMORY_CLEARERS: ReadonlyArray<() => void> = [
   () => reset_account_key_capabilities_cache(),
   () => forget_current_user(),
   () => clear_external_account_health(),
+  () => clear_offer_preferences_cache(),
+  () => clear_source_notify_cache(),
+  () => clear_product_updates_cache(),
+  () => clear_guard_status_cache(),
+  () => clear_recovery_section_cache(),
+  () => clear_behavior_load_cache(),
+  () => reset_image_proxy_grant_state(),
 ];
 
 export function clear_account_memory_stores(): void {

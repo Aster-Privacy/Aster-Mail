@@ -56,7 +56,23 @@ import { get_active_translations } from "@/lib/i18n/translations";
 import { repair_comment_markup } from "@/lib/html_sanitizer_utils";
 import { outgoing_html_to_plain_text } from "@/lib/outgoing_plain_text";
 
-const HTML_TAG_PROBE = /<[a-z][\s\S]*>/i;
+export function has_html_tag_probe(body: string): boolean {
+  const last_close = body.lastIndexOf(">");
+
+  if (last_close < 2) return false;
+
+  for (
+    let index = body.indexOf("<");
+    index !== -1 && index + 2 <= last_close;
+    index = body.indexOf("<", index + 1)
+  ) {
+    const code = body.charCodeAt(index + 1);
+
+    if ((code >= 65 && code <= 90) || (code >= 97 && code <= 122)) return true;
+  }
+
+  return false;
+}
 
 const PLAIN_TEXT_FORBIDDEN_TAGS = [
   "embed",
@@ -107,7 +123,7 @@ export async function create_sent_envelope(
     );
   }
 
-  const body_is_plain_text = !HTML_TAG_PROBE.test(email.body);
+  const body_is_plain_text = !has_html_tag_probe(email.body);
 
   const plain_body_text = body_is_plain_text
     ? email.body

@@ -42,6 +42,7 @@ import { base64_to_array } from "@/services/crypto/key_manager";
 import { DEFAULT_KEYSERVERS } from "@/components/settings/encryption/encryption_settings_form";
 import { trigger_download } from "@/utils/download_blob";
 import { use_preferences } from "@/contexts/preferences_context";
+import { require_encryption_after_server_load } from "@/components/settings/hooks/require_encryption_floor";
 import {
   publish_key_to_wkd,
   unpublish_key_from_wkd,
@@ -126,6 +127,7 @@ export function use_encryption() {
   const [pgp_key, set_pgp_key] = useState<PgpKeyInfo | null>(null);
   const [pgp_key_load_failed, set_pgp_key_load_failed] = useState(false);
   const [keyserver_urls, set_keyserver_urls] = useState<string[]>([]);
+  const [alias_pgp_enabled, set_alias_pgp_enabled] = useState(true);
   const [keyservers_loaded, set_keyservers_loaded] = useState(false);
   const [keyserver_input, set_keyserver_input] = useState("");
   const [is_saving_keyservers, set_is_saving_keyservers] = useState(false);
@@ -341,6 +343,7 @@ export function use_encryption() {
               require_encryption: boolean;
               ipfs_storage_enabled: boolean;
               keyserver_urls: string[];
+              alias_pgp_enabled?: boolean;
             }>("/settings/v1/encryption")
             .catch(() => ({ data: null, error: null })),
           get_keyserver_publication_status().catch(() => ({
@@ -396,17 +399,20 @@ export function use_encryption() {
             true,
           );
         }
-        if (
-          enc_response.data.require_encryption !==
-          preferences.require_encryption
-        ) {
+        const require_encryption_next = require_encryption_after_server_load(
+          preferences.require_encryption,
+          enc_response.data.require_encryption,
+        );
+
+        if (require_encryption_next !== preferences.require_encryption) {
           update_preference(
             "require_encryption",
-            enc_response.data.require_encryption,
+            require_encryption_next,
             true,
           );
         }
         set_keyserver_urls(enc_response.data.keyserver_urls ?? []);
+        set_alias_pgp_enabled(enc_response.data.alias_pgp_enabled !== false);
         const server_storage_format = enc_response.data.ipfs_storage_enabled
           ? "ipfs"
           : "aster";
@@ -683,6 +689,25 @@ export function use_encryption() {
       show_toast(t("settings.failed_save_setting"), "error");
     } else {
       clear_external_key_cache();
+    }
+  };
+
+  const handle_alias_pgp_toggle = async () => {
+    const new_value = !alias_pgp_enabled;
+
+    set_alias_pgp_enabled(new_value);
+    try {
+      const response = await api_client.put<{ success: boolean }>(
+        "/settings/v1/encryption",
+        { alias_pgp_enabled: new_value },
+      );
+
+      if (response.error || response.data?.success !== true) {
+        throw new Error("save failed");
+      }
+    } catch {
+      set_alias_pgp_enabled(!new_value);
+      show_toast(t("settings.failed_save_setting"), "error");
     }
   };
 
@@ -987,6 +1012,8 @@ export function use_encryption() {
     wkd_description,
     handle_keyserver_toggle,
     handle_auto_discover_keys_toggle,
+    alias_pgp_enabled,
+    handle_alias_pgp_toggle,
     handle_encrypt_emails_toggle,
     handle_require_encryption_toggle,
     handle_storage_format_change,

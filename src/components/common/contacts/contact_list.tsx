@@ -235,6 +235,7 @@ export function ContactList({
   t,
   contacts,
   filtered_contacts,
+  focused_index,
   selected_contact,
   set_selected_contact,
   selected_ids,
@@ -606,7 +607,7 @@ export function ContactList({
         </div>
       </div>
 
-      <div className="flex flex-shrink-0 px-3 pb-2">
+      <div className="flex flex-shrink-0 px-2 pb-2">
         <div className="contact_list_tabs" role="tablist">
           {tab_items.map((item) => (
             <button
@@ -689,7 +690,7 @@ export function ContactList({
       >
         {(show_birthday_card ||
           (tab === "contacts" && !has_selection && duplicate_count > 0)) && (
-          <div className="aster_island aster_island_divided contact_list_notices mx-4 mt-1 mb-1 flex-shrink-0">
+          <div className="aster_island aster_island_divided contact_list_notices mx-5 mt-1 mb-2 flex-shrink-0">
             {tab === "contacts" && !has_selection && duplicate_count > 0 && (
               <div className="aster_island_row contact_list_notice">
                 <span aria-hidden="true" className="contact_list_notice_icon">
@@ -744,9 +745,9 @@ export function ContactList({
             )}
           </div>
         )}
-        <div className="aster_island mx-4 mt-1 mb-1 flex flex-shrink-0 items-center gap-3 px-3.5 py-2">
+        <div className="contact_list_setting_row">
           <label
-            className="min-w-0 flex-1 cursor-pointer text-[12.5px] text-txt-secondary"
+            className="contact_list_setting_label"
             htmlFor={auto_save_switch_id}
           >
             {t("settings.auto_save_recipients_to_contacts")}
@@ -766,12 +767,7 @@ export function ContactList({
             className="contact_list_header"
             data-selecting={has_selection ? "true" : undefined}
           >
-            <span
-              className={cn(
-                "flex flex-shrink-0 items-center justify-center",
-                is_compact ? "w-8" : "w-10",
-              )}
-            >
+            <span className="contact_select_slot">
               <Checkbox
                 aria-label={
                   has_selection && selection_state.all_selected
@@ -787,6 +783,7 @@ export function ContactList({
             <label
               className="contact_list_header_label"
               htmlFor={select_all_id}
+              style={{ paddingInlineStart: avatar_px + 12 }}
             >
               {has_selection
                 ? t("common.selected_count", {
@@ -903,15 +900,16 @@ export function ContactList({
 
         <div
           ref={list_container_ref}
-          className="flex-1 overflow-y-auto px-2 py-2"
+          className="flex-1 overflow-y-auto px-2 pt-1 pb-2"
         >
           {is_loading ? (
             <div>
               {Array.from({ length: 8 }).map((_, i) => (
                 <div
                   key={i}
-                  className="flex items-center gap-3 px-3 py-1.5 my-0.5"
+                  className="flex items-center gap-3 px-3 py-1.5 my-px"
                 >
+                  <span className="contact_select_slot" />
                   <Skeleton className="w-10 h-10 flex-shrink-0 rounded-full" />
                   <div className="flex-1 min-w-0">
                     <Skeleton className="h-[14px] w-32 mb-1.5 rounded-[6px]" />
@@ -989,43 +987,50 @@ export function ContactList({
               const primary_email = contact.emails[0];
               const is_active = selected_contact?.id === contact.id;
               const is_selected = selected_ids.has(contact.id);
+              const is_focused =
+                focused_index >= 0 &&
+                filtered_contacts[focused_index]?.id === contact.id;
               const member_groups = (contact.groups || [])
                 .map((group_id) => group_by_id.get(group_id))
                 .filter((group): group is NonNullable<typeof group> => !!group);
 
               return (
-                <button
+                <div
                   key={contact.id}
                   ref={(el) => {
-                    if (el)
-                      contact_refs.current?.set(
-                        contact.id,
-                        el as unknown as HTMLDivElement,
-                      );
+                    if (el) contact_refs.current?.set(contact.id, el);
                     else contact_refs.current?.delete(contact.id);
                   }}
+                  aria-current={is_active ? "true" : undefined}
                   className={cn(
-                    "contact_row group/contact w-full flex items-center gap-3 px-3 my-0.5 rounded-[var(--aster-radius-control)] text-start",
+                    "contact_row group/contact w-full flex items-center gap-3 px-3 my-px rounded-[var(--aster-radius-control)] text-start cursor-pointer",
                     is_compact ? "py-1" : "py-1.5",
                   )}
+                  data-active={is_active}
+                  data-focused={is_focused || undefined}
+                  data-selected={is_selected}
+                  role="button"
                   style={{
                     contentVisibility: "auto",
-                    containIntrinsicSize: `auto ${avatar_px + (is_compact ? 12 : 16)}px`,
+                    containIntrinsicSize: `auto ${avatar_px + (is_compact ? 10 : 14)}px`,
                   }}
-                  data-active={is_active}
-                  data-selected={is_selected}
+                  tabIndex={0}
                   onClick={() =>
                     set_selected_contact(is_active ? null : contact)
                   }
+                  onKeyDown={(e) => {
+                    if (e.target !== e.currentTarget) return;
+                    if (e["key"] === "Enter" || e["key"] === " ") {
+                      e.preventDefault();
+                      set_selected_contact(is_active ? null : contact);
+                    }
+                  }}
                 >
-                  <div
-                    aria-label={t("mail.select")}
-                    aria-pressed={is_selected}
-                    className={cn(
-                      "group/avatar aster_select_focus relative flex-shrink-0 cursor-pointer",
-                      is_compact ? "w-8 h-8" : "w-10 h-10",
-                    )}
-                    role="button"
+                  <span
+                    aria-checked={is_selected}
+                    aria-label={t("common.select_contact")}
+                    className="contact_select_slot contact_row_select aster_select_focus"
+                    role="checkbox"
                     tabIndex={0}
                     onClick={(e) => {
                       e.stopPropagation();
@@ -1039,32 +1044,21 @@ export function ContactList({
                       }
                     }}
                   >
-                    <ContactAvatar
-                      avatar_url={contact.avatar_url}
-                      className={cn(
-                        "transition-opacity duration-150",
-                        is_selected
-                          ? "opacity-0"
-                          : "group-hover/avatar:opacity-0",
-                      )}
-                      email={primary_email}
-                      name={`${contact.first_name || ""} ${contact.last_name || ""}`.trim()}
-                      profile_color={contact.profile_color}
-                      size_px={avatar_px}
+                    <Checkbox
+                      aria-hidden="true"
+                      checked={is_selected}
+                      className="pointer-events-none"
+                      tabIndex={-1}
                     />
-                    <div
-                      className={cn(
-                        "quick_contacts_select_dot absolute inset-0 rounded-full flex items-center justify-center transition-opacity duration-150",
-                        is_selected
-                          ? "opacity-100"
-                          : "opacity-0 group-hover/avatar:opacity-100",
-                      )}
-                    >
-                      <CheckIcon
-                        className={is_compact ? "w-4 h-4" : "w-5 h-5"}
-                      />
-                    </div>
-                  </div>
+                  </span>
+                  <ContactAvatar
+                    avatar_url={contact.avatar_url}
+                    className="flex-shrink-0"
+                    email={primary_email}
+                    name={`${contact.first_name || ""} ${contact.last_name || ""}`.trim()}
+                    profile_color={contact.profile_color}
+                    size_px={avatar_px}
+                  />
                   <div className="flex-1 min-w-0">
                     {name ? (
                       <>
@@ -1107,7 +1101,7 @@ export function ContactList({
                       </div>
                     )}
                   </div>
-                </button>
+                </div>
               );
             })
           )}

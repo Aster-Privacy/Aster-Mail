@@ -44,6 +44,7 @@ import {
 } from "./opportunistic_key_trust";
 
 import { outgoing_html_to_plain_text } from "@/lib/outgoing_plain_text";
+import { trim_end_while } from "@/lib/linear_trim";
 import { load_openpgp } from "@/services/crypto/openpgp_loader";
 import { get_active_translations } from "@/lib/i18n/translations";
 
@@ -144,12 +145,14 @@ function unique_recipients(recipients: string[]): string[] {
   return unique;
 }
 
+function is_line_feed(code: number): boolean {
+  return code === 0x0a;
+}
+
 function to_crlf_lines(text: string): string {
-  return text
-    .replace(/\r\n/g, "\n")
-    .replace(/\r/g, "\n")
-    .replace(/\n+$/, "")
-    .replace(/\n/g, "\r\n");
+  const normalized = text.replace(/\r\n/g, "\n").replace(/\r/g, "\n");
+
+  return trim_end_while(normalized, is_line_feed).replace(/\n/g, "\r\n");
 }
 
 function random_boundary_token(): string {

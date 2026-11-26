@@ -123,6 +123,15 @@ export function use_preferences_core() {
       sidebar_aliases_collapsed: get_cached_sidebar_state(
         "sidebar_aliases_collapsed",
       ),
+      sidebar_folders_show_all: get_cached_sidebar_state(
+        "sidebar_folders_show_all",
+      ),
+      sidebar_labels_show_all: get_cached_sidebar_state(
+        "sidebar_labels_show_all",
+      ),
+      sidebar_aliases_show_all: get_cached_sidebar_state(
+        "sidebar_aliases_show_all",
+      ),
     };
   });
   const [is_loading, set_is_loading] = useState(true);

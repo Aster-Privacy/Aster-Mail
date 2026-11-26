@@ -18,6 +18,11 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import {
+  collapse_spaces_around_at,
+  find_name_address_candidates,
+} from "@/lib/address_scans";
+import { char_set_predicate, trim_edges_while } from "@/lib/linear_trim";
 import trust_data from "@/lib/sender_trust_data.json";
 import { UTS39_CONFUSABLES } from "@/lib/sender_trust_confusables";
 
@@ -1108,19 +1113,15 @@ function tighten_address(candidate: string): string {
 }
 
 function find_addresses_in_name(name: string): ParsedAddress[] {
-  const folded = clean_text(name.normalize("NFKC"), false).replace(
-    / *@ */g,
-    "@",
+  const folded = collapse_spaces_around_at(
+    clean_text(name.normalize("NFKC"), false),
   );
-  const pattern = /[^\s<>()\[\]"',;:]+@[^\s<>()\[\]"',;:@]+/g;
   const found: ParsedAddress[] = [];
-  let match = pattern.exec(folded);
 
-  while (match !== null) {
-    const parsed = parse_address(tighten_address(match[0]));
+  for (const candidate of find_name_address_candidates(folded)) {
+    const parsed = parse_address(tighten_address(candidate));
 
     if (parsed) found.push(parsed);
-    match = pattern.exec(folded);
   }
 
   return found;
@@ -1135,8 +1136,12 @@ function is_domain_label_char(code: number): boolean {
   );
 }
 
+const is_dot_or_dash = char_set_predicate(".-");
+const is_header_blank = char_set_predicate(" \t\r\n");
+const is_quote_or_dot = char_set_predicate("'.");
+
 function domain_shaped(run: string): string | null {
-  const trimmed = run.replace(/^[.-]+|[.-]+$/g, "");
+  const trimmed = trim_edges_while(run, is_dot_or_dash);
   const labels = trimmed.split(".");
 
   if (labels.length < 2 || labels.some((label) => label === "")) return null;
@@ -1562,7 +1567,7 @@ function personal_context_of(input: SenderTrustInput): PersonalContext {
 function status_of(raw: string | null | undefined): string {
   const value =
     typeof raw === "string"
-      ? raw.replace(/^[ \t\r\n]+|[ \t\r\n]+$/g, "").toLowerCase()
+      ? trim_edges_while(raw, is_header_blank).toLowerCase()
       : "";
 
   if (!value || value === "missing") return "missing";
@@ -1846,7 +1851,7 @@ function embedded_reply_to(
   if (is_parsed && cleaned.indexOf("@", first + 1) < 0) return null;
 
   for (const token of cleaned.split(REPLY_TO_DELIMITERS)) {
-    const piece = token.replace(/^['.]+|['.]+$/g, "");
+    const piece = trim_edges_while(token, is_quote_or_dot);
 
     if (!piece.includes("@")) continue;
 

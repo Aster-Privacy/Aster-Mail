@@ -46,6 +46,7 @@ import {
   get_search_context,
 } from "@/components/email/inbox/inbox_view_helpers";
 import { InboxDialogs } from "@/components/email/inbox/inbox_dialogs";
+import { get_spam_total } from "@/components/email/inbox/spam_total";
 import { ConfirmModal } from "@/components/email/inbox/inbox_confirmation_dialog";
 import {
   EmailList,
@@ -55,7 +56,6 @@ import {
   TagNotFoundState,
   LockedFolderState,
 } from "@/components/email/inbox/inbox_email_list";
-import { BottomPagination } from "@/components/email/inbox/inbox_bottom_pagination";
 import { reveal_list_row } from "@/components/email/inbox/use_inbox_list_scroll";
 import { use_empty_folder_request } from "@/components/email/inbox/empty_folder_request";
 import { StorageBanner } from "@/components/email/inbox/inbox_storage_banner";
@@ -184,6 +184,7 @@ export function EmailInbox(props: EmailInboxProps): React.ReactElement {
     handle_filter_change,
   } = use_email_inbox_state(props);
   const display_identity = use_primary_identity(user?.email ?? "");
+  const spam_total = get_spam_total(mail_stats.spam, email_state.emails);
 
   use_empty_folder_request({
     current_view,
@@ -257,13 +258,6 @@ export function EmailInbox(props: EmailInboxProps): React.ReactElement {
               />
             )}
           </div>
-          {active_filter !== "all" && total_pages > 1 && (
-            <BottomPagination
-              current_page={current_page}
-              on_page_change={handle_page_change}
-              total_pages={total_pages}
-            />
-          )}
         </div>
       ) : (
         <div className="relative min-h-full -mt-px border-t border-edge-secondary">
@@ -318,15 +312,6 @@ export function EmailInbox(props: EmailInboxProps): React.ReactElement {
                 tags={list_tags}
               />
             )}
-            {!skeleton_visible &&
-              filtered_emails.length > 0 &&
-              total_pages > 1 && (
-                <BottomPagination
-                  current_page={current_page}
-                  on_page_change={handle_page_change}
-                  total_pages={total_pages}
-                />
-              )}
             {show_indexing_notice && <AliasIndexingNotice />}
           </div>
           {(skeleton_visible ||
@@ -341,216 +326,216 @@ export function EmailInbox(props: EmailInboxProps): React.ReactElement {
     </>
   );
 
+  const list_chrome = (
+    <>
+      {!show_full_email_viewer && (
+        <EmailListHeader
+          active_filter={active_filter}
+          alias_direction={alias_view_active ? alias_direction : undefined}
+          all_selected={selection.all_selected}
+          can_go_next={nav.local_can_go_next}
+          can_go_prev={nav.local_can_go_prev}
+          current_email_index={nav.local_email_index}
+          current_page={current_page}
+          display_count={header_display_count}
+          excluded_count={selection.excluded_ids.length}
+          filtered_count={pager_total}
+          folders={order_folders_as_tree(folders_state.folders).map(
+            ({ folder: f, depth }) => ({
+              folder_token: f.folder_token,
+              name: f.name,
+              color: f.color || "#6366f1",
+              depth,
+              status: selection.get_folder_status_for_selection(f.folder_token),
+            }),
+          )}
+          is_archive_view={is_archive_view}
+          is_drafts_view={is_drafts_view}
+          is_scheduled_view={is_scheduled_view}
+          is_spam_view={current_view === "spam"}
+          is_trash_view={current_view === "trash"}
+          on_activate_select_all_mode={
+            scope_for_view && active_filter === "all"
+              ? selection.activate_select_all_mode
+              : undefined
+          }
+          on_archive={handle_archive_wrapped}
+          on_category_change={
+            categories.enabled
+              ? (category) => {
+                  if (handle_category_change_wrapped(category)) return;
+                  void handle_category_drop(
+                    category,
+                    email_state.emails
+                      .filter((e) => e.is_selected)
+                      .map((e) => e.id),
+                  );
+                }
+              : undefined
+          }
+          on_clear_selection={selection.handle_clear_selection}
+          on_compose={on_compose}
+          on_delete={handle_delete_wrapped}
+          on_empty_spam={toolbar.handle_empty_spam}
+          on_empty_trash={toolbar.handle_empty_trash}
+          on_filter_change={handle_filter_change}
+          on_folder_toggle={(folder_token) => {
+            handle_folder_toggle_wrapped(
+              folder_token,
+              selection.get_folder_status_for_selection(folder_token) === "all",
+            );
+          }}
+          on_mark_read={handle_mark_read_wrapped}
+          on_mark_unread={handle_mark_unread_wrapped}
+          on_navigate_next={
+            nav.effective_email_id ? nav.handle_local_navigate_next : undefined
+          }
+          on_navigate_prev={
+            nav.effective_email_id ? nav.handle_local_navigate_prev : undefined
+          }
+          on_jump_to_page={show_reading_pane ? handle_page_change : undefined}
+          on_page_change={
+            nav.effective_email_id ? undefined : handle_page_change
+          }
+          on_quick_settings_click={on_quick_settings_click}
+          on_restore={handle_restore_wrapped}
+          on_search_click={on_search_click}
+          on_search_result_click={on_search_result_click}
+          on_search_submit={on_search_submit}
+          on_select_by_filter={selection.handle_select_by_filter}
+          on_settings_click={on_settings_click}
+          on_snooze={handle_snooze_wrapped}
+          on_spam={
+            is_outgoing_view(current_view) ? undefined : handle_spam_wrapped
+          }
+          on_tag_toggle={(tag_token) => {
+            handle_tag_toggle_wrapped(
+              tag_token,
+              selection.get_tag_status_for_selection(tag_token) === "all",
+            );
+          }}
+          on_toggle_select_all={selection.handle_toggle_select_all}
+          on_toggle_star={handle_toggle_star_wrapped}
+          on_unarchive={handle_unarchive_wrapped}
+          on_view_change={on_view_change}
+          page_row_count={filtered_emails.length}
+          page_selected_count={selection.page_selected_count}
+          page_size={page_size}
+          search_context={get_search_context(
+            current_view,
+            folders_state.folders,
+            tags_state.tags,
+          )}
+          select_all_mode={selection.select_all_mode}
+          selected_count={selection.selected_count}
+          selection_scope_title={active_category_title}
+          some_selected={selection.some_selected}
+          spam_count={spam_total}
+          tags={order_tags_as_tree(tags_state.tags).map(({ tag, depth }) => ({
+            tag_token: tag.tag_token,
+            name: tag.name,
+            color: tag.color || "#6366f1",
+            depth,
+            status: selection.get_tag_status_for_selection(tag.tag_token),
+          }))}
+          total_email_count={nav.visible_ids.length}
+          total_messages={effective_total_for_pages}
+          total_pages={total_pages}
+          trash_count={mail_stats.trash}
+          view_title={get_view_title(
+            current_view,
+            folders_state.folders,
+            tags_state.tags,
+            t,
+          )}
+        />
+      )}
+
+      {current_view === "all" &&
+        !show_full_email_viewer &&
+        on_search_submit && (
+          <MailFilterChips on_search_submit={on_search_submit} />
+        )}
+
+      {categories.enabled && categories.restored && !show_full_email_viewer && (
+        <CategoryTabs
+          active_category={categories.active_category}
+          counts={categories.counts}
+          counts_pending={categories.counts_pending}
+          on_category_drop={handle_category_drop}
+          on_change={categories.set_active_category}
+        />
+      )}
+
+      {!categories.enabled && !show_full_email_viewer && (
+        <div
+          aria-hidden="true"
+          className="border-t border-edge-secondary shrink-0"
+        />
+      )}
+
+      <StorageBanner
+        storage_total_bytes={mail_stats.storage_total_bytes}
+        storage_used_bytes={mail_stats.storage_used_bytes}
+      />
+
+      {(current_view === "trash" || current_view === "spam") &&
+        (() => {
+          const is_trash = current_view === "trash";
+          const family_enforced = !!family_policy?.enforce_on_members;
+          let effective_days: number | null;
+          let banner_family_enforced: boolean;
+
+          if (is_trash) {
+            if (
+              family_enforced &&
+              family_policy?.trash_retention_days != null &&
+              family_policy.trash_retention_days > 0
+            ) {
+              effective_days = family_policy.trash_retention_days;
+              banner_family_enforced = true;
+            } else {
+              effective_days = trash_retention_days;
+              banner_family_enforced = false;
+            }
+          } else {
+            if (
+              family_enforced &&
+              family_policy?.spam_retention_days != null &&
+              family_policy.spam_retention_days > 0
+            ) {
+              effective_days = family_policy.spam_retention_days;
+              banner_family_enforced = true;
+            } else {
+              effective_days = spam_retention_days;
+              banner_family_enforced = false;
+            }
+          }
+
+          return effective_days !== null && effective_days > 0 ? (
+            <TrashBanner
+              compact={is_compact_density(
+                resolve_list_density(preferences.mail_list_density),
+                preferences.compact_mode ?? false,
+              )}
+              family_enforced={banner_family_enforced}
+              retention_days={effective_days}
+              show_profile_pictures={
+                preferences.show_profile_pictures !== false
+              }
+              view={current_view as "trash" | "spam"}
+            />
+          ) : null;
+        })()}
+    </>
+  );
+
+  const chrome_in_list_column = show_reading_pane && !is_bottom_pane;
+
   return (
     <ErrorBoundary>
       <div className="flex flex-col h-full bg-surf-primary">
-        {!show_full_email_viewer && (
-          <EmailListHeader
-            active_filter={active_filter}
-            alias_direction={alias_view_active ? alias_direction : undefined}
-            all_selected={selection.all_selected}
-            can_go_next={nav.local_can_go_next}
-            can_go_prev={nav.local_can_go_prev}
-            current_email_index={nav.local_email_index}
-            current_page={current_page}
-            display_count={header_display_count}
-            excluded_count={selection.excluded_ids.length}
-            filtered_count={pager_total}
-            folders={order_folders_as_tree(folders_state.folders).map(
-              ({ folder: f, depth }) => ({
-                folder_token: f.folder_token,
-                name: f.name,
-                color: f.color || "#6366f1",
-                depth,
-                status: selection.get_folder_status_for_selection(
-                  f.folder_token,
-                ),
-              }),
-            )}
-            is_archive_view={is_archive_view}
-            is_drafts_view={is_drafts_view}
-            is_scheduled_view={is_scheduled_view}
-            is_spam_view={current_view === "spam"}
-            is_trash_view={current_view === "trash"}
-            on_activate_select_all_mode={
-              scope_for_view && active_filter === "all"
-                ? selection.activate_select_all_mode
-                : undefined
-            }
-            on_archive={handle_archive_wrapped}
-            on_category_change={
-              categories.enabled
-                ? (category) => {
-                    if (handle_category_change_wrapped(category)) return;
-                    void handle_category_drop(
-                      category,
-                      email_state.emails
-                        .filter((e) => e.is_selected)
-                        .map((e) => e.id),
-                    );
-                  }
-                : undefined
-            }
-            on_clear_selection={selection.handle_clear_selection}
-            on_compose={on_compose}
-            on_delete={handle_delete_wrapped}
-            on_empty_spam={toolbar.handle_empty_spam}
-            on_empty_trash={toolbar.handle_empty_trash}
-            on_filter_change={handle_filter_change}
-            on_folder_toggle={(folder_token) => {
-              handle_folder_toggle_wrapped(
-                folder_token,
-                selection.get_folder_status_for_selection(folder_token) ===
-                  "all",
-              );
-            }}
-            on_mark_read={handle_mark_read_wrapped}
-            on_mark_unread={handle_mark_unread_wrapped}
-            on_navigate_next={
-              nav.effective_email_id
-                ? nav.handle_local_navigate_next
-                : undefined
-            }
-            on_navigate_prev={
-              nav.effective_email_id
-                ? nav.handle_local_navigate_prev
-                : undefined
-            }
-            on_page_change={
-              nav.effective_email_id ? undefined : handle_page_change
-            }
-            on_quick_settings_click={on_quick_settings_click}
-            on_restore={handle_restore_wrapped}
-            on_search_click={on_search_click}
-            on_search_result_click={on_search_result_click}
-            on_search_submit={on_search_submit}
-            on_select_by_filter={selection.handle_select_by_filter}
-            on_settings_click={on_settings_click}
-            on_snooze={handle_snooze_wrapped}
-            on_spam={
-              is_outgoing_view(current_view) ? undefined : handle_spam_wrapped
-            }
-            on_tag_toggle={(tag_token) => {
-              handle_tag_toggle_wrapped(
-                tag_token,
-                selection.get_tag_status_for_selection(tag_token) === "all",
-              );
-            }}
-            on_toggle_select_all={selection.handle_toggle_select_all}
-            on_toggle_star={handle_toggle_star_wrapped}
-            on_unarchive={handle_unarchive_wrapped}
-            on_view_change={on_view_change}
-            page_row_count={filtered_emails.length}
-            page_selected_count={selection.page_selected_count}
-            page_size={page_size}
-            search_context={get_search_context(
-              current_view,
-              folders_state.folders,
-              tags_state.tags,
-            )}
-            select_all_mode={selection.select_all_mode}
-            selected_count={selection.selected_count}
-            selection_scope_title={active_category_title}
-            some_selected={selection.some_selected}
-            spam_count={email_state.emails.filter((e) => e.is_spam).length}
-            tags={order_tags_as_tree(tags_state.tags).map(({ tag, depth }) => ({
-              tag_token: tag.tag_token,
-              name: tag.name,
-              color: tag.color || "#6366f1",
-              depth,
-              status: selection.get_tag_status_for_selection(tag.tag_token),
-            }))}
-            total_email_count={nav.visible_ids.length}
-            total_messages={effective_total_for_pages}
-            total_pages={total_pages}
-            trash_count={mail_stats.trash}
-            view_title={get_view_title(
-              current_view,
-              folders_state.folders,
-              tags_state.tags,
-              t,
-            )}
-          />
-        )}
-
-        {current_view === "all" &&
-          !show_full_email_viewer &&
-          on_search_submit && (
-            <MailFilterChips on_search_submit={on_search_submit} />
-          )}
-
-        {categories.enabled &&
-          categories.restored &&
-          !show_full_email_viewer && (
-            <CategoryTabs
-              active_category={categories.active_category}
-              counts={categories.counts}
-              counts_pending={categories.counts_pending}
-              on_category_drop={handle_category_drop}
-              on_change={categories.set_active_category}
-            />
-          )}
-
-        {!categories.enabled && !show_full_email_viewer && (
-          <div
-            aria-hidden="true"
-            className="border-t border-edge-secondary shrink-0"
-          />
-        )}
-
-        <StorageBanner
-          storage_total_bytes={mail_stats.storage_total_bytes}
-          storage_used_bytes={mail_stats.storage_used_bytes}
-        />
-
-        {(current_view === "trash" || current_view === "spam") &&
-          (() => {
-            const is_trash = current_view === "trash";
-            const family_enforced = !!family_policy?.enforce_on_members;
-            let effective_days: number | null;
-            let banner_family_enforced: boolean;
-
-            if (is_trash) {
-              if (
-                family_enforced &&
-                family_policy?.trash_retention_days != null &&
-                family_policy.trash_retention_days > 0
-              ) {
-                effective_days = family_policy.trash_retention_days;
-                banner_family_enforced = true;
-              } else {
-                effective_days = trash_retention_days;
-                banner_family_enforced = false;
-              }
-            } else {
-              if (
-                family_enforced &&
-                family_policy?.spam_retention_days != null &&
-                family_policy.spam_retention_days > 0
-              ) {
-                effective_days = family_policy.spam_retention_days;
-                banner_family_enforced = true;
-              } else {
-                effective_days = spam_retention_days;
-                banner_family_enforced = false;
-              }
-            }
-
-            return effective_days !== null && effective_days > 0 ? (
-              <TrashBanner
-                compact={is_compact_density(
-                  resolve_list_density(preferences.mail_list_density),
-                  preferences.compact_mode ?? false,
-                )}
-                family_enforced={banner_family_enforced}
-                retention_days={effective_days}
-                show_profile_pictures={
-                  preferences.show_profile_pictures !== false
-                }
-                view={current_view as "trash" | "spam"}
-              />
-            ) : null;
-          })()}
+        {!chrome_in_list_column && list_chrome}
 
         {show_full_email_viewer && split_email_id ? (
           <div className="flex-1 overflow-hidden">
@@ -597,34 +582,45 @@ export function EmailInbox(props: EmailInboxProps): React.ReactElement {
             className={`flex-1 flex min-h-0 ${is_bottom_pane ? "flex-col" : ""}`}
           >
             <div
-              ref={split_pane.list_panel_ref}
-              className={`overflow-y-auto relative ${show_reading_pane ? "overflow-x-hidden" : "flex-1"}`}
+              ref={split_pane.list_column_ref}
+              className={`flex flex-col min-h-0 min-w-0 ${show_reading_pane ? "" : "flex-1"}`}
+              data-list-column=""
               style={
                 !show_reading_pane
-                  ? { overflowAnchor: "none" }
+                  ? undefined
                   : is_bottom_pane
                     ? {
                         height: split_pane.pane_height,
                         flexShrink: 0,
                         flexGrow: 0,
-                        overflowAnchor: "none",
                       }
                     : {
                         width: split_pane.pane_width,
                         flexShrink: 0,
                         flexGrow: 0,
-                        overflowAnchor: "none",
                       }
               }
-              onScroll={handle_list_scroll}
             >
-              {email_list_content}
+              {chrome_in_list_column && list_chrome}
+              <div
+                ref={split_pane.list_panel_ref}
+                className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden relative"
+                style={{ overflowAnchor: "none" }}
+                onScroll={handle_list_scroll}
+              >
+                {email_list_content}
+              </div>
             </div>
             {show_reading_pane && (
               <>
                 <div
-                  className={`${is_bottom_pane ? "h-px cursor-row-resize" : "w-px cursor-col-resize"} relative hover:bg-[var(--accent-color)] shrink-0 ${split_pane.is_dragging ? "bg-[var(--accent-color)]" : "bg-edge-primary"}`}
-                  role="presentation"
+                  aria-label={t("mail.resize_reading_pane")}
+                  aria-orientation={is_bottom_pane ? "horizontal" : "vertical"}
+                  className={`${is_bottom_pane ? "h-px cursor-row-resize" : "w-px cursor-col-resize"} relative z-[1] hover:bg-[var(--accent-color)] focus-visible:bg-[var(--accent-color)] focus-visible:outline-none shrink-0 ${split_pane.is_dragging ? "bg-[var(--accent-color)]" : "bg-edge-primary"}`}
+                  role="separator"
+                  tabIndex={0}
+                  onDoubleClick={split_pane.handle_reset}
+                  onKeyDown={split_pane.handle_key_down}
                   onMouseDown={split_pane.handle_drag_start}
                 >
                   {is_bottom_pane ? (
@@ -731,7 +727,7 @@ export function EmailInbox(props: EmailInboxProps): React.ReactElement {
           show_single_archive_confirm={toolbar.show_single_archive_confirm}
           show_single_delete_confirm={toolbar.show_single_delete_confirm}
           show_single_spam_confirm={toolbar.show_single_spam_confirm}
-          spam_count={email_state.emails.filter((e) => e.is_spam).length}
+          spam_count={spam_total}
           trash_count={mail_stats.trash}
         />
         <ConfirmModal

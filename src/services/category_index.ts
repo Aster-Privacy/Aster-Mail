@@ -2433,7 +2433,9 @@ async function item_to_entry(
   const has_metadata = !!(item.encrypted_metadata && item.metadata_nonce);
 
   const [envelope, metadata] = await Promise.all([
-    decrypt_envelope(item.encrypted_envelope, item.envelope_nonce, item.id),
+    item.payload_unavailable === true
+      ? Promise.resolve(null)
+      : decrypt_envelope(item.encrypted_envelope, item.envelope_nonce, item.id),
     has_metadata
       ? decrypt_mail_metadata(
           item.encrypted_metadata!,
@@ -2800,6 +2802,7 @@ async function run_sync_recent(
 
   try {
     const fetched_at = now_ms();
+    const indexed_before_fetch = new Set(entries_map.keys());
     const response = await with_deadline(
       list_mail_items({
         item_type: "received",
@@ -2890,6 +2893,8 @@ async function run_sync_recent(
     // it stays O(page) even on huge mailboxes. Skip when the page is empty or
     // when decryption failed for all returned items - mass decrypt failure means
     // we cannot reliably distinguish "removed" from "failed to decrypt".
+    const inbox_fits_page = response.data.has_more === false;
+
     if (items.length > 0 && upserts.length + removals.length > 0) {
       const returned = new Set(items.map((i) => i.id));
       let window_start = Infinity;
@@ -2912,8 +2917,15 @@ async function run_sync_recent(
 
         for (const [id, entry] of entries_map) {
           const ts = safe_ts(entry.message_ts);
+          const in_page_window = ts > window_start && ts <= window_end;
+          const left_inbox_before_fetch =
+            indexed_before_fetch.has(id) &&
+            (ts > window_end || inbox_fits_page);
 
-          if (ts > window_start && ts <= window_end && !returned.has(id)) {
+          if (
+            (in_page_window || left_inbox_before_fetch) &&
+            !returned.has(id)
+          ) {
             if (
               entry.snoozed_until &&
               safe_ts(entry.snoozed_until) > prune_wall

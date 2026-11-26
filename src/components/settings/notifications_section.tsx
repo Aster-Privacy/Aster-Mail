@@ -38,6 +38,12 @@ import {
 
 import { SettingsSaveIndicatorInline } from "./settings_save_indicator";
 import { SourceNotifySetting } from "./source_notify_setting";
+import { SettingsSkeleton } from "./settings_skeleton";
+import {
+  is_plan_pending,
+  notifications_section_ready,
+  wants_product_updates_unsubscribe,
+} from "./notifications_ready";
 
 import { use_preferences } from "@/contexts/preferences_context";
 import { DEFAULT_PREFERENCES } from "@/services/api/preferences";
@@ -76,6 +82,8 @@ import {
 } from "@/components/ui/select";
 import { format_hour_choice } from "@/utils/date_format";
 import { use_offer_preferences } from "@/hooks/use_offer_preferences";
+import { use_source_notify } from "@/hooks/use_source_notify";
+import { peek_product_updates_subscription } from "@/services/api/product_updates";
 import { BUILTIN_CATEGORIES } from "@/data/category_catalog";
 import { category_icon } from "@/data/category_icons";
 import { has_tauri_runtime } from "@/lib/tauri_runtime";
@@ -333,23 +341,45 @@ async function open_system_notification_settings_os(): Promise<boolean> {
   }
 }
 
+let cached_tauri_permission: PermissionState | null = null;
+
 export function NotificationsSection() {
   const { preferences, update_preference } = use_preferences();
   const { t } = use_i18n();
-  const { is_feature_locked, load_failed: plan_load_failed } =
-    use_plan_limits();
+  const {
+    limits: plan_limits,
+    is_loading: plan_is_loading,
+    is_feature_locked,
+    load_failed: plan_load_failed,
+  } = use_plan_limits();
   const [permission_state, set_permission_state] = useState<PermissionState>(
-    () => (is_tauri ? "default" : get_permission_state()),
+    () =>
+      is_tauri
+        ? (cached_tauri_permission ?? "default")
+        : get_permission_state(),
   );
-  const [product_updates, set_product_updates] = useState<boolean | null>(null);
+  const [permission_settled, set_permission_settled] = useState(
+    () => !is_tauri || cached_tauri_permission !== null,
+  );
+  const [product_updates, set_product_updates] = useState<boolean | null>(
+    () => peek_product_updates_subscription()?.value ?? null,
+  );
+  const [product_updates_settled, set_product_updates_settled] = useState(
+    () =>
+      peek_product_updates_subscription() !== null &&
+      !wants_product_updates_unsubscribe(window.location.search),
+  );
   const [product_updates_busy, set_product_updates_busy] = useState(false);
   const offer_preferences = use_offer_preferences();
+  const source_notify = use_source_notify();
 
   useEffect(() => {
     let cancelled = false;
 
     const params = new URLSearchParams(window.location.search);
-    const wants_unsubscribe = params.get("unsubscribe") === "product_updates";
+    const wants_unsubscribe = wants_product_updates_unsubscribe(
+      window.location.search,
+    );
 
     const apply = async () => {
       if (wants_unsubscribe) {
@@ -392,12 +422,16 @@ export function NotificationsSection() {
       set_product_updates(subscribed);
     };
 
-    apply().catch((caught) =>
-      ignore_error(
-        "components/settings/notifications_section:product_updates",
-        caught,
-      ),
-    );
+    apply()
+      .catch((caught) =>
+        ignore_error(
+          "components/settings/notifications_section:product_updates",
+          caught,
+        ),
+      )
+      .finally(() => {
+        if (!cancelled) set_product_updates_settled(true);
+      });
 
     return () => {
       cancelled = true;
@@ -429,10 +463,15 @@ export function NotificationsSection() {
   useEffect(() => {
     if (!is_tauri) return;
 
+    let cancelled = false;
+
     import("@tauri-apps/plugin-notification")
       .then(({ isPermissionGranted }) =>
         isPermissionGranted().then((granted) => {
-          set_permission_state(granted ? "granted" : "default");
+          const next: PermissionState = granted ? "granted" : "default";
+
+          cached_tauri_permission = next;
+          if (!cancelled) set_permission_state(next);
         }),
       )
       .catch((caught) =>
@@ -440,8 +479,20 @@ export function NotificationsSection() {
           "components/settings/notifications_section:NotificationsSection",
           caught,
         ),
-      );
+      )
+      .finally(() => {
+        if (!cancelled) set_permission_settled(true);
+      });
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
+
+  useEffect(() => {
+    if (!is_tauri || !permission_settled) return;
+    cached_tauri_permission = permission_state;
+  }, [permission_settled, permission_state]);
 
   const desktop_enabled =
     preferences.desktop_notifications && permission_state === "granted";
@@ -596,6 +647,22 @@ export function NotificationsSection() {
       show_toast(t("settings.blocked_by_os"), "warning");
     }
   };
+
+  const is_ready = notifications_section_ready({
+    product_updates_settled,
+    offers_loaded: offer_preferences.loaded,
+    source_notify_loaded: source_notify.loaded,
+    permission_settled,
+    plan_pending: is_plan_pending(
+      plan_limits,
+      plan_is_loading,
+      plan_load_failed,
+    ),
+  });
+
+  if (!is_ready) {
+    return <SettingsSkeleton />;
+  }
 
   const desktop_description =
     permission_state === "denied"
@@ -777,7 +844,7 @@ export function NotificationsSection() {
         <MutedCategoriesSetting />
       )}
 
-      <SourceNotifySetting />
+      <SourceNotifySetting state={source_notify} />
 
       <div>
         <UpgradeGate

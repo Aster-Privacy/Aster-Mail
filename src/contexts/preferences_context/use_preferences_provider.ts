@@ -46,6 +46,7 @@ import {
   DEFAULT_PREFERENCES,
 } from "@/services/api/preferences";
 import { get_csrf_token_from_cookie } from "@/services/api/csrf";
+import { api_client } from "@/services/api/client";
 import { request_cache } from "@/services/api/request_cache";
 import { get_effective_base_url } from "@/services/routing/routing_provider";
 import { connection_store } from "@/services/routing/connection_store";
@@ -426,6 +427,18 @@ export function use_preferences_provider() {
           cache_sidebar_state(
             "sidebar_aliases_collapsed",
             applied.sidebar_aliases_collapsed,
+          );
+          cache_sidebar_state(
+            "sidebar_folders_show_all",
+            applied.sidebar_folders_show_all,
+          );
+          cache_sidebar_state(
+            "sidebar_labels_show_all",
+            applied.sidebar_labels_show_all,
+          );
+          cache_sidebar_state(
+            "sidebar_aliases_show_all",
+            applied.sidebar_aliases_show_all,
           );
           apply_visual_preferences(applied);
 
@@ -875,7 +888,9 @@ export function use_preferences_provider() {
       }
 
       const csrf = get_csrf_token_from_cookie();
+      const transport = api_client.session_transport();
       const headers: Record<string, string> = {
+        ...transport.headers,
         "Content-Type": "application/json",
         [VAULT_LEVEL_HEADER]: CLIENT_VAULT_LEVEL,
       };
@@ -888,7 +903,7 @@ export function use_preferences_provider() {
       fetch(url, {
         method: "PUT",
         headers,
-        credentials: "include",
+        credentials: transport.credentials,
         keepalive: true,
         body: JSON.stringify({
           encrypted_preferences: beacon_payload_ref.current.encrypted,

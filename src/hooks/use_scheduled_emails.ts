@@ -65,6 +65,7 @@ let scheduled_cache: ScheduledListItem[] | null = null;
 export interface ScheduledListItem extends InboxEmail {
   scheduled_at: string;
   status: ScheduledEmailStatus;
+  failure_reason?: string;
   to_recipients: string[];
   cc_recipients: string[];
   bcc_recipients: string[];
@@ -159,6 +160,7 @@ function transform_scheduled(
     is_encrypted: true,
     scheduled_at: scheduled.scheduled_at,
     status: scheduled.status,
+    failure_reason: scheduled.failure_reason,
     to_recipients: scheduled.content.to_recipients,
     cc_recipients: scheduled.content.cc_recipients,
     bcc_recipients: scheduled.content.bcc_recipients,

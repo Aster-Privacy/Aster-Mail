@@ -79,6 +79,7 @@ export interface ScheduledClickData {
   body: string;
   scheduled_at: string;
   status?: string;
+  failure_reason?: string;
   content_verified?: boolean;
 }
 

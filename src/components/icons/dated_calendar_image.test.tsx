@@ -114,21 +114,21 @@ describe("dated calendar image", () => {
     ).toBe("xMinYMid meet");
   });
 
-  it("shows the fallback when the artwork fails to load", () => {
-    act(() =>
-      root.render(
-        <DatedCalendarImage
-          fallback={<span data-testid="fallback" />}
-          kind="app"
-        />,
-      ),
-    );
+  it.each(["app", "rail"] as const)(
+    "keeps the bundled %s artwork when the image reports an error",
+    (kind) => {
+      act(() => root.render(<DatedCalendarImage kind={kind} />));
 
-    act(() => {
-      container.querySelector("image")?.dispatchEvent(new Event("error"));
-    });
+      const href = container.querySelector("image")?.getAttribute("href");
 
-    expect(container.querySelector("svg")).toBeNull();
-    expect(container.querySelector("[data-testid='fallback']")).not.toBeNull();
-  });
+      act(() => {
+        container.querySelector("image")?.dispatchEvent(new Event("error"));
+      });
+
+      expect(href?.startsWith("data:image/png;base64,")).toBe(true);
+      expect(container.querySelector("svg image")?.getAttribute("href")).toBe(
+        href,
+      );
+    },
+  );
 });

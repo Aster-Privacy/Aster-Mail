@@ -346,8 +346,7 @@ export function GhostAliasesSection() {
                     <Button
                       disabled={action_loading === alias.id}
                       size="sm"
-                      style={{ color: "var(--color-danger)" }}
-                      variant="secondary"
+                      variant="depth_destructive"
                       onClick={() => handle_expire(alias.id)}
                     >
                       {t("settings.ghost_alias_expire_now")}

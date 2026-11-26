@@ -27,7 +27,12 @@ import {
   envelope_v2_write_key,
   wipe_envelope_v2_keys,
 } from "./envelope_v2";
+import {
+  has_bound_envelope_floor,
+  raise_bound_envelope_floor,
+} from "./stored_envelope_floor";
 import { stored_envelope_binding } from "./stored_envelope_read";
+import { get_vault_owner_id } from "./memory_key_store";
 import { is_level2_admitted } from "./vault_level2";
 
 import { peek_account_key_capabilities } from "@/services/api/account_key";
@@ -35,7 +40,13 @@ import { peek_account_key_capabilities } from "@/services/api/account_key";
 export function stored_envelope_write_binding(
   item_id: string | null | undefined,
 ): StoredEnvelopeBinding | undefined {
-  if (!peek_account_key_capabilities().bound_envelope_writes) return undefined;
+  const owner_id = get_vault_owner_id();
+
+  if (peek_account_key_capabilities().bound_envelope_writes) {
+    raise_bound_envelope_floor(owner_id);
+  } else if (!has_bound_envelope_floor(owner_id)) {
+    return undefined;
+  }
 
   return stored_envelope_binding(item_id);
 }

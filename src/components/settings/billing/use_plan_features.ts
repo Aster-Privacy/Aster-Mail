@@ -132,6 +132,12 @@ export function use_plan_features(): Record<string, PlanFeature[]> {
           description: t("settings.ext_v2_plan_tip_custom_domain_primary"),
         },
         {
+          label: t("settings.mta_sts_plan_feature"),
+          on: true,
+          icon: "shield",
+          description: t("settings.mta_sts_plan_feature_description"),
+        },
+        {
           label: t("settings.plan_feat_vanguard"),
           on: true,
           icon: "shield",
@@ -220,6 +226,12 @@ export function use_plan_features(): Record<string, PlanFeature[]> {
           on: true,
           icon: "domain",
           description: t("settings.ext_v2_plan_tip_custom_domain_primary"),
+        },
+        {
+          label: t("settings.mta_sts_plan_feature"),
+          on: true,
+          icon: "shield",
+          description: t("settings.mta_sts_plan_feature_description"),
         },
         {
           label: t("settings.feature_instant_alias_delete"),

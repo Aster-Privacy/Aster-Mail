@@ -212,6 +212,9 @@ async function clear_local_caches(): Promise<void> {
   await import("@/services/calendar/sync_store")
     .then((module) => module.clear_calendar_sync_cache())
     .catch(() => undefined);
+  await import("@/lib/remote_image_cache")
+    .then((module) => module.clear_remote_image_cache())
+    .catch(() => undefined);
   clear_drafts_cache();
   clear_scheduled_cache();
   clear_recovery_email_cache();
@@ -239,11 +242,10 @@ async function sign_out_locally(
   drop_memory_secrets();
 
   api_client.begin_intentional_logout();
-  try {
-    await logout_user();
-  } catch (caught) {
-    ignore_error("contexts/auth/purge_local_data:purge_all_local_data", caught);
-  }
+  await settle_within(
+    Promise.resolve().then(logout_user),
+    REMOTE_RELEASE_TIMEOUT_MS,
+  );
 
   await run_steps(STORAGE_STEPS, failed);
   await clear_local_caches();

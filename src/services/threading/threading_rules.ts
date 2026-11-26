@@ -20,6 +20,8 @@
 //
 import { blake3 } from "@noble/hashes/blake3";
 
+import { strip_angle_edges } from "@/lib/address_scans";
+
 export const SUBJECT_THREAD_WINDOW_DAYS = 7;
 export const SUBJECT_THREAD_WINDOW_MS = SUBJECT_THREAD_WINDOW_DAYS * 86_400_000;
 export const SUBJECT_THREAD_MAX_MESSAGES = 100;
@@ -115,7 +117,7 @@ export function normalize_account_address(address: string): string {
 }
 
 export function strip_angle_brackets(msgid: string): string {
-  return msgid.trim().replace(/^<+/, "").replace(/>+$/, "");
+  return strip_angle_edges(msgid.trim());
 }
 
 export function is_usable_msgid(msgid: string | null | undefined): boolean {

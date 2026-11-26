@@ -23,6 +23,7 @@ import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 
 import { AccountRecoverySection } from "./account_recovery_section";
+import { clear_recovery_section_cache } from "./recovery_section_cache";
 
 import {
   get_codes_status,
@@ -80,6 +81,7 @@ describe("AccountRecoverySection", () => {
   let root: Root;
 
   beforeEach(() => {
+    clear_recovery_section_cache();
     container = document.createElement("div");
     document.body.appendChild(container);
     root = createRoot(container);
@@ -110,6 +112,43 @@ describe("AccountRecoverySection", () => {
       (button) => button.textContent === "common.locked_data_banner_action",
     );
   }
+
+  it("renders the loading state until recovery data arrives", async () => {
+    let resolve_methods: (value: unknown) => void = () => undefined;
+
+    vi.mocked(get_recovery_methods).mockReturnValue(
+      new Promise((resolve) => {
+        resolve_methods = resolve;
+      }) as never,
+    );
+    await render();
+
+    expect(container.textContent).not.toContain(
+      "settings.account_recovery_title",
+    );
+
+    await act(async () => {
+      resolve_methods(methods(0));
+    });
+
+    expect(container.textContent).toContain("settings.account_recovery_title");
+  });
+
+  it("renders the loaded state at once on a repeat visit", async () => {
+    vi.mocked(get_recovery_methods).mockResolvedValue(methods(1) as never);
+    await render();
+    act(() => root.unmount());
+    root = createRoot(container);
+    vi.mocked(get_recovery_methods).mockReturnValue(
+      new Promise(() => undefined) as never,
+    );
+
+    act(() => {
+      root.render(<AccountRecoverySection />);
+    });
+
+    expect(container.textContent).toContain("common.recover_data_title");
+  });
 
   it("offers to recover data while older key sets are locked", async () => {
     vi.mocked(get_recovery_methods).mockResolvedValue(methods(1) as never);

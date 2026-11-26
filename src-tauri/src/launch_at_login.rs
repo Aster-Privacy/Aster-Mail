@@ -392,6 +392,10 @@ mod platform {
     }
 
     fn launch_target() -> Result<String, String> {
+        if let Some(command) = crate::package_managed::launch_command() {
+            return Ok(command);
+        }
+
         if let Some(appimage) = std::env::var_os("APPIMAGE") {
             let appimage = PathBuf::from(appimage);
             if appimage.is_absolute() && appimage.is_file() {
@@ -760,6 +764,8 @@ mod tests {
         );
         let plain = platform::autostart_entry("/usr/bin/aster-mail-desktop");
         assert!(plain.contains("Exec=/usr/bin/aster-mail-desktop --autostart\n"));
+        let bare = platform::autostart_entry("aster-mail");
+        assert!(bare.contains("Exec=aster-mail --autostart\n"));
         assert!(platform::entry_enabled(&plain));
     }
 

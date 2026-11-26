@@ -292,7 +292,7 @@ export function RetentionPolicyCard({
             size="lg"
             onCheckedChange={on_toggle}
           />
-          <Button variant="ghost" onClick={on_delete}>
+          <Button variant="depth_destructive" onClick={on_delete}>
             {t("folder_retention.remove")}
           </Button>
         </div>

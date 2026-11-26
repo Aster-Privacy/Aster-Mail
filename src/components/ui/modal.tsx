@@ -23,6 +23,7 @@
 import type { ComponentProps } from "react";
 
 import { MotionModal, MotionModalBody, type MotionModalProps } from "@aster/ui";
+import { useDismissableLayerSurface } from "@radix-ui/react-dismissable-layer";
 
 import { use_should_reduce_motion } from "@/provider";
 import { use_i18n } from "@/lib/i18n/context";
@@ -30,16 +31,21 @@ import { cn } from "@/lib/utils";
 
 type ModalProps = Omit<MotionModalProps, "reduce_motion" | "close_label">;
 
-export function Modal(props: ModalProps) {
+export function Modal({ children, ...props }: ModalProps) {
   const reduce_motion = use_should_reduce_motion();
   const { t } = use_i18n();
+  const register_dismissable_surface = useDismissableLayerSurface();
 
   return (
     <MotionModal
       close_label={t("common.close")}
       reduce_motion={reduce_motion}
       {...props}
-    />
+    >
+      <div ref={register_dismissable_surface} className="contents">
+        {children}
+      </div>
+    </MotionModal>
   );
 }
 

@@ -143,6 +143,7 @@ import { copy_text, copy_text_or_throw } from "@/utils/copy_text";
 import { app_locale, get_display_time_zone } from "@/utils/date_format";
 import { format_decimal } from "@/lib/utils";
 import { use_sticky_value } from "@/hooks/use_sticky_value";
+import { is_email_shape } from "@/lib/email_shape";
 
 export function FamilySection({ is_family_plan }: FamilySectionProps) {
   const { t } = use_i18n();
@@ -478,7 +479,7 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
   const handle_wizard_invite = async () => {
     const email = wizard_invite_email.trim();
 
-    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    if (!email || !is_email_shape(email)) {
       show_toast(t("settings.fam_org_invalid_email"), "error");
 
       return;
@@ -546,7 +547,7 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
   const handle_invite_email = async () => {
     const email = invite_email.trim();
 
-    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    if (!email || !is_email_shape(email)) {
       show_toast(t("settings.fam_org_invalid_email"), "error");
 
       return;

@@ -46,10 +46,15 @@ interface ResetResult {
 }
 
 const reset_vault_state: { vault_kdf_iterations?: number } = {};
-const stored_copy: { sealed: { encrypted_vault: string; vault_nonce: string } | null } =
-  { sealed: null };
-const reset_password_mock = vi.fn<(...args: unknown[]) => Promise<ResetResult>>();
+const stored_copy: {
+  sealed: { encrypted_vault: string; vault_nonce: string } | null;
+} = { sealed: null };
+const reset_password_mock =
+  vi.fn<(...args: unknown[]) => Promise<ResetResult>>();
 const prepare_calls: unknown[][] = [];
+const vault_proof_mock =
+  vi.fn<(...args: unknown[]) => Promise<string | undefined>>();
+const get_reset_vault_mock = vi.fn();
 
 function kept_vault(): EncryptedVault {
   return {
@@ -77,7 +82,10 @@ vi.mock("framer-motion", async () => {
     "whileTap",
     "onAnimationComplete",
   ]);
-  const plain = new Map<string, (props: Record<string, unknown>) => ReactNode>();
+  const plain = new Map<
+    string,
+    (props: Record<string, unknown>) => ReactNode
+  >();
   const motion = new Proxy(
     {},
     {
@@ -124,10 +132,9 @@ vi.mock("@/provider", () => ({
 }));
 
 vi.mock("@/services/sanitize", async () => {
-  const actual =
-    await vi.importActual<typeof import("@/services/sanitize")>(
-      "@/services/sanitize",
-    );
+  const actual = await vi.importActual<typeof import("@/services/sanitize")>(
+    "@/services/sanitize",
+  );
 
   return { ...actual, timing_safe_delay: async () => undefined };
 });
@@ -143,14 +150,18 @@ vi.mock("@/services/api/recovery", () => ({
       hardware_key: false,
     },
   }),
-  get_reset_vault: async () => ({
-    data: {
-      encrypted_vault: stored_copy.sealed?.encrypted_vault ?? STORED_VAULT,
-      vault_nonce: stored_copy.sealed?.vault_nonce ?? "stored-nonce",
-      vault_version: 1,
-      ...reset_vault_state,
-    },
-  }),
+  get_reset_vault: async (...args: unknown[]) => {
+    get_reset_vault_mock(...args);
+
+    return {
+      data: {
+        encrypted_vault: stored_copy.sealed?.encrypted_vault ?? STORED_VAULT,
+        vault_nonce: stored_copy.sealed?.vault_nonce ?? "stored-nonce",
+        vault_version: 1,
+        ...reset_vault_state,
+      },
+    };
+  },
   reset_password_with_token: (...args: unknown[]) =>
     reset_password_mock(...args),
   get_reset_hardware_key_options: vi.fn(),
@@ -158,9 +169,16 @@ vi.mock("@/services/api/recovery", () => ({
   verify_reset_second_factor: vi.fn(),
 }));
 
-vi.mock("@/services/crypto/reset_vault_proof", () => ({
-  derive_reset_vault_proof: async () => "vault-proof",
-}));
+vi.mock("@/services/crypto/reset_vault_proof", async () => {
+  const actual = await vi.importActual<
+    typeof import("@/services/crypto/reset_vault_proof")
+  >("@/services/crypto/reset_vault_proof");
+
+  return {
+    ...actual,
+    derive_reset_vault_proof: (...args: unknown[]) => vault_proof_mock(...args),
+  };
+});
 
 vi.mock("@/services/crypto/reset_link_vault", async () => {
   const actual = await vi.importActual<
@@ -234,9 +252,10 @@ vi.mock("@/services/crypto/key_manager_pgp_vault", async () => {
 });
 
 const { default: ResetPasswordPage } = await import("./reset_password");
-const { encrypt_vault } = await import(
-  "@/services/crypto/key_manager_pgp_vault"
-);
+const { AuthSaltCollisionError, LegacyLoginSaltError } =
+  await import("@/services/crypto/auth_salt_guard");
+const { encrypt_vault } =
+  await import("@/services/crypto/key_manager_pgp_vault");
 
 declare global {
   var IS_REACT_ACT_ENVIRONMENT: boolean;
@@ -270,7 +289,7 @@ async function type_into(placeholder: string, value: string) {
   });
 }
 
-async function reset_with_current_password() {
+async function submit_reset_with_current_password() {
   window.history.replaceState(
     {},
     "",
@@ -302,6 +321,10 @@ async function reset_with_current_password() {
   await act(async () => {
     submit.click();
   });
+}
+
+async function reset_with_current_password() {
+  await submit_reset_with_current_password();
   await vi.waitFor(() => expect(reset_password_mock).toHaveBeenCalled(), {
     timeout: 20000,
   });
@@ -319,6 +342,9 @@ describe("password reset keeps the stored vault work factor", () => {
     reset_password_mock.mockReset();
     reset_password_mock.mockResolvedValue({ data: { success: true } });
     prepare_calls.length = 0;
+    vault_proof_mock.mockReset();
+    vault_proof_mock.mockResolvedValue("vault-proof");
+    get_reset_vault_mock.mockReset();
   });
 
   afterEach(() => {
@@ -383,6 +409,9 @@ describe("password reset opens the stored vault for its own account", () => {
     reset_password_mock.mockReset();
     reset_password_mock.mockResolvedValue({ data: { success: true } });
     prepare_calls.length = 0;
+    vault_proof_mock.mockReset();
+    vault_proof_mock.mockResolvedValue("vault-proof");
+    get_reset_vault_mock.mockReset();
   });
 
   afterEach(() => {
@@ -411,4 +440,67 @@ describe("password reset opens the stored vault for its own account", () => {
     expect(prepare_calls[0][2]).toBe(VAULT_KDF_ITERATIONS_LEVEL2);
     expect(get_current_vault_iterations()).toBe(VAULT_KDF_ITERATIONS_LEGACY);
   }, 60000);
+});
+
+describe("password reset refuses a login salt this device cannot vouch for", () => {
+  beforeEach(() => {
+    reset_level2_state();
+    delete reset_vault_state.vault_kdf_iterations;
+    stored_copy.sealed = null;
+    reset_password_mock.mockReset();
+    reset_password_mock.mockResolvedValue({ data: { success: true } });
+    prepare_calls.length = 0;
+    vault_proof_mock.mockReset();
+    get_reset_vault_mock.mockReset();
+  });
+
+  afterEach(() => {
+    act(() => {
+      root?.unmount();
+    });
+    container?.remove();
+    root = null;
+    container = null;
+  });
+
+  it("derives the proof for the reset address", async () => {
+    vault_proof_mock.mockResolvedValue("vault-proof");
+
+    await reset_with_current_password();
+
+    expect(vault_proof_mock.mock.calls[0][0]).toBe(CURRENT_PASSWORD);
+    expect(vault_proof_mock.mock.calls[0][2]).toBe("alice@astermail.org");
+    expect(get_reset_vault_mock.mock.calls[0][1]).toBe("vault-proof");
+  }, 30000);
+
+  it("stops before asking for the vault and explains the next step", async () => {
+    vault_proof_mock.mockRejectedValue(new LegacyLoginSaltError("step_up"));
+
+    await submit_reset_with_current_password();
+
+    await vi.waitFor(
+      () =>
+        expect(container!.textContent).toContain(
+          "auth.reset_legacy_login_salt",
+        ),
+      { timeout: 20000 },
+    );
+    expect(get_reset_vault_mock).not.toHaveBeenCalled();
+    expect(reset_password_mock).not.toHaveBeenCalled();
+    expect(input_with("auth.reset_current_password")).toBeTruthy();
+  }, 30000);
+
+  it("shows the unsafe value message when the account no longer allows that proof", async () => {
+    vault_proof_mock.mockRejectedValue(new AuthSaltCollisionError());
+
+    await submit_reset_with_current_password();
+
+    await vi.waitFor(
+      () =>
+        expect(container!.textContent).toContain("errors.auth_salt_collision"),
+      { timeout: 20000 },
+    );
+    expect(get_reset_vault_mock).not.toHaveBeenCalled();
+    expect(reset_password_mock).not.toHaveBeenCalled();
+  }, 30000);
 });

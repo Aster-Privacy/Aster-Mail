@@ -60,9 +60,19 @@ describe("sending_block_change_for_option", () => {
     });
   });
 
+  it("maps the primary address and ghost aliases to server changes", () => {
+    expect(sending_block_change_for_option("primary", true)).toEqual({
+      kind: "primary",
+      sending_disabled: true,
+    });
+    expect(sending_block_change_for_option("ghost-g1", true)).toEqual({
+      kind: "alias",
+      id: "g1",
+      sending_disabled: true,
+    });
+  });
+
   it("ignores senders that cannot be blocked", () => {
-    expect(sending_block_change_for_option("primary", true)).toBeNull();
-    expect(sending_block_change_for_option("ghost-g1", true)).toBeNull();
     expect(sending_block_change_for_option("external-e1", true)).toBeNull();
     expect(
       sending_block_change_for_option("catch-all-d1-x@example.com", true),
@@ -81,6 +91,35 @@ describe("sending blocks store", () => {
     expect(is_option_sending_disabled("a1")).toBe(true);
     expect(is_option_sending_disabled("domain-d1")).toBe(true);
     expect(is_option_sending_disabled("a2")).toBe(false);
+    expect(is_option_sending_disabled("primary")).toBe(false);
+  });
+
+  it("marks the primary address and ghost aliases disabled", async () => {
+    get_mock.mockResolvedValue({
+      data: { primary: true, alias_ids: ["g1"], domain_address_ids: [] },
+    });
+
+    await load_sending_blocks(true);
+
+    expect(is_option_sending_disabled("primary")).toBe(true);
+    expect(is_option_sending_disabled("ghost-g1")).toBe(true);
+    expect(get_sending_blocks_snapshot().primary).toBe(true);
+  });
+
+  it("fetches again on each load so other devices' changes apply", async () => {
+    get_mock
+      .mockResolvedValueOnce({
+        data: { primary: false, alias_ids: [], domain_address_ids: [] },
+      })
+      .mockResolvedValueOnce({
+        data: { primary: true, alias_ids: [], domain_address_ids: [] },
+      });
+
+    await load_sending_blocks();
+    expect(is_option_sending_disabled("primary")).toBe(false);
+    await load_sending_blocks();
+    expect(is_option_sending_disabled("primary")).toBe(true);
+    expect(get_mock).toHaveBeenCalledTimes(2);
   });
 
   it("keeps the previous state when loading fails", async () => {
@@ -89,6 +128,7 @@ describe("sending blocks store", () => {
     await load_sending_blocks(true);
 
     expect(get_sending_blocks_snapshot()).toEqual({
+      primary: false,
       alias_ids: [],
       domain_address_ids: [],
     });

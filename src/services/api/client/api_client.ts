@@ -20,6 +20,9 @@
 //
 import { Capacitor } from "@capacitor/core";
 
+import { account_index_routing_enabled } from "@/lib/account_index_url";
+import { tab_shares_session_cookies } from "@/lib/tab_account";
+
 import {
   get_csrf_token_from_cookie,
   set_csrf_token,
@@ -158,6 +161,8 @@ function is_transient_response(result: {
     (TRANSIENT_RESPONSE_STATUSES.has(result.status) || result.status >= 500)
   );
 }
+
+const EXPECTED_USER_HEADER = "X-Aster-Expected-User";
 
 export class ApiClient {
   private refresh_timeout: number | null = null;
@@ -753,6 +758,12 @@ export class ApiClient {
   }
 
   async load_tokens_for_account(account_id: string): Promise<boolean> {
+    return (await this.load_account_token_state(account_id)) === "loaded";
+  }
+
+  private async load_account_token_state(
+    account_id: string,
+  ): Promise<"loaded" | "missing" | "unavailable"> {
     try {
       const { get_account_tokens } = await import("@/services/account_manager");
       const tokens = await get_account_tokens(account_id);
@@ -778,20 +789,27 @@ export class ApiClient {
           sessionStorage.setItem(DEV_TOKEN_KEY, tokens.access_token);
         }
 
-        return true;
+        return "loaded";
       }
 
       if (tokens.refresh_token) {
-        return true;
+        return "loaded";
       }
     } catch (caught) {
       ignore_error(
         "services/api/client/api_client:load_tokens_for_account",
         caught,
       );
+
+      if (
+        caught instanceof Error &&
+        caught.name === "DesktopRefreshStoreUnavailableError"
+      ) {
+        return "unavailable";
+      }
     }
 
-    return false;
+    return "missing";
   }
 
   clear_in_memory_token(): void {
@@ -1414,6 +1432,26 @@ export class ApiClient {
     return this.dev_access_token;
   }
 
+  session_transport(): {
+    credentials: RequestCredentials;
+    headers: Record<string, string>;
+  } {
+    const headers: Record<string, string> = {};
+
+    if (this.dev_access_token) {
+      headers["Authorization"] = `Bearer ${this.dev_access_token}`;
+    }
+
+    if (this.expected_user_id && account_index_routing_enabled()) {
+      headers[EXPECTED_USER_HEADER] = this.expected_user_id;
+    }
+
+    return {
+      credentials: tab_shares_session_cookies() ? "include" : "omit",
+      headers,
+    };
+  }
+
   get_active_refresh_token(): string | null {
     return this.active_refresh_token;
   }
@@ -1450,9 +1488,13 @@ export class ApiClient {
   async reestablish_session_for_account(
     account_id: string,
   ): Promise<SessionReestablishResult> {
-    const loaded = await this.load_tokens_for_account(account_id);
+    const token_state = await this.load_account_token_state(account_id);
 
-    if (!loaded) {
+    if (token_state === "unavailable") {
+      return "unavailable";
+    }
+
+    if (token_state !== "loaded") {
       return "expired";
     }
 
@@ -1754,6 +1796,8 @@ export class ApiClient {
   }
 
   async clear_session_cookies(): Promise<boolean> {
+    if (!tab_shares_session_cookies()) return true;
+
     await this.await_outgoing_session_checkpoint();
 
     try {
@@ -1969,6 +2013,7 @@ export class ApiClient {
       timeout = get_effective_timeout(DEFAULT_TIMEOUT),
       retry = get_effective_retry_count(DEFAULT_RETRY_COUNT),
       retry_delay = get_effective_retry_delay(DEFAULT_RETRY_DELAY),
+      retry_on_timeout = true,
       cache_ttl: _cache_ttl,
       skip_cache: _skip_cache,
       skip_session_refresh = false,
@@ -2003,6 +2048,13 @@ export class ApiClient {
     if (this.dev_access_token) {
       headers["Authorization"] = `Bearer ${this.dev_access_token}`;
     }
+
+    if (this.expected_user_id && account_index_routing_enabled()) {
+      headers[EXPECTED_USER_HEADER] = this.expected_user_id;
+    }
+
+    const request_credentials: RequestCredentials =
+      tab_shares_session_cookies() ? "include" : "omit";
 
     const method = options.method || "GET";
 
@@ -2072,7 +2124,7 @@ export class ApiClient {
         const started_at = Date.now();
         const timed = await this.request_with_timeout(
           url,
-          { ...options, headers, credentials: "include" },
+          { ...options, headers, credentials: request_credentials },
           timeout,
           background?.controller,
         );
@@ -2635,7 +2687,9 @@ export class ApiClient {
 
         background?.stalled();
 
-        if (attempt < retry && replay_safe) {
+        const timed_out = last_error.code === "TIMEOUT_ERROR";
+
+        if (attempt < retry && replay_safe && (retry_on_timeout || !timed_out)) {
           await this.delay(retry_delay * (attempt + 1));
           continue;
         }

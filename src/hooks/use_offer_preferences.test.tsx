@@ -52,13 +52,18 @@ vi.mock("@/stores/special_offer_status", () => ({
   restore_special_offer_status: h.restore_special_offer_status,
 }));
 
-import { use_offer_preferences } from "./use_offer_preferences";
+import {
+  clear_offer_preferences_cache,
+  use_offer_preferences,
+} from "./use_offer_preferences";
 
 let container: HTMLDivElement;
 let root: Root;
 
 function SpecialOffersSwitch() {
-  const { enabled, busy, toggle } = use_offer_preferences();
+  const { enabled, loaded, busy, toggle } = use_offer_preferences();
+
+  if (!loaded) return <span data-testid="pending" />;
 
   if (enabled === null) return null;
 
@@ -97,6 +102,7 @@ async function mount() {
 
 describe("use_offer_preferences", () => {
   beforeEach(() => {
+    clear_offer_preferences_cache();
     vi.clearAllMocks();
     h.get.mockResolvedValue({ data: { in_app_offers_enabled: true } });
     h.restore_special_offer_status.mockResolvedValue(undefined);
@@ -116,6 +122,50 @@ describe("use_offer_preferences", () => {
       skip_cache: true,
     });
     expect(get_switch()?.getAttribute("aria-checked")).toBe("true");
+  });
+
+  it("reports loading until the preference arrives", async () => {
+    const pending = deferred<{ data: { in_app_offers_enabled: boolean } }>();
+
+    h.get.mockReturnValueOnce(pending.promise);
+    await mount();
+
+    expect(container.querySelector("[data-testid=pending]")).not.toBeNull();
+    expect(get_switch()).toBeNull();
+
+    await act(async () => {
+      pending.resolve({ data: { in_app_offers_enabled: true } });
+    });
+
+    expect(container.querySelector("[data-testid=pending]")).toBeNull();
+    expect(get_switch()?.getAttribute("aria-checked")).toBe("true");
+  });
+
+  it("renders the saved preference at once on a repeat visit", async () => {
+    await mount();
+    await act(async () => {
+      root.unmount();
+    });
+    container.remove();
+    h.get.mockReturnValueOnce(new Promise(() => undefined));
+
+    container = document.createElement("div");
+    document.body.appendChild(container);
+    root = createRoot(container);
+    act(() => {
+      root.render(<SpecialOffersSwitch />);
+    });
+
+    expect(container.querySelector("[data-testid=pending]")).toBeNull();
+    expect(get_switch()?.getAttribute("aria-checked")).toBe("true");
+  });
+
+  it("stops loading when the preference cannot load", async () => {
+    h.get.mockResolvedValue({ error: "offline" });
+
+    await mount();
+
+    expect(container.querySelector("[data-testid=pending]")).toBeNull();
   });
 
   it("hides the switch when the preference cannot load", async () => {

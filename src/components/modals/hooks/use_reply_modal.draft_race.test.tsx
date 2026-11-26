@@ -1085,6 +1085,200 @@ describe("reply modal drafts around a send", () => {
     expect(mocks.create_draft).not.toHaveBeenCalled();
   });
 
+  async function track_pending_replies() {
+    const events = await import("@/hooks/mail_events");
+    const store = await import("@/hooks/pending_reply_messages");
+
+    store.reset_pending_reply_messages();
+    vi.mocked(events.emit_thread_reply_optimistic).mockReset();
+    vi.mocked(events.emit_thread_reply_optimistic).mockImplementation(
+      (detail) => store.add_pending_reply_message(detail),
+    );
+    vi.mocked(events.emit_thread_reply_cancelled).mockReset();
+    vi.mocked(events.emit_thread_reply_cancelled).mockImplementation(
+      (detail) => store.remove_pending_reply_message(detail.optimistic_id),
+    );
+
+    return { events, store };
+  }
+
+  function last_reply_id(events: typeof import("@/hooks/mail_events")) {
+    const calls = vi.mocked(events.emit_thread_reply_optimistic).mock.calls;
+
+    return calls[calls.length - 1]?.[0].optimistic_id;
+  }
+
+  type SendCallbacks = {
+    on_complete: (sent_id?: string) => void;
+    on_cancel: () => void;
+    on_error?: (error: string) => void;
+    on_dispatch?: (thread_token: string | undefined) => void;
+  };
+
+  it("shows a reply in its thread while its attachments are still encrypting", async () => {
+    const { events, store } = await track_pending_replies();
+    const in_flight = deferred<ReturnType<typeof queued_send_result>>();
+
+    mocks.send_reply.mockImplementation(
+      async (_params: unknown, given: SendCallbacks) => {
+        given.on_dispatch?.("thread_1");
+
+        return in_flight.promise;
+      },
+    );
+    const props = base_props();
+
+    await render_hook(props);
+    await type_reply("<p>Signed copy attached</p>");
+    await act(async () => {
+      void latest!.handle_send();
+      await vi.advanceTimersByTimeAsync(0);
+    });
+
+    expect(events.emit_thread_reply_optimistic).toHaveBeenCalledTimes(1);
+    expect(
+      vi.mocked(events.emit_thread_reply_optimistic).mock.calls[0][0],
+    ).toMatchObject({ thread_token: "thread_1", original_email_id: "email_1" });
+    expect(props.on_close).toHaveBeenCalled();
+    expect(store.get_pending_reply_status(last_reply_id(events))).toMatchObject(
+      { phase: "sending" },
+    );
+
+    await act(async () => {
+      in_flight.resolve(queued_send_result());
+      await vi.advanceTimersByTimeAsync(0);
+    });
+
+    expect(events.emit_thread_reply_optimistic).toHaveBeenCalledTimes(1);
+    expect(mocks.undo_add.mock.calls[0][0]).toMatchObject({
+      optimistic_id: last_reply_id(events),
+      thread_token: "thread_1",
+    });
+  });
+
+  it("keeps a reply that fails after you leave as failed, and sends it again on retry", async () => {
+    const { events, store } = await track_pending_replies();
+
+    mocks.create_draft.mockResolvedValue({ data: { id: "kept", version: 1 } });
+    mocks.send_reply.mockImplementationOnce(
+      async (_params: unknown, given: SendCallbacks) => {
+        given.on_dispatch?.("thread_1");
+        given.on_error?.("Server unavailable");
+
+        return { success: false, error: "Server unavailable" };
+      },
+    );
+    await render_hook(base_props());
+    await type_reply("<p>Signed copy attached</p>");
+    await act(async () => {
+      await latest!.handle_send();
+    });
+    await advance(0);
+
+    const reply_id = last_reply_id(events);
+
+    expect(events.emit_thread_reply_cancelled).not.toHaveBeenCalled();
+    expect(store.get_pending_reply_status(reply_id)).toMatchObject({
+      phase: "failed",
+      error: "Server unavailable",
+      can_retry: true,
+    });
+
+    let retry_callbacks: SendCallbacks | null = null;
+
+    mocks.send_reply.mockImplementationOnce(
+      async (params: { thread_token?: string }, given: SendCallbacks) => {
+        retry_callbacks = given;
+        expect(params.thread_token).toBe("thread_1");
+        given.on_dispatch?.("thread_1");
+
+        return queued_send_result();
+      },
+    );
+    await act(async () => {
+      expect(store.retry_pending_reply(reply_id!)).toBe(true);
+      await vi.advanceTimersByTimeAsync(0);
+    });
+
+    expect(mocks.send_reply).toHaveBeenCalledTimes(2);
+    expect(store.get_pending_reply_status(reply_id)).toMatchObject({
+      phase: "sending",
+    });
+    expect(events.emit_thread_reply_optimistic).toHaveBeenCalledTimes(1);
+
+    await act(async () => retry_callbacks!.on_complete("sent_1"));
+
+    expect(events.emit_thread_reply_sent).toHaveBeenCalledWith(
+      expect.objectContaining({ optimistic_id: reply_id }),
+    );
+  });
+
+  it("holds a reply sent while offline and sends it when the connection returns", async () => {
+    const { events, store } = await track_pending_replies();
+    const online = vi.spyOn(navigator, "onLine", "get").mockReturnValue(false);
+
+    mocks.send_reply.mockImplementation(
+      async (_params: unknown, given: SendCallbacks) => {
+        given.on_dispatch?.("thread_1");
+
+        return queued_send_result();
+      },
+    );
+    const props = base_props();
+
+    await render_hook(props);
+    await type_reply("<p>Signed copy attached</p>");
+    await act(async () => {
+      await latest!.handle_send();
+    });
+
+    const reply_id = last_reply_id(events);
+
+    expect(mocks.send_reply).not.toHaveBeenCalled();
+    expect(props.on_close).toHaveBeenCalled();
+    expect(store.get_pending_reply_status(reply_id)).toMatchObject({
+      phase: "offline",
+    });
+
+    online.mockReturnValue(true);
+    await act(async () => {
+      window.dispatchEvent(new Event("online"));
+      await vi.advanceTimersByTimeAsync(0);
+    });
+    online.mockRestore();
+
+    expect(mocks.send_reply).toHaveBeenCalledTimes(1);
+    expect(store.get_pending_reply_status(reply_id)).toMatchObject({
+      phase: "sending",
+    });
+  });
+
+  it("drops the thread copy and keeps the composer when you decline a send prompt", async () => {
+    const { events, store } = await track_pending_replies();
+
+    mocks.create_draft.mockResolvedValue({
+      data: { id: "draft_kept", version: 1 },
+    });
+    mocks.send_reply.mockImplementation(
+      async (_params: unknown, given: SendCallbacks) => {
+        given.on_cancel();
+
+        return { success: false };
+      },
+    );
+    const props = base_props();
+
+    await render_hook(props);
+    await type_reply("<p>Signed copy attached</p>");
+    await act(async () => {
+      await latest!.handle_send();
+    });
+
+    expect(events.emit_thread_reply_optimistic).not.toHaveBeenCalled();
+    expect(props.on_close).not.toHaveBeenCalled();
+    expect(store.get_pending_reply_entries("thread_1", "email_1")).toEqual([]);
+  });
+
   it("schedules a catch-all reply with the literal From and no address hash", async () => {
     const { create_scheduled_email } = await import("@/services/api/scheduled");
     const sender = {

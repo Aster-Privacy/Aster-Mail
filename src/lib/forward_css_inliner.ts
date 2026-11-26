@@ -19,10 +19,18 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { repair_comment_markup } from "./html_sanitizer_utils";
+import {
+  next_char_table,
+  replace_matched_ranges,
+  table_lookup,
+} from "./html_text";
+import { create_selector_budget, is_affordable_selector } from "./selector_budget";
 
 const MAX_CSS_LENGTH = 400_000;
 const MAX_STYLE_RULES = 4_000;
 const INLINE_STYLE_RANK = Number.MAX_SAFE_INTEGER;
+const MAX_SELECTORS = 8_000;
+const SELECTOR_TIME_BUDGET_MS = 250;
 
 interface DeclarationRank {
   important: boolean;
@@ -74,18 +82,145 @@ function collect_style_rules(rules: CSSRule[]): CSSStyleRule[] {
   return style_rules;
 }
 
-function compute_specificity(selector: string): number {
-  const cleaned = selector
-    .replace(/::[a-zA-Z-]+(\([^)]*\))?/g, " ")
-    .replace(/:not\(/gi, "(");
+interface SelectorRange {
+  start: number;
+  end: number;
+}
+
+function is_pseudo_name_code(code: number): boolean {
+  return (code >= 65 && code <= 90) || (code >= 97 && code <= 122) || code === 45;
+}
+
+function is_class_name_code(code: number): boolean {
+  return is_pseudo_name_code(code) || (code >= 48 && code <= 57) || code === 95;
+}
+
+function next_close_table(value: string, code: number): Int32Array {
+  return next_char_table(value, (candidate) => candidate === code);
+}
+
+function pseudo_end(
+  value: string,
+  index: number,
+  colon_count: number,
+  next_paren: Int32Array,
+): number {
+  for (let offset = 0; offset < colon_count; offset += 1) {
+    if (value.charCodeAt(index + offset) !== 58) return -1;
+  }
+
+  const name_start = index + colon_count;
+  let cursor = name_start;
+
+  while (cursor < value.length && is_pseudo_name_code(value.charCodeAt(cursor))) {
+    cursor += 1;
+  }
+
+  if (cursor === name_start) return -1;
+
+  if (value.charCodeAt(cursor) === 40) {
+    const close = table_lookup(next_paren, cursor + 1);
+
+    if (close !== -1) return close + 1;
+  }
+
+  return cursor;
+}
+
+function bracket_end(value: string, index: number, next_bracket: Int32Array): number {
+  if (value.charCodeAt(index) !== 91) return -1;
+
+  const close = table_lookup(next_bracket, index + 1);
+
+  return close === -1 ? -1 : close + 1;
+}
+
+function class_end(value: string, index: number): number {
+  if (value.charCodeAt(index) !== 46) return -1;
+
+  let cursor = index + 1;
+
+  while (cursor < value.length && is_class_name_code(value.charCodeAt(cursor))) {
+    cursor += 1;
+  }
+
+  return cursor === index + 1 ? -1 : cursor;
+}
+
+function scan_selector_ranges(
+  value: string,
+  end_at: (index: number) => number,
+): SelectorRange[] {
+  const ranges: SelectorRange[] = [];
+  let index = 0;
+
+  while (index < value.length) {
+    const end = end_at(index);
+
+    if (end === -1) {
+      index += 1;
+    } else {
+      ranges.push({ start: index, end });
+      index = end;
+    }
+  }
+
+  return ranges;
+}
+
+function blank_selector_ranges(
+  value: string,
+  end_at: (index: number) => number,
+): string {
+  return replace_matched_ranges(
+    value,
+    scan_selector_ranges(value, end_at),
+    () => " ",
+  );
+}
+
+function strip_pseudo_elements(selector: string): string {
+  const next_paren = next_close_table(selector, 41);
+
+  return blank_selector_ranges(selector, (index) =>
+    pseudo_end(selector, index, 2, next_paren),
+  );
+}
+
+function count_class_like(cleaned: string): number {
+  const next_paren = next_close_table(cleaned, 41);
+  const next_bracket = next_close_table(cleaned, 93);
+
+  return scan_selector_ranges(cleaned, (index) => {
+    const code = cleaned.charCodeAt(index);
+
+    if (code === 46) return class_end(cleaned, index);
+    if (code === 91) return bracket_end(cleaned, index, next_bracket);
+
+    return pseudo_end(cleaned, index, 1, next_paren);
+  }).length;
+}
+
+function strip_brackets_and_pseudos(cleaned: string): string {
+  const next_bracket = next_close_table(cleaned, 93);
+  const without_brackets = blank_selector_ranges(cleaned, (index) =>
+    bracket_end(cleaned, index, next_bracket),
+  );
+  const next_paren = next_close_table(without_brackets, 41);
+
+  return blank_selector_ranges(without_brackets, (index) =>
+    pseudo_end(without_brackets, index, 1, next_paren),
+  );
+}
+
+export function compute_specificity(selector: string): number {
+  const cleaned = strip_pseudo_elements(selector).replace(/:not\(/gi, "(");
   const ids = (cleaned.match(/#[a-zA-Z0-9_-]+/g) || []).length;
-  const classes = (
-    cleaned.match(/\.[a-zA-Z0-9_-]+|\[[^\]]*\]|:[a-zA-Z-]+(\([^)]*\))?/g) || []
-  ).length;
-  const stripped = cleaned
-    .replace(/\[[^\]]*\]/g, " ")
-    .replace(/:[a-zA-Z-]+(\([^)]*\))?/g, " ")
-    .replace(/[#.][a-zA-Z0-9_-]+/g, " ");
+  const classes = count_class_like(cleaned);
+  const stripped = strip_brackets_and_pseudos(cleaned).replace(
+    /[#.][a-zA-Z0-9_-]+/g,
+    " ",
+  );
   const types = (stripped.match(/[a-zA-Z][a-zA-Z0-9_-]*/g) || []).length;
 
   return ids * 1_000_000 + classes * 1_000 + types;
@@ -160,12 +295,14 @@ function apply_stylesheet_to_document(doc: Document, css_text: string): void {
   if (style_rules.length === 0 || style_rules.length > MAX_STYLE_RULES) return;
 
   const winners = snapshot_inline_styles(doc);
+  const budget = create_selector_budget(MAX_SELECTORS, SELECTOR_TIME_BUDGET_MS);
 
-  style_rules.forEach((rule, order) => {
+  for (const [order, rule] of style_rules.entries()) {
     for (const raw_selector of rule.selectorText.split(",")) {
       const selector = raw_selector.trim();
 
-      if (!selector) continue;
+      if (!selector || !is_affordable_selector(selector)) continue;
+      if (!budget.take()) return;
 
       let matched: Element[];
 
@@ -191,7 +328,7 @@ function apply_stylesheet_to_document(doc: Document, css_text: string): void {
         );
       }
     }
-  });
+  }
 }
 
 function is_safe_presentational_value(value: string): boolean {

@@ -30,17 +30,17 @@ import {
   retired_contexts_in,
   retired_kek_values_for,
 } from "./retired_identity_keks";
+import {
+  floor_retired_bytes,
+  floor_retired_dev_mode,
+  floor_retired_preferences,
+} from "./retired_protection_floor";
 import { write_vault_merged } from "./vault_cas_write";
 import { with_vault_write_lock_bounded } from "./vault_write_lock";
 
 import { api_client } from "@/services/api/client";
 import { get_current_account_id } from "@/services/account_manager";
-import {
-  calendar_write_key,
-  decrypt_calendar_payload,
-  encrypt_calendar_payload,
-  type CalendarBinding,
-} from "@/services/calendar/calendar_crypto";
+import { retired_preferences_baseline } from "@/services/api/preferences";
 import { ignore_error } from "@/lib/ignore_error";
 
 const LOCK_NAME = "aster-retired-key-rewrap";
@@ -114,6 +114,8 @@ interface Sealed {
 type PassHandler = (env: PassEnv) => Promise<PassResult>;
 
 type PlainShape = "text" | "json";
+
+type PlainAdjust = (plaintext: Uint8Array) => Uint8Array | null;
 
 const running = new Set<string>();
 const refused_reads = new Map<string, Set<AccountDataContext>>();
@@ -351,20 +353,27 @@ async function rewrap_field(
   encrypted: string | null | undefined,
   nonce: string | null | undefined,
   shape: PlainShape,
+  adjust?: PlainAdjust,
 ): Promise<"current" | "held" | "invalid" | Sealed> {
   const plaintext = await open_under(env.retired, encrypted, nonce);
 
   if (!plaintext) return "current";
 
+  let written: Uint8Array | null = null;
+
   try {
     if (!has_shape(plaintext, shape)) return "invalid";
+
+    written = adjust ? adjust(plaintext) : plaintext;
+    if (!written) return "invalid";
     if (!env.write) return "held";
 
-    return (await reseal(await env.target(), plaintext)) ?? "held";
+    return (await reseal(await env.target(), written)) ?? "held";
   } catch {
     return "held";
   } finally {
     plaintext.fill(0);
+    written?.fill(0);
   }
 }
 
@@ -374,12 +383,13 @@ async function rewrap_blob(
   nonce: string | null | undefined,
   save: (sealed: Sealed) => Promise<boolean>,
   unchanged?: () => Promise<boolean>,
+  adjust?: PlainAdjust,
 ): Promise<PassResult> {
   const result = empty_pass(true);
 
   result.checked = 1;
 
-  const sealed = await rewrap_field(env, encrypted, nonce, "json");
+  const sealed = await rewrap_field(env, encrypted, nonce, "json", adjust);
 
   if (sealed === "current") return result;
   if (sealed === "invalid") {
@@ -627,6 +637,11 @@ const rewrap_preferences: PassHandler = async (env) => {
 
       return !saved.error && saved.data?.success === true;
     },
+    undefined,
+    (plaintext) =>
+      floor_retired_bytes(plaintext, (opened) =>
+        floor_retired_preferences(opened, retired_preferences_baseline()),
+      ),
   );
 };
 
@@ -636,6 +651,7 @@ async function rewrap_setting(
   encrypted_name: string,
   nonce_name: string,
   carried: string[],
+  adjust?: PlainAdjust,
 ): Promise<PassResult> {
   const response = await api_client.get<RawRow>(path, { skip_cache: true });
 
@@ -674,6 +690,8 @@ async function rewrap_setting(
 
       return !saved.error && saved.data?.success === true;
     },
+    undefined,
+    adjust,
   );
 }
 
@@ -684,6 +702,7 @@ const rewrap_dev_mode: PassHandler = (env) =>
     "encrypted_dev_mode",
     "dev_mode_nonce",
     [],
+    (plaintext) => floor_retired_bytes(plaintext, floor_retired_dev_mode),
   );
 
 const rewrap_subscriptions: PassHandler = (env) =>
@@ -1012,99 +1031,17 @@ async function open_calendar_blob(
   return open_with(key, iv, body, binding);
 }
 
-function calendar_binding(
-  row: CalendarBlobRow,
-  is_event: boolean,
-): CalendarBinding | null {
-  const id = typeof row.id === "string" && row.id ? row.id : null;
-
-  if (!id) return null;
-  if (!is_event) return { calendar_id: id };
-
-  const calendar_id =
-    typeof row.calendar_id === "string" && row.calendar_id
-      ? row.calendar_id
-      : null;
-
-  return calendar_id ? { calendar_id, event_id: id } : null;
-}
-
-function exact_json_object(bytes: Uint8Array): Record<string, unknown> | null {
-  const text = strict_text(bytes);
-
-  if (text === null) return null;
-
-  try {
-    const parsed: unknown = JSON.parse(text);
-
-    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
-      return null;
-    }
-
-    return JSON.stringify(parsed) === text
-      ? (parsed as Record<string, unknown>)
-      : null;
-  } catch {
-    return null;
-  }
-}
-
-async function rewrap_calendar_row(
+async function under_retired_calendar_key(
   env: PassEnv,
   row: CalendarBlobRow,
   is_event: boolean,
-): Promise<"current" | "held" | "invalid" | "rewrapped"> {
+): Promise<boolean> {
   const plaintext = await open_calendar_blob(env.retired, row, is_event);
 
-  if (!plaintext) return "current";
+  if (!plaintext) return false;
+  plaintext.fill(0);
 
-  try {
-    const binding = calendar_binding(row, is_event);
-    const payload = exact_json_object(plaintext);
-
-    if (!binding || !payload) return "invalid";
-
-    const version = finite_number(row.version);
-    const vault = get_vault_from_memory();
-
-    if (!env.write || version === null || !vault) return "held";
-
-    const key = await calendar_write_key(vault);
-
-    if (!key) return "held";
-
-    const record = await encrypt_calendar_payload(payload, vault, binding, key);
-    const reopened = await decrypt_calendar_payload<unknown>(
-      record,
-      vault,
-      binding,
-    );
-
-    if (
-      !reopened.bound ||
-      JSON.stringify(reopened.payload) !== JSON.stringify(payload)
-    ) {
-      return "held";
-    }
-    if (!(await env.active())) return "held";
-
-    const path = is_event ? CALENDAR_EVENTS_PATH : CALENDARS_PATH;
-    const id = binding.event_id ?? binding.calendar_id;
-    const saved = await api_client.put<unknown>(
-      `${path}/${encodeURIComponent(id)}`,
-      {
-        encrypted_blob: record.ciphertext,
-        blob_nonce: record.nonce,
-        expected_version: version,
-      },
-    );
-
-    return saved.error ? "held" : "rewrapped";
-  } catch {
-    return "held";
-  } finally {
-    plaintext.fill(0);
-  }
+  return true;
 }
 
 async function scan_calendar_rows(
@@ -1116,11 +1053,7 @@ async function scan_calendar_rows(
   for (const row of rows) {
     result.checked++;
 
-    const outcome = await rewrap_calendar_row(env, row, is_event);
-
-    if (outcome === "rewrapped") result.rewrapped++;
-    if (outcome === "held") result.held++;
-    if (outcome === "invalid") {
+    if (await under_retired_calendar_key(env, row, is_event)) {
       result.held++;
       result.parked++;
     }
@@ -1191,7 +1124,7 @@ async function scan_calendar_events(
   return false;
 }
 
-const rewrap_calendar: PassHandler = async (env) => {
+const scan_calendar: PassHandler = async (env) => {
   const result = empty_pass(false);
   const listed = await scan_calendar_list(env, result);
 
@@ -1262,7 +1195,7 @@ const HANDLERS: Partial<Record<AccountDataContext, PassHandler>> = {
   "astermail-onboarding-v1": rewrap_onboarding,
   "astermail-subscriptions-v1": rewrap_subscriptions,
   "astermail-recovery-email-v1": scan_recovery_email,
-  "astermail-calendar-v2": rewrap_calendar,
+  "astermail-calendar-v2": scan_calendar,
 };
 
 async function run_pass(

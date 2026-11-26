@@ -65,7 +65,9 @@ export function EncryptionSection() {
       <ExternalKeyPanel />
 
       <EncryptionSettingsForm
+        alias_pgp_enabled={encryption.alias_pgp_enabled}
         handle_add_keyserver={encryption.handle_add_keyserver}
+        handle_alias_pgp_toggle={encryption.handle_alias_pgp_toggle}
         handle_auto_discover_keys_toggle={
           encryption.handle_auto_discover_keys_toggle
         }

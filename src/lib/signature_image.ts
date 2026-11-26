@@ -18,6 +18,8 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { canvas_readback_trusted } from "@/lib/canvas_readback";
+
 export const SIGNATURE_CONTENT_LIMIT_BYTES = 65536;
 export const SIGNATURE_IMAGE_MAX_DIMENSION = 600;
 export const MAX_SIGNATURE_SOURCE_IMAGE_SIZE = 20 * 1024 * 1024;
@@ -180,6 +182,8 @@ export async function prepare_signature_image(
   if (within_dimensions && original.length <= budget) {
     return { ok: true, data_url: original };
   }
+
+  if (!canvas_readback_trusted()) return { ok: false, reason: "failed" };
 
   const { width, height } = fit_signature_dimensions(
     source_width,

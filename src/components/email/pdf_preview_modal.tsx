@@ -31,6 +31,7 @@ import { MAX_PDF_PASSWORD_LENGTH } from "@/lib/pdf_limits";
 import { show_toast } from "@/components/toast/simple_toast";
 import { ignore_error } from "@/lib/ignore_error";
 import { use_dialog_shell } from "@/lib/use_dialog_shell";
+import { canvas_readback_trusted } from "@/lib/canvas_readback";
 import {
   decrypt_attachment_meta,
   decrypt_attachment_data,
@@ -79,6 +80,48 @@ function DownloadIcon({ className }: { className?: string }) {
 
 type PdfViewState = "loading" | "password" | "ready" | "error";
 
+interface PdfPageView {
+  key: string;
+  url: string | null;
+  canvas: HTMLCanvasElement | null;
+}
+
+function release_canvas(canvas: HTMLCanvasElement) {
+  canvas.width = 0;
+  canvas.height = 0;
+}
+
+function PdfCanvasPage({
+  canvas,
+  label,
+}: {
+  canvas: HTMLCanvasElement;
+  label: string;
+}) {
+  const host_ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const host = host_ref.current;
+
+    if (!host) return;
+
+    canvas.className = "rounded-lg shadow-2xl";
+    canvas.setAttribute("role", "img");
+    canvas.setAttribute("aria-label", label);
+    canvas.style.maxWidth = "100%";
+    canvas.style.width = "auto";
+    canvas.style.height = "auto";
+    canvas.style.display = "block";
+    host.appendChild(canvas);
+
+    return () => {
+      if (canvas.parentNode === host) host.removeChild(canvas);
+    };
+  }, [canvas, label]);
+
+  return <div ref={host_ref} className="max-w-full" />;
+}
+
 const PDF_LOAD_TIMEOUT_MS = 30000;
 
 function with_timeout<T>(promise: Promise<T>, ms: number): Promise<T> {
@@ -106,6 +149,7 @@ export function PdfPreviewModal({
   const password_input_ref = useRef<HTMLInputElement>(null);
   const pdf_doc_ref = useRef<PDFDocumentProxy | null>(null);
   const created_urls_ref = useRef<string[]>([]);
+  const created_canvases_ref = useRef<HTMLCanvasElement[]>([]);
   const cancelled_ref = useRef(false);
   const decrypted_ref = useRef<{
     data: ArrayBuffer;
@@ -114,7 +158,7 @@ export function PdfPreviewModal({
   } | null>(null);
   const [total_pages, set_total_pages] = useState(0);
   const [view_state, set_view_state] = useState<PdfViewState>("loading");
-  const [page_canvases, set_page_canvases] = useState<string[]>([]);
+  const [page_canvases, set_page_canvases] = useState<PdfPageView[]>([]);
   const [password_value, set_password_value] = useState("");
   const [password_reason, set_password_reason] =
     useState<PdfPasswordReason>("required");
@@ -136,7 +180,10 @@ export function PdfPreviewModal({
     set_is_rendering(true);
 
     const max_width = Math.min(window.innerWidth * 0.88, 900);
+    const show_canvases = !canvas_readback_trusted();
+    const pages: PdfPageView[] = [];
     const urls: string[] = [];
+    const canvases: HTMLCanvasElement[] = [];
 
     try {
       for (let i = 1; i <= doc.numPages; i++) {
@@ -146,28 +193,42 @@ export function PdfPreviewModal({
 
         await render_pdf_page(doc, i, offscreen, max_width);
 
-        const blob = await new Promise<Blob | null>((resolve) =>
-          offscreen.toBlob(resolve, "image/png"),
-        );
+        if (show_canvases) {
+          if (cancelled_ref.current) {
+            release_canvas(offscreen);
 
-        offscreen.width = 0;
-        offscreen.height = 0;
+            return;
+          }
 
-        if (!blob) throw new Error("page_render_failed");
-        if (cancelled_ref.current) return;
+          canvases.push(offscreen);
+          created_canvases_ref.current = canvases;
+          pages.push({ key: `page-${i}`, url: null, canvas: offscreen });
+        } else {
+          const blob = await new Promise<Blob | null>((resolve) =>
+            offscreen.toBlob(resolve, "image/png"),
+          );
 
-        urls.push(URL.createObjectURL(blob));
-        created_urls_ref.current = urls;
+          release_canvas(offscreen);
+
+          if (!blob) throw new Error("page_render_failed");
+          if (cancelled_ref.current) return;
+
+          const url = URL.createObjectURL(blob);
+
+          urls.push(url);
+          created_urls_ref.current = urls;
+          pages.push({ key: url, url, canvas: null });
+        }
 
         if (i === 1 || i % 3 === 0 || i === doc.numPages) {
-          set_page_canvases([...urls]);
+          set_page_canvases([...pages]);
         }
       }
     } finally {
       if (!cancelled_ref.current) {
-        set_page_canvases([...urls]);
+        set_page_canvases([...pages]);
         set_is_rendering(false);
-        if (urls.length === 0) set_view_state("error");
+        if (pages.length === 0) set_view_state("error");
       }
     }
   }, []);
@@ -255,6 +316,8 @@ export function PdfPreviewModal({
       pdf_doc_ref.current = null;
       created_urls_ref.current.forEach((url) => URL.revokeObjectURL(url));
       created_urls_ref.current = [];
+      created_canvases_ref.current.forEach(release_canvas);
+      created_canvases_ref.current = [];
       decrypted_ref.current = null;
       set_password_value("");
     };
@@ -481,22 +544,36 @@ export function PdfPreviewModal({
             data-testid="pdf-pages"
             style={{ maxHeight: "calc(92vh - 52px)", maxWidth: "90vw" }}
           >
-            {page_canvases.map((url, i) => (
-              <img
-                key={url}
-                alt={t("mail.page_of_total", {
-                  current: i + 1,
-                  total: total_pages || page_canvases.length,
-                })}
-                className="rounded-lg shadow-2xl"
-                src={url}
-                style={{
-                  maxWidth: "100%",
-                  width: "auto",
-                  height: "auto",
-                }}
-              />
-            ))}
+            {page_canvases.map((page, i) => {
+              const label = t("mail.page_of_total", {
+                current: i + 1,
+                total: total_pages || page_canvases.length,
+              });
+
+              if (page.canvas) {
+                return (
+                  <PdfCanvasPage
+                    key={page.key}
+                    canvas={page.canvas}
+                    label={label}
+                  />
+                );
+              }
+
+              return (
+                <img
+                  key={page.key}
+                  alt={label}
+                  className="rounded-lg shadow-2xl"
+                  src={page.url ?? undefined}
+                  style={{
+                    maxWidth: "100%",
+                    width: "auto",
+                    height: "auto",
+                  }}
+                />
+              );
+            })}
             {is_rendering && (
               <div className="flex items-center gap-2 py-2">
                 <Spinner className="text-white/80" size="md" />

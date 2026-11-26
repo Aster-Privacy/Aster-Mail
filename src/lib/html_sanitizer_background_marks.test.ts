@@ -24,6 +24,7 @@ import { sanitize_html } from "./html_sanitizer";
 import {
   BACKGROUND_IMAGE_MARK,
   has_inline_background_image,
+  mark_stylesheet_background_images,
   selectors_with_background_image,
 } from "./html_sanitizer_background_marks";
 
@@ -148,5 +149,29 @@ describe("background images declared inline", () => {
     expect(
       root.querySelector("table.wrapper")?.hasAttribute(BACKGROUND_IMAGE_MARK),
     ).toBe(false);
+  });
+});
+
+describe("mark_stylesheet_background_images selector limits", () => {
+  it("skips relational selectors and finishes quickly on many costly ones", () => {
+    const rules = Array.from(
+      { length: 1_500 },
+      (_, index) =>
+        `${"div ".repeat(24)}p.r${index}, div:has(p.r${index}) { background-image: url(x.png) }`,
+    ).join("\n");
+    const root = document.createElement("div");
+
+    root.innerHTML =
+      `<style>${rules} .hero { background-image: url(y.png) }</style>` +
+      "<div>".repeat(300) +
+      '<p class="hero">x</p>' +
+      "</div>".repeat(300);
+
+    const started = performance.now();
+
+    mark_stylesheet_background_images(root);
+
+    expect(performance.now() - started).toBeLessThan(3000);
+    expect(root.querySelector("p.hero")!.hasAttribute(BACKGROUND_IMAGE_MARK)).toBe(true);
   });
 });

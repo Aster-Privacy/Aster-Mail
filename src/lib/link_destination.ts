@@ -18,6 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { trim_end_while } from "@/lib/linear_trim";
 import { public_web_url } from "@/lib/public_origin";
 import {
   domain_for_display,
@@ -71,6 +72,7 @@ const TEXT_URL_PATTERN =
 const MAX_TEXT_LENGTH = 2048;
 const PATH_BREAK_CHARS = new Set(["/", "?", "&", "=", "#"]);
 const PORT_PATTERN = /:\d+$/;
+const DOT_CODE = 0x2e;
 export const LONG_CHUNK_LENGTH = 30;
 
 function parse_href(href: string): URL | null {
@@ -91,8 +93,16 @@ export function is_ip_host(host: string): boolean {
   return host.startsWith("[") || IPV4_PATTERN.test(host);
 }
 
+function is_dot(code: number): boolean {
+  return code === DOT_CODE;
+}
+
+export function strip_trailing_dots(value: string): string {
+  return trim_end_while(value, is_dot);
+}
+
 export function site_of_host(host: string): string {
-  const bare = host.toLowerCase().replace(/\.+$/, "");
+  const bare = strip_trailing_dots(host.toLowerCase());
 
   if (!bare || is_ip_host(bare) || !bare.includes(".")) return bare;
 
@@ -280,7 +290,7 @@ export function describe_link(
     };
   }
 
-  const host = parsed.hostname.toLowerCase().replace(/\.+$/, "");
+  const host = strip_trailing_dots(parsed.hostname.toLowerCase());
 
   if (!host) return blocked_destination(href, parsed.protocol);
 

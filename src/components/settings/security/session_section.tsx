@@ -281,9 +281,8 @@ export function SessionSection({
             {other_sessions.length > 0 && (
               <div className="flex justify-end">
                 <Button
-                  className="text-red-500 hover:text-red-600"
                   disabled={revoking_all || logout_others_loading}
-                  variant="outline"
+                  variant="depth_destructive"
                   onClick={() => set_show_confirm_all(true)}
                 >
                   <TrashIcon className="w-3.5 h-3.5 me-1.5" />

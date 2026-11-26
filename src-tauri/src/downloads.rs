@@ -32,26 +32,27 @@ const MAX_TRACKED_DOWNLOADS: usize = 64;
 const MAX_FILE_NAME_CHARS: usize = 255;
 
 const BLOCKED_OPEN_EXTENSIONS: &[&str] = &[
-    "accda", "accde", "accdr", "action", "ade", "adp", "apk", "app", "appcontent-ms", "appimage",
-    "appinstaller", "applescript", "application", "appref-ms", "appx", "appxbundle", "bas", "bat",
-    "bin", "cab", "cdxml", "cer", "chm", "cmd", "cnt", "com", "command", "cpl", "crt", "crx",
-    "csh", "deb", "der", "deskthemepack", "desktop", "diagcab", "diagcfg", "diagpkg", "dll", "dmg",
-    "doc", "docm", "dot", "dotm", "dqy", "dylib", "elf", "exe", "fileloc", "flatpakref", "gadget",
-    "glk", "grp", "hlp", "hpj", "hta", "htm", "html", "img", "inetloc", "inf", "ins", "iqy", "iso",
-    "isp", "its", "jar", "jnlp", "js", "jse", "kext", "ksh", "library-ms", "lnk", "mad", "maf",
-    "mag", "mam", "maq", "mar", "mas", "mat", "mau", "mav", "maw", "mcf", "mda", "mdb", "mde",
-    "mdt", "mdw", "mdz", "mht", "mhtml", "mobileconfig", "mpkg", "msc", "msh", "msh1", "msh1xml",
-    "msh2", "msh2xml", "mshxml", "msi", "msix", "msixbundle", "msp", "mst", "msu", "ocx", "one",
-    "onepkg", "ops", "oqy", "osd", "pcd", "pif", "pkg", "pl", "plg", "plist", "pot", "potm", "ppa",
-    "ppam", "ppkg", "pps", "ppsm", "ppt", "pptm", "prefpane", "prf", "prg", "printerexport", "ps1",
+    "accda", "accde", "accdr", "action", "ade", "adp", "afploc", "apk", "app", "appcontent-ms",
+    "appimage", "appinstaller", "applescript", "application", "appref-ms", "appx", "appxbundle",
+    "atloc", "bas", "bat", "bin", "cab", "cdxml", "cer", "chm", "cmd", "cnt", "com", "command",
+    "contact", "cpl", "crt", "crx", "csh", "deb", "der", "deskthemepack", "desktop", "diagcab",
+    "diagcfg", "diagpkg", "dll", "dmg", "doc", "docm", "dot", "dotm", "dqy", "dylib", "elf", "exe",
+    "fileloc", "flatpakref", "flatpakrepo", "ftploc", "gadget", "glk", "grp", "hlp", "hpj", "hta",
+    "htm", "html", "ica", "img", "inetloc", "inf", "ins", "iqy", "iso", "isp", "its", "jar",
+    "jnlp", "js", "jse", "kext", "ksh", "library-ms", "lnk", "mad", "maf", "mag", "mailloc", "mam",
+    "maq", "mar", "mas", "mat", "mau", "mav", "maw", "mcf", "mcl", "mda", "mdb", "mde", "mdt",
+    "mdw", "mdz", "mht", "mhtml", "mobileconfig", "mpkg", "msc", "msh", "msh1", "msh1xml", "msh2",
+    "msh2xml", "mshxml", "msi", "msix", "msixbundle", "msp", "mst", "msu", "ocx", "one", "onepkg",
+    "ops", "oqy", "osd", "pcd", "pif", "pkg", "pl", "plg", "plist", "pot", "potm", "ppa", "ppam",
+    "ppkg", "pps", "ppsm", "ppt", "pptm", "prefpane", "prf", "prg", "printerexport", "ps1",
     "ps1xml", "ps2", "ps2xml", "psc1", "psc2", "psd1", "psdm1", "psm1", "py", "pyc", "pyo", "pyw",
     "pyz", "pyzw", "rb", "rdp", "reg", "rgs", "rpm", "rqy", "rtf", "run", "scf", "scpt", "scptd",
     "scr", "sct", "search-ms", "searchconnector-ms", "settingcontent-ms", "sh", "shb", "shortcut",
     "shs", "shtml", "sldm", "slk", "snap", "so", "svg", "svgz", "sys", "terminal", "theme",
     "themepack", "tool", "udf", "udl", "url", "vb", "vbe", "vbs", "vhd", "vhdx", "vsmacros", "vsw",
-    "wbk", "wcx", "webloc", "website", "wiz", "wll", "workflow", "ws", "wsb", "wsc", "wsf", "wsh",
-    "xbap", "xht", "xhtml", "xla", "xlam", "xll", "xlm", "xls", "xlsb", "xlsm", "xlt", "xltm",
-    "xlw", "xnk", "xpi",
+    "wbk", "wcx", "webarchive", "webloc", "website", "wiz", "wll", "workflow", "ws", "wsb", "wsc",
+    "wsf", "wsh", "xbap", "xht", "xhtml", "xla", "xlam", "xll", "xlm", "xls", "xlsb", "xlsm",
+    "xlt", "xltm", "xlw", "xnk", "xpi",
 ];
 
 #[derive(Clone, Serialize)]
@@ -236,7 +237,7 @@ mod platform {
             return Err("invalid path".into());
         }
 
-        std::process::Command::new("explorer.exe")
+        std::process::Command::new(crate::boot_guard::explorer_exe())
             .raw_arg(format!("/select,\"{display}\""))
             .spawn()
             .map(|_| ())
@@ -333,6 +334,15 @@ mod tests {
             "page.hta",
             "page.html",
             "image.svg",
+            "page.webarchive",
+            "share.afploc",
+            "share.ftploc",
+            "compose.mailloc",
+            "link.atloc",
+            "card.contact",
+            "attack.mcl",
+            "session.ICA",
+            "remote.flatpakrepo",
         ] {
             assert!(!is_safe_to_open(Path::new(name)), "{name}");
         }

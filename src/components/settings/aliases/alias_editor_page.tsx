@@ -49,6 +49,7 @@ import { Spinner } from "@/components/ui/spinner";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
 import { update_alias } from "@/services/api/aliases";
+import { update_domain_address } from "@/services/api/domains";
 import { show_toast } from "@/components/toast/simple_toast";
 import { LockedFeatureCard } from "@/components/settings/aliases/feature_lock";
 import {
@@ -85,8 +86,16 @@ interface AliasEditorPageProps {
   on_note_saved?: (alias_id: string, note: string) => void;
   on_websites_saved?: (alias_id: string, websites: string[]) => void;
   on_delivery_saved?: (alias_id: string, value: AliasDeliveryState) => void;
+  on_domain_address_display_name_saved?: (
+    address_id: string,
+    name: string,
+  ) => void;
+  on_domain_address_note_saved?: (address_id: string, note: string) => void;
+  on_domain_address_websites_saved?: (
+    address_id: string,
+    websites: string[],
+  ) => void;
 }
-
 
 export function AliasEditorPage({
   alias,
@@ -98,6 +107,9 @@ export function AliasEditorPage({
   on_note_saved,
   on_websites_saved,
   on_delivery_saved,
+  on_domain_address_display_name_saved,
+  on_domain_address_note_saved,
+  on_domain_address_websites_saved,
 }: AliasEditorPageProps) {
   const { t, language } = use_i18n();
   const { is_feature_locked, is_loading } = use_plan_limits();
@@ -191,6 +203,50 @@ export function AliasEditorPage({
           />
         ),
       });
+    } else if (domain_address) {
+      entries.push({
+        key: "details",
+        icon: IdentificationIcon,
+        label: t("settings.alias_details_title"),
+        locked: false,
+        feature: "has_alias_avatars",
+        render: () => (
+          <AliasDetailsPanel
+            alias_address={heading}
+            display_name={domain_address.display_name}
+            is_locked={avatar_locked}
+            note={domain_address.note}
+            on_save_display_name={(name) =>
+              update_domain_address(domain_address.domain_id, domain_address.id, {
+                display_name: name,
+              })
+            }
+            on_save_note={(note_value) =>
+              update_domain_address(domain_address.domain_id, domain_address.id, {
+                note: note_value,
+              })
+            }
+            on_save_websites={(websites_value) =>
+              update_domain_address(domain_address.domain_id, domain_address.id, {
+                websites: websites_value.length > 0 ? websites_value : null,
+              })
+            }
+            on_saved_display_name={(name) =>
+              on_domain_address_display_name_saved?.(domain_address.id, name)
+            }
+            on_saved_note={(note_value) =>
+              on_domain_address_note_saved?.(domain_address.id, note_value)
+            }
+            on_saved_websites={(websites_value) =>
+              on_domain_address_websites_saved?.(
+                domain_address.id,
+                websites_value,
+              )
+            }
+            websites={domain_address.websites}
+          />
+        ),
+      });
     }
 
     entries.push({
@@ -264,7 +320,11 @@ export function AliasEditorPage({
     contacts_locked,
     domain_address,
     domain_address_id,
+    heading,
     on_delivery_saved,
+    on_domain_address_display_name_saved,
+    on_domain_address_note_saved,
+    on_domain_address_websites_saved,
     on_display_name_saved,
     on_note_saved,
     on_websites_saved,

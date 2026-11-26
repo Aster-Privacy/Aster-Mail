@@ -1413,14 +1413,14 @@ export function BillingSection() {
                   set_billing_period={set_billing_period}
                   subscription={subscription}
                 />
-
-                <PlanComparisonSection
-                  current_plan_code={subscription?.plan.code}
-                />
               </IslandSections>
             </BillingMoreRow>
           </Island>
         </IslandSection>
+      )}
+
+      {!is_lifetime && show_plans && (
+        <PlanComparisonSection current_plan_code={subscription?.plan.code} />
       )}
 
       <IslandSection bare title={t("common.more")}>

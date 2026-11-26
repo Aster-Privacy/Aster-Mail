@@ -25,6 +25,7 @@ const h = vi.hoisted(() => ({
   vault: null as unknown,
   passphrase: "pgp verify passphrase" as string | null,
   sender_keys: new Map<string, string>(),
+  previous_sender_keys: new Map<string, string[]>(),
   pin_status: "ok" as "first" | "ok" | "changed" | "unknown",
   pin_checks: [] as string[],
   identity_events: [] as string[],
@@ -72,7 +73,10 @@ vi.mock("@/services/api/client", () => ({
 vi.mock("@/services/api/keys", async (import_original) => ({
   ...(await import_original<Record<string, unknown>>()),
   get_recipient_public_key: vi.fn(async (_username: string, email: string) => ({
-    data: { public_key: h.sender_keys.get(email) ?? "" },
+    data: {
+      public_key: h.sender_keys.get(email) ?? "",
+      previous_public_keys: h.previous_sender_keys.get(email) ?? [],
+    },
   })),
 }));
 
@@ -93,6 +97,8 @@ interface TestKey {
 
 let own_key: TestKey;
 let other_key: TestKey;
+let rotated_key: TestKey;
+let forger_key: TestKey;
 let sender_counter = 0;
 
 async function generate(): Promise<TestKey> {
@@ -159,6 +165,8 @@ async function open(armored: string) {
 beforeAll(async () => {
   own_key = await generate();
   other_key = await generate();
+  rotated_key = await generate();
+  forger_key = await generate();
 }, 30000);
 
 beforeEach(() => {
@@ -450,6 +458,31 @@ describe("decrypt_mail_envelope pgp signature verification", () => {
 
     expect(opened?.subject).toBe("Signed copy");
     expect(opened?.sender_verification).toBeUndefined();
+  });
+
+  it("verifies a copy signed by a key the sender rotated to", async () => {
+    const email = next_sender(other_key.public_key);
+
+    h.previous_sender_keys.set(email, [rotated_key.public_key]);
+
+    const opened = await open(
+      await encrypt_to_own(envelope_for(email), rotated_key),
+    );
+
+    expect(opened?.sender_verification).toBe("verified");
+    expect(h.pin_checks).toEqual([email]);
+  });
+
+  it("flags a copy signed by a key outside the sender's key history", async () => {
+    const email = next_sender(other_key.public_key);
+
+    h.previous_sender_keys.set(email, [rotated_key.public_key]);
+
+    const opened = await open(
+      await encrypt_to_own(envelope_for(email), forger_key),
+    );
+
+    expect(opened?.sender_verification).toBe("invalid");
   });
 
   it("decrypts a signed copy once while verifying it", async () => {

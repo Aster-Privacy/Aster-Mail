@@ -62,6 +62,7 @@ import {
 import { show_toast } from "@/components/toast/simple_toast";
 import { app_locale, get_display_time_zone } from "@/utils/date_format";
 import { is_composing } from "@/utils/ime";
+import { is_email_shape } from "@/lib/email_shape";
 
 export function BlockedSection() {
   const { t } = use_i18n();
@@ -250,9 +251,7 @@ export function BlockedSection() {
         return;
       }
     } else {
-      const email_regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-      if (!email_regex.test(value)) {
+      if (!is_email_shape(value)) {
         show_toast(t("common.please_enter_valid_email"), "error");
 
         return;
@@ -334,7 +333,7 @@ export function BlockedSection() {
               disabled={is_unblocking}
               is_loading={is_unblocking}
               size="md"
-              variant="destructive"
+              variant="depth_destructive"
               onClick={handle_bulk_unblock}
             >
               <TrashIcon className="w-4 h-4" />
@@ -532,8 +531,7 @@ export function BlockedSection() {
                 </span>
                 <Button
                   size="sm"
-                  style={{ color: "var(--color-danger)" }}
-                  variant="secondary"
+                  variant="depth_destructive"
                   onClick={() => handle_unblock(sender)}
                 >
                   {t("mail.unblock_sender")}

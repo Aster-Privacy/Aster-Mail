@@ -34,6 +34,7 @@ const h = vi.hoisted(() => ({
   status_queue: [] as (Record<string, unknown> | null)[],
   pages: [] as { items: unknown[]; next_cursor?: string; has_more: boolean }[],
   attachments: {} as Record<string, unknown[]>,
+  imported_rows: [] as unknown[],
   sent_writes: [] as { id: string; sealed: string; expected: string }[],
   meta_writes: [] as { id: string; sealed: string; expected: string }[],
   write_result: "converted" as string,
@@ -112,6 +113,9 @@ vi.mock("./api/mail", () => ({
 vi.mock("./api/attachments", () => ({
   list_attachments: async (mail_id: string) => ({
     data: { attachments: h.attachments[mail_id] ?? [] },
+  }),
+  list_imported_password_meta: async () => ({
+    data: { attachments: h.imported_rows, next_cursor: null },
   }),
 }));
 
@@ -264,6 +268,7 @@ beforeEach(() => {
   h.status_queue = [];
   h.pages = [];
   h.attachments = {};
+  h.imported_rows = [];
   h.sent_writes = [];
   h.meta_writes = [];
   h.write_result = "converted";
@@ -380,6 +385,36 @@ describe("background sent mail conversion", () => {
 
     expect(summary?.skipped).toBe(1);
     expect(summary?.converted).toBe(0);
+  });
+
+  it("converts password-sealed attachment details on imported mail", async () => {
+    const meta = {
+      filename: "imported.pdf",
+      content_type: "application/pdf",
+      size: 10,
+      session_key: "c2Vzc2lvbg==",
+    };
+
+    h.status = status({ remaining_sent: 0, remaining_attachments: 1 });
+    h.pages = one_page([]);
+    h.imported_rows = [
+      {
+        id: "a_imported",
+        mail_item_id: "m_imported",
+        encrypted_meta: await legacy_envelope(meta),
+        meta_nonce: LEGACY_META_NONCE,
+        size_bytes: 10,
+        seq_num: 0,
+      },
+    ];
+
+    const summary = await run();
+
+    expect(summary?.converted).toBe(1);
+    expect(h.meta_writes.map((write) => write.id)).toEqual(["a_imported"]);
+    expect(JSON.parse(await open_sealed(h.meta_writes[0].sealed))).toEqual(
+      meta,
+    );
   });
 
   it("converts every legacy attachment metadata form and skips sealed rows", async () => {

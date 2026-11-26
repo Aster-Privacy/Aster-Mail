@@ -18,6 +18,8 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { is_email_shape } from "@/lib/email_shape";
+
 export function normalize_contact_addresses(
   addresses: (string | null | undefined)[],
 ): string[] {
@@ -45,10 +47,8 @@ export function build_contact_mail_query(
     .join(" ");
 }
 
-const FULL_ADDRESS_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
 export function is_full_address(value: string): boolean {
-  return FULL_ADDRESS_REGEX.test(value.trim());
+  return is_email_shape(value.trim());
 }
 
 export function address_list_includes(field: string, address: string): boolean {

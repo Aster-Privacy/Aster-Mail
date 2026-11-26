@@ -96,7 +96,8 @@ export function use_inbox_view_state(props: EmailInboxProps) {
   const [search_params, set_search_params] = useSearchParams();
   const { user } = use_auth();
   const { preferences, update_preference, save_now } = use_preferences();
-  const { stats: mail_stats } = use_mail_stats();
+  const { stats: mail_stats, has_initialized: mail_stats_ready } =
+    use_mail_stats();
   const {
     state: folders_state,
     unread_counts: folder_unread_counts,
@@ -786,6 +787,7 @@ export function use_inbox_view_state(props: EmailInboxProps) {
     preferences,
     update_preference,
     mail_stats,
+    mail_stats_ready,
     folders_state,
     folder_unread_counts,
     tags_state,

@@ -1115,8 +1115,7 @@ export function RuleEditorModal({
                   <Button
                     className="w-full max-[399px]:order-last sm:w-auto"
                     disabled={saving || running_existing}
-                    style={{ color: "var(--color-danger)" }}
-                    variant="secondary"
+                    variant="depth_destructive"
                     onClick={() => set_confirm_delete_open(true)}
                   >
                     {t("mail_rules.delete")}

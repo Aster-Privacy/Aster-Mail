@@ -20,6 +20,8 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { canvas_readback_trusted } from "@/lib/canvas_readback";
+
 export type StripStatus = "stripped" | "unsupported" | "failed";
 
 export interface StripResult {
@@ -441,7 +443,7 @@ export async function strip_metadata(
 
   const canvas_mime = format ? FORMAT_MIME[format] : mime_type;
 
-  if (CANVAS_TYPES.has(canvas_mime)) {
+  if (CANVAS_TYPES.has(canvas_mime) && canvas_readback_trusted()) {
     try {
       const blob = new Blob([data], { type: canvas_mime });
       const redrawn = await redraw_via_canvas(blob, canvas_mime);

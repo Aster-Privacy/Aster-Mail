@@ -122,6 +122,7 @@ import { app_locale } from "@/utils/date_format";
 import { is_composing } from "@/utils/ime";
 import { MAX_DISPLAY_NAME_LENGTH } from "@/services/sanitize";
 import { user_facing_error } from "@/utils/user_facing_error";
+import { is_email_shape } from "@/lib/email_shape";
 
 function mask_email(email: string): string {
   const [local, domain] = email.split("@");
@@ -160,7 +161,7 @@ function RecoveryModal({
   const handle_save = async () => {
     const trimmed_email = email.trim();
 
-    if (!trimmed_email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed_email)) {
+    if (!trimmed_email || !is_email_shape(trimmed_email)) {
       set_error(t("common.enter_valid_email"));
 
       return;
@@ -212,9 +213,9 @@ function RecoveryModal({
 
 function FreePlanBanner() {
   const { t } = use_i18n();
-  const { limits } = use_plan_limits();
+  const { plan_code } = use_plan_limits();
 
-  if (is_onion_host() || !limits || limits.plan_code !== "free") return null;
+  if (is_onion_host() || plan_code !== "free") return null;
 
   return (
     <Island padding="md" tone="accent">
@@ -668,10 +669,7 @@ export function AccountSection() {
           ),
         );
       }
-      show_toast(
-        t("common.failed_save_profile_color"),
-        "error",
-      );
+      show_toast(t("common.failed_save_profile_color"), "error");
     };
 
     color_saving_ref.current = true;
@@ -685,10 +683,7 @@ export function AccountSection() {
 
       if (response.error) await revert();
     } catch (caught) {
-      ignore_error(
-        "components/settings/account_section:update_color",
-        caught,
-      );
+      ignore_error("components/settings/account_section:update_color", caught);
       await revert();
     } finally {
       color_saving_ref.current = false;

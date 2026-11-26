@@ -905,6 +905,23 @@ export function use_aliases() {
     });
   };
 
+  const handle_domain_address_websites_saved = (
+    address_id: string,
+    websites: string[],
+  ) => {
+    set_domain_addresses((prev) => {
+      const updated = prev.map((a) =>
+        a.id === address_id
+          ? { ...a, websites: websites.length > 0 ? websites : undefined }
+          : a,
+      );
+
+      aliases_cache.domain_addresses = updated;
+
+      return updated;
+    });
+  };
+
   const handle_sidebar_hidden_toggle = async (
     kind: "alias" | "domain",
     id: string,
@@ -1068,6 +1085,7 @@ export function use_aliases() {
     handle_websites_saved,
     handle_domain_address_display_name_saved,
     handle_domain_address_note_saved,
+    handle_domain_address_websites_saved,
     handle_domain_address_toggle,
     handle_domain_delete,
     confirm_domain_delete,
