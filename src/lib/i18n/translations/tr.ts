@@ -3449,7 +3449,7 @@ export const tr = {
     alias_pref_unsubscribe_block_contact: "Göndereni engelle",
     alias_pref_disabled_response: "Engellenen postaya yanıt",
     alias_pref_disabled_response_desc:
-      "Postaları sessizce düşürüldüğünde gönderenin gördüğü şey.",
+      "Engellediğiniz bir gönderen size e-posta gönderdiğinde veya biri devre dışı bir rumuza ya da adrese yazdığında ne olacağı.",
     alias_pref_disabled_ignore: "Sessizce yok say",
     alias_pref_disabled_reject: "Reddet (geri döndür)",
     alias_pref_delete_action: "Bir rumuz silinirken",
@@ -3464,7 +3464,7 @@ export const tr = {
     alias_pref_unsubscribe_action_info:
       "İletilen bir e-postada abonelikten çık düğmesine tıkladığınızda ne olacağı.",
     alias_pref_disabled_response_info:
-      "Gönderen devre dışı bir rumuza veya engellenen bir kişiye yazdığında ne gördüğü.",
+      "Yok saymayı seçerseniz gönderene hiçbir şey bildirilmez. Engellenen bir göndericinin postası, Spam'e taşınmak gibi engelleme ayarınıza göre işlenir ve devre dışı bir rumuza ya da adrese gelen posta silinir. Reddetmeyi seçerseniz posta reddedilir ve gönderen, postanın teslim edilmediğine dair bir bildirim alır.",
     alias_pref_delete_action_info:
       "Çöpe taşımak silinen rumuzları 30 gün boyunca kurtarılabilir tutar. Hemen sil onları kalıcı olarak kaldırır.",
     alias_pref_delete_trash: "Çöpe taşı",

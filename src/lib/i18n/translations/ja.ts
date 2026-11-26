@@ -3447,7 +3447,7 @@ export const ja = {
     alias_pref_unsubscribe_block_contact: "送信者をブロック",
     alias_pref_disabled_response: "ブロックしたメールへの応答",
     alias_pref_disabled_response_desc:
-      "メールが無言で破棄された際に送信者に表示される内容です。",
+      "ブロックした送信者からメールが届いたときや、無効にしたエイリアスやアドレスにメールが送られたときの動作です。",
     alias_pref_disabled_ignore: "無言で無視",
     alias_pref_disabled_reject: "拒否（バウンス）",
     alias_pref_delete_action: "エイリアスを削除するとき",
@@ -3462,7 +3462,7 @@ export const ja = {
     alias_pref_unsubscribe_action_info:
       "転送メールで配信停止ボタンを押したときの動作。",
     alias_pref_disabled_response_info:
-      "無効なエイリアスやブロックした連絡先に送信者がメールしたときに表示される内容。",
+      "無視を選ぶと、送信者には何も通知されません。ブロックした送信者のメールは、迷惑メールへの移動など、ブロック設定に従って処理されます。無効にしたエイリアスやアドレス宛てのメールは破棄されます。拒否を選ぶと、メールは受け取りを拒否され、送信者には配信できなかったことが通知されます。",
     alias_pref_delete_action_info:
       "ゴミ箱に移動すると、削除したエイリアスは30日間復元できます。すぐに削除すると完全に削除されます。",
     alias_pref_delete_trash: "ゴミ箱に移動",

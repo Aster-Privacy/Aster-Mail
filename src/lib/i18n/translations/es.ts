@@ -3505,7 +3505,7 @@ export const es = {
     alias_pref_unsubscribe_block_contact: "Bloquear remitente",
     alias_pref_disabled_response: "Respuesta al correo bloqueado",
     alias_pref_disabled_response_desc:
-      "Lo que ve el remitente cuando su correo se descarta de forma silenciosa.",
+      "Qué ocurre cuando un remitente bloqueado te escribe o alguien escribe a un alias o una dirección desactivados.",
     alias_pref_disabled_ignore: "Ignorar en silencio",
     alias_pref_disabled_reject: "Rechazar (rebote)",
     alias_pref_delete_action: "Al eliminar un alias",
@@ -3520,7 +3520,7 @@ export const es = {
     alias_pref_unsubscribe_action_info:
       "Qué ocurre al pulsar el botón de cancelar suscripción en un correo reenviado.",
     alias_pref_disabled_response_info:
-      "Lo que ve el remitente cuando escribe a un alias desactivado o a un contacto bloqueado.",
+      "Si eliges ignorar, el remitente no recibe ningún aviso. El correo de un remitente bloqueado sigue tu ajuste de bloqueo, como moverse a Spam, y el correo enviado a un alias o una dirección desactivados se descarta. Si eliges rechazar, el correo se rechaza y el remitente recibe un aviso de que no se entregó.",
     alias_pref_delete_action_info:
       "Mover a la papelera mantiene los alias eliminados recuperables durante 30 días. Eliminar de inmediato los borra permanentemente.",
     alias_pref_delete_trash: "Mover a la papelera",

@@ -3519,7 +3519,7 @@ export const it = {
     alias_pref_unsubscribe_block_contact: "Blocca mittente",
     alias_pref_disabled_response: "Risposta alla posta bloccata",
     alias_pref_disabled_response_desc:
-      "Cosa vede il mittente quando la sua posta viene scartata silenziosamente.",
+      "Cosa succede quando un mittente bloccato ti scrive o quando qualcuno scrive a un alias o a un indirizzo disattivato.",
     alias_pref_disabled_ignore: "Ignora silenziosamente",
     alias_pref_disabled_reject: "Rifiuta (bounce)",
     alias_pref_delete_action: "Quando elimini un alias",
@@ -3534,7 +3534,7 @@ export const it = {
     alias_pref_unsubscribe_action_info:
       "Cosa succede quando fai clic sul pulsante di annullamento iscrizione in un'email inoltrata.",
     alias_pref_disabled_response_info:
-      "Cosa vede il mittente quando scrive a un alias disattivato o a un contatto bloccato.",
+      "Se scegli di ignorare, il mittente non viene avvisato. La posta di un mittente bloccato segue la tua impostazione di blocco, come lo spostamento in Spam, e la posta inviata a un alias o a un indirizzo disattivato viene scartata. Se scegli di rifiutare, la posta viene respinta e il mittente riceve un avviso di mancata consegna.",
     alias_pref_delete_action_info:
       "Sposta nel cestino mantiene gli alias eliminati recuperabili per 30 giorni. Elimina subito li rimuove definitivamente.",
     alias_pref_delete_trash: "Sposta nel cestino",

@@ -3508,7 +3508,7 @@ export const de = {
     alias_pref_unsubscribe_block_contact: "Absender blockieren",
     alias_pref_disabled_response: "Antwort auf blockierte Mails",
     alias_pref_disabled_response_desc:
-      "Was der Absender sieht, wenn seine Mail stillschweigend verworfen wird.",
+      "Was passiert, wenn Ihnen ein blockierter Absender schreibt oder jemand an einen deaktivierten Alias oder eine deaktivierte Adresse schreibt.",
     alias_pref_disabled_ignore: "Stillschweigend ignorieren",
     alias_pref_disabled_reject: "Ablehnen (Bounce)",
     alias_pref_delete_action: "Beim Löschen eines Alias",
@@ -3523,7 +3523,7 @@ export const de = {
     alias_pref_unsubscribe_action_info:
       "Was passiert, wenn Sie in einer weitergeleiteten E-Mail auf die Abmelden-Schaltfläche klicken.",
     alias_pref_disabled_response_info:
-      "Was der Absender sieht, wenn er an einen deaktivierten Alias oder einen blockierten Kontakt schreibt.",
+      "Wenn Sie Ignorieren wählen, erfährt der Absender nichts. E-Mails von blockierten Absendern folgen Ihrer Blockierungseinstellung, etwa dem Verschieben in den Spam, und E-Mails an einen deaktivierten Alias oder eine deaktivierte Adresse werden verworfen. Wenn Sie Ablehnen wählen, wird die E-Mail abgewiesen und der Absender erhält eine Nachricht, dass sie nicht zugestellt wurde.",
     alias_pref_delete_action_info:
       "Beim Verschieben in den Papierkorb bleiben gelöschte Aliase 30 Tage wiederherstellbar. Sofort löschen entfernt sie dauerhaft.",
     alias_pref_delete_trash: "In den Papierkorb verschieben",
