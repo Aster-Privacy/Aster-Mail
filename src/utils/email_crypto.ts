@@ -46,6 +46,7 @@ import { decrypt_message_verifiable_with_any_key } from "@/services/crypto/key_m
 import {
   resolve_inline_pgp_sender_keys,
   settle_sender_verification,
+  verify_with_sender_key_history,
 } from "@/services/crypto/sender_verification";
 import { derive_public_keys_from_private } from "@/services/crypto/key_manager_pgp_messages";
 import {
@@ -686,7 +687,11 @@ async function judge_sender_signature(
     return await settle_sender_verification(
       sender_email,
       sender_keys,
-      await evidence.verify(sender_keys),
+      await verify_with_sender_key_history(
+        sender_email,
+        sender_keys,
+        evidence.verify,
+      ),
       async () => {
         const own_keys =
           await derive_public_keys_from_private(own_private_keys);
