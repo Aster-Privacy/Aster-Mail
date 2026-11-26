@@ -3365,7 +3365,7 @@ export const ko = {
     alias_pref_unsubscribe_block_contact: "발신자 차단",
     alias_pref_disabled_response: "차단된 메일에 대한 응답",
     alias_pref_disabled_response_desc:
-      "메일이 자동으로 삭제될 때 발신자에게 표시되는 내용입니다.",
+      "차단한 발신자가 메일을 보내거나 누군가 비활성화된 별칭 또는 주소로 메일을 보낼 때의 동작입니다.",
     alias_pref_disabled_ignore: "조용히 무시",
     alias_pref_disabled_reject: "거부 (반송)",
     alias_pref_delete_action: "별칭을 삭제할 때",
@@ -3380,7 +3380,7 @@ export const ko = {
     alias_pref_unsubscribe_action_info:
       "전달된 이메일에서 구독 취소 버튼을 클릭할 때 일어나는 동작입니다.",
     alias_pref_disabled_response_info:
-      "발신자가 비활성화된 별칭이나 차단된 연락처에 메일을 보낼 때 보게 되는 내용입니다.",
+      "무시를 선택하면 발신자에게 아무것도 알리지 않습니다. 차단한 발신자의 메일은 스팸으로 이동하는 등 차단 설정에 따라 처리되고, 비활성화된 별칭이나 주소로 온 메일은 삭제됩니다. 거부를 선택하면 메일 수신이 거부되고 발신자는 메일이 전달되지 않았다는 알림을 받습니다.",
     alias_pref_delete_action_info:
       "휴지통으로 이동하면 삭제된 별칭을 30일간 복구할 수 있습니다. 즉시 삭제하면 영구히 제거됩니다.",
     alias_pref_delete_trash: "휴지통으로 이동",
@@ -3663,7 +3663,7 @@ export const ko = {
     fam_org_ret_trash: "휴지통",
     fam_org_ret_trash_hint: "휴지통 메일 자동 삭제",
     fam_org_ret_trash_info:
-      "휴지통에서 이 일수보다 오래된 메시지는 영구적으로 제거됩니다.",
+      "메시지는 휴지통으로 이동한 후 이 일수가 지나면 영구적으로 제거됩니다.",
     fam_org_ret_spam: "스팸",
     fam_org_ret_spam_hint: "스팸 자동 삭제 (기본 30일)",
     fam_org_ret_spam_info:
@@ -6495,7 +6495,7 @@ export const ko = {
     auto_delete_spam_after: "일정 기간 후 스팸 자동 삭제",
     auto_delete_trash_after: "일정 기간 후 휴지통 자동 삭제",
     auto_delete_trash_description:
-      "이 기간보다 오래된 휴지통의 이메일은 영구적으로 삭제됩니다.",
+      "이메일은 휴지통으로 이동한 후 이 기간이 지나면 영구적으로 삭제됩니다.",
     spam_delete_hint: "이 기간보다 오래된 스팸 이메일은 영구적으로 삭제됩니다",
     save_changes: "변경 사항 저장",
     spam_low: "낮음",
@@ -7972,6 +7972,15 @@ export const ko = {
     remote_images_always: "항상 로드",
     remote_images_ask: "로드 전 확인",
     remote_images_never: "절대 로드 안 함",
+    image_cache_label: "불러온 이미지를 이 기기에 보관",
+    image_cache_description: "불러온 이미지를 이 기기에 암호화하여 저장하므로 메시지를 다시 열어도 발신자에게 아무것도 전송되지 않습니다.",
+    image_prefetch_label: "메일이 도착하면 이미지 불러오기",
+    image_prefetch_description: "새 메일이 이 기기에 도착하는 즉시 Aster를 통해 이미지를 가져오므로 발신자는 메일을 언제 열었는지 알 수 없습니다.",
+    image_prefetch_unavailable: "원격 이미지를 자동으로 불러오고 이미지 저장이 켜져 있을 때 사용할 수 있습니다.",
+    image_cache_clear_label: "저장된 이미지",
+    image_cache_clear_description: "이 기기에 저장된 모든 이미지를 삭제합니다.",
+    image_cache_clear_button: "지우기",
+    image_cache_cleared: "저장된 이미지를 지웠습니다",
     tracking_protection_title: "추적 방지",
     tracking_protection_enabled: "추적 방지 활성화",
     tracking_protection_enabled_description:
@@ -9846,6 +9855,11 @@ export const ko = {
     spam_label: "스팸",
     attachment_chips_more: "+{{count}}개 더",
     page_of_total: "{{total}} 중 {{current}} 페이지",
+    page_jump_newest: "최신",
+    page_jump_oldest: "가장 오래됨",
+    page_jump_go_to: "페이지로 이동",
+    page_jump_input: "페이지 번호",
+    page_jump_invalid: "1에서 {{total}} 사이의 페이지를 입력하세요",
     total_pages_label: "{{count}} 페이지",
     loading_preview: "미리보기 로드 중…",
     preview_failed: "미리보기가 불러와지지 않았습니다. 이메일을 열면 보입니다.",
@@ -9931,10 +9945,11 @@ export const ko = {
     font: "글꼴",
     fonts: "글꼴",
     stylesheet: "스타일시트",
-    trash_auto_delete_notice: "휴지통의 메시지는 {{ days }}일 후 삭제됩니다.",
+    trash_auto_delete_notice:
+      "메시지는 휴지통으로 이동한 후 {{ days }}일이 지나면 삭제됩니다.",
     spam_auto_delete_notice: "스팸의 메시지는 {{ days }}일 후 삭제됩니다.",
     trash_auto_delete_notice_family:
-      "휴지통의 메시지는 가족 관리자 설정에 따라 {{ days }}일 후 삭제됩니다.",
+      "메시지는 가족 관리자 설정에 따라 휴지통으로 이동한 후 {{ days }}일이 지나면 삭제됩니다.",
     spam_auto_delete_notice_family:
       "스팸의 메시지는 가족 관리자 설정에 따라 {{ days }}일 후 삭제됩니다.",
     insert_link_title: "링크 삽입",
@@ -10473,6 +10488,8 @@ export const ko = {
       "현재 비밀번호를 입력하면 암호화 키가 그대로 유지되고 메일도 계속 읽을 수 있습니다. 모르는 경우 대신 복구 코드를 사용하세요.",
     reset_current_password_required:
       "현재 비밀번호를 입력하거나 대신 복구 코드를 사용하세요.",
+    reset_legacy_login_salt:
+      "현재 비밀번호로 이전 메일을 유지하려면 이전에 Aster를 사용한 기기에서 이 재설정 링크를 여세요. 그렇게 할 수 없다면 대신 복구 코드를 사용하세요.",
     reset_lost_everything:
       "비밀번호와 복구 코드를 잃어버렸습니다",
     reset_remember_password:
@@ -12441,6 +12458,9 @@ export const ko = {
     remote_image_loading: "원격 이미지 불러오기, 원격 이미지 차단, 이미지 불러오기, 외부 이미지, 불러오기 전에 묻기",
     block_remote_fonts_label: "원격 글꼴 차단, 외부 글꼴, 웹 글꼴",
     block_remote_css_label: "원격 CSS 차단, 외부 스타일시트, 원격 스타일",
+    image_cache_label: "이미지 캐시, 저장된 이미지, 이미지 보관",
+    image_prefetch_label: "이미지 미리 불러오기, 수신 시 이미지 불러오기, 열람 추적",
+    image_cache_clear_label: "저장된 이미지 지우기, 이미지 캐시 삭제",
     strip_exif_on_compose_label: "이미지 메타데이터 제거, EXIF, 메타데이터 삭제, 이미지 개인정보, 위치 정보",
     send_error_reports_label: "오류 보고서 보내기, 원격 분석, 진단, 충돌 보고서",
     prefer_plain_text_label: "일반 텍스트 우선, 일반 텍스트 버전, 텍스트 대체, multipart",

@@ -903,7 +903,7 @@ export const DEFAULT_PREFERENCES: UserPreferences = {
   warn_external_recipients: true,
   auto_discover_keys: false,
   require_encryption: false,
-  obscure_subject_when_encrypted: true,
+  obscure_subject_when_encrypted: false,
   obscure_subject_user_set: false,
   show_encryption_indicators: true,
   publish_to_wkd: false,
@@ -1280,7 +1280,7 @@ export function build_merged_preferences(
   );
 
   if (merged.obscure_subject_user_set !== true) {
-    merged.obscure_subject_when_encrypted = true;
+    merged.obscure_subject_when_encrypted = false;
   }
 
   return merged;

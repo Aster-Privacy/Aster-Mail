@@ -23,7 +23,10 @@ import type { UserPreferences } from "@/services/api/preferences";
 
 import { useEffect, useRef } from "react";
 
-import { mark_conversation_read } from "@/hooks/mark_conversation_read";
+import {
+  conversation_marked_unread,
+  mark_conversation_read,
+} from "@/hooks/mark_conversation_read";
 import { thread_has_unread_entries } from "@/services/category_index";
 
 type MarkAsReadDelay = UserPreferences["mark_as_read_delay"];
@@ -64,6 +67,9 @@ export function use_conversation_catch_up_read({
   conversation_grouping,
 }: ConversationCatchUpOptions): void {
   const caught_up_ref = useRef<string | null>(null);
+  const message_ids_ref = useRef<string[]>([]);
+
+  message_ids_ref.current = thread_messages.map((message) => message.id);
   const has_unread_sibling = thread_messages.some(
     (message) =>
       message.id !== email_id &&
@@ -80,7 +86,12 @@ export function use_conversation_catch_up_read({
 
     if (delay_ms === null) return;
     const pending = () =>
-      has_unread_sibling || thread_has_unread_entries(thread_token, email_id);
+      (has_unread_sibling ||
+        thread_has_unread_entries(thread_token, email_id)) &&
+      !conversation_marked_unread(thread_token, [
+        email_id,
+        ...message_ids_ref.current,
+      ]);
 
     if (!pending()) return;
     const timer = window.setTimeout(() => {

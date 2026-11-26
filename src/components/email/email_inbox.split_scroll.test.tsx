@@ -82,7 +82,25 @@ vi.mock("@/components/email/inbox/inbox_email_list", async () => {
 });
 
 vi.mock("@/components/email/email_list_header", () => ({
-  EmailListHeader: () => null,
+  EmailListHeader: ({
+    on_page_change,
+    on_jump_to_page,
+  }: {
+    on_page_change?: (page: number) => void;
+    on_jump_to_page?: (page: number) => void;
+  }) => {
+    const change_page = on_page_change ?? on_jump_to_page;
+
+    return change_page ? (
+      <button
+        data-testid="next-page"
+        type="button"
+        onClick={() => change_page(1)}
+      >
+        next
+      </button>
+    ) : null;
+  },
 }));
 vi.mock("@/components/email/inbox/category_tabs", () => ({
   CategoryTabs: () => null,
@@ -113,21 +131,6 @@ vi.mock("@/components/email/inbox/inbox_dialogs", () => ({
 }));
 vi.mock("@/components/email/inbox/inbox_confirmation_dialog", () => ({
   ConfirmModal: () => null,
-}));
-vi.mock("@/components/email/inbox/inbox_bottom_pagination", () => ({
-  BottomPagination: ({
-    on_page_change,
-  }: {
-    on_page_change: (page: number) => void;
-  }) => (
-    <button
-      data-testid="next-page"
-      type="button"
-      onClick={() => on_page_change(1)}
-    >
-      next
-    </button>
-  ),
 }));
 vi.mock("@/components/email/inbox/inbox_storage_banner", () => ({
   StorageBanner: () => null,

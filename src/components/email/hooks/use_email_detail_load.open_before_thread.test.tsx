@@ -56,6 +56,9 @@ const h = vi.hoisted(() => ({
   mark_as_read_delay: "never" as string,
   opened_is_read: true,
   read_updates: [] as string[],
+  unread_meta: new Set<string>(),
+  read_intents: new Map<string, boolean>(),
+  conversation_reads: [] as unknown[],
   t: (key: string) => key,
   folders_state: { state: { folders: [] } },
   user: { email: "me@astermail.org" },
@@ -122,8 +125,8 @@ vi.mock("@/components/email/shared/decrypt_envelope", () => ({
 }));
 
 vi.mock("@/services/crypto/mail_metadata", () => ({
-  decrypt_mail_metadata: async () => ({
-    is_read: h.opened_is_read,
+  decrypt_mail_metadata: async (encrypted: string) => ({
+    is_read: h.unread_meta.has(encrypted) ? false : h.opened_is_read,
     is_starred: false,
   }),
   update_item_metadata: async (id: string) => {
@@ -199,7 +202,13 @@ vi.mock("@/services/api/mail", () => ({
 }));
 
 vi.mock("@/hooks/mark_conversation_read", () => ({
-  mark_conversation_read: vi.fn(),
+  conversation_marked_unread: (
+    _thread_token: string | null | undefined,
+    ids: readonly string[] = [],
+  ) => ids.some((id) => h.read_intents.get(id) === false),
+  mark_conversation_read: (options: unknown) => {
+    h.conversation_reads.push(options);
+  },
 }));
 
 vi.mock("@/services/api/multi_drafts", () => ({
@@ -248,7 +257,7 @@ vi.mock("@/services/attachment_preview_cache", () => ({
 }));
 
 vi.mock("@/services/read_intent", () => ({
-  get_read_intent: () => undefined,
+  get_read_intent: (id: string) => h.read_intents.get(id),
   claim_auto_read: () => 1,
   peek_read_ticket: () => 1,
   is_read_ticket_current: () => true,
@@ -290,6 +299,8 @@ vi.mock("@/hooks/use_mail_stats", () => ({ adjust_stats_unread: vi.fn() }));
 
 const { use_email_detail_load } =
   await import("@/components/email/hooks/use_email_detail_load");
+const { clear_thread_decrypt_cache } =
+  await import("@/services/thread_decrypt_cache");
 
 type View = {
   is_loading: boolean;
@@ -360,6 +371,10 @@ describe("opening a threaded message on the detail page", () => {
     h.mark_as_read_delay = "never";
     h.opened_is_read = true;
     h.read_updates = [];
+    h.unread_meta = new Set();
+    h.read_intents = new Map();
+    h.conversation_reads = [];
+    clear_thread_decrypt_cache();
   });
 
   afterEach(() => {
@@ -528,5 +543,28 @@ describe("opening a threaded message on the detail page", () => {
 
     expect(view().messages).toHaveLength(THREAD_SIZE);
     expect(h.read_updates).toEqual([OPENED]);
+  });
+
+  it("catches up a conversation whose older message is still unread", async () => {
+    h.mark_as_read_delay = "3_seconds";
+    h.unread_meta = new Set(["meta-3"]);
+    const view = render_detail();
+
+    await settle();
+
+    expect(view().messages.find((m) => m.id === "m3")?.is_read).toBe(false);
+    expect(h.conversation_reads).toHaveLength(1);
+  });
+
+  it("leaves a conversation unread after the user marks it unread", async () => {
+    h.mark_as_read_delay = "3_seconds";
+    h.unread_meta = new Set(["meta-3"]);
+    h.read_intents.set("m3", false);
+    const view = render_detail();
+
+    await settle();
+
+    expect(view().messages.find((m) => m.id === "m3")?.is_read).toBe(false);
+    expect(h.conversation_reads).toHaveLength(0);
   });
 });

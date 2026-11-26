@@ -42,6 +42,8 @@ const PUBLIC_ENTRY_PATHS = [
   "/crypto-invoice",
 ];
 
+const SIGNED_IN_ENTRY_PATHS = ["/join", "/family"];
+
 let active_account_index: number | null = null;
 
 export function account_index_routing_enabled(): boolean {
@@ -81,6 +83,12 @@ export function app_pathname(): string {
 
 export function is_public_entry_path(pathname: string): boolean {
   return PUBLIC_ENTRY_PATHS.some(
+    (path) => pathname === path || pathname.startsWith(`${path}/`),
+  );
+}
+
+export function is_signed_in_entry_path(pathname: string): boolean {
+  return SIGNED_IN_ENTRY_PATHS.some(
     (path) => pathname === path || pathname.startsWith(`${path}/`),
   );
 }

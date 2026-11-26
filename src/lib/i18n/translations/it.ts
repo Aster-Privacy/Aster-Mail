@@ -3519,7 +3519,7 @@ export const it = {
     alias_pref_unsubscribe_block_contact: "Blocca mittente",
     alias_pref_disabled_response: "Risposta alla posta bloccata",
     alias_pref_disabled_response_desc:
-      "Cosa vede il mittente quando la sua posta viene scartata silenziosamente.",
+      "Cosa succede quando un mittente bloccato ti scrive o quando qualcuno scrive a un alias o a un indirizzo disattivato.",
     alias_pref_disabled_ignore: "Ignora silenziosamente",
     alias_pref_disabled_reject: "Rifiuta (bounce)",
     alias_pref_delete_action: "Quando elimini un alias",
@@ -3534,7 +3534,7 @@ export const it = {
     alias_pref_unsubscribe_action_info:
       "Cosa succede quando fai clic sul pulsante di annullamento iscrizione in un'email inoltrata.",
     alias_pref_disabled_response_info:
-      "Cosa vede il mittente quando scrive a un alias disattivato o a un contatto bloccato.",
+      "Se scegli di ignorare, il mittente non viene avvisato. La posta di un mittente bloccato segue la tua impostazione di blocco, come lo spostamento in Spam, e la posta inviata a un alias o a un indirizzo disattivato viene scartata. Se scegli di rifiutare, la posta viene respinta e il mittente riceve un avviso di mancata consegna.",
     alias_pref_delete_action_info:
       "Sposta nel cestino mantiene gli alias eliminati recuperabili per 30 giorni. Elimina subito li rimuove definitivamente.",
     alias_pref_delete_trash: "Sposta nel cestino",
@@ -3823,7 +3823,7 @@ export const it = {
     fam_org_ret_trash: "Cestino",
     fam_org_ret_trash_hint: "Elimina automaticamente la posta cestinata",
     fam_org_ret_trash_info:
-      "I messaggi nel cestino più vecchi di questo numero di giorni vengono rimossi definitivamente.",
+      "I messaggi vengono rimossi definitivamente dopo questo numero di giorni dallo spostamento nel cestino.",
     fam_org_ret_spam: "Spam",
     fam_org_ret_spam_hint:
       "Elimina automaticamente lo spam (predefinito 30 giorni)",
@@ -7975,7 +7975,7 @@ export const it = {
     auto_delete_spam_after: "Elimina automaticamente lo spam dopo",
     auto_delete_trash_after: "Elimina automaticamente il cestino dopo",
     auto_delete_trash_description:
-      "Le email nel Cestino più vecchie di questo periodo vengono eliminate definitivamente.",
+      "I messaggi vengono eliminati definitivamente trascorso questo periodo dallo spostamento nel Cestino.",
     spam_delete_hint:
       "Le email spam più vecchie di questo periodo verranno eliminate definitivamente",
     save_changes: "Salva modifiche",
@@ -8306,6 +8306,15 @@ export const it = {
     remote_images_always: "Carica sempre",
     remote_images_ask: "Chiedi prima di caricare",
     remote_images_never: "Non caricare mai",
+    image_cache_label: "Conserva le immagini caricate su questo dispositivo",
+    image_cache_description: "Salva le immagini che carichi, cifrate su questo dispositivo, così riaprire un messaggio non invia nulla al mittente.",
+    image_prefetch_label: "Carica le immagini all'arrivo della posta",
+    image_prefetch_description: "Scarica le immagini tramite Aster appena la nuova posta arriva su questo dispositivo, così i mittenti non sanno quando la apri.",
+    image_prefetch_unavailable: "Disponibile quando le immagini remote si caricano automaticamente e le immagini salvate sono attive.",
+    image_cache_clear_label: "Immagini salvate",
+    image_cache_clear_description: "Rimuove tutte le immagini salvate su questo dispositivo.",
+    image_cache_clear_button: "Cancella",
+    image_cache_cleared: "Immagini salvate cancellate",
     tracking_protection_title: "Protezione dal tracciamento",
     tracking_protection_enabled: "Attiva protezione dal tracciamento",
     tracking_protection_enabled_description:
@@ -10330,6 +10339,11 @@ export const it = {
     spam_label: "Spam",
     attachment_chips_more: "+{{count}} altri",
     page_of_total: "Pagina {{current}} di {{total}}",
+    page_jump_newest: "Più recenti",
+    page_jump_oldest: "Meno recenti",
+    page_jump_go_to: "Vai alla pagina",
+    page_jump_input: "Numero di pagina",
+    page_jump_invalid: "Inserisci una pagina da 1 a {{total}}",
     total_pages_label: "{{count}} pagine",
     total_pages_label_one: "{{count}} pagina",
     loading_preview: "Caricamento anteprima…",
@@ -10418,11 +10432,11 @@ export const it = {
     fonts: "font",
     stylesheet: "foglio di stile",
     trash_auto_delete_notice:
-      "I messaggi nel Cestino vengono eliminati dopo {{ days }} giorni.",
+      "I messaggi vengono eliminati {{ days }} giorni dopo lo spostamento nel Cestino.",
     spam_auto_delete_notice:
       "I messaggi nello Spam vengono eliminati dopo {{ days }} giorni.",
     trash_auto_delete_notice_family:
-      "I messaggi nel Cestino vengono eliminati dopo {{ days }} giorni, come impostato dall'amministratore della famiglia.",
+      "I messaggi vengono eliminati {{ days }} giorni dopo lo spostamento nel Cestino, come impostato dall'amministratore della famiglia.",
     spam_auto_delete_notice_family:
       "I messaggi nello Spam vengono eliminati dopo {{ days }} giorni, come impostato dall'amministratore della famiglia.",
     insert_link_title: "Inserisci link",
@@ -10980,6 +10994,8 @@ export const it = {
       "Inserisci la password attuale così le chiavi di crittografia restano le stesse e la posta resta leggibile. Se non la conosci, usa invece un codice di recupero.",
     reset_current_password_required:
       "Inserisci la password attuale oppure usa un codice di recupero.",
+    reset_legacy_login_salt:
+      "Per conservare la posta precedente con la password attuale, apri questo link di reimpostazione su un dispositivo che hai già usato con Aster. Se non puoi, usa invece un codice di recupero.",
     reset_lost_everything:
       "Ho perso la password e i codici di recupero",
     reset_remember_password:
@@ -13012,6 +13028,9 @@ export const it = {
     remote_image_loading: "immagini remote, blocca immagini remote, carica immagini, immagini esterne, chiedi prima di caricare",
     block_remote_fonts_label: "blocca caratteri remoti, font esterni, web font, caratteri esterni",
     block_remote_css_label: "blocca CSS remoto, fogli di stile esterni, stili remoti",
+    image_cache_label: "cache immagini, immagini salvate, conserva immagini",
+    image_prefetch_label: "precarica immagini, carica immagini all'arrivo, tracciamento apertura",
+    image_cache_clear_label: "cancella immagini salvate, svuota cache immagini",
     strip_exif_on_compose_label: "rimuovi metadati immagini, EXIF, rimozione metadati, privacy immagini",
     send_error_reports_label: "invia segnalazioni errori, telemetria, diagnostica, report arresti anomali",
     prefer_plain_text_label: "preferisci testo semplice, versione testo semplice, alternativa testuale, multipart",

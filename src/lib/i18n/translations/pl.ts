@@ -3669,7 +3669,7 @@ export const pl = {
     alias_pref_unsubscribe_block_contact: "Blokuj nadawcę",
     alias_pref_disabled_response: "Odpowiedź na zablokowaną pocztę",
     alias_pref_disabled_response_desc:
-      "Co widzi nadawca, gdy jego poczta jest po cichu odrzucana.",
+      "Co się dzieje, gdy pisze do Ciebie zablokowany nadawca lub gdy ktoś pisze na wyłączony alias albo adres.",
     alias_pref_disabled_ignore: "Po cichu ignoruj",
     alias_pref_disabled_reject: "Odrzuć (odbicie)",
     alias_pref_delete_action: "Podczas usuwania aliasu",
@@ -3684,7 +3684,7 @@ export const pl = {
     alias_pref_unsubscribe_action_info:
       "Co się dzieje po kliknięciu przycisku rezygnacji w przekazanej wiadomości.",
     alias_pref_disabled_response_info:
-      "Co widzi nadawca, gdy pisze na wyłączony alias lub do zablokowanego kontaktu.",
+      "Jeśli wybierzesz ignorowanie, nadawca nie dostanie żadnej informacji. Poczta od zablokowanego nadawcy jest obsługiwana zgodnie z ustawieniem blokady, na przykład trafia do spamu, a poczta wysłana na wyłączony alias lub adres jest usuwana. Jeśli wybierzesz odrzucanie, poczta zostanie odrzucona, a nadawca otrzyma powiadomienie, że nie została dostarczona.",
     alias_pref_delete_action_info:
       "Przeniesienie do kosza pozwala odzyskać usunięte aliasy przez 30 dni. Usunięcie natychmiast kasuje je na stałe.",
     alias_pref_delete_trash: "Przenieś do kosza",
@@ -3966,7 +3966,7 @@ export const pl = {
     fam_org_ret_trash: "Kosz",
     fam_org_ret_trash_hint: "Automatycznie usuwaj pocztę z kosza",
     fam_org_ret_trash_info:
-      "Wiadomości w Koszu starsze niż podana liczba dni są trwale usuwane.",
+      "Wiadomości są trwale usuwane po upływie podanej liczby dni od przeniesienia do Kosza.",
     fam_org_ret_spam: "Spam",
     fam_org_ret_spam_hint: "Automatycznie usuwaj spam (domyślnie 30 dni)",
     fam_org_ret_spam_info:
@@ -6761,7 +6761,7 @@ export const pl = {
     auto_delete_spam_after: "Automatycznie usuwaj spam po",
     auto_delete_trash_after: "Automatycznie usuwaj kosz po",
     auto_delete_trash_description:
-      "Wiadomości w Koszu starsze niż ta wartość zostają trwale usunięte.",
+      "Wiadomości są trwale usuwane po upływie tego czasu od przeniesienia ich do Kosza.",
     spam_delete_hint: "Spam starszy niż ten okres zostanie trwale usunięty",
     save_changes: "Zapisz zmiany",
     spam_low: "Niska",
@@ -8442,6 +8442,15 @@ export const pl = {
     remote_images_always: "Zawsze ładuj",
     remote_images_ask: "Pytaj przed załadowaniem",
     remote_images_never: "Nigdy nie ładuj",
+    image_cache_label: "Zachowuj wczytane obrazy na tym urządzeniu",
+    image_cache_description: "Zapisuje wczytane obrazy w postaci zaszyfrowanej na tym urządzeniu, dzięki czemu ponowne otwarcie wiadomości nic nie wysyła do nadawcy.",
+    image_prefetch_label: "Wczytuj obrazy po nadejściu poczty",
+    image_prefetch_description: "Pobiera obrazy przez Aster, gdy tylko nowa poczta dotrze na to urządzenie, dzięki czemu nadawcy nie wiedzą, kiedy ją otwierasz.",
+    image_prefetch_unavailable: "Dostępne, gdy obrazy zdalne wczytują się automatycznie, a zapisywanie obrazów jest włączone.",
+    image_cache_clear_label: "Zapisane obrazy",
+    image_cache_clear_description: "Usuwa wszystkie obrazy zapisane na tym urządzeniu.",
+    image_cache_clear_button: "Wyczyść",
+    image_cache_cleared: "Zapisane obrazy wyczyszczone",
     tracking_protection_title: "Ochrona przed śledzeniem",
     tracking_protection_enabled: "Włącz ochronę przed śledzeniem",
     tracking_protection_enabled_description:
@@ -10513,6 +10522,11 @@ export const pl = {
     spam_label: "Spam",
     attachment_chips_more: "+{{count}} więcej",
     page_of_total: "Strona {{current}} z {{total}}",
+    page_jump_newest: "Najnowsze",
+    page_jump_oldest: "Najstarsze",
+    page_jump_go_to: "Przejdź do strony",
+    page_jump_input: "Numer strony",
+    page_jump_invalid: "Wprowadź stronę od 1 do {{total}}",
     total_pages_label: "{{count}} stron",
     total_pages_label_one: "{{count}} strona",
     total_pages_label_few: "{{count}} strony",
@@ -10603,11 +10617,11 @@ export const pl = {
     fonts: "czcionki",
     stylesheet: "arkusz stylów",
     trash_auto_delete_notice:
-      "Wiadomości w Koszu są usuwane po {{ days }} dniach.",
+      "Wiadomości są usuwane {{ days }} dni po przeniesieniu do Kosza.",
     spam_auto_delete_notice:
       "Wiadomości w folderze Spam są usuwane po {{ days }} dniach.",
     trash_auto_delete_notice_family:
-      "Wiadomości w Koszu są usuwane po {{ days }} dniach, zgodnie z ustawieniem administratora rodziny.",
+      "Wiadomości są usuwane {{ days }} dni po przeniesieniu do Kosza, zgodnie z ustawieniem administratora rodziny.",
     spam_auto_delete_notice_family:
       "Wiadomości w folderze Spam są usuwane po {{ days }} dniach, zgodnie z ustawieniem administratora rodziny.",
     insert_link_title: "Wstaw link",
@@ -11156,6 +11170,8 @@ export const pl = {
       "Wpisz obecne hasło, aby klucze szyfrowania pozostały takie same, a poczta czytelna. Jeśli go nie znasz, użyj kodu odzyskiwania.",
     reset_current_password_required:
       "Wpisz obecne hasło lub użyj kodu odzyskiwania.",
+    reset_legacy_login_salt:
+      "Aby zachować wcześniejszą pocztę przy użyciu obecnego hasła, otwórz ten link resetowania na urządzeniu, którego używałeś już z Aster. Jeśli nie możesz, użyj kodu odzyskiwania.",
     reset_lost_everything:
       "Zgubiłem hasło i kody odzyskiwania",
     reset_remember_password:
@@ -13181,6 +13197,9 @@ export const pl = {
     remote_image_loading: "blokuj zdalne obrazy, ładuj obrazy, zewnętrzne obrazy, pytaj przed załadowaniem",
     block_remote_fonts_label: "zewnętrzne czcionki, czcionki internetowe, blokuj czcionki",
     block_remote_css_label: "zewnętrzne arkusze stylów, zdalne style, blokuj CSS",
+    image_cache_label: "pamięć podręczna obrazów, zapisane obrazy, zachowaj obrazy",
+    image_prefetch_label: "wstępne ładowanie obrazów, ładuj obrazy po odebraniu, śledzenie otwarć",
+    image_cache_clear_label: "wyczyść zapisane obrazy, usuń pamięć podręczną obrazów",
     strip_exif_on_compose_label: "exif, usuwanie metadanych, prywatność zdjęć, metadane obrazów",
     send_error_reports_label: "telemetria, diagnostyka, raporty awarii, raporty błędów",
     prefer_plain_text_label: "wersja tekstowa, alternatywa tekstowa, multipart, zwykły tekst",

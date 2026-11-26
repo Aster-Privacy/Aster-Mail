@@ -146,7 +146,7 @@ export default function EmailDetailPage() {
           className={`flex-1 min-h-0 min-w-0 flex flex-col overflow-clip ${is_popup ? "" : "p-1 md:p-2"}`}
         >
           <div
-            className={`flex-1 w-full overflow-clip flex flex-col transition-colors duration-200 bg-[var(--bg-primary)] ${is_popup ? "" : "rounded-lg md:rounded-xl border border-[var(--border-primary)]"}`}
+            className={`flex-1 min-h-0 w-full overflow-clip flex flex-col transition-colors duration-200 bg-[var(--bg-primary)] ${is_popup ? "" : "rounded-lg md:rounded-xl border border-[var(--border-primary)]"}`}
           >
             <EmailDetailHeader
               can_go_newer={detail.can_go_newer}

@@ -86,7 +86,7 @@ import {
   type SendEmailPayload,
 } from "@/native/offline_queue";
 import { ignore_error } from "@/lib/ignore_error";
-import { strip_outgoing_markers } from "@/lib/outgoing_markers";
+import { prepare_outgoing_html } from "@/lib/outgoing_trailing_blanks";
 import { device_traces_erased } from "@/lib/device_erase_latch";
 import { emit_email_sent } from "@/hooks/mail_events";
 import { invalidate_mail_stats } from "@/hooks/use_mail_stats";
@@ -375,7 +375,7 @@ export function queue_email(
   return send_queue.queue(
     {
       ...email,
-      body: strip_outgoing_markers(email.body),
+      body: prepare_outgoing_html(email.body),
       on_error: wrapped_error_handler,
     },
     delay_ms,
@@ -777,7 +777,7 @@ export async function queue_email_to_server(
   try {
     const prepared = await prepare_email_for_server_queue({
       ...email,
-      body: strip_outgoing_markers(email.body),
+      body: prepare_outgoing_html(email.body),
     });
 
     if (!prepared) {
