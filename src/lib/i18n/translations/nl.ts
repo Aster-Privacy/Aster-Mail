@@ -10908,6 +10908,8 @@ export const nl = {
       "Voer je huidige wachtwoord in zodat je versleutelingssleutels hetzelfde blijven en je e-mail leesbaar blijft. Weet je het niet, gebruik dan een herstelcode.",
     reset_current_password_required:
       "Voer je huidige wachtwoord in of gebruik een herstelcode.",
+    reset_legacy_login_salt:
+      "Open deze resetlink op een apparaat dat je eerder met Aster hebt gebruikt om je eerdere e-mail met je huidige wachtwoord te behouden. Lukt dat niet, gebruik dan een herstelcode.",
     reset_lost_everything:
       "Ik ben mijn wachtwoord en herstelcodes kwijt",
     reset_remember_password:

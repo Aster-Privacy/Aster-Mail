@@ -10818,6 +10818,8 @@ export const tr = {
       "Şifreleme anahtarlarınızın aynı kalması ve e-postalarınızın okunabilir kalması için mevcut şifrenizi girin. Bilmiyorsanız bunun yerine bir kurtarma kodu kullanın.",
     reset_current_password_required:
       "Mevcut şifrenizi girin veya bunun yerine bir kurtarma kodu kullanın.",
+    reset_legacy_login_salt:
+      "Önceki e-postalarınızı mevcut şifrenizle korumak için bu sıfırlama bağlantısını daha önce Aster ile kullandığınız bir cihazda açın. Bunu yapamıyorsanız bunun yerine bir kurtarma kodu kullanın.",
     reset_lost_everything:
       "Şifremi ve kurtarma kodlarımı kaybettim",
     reset_remember_password:

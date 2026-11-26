@@ -10988,6 +10988,8 @@ export const it = {
       "Inserisci la password attuale così le chiavi di crittografia restano le stesse e la posta resta leggibile. Se non la conosci, usa invece un codice di recupero.",
     reset_current_password_required:
       "Inserisci la password attuale oppure usa un codice di recupero.",
+    reset_legacy_login_salt:
+      "Per conservare la posta precedente con la password attuale, apri questo link di reimpostazione su un dispositivo che hai già usato con Aster. Se non puoi, usa invece un codice di recupero.",
     reset_lost_everything:
       "Ho perso la password e i codici di recupero",
     reset_remember_password:

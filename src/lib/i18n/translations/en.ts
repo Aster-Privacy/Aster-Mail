@@ -10815,6 +10815,8 @@ export const en: Translations = {
       "Enter your current password so your encryption keys stay the same and your mail stays readable. If you don't know it, use a recovery code instead.",
     reset_current_password_required:
       "Enter your current password, or use a recovery code instead.",
+    reset_legacy_login_salt:
+      "To keep your earlier mail with your current password, open this reset link on a device you've used with Aster before. If you can't, use a recovery code instead.",
     reset_lost_everything:
       "I lost my password and recovery codes",
     reset_remember_password:

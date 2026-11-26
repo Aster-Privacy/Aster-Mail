@@ -9758,6 +9758,8 @@ export const zh_CN = {
       "输入你的当前密码，这样你的加密密钥保持不变，邮件也能继续阅读。如果你不知道当前密码，请改用恢复码。",
     reset_current_password_required:
       "请输入你的当前密码，或改用恢复码。",
+    reset_legacy_login_salt:
+      "要使用当前密码保留之前的邮件，请在你以前用过 Aster 的设备上打开此重置链接。如果无法做到，请改用恢复码。",
     reset_lost_everything:
       "我丢失了密码和恢复码",
     reset_remember_password:

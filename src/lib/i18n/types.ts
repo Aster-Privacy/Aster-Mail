@@ -10038,6 +10038,7 @@ export interface AuthTranslations {
   reset_current_password: string;
   reset_current_password_keeps_keys: string;
   reset_current_password_required: string;
+  reset_legacy_login_salt: string;
   reset_lost_everything: string;
   reset_remember_password: string;
   reset_lost_everything_warning: string;

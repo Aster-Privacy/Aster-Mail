@@ -63,7 +63,10 @@ import {
   verify_reset_second_factor,
 } from "@/services/api/recovery";
 import { classify_totp_error } from "@/services/api/totp";
-import { derive_reset_vault_proof } from "@/services/crypto/reset_vault_proof";
+import {
+  derive_reset_vault_proof,
+  reset_vault_proof_error_key,
+} from "@/services/crypto/reset_vault_proof";
 import {
   is_webauthn_supported,
   perform_webauthn_assertion_with_options,
@@ -545,10 +548,25 @@ export default function ResetPasswordPage() {
 
       if (!lost_everything) {
         set_processing_status(t("auth.reset_unlocking_earlier_mail"));
-        const vault_response = await get_reset_vault(
-          token,
-          await derive_reset_vault_proof(current_password, second_factor),
-        );
+        let vault_proof: string | undefined;
+
+        try {
+          vault_proof = await derive_reset_vault_proof(
+            current_password,
+            second_factor,
+            reset_address,
+          );
+        } catch (caught) {
+          await timing_safe_delay();
+          set_error(
+            t(reset_vault_proof_error_key(caught) ?? "auth.recovery_failed"),
+          );
+          set_step("password");
+
+          return;
+        }
+
+        const vault_response = await get_reset_vault(token, vault_proof);
 
         if (vault_response.error || !vault_response.data) {
           if (
@@ -575,7 +593,8 @@ export default function ResetPasswordPage() {
             throw new Error(t("auth.recovery_failed"));
           }
         } else {
-          stored_vault_kdf_iterations = vault_response.data.vault_kdf_iterations;
+          stored_vault_kdf_iterations =
+            vault_response.data.vault_kdf_iterations;
           stored_encrypted_vault = vault_response.data.encrypted_vault;
           try {
             old_vault = await decrypt_vault(
