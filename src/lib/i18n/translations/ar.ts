@@ -3559,7 +3559,7 @@ export const ar = {
     alias_pref_unsubscribe_block_contact: "حظر المُرسِل",
     alias_pref_disabled_response: "الاستجابة للبريد المحظور",
     alias_pref_disabled_response_desc:
-      "ما الذي يراه المُرسِل عند إسقاط بريده بصمت.",
+      "ما يحدث عندما يراسلك مُرسِل محظور، أو عندما يراسل أحدهم اسمًا مستعارًا أو عنوانًا معطّلًا.",
     alias_pref_disabled_ignore: "تجاهل بصمت",
     alias_pref_disabled_reject: "رفض (ارتداد)",
     alias_pref_delete_action: "عند حذف اسم مستعار",
@@ -3574,7 +3574,7 @@ export const ar = {
     alias_pref_unsubscribe_action_info:
       "ما يحدث عند النقر على زر إلغاء الاشتراك في رسالة مُعاد توجيهها.",
     alias_pref_disabled_response_info:
-      "ما يراه المُرسِل عند مراسلة اسم مستعار معطّل أو جهة اتصال محظورة.",
+      "إذا اخترت التجاهل، فلن يُبلَّغ المُرسِل بأي شيء. يتبع بريد المُرسِل المحظور إعداد الحظر لديك، مثل نقله إلى البريد العشوائي، ويُحذف البريد المُرسَل إلى اسم مستعار أو عنوان معطّل. إذا اخترت الرفض، فسيُرفض البريد ويتلقى المُرسِل إشعارًا بأنه لم يُسلَّم.",
     alias_pref_delete_action_info:
       "النقل إلى المهملات يُبقي الأسماء المستعارة المحذوفة قابلة للاسترداد لمدة 30 يومًا. الحذف الفوري يزيلها نهائيًا.",
     alias_pref_delete_trash: "النقل إلى المهملات",
@@ -3843,7 +3843,7 @@ export const ar = {
     fam_org_ret_trash: "المهملات",
     fam_org_ret_trash_hint: "حذف البريد المهمل تلقائيًا",
     fam_org_ret_trash_info:
-      "تُزال نهائيًا الرسائل الموجودة في المهملات الأقدم من هذا العدد من الأيام.",
+      "تُزال الرسائل نهائيًا بعد مرور هذا العدد من الأيام على نقلها إلى المهملات.",
     fam_org_ret_spam: "البريد العشوائي",
     fam_org_ret_spam_hint: "حذف البريد العشوائي تلقائيًا (الافتراضي 30 يومًا)",
     fam_org_ret_spam_info:
@@ -6610,7 +6610,7 @@ export const ar = {
     auto_delete_spam_after: "حذف الرسائل المزعجة تلقائيًا بعد",
     auto_delete_trash_after: "حذف سلة المهملات تلقائيًا بعد",
     auto_delete_trash_description:
-      "تُحذف الرسائل في سلة المهملات الأقدم من هذه المدة نهائيًا.",
+      "تُحذف الرسائل نهائيًا بعد مرور هذه المدة على نقلها إلى سلة المهملات.",
     spam_delete_hint: "سيتم حذف الرسائل المزعجة الأقدم من هذه المدة نهائيًا",
     save_changes: "حفظ التغييرات",
     spam_low: "منخفض",
@@ -8097,6 +8097,15 @@ export const ar = {
     remote_images_always: "تحميل دائمًا",
     remote_images_ask: "السؤال قبل التحميل",
     remote_images_never: "عدم التحميل أبدًا",
+    image_cache_label: "الاحتفاظ بالصور المحمّلة على هذا الجهاز",
+    image_cache_description: "يحفظ الصور التي تحمّلها مشفّرة على هذا الجهاز، فلا يُرسل أي شيء إلى المرسل عند فتح الرسالة مرة أخرى.",
+    image_prefetch_label: "تحميل الصور عند وصول البريد",
+    image_prefetch_description: "يجلب الصور عبر Aster فور وصول البريد الجديد إلى هذا الجهاز، فلا يعرف المرسلون متى تفتحه.",
+    image_prefetch_unavailable: "متاح عندما تُحمَّل الصور البعيدة تلقائيًا ويكون حفظ الصور مفعّلًا.",
+    image_cache_clear_label: "الصور المحفوظة",
+    image_cache_clear_description: "يزيل كل الصور المحفوظة على هذا الجهاز.",
+    image_cache_clear_button: "مسح",
+    image_cache_cleared: "تم مسح الصور المحفوظة",
     tracking_protection_title: "حماية التتبع",
     tracking_protection_enabled: "تفعيل حماية التتبع",
     tracking_protection_enabled_description:
@@ -9578,6 +9587,9 @@ export const ar = {
     empty_spam: "تفريغ الرسائل المزعجة",
     report_phishing: "الإبلاغ عن بريد مزعج",
     not_spam: "ليس مزعجًا",
+    pending_send_failed: "تعذّر إرسال هذه الرسالة.",
+    pending_send_offline:
+      "في انتظار الاتصال. سيتم إرسال هذه الرسالة عند عودتك إلى الإنترنت.",
     send_failed_title: "لم يتم تسليم هذه الرسالة.",
     send_failed_help: "تحقق من العنوان، ثم أرسل الرسالة مرة أخرى.",
     spam_reasons_title: "تم نقل هذه الرسالة إلى البريد المزعج",
@@ -10076,6 +10088,11 @@ export const ar = {
     spam_label: "مزعج",
     attachment_chips_more: "+{{count}} المزيد",
     page_of_total: "صفحة {{current}} من {{total}}",
+    page_jump_newest: "الأحدث",
+    page_jump_oldest: "الأقدم",
+    page_jump_go_to: "الانتقال إلى الصفحة",
+    page_jump_input: "رقم الصفحة",
+    page_jump_invalid: "أدخل رقم صفحة من 1 إلى {{total}}",
     total_pages_label: "{{count}} صفحة",
     total_pages_label_one: "{{count}} صفحة",
     loading_preview: "جارٍ تحميل المعاينة…",
@@ -10165,11 +10182,11 @@ export const ar = {
     tracker: "متتبع",
     trackers: "متتبعات",
     trash_auto_delete_notice:
-      "تُحذف الرسائل في سلة المهملات بعد {{ days }} يومًا.",
+      "تُحذف الرسائل بعد {{ days }} يومًا من نقلها إلى سلة المهملات.",
     spam_auto_delete_notice:
       "تُحذف الرسائل في الرسائل المزعجة بعد {{ days }} يومًا.",
     trash_auto_delete_notice_family:
-      "تُحذف الرسائل في سلة المهملات بعد {{ days }} يومًا، حسب إعداد مسؤول العائلة.",
+      "تُحذف الرسائل بعد {{ days }} يومًا من نقلها إلى سلة المهملات، حسب إعداد مسؤول العائلة.",
     spam_auto_delete_notice_family:
       "تُحذف الرسائل في الرسائل المزعجة بعد {{ days }} يومًا، حسب إعداد مسؤول العائلة.",
     insert_link_title: "إدراج رابط",
@@ -10440,6 +10457,9 @@ export const ar = {
       "يؤثر هذا في {{count}} رسالة كلها في {{scope}}.",
   },
   auth: {
+    account_chooser_title: "اختر حسابًا",
+    account_chooser_body: "لا يطابق هذا العنوان أي حساب مسجَّل الدخول على هذا الجهاز. اختر حسابًا للمتابعة.",
+    account_chooser_empty: "لا توجد حسابات مسجَّلة الدخول على هذا الجهاز.",
     continue_with_app: "المتابعة باستخدام {{app}}",
     sibling_waiting: "أكّد تسجيل الدخول في النافذة التي فُتحت.",
     sibling_popup_blocked: "تم حظر نافذة التأكيد. اسمح بالنوافذ المنبثقة لهذا الموقع، ثم حاول مرة أخرى.",
@@ -10725,6 +10745,8 @@ export const ar = {
       "أدخل كلمة المرور الحالية لتبقى مفاتيح التشفير كما هي ويبقى بريدك قابلاً للقراءة. إذا لم تكن تعرفها، فاستخدم رمز استرداد بدلاً من ذلك.",
     reset_current_password_required:
       "أدخل كلمة المرور الحالية أو استخدم رمز استرداد بدلاً من ذلك.",
+    reset_legacy_login_salt:
+      "للاحتفاظ ببريدك السابق باستخدام كلمة المرور الحالية، افتح رابط إعادة التعيين هذا على جهاز استخدمته مع Aster من قبل. إذا لم تتمكن من ذلك، فاستخدم رمز استرداد بدلاً من ذلك.",
     reset_lost_everything:
       "فقدت كلمة المرور ورموز الاسترداد",
     reset_remember_password:
@@ -12689,6 +12711,9 @@ export const ar = {
     remote_image_loading: "تحميل الصور البعيدة, حظر الصور البعيدة, تحميل الصور, صور خارجية, السؤال قبل التحميل",
     block_remote_fonts_label: "حظر الخطوط البعيدة, خطوط خارجية, خطوط الويب",
     block_remote_css_label: "حظر CSS البعيد, أوراق أنماط خارجية, أنماط بعيدة",
+    image_cache_label: "ذاكرة الصور المؤقتة, الصور المحفوظة, الاحتفاظ بالصور",
+    image_prefetch_label: "تحميل الصور مسبقا, تحميل الصور عند الوصول, تتبع الفتح",
+    image_cache_clear_label: "مسح الصور المحفوظة, حذف ذاكرة الصور المؤقتة",
     strip_exif_on_compose_label: "إزالة بيانات الصور الوصفية, exif, إزالة البيانات الوصفية, خصوصية الصور",
     send_error_reports_label: "إرسال تقارير الأخطاء, القياس عن بعد, التشخيص, تقارير الأعطال",
     prefer_plain_text_label: "تفضيل النص العادي, نسخة نص عادي, بديل نصي, multipart",

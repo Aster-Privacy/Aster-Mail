@@ -18,6 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import type { CSSProperties } from "react";
 import type { FilterOption } from "@/components/common/hooks/use_contacts_state";
 import type { TranslationKey } from "@/lib/i18n/types";
 
@@ -26,9 +27,9 @@ import { PlusIcon } from "@heroicons/react/24/outline";
 
 import { ContactGroupModal } from "@/components/contacts/contact_group_modal";
 import { use_contact_groups } from "@/hooks/use_contact_groups";
-import { get_contrast_text } from "@/lib/avatar_color";
 import { use_i18n } from "@/lib/i18n/context";
-import { cn, format_number } from "@/lib/utils";
+import { use_readable_accent_fill } from "@/lib/resolved_accent";
+import { format_number } from "@/lib/utils";
 
 interface ContactGroupChipsProps {
   filter_by: FilterOption;
@@ -45,14 +46,6 @@ const attribute_filters: { option: FilterOption; label_key: TranslationKey }[] =
     { option: "has_company", label_key: "common.has_company" },
   ];
 
-const chip_base =
-  "inline-flex flex-shrink-0 items-center gap-1.5 h-7 px-2.5 rounded-full text-[12px] whitespace-nowrap transition-colors";
-
-const chip_active = "bg-[var(--text-primary)] text-[var(--bg-primary)]";
-
-const chip_inactive =
-  "bg-[var(--aster-hover)] text-txt-secondary hover:bg-[var(--aster-selected)]";
-
 export function ContactGroupChips({
   filter_by,
   set_filter_by,
@@ -63,15 +56,22 @@ export function ContactGroupChips({
   const { t } = use_i18n();
   const { groups } = use_contact_groups();
   const [is_create_open, set_is_create_open] = useState(false);
+  const { fill, fill_hover, fg } = use_readable_accent_fill();
 
   const is_all = !group_filter && filter_by === "all";
+  const is_birthday = filter_by === "upcoming_birthdays" && !group_filter;
+  const chip_vars = {
+    "--contact-chip-active": fill,
+    "--contact-chip-active-hover": fill_hover,
+    "--contact-chip-active-fg": fg,
+  } as CSSProperties;
 
   return (
     <>
-      <div className="flex min-w-0 flex-shrink-0 items-center gap-1.5 overflow-x-auto px-4 pt-0.5 pb-2">
+      <div className="contact_chip_row" style={chip_vars}>
         <button
           aria-pressed={is_all}
-          className={cn(chip_base, is_all ? chip_active : chip_inactive)}
+          className="contact_chip"
           type="button"
           onClick={() => {
             set_filter_by("all");
@@ -83,12 +83,7 @@ export function ContactGroupChips({
 
         <button
           aria-pressed={filter_by === "favorites" && !group_filter}
-          className={cn(
-            chip_base,
-            filter_by === "favorites" && !group_filter
-              ? chip_active
-              : chip_inactive,
-          )}
+          className="contact_chip"
           type="button"
           onClick={() => {
             on_set_group_filter(null);
@@ -100,31 +95,16 @@ export function ContactGroupChips({
 
         {upcoming_birthdays_count > 0 && (
           <button
-            aria-pressed={filter_by === "upcoming_birthdays" && !group_filter}
-            className={cn(
-              chip_base,
-              filter_by === "upcoming_birthdays" && !group_filter
-                ? chip_active
-                : chip_inactive,
-            )}
+            aria-pressed={is_birthday}
+            className="contact_chip"
             type="button"
             onClick={() => {
               on_set_group_filter(null);
-              set_filter_by(
-                filter_by === "upcoming_birthdays"
-                  ? "all"
-                  : "upcoming_birthdays",
-              );
+              set_filter_by(is_birthday ? "all" : "upcoming_birthdays");
             }}
           >
             {t("common.birthday")}
-            <span
-              className={
-                filter_by === "upcoming_birthdays" && !group_filter
-                  ? "opacity-80"
-                  : "text-txt-muted"
-              }
-            >
+            <span className="contact_chip_count">
               {format_number(upcoming_birthdays_count)}
             </span>
           </button>
@@ -137,7 +117,7 @@ export function ContactGroupChips({
             <button
               key={option}
               aria-pressed={is_active}
-              className={cn(chip_base, is_active ? chip_active : chip_inactive)}
+              className="contact_chip"
               type="button"
               onClick={() => {
                 on_set_group_filter(null);
@@ -149,6 +129,10 @@ export function ContactGroupChips({
           );
         })}
 
+        {groups.length > 0 && (
+          <span aria-hidden="true" className="contact_chip_divider" />
+        )}
+
         {groups.map((group) => {
           const is_active = group_filter === group.id;
 
@@ -156,19 +140,7 @@ export function ContactGroupChips({
             <button
               key={group.id}
               aria-pressed={is_active}
-              className={cn(
-                chip_base,
-                is_active ? "border-transparent" : chip_inactive,
-              )}
-              style={
-                is_active
-                  ? {
-                      backgroundColor: group.color,
-                      borderColor: group.color,
-                      color: get_contrast_text(group.color),
-                    }
-                  : undefined
-              }
+              className="contact_chip"
               type="button"
               onClick={() => {
                 set_filter_by("all");
@@ -177,24 +149,12 @@ export function ContactGroupChips({
             >
               <span
                 aria-hidden="true"
-                className={cn(
-                  "w-2 h-2 rounded-full flex-shrink-0",
-                  is_active && "opacity-70",
-                )}
-                style={{
-                  backgroundColor: is_active
-                    ? get_contrast_text(group.color)
-                    : group.color,
-                }}
+                className="contact_chip_dot"
+                style={{ backgroundColor: group.color }}
               />
               <span className="truncate max-w-[10rem]">{group.name}</span>
               {group.contact_count > 0 && (
-                <span
-                  className={cn(
-                    "tabular-nums",
-                    is_active ? "opacity-70" : "text-txt-muted",
-                  )}
-                >
+                <span className="contact_chip_count">
                   {format_number(group.contact_count)}
                 </span>
               )}
@@ -203,14 +163,11 @@ export function ContactGroupChips({
         })}
 
         <button
-          className={cn(
-            chip_base,
-            "bg-transparent border-transparent text-txt-muted hover:bg-surf-hover hover:text-txt-primary",
-          )}
+          className="contact_chip contact_chip_add"
           type="button"
           onClick={() => set_is_create_open(true)}
         >
-          <PlusIcon aria-hidden="true" className="w-3.5 h-3.5" />
+          <PlusIcon aria-hidden="true" className="h-3.5 w-3.5" />
           {t("common.new_group")}
         </button>
       </div>

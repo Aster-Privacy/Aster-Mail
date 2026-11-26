@@ -3514,7 +3514,7 @@ export const pt_br = {
     alias_pref_unsubscribe_block_contact: "Bloquear remetente",
     alias_pref_disabled_response: "Resposta a e-mails bloqueados",
     alias_pref_disabled_response_desc:
-      "O que o remetente vê quando o e-mail dele é descartado silenciosamente.",
+      "O que acontece quando um remetente bloqueado envia um e-mail para você ou quando alguém escreve para um alias ou endereço desativado.",
     alias_pref_disabled_ignore: "Ignorar silenciosamente",
     alias_pref_disabled_reject: "Rejeitar (devolver)",
     alias_pref_delete_action: "Ao excluir um alias",
@@ -3529,7 +3529,7 @@ export const pt_br = {
     alias_pref_unsubscribe_action_info:
       "O que acontece ao clicar no botão de cancelar inscrição em um e-mail encaminhado.",
     alias_pref_disabled_response_info:
-      "O que o remetente vê quando escreve para um alias desativado ou um contato bloqueado.",
+      "Se você escolher ignorar, o remetente não é avisado. O e-mail de um remetente bloqueado segue sua configuração de bloqueio, como ir para Spam, e o e-mail enviado para um alias ou endereço desativado é descartado. Se você escolher rejeitar, o e-mail é recusado e o remetente recebe um aviso de que ele não foi entregue.",
     alias_pref_delete_action_info:
       "Mover para a lixeira mantém os aliases excluídos recuperáveis por 30 dias. Excluir imediatamente os remove permanentemente.",
     alias_pref_delete_trash: "Mover para a lixeira",
@@ -3812,7 +3812,7 @@ export const pt_br = {
     fam_org_ret_trash: "Lixeira",
     fam_org_ret_trash_hint: "Excluir automaticamente os e-mails da Lixeira",
     fam_org_ret_trash_info:
-      "As mensagens na Lixeira com mais do que este número de dias são removidas permanentemente.",
+      "As mensagens são removidas permanentemente após este número de dias, contados a partir da mudança para a Lixeira.",
     fam_org_ret_spam: "Spam",
     fam_org_ret_spam_hint: "Excluir spam automaticamente (padrão de 30 dias)",
     fam_org_ret_spam_info:
@@ -8224,6 +8224,15 @@ export const pt_br = {
     remote_images_always: "Sempre",
     remote_images_ask: "Perguntar",
     remote_images_never: "Nunca",
+    image_cache_label: "Manter as imagens carregadas neste dispositivo",
+    image_cache_description: "Salva as imagens que você carrega, criptografadas neste dispositivo, para que abrir uma mensagem de novo não envie nada ao remetente.",
+    image_prefetch_label: "Carregar imagens quando o e-mail chega",
+    image_prefetch_description: "Busca as imagens pelo Aster assim que um novo e-mail chega a este dispositivo, para que os remetentes não saibam quando você o abre.",
+    image_prefetch_unavailable: "Disponível quando as imagens remotas carregam automaticamente e as imagens salvas estão ativadas.",
+    image_cache_clear_label: "Imagens salvas",
+    image_cache_clear_description: "Remove todas as imagens salvas neste dispositivo.",
+    image_cache_clear_button: "Limpar",
+    image_cache_cleared: "Imagens salvas removidas",
     tracking_protection_title: "Proteção contra rastreamento",
     tracking_protection_enabled: "Proteção contra rastreamento ativada",
     tracking_protection_enabled_description:
@@ -9566,7 +9575,7 @@ export const pt_br = {
       "Sua assinatura é grande demais para ser salva. Remova uma imagem ou encurte o texto.",
     auto_delete_trash_after: "Excluir a lixeira automaticamente após",
     auto_delete_trash_description:
-      "Os e-mails na Lixeira mais antigos que este período são excluídos permanentemente.",
+      "As mensagens são excluídas permanentemente depois desse período, contado a partir do momento em que você as move para a Lixeira.",
     retention_days_count: "{{ days }} dias",
     retention_180_days: "180 dias",
     retention_365_days: "365 dias",
@@ -9790,6 +9799,9 @@ export const pt_br = {
     empty_spam: "Esvaziar spam",
     report_phishing: "Reportar spam",
     not_spam: "Não é spam",
+    pending_send_failed: "Não foi possível enviar esta mensagem.",
+    pending_send_offline:
+      "Aguardando conexão. Esta mensagem será enviada quando você voltar a ficar online.",
     send_failed_title: "Esta mensagem não foi entregue.",
     send_failed_help: "Verifique o endereço e envie a mensagem novamente.",
     spam_reasons_title: "Esta mensagem foi movida para o spam",
@@ -10279,6 +10291,11 @@ export const pt_br = {
     spam_label: "Spam",
     attachment_chips_more: "+{{count}} mais",
     page_of_total: "Página {{current}} de {{total}}",
+    page_jump_newest: "Mais recentes",
+    page_jump_oldest: "Mais antigos",
+    page_jump_go_to: "Ir para a página",
+    page_jump_input: "Número da página",
+    page_jump_invalid: "Digite uma página de 1 a {{total}}",
     total_pages_label: "{{count}} páginas",
     total_pages_label_one: "{{count}} página",
     loading_preview: "Carregando pré-visualização…",
@@ -10374,11 +10391,11 @@ export const pt_br = {
     fonts: "fontes",
     stylesheet: "folha de estilo",
     trash_auto_delete_notice:
-      "As mensagens na Lixeira são excluídas após {{ days }} dias.",
+      "As mensagens são excluídas {{ days }} dias depois de irem para a Lixeira.",
     spam_auto_delete_notice:
       "As mensagens no Spam são excluídas após {{ days }} dias.",
     trash_auto_delete_notice_family:
-      "As mensagens na Lixeira são excluídas após {{ days }} dias, conforme definido pelo administrador da família.",
+      "As mensagens são excluídas {{ days }} dias depois de irem para a Lixeira, conforme definido pelo administrador da família.",
     spam_auto_delete_notice_family:
       "As mensagens no Spam são excluídas após {{ days }} dias, conforme definido pelo administrador da família.",
     insert_link_title: "Inserir link",
@@ -10660,6 +10677,9 @@ export const pt_br = {
     forward_message_heading: "Encaminhar mensagem",
   },
   auth: {
+    account_chooser_title: "Escolha uma conta",
+    account_chooser_body: "Este endereço não corresponde a nenhuma conta conectada neste dispositivo. Escolha uma conta para continuar.",
+    account_chooser_empty: "Nenhuma conta está conectada neste dispositivo.",
     continue_with_app: "Continuar com {{app}}",
     sibling_waiting: "Confirme o login na janela que foi aberta.",
     sibling_popup_blocked: "A janela de confirmação foi bloqueada. Permita pop-ups para este site e tente novamente.",
@@ -10958,6 +10978,8 @@ export const pt_br = {
       "Digite sua senha atual para manter suas chaves de criptografia e deixar seus e-mails legíveis. Se não souber, use um código de recuperação.",
     reset_current_password_required:
       "Digite sua senha atual ou use um código de recuperação.",
+    reset_legacy_login_salt:
+      "Para manter seus e-mails anteriores com sua senha atual, abra este link de redefinição em um dispositivo que você já usou com o Aster. Se não puder, use um código de recuperação.",
     reset_lost_everything:
       "Perdi minha senha e meus códigos de recuperação",
     reset_remember_password:
@@ -12987,6 +13009,9 @@ export const pt_br = {
     remote_image_loading: "imagens remotas, bloquear imagens remotas, carregar imagens, imagens externas, perguntar antes de carregar",
     block_remote_fonts_label: "bloquear fontes remotas, fontes externas, fontes da web",
     block_remote_css_label: "bloquear CSS remoto, folhas de estilo externas, estilos remotos",
+    image_cache_label: "cache de imagens, imagens salvas, manter imagens",
+    image_prefetch_label: "pré-carregar imagens, carregar imagens ao receber, rastreamento de abertura",
+    image_cache_clear_label: "apagar imagens salvas, limpar cache de imagens",
     strip_exif_on_compose_label: "remover metadados das imagens, EXIF, remoção de metadados, privacidade das imagens",
     send_error_reports_label: "enviar relatórios de erro, telemetria, diagnóstico, relatórios de falhas",
     prefer_plain_text_label: "preferir texto simples, versão em texto simples, alternativa em texto, multipart",

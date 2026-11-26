@@ -3527,7 +3527,7 @@ export const fr = {
     alias_pref_unsubscribe_block_contact: "Bloquer l'expéditeur",
     alias_pref_disabled_response: "Réponse aux e-mails bloqués",
     alias_pref_disabled_response_desc:
-      "Ce que voit l'expéditeur lorsque son e-mail est rejeté silencieusement.",
+      "Ce qui se passe lorsqu'un expéditeur bloqué vous écrit, ou lorsque quelqu'un écrit à un alias ou une adresse désactivés.",
     alias_pref_disabled_ignore: "Ignorer silencieusement",
     alias_pref_disabled_reject: "Rejeter (renvoyer)",
     alias_pref_delete_action: "Lors de la suppression d'un alias",
@@ -3542,7 +3542,7 @@ export const fr = {
     alias_pref_unsubscribe_action_info:
       "Ce qui se passe lorsque vous cliquez sur le bouton de désabonnement dans un e-mail redirigé.",
     alias_pref_disabled_response_info:
-      "Ce que voit l'expéditeur lorsqu'il écrit à un alias désactivé ou à un contact bloqué.",
+      "Si vous choisissez d'ignorer, l'expéditeur n'est informé de rien. Les e-mails d'un expéditeur bloqué suivent votre réglage de blocage, comme le déplacement vers le dossier Spam, et les e-mails envoyés à un alias ou une adresse désactivés sont supprimés. Si vous choisissez de rejeter, l'e-mail est refusé et l'expéditeur reçoit un avis indiquant qu'il n'a pas été distribué.",
     alias_pref_delete_action_info:
       "Mettre à la corbeille garde les alias supprimés récupérables pendant 30 jours. Supprimer immédiatement les retire définitivement.",
     alias_pref_delete_trash: "Mettre à la corbeille",
@@ -3830,7 +3830,7 @@ export const fr = {
     fam_org_ret_trash_hint:
       "Supprimer automatiquement le courrier de la corbeille",
     fam_org_ret_trash_info:
-      "Les messages dans la corbeille plus anciens que ce nombre de jours sont définitivement supprimés.",
+      "Les messages sont définitivement supprimés ce nombre de jours après leur placement dans la corbeille.",
     fam_org_ret_spam: "Indésirables",
     fam_org_ret_spam_hint:
       "Supprimer automatiquement les indésirables (par défaut 30 jours)",
@@ -6674,7 +6674,7 @@ export const fr = {
     auto_delete_spam_after: "Supprimer automatiquement le spam après",
     auto_delete_trash_after: "Supprimer automatiquement la corbeille après",
     auto_delete_trash_description:
-      "Les e-mails de la Corbeille plus anciens que cette durée sont définitivement supprimés.",
+      "Les messages sont définitivement supprimés une fois cette durée écoulée après leur placement dans la Corbeille.",
     spam_delete_hint:
       "Les e-mails indésirables plus anciens que cette période seront définitivement supprimés",
     save_changes: "Enregistrer les modifications",
@@ -9085,6 +9085,15 @@ export const fr = {
     remote_images_always: "Toujours charger",
     remote_images_ask: "Demander",
     remote_images_never: "Ne jamais charger",
+    image_cache_label: "Conserver les images chargées sur cet appareil",
+    image_cache_description: "Enregistre les images que vous chargez, chiffrées sur cet appareil, pour qu'une nouvelle ouverture du message n'envoie rien à l'expéditeur.",
+    image_prefetch_label: "Charger les images à l'arrivée du courrier",
+    image_prefetch_description: "Récupère les images via Aster dès que le nouveau courrier arrive sur cet appareil, pour que les expéditeurs ne sachent pas quand vous l'ouvrez.",
+    image_prefetch_unavailable: "Disponible lorsque les images distantes se chargent automatiquement et que les images enregistrées sont activées.",
+    image_cache_clear_label: "Images enregistrées",
+    image_cache_clear_description: "Supprime toutes les images enregistrées sur cet appareil.",
+    image_cache_clear_button: "Effacer",
+    image_cache_cleared: "Images enregistrées effacées",
     remove_key: "Supprimer la clé",
     rotate_dkim_description:
       "Générez une nouvelle clé de signature DKIM. Cela crée un nouvel enregistrement DNS sur un nouveau nom d'hôte, que vous devez publier auprès de votre registraire.",
@@ -9857,6 +9866,9 @@ export const fr = {
     empty_spam: "Vider les indésirables",
     report_phishing: "Signaler le spam",
     not_spam: "Non indésirable",
+    pending_send_failed: "Impossible d’envoyer ce message.",
+    pending_send_offline:
+      "En attente de connexion. Ce message sera envoyé dès que vous serez de nouveau en ligne.",
     send_failed_title: "Ce message n’a pas été remis.",
     send_failed_help: "Vérifiez l’adresse, puis envoyez à nouveau le message.",
     spam_reasons_title: "Ce message a été déplacé vers les indésirables",
@@ -10384,6 +10396,11 @@ export const fr = {
     spam_label: "Indésirable",
     attachment_chips_more: "+{{count}} de plus",
     page_of_total: "Page {{current}} sur {{total}}",
+    page_jump_newest: "Plus récents",
+    page_jump_oldest: "Plus anciens",
+    page_jump_go_to: "Aller à la page",
+    page_jump_input: "Numéro de page",
+    page_jump_invalid: "Saisissez une page de 1 à {{total}}",
     total_pages_label: "{{count}} pages",
     total_pages_label_one: "{{count}} page",
     loading_preview: "Chargement de l'aperçu…",
@@ -10671,7 +10688,7 @@ export const fr = {
     spam_auto_delete_notice:
       "Les messages du dossier Indésirables sont supprimés après {{ days }} jours.",
     trash_auto_delete_notice_family:
-      "Les messages de la Corbeille sont supprimés après {{ days }} jours, selon le réglage de l'administrateur de la famille.",
+      "Les messages sont supprimés {{ days }} jours après leur placement dans la Corbeille, selon le réglage de l'administrateur de la famille.",
     spam_auto_delete_notice_family:
       "Les messages du dossier Indésirables sont supprimés après {{ days }} jours, selon le réglage de l'administrateur de la famille.",
     spy_pixels_blocked: "Pixels espions bloqués",
@@ -10686,7 +10703,7 @@ export const fr = {
     trackers: "Traqueurs",
     tracking_protection: "Protection contre le suivi",
     trash_auto_delete_notice:
-      "Les messages de la Corbeille sont supprimés après {{ days }} jours.",
+      "Les messages sont supprimés {{ days }} jours après leur placement dans la Corbeille.",
     try_adjusting_filters: "Essayez d'ajuster vos filtres",
     url_label: "URL",
     official_sender: "Adresse officielle Aster",
@@ -10738,6 +10755,9 @@ export const fr = {
       "Vous déplacez souvent les messages de {{sender}} vers {{category}}. Voulez-vous le faire automatiquement ?",
   },
   auth: {
+    account_chooser_title: "Choisissez un compte",
+    account_chooser_body: "Cette adresse ne correspond à aucun compte connecté sur cet appareil. Choisissez un compte pour continuer.",
+    account_chooser_empty: "Aucun compte n'est connecté sur cet appareil.",
     continue_with_app: "Continuer avec {{app}}",
     sibling_waiting: "Confirmez la connexion dans la fenêtre qui s'est ouverte.",
     sibling_popup_blocked: "La fenêtre de confirmation a été bloquée. Autorisez les fenêtres pop-up pour ce site, puis réessayez.",
@@ -11053,6 +11073,8 @@ export const fr = {
       "Saisissez votre mot de passe actuel pour conserver vos clés de chiffrement et garder vos e-mails lisibles. Si vous ne le connaissez pas, utilisez plutôt un code de récupération.",
     reset_current_password_required:
       "Saisissez votre mot de passe actuel ou utilisez plutôt un code de récupération.",
+    reset_legacy_login_salt:
+      "Pour conserver vos anciens e-mails avec votre mot de passe actuel, ouvrez ce lien de réinitialisation sur un appareil que vous avez déjà utilisé avec Aster. Si ce n'est pas possible, utilisez plutôt un code de récupération.",
     reset_lost_everything:
       "J'ai perdu mon mot de passe et mes codes de récupération",
     reset_remember_password:
@@ -13081,6 +13103,9 @@ export const fr = {
     remote_image_loading: "Chargement des images distantes, bloquer les images distantes, charger les images, images externes, demander avant de charger",
     block_remote_fonts_label: "Bloquer les polices distantes, polices externes, polices web",
     block_remote_css_label: "Bloquer le CSS distant, feuilles de style externes, styles distants",
+    image_cache_label: "cache d'images, images enregistrées, conserver les images",
+    image_prefetch_label: "précharger les images, charger les images à la réception, suivi d'ouverture",
+    image_cache_clear_label: "effacer les images enregistrées, vider le cache d'images",
     strip_exif_on_compose_label: "Supprimer les métadonnées des images, EXIF, suppression des métadonnées, confidentialité des images",
     send_error_reports_label: "Envoyer les rapports d'erreur, télémétrie, diagnostics, rapports de plantage",
     prefer_plain_text_label: "Préférer le texte brut, version texte, alternative texte, multipart",

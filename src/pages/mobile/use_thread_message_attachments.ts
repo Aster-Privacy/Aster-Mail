@@ -65,6 +65,7 @@ export function use_thread_message_attachments(
   fallback_filename: string,
   body_html?: string,
   decrypted_content_tag?: string,
+  is_own_message = false,
 ): MobileThreadAttachment[] {
   const [attachments, set_attachments] = useState<ThreadAttachment[]>(() => {
     if (!enabled) return [];
@@ -109,8 +110,11 @@ export function use_thread_message_attachments(
   }, [mail_item_id, enabled, fallback_filename]);
 
   const inline_refs = useMemo(
-    () => (body_html ? extract_body_inline_refs(body_html) : undefined),
-    [body_html],
+    () =>
+      body_html
+        ? extract_body_inline_refs(body_html, is_own_message)
+        : undefined,
+    [body_html, is_own_message],
   );
 
   const decrypted_parts = useSyncExternalStore(

@@ -3510,6 +3510,15 @@ export const hi = {
     remote_images_always: "हमेशा लोड करें",
     remote_images_ask: "लोड करने से पहले पूछें",
     remote_images_never: "कभी लोड न करें",
+    image_cache_label: "लोड की गई तस्वीरें इस डिवाइस पर रखें",
+    image_cache_description: "आपकी लोड की गई तस्वीरें इस डिवाइस पर एन्क्रिप्ट करके सहेजता है, ताकि संदेश दोबारा खोलने पर भेजने वाले को कुछ न भेजा जाए।",
+    image_prefetch_label: "मेल आने पर तस्वीरें लोड करें",
+    image_prefetch_description: "नया मेल इस डिवाइस पर पहुंचते ही Aster के ज़रिए तस्वीरें लाता है, ताकि भेजने वालों को पता न चले कि आपने उसे कब खोला।",
+    image_prefetch_unavailable: "तब उपलब्ध, जब बाहरी तस्वीरें अपने आप लोड होती हैं और तस्वीरें सहेजना चालू है।",
+    image_cache_clear_label: "सहेजी गई तस्वीरें",
+    image_cache_clear_description: "इस डिवाइस पर सहेजी गई सभी तस्वीरें हटाता है।",
+    image_cache_clear_button: "साफ़ करें",
+    image_cache_cleared: "सहेजी गई तस्वीरें साफ़ की गईं",
     tracking_protection_title: "ट्रैकिंग सुरक्षा",
     tracking_protection_enabled: "ट्रैकिंग सुरक्षा चालू करें",
     tracking_protection_enabled_description:
@@ -4789,7 +4798,7 @@ export const hi = {
     fam_org_ret_trash: "ट्रैश",
     fam_org_ret_trash_hint: "ट्रैश की मेल अपने आप हटाएं",
     fam_org_ret_trash_info:
-      "ट्रैश में इतने दिनों से पुराने संदेश हमेशा के लिए हटा दिए जाते हैं।",
+      "संदेश ट्रैश में जाने के इतने दिन बाद हमेशा के लिए हटा दिए जाते हैं।",
     fam_org_ret_spam: "स्पैम",
     fam_org_ret_spam_hint: "स्पैम अपने आप हटाएं (डिफ़ॉल्ट 30 दिन)",
     fam_org_ret_spam_info:
@@ -8055,7 +8064,7 @@ export const hi = {
     auto_delete_spam_after: "इतने समय बाद स्पैम अपने आप हटाएं",
     auto_delete_trash_after: "इतने समय बाद ट्रैश अपने आप हटाएं",
     auto_delete_trash_description:
-      "ट्रैश में इससे पुराने ईमेल हमेशा के लिए हटा दिए जाते हैं।",
+      "ईमेल को ट्रैश में ले जाने के बाद इतना समय बीतने पर वे हमेशा के लिए हटा दिए जाते हैं।",
     auto_delete_spam_description:
       "इससे पुराने स्पैम ईमेल हमेशा के लिए हटा दिए जाएंगे।",
     spam_delete_hint: "इससे पुरानी स्पैम ईमेल हमेशा के लिए हटा दी जाएंगी",
@@ -9113,7 +9122,7 @@ export const hi = {
     alias_pref_unsubscribe_block_contact: "प्रेषक को ब्लॉक करें",
     alias_pref_disabled_response: "रोके गए मेल का जवाब",
     alias_pref_disabled_response_desc:
-      "जब उनका मेल चुपचाप हटा दिया जाता है तो प्रेषक को क्या दिखता है।",
+      "जब कोई ब्लॉक किया गया प्रेषक आपको ईमेल करता है, या कोई बंद एलियास या पते पर ईमेल करता है, तब क्या होता है।",
     alias_pref_disabled_ignore: "चुपचाप अनदेखा करें",
     alias_pref_disabled_reject: "अस्वीकार करें (वापस भेजें)",
     alias_pref_delete_action: "एलियास हटाते समय",
@@ -9128,7 +9137,7 @@ export const hi = {
     alias_pref_unsubscribe_action_info:
       "फ़ॉरवर्ड किए गए ईमेल में सदस्यता छोड़ें बटन दबाने पर क्या होता है।",
     alias_pref_disabled_response_info:
-      "जब वे किसी बंद एलियास या ब्लॉक किए गए संपर्क को ईमेल करते हैं तो प्रेषक को क्या दिखता है।",
+      "अगर आप अनदेखा करना चुनते हैं, तो प्रेषक को कुछ नहीं बताया जाता। ब्लॉक किए गए प्रेषक का मेल आपकी ब्लॉक सेटिंग के अनुसार चलता है, जैसे स्पैम में जाना, और बंद एलियास या पते पर आया मेल हटा दिया जाता है। अगर आप अस्वीकार करना चुनते हैं, तो मेल अस्वीकार कर दिया जाता है और प्रेषक को सूचना मिलती है कि वह डिलीवर नहीं हुआ।",
     alias_pref_delete_action_info:
       "ट्रैश में ले जाने पर हटाए गए एलियास 30 दिन तक वापस पाए जा सकते हैं। तुरंत हटाने पर वे हमेशा के लिए मिट जाते हैं।",
     alias_pref_delete_trash: "ट्रैश में ले जाएं",
@@ -9488,6 +9497,11 @@ export const hi = {
     attachments: "अटैचमेंट",
     attachment_chips_more: "+{{count}} और",
     page_of_total: "पेज {{current}}, कुल {{total}} में से",
+    page_jump_newest: "सबसे नए",
+    page_jump_oldest: "सबसे पुराने",
+    page_jump_go_to: "पेज पर जाएं",
+    page_jump_input: "पेज नंबर",
+    page_jump_invalid: "1 से {{total}} तक का पेज नंबर दर्ज करें",
     total_pages_label: "{{count}} पेज",
     total_pages_label_one: "{{count}} पेज",
     loading_preview: "झलक लोड हो रही है…",
@@ -9592,6 +9606,9 @@ export const hi = {
     empty_spam: "स्पैम खाली करें",
     report_phishing: "स्पैम की शिकायत करें",
     not_spam: "स्पैम नहीं",
+    pending_send_failed: "यह संदेश भेजा नहीं जा सका.",
+    pending_send_offline:
+      "कनेक्शन की प्रतीक्षा की जा रही है. आपके वापस ऑनलाइन होते ही यह संदेश भेज दिया जाएगा.",
     send_failed_title: "यह संदेश डिलीवर नहीं हुआ.",
     send_failed_help: "पता जांचें, फिर संदेश दोबारा भेजें.",
     spam_reasons_title: "यह संदेश स्पैम में ले जाया गया",
@@ -9699,11 +9716,11 @@ export const hi = {
     archive_subtitle: "इनबॉक्स साफ़ रखने के लिए ईमेल आर्काइव करें",
     trash_subtitle: "हटाए गए ईमेल यहां दिखेंगे",
     trash_auto_delete_notice:
-      "ट्रैश में मौजूद मैसेज {{ days }} दिन बाद हटा दिए जाते हैं।",
+      "मैसेज ट्रैश में जाने के {{ days }} दिन बाद हटा दिए जाते हैं।",
     spam_auto_delete_notice:
       "स्पैम में मौजूद मैसेज {{ days }} दिन बाद हटा दिए जाते हैं।",
     trash_auto_delete_notice_family:
-      "ट्रैश में मौजूद मैसेज {{ days }} दिन बाद हटा दिए जाते हैं, जैसा फ़ैमिली एडमिन ने तय किया है।",
+      "मैसेज ट्रैश में जाने के {{ days }} दिन बाद हटा दिए जाते हैं, जैसा फ़ैमिली एडमिन ने तय किया है।",
     spam_auto_delete_notice_family:
       "स्पैम में मौजूद मैसेज {{ days }} दिन बाद हटा दिए जाते हैं, जैसा फ़ैमिली एडमिन ने तय किया है।",
     compose_email: "ईमेल लिखें",
@@ -10415,6 +10432,9 @@ export const hi = {
       "आप बार-बार {{sender}} का मेल {{category}} में ले जा रहे हैं। इसे अपने आप करें?",
   },
   auth: {
+    account_chooser_title: "खाता चुनें",
+    account_chooser_body: "यह पता इस डिवाइस पर साइन इन किए गए किसी भी खाते से मेल नहीं खाता। जारी रखने के लिए कोई खाता चुनें।",
+    account_chooser_empty: "इस डिवाइस पर कोई खाता साइन इन नहीं है।",
     continue_with_app: "{{app}} के साथ जारी रखें",
     sibling_waiting: "खुली हुई विंडो में साइन-इन की पुष्टि करें।",
     sibling_popup_blocked: "पुष्टि विंडो ब्लॉक हो गई। इस साइट के लिए पॉप-अप की अनुमति दें, फिर दोबारा कोशिश करें।",
@@ -10849,6 +10869,8 @@ export const hi = {
       "अपना मौजूदा पासवर्ड डालें, ताकि आपकी एन्क्रिप्शन कुंजियां वही रहें और आपका मेल पढ़ा जा सके। अगर आपको यह नहीं पता, तो इसके बजाय रिकवरी कोड इस्तेमाल करें।",
     reset_current_password_required:
       "अपना मौजूदा पासवर्ड डालें, या इसके बजाय रिकवरी कोड इस्तेमाल करें।",
+    reset_legacy_login_salt:
+      "अपने मौजूदा पासवर्ड से पहले के ईमेल रखने के लिए, यह रीसेट लिंक ऐसे डिवाइस पर खोलें जिस पर आपने पहले Aster इस्तेमाल किया है। अगर ऐसा नहीं हो सकता, तो इसके बजाय रिकवरी कोड इस्तेमाल करें।",
     reset_lost_everything:
       "मेरा पासवर्ड और रिकवरी कोड खो गए हैं",
     reset_remember_password:
@@ -12701,6 +12723,9 @@ export const hi = {
     remote_image_loading: "रिमोट इमेज लोडिंग, रिमोट तस्वीरें ब्लॉक, तस्वीरें लोड करें, बाहरी तस्वीरें, लोड करने से पहले पूछें",
     block_remote_fonts_label: "रिमोट फ़ॉन्ट ब्लॉक करें, बाहरी फ़ॉन्ट, वेब फ़ॉन्ट",
     block_remote_css_label: "रिमोट CSS ब्लॉक करें, बाहरी स्टाइलशीट, रिमोट स्टाइल",
+    image_cache_label: "इमेज कैश, सहेजी गई इमेज, इमेज रखें",
+    image_prefetch_label: "इमेज पहले से लोड करें, मेल आने पर इमेज लोड करें, ओपन ट्रैकिंग",
+    image_cache_clear_label: "सहेजी गई इमेज साफ़ करें, इमेज कैश हटाएं",
     strip_exif_on_compose_label: "तस्वीर का मेटाडेटा हटाएं, exif, मेटाडेटा हटाना, तस्वीर गोपनीयता",
     send_error_reports_label: "त्रुटि रिपोर्ट भेजें, टेलीमेट्री, डायग्नोस्टिक्स, क्रैश रिपोर्ट",
     prefer_plain_text_label: "सादा टेक्स्ट पसंद करें, सादा टेक्स्ट वर्शन, टेक्स्ट विकल्प, multipart",

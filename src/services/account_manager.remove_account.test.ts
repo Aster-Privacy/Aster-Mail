@@ -54,6 +54,7 @@ vi.mock("@/services/search_index_store", () => ({
 
 vi.mock("@/services/api/preferences", () => ({
   clear_preferences_cache: vi.fn(() => undefined),
+  forget_account_preferences_cache: vi.fn(() => undefined),
 }));
 
 vi.mock("@/services/contact_email_index", () => ({

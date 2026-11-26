@@ -24,7 +24,22 @@ import {
 } from "@/services/crypto/secure_storage";
 import { api_client } from "@/services/api/client";
 import { is_tauri_env } from "@/services/api/client/helpers";
-import { write_account_index_hint } from "@/lib/account_index_url";
+import {
+  app_pathname,
+  get_active_account_index,
+  is_public_entry_path,
+  is_signed_in_entry_path,
+} from "@/lib/account_index_url";
+import {
+  bind_tab_account,
+  choose_tab_account,
+  forget_cookie_owner,
+  get_tab_account_id,
+  navigation_restores_tab,
+  note_cookie_owner,
+  read_tab_account_binding,
+  set_account_choice_required,
+} from "@/lib/tab_account";
 import { get_active_translations } from "@/lib/i18n/translations";
 import { ignore_error } from "@/lib/ignore_error";
 import { clear_expanded_folders } from "@/services/expanded_folders_store";
@@ -55,6 +70,12 @@ async function clear_offline_email_cache(
   await import("@/services/calendar/sync_engine")
     .then((module) => module.clear_calendar_sync_state(removed_account_id))
     .catch(() => undefined);
+
+  if (removed_account_id) {
+    await import("@/lib/remote_image_cache")
+      .then((module) => module.clear_remote_image_cache(removed_account_id))
+      .catch(() => undefined);
+  }
 
   try {
     const { clear_search_snapshots } = await import(
@@ -241,6 +262,7 @@ if (typeof window !== "undefined") {
     if (load_failure === "unavailable") return;
 
     cached_data = null;
+    forget_cookie_owner();
     window.dispatchEvent(new CustomEvent(ACCOUNTS_CHANGED_EVENT));
   });
 }
@@ -343,11 +365,7 @@ async function get_accounts_data_async(): Promise<AccountsData> {
       last_load_failed = false;
       load_failure = "none";
 
-      const current_index = data.accounts.findIndex(
-        (a) => a.id === data.current_account_id,
-      );
-
-      if (current_index !== -1) write_account_index_hint(current_index);
+      note_cookie_owner(data.current_account_id);
 
       if (merged || repaired) {
         try {
@@ -430,11 +448,7 @@ export function serialize_account_write<T>(
 }
 
 async function save_accounts_data(data: AccountsData): Promise<void> {
-  const current_index = data.accounts.findIndex(
-    (a) => a.id === data.current_account_id,
-  );
-
-  write_account_index_hint(current_index === -1 ? 0 : current_index);
+  note_cookie_owner(data.current_account_id);
 
   if (load_failure === "unavailable") {
     session_roster = data;
@@ -504,18 +518,66 @@ export async function get_all_accounts(): Promise<StoredAccount[]> {
   return data.accounts;
 }
 
+function tab_routing_index(): number | null {
+  return get_active_account_index();
+}
+
+function resolve_tab_current_id(data: AccountsData): string | null {
+  const url_index = tab_routing_index();
+
+  if (url_index === null) return data.current_account_id;
+
+  const bound = get_tab_account_id();
+
+  if (bound !== null) {
+    return data.accounts.some((a) => a.id === bound) ? bound : null;
+  }
+
+  const entry_path = app_pathname();
+
+  if (is_public_entry_path(entry_path) && !is_signed_in_entry_path(entry_path)) {
+    return null;
+  }
+
+  const choice = choose_tab_account(
+    data.accounts.map((a) => a.id),
+    url_index,
+    read_tab_account_binding(),
+    navigation_restores_tab(),
+  );
+
+  if (choice.kind === "bound") {
+    bind_tab_account(choice.id, choice.index);
+
+    return choice.id;
+  }
+
+  if (choice.kind === "invalid_index") set_account_choice_required(true);
+
+  return null;
+}
+
+function bind_tab_to(data: AccountsData, account_id: string): void {
+  if (tab_routing_index() === null) return;
+
+  const index = data.accounts.findIndex((a) => a.id === account_id);
+
+  if (index !== -1) bind_tab_account(account_id, index);
+}
+
 export async function get_current_account(): Promise<StoredAccount | null> {
   const data = await get_accounts_data_async();
+  const current_id = resolve_tab_current_id(data);
 
-  if (!data.current_account_id) return null;
+  if (!current_id) return null;
 
-  return data.accounts.find((a) => a.id === data.current_account_id) || null;
+  return data.accounts.find((a) => a.id === current_id) || null;
 }
 
 export async function get_current_account_id(): Promise<string | null> {
   const data = await get_accounts_data_async();
 
-  return data.current_account_id;
+  return resolve_tab_current_id(data);
 }
 
 export async function get_account_count(): Promise<number> {
@@ -613,8 +675,10 @@ export async function repair_stale_plan_flags(): Promise<boolean> {
     const data = await get_accounts_data_async();
     let changed = false;
 
+    const current_id = resolve_tab_current_id(data);
+
     for (const account of data.accounts) {
-      if (account.id === data.current_account_id) continue;
+      if (account.id === current_id) continue;
       if (account.user.is_paid_plan !== true) continue;
 
       account.user = { ...account.user, is_paid_plan: false };
@@ -641,6 +705,7 @@ export async function add_account(
       existing.user = merge_user(existing.user, user);
       data.current_account_id = user.id;
       await save_accounts_data(data);
+      bind_tab_to(data, user.id);
 
       return { success: true };
     }
@@ -672,6 +737,7 @@ export async function add_account(
     data.accounts.push(new_account);
     data.current_account_id = user.id;
     await save_accounts_data(data);
+    bind_tab_to(data, user.id);
 
     return { success: true };
   });
@@ -704,10 +770,12 @@ export async function remove_stale_shared_accounts(
   return serialize_account_write(async () => {
     const data = await get_accounts_data_async();
     const granted = new Set(granted_ids);
+    const current_id = resolve_tab_current_id(data);
     const stale = data.accounts.filter(
       (a) =>
         a.kind === "shared" &&
         !granted.has(a.id) &&
+        a.id !== current_id &&
         a.id !== data.current_account_id,
     );
 
@@ -753,14 +821,16 @@ function clear_account_scoped_local_keys(): void {
   }
 }
 
-async function clear_account_scoped_preferences_cache(): Promise<void> {
+async function clear_account_scoped_preferences_cache(
+  removed_account_id?: string,
+): Promise<void> {
   clear_account_scoped_local_keys();
   try {
-    const { clear_preferences_cache } = await import(
-      "@/services/api/preferences"
-    );
+    const { clear_preferences_cache, forget_account_preferences_cache } =
+      await import("@/services/api/preferences");
 
     clear_preferences_cache();
+    if (removed_account_id) forget_account_preferences_cache(removed_account_id);
   } catch {
     return;
   }
@@ -789,6 +859,7 @@ export async function switch_account(
 
     data.current_account_id = account_id;
     await save_accounts_data(data);
+    bind_tab_to(data, account_id);
 
     return found;
   });
@@ -865,7 +936,7 @@ export async function remove_account(
   clear_expanded_folders(account_id);
   clear_expanded_tags(account_id);
   await clear_offline_email_cache(account_id);
-  await clear_account_scoped_preferences_cache();
+  await clear_account_scoped_preferences_cache(account_id);
   await clear_account_scoped_contact_index();
 
   return { removed: true, switched_to };
@@ -1071,7 +1142,9 @@ export async function logout_all(): Promise<void> {
 export async function get_other_accounts(): Promise<StoredAccount[]> {
   const data = await get_accounts_data_async();
 
-  return data.accounts.filter((a) => a.id !== data.current_account_id);
+  const current_id = resolve_tab_current_id(data);
+
+  return data.accounts.filter((a) => a.id !== current_id);
 }
 
 export function clear_cache(): void {

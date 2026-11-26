@@ -43,11 +43,21 @@ const { MAX_SERVER_FAILURES, b64, from_b64, state } = vi.hoisted(() => ({
     native_restores: [] as string[],
     active_account: null as string | null,
     delete_fails: false,
+    cleared_lists: [] as string[],
+    cleared_images: [] as string[],
   },
 }));
 
 vi.mock("@/services/offline_email_cache", () => ({
-  clear_account_list_cache: async () => undefined,
+  clear_account_list_cache: async (account_id: string) => {
+    state.cleared_lists.push(account_id);
+  },
+}));
+
+vi.mock("@/lib/remote_image_cache", () => ({
+  clear_remote_image_cache: async (account_id: string) => {
+    state.cleared_images.push(account_id);
+  },
 }));
 
 vi.mock("@/services/crypto/encrypted_drafts", () => ({
@@ -239,6 +249,7 @@ import {
   attempt_app_unlock,
   convert_to_unwrapped,
   flush_pending_app_lock_deletes,
+  lock_server_wrapped_session,
   pending_app_lock_deletes,
   release_app_lock,
   remove_app_lock,
@@ -321,6 +332,8 @@ describe("server-held app lock", { timeout: 30000 }, () => {
     state.native_restores = [];
     state.active_account = ACCOUNT;
     state.delete_fails = false;
+    state.cleared_lists = [];
+    state.cleared_images = [];
     forget_all_unlocked_locks();
     clear_all_app_lock_data();
     localStorage.clear();
@@ -386,6 +399,17 @@ describe("server-held app lock", { timeout: 30000 }, () => {
     expect(get_unlocked_key(ACCOUNT)).toBeNull();
     expect(state.memory_passphrase).toBeNull();
     expect(is_session_unlocked(ACCOUNT)).toBe(false);
+  });
+
+  it("drops saved images and mail lists from the device on lock", async () => {
+    await set_up_wrapped_lock();
+    await attempt_app_unlock(ACCOUNT, REGULAR);
+    state.cleared_lists = [];
+    state.cleared_images = [];
+
+    expect(await lock_server_wrapped_session(ACCOUNT)).toBe(true);
+    expect(state.cleared_lists).toEqual([ACCOUNT]);
+    expect(state.cleared_images).toEqual([ACCOUNT]);
   });
 
   it("does not release the passphrase when the server can't be reached", async () => {

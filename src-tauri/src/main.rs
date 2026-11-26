@@ -44,6 +44,7 @@ mod launch_at_login;
 #[cfg(all(unix, not(target_os = "macos")))]
 mod linux_rendering;
 mod mail_notification;
+mod package_managed;
 mod translation_assets;
 mod window_fit;
 
@@ -727,6 +728,7 @@ fn main() {
 
     #[cfg(all(unix, not(target_os = "macos")))]
     let builder = builder.plugin(flatpak::init());
+    let builder = builder.plugin(package_managed::init());
 
     builder
         .plugin(tauri_plugin_deep_link::init())

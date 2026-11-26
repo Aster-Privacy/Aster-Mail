@@ -59,6 +59,7 @@ import {
   drop_sender_verification,
   resolve_inline_pgp_sender_keys,
   settle_sender_verification,
+  verify_with_sender_key_history,
 } from "@/services/crypto/sender_verification";
 import { derive_public_keys_from_private } from "@/services/crypto/key_manager_pgp_messages";
 import {
@@ -609,12 +610,17 @@ export async function decrypt_mail_envelope<T = DecryptedEnvelope>(
             );
 
             if (sender_keys.length > 0) {
-              const verified_pass = await first_pass.verify(sender_keys);
+              const sender_email = parsed.from.email;
+              const verification = await verify_with_sender_key_history(
+                sender_email,
+                sender_keys,
+                async (keys) => (await first_pass.verify(keys)).verification,
+              );
 
               parsed.sender_verification = await settle_sender_verification(
-                parsed.from.email,
+                sender_email,
                 sender_keys,
-                verified_pass.verification,
+                verification,
                 async () => {
                   const own_keys =
                     await derive_public_keys_from_private(envelope_keys);

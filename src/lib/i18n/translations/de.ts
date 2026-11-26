@@ -3508,7 +3508,7 @@ export const de = {
     alias_pref_unsubscribe_block_contact: "Absender blockieren",
     alias_pref_disabled_response: "Antwort auf blockierte Mails",
     alias_pref_disabled_response_desc:
-      "Was der Absender sieht, wenn seine Mail stillschweigend verworfen wird.",
+      "Was passiert, wenn Ihnen ein blockierter Absender schreibt oder jemand an einen deaktivierten Alias oder eine deaktivierte Adresse schreibt.",
     alias_pref_disabled_ignore: "Stillschweigend ignorieren",
     alias_pref_disabled_reject: "Ablehnen (Bounce)",
     alias_pref_delete_action: "Beim Löschen eines Alias",
@@ -3523,7 +3523,7 @@ export const de = {
     alias_pref_unsubscribe_action_info:
       "Was passiert, wenn Sie in einer weitergeleiteten E-Mail auf die Abmelden-Schaltfläche klicken.",
     alias_pref_disabled_response_info:
-      "Was der Absender sieht, wenn er an einen deaktivierten Alias oder einen blockierten Kontakt schreibt.",
+      "Wenn Sie Ignorieren wählen, erfährt der Absender nichts. E-Mails von blockierten Absendern folgen Ihrer Blockierungseinstellung, etwa dem Verschieben in den Spam, und E-Mails an einen deaktivierten Alias oder eine deaktivierte Adresse werden verworfen. Wenn Sie Ablehnen wählen, wird die E-Mail abgewiesen und der Absender erhält eine Nachricht, dass sie nicht zugestellt wurde.",
     alias_pref_delete_action_info:
       "Beim Verschieben in den Papierkorb bleiben gelöschte Aliase 30 Tage wiederherstellbar. Sofort löschen entfernt sie dauerhaft.",
     alias_pref_delete_trash: "In den Papierkorb verschieben",
@@ -3816,7 +3816,7 @@ export const de = {
     fam_org_ret_trash: "Papierkorb",
     fam_org_ret_trash_hint: "Gelöschte E-Mails automatisch entfernen",
     fam_org_ret_trash_info:
-      "Nachrichten im Papierkorb, die älter als diese Anzahl an Tagen sind, werden dauerhaft entfernt.",
+      "Nachrichten werden so viele Tage nach dem Verschieben in den Papierkorb dauerhaft entfernt.",
     fam_org_ret_spam: "Spam",
     fam_org_ret_spam_hint: "Spam automatisch löschen (Standard 30 Tage)",
     fam_org_ret_spam_info:
@@ -6463,7 +6463,7 @@ export const de = {
     auto_delete_spam_after: "Spam automatisch löschen nach",
     auto_delete_trash_after: "Papierkorb automatisch löschen nach",
     auto_delete_trash_description:
-      "E-Mails im Papierkorb, die älter als dieser Zeitraum sind, werden dauerhaft gelöscht.",
+      "Nachrichten werden diese Zeit nach dem Verschieben in den Papierkorb dauerhaft gelöscht.",
     save_changes: "Änderungen speichern",
     spam_low: "Niedrig",
     spam_low_description: "Nur offensichtlicher Spam wird gefiltert",
@@ -8943,6 +8943,15 @@ export const de = {
     remote_images_always: "Immer laden",
     remote_images_ask: "Vor dem Laden fragen",
     remote_images_never: "Nie laden",
+    image_cache_label: "Geladene Bilder auf diesem Gerät behalten",
+    image_cache_description: "Speichert geladene Bilder verschlüsselt auf diesem Gerät, damit beim erneuten Öffnen einer Nachricht nichts an den Absender gesendet wird.",
+    image_prefetch_label: "Bilder beim Eintreffen von E-Mails laden",
+    image_prefetch_description: "Lädt Bilder über Aster, sobald neue E-Mails dieses Gerät erreichen, damit Absender nicht erkennen, wann Sie sie öffnen.",
+    image_prefetch_unavailable: "Verfügbar, wenn externe Bilder automatisch geladen werden und gespeicherte Bilder aktiviert sind.",
+    image_cache_clear_label: "Gespeicherte Bilder",
+    image_cache_clear_description: "Entfernt alle auf diesem Gerät gespeicherten Bilder.",
+    image_cache_clear_button: "Löschen",
+    image_cache_cleared: "Gespeicherte Bilder gelöscht",
     remove_key: "Schlüssel entfernen",
     rotate_dkim_description:
       "Generieren Sie einen neuen DKIM-Signierschlüssel. Dies erstellt einen neuen DNS-Eintrag mit einem neuen Hostnamen, den Sie bei Ihrem Registrar veröffentlichen müssen.",
@@ -9846,6 +9855,9 @@ export const de = {
     empty_spam: "Spam leeren",
     report_phishing: "Spam melden",
     not_spam: "Kein Spam",
+    pending_send_failed: "Diese Nachricht konnte nicht gesendet werden.",
+    pending_send_offline:
+      "Warten auf eine Verbindung. Diese Nachricht wird gesendet, sobald Sie wieder online sind.",
     send_failed_title: "Diese Nachricht wurde nicht zugestellt.",
     send_failed_help:
       "Prüfen Sie die Adresse und senden Sie die Nachricht erneut.",
@@ -10359,6 +10371,11 @@ export const de = {
     spam_label: "Spam",
     attachment_chips_more: "+{{count}} weitere",
     page_of_total: "Seite {{current}} von {{total}}",
+    page_jump_newest: "Neueste",
+    page_jump_oldest: "Älteste",
+    page_jump_go_to: "Gehe zu Seite",
+    page_jump_input: "Seitenzahl",
+    page_jump_invalid: "Geben Sie eine Seite von 1 bis {{total}} ein",
     total_pages_label: "{{count}} Seiten",
     total_pages_label_one: "{{count}} Seite",
     loading_preview: "Vorschau wird geladen…",
@@ -10651,7 +10668,7 @@ export const de = {
     spam_auto_delete_notice:
       "Nachrichten im Spam-Ordner werden nach {{ days }} Tagen gelöscht.",
     trash_auto_delete_notice_family:
-      "Nachrichten im Papierkorb werden nach {{ days }} Tagen gelöscht, wie vom Familienadministrator festgelegt.",
+      "Nachrichten werden {{ days }} Tage nach dem Verschieben in den Papierkorb gelöscht, wie vom Familienadministrator festgelegt.",
     spam_auto_delete_notice_family:
       "Nachrichten im Spam-Ordner werden nach {{ days }} Tagen gelöscht, wie vom Familienadministrator festgelegt.",
     spy_pixels_blocked: "Spionage-Pixel blockiert",
@@ -10666,7 +10683,7 @@ export const de = {
     trackers: "Tracker",
     tracking_protection: "Tracking-Schutz",
     trash_auto_delete_notice:
-      "Nachrichten im Papierkorb werden nach {{ days }} Tagen gelöscht.",
+      "Nachrichten werden {{ days }} Tage nach dem Verschieben in den Papierkorb gelöscht.",
     try_adjusting_filters:
       "Passen Sie Ihre Filter an oder suchen Sie nach etwas anderem",
     url_label: "URL",
@@ -10733,6 +10750,9 @@ export const de = {
       "Sie verschieben E-Mails von {{sender}} immer wieder nach {{category}}. Soll das automatisch passieren?",
   },
   auth: {
+    account_chooser_title: "Konto auswählen",
+    account_chooser_body: "Diese Adresse gehört zu keinem Konto, das auf diesem Gerät angemeldet ist. Wähle ein Konto aus, um fortzufahren.",
+    account_chooser_empty: "Auf diesem Gerät ist kein Konto angemeldet.",
     continue_with_app: "Mit {{app}} fortfahren",
     sibling_waiting: "Bestätigen Sie die Anmeldung im geöffneten Fenster.",
     sibling_popup_blocked: "Das Bestätigungsfenster wurde blockiert. Erlauben Sie Pop-ups für diese Website und versuchen Sie es erneut.",
@@ -10960,6 +10980,8 @@ export const de = {
       "Gib dein aktuelles Passwort ein, damit deine Verschlüsselungsschlüssel gleich bleiben und deine E-Mails lesbar bleiben. Wenn du es nicht kennst, verwende stattdessen einen Wiederherstellungscode.",
     reset_current_password_required:
       "Gib dein aktuelles Passwort ein oder verwende stattdessen einen Wiederherstellungscode.",
+    reset_legacy_login_salt:
+      "Um deine bisherigen E-Mails mit deinem aktuellen Passwort zu behalten, öffne diesen Link zum Zurücksetzen auf einem Gerät, das du schon mit Aster verwendet hast. Wenn das nicht möglich ist, verwende stattdessen einen Wiederherstellungscode.",
     reset_lost_everything:
       "Ich habe mein Passwort und meine Wiederherstellungscodes verloren",
     reset_remember_password:
@@ -13098,6 +13120,9 @@ export const de = {
     remote_image_loading: "Externe Bilder laden, externe Bilder blockieren, Bilder laden, Remote-Bilder, vor dem Laden fragen",
     block_remote_fonts_label: "Externe Schriftarten blockieren, externe Schriften, Webfonts",
     block_remote_css_label: "Externes CSS blockieren, externe Stylesheets, externe Stile",
+    image_cache_label: "Bildcache, gespeicherte Bilder, Bilder behalten",
+    image_prefetch_label: "Bilder vorab laden, Bilder beim Empfang laden, Lesebestätigung, Öffnungs-Tracking",
+    image_cache_clear_label: "Gespeicherte Bilder löschen, Bildcache leeren",
     strip_exif_on_compose_label: "Bildmetadaten entfernen, EXIF, Metadaten entfernen, Bild-Datenschutz",
     send_error_reports_label: "Fehlerberichte senden, Telemetrie, Diagnose, Absturzberichte",
     prefer_plain_text_label: "Nur-Text bevorzugen, Textversion, Textalternative, Multipart",

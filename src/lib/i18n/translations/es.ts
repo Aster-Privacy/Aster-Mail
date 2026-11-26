@@ -3505,7 +3505,7 @@ export const es = {
     alias_pref_unsubscribe_block_contact: "Bloquear remitente",
     alias_pref_disabled_response: "Respuesta al correo bloqueado",
     alias_pref_disabled_response_desc:
-      "Lo que ve el remitente cuando su correo se descarta de forma silenciosa.",
+      "Qué ocurre cuando un remitente bloqueado te escribe o alguien escribe a un alias o una dirección desactivados.",
     alias_pref_disabled_ignore: "Ignorar en silencio",
     alias_pref_disabled_reject: "Rechazar (rebote)",
     alias_pref_delete_action: "Al eliminar un alias",
@@ -3520,7 +3520,7 @@ export const es = {
     alias_pref_unsubscribe_action_info:
       "Qué ocurre al pulsar el botón de cancelar suscripción en un correo reenviado.",
     alias_pref_disabled_response_info:
-      "Lo que ve el remitente cuando escribe a un alias desactivado o a un contacto bloqueado.",
+      "Si eliges ignorar, el remitente no recibe ningún aviso. El correo de un remitente bloqueado sigue tu ajuste de bloqueo, como moverse a Spam, y el correo enviado a un alias o una dirección desactivados se descarta. Si eliges rechazar, el correo se rechaza y el remitente recibe un aviso de que no se entregó.",
     alias_pref_delete_action_info:
       "Mover a la papelera mantiene los alias eliminados recuperables durante 30 días. Eliminar de inmediato los borra permanentemente.",
     alias_pref_delete_trash: "Mover a la papelera",
@@ -3805,7 +3805,7 @@ export const es = {
     fam_org_ret_trash: "Papelera",
     fam_org_ret_trash_hint: "Eliminar automáticamente el correo de la papelera",
     fam_org_ret_trash_info:
-      "Los mensajes en la papelera con más de esta cantidad de días se eliminan permanentemente.",
+      "Los mensajes se eliminan permanentemente esta cantidad de días después de moverse a la papelera.",
     fam_org_ret_spam: "Correo no deseado",
     fam_org_ret_spam_hint:
       "Eliminar automáticamente el spam (30 días por defecto)",
@@ -6619,7 +6619,7 @@ export const es = {
     auto_delete_spam_after: "Eliminar spam automáticamente después de",
     auto_delete_trash_after: "Eliminar la papelera automáticamente después de",
     auto_delete_trash_description:
-      "Los correos en la Papelera más antiguos que este periodo se eliminan permanentemente.",
+      "Los mensajes se eliminan permanentemente cuando pasa este periodo desde que los mueves a la Papelera.",
     spam_delete_hint:
       "Los correos de spam más antiguos que esto se eliminarán permanentemente",
     save_changes: "Guardar cambios",
@@ -9008,6 +9008,15 @@ export const es = {
     remote_images_always: "Siempre cargar",
     remote_images_ask: "Preguntar",
     remote_images_never: "Nunca cargar",
+    image_cache_label: "Guardar las imágenes cargadas en este dispositivo",
+    image_cache_description: "Guarda las imágenes que cargas, cifradas en este dispositivo, para que al volver a abrir un mensaje no se envíe nada al remitente.",
+    image_prefetch_label: "Cargar imágenes al recibir correo",
+    image_prefetch_description: "Descarga las imágenes a través de Aster en cuanto el correo nuevo llega a este dispositivo, para que los remitentes no sepan cuándo lo abres.",
+    image_prefetch_unavailable: "Disponible cuando las imágenes remotas se cargan automáticamente y las imágenes guardadas están activadas.",
+    image_cache_clear_label: "Imágenes guardadas",
+    image_cache_clear_description: "Elimina todas las imágenes guardadas en este dispositivo.",
+    image_cache_clear_button: "Borrar",
+    image_cache_cleared: "Imágenes guardadas borradas",
     remove_key: "Eliminar clave",
     rotate_dkim_description:
       "Genera una nueva clave de firma DKIM. Esto crea un nuevo registro DNS en un nuevo nombre de host que debes publicar en tu registrador.",
@@ -9757,6 +9766,9 @@ export const es = {
     empty_spam: "Vaciar spam",
     report_phishing: "Reportar spam",
     not_spam: "No es spam",
+    pending_send_failed: "No se pudo enviar este mensaje.",
+    pending_send_offline:
+      "Esperando conexión. Este mensaje se enviará cuando vuelvas a conectarte.",
     send_failed_title: "Este mensaje no se entregó.",
     send_failed_help: "Comprueba la dirección y vuelve a enviar el mensaje.",
     spam_reasons_title: "Este mensaje se movió a spam",
@@ -10275,6 +10287,11 @@ export const es = {
     spam_label: "Spam",
     attachment_chips_more: "+{{count}} más",
     page_of_total: "Página {{current}} de {{total}}",
+    page_jump_newest: "Más recientes",
+    page_jump_oldest: "Más antiguos",
+    page_jump_go_to: "Ir a la página",
+    page_jump_input: "Número de página",
+    page_jump_invalid: "Introduce una página del 1 al {{total}}",
     total_pages_label: "{{count}} páginas",
     total_pages_label_one: "{{count}} página",
     loading_preview: "Loading preview\\u2026",
@@ -10560,7 +10577,7 @@ export const es = {
     spam_auto_delete_notice:
       "Los mensajes de Spam se eliminan después de {{ days }} días.",
     trash_auto_delete_notice_family:
-      "Los mensajes de la Papelera se eliminan después de {{ days }} días, según lo establecido por el administrador de la familia.",
+      "Los mensajes se eliminan {{ days }} días después de moverse a la Papelera, según lo establecido por el administrador de la familia.",
     spam_auto_delete_notice_family:
       "Los mensajes de Spam se eliminan después de {{ days }} días, según lo establecido por el administrador de la familia.",
     spy_pixels_blocked: "Píxeles espía bloqueados",
@@ -10575,7 +10592,7 @@ export const es = {
     trackers: "Rastreadores",
     tracking_protection: "Protección contra rastreo",
     trash_auto_delete_notice:
-      "Los mensajes de la Papelera se eliminan después de {{ days }} días.",
+      "Los mensajes se eliminan {{ days }} días después de moverse a la Papelera.",
     try_adjusting_filters: "Intenta ajustar tus filtros",
     url_label: "URL",
     official_sender: "Dirección oficial de Aster",
@@ -10629,6 +10646,9 @@ export const es = {
       "Sueles mover el correo de {{sender}} a {{category}}. ¿Quieres que se haga automáticamente?",
   },
   auth: {
+    account_chooser_title: "Elige una cuenta",
+    account_chooser_body: "Esta dirección no corresponde a ninguna cuenta con la sesión iniciada en este dispositivo. Elige una cuenta para continuar.",
+    account_chooser_empty: "No hay ninguna cuenta con la sesión iniciada en este dispositivo.",
     continue_with_app: "Continuar con {{app}}",
     sibling_waiting: "Confirma el inicio de sesión en la ventana que se abrió.",
     sibling_popup_blocked: "Se bloqueó la ventana de confirmación. Permite las ventanas emergentes para este sitio e inténtalo de nuevo.",
@@ -10932,6 +10952,8 @@ export const es = {
       "Introduce tu contraseña actual para que tus claves de cifrado no cambien y tu correo siga siendo legible. Si no la sabes, usa un código de recuperación.",
     reset_current_password_required:
       "Introduce tu contraseña actual o usa un código de recuperación.",
+    reset_legacy_login_salt:
+      "Para conservar tu correo anterior con tu contraseña actual, abre este enlace de restablecimiento en un dispositivo que ya hayas usado con Aster. Si no puedes, usa un código de recuperación.",
     reset_lost_everything:
       "He perdido mi contraseña y mis códigos de recuperación",
     reset_remember_password:
@@ -12941,6 +12963,9 @@ export const es = {
     remote_image_loading: "Carga de imágenes remotas, bloquear imágenes remotas, cargar imágenes, imágenes externas, preguntar antes de cargar",
     block_remote_fonts_label: "Bloquear fuentes remotas, fuentes externas, fuentes web",
     block_remote_css_label: "Bloquear CSS remoto, hojas de estilo externas, estilos remotos",
+    image_cache_label: "caché de imágenes, imágenes guardadas, conservar imágenes",
+    image_prefetch_label: "precargar imágenes, cargar imágenes al recibir, seguimiento de apertura",
+    image_cache_clear_label: "borrar imágenes guardadas, vaciar caché de imágenes",
     strip_exif_on_compose_label: "Quitar metadatos de imágenes, EXIF, eliminar metadatos, privacidad de imágenes",
     send_error_reports_label: "Enviar informes de errores, telemetría, diagnóstico, informes de fallos",
     prefer_plain_text_label: "Preferir texto sin formato, versión de texto, alternativa de texto, multipart",

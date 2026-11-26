@@ -3447,7 +3447,7 @@ export const ja = {
     alias_pref_unsubscribe_block_contact: "送信者をブロック",
     alias_pref_disabled_response: "ブロックしたメールへの応答",
     alias_pref_disabled_response_desc:
-      "メールが無言で破棄された際に送信者に表示される内容です。",
+      "ブロックした送信者からメールが届いたときや、無効にしたエイリアスやアドレスにメールが送られたときの動作です。",
     alias_pref_disabled_ignore: "無言で無視",
     alias_pref_disabled_reject: "拒否（バウンス）",
     alias_pref_delete_action: "エイリアスを削除するとき",
@@ -3462,7 +3462,7 @@ export const ja = {
     alias_pref_unsubscribe_action_info:
       "転送メールで配信停止ボタンを押したときの動作。",
     alias_pref_disabled_response_info:
-      "無効なエイリアスやブロックした連絡先に送信者がメールしたときに表示される内容。",
+      "無視を選ぶと、送信者には何も通知されません。ブロックした送信者のメールは、迷惑メールへの移動など、ブロック設定に従って処理されます。無効にしたエイリアスやアドレス宛てのメールは破棄されます。拒否を選ぶと、メールは受け取りを拒否され、送信者には配信できなかったことが通知されます。",
     alias_pref_delete_action_info:
       "ゴミ箱に移動すると、削除したエイリアスは30日間復元できます。すぐに削除すると完全に削除されます。",
     alias_pref_delete_trash: "ゴミ箱に移動",
@@ -3747,7 +3747,7 @@ export const ja = {
     fam_org_ret_trash: "ゴミ箱",
     fam_org_ret_trash_hint: "ゴミ箱のメールを自動削除",
     fam_org_ret_trash_info:
-      "ゴミ箱内の指定した日数より古いメッセージは完全に削除されます。",
+      "メッセージはゴミ箱に移動してから指定した日数が過ぎると完全に削除されます。",
     fam_org_ret_spam: "スパム",
     fam_org_ret_spam_hint: "スパムを自動削除（デフォルト30日）",
     fam_org_ret_spam_info:
@@ -6486,7 +6486,7 @@ export const ja = {
     auto_delete_spam_after: "スパムの自動削除期間",
     auto_delete_trash_after: "ゴミ箱の自動削除期間",
     auto_delete_trash_description:
-      "この期間より古いゴミ箱のメールは完全に削除されます。",
+      "メールはゴミ箱に移動してからこの期間が過ぎると完全に削除されます。",
     spam_delete_hint: "この期間を過ぎたスパムメールは完全に削除されます",
     save_changes: "変更を保存",
     spam_low: "低",
@@ -8686,6 +8686,15 @@ export const ja = {
     remote_images_always: "常に読み込む",
     remote_images_ask: "読み込む前に確認",
     remote_images_never: "読み込まない",
+    image_cache_label: "読み込んだ画像をこのデバイスに保存",
+    image_cache_description: "読み込んだ画像をこのデバイスに暗号化して保存するため、メッセージを再度開いても送信者には何も送信されません。",
+    image_prefetch_label: "メールの受信時に画像を読み込む",
+    image_prefetch_description: "新しいメールがこのデバイスに届くとすぐに Aster 経由で画像を取得するため、送信者はメールを開いたタイミングを知ることができません。",
+    image_prefetch_unavailable: "リモート画像を自動で読み込み、画像の保存がオンのときに利用できます。",
+    image_cache_clear_label: "保存した画像",
+    image_cache_clear_description: "このデバイスに保存したすべての画像を削除します。",
+    image_cache_clear_button: "消去",
+    image_cache_cleared: "保存した画像を消去しました",
     remove_key: "キーを削除",
     rotate_dkim_description:
       "新しいDKIM署名キーを生成します。レジストラに公開する必要がある新しいホスト名のDNSレコードが作成されます。",
@@ -9506,6 +9515,8 @@ export const ja = {
     empty_spam: "スパムを空にする",
     report_phishing: "スパムを報告",
     not_spam: "スパムではない",
+    pending_send_failed: "このメッセージを送信できませんでした。",
+    pending_send_offline: "接続を待っています。オンラインに戻るとこのメッセージが送信されます。",
     send_failed_title: "このメッセージは配信されませんでした。",
     send_failed_help:
       "アドレスを確認してから、メッセージをもう一度送信してください。",
@@ -10012,6 +10023,11 @@ export const ja = {
     spam_label: "スパム",
     attachment_chips_more: "+{{count}}件",
     page_of_total: "{{total}}ページ中{{current}}ページ",
+    page_jump_newest: "最新",
+    page_jump_oldest: "最古",
+    page_jump_go_to: "ページへ移動",
+    page_jump_input: "ページ番号",
+    page_jump_invalid: "1から{{total}}までのページを入力してください",
     total_pages_label: "{{count}}ページ",
     loading_preview: "プレビューを読み込み中…",
     preview_failed:
@@ -10084,11 +10100,11 @@ export const ja = {
     forwarded_by_label: "転送元",
     new_reaction: "新しいリアクション",
     trash_auto_delete_notice:
-      "ゴミ箱のメッセージは {{ days }} 日後に削除されます。",
+      "メッセージはゴミ箱に移動してから {{ days }} 日後に削除されます。",
     spam_auto_delete_notice:
       "スパムのメッセージは {{ days }} 日後に削除されます。",
     trash_auto_delete_notice_family:
-      "ゴミ箱のメッセージは、ファミリー管理者の設定により {{ days }} 日後に削除されます。",
+      "メッセージは、ファミリー管理者の設定により、ゴミ箱に移動してから {{ days }} 日後に削除されます。",
     spam_auto_delete_notice_family:
       "スパムのメッセージは、ファミリー管理者の設定により {{ days }} 日後に削除されます。",
     insert_link_title: "リンクを挿入",
@@ -10352,6 +10368,9 @@ export const ja = {
       "{{sender}} からのメールを {{category}} によく移動しています。今後は自動的に振り分けますか。",
   },
   auth: {
+    account_chooser_title: "アカウントを選択",
+    account_chooser_body: "このアドレスは、このデバイスでサインインしているどのアカウントとも一致しません。続行するアカウントを選択してください。",
+    account_chooser_empty: "このデバイスでサインインしているアカウントはありません。",
     continue_with_app: "{{app}} で続行",
     sibling_waiting: "開いたウィンドウでサインインを確認してください。",
     sibling_popup_blocked: "確認ウィンドウがブロックされました。このサイトのポップアップを許可してから、もう一度お試しください。",
@@ -10650,6 +10669,8 @@ export const ja = {
       "現在のパスワードを入力すると、暗号鍵はそのまま保持され、メールも引き続き読めます。わからない場合は、代わりに復元コードを使用してください。",
     reset_current_password_required:
       "現在のパスワードを入力するか、代わりに復元コードを使用してください。",
+    reset_legacy_login_salt:
+      "現在のパスワードで以前のメールを保持するには、以前に Aster を使用したデバイスでこのリセットリンクを開いてください。それができない場合は、代わりに復元コードを使用してください。",
     reset_lost_everything:
       "パスワードと復元コードを紛失しました",
     reset_remember_password:
@@ -12652,6 +12673,9 @@ export const ja = {
     remote_image_loading: "外部画像の読み込み, 外部画像をブロック, 画像を読み込む, リモート画像, 読み込み前に確認",
     block_remote_fonts_label: "外部フォントをブロック, 外部フォント, Webフォント",
     block_remote_css_label: "外部CSSをブロック, 外部スタイルシート, リモートスタイル",
+    image_cache_label: "画像キャッシュ, 保存された画像, 画像を保持",
+    image_prefetch_label: "画像の事前読み込み, 受信時に画像を読み込む, 開封トラッキング",
+    image_cache_clear_label: "保存された画像を消去, 画像キャッシュを削除",
     strip_exif_on_compose_label: "画像のメタデータを削除, EXIF, メタデータ除去, 画像のプライバシー, 位置情報",
     send_error_reports_label: "エラーレポートを送信, テレメトリ, 診断, クラッシュレポート",
     prefer_plain_text_label: "テキスト形式を優先, プレーンテキスト版, テキスト代替, multipart",

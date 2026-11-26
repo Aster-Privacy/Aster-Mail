@@ -22,6 +22,7 @@ use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 
 use crate::default_mail_store;
+use crate::package_managed;
 
 pub const DESKTOP_FILE: &str = "com.astermail.mail.mailto.desktop";
 const MIME_TYPE: &str = "x-scheme-handler/mailto";
@@ -56,11 +57,19 @@ fn applications_dir() -> std::result::Result<PathBuf, String> {
         .ok_or_else(|| "home directory unavailable".to_string())
 }
 
+fn preferred_launch_target(
+    launch_command: Option<String>,
+    appimage: Option<String>,
+) -> Option<String> {
+    launch_command.or_else(|| appimage.filter(|appimage| !appimage.is_empty()))
+}
+
 fn launch_target() -> std::result::Result<String, String> {
-    if let Ok(appimage) = std::env::var("APPIMAGE") {
-        if !appimage.is_empty() {
-            return Ok(appimage);
-        }
+    if let Some(target) = preferred_launch_target(
+        package_managed::launch_command(),
+        std::env::var("APPIMAGE").ok(),
+    ) {
+        return Ok(target);
     }
 
     std::env::current_exe()
@@ -229,5 +238,24 @@ mod tests {
             .contains("Exec=/usr/bin/aster-mail-desktop %u\n"));
         assert!(entry.contains("MimeType=x-scheme-handler/mailto;\n"));
         assert!(entry.contains("NoDisplay=true\n"));
+    }
+
+    #[test]
+    fn launch_command_takes_precedence_over_appimage() {
+        assert_eq!(
+            preferred_launch_target(
+                Some("aster-mail".to_string()),
+                Some("/home/ada/Aster.AppImage".to_string())
+            )
+            .as_deref(),
+            Some("aster-mail")
+        );
+        assert_eq!(
+            preferred_launch_target(None, Some("/home/ada/Aster.AppImage".to_string())).as_deref(),
+            Some("/home/ada/Aster.AppImage")
+        );
+        assert_eq!(preferred_launch_target(None, Some(String::new())), None);
+        assert_eq!(preferred_launch_target(None, None), None);
+        assert!(desktop_entry("aster-mail").contains("Exec=aster-mail %u\n"));
     }
 }

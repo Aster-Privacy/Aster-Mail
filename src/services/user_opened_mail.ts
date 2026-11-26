@@ -213,6 +213,7 @@ export function on_user_opened_mail(
           return;
         }
         pending.saved = saved;
+        if (get_read_intent(id) === false) return;
         emit_mail_item_updated({
           id,
           is_read: true,

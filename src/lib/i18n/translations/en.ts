@@ -3425,6 +3425,15 @@ export const en: Translations = {
     remote_images_always: "Always load",
     remote_images_ask: "Ask before loading",
     remote_images_never: "Never load",
+    image_cache_label: "Keep loaded images on this device",
+    image_cache_description: "Saves the images you load, encrypted on this device, so opening a message again sends nothing to the sender.",
+    image_prefetch_label: "Load images when mail arrives",
+    image_prefetch_description: "Fetches images through Aster as soon as new mail reaches this device, so senders can't tell when you open it.",
+    image_prefetch_unavailable: "Available when remote images load automatically and saved images are on.",
+    image_cache_clear_label: "Saved images",
+    image_cache_clear_description: "Removes every image saved on this device.",
+    image_cache_clear_button: "Clear",
+    image_cache_cleared: "Saved images cleared",
     tracking_protection_title: "Tracking Protection",
     tracking_protection_enabled: "Enable Tracking Protection",
     tracking_protection_enabled_description:
@@ -4690,7 +4699,7 @@ export const en: Translations = {
     fam_org_ret_trash: "Trash",
     fam_org_ret_trash_hint: "Auto-delete trashed mail",
     fam_org_ret_trash_info:
-      "Messages in Trash older than this many days are permanently removed.",
+      "Messages are permanently removed this many days after they move to Trash.",
     fam_org_ret_spam: "Spam",
     fam_org_ret_spam_hint: "Auto-delete spam (default 30 days)",
     fam_org_ret_spam_info:
@@ -7978,7 +7987,7 @@ export const en: Translations = {
     auto_delete_spam_after: "Auto-delete spam after",
     auto_delete_trash_after: "Auto-delete trash after",
     auto_delete_trash_description:
-      "Emails in Trash older than this are permanently deleted.",
+      "Messages are permanently deleted this long after you move them to Trash.",
     auto_delete_spam_description:
       "Spam emails older than this will be permanently deleted.",
     spam_delete_hint: "Spam emails older than this will be permanently deleted",
@@ -9012,7 +9021,7 @@ export const en: Translations = {
     alias_pref_unsubscribe_block_contact: "Block sender",
     alias_pref_disabled_response: "Response to blocked mail",
     alias_pref_disabled_response_desc:
-      "What the sender sees when their mail is silently dropped.",
+      "What happens when a blocked sender emails you, or someone emails a disabled alias or address.",
     alias_pref_disabled_ignore: "Silently ignore",
     alias_pref_disabled_reject: "Reject (bounce)",
     alias_pref_delete_action: "When deleting an alias",
@@ -9027,7 +9036,7 @@ export const en: Translations = {
     alias_pref_unsubscribe_action_info:
       "What happens when you click the unsubscribe button in a forwarded email.",
     alias_pref_disabled_response_info:
-      "What the sender sees when they email a disabled alias or a blocked contact.",
+      "If you choose to ignore it, the sender isn't told anything. Mail from a blocked sender follows your block setting, such as moving to Spam, and mail to a disabled alias or address is dropped. If you choose to reject it, the mail is refused and the sender gets a notice that it wasn't delivered.",
     alias_pref_delete_action_info:
       "Move to trash keeps deleted aliases recoverable for 30 days. Delete immediately removes them permanently.",
     alias_pref_delete_trash: "Move to trash",
@@ -9426,6 +9435,11 @@ export const en: Translations = {
     attachments: "Attachments",
     attachment_chips_more: "+{{count}} more",
     page_of_total: "Page {{current}} of {{total}}",
+    page_jump_newest: "Newest",
+    page_jump_oldest: "Oldest",
+    page_jump_go_to: "Go to page",
+    page_jump_input: "Page number",
+    page_jump_invalid: "Enter a page from 1 to {{total}}",
     total_pages_label: "{{count}} pages",
     total_pages_label_one: "{{count}} page",
     loading_preview: "Loading preview\u2026",
@@ -9530,6 +9544,9 @@ export const en: Translations = {
     empty_spam: "Empty spam",
     report_phishing: "Report spam",
     not_spam: "Not spam",
+    pending_send_failed: "Couldn’t send this message.",
+    pending_send_offline:
+      "Waiting for a connection. This message sends when you’re back online.",
     send_failed_title: "This message wasn’t delivered.",
     send_failed_help: "Check the address, then send the message again.",
     spam_reasons_title: "This message was moved to spam",
@@ -9641,11 +9658,11 @@ export const en: Translations = {
     archive_subtitle: "Archive emails to keep your inbox clean",
     trash_subtitle: "Deleted emails will appear here",
     trash_auto_delete_notice:
-      "Messages in Trash are deleted after {{ days }} days.",
+      "Messages are deleted {{ days }} days after they move to Trash.",
     spam_auto_delete_notice:
       "Messages in Spam are deleted after {{ days }} days.",
     trash_auto_delete_notice_family:
-      "Messages in Trash are deleted after {{ days }} days, as set by your family admin.",
+      "Messages are deleted {{ days }} days after they move to Trash, as set by your family admin.",
     spam_auto_delete_notice_family:
       "Messages in Spam are deleted after {{ days }} days, as set by your family admin.",
     compose_email: "Compose email",
@@ -10368,6 +10385,9 @@ export const en: Translations = {
       "You keep moving mail from {{sender}} to {{category}}. Do it automatically?",
   },
   auth: {
+    account_chooser_title: "Choose an account",
+    account_chooser_body: "This address doesn't match an account that's signed in on this device. Choose an account to continue.",
+    account_chooser_empty: "No accounts are signed in on this device.",
     continue_with_app: "Continue with {{app}}",
     sibling_waiting: "Confirm the sign-in in the window that opened.",
     sibling_popup_blocked: "The confirmation window was blocked. Allow pop-ups for this site, then try again.",
@@ -10800,6 +10820,8 @@ export const en: Translations = {
       "Enter your current password so your encryption keys stay the same and your mail stays readable. If you don't know it, use a recovery code instead.",
     reset_current_password_required:
       "Enter your current password, or use a recovery code instead.",
+    reset_legacy_login_salt:
+      "To keep your earlier mail with your current password, open this reset link on a device you've used with Aster before. If you can't, use a recovery code instead.",
     reset_lost_everything:
       "I lost my password and recovery codes",
     reset_remember_password:
@@ -12648,6 +12670,9 @@ export const en: Translations = {
     remote_image_loading: "block remote images, load images, external images, ask before loading",
     block_remote_fonts_label: "external fonts, web fonts",
     block_remote_css_label: "external stylesheets, remote styles",
+    image_cache_label: "image cache, saved images, offline images, keep images",
+    image_prefetch_label: "prefetch images, load images on arrival, read tracking, open tracking",
+    image_cache_clear_label: "clear saved images, delete image cache, remove cached images",
     strip_exif_on_compose_label: "exif, metadata removal, image privacy",
     send_error_reports_label: "telemetry, diagnostics, crash reports",
     prefer_plain_text_label: "plain text version, text alternative, multipart",

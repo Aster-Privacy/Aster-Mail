@@ -1003,6 +1003,27 @@ export const SETTINGS_SEARCH_REGISTRY: SearchEntry[] = [
     crumb_key: "settings_search.content_protection",
   },
   {
+    id: "image_cache_label",
+    label_key: "settings.image_cache_label",
+    section: "security",
+    crumb_key: "settings_search.content_protection",
+    description_key: "settings.image_cache_description",
+  },
+  {
+    id: "image_prefetch_label",
+    label_key: "settings.image_prefetch_label",
+    section: "security",
+    crumb_key: "settings_search.content_protection",
+    description_key: "settings.image_prefetch_description",
+  },
+  {
+    id: "image_cache_clear_label",
+    label_key: "settings.image_cache_clear_label",
+    section: "security",
+    crumb_key: "settings_search.content_protection",
+    description_key: "settings.image_cache_clear_description",
+  },
+  {
     id: "strip_exif_on_compose_label",
     label_key: "settings.strip_exif_on_compose_label",
     section: "security",

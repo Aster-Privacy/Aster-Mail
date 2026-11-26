@@ -32,7 +32,10 @@ import {
 } from "./mail_events";
 import {
   SETTLED_REPLY_MESSAGE_TTL_MS,
+  get_pending_reply_status,
   reset_pending_reply_messages,
+  retry_pending_reply,
+  set_pending_reply_status,
   use_pending_reply_messages,
 } from "./pending_reply_messages";
 
@@ -430,5 +433,72 @@ describe("pending reply stays in the thread", () => {
     );
 
     expect(shown()).toBe("orig,srv-1");
+  });
+
+  it("keeps a failed reply in the thread after you leave and reopen it", () => {
+    const retry = vi.fn();
+
+    mount({ thread_token: "t1", email_id: "orig", initial: [ORIGINAL] });
+    optimistic("t1", "opt-1");
+    act(() =>
+      set_pending_reply_status("opt-1", "failed", {
+        error: "Server unavailable",
+        retry,
+      }),
+    );
+
+    remount({ thread_token: "t2", email_id: "other", initial: [OTHER] });
+    remount({ thread_token: "t1", email_id: "orig", initial: [ORIGINAL] });
+
+    expect(shown()).toBe("orig,opt-1");
+    expect(get_pending_reply_status("opt-1")).toEqual({
+      phase: "failed",
+      error: "Server unavailable",
+      can_retry: true,
+    });
+
+    act(() => {
+      expect(retry_pending_reply("opt-1")).toBe(true);
+    });
+    expect(retry).toHaveBeenCalledTimes(1);
+    expect(get_pending_reply_status("opt-1")?.phase).toBe("sending");
+    expect(retry_pending_reply("opt-1")).toBe(false);
+  });
+
+  it("sends replies held offline again when the connection returns", () => {
+    const retry = vi.fn();
+
+    optimistic("t1", "opt-1");
+    optimistic("t1", "opt-2");
+    act(() => set_pending_reply_status("opt-1", "offline", { retry }));
+
+    act(() => {
+      window.dispatchEvent(new Event("online"));
+    });
+
+    expect(retry).toHaveBeenCalledTimes(1);
+    expect(get_pending_reply_status("opt-1")?.phase).toBe("sending");
+    expect(get_pending_reply_status("opt-2")?.phase).toBe("sending");
+  });
+
+  it("marks a reply sent once the server confirms it", () => {
+    optimistic("t1", "opt-1");
+    sent("t1", "opt-1");
+
+    expect(get_pending_reply_status("opt-1")).toEqual({
+      phase: "sent",
+      can_retry: false,
+    });
+  });
+
+  it("keeps two pending replies in one thread in the order you sent them", () => {
+    mount({ thread_token: "t1", email_id: "orig", initial: [ORIGINAL] });
+    optimistic("t1", "opt-1");
+    optimistic("t1", "opt-2");
+    act(() => set_pending_reply_status("opt-1", "failed", { retry: vi.fn() }));
+
+    remount({ thread_token: "t1", email_id: "orig", initial: [ORIGINAL] });
+
+    expect(shown()).toBe("orig,opt-1,opt-2");
   });
 });

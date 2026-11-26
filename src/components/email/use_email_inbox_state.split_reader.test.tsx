@@ -26,11 +26,12 @@ import { act, useCallback, useMemo, useRef, useState } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { MemoryRouter } from "react-router-dom";
 
-const { preferences_mock, view_state, selection_stub, noop } = vi.hoisted(
-  () => {
+const { preferences_mock, view_state, selection_stub, noop, bulk_unread } =
+  vi.hoisted(() => {
     const noop = () => {};
 
     return {
+      bulk_unread: { calls: 0 },
       preferences_mock: { auto_advance: "Go to next message" },
       view_state: { current: null as unknown },
       selection_stub: {
@@ -42,8 +43,7 @@ const { preferences_mock, view_state, selection_stub, noop } = vi.hoisted(
       },
       noop,
     };
-  },
-);
+  });
 
 vi.mock("@/contexts/preferences_context", () => ({
   use_preferences: () => ({ preferences: preferences_mock }),
@@ -77,7 +77,11 @@ vi.mock("@/components/email/inbox/use_inbox_selection_menu", () => ({
 }));
 
 vi.mock("@/components/email/inbox/use_inbox_bulk_actions", () => ({
-  use_inbox_bulk_actions: () => ({}),
+  use_inbox_bulk_actions: () => ({
+    handle_mark_unread_wrapped: () => {
+      bulk_unread.calls += 1;
+    },
+  }),
 }));
 
 vi.mock("@/components/email/inbox/use_split_email_view", () => ({
@@ -134,6 +138,7 @@ const list_controls = {
   cancel: noop,
   drop: (_id: string) => {},
   restore: (_id: string) => {},
+  select: (_id: string) => {},
 };
 
 const STABLE_VIEW_STATE = {
@@ -233,6 +238,10 @@ function Inbox(props: EmailInboxProps) {
   };
   list_controls.cancel = () => set_confirming(null);
   list_controls.drop = (id: string) => remove([id]);
+  list_controls.select = (id: string) =>
+    set_emails((prev) =>
+      prev.map((e) => (e.id === id ? { ...e, is_selected: true } : e)),
+    );
   list_controls.restore = (id: string) =>
     set_emails((prev) =>
       emails_at_start.filter(
@@ -250,7 +259,9 @@ function Inbox(props: EmailInboxProps) {
       handle_mark_not_spam: async (email: InboxEmail) =>
         perform("not_spam", email),
       handle_restore: async (email: InboxEmail) => perform("restore", email),
-      handle_toggle_read: () => Promise.resolve(),
+      handle_toggle_read: async (email: InboxEmail) => {
+        performed.push(`${email.is_read ? "unread" : "read"}:${email.id}`);
+      },
       handle_toggle_star: () => Promise.resolve(),
       handle_toggle_pin: () => Promise.resolve(),
     }),
@@ -381,6 +392,7 @@ describe("use_email_inbox_state with an email open in the split reader", () => {
     confirm_before.delete = false;
     confirm_before.spam = false;
     performed.length = 0;
+    bulk_unread.calls = 0;
     inbox = null;
     container = document.createElement("div");
     document.body.appendChild(container);
@@ -458,6 +470,62 @@ describe("use_email_inbox_state with an email open in the split reader", () => {
 
     expect(page.split_email_id).toBe("d");
     expect(performed).toEqual(["archive:b", "delete:c"]);
+  });
+
+  it("closes the reader when the open conversation is marked unread from its row", () => {
+    render_with_open("b");
+
+    act(() => {
+      void inbox!.context_menu_actions.handle_toggle_read(email("b"));
+    });
+
+    expect(performed).toEqual(["unread:b"]);
+    expect(page.split_email_id).toBeNull();
+  });
+
+  it("closes the reader when the row holds the open message in its conversation", () => {
+    render_with_open("c");
+
+    act(() => {
+      void inbox!.context_menu_actions.handle_toggle_read({
+        ...email("b"),
+        grouped_email_ids: ["b", "c"],
+      });
+    });
+
+    expect(page.split_email_id).toBeNull();
+  });
+
+  it("keeps the reader open when another row is marked unread or read", () => {
+    render_with_open("b");
+
+    act(() => {
+      void inbox!.context_menu_actions.handle_toggle_read(email("c"));
+    });
+    act(() => {
+      void inbox!.context_menu_actions.handle_toggle_read({
+        ...email("b"),
+        is_read: false,
+      });
+    });
+
+    expect(performed).toEqual(["unread:c", "read:b"]);
+    expect(page.split_email_id).toBe("b");
+  });
+
+  it("closes the reader when a selection that holds the open email is marked unread", () => {
+    render_with_open("b");
+    act(() => list_controls.select("c"));
+    act(() => inbox!.handle_mark_unread_wrapped());
+
+    expect(bulk_unread.calls).toBe(1);
+    expect(page.split_email_id).toBe("b");
+
+    act(() => list_controls.select("b"));
+    act(() => inbox!.handle_mark_unread_wrapped());
+
+    expect(bulk_unread.calls).toBe(2);
+    expect(page.split_email_id).toBeNull();
   });
 
   it("opens the next email after e moves the open one back to the inbox", () => {

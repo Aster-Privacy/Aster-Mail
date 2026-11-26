@@ -97,6 +97,7 @@ import { MAIL_EVENTS } from "@/hooks/mail_events";
 import { ignore_error } from "@/lib/ignore_error";
 import { get_active_translations } from "@/lib/i18n/translations";
 import {
+  earlier_thread_message_ids,
   extract_cid_references,
   resolve_cid_references,
   revoke_cid_blob_urls,
@@ -485,6 +486,7 @@ export async function preload_email_detail(
   if (preload_in_flight.has(target_id)) return preload_in_flight.get(target_id);
   const started_generation = get_preload_generation();
   const started_account_epoch = get_preload_account_epoch();
+  const started_at = Date.now();
 
   let task: Promise<void> | undefined;
 
@@ -799,7 +801,12 @@ export async function preload_email_detail(
           if (!sanitized) return;
           if (extract_cid_references(sanitized.html).length === 0) return;
           try {
-            const result = await resolve_cid_references(sanitized.html, msg.id);
+            const result = await resolve_cid_references(
+              sanitized.html,
+              msg.id,
+              "blob",
+              earlier_thread_message_ids(thread_messages, msg.id),
+            );
 
             if (result.unresolved > 0) {
               revoke_cid_blob_urls(result.blob_urls);
@@ -889,7 +896,7 @@ export async function preload_email_detail(
         thread_sanitized,
         cid_resolved,
         thread_cid_resolved,
-        time: Date.now(),
+        time: started_at,
         is_stale: false,
         conversation_grouping: conversation_grouping !== false,
       });

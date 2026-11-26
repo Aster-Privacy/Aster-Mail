@@ -18,13 +18,18 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { Suspense } from "react";
+import { Suspense, useSyncExternalStore } from "react";
 import ReactDOM from "react-dom/client";
 import { BrowserRouter, HashRouter } from "react-router-dom";
 
 import { evict_stale_favicons } from "@/lib/favicon_cache_db";
 import UnsupportedBrowserPage from "@/pages/unsupported_browser";
 import { Provider } from "@/provider";
+import { AccountChooser } from "@/components/auth/account_chooser";
+import {
+  is_account_choice_required,
+  subscribe_tab_account,
+} from "@/lib/tab_account";
 import { FullPageLoader } from "@/components/common/full_page_loader";
 import { ErrorBoundary } from "@/components/ui/error_boundary";
 import {
@@ -426,8 +431,14 @@ const router_basename = resolve_account_basename();
 
 function RootShell(): JSX.Element {
   const use_mobile = use_mobile_experience();
+  const choice_required = useSyncExternalStore(
+    subscribe_tab_account,
+    is_account_choice_required,
+  );
 
   if (!browser_supported) return <UnsupportedBrowserPage />;
+
+  if (choice_required) return <AccountChooser />;
 
   if (use_mobile) {
     return (

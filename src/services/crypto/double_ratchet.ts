@@ -19,6 +19,11 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { array_to_base64, base64_to_array } from "./base64";
+import {
+  MAX_RECEIVED_CHAINS,
+  record_received_chain,
+  type ReceivedChain,
+} from "./ratchet_received_chains";
 
 import { zero_uint8_array } from "@/services/crypto/secure_memory";
 import { HASH_ALG } from "@/services/crypto/constants";
@@ -70,6 +75,7 @@ export interface RatchetState {
   previous_chain_length: number;
   epoch?: number;
   skipped_message_keys: SkippedMessageKey[];
+  received_chains?: ReceivedChain[];
   version: number;
   dirty_since_sync: boolean;
   created_at: number;
@@ -160,10 +166,7 @@ export function is_skip_limit_error(error: unknown): boolean {
   return error instanceof SkipLimitError;
 }
 
-function header_skip_total(
-  state: RatchetState,
-  header: MessageHeader,
-): number {
+function header_skip_total(state: RatchetState, header: MessageHeader): number {
   if (
     state.dh_remote_public === null ||
     header.dh_public !== state.dh_remote_public
@@ -190,6 +193,7 @@ function clone_state(state: RatchetState): RatchetState {
     previous_chain_length: state.previous_chain_length,
     epoch: state.epoch ?? 0,
     skipped_message_keys: state.skipped_message_keys.map((k) => ({ ...k })),
+    received_chains: state.received_chains?.map((c) => ({ ...c })),
     version: state.version,
     dirty_since_sync: state.dirty_since_sync,
     created_at: state.created_at,
@@ -472,6 +476,22 @@ function is_skipped_key(value: unknown): boolean {
   );
 }
 
+function is_received_chain(value: unknown): boolean {
+  return (
+    is_record(value) &&
+    is_string(value.dh_public) &&
+    is_header_counter(value.next)
+  );
+}
+
+function is_received_chain_list(value: unknown): boolean {
+  return (
+    Array.isArray(value) &&
+    value.length <= MAX_RECEIVED_CHAINS &&
+    value.every(is_received_chain)
+  );
+}
+
 function is_valid_serialized_state(data: unknown): data is SerializedState {
   if (!is_record(data) || !is_string(data.conversation_id)) return false;
 
@@ -497,6 +517,7 @@ function is_valid_serialized_state(data: unknown): data is SerializedState {
     Array.isArray(skipped) &&
     skipped.length <= MAX_TOTAL_SKIPPED_KEYS &&
     skipped.every(is_skipped_key) &&
+    is_optional(state.received_chains, is_received_chain_list) &&
     is_optional(state.version, is_finite_number) &&
     is_optional(state.dirty_since_sync, is_boolean) &&
     is_optional(state.created_at, is_finite_number) &&
@@ -846,6 +867,14 @@ export class DoubleRatchet {
     state: RatchetState,
     remote_public_key: Uint8Array,
   ): Promise<void> {
+    if (state.dh_remote_public !== null && state.chain_key_recv !== null) {
+      state.received_chains = record_received_chain(
+        state.received_chains,
+        state.dh_remote_public,
+        state.recv_message_number,
+      );
+    }
+
     state.previous_chain_length = state.send_message_number;
     state.epoch = (state.epoch ?? 0) + 1;
     state.send_message_number = 0;
@@ -1026,4 +1055,4 @@ export async function generate_keypair(): Promise<RatchetKeyPair> {
   return generate_dh_keypair();
 }
 
-export type { RatchetKeyPair, EncryptedMessage };
+export type { RatchetKeyPair, EncryptedMessage, ReceivedChain };
