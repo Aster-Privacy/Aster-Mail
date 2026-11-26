@@ -144,6 +144,20 @@ describe("reply and forward carry the recipients shown with a lock", () => {
     expect(queued_pgp_recipients()).toEqual(["bob@example.com"]);
   });
 
+  it("keeps the subject visible on a locked reply unless the user hides it", async () => {
+    record_recipient_lock_status("bob@example.com", "encrypted");
+
+    await send_reply(
+      { original, message: "my reply", lock_scope },
+      make_callbacks(),
+      5000,
+    );
+
+    expect(
+      queue_email_to_server.mock.calls[0]?.[0]?.encryption_options,
+    ).toMatchObject({ obscure_subject: false });
+  });
+
   it("queues a locked reply on the server even with no undo delay", async () => {
     record_recipient_lock_status("bob@example.com", "encrypted");
 

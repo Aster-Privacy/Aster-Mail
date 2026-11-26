@@ -21,6 +21,7 @@
 import type { DecryptedContact } from "@/types/contacts";
 
 import { useMemo, useState } from "react";
+import { Tooltip } from "@aster/ui";
 import {
   CheckIcon,
   MinusIcon,
@@ -79,15 +80,17 @@ export function ManageGroupsMenu({
   return (
     <>
       <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <button
-            aria-label={t("common.manage_contact_groups")}
-            className="contact_list_icon_button"
-            type="button"
-          >
-            <UserGroupIcon className="w-4 h-4" />
-          </button>
-        </DropdownMenuTrigger>
+        <Tooltip tip={t("common.manage_contact_groups")}>
+          <DropdownMenuTrigger asChild>
+            <button
+              aria-label={t("common.manage_contact_groups")}
+              className="contact_list_icon_button"
+              type="button"
+            >
+              <UserGroupIcon className="w-4 h-4" />
+            </button>
+          </DropdownMenuTrigger>
+        </Tooltip>
         <DropdownMenuContent align="start" className="w-60">
           <DropdownMenuLabel>
             {t("common.manage_contact_groups")}

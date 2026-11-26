@@ -121,6 +121,7 @@ export interface MailActionCallbacks {
   on_complete: (sent_id?: string) => void;
   on_cancel: () => void;
   on_error?: (error: string) => void;
+  on_dispatch?: (thread_token: string | undefined) => void;
 }
 
 function build_reply_subject(original_subject: string): string {
@@ -207,7 +208,7 @@ function reply_encryption_options(
     auto_discover_keys: use_pgp || require_encryption,
     encrypt_emails: use_pgp,
     require_encryption,
-    obscure_subject: preferences?.obscure_subject_when_encrypted !== false,
+    obscure_subject: preferences?.obscure_subject_when_encrypted === true,
   };
 }
 
@@ -399,6 +400,8 @@ export async function send_reply(
 
     return { success: false, error: message };
   }
+
+  callbacks.on_dispatch?.(thread_token);
 
   const reply_queue_seconds = server_queue_seconds(
     [...recipients, ...(cc ?? []), ...(bcc ?? [])],

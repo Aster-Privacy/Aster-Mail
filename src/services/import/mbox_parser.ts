@@ -52,6 +52,86 @@ function clean_segment(segment: string): string {
   return trim_ascii_whitespace(segment).replace(/^>(>*From )/gm, "$1");
 }
 
+export interface MboxSeparator {
+  index: number;
+  end: number;
+}
+
+const SEPARATOR_PREFIX = "From ";
+
+function is_line_terminator(code: number): boolean {
+  return code === 0x0a || code === 0x0d || code === 0x2028 || code === 0x2029;
+}
+
+function is_header_name_char(code: number): boolean {
+  return code >= 0x21 && code <= 0x7e && code !== 0x3a;
+}
+
+function first_break_from(text: string, start: number): number {
+  for (let index = start; index < text.length; index += 1) {
+    const code = text.charCodeAt(index);
+
+    if (code === 0x0a || code === 0x0d) return index;
+  }
+
+  return text.length;
+}
+
+function starts_header_line(text: string, start: number): boolean {
+  let index = start;
+
+  while (index < text.length && is_header_name_char(text.charCodeAt(index))) {
+    index += 1;
+  }
+
+  return index > start && text.charCodeAt(index) === 0x3a;
+}
+
+export function find_mbox_separator(
+  text: string,
+  from: number,
+): MboxSeparator | null {
+  let line_break = -1;
+  let checked_end = -1;
+  let header_follows = false;
+  let candidate = text.indexOf(SEPARATOR_PREFIX, from);
+
+  while (candidate >= 0) {
+    const at_line_start =
+      candidate === 0 || is_line_terminator(text.charCodeAt(candidate - 1));
+    const content_start = candidate + SEPARATOR_PREFIX.length;
+
+    if (at_line_start) {
+      if (line_break < content_start) {
+        line_break = first_break_from(text, content_start);
+      }
+      if (line_break === text.length) return null;
+
+      let end = -1;
+
+      if (line_break > content_start) {
+        if (text.charCodeAt(line_break) === 0x0a) {
+          end = line_break + 1;
+        } else if (text.charCodeAt(line_break + 1) === 0x0a) {
+          end = line_break + 2;
+        }
+      }
+
+      if (end >= 0 && end !== checked_end) {
+        checked_end = end;
+        header_follows = starts_header_line(text, end);
+      }
+      if (end >= 0 && header_follows) {
+        return { index: candidate, end };
+      }
+    }
+
+    candidate = text.indexOf(SEPARATOR_PREFIX, candidate + 1);
+  }
+
+  return null;
+}
+
 function retained_tail(pending: string): string {
   const last_break = pending.lastIndexOf("\n");
   const tail_start =
@@ -82,14 +162,11 @@ export async function* iterate_mbox_segments(
       new Uint8Array(await slice.arrayBuffer()),
     );
 
-    const separator_pattern = /^From [^\r\n]+\r?\n(?=[\x21-\x39\x3b-\x7e]+:)/gm;
     const segments: string[] = [];
-
-    separator_pattern.lastIndex = body_start;
 
     let match;
 
-    while ((match = separator_pattern.exec(pending)) !== null) {
+    while ((match = find_mbox_separator(pending, body_start)) !== null) {
       if (saw_separator) {
         segments.push(
           oversized_prefix ??
@@ -99,8 +176,7 @@ export async function* iterate_mbox_segments(
 
       oversized_prefix = null;
       saw_separator = true;
-      body_start = match.index + match[0].length;
-      separator_pattern.lastIndex = body_start;
+      body_start = match.end;
     }
 
     if (body_start > 0) {

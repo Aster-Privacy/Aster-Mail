@@ -25,11 +25,10 @@ import {
   normalize_contact_email,
 } from "@/services/contact_email_index";
 import { is_contact_trashed } from "@/lib/contact_trash";
+import { is_email_shape } from "@/lib/email_shape";
 
 export const MAX_CONTACT_PICK = 200;
 export const CONTACT_PICK_CONCURRENCY = 4;
-
-const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export type PickEmailStatus = "available" | "added" | "blocked";
 
@@ -71,7 +70,7 @@ export interface ExistingPin {
 export type PinHasher = (address: string) => Promise<string>;
 
 export function is_pickable_address(address: string): boolean {
-  return EMAIL_PATTERN.test(address);
+  return is_email_shape(address);
 }
 
 export function contact_display_name(

@@ -59,6 +59,7 @@ import { use_i18n } from "@/lib/i18n/context";
 import { show_toast } from "@/components/toast/simple_toast";
 import { use_preferences } from "@/contexts/preferences_context";
 import { ConfirmationModal } from "@/components/modals/confirmation_modal";
+import { ReplyFromMismatchModal } from "@/components/modals/reply_from_mismatch_modal";
 import { MobileHeader } from "@/components/mobile/mobile_header";
 import { ButtonSpinner } from "@/components/ui/spinner";
 import { Input } from "@/components/ui/input";
@@ -77,11 +78,12 @@ import {
   haptic_send_success,
   haptic_error,
 } from "@/native/haptic_feedback";
+import { find_angle_content, has_angle_content } from "@/lib/email_shape";
 
 function extract_recipient_address(text: string): string {
-  const angle_match = text.match(/<([^>]+)>/);
+  const angle_match = find_angle_content(text);
 
-  return (angle_match ? angle_match[1] : text).trim();
+  return (angle_match ?? text).trim();
 }
 
 function MobileComposePage({
@@ -252,7 +254,7 @@ function MobileComposePage({
       on_paste: (e: React.ClipboardEvent<HTMLInputElement>) => {
         const pasted = e.clipboardData.getData("text/plain");
 
-        if (!/[,;\n\t]/.test(pasted) && !/<[^>]+>/.test(pasted)) return;
+        if (!/[,;\n\t]/.test(pasted) && !has_angle_content(pasted)) return;
 
         e.preventDefault();
         compose.update_input(field, commit_recipients(field, pasted));
@@ -785,6 +787,8 @@ function MobileComposePage({
         title={t("common.unsaved_changes_title")}
         variant="danger"
       />
+
+      <ReplyFromMismatchModal {...compose.reply_from_mismatch} />
     </motion.div>
   );
 }

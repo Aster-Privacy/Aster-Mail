@@ -67,6 +67,8 @@ interface PopupEmailBodyProps {
   error: string | null;
   decrypt_failed?: boolean;
   decrypt_failed_created_at?: string | null;
+  payload_unavailable?: boolean;
+  on_retry?: () => void;
   is_fullscreen: boolean;
   thread_messages: DecryptedThreadMessage[];
   pending_thread_count?: number;
@@ -125,6 +127,8 @@ export function PopupEmailBody({
   error,
   decrypt_failed = false,
   decrypt_failed_created_at = null,
+  payload_unavailable = false,
+  on_retry,
   is_fullscreen,
   thread_messages,
   pending_thread_count = 0,
@@ -241,7 +245,7 @@ export function PopupEmailBody({
           <div className="w-12 h-12 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
             <XMarkIcon className="w-6 h-6 text-red-500" />
           </div>
-          {decrypt_failed ? (
+          {decrypt_failed && !payload_unavailable ? (
             <LockedMailNotice
               button_class_name="px-4 py-2 text-sm font-medium rounded-[14px] transition-colors bg-brand text-[var(--accent-fg,#ffffff)]"
               error={error}
@@ -252,6 +256,11 @@ export function PopupEmailBody({
             />
           ) : (
             <p className="text-sm text-txt-secondary text-center">{error}</p>
+          )}
+          {payload_unavailable && on_retry && (
+            <Button size="md" variant="outline" onClick={on_retry}>
+              {t("common.unavailable_try_again")}
+            </Button>
           )}
           <Button size="md" variant="outline" onClick={on_close}>
             {t("common.close")}

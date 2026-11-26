@@ -38,12 +38,23 @@ import {
 export const SETTLED_REPLY_MESSAGE_TTL_MS = 30_000;
 export const SENT_COPY_CLOCK_SKEW_MS = 120_000;
 
+export type PendingReplyPhase = "sending" | "offline" | "failed" | "sent";
+
+export interface PendingReplyStatus {
+  phase: PendingReplyPhase;
+  error?: string;
+  can_retry: boolean;
+}
+
 export interface PendingReplyEntry {
   thread_token: string;
   original_email_id?: string;
   message: DecryptedThreadMessage;
   is_settled: boolean;
+  status: PendingReplyStatus;
 }
+
+export type PendingReplyRetry = () => void;
 
 interface UndoSendDetail {
   pending?: { optimistic_id?: string };
@@ -51,6 +62,7 @@ interface UndoSendDetail {
 
 const pending_entries = new Map<string, PendingReplyEntry>();
 const settle_timers = new Map<string, ReturnType<typeof setTimeout>>();
+const retry_handlers = new Map<string, PendingReplyRetry>();
 const listeners = new Set<() => void>();
 let version = 0;
 let events_bound = false;
@@ -72,6 +84,7 @@ export function add_pending_reply_message(
     thread_token: detail.thread_token,
     original_email_id: detail.original_email_id,
     is_settled: false,
+    status: { phase: "sending", can_retry: false },
     message: {
       id: detail.optimistic_id,
       item_type: "sent",
@@ -98,9 +111,66 @@ export function remove_pending_reply_message(optimistic_id: string): void {
 
   if (timer) clearTimeout(timer);
   settle_timers.delete(optimistic_id);
+  retry_handlers.delete(optimistic_id);
   clear_pending_send_attachments(optimistic_id);
 
   if (pending_entries.delete(optimistic_id)) notify();
+}
+
+export function set_pending_reply_status(
+  optimistic_id: string,
+  phase: Exclude<PendingReplyPhase, "sent">,
+  options: { error?: string; retry?: PendingReplyRetry } = {},
+): void {
+  const entry = pending_entries.get(optimistic_id);
+
+  if (!entry || entry.is_settled) return;
+
+  if (options.retry) retry_handlers.set(optimistic_id, options.retry);
+  if (phase === "sending") retry_handlers.delete(optimistic_id);
+
+  pending_entries.set(optimistic_id, {
+    ...entry,
+    status: {
+      phase,
+      error: phase === "failed" ? options.error : undefined,
+      can_retry:
+        (phase === "failed" || phase === "offline") &&
+        retry_handlers.has(optimistic_id),
+    },
+  });
+  notify();
+}
+
+export function retry_pending_reply(optimistic_id: string): boolean {
+  const entry = pending_entries.get(optimistic_id);
+  const retry = retry_handlers.get(optimistic_id);
+
+  if (!entry || entry.is_settled || !retry) return false;
+  if (entry.status.phase !== "failed" && entry.status.phase !== "offline") {
+    return false;
+  }
+
+  set_pending_reply_status(optimistic_id, "sending");
+  retry();
+
+  return true;
+}
+
+export function retry_offline_pending_replies(): void {
+  const waiting = [...pending_entries.entries()]
+    .filter(([, entry]) => entry.status.phase === "offline")
+    .map(([optimistic_id]) => optimistic_id);
+
+  waiting.forEach((optimistic_id) => retry_pending_reply(optimistic_id));
+}
+
+export function get_pending_reply_status(
+  optimistic_id: string | null | undefined,
+): PendingReplyStatus | null {
+  if (!optimistic_id) return null;
+
+  return pending_entries.get(optimistic_id)?.status ?? null;
 }
 
 export function settle_pending_reply_message(optimistic_id: string): void {
@@ -108,7 +178,12 @@ export function settle_pending_reply_message(optimistic_id: string): void {
 
   if (!entry || entry.is_settled) return;
 
-  pending_entries.set(optimistic_id, { ...entry, is_settled: true });
+  retry_handlers.delete(optimistic_id);
+  pending_entries.set(optimistic_id, {
+    ...entry,
+    is_settled: true,
+    status: { phase: "sent", can_retry: false },
+  });
   settle_timers.set(
     optimistic_id,
     setTimeout(
@@ -126,6 +201,7 @@ export function has_pending_reply_message(optimistic_id: string): boolean {
 export function reset_pending_reply_messages(): void {
   settle_timers.forEach((timer) => clearTimeout(timer));
   settle_timers.clear();
+  retry_handlers.clear();
   pending_entries.forEach((_entry, optimistic_id) =>
     clear_pending_send_attachments(optimistic_id),
   );
@@ -233,6 +309,8 @@ export function bind_pending_reply_events(): void {
       settle_pending_reply_message(detail.optimistic_id);
     }
   }) as EventListener);
+
+  window.addEventListener("online", () => retry_offline_pending_replies());
 }
 
 bind_pending_reply_events();
@@ -247,6 +325,16 @@ function subscribe(listener: () => void): () => void {
 
 function get_version(): number {
   return version;
+}
+
+export function use_pending_reply_status(
+  optimistic_id: string | null | undefined,
+): PendingReplyStatus | null {
+  return useSyncExternalStore(
+    subscribe,
+    () => get_pending_reply_status(optimistic_id),
+    () => get_pending_reply_status(optimistic_id),
+  );
 }
 
 interface UsePendingReplyMessagesOptions {

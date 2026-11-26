@@ -247,6 +247,7 @@ interface EnrollFinishResponse {
 export async function enroll_login_v3(
   v1_proof: string,
   password_proof: string,
+  user_hash: string | null = null,
 ): Promise<boolean> {
   let input: Uint8Array | null = null;
 
@@ -281,7 +282,11 @@ export async function enroll_login_v3(
         },
       );
 
-      return finish_response.data?.login_version === LOGIN_VERSION;
+      const enrolled = finish_response.data?.login_version === LOGIN_VERSION;
+
+      if (enrolled && user_hash) pin_login_v3(user_hash);
+
+      return enrolled;
     } finally {
       started.state.fill(0);
     }

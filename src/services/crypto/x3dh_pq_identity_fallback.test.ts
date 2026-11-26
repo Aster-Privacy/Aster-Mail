@@ -29,6 +29,7 @@ const load_pq_secret_spy = vi.fn(async (key_id: number) => {
 });
 
 vi.mock("./pq_prekey_store", () => ({
+  refuse_used_pq_prekey: vi.fn(async () => false),
   save_pq_secret: vi.fn(async (key_id: number, sk: Uint8Array) => {
     pq_secret_table.set(key_id, new Uint8Array(sk));
   }),

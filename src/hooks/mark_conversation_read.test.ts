@@ -38,8 +38,10 @@ vi.mock("@/hooks/use_mail_stats", () => ({
   invalidate_mail_stats: () => mock_invalidate_mail_stats(),
 }));
 
+const mock_thread_entry_ids = vi.fn((..._args: unknown[]): string[] => []);
+
 vi.mock("@/services/category_index", () => ({
-  get_thread_entry_ids: () => [],
+  get_thread_entry_ids: (...args: unknown[]) => mock_thread_entry_ids(...args),
   mark_thread_read_entries: (...args: unknown[]) =>
     mock_mark_thread_read_entries(...args),
   thread_has_unread_entries: (...args: unknown[]) =>
@@ -49,12 +51,15 @@ vi.mock("@/services/category_index", () => ({
 import {
   ack_flag_intents,
   clear_all_flag_intents,
+  clear_all_read_intents,
   get_read_intent,
   note_flag_intents,
+  note_read_intent,
 } from "@/services/read_intent";
 
 import {
   collect_conversation_thread_tokens,
+  conversation_marked_unread,
   mark_conversation_read,
   mark_conversation_threads_read,
 } from "./mark_conversation_read";
@@ -355,5 +360,34 @@ describe("mark_conversation_threads_read", () => {
 
     expect(mock_mark_thread_read).not.toHaveBeenCalled();
     expect(mock_invalidate_mail_stats).not.toHaveBeenCalled();
+  });
+});
+
+describe("conversation_marked_unread", () => {
+  beforeEach(() => {
+    clear_all_read_intents();
+    mock_thread_entry_ids.mockReset();
+    mock_thread_entry_ids.mockReturnValue([]);
+  });
+
+  it("reports a conversation the user just marked unread", () => {
+    note_read_intent(["newest"], false);
+    mock_thread_entry_ids.mockReturnValue(["older", "newest"]);
+
+    expect(conversation_marked_unread("t1", ["older"])).toBe(true);
+  });
+
+  it("checks the given ids without a thread token", () => {
+    note_read_intent(["b"], false);
+
+    expect(conversation_marked_unread(null, ["a", "b"])).toBe(true);
+    expect(conversation_marked_unread(null, ["a"])).toBe(false);
+  });
+
+  it("ignores read intents and untouched messages", () => {
+    note_read_intent(["a"], true);
+    mock_thread_entry_ids.mockReturnValue(["a", "b"]);
+
+    expect(conversation_marked_unread("t1", ["a"])).toBe(false);
   });
 });

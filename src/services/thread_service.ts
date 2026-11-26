@@ -246,6 +246,14 @@ async function resolve_our_email(
   }
 }
 
+function thread_recipient_key(
+  msg: ThreadMessageItem,
+): Pick<DecryptedThreadMessage, "has_recipient_key"> {
+  return typeof msg.has_recipient_key === "boolean"
+    ? { has_recipient_key: msg.has_recipient_key }
+    : {};
+}
+
 async function decode_thread_envelope(
   msg: ThreadMessageItem,
   our_email: string | undefined,
@@ -344,7 +352,7 @@ async function decode_thread_envelope(
     body_content = resolved.body;
     pgp_unresolved = !resolved.decrypted && !body_decrypted;
     body_decrypted = body_decrypted || resolved.decrypted;
-    e2e_verified = e2e_verified || resolved.decrypted;
+    e2e_verified = e2e_verified || resolved.verified;
     pgp_sender_bound = resolved.verified;
     if (resolved.decrypted) {
       pgp_sender_verification = resolved.sender_verification;
@@ -487,10 +495,13 @@ export async function fetch_and_decrypt_thread_messages(
   const cache_user = our_email ?? "";
 
   const decrypt_promises = messages_to_decrypt.map(async (msg) => {
+    const payload_unavailable = msg.payload_unavailable === true;
     const [content, decrypted_metadata] = await Promise.all([
-      decrypt_thread_content_cached(msg, thread_token, cache_user, () =>
-        decode_thread_envelope(msg, our_email),
-      ),
+      payload_unavailable
+        ? Promise.resolve(null)
+        : decrypt_thread_content_cached(msg, thread_token, cache_user, () =>
+            decode_thread_envelope(msg, our_email),
+          ),
       msg.encrypted_metadata && msg.metadata_nonce
         ? decrypt_thread_metadata_cached(msg, cache_user, () =>
             decrypt_mail_metadata(
@@ -508,8 +519,11 @@ export async function fetch_and_decrypt_thread_messages(
         item_type: msg.item_type as "received" | "sent" | "draft",
         sender_name: get_active_translations().common.unknown_sender,
         sender_email: "",
-        subject: get_active_translations().common.unable_to_decrypt,
+        subject: payload_unavailable
+          ? get_active_translations().common.message_temporarily_unavailable
+          : get_active_translations().common.unable_to_decrypt,
         body: "",
+        ...(payload_unavailable ? { payload_unavailable: true } : {}),
         html_content: undefined,
         timestamp: msg.created_at,
         is_read: decrypted_metadata?.is_read ?? false,
@@ -518,6 +532,7 @@ export async function fetch_and_decrypt_thread_messages(
         is_trashed: resolve_thread_trash_flag(msg.is_trashed, options),
         is_external: msg.is_external ?? false,
         system_origin: msg.system_origin,
+        ...thread_recipient_key(msg),
         sender_verified_domain: msg.sender_verified
           ? msg.sender_verified_domain
           : undefined,
@@ -560,6 +575,7 @@ export async function fetch_and_decrypt_thread_messages(
       is_trashed: resolve_thread_trash_flag(msg.is_trashed, options),
       is_external: msg.is_external ?? false,
       system_origin: msg.system_origin,
+      ...thread_recipient_key(msg),
       e2e_verified: content.e2e_verified,
       e2e_sender_bound: content.e2e_sender_bound,
       e2e_details_sealed: content.e2e_details_sealed,
@@ -623,12 +639,15 @@ export async function fetch_and_decrypt_virtual_group(
   );
 
   const decrypt_promises = visible_items.map(async (item) => {
+    const payload_unavailable = item.payload_unavailable === true;
     const [envelope, decrypted_metadata] = await Promise.all([
-      decrypt_mail_envelope<DecryptedEnvelope>(
-        item.encrypted_envelope,
-        item.envelope_nonce,
-        item.id,
-      ),
+      payload_unavailable
+        ? Promise.resolve(null)
+        : decrypt_mail_envelope<DecryptedEnvelope>(
+            item.encrypted_envelope,
+            item.envelope_nonce,
+            item.id,
+          ),
       item.encrypted_metadata && item.metadata_nonce
         ? decrypt_mail_metadata(
             item.encrypted_metadata,
@@ -644,8 +663,11 @@ export async function fetch_and_decrypt_virtual_group(
         item_type: item.item_type as "received" | "sent" | "draft",
         sender_name: get_active_translations().common.unknown_sender,
         sender_email: "",
-        subject: get_active_translations().common.unable_to_decrypt,
+        subject: payload_unavailable
+          ? get_active_translations().common.message_temporarily_unavailable
+          : get_active_translations().common.unable_to_decrypt,
         body: "",
+        ...(payload_unavailable ? { payload_unavailable: true } : {}),
         html_content: undefined,
         timestamp: item.created_at,
         is_read: decrypted_metadata?.is_read ?? false,
@@ -755,7 +777,7 @@ export async function fetch_and_decrypt_virtual_group(
 
       body_content = resolved.body;
       body_decrypted = body_decrypted || resolved.decrypted;
-      e2e_verified = e2e_verified || resolved.decrypted;
+      e2e_verified = e2e_verified || resolved.verified;
       pgp_sender_bound = resolved.verified;
       if (resolved.decrypted) {
         pgp_sender_verification = resolved.sender_verification;

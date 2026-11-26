@@ -37,13 +37,11 @@ import { build_listed_unsubscribe_delivery } from "@/utils/unsubscribe_delivery"
 import {
   perform_unsubscribe,
   execute_unsubscribe,
+  get_manual_unsubscribe_url,
   unsubscribe_info_from_stored,
   UnsubscribeError,
 } from "@/utils/unsubscribe_detector";
-import {
-  confirm_unsubscribe,
-  confirm_unsubscribe_bulk,
-} from "@/components/modals/unsubscribe_confirmation_modal";
+import { confirm_unsubscribe } from "@/components/modals/unsubscribe_confirmation_modal";
 import {
   UNSUBSCRIBE_EVENT,
   persist_resubscribe,
@@ -67,6 +65,14 @@ import { ignore_error } from "@/lib/ignore_error";
 const REVALIDATE_INTERVAL_MS = 5 * 60 * 1000;
 const FOCUS_REVALIDATE_MIN_MS = 30 * 1000;
 const DELETE_BATCH_SIZE = 500;
+const BULK_CONCURRENCY = 4;
+const BULK_SAVE_EVERY = 8;
+
+export interface BulkUnsubscribeSummary {
+  unsubscribed: string[];
+  needs_page: string[];
+  failed: string[];
+}
 
 function with_subscriptions(
   previous: SubscriptionCacheData | null,
@@ -362,98 +368,145 @@ export function use_subscriptions() {
     [subscriptions, vault, t, persist_cache, revert_sender, end_mutation],
   );
 
+  const apply_unsubscribed = useCallback((sender_emails: string[]) => {
+    const targets = new Set(sender_emails);
+    const unsubscribed_at = new Date().toISOString();
+    const updated = (cache_ref.current?.subscriptions || []).map((s) =>
+      targets.has(s.sender_email)
+        ? { ...s, status: "unsubscribed" as const, unsubscribed_at }
+        : s,
+    );
+
+    cache_ref.current = with_subscriptions(cache_ref.current, updated);
+    set_subscriptions(updated);
+  }, []);
+
   const bulk_unsubscribe = useCallback(
-    async (sender_emails: string[]): Promise<string[] | null> => {
-      if (sender_emails.length === 0) return null;
+    async (
+      sender_emails: string[],
+      on_progress?: (done: number, total: number) => void,
+      signal?: AbortSignal,
+    ): Promise<BulkUnsubscribeSummary> => {
+      const summary: BulkUnsubscribeSummary = {
+        unsubscribed: [],
+        needs_page: [],
+        failed: [],
+      };
+      const total = sender_emails.length;
 
-      const confirmed = await confirm_unsubscribe_bulk(sender_emails.length);
-
-      if (!confirmed) return null;
+      if (total === 0) return summary;
 
       mutating_ref.current++;
 
+      const current_subs = cache_ref.current?.subscriptions || subscriptions;
+      const by_email = new Map(current_subs.map((s) => [s.sender_email, s]));
+      const automatic: CachedSubscription[] = [];
+      const outcome = new Map<string, keyof BulkUnsubscribeSummary>();
+      let done = 0;
+      let unsaved = 0;
+
+      const settle = (
+        sender_email: string,
+        bucket: keyof BulkUnsubscribeSummary,
+      ) => {
+        outcome.set(sender_email, bucket);
+        done++;
+        on_progress?.(done, total);
+      };
+
+      const manual_bucket = (
+        sub: CachedSubscription,
+      ): keyof BulkUnsubscribeSummary =>
+        get_manual_unsubscribe_url(unsubscribe_info_from_stored(sub))
+          ? "needs_page"
+          : "failed";
+
       try {
-        const current_subs = cache_ref.current?.subscriptions || subscriptions;
-        const batch_size = 5;
-        const emails_set = new Set(sender_emails);
+        for (const sender_email of sender_emails) {
+          const sub = by_email.get(sender_email);
 
-        const optimistic = current_subs.map((s) =>
-          emails_set.has(s.sender_email)
-            ? {
-                ...s,
-                status: "unsubscribed" as const,
-                unsubscribed_at: new Date().toISOString(),
-              }
-            : s,
-        );
+          if (!sub) {
+            settle(sender_email, "failed");
+            continue;
+          }
 
-        cache_ref.current = with_subscriptions(cache_ref.current, optimistic);
-        set_subscriptions(optimistic);
+          const info = unsubscribe_info_from_stored(sub);
+          const can_run_automatically =
+            (info.method === "one-click" && Boolean(info.unsubscribe_link)) ||
+            Boolean(info.unsubscribe_mailto);
 
-        await persist_cache();
-
-        const failed: string[] = [];
-        const manual: string[] = [];
-
-        for (let i = 0; i < sender_emails.length; i += batch_size) {
-          const batch = sender_emails.slice(i, i + batch_size);
-
-          await Promise.allSettled(
-            batch.map(async (email) => {
-              const sub = current_subs.find((s) => s.sender_email === email);
-
-              if (!sub) return;
-
-              try {
-                const result = await execute_unsubscribe(
-                  unsubscribe_info_from_stored(sub),
-                  build_listed_unsubscribe_delivery(
-                    sub.routing_token,
-                    sub.recipients,
-                  ),
-                  { retry_on_rate_limit: true },
-                );
-
-                if (result !== "api") {
-                  manual.push(email);
-                }
-              } catch (caught) {
-                failed.push(email);
-                ignore_error("hooks/use_subscriptions:reverted", caught);
-              }
-            }),
-          );
-        }
-
-        const unfinished = [...failed, ...manual];
-
-        if (unfinished.length > 0) {
-          const failed_set = new Set(unfinished);
-          const reverted = (cache_ref.current?.subscriptions || []).map((s) =>
-            failed_set.has(s.sender_email)
-              ? { ...s, status: "active" as const, unsubscribed_at: undefined }
-              : s,
-          );
-
-          cache_ref.current = with_subscriptions(cache_ref.current, reverted);
-          set_subscriptions(reverted);
-          await save_subscription_cache(cache_ref.current, vault!);
-          if (failed.length > 0) {
-            show_toast(t("mail.unsubscribe_failed"), "error");
+          if (can_run_automatically) {
+            automatic.push(sub);
           } else {
-            show_toast(t("mail.unsubscribe_some_need_website"), "info");
+            settle(sender_email, manual_bucket(sub));
           }
         }
 
-        const failed_senders = new Set(unfinished);
-        const succeeded = current_subs.filter(
-          (s) =>
-            emails_set.has(s.sender_email) &&
-            !failed_senders.has(s.sender_email),
+        let next_index = 0;
+
+        const run_worker = async () => {
+          while (next_index < automatic.length && !signal?.aborted) {
+            const sub = automatic[next_index++];
+            let bucket: keyof BulkUnsubscribeSummary;
+
+            try {
+              const result = await execute_unsubscribe(
+                unsubscribe_info_from_stored(sub),
+                build_listed_unsubscribe_delivery(
+                  sub.routing_token,
+                  sub.recipients,
+                ),
+                { retry_on_rate_limit: true, signal },
+              );
+
+              bucket = result === "api" ? "unsubscribed" : manual_bucket(sub);
+            } catch (caught) {
+              ignore_error("hooks/use_subscriptions:bulk_unsubscribe", caught);
+              bucket = manual_bucket(sub);
+            }
+
+            if (bucket === "unsubscribed" && mounted_ref.current) {
+              apply_unsubscribed([sub.sender_email]);
+              unsaved++;
+              if (unsaved >= BULK_SAVE_EVERY) {
+                unsaved = 0;
+                await save_subscription_cache(cache_ref.current!, vault!);
+              }
+            }
+
+            settle(sub.sender_email, bucket);
+          }
+        };
+
+        await Promise.all(
+          Array.from(
+            { length: Math.min(BULK_CONCURRENCY, automatic.length) },
+            run_worker,
+          ),
         );
 
+        if (unsaved > 0 && cache_ref.current) {
+          await persist_cache();
+        }
+
+        for (const sender_email of sender_emails) {
+          const bucket = outcome.get(sender_email);
+
+          if (bucket) {
+            summary[bucket].push(sender_email);
+          } else {
+            const sub = by_email.get(sender_email);
+
+            summary[sub ? manual_bucket(sub) : "failed"].push(sender_email);
+          }
+        }
+
         void (async () => {
-          for (const sub of succeeded) {
+          for (const sender_email of summary.unsubscribed) {
+            const sub = by_email.get(sender_email);
+
+            if (!sub) continue;
+
             await persist_unsubscribe(sub.sender_email, sub.sender_name, {
               unsubscribe_link: sub.unsubscribe_link,
               list_unsubscribe_header: sub.list_unsubscribe_header,
@@ -461,12 +514,52 @@ export function use_subscriptions() {
           }
         })();
 
-        return unfinished;
+        return summary;
       } finally {
         end_mutation();
       }
     },
-    [subscriptions, vault, t, persist_cache, end_mutation],
+    [subscriptions, vault, persist_cache, apply_unsubscribed, end_mutation],
+  );
+
+  const mark_unsubscribed = useCallback(
+    async (sender_email: string): Promise<boolean> => {
+      const current_subs = cache_ref.current?.subscriptions || subscriptions;
+      const sub = current_subs.find((s) => s.sender_email === sender_email);
+
+      if (!sub || !vault) return false;
+
+      mutating_ref.current++;
+
+      try {
+        apply_unsubscribed([sender_email]);
+
+        const saved = await persist_cache();
+
+        if (!saved) {
+          revert_sender(sender_email);
+
+          return false;
+        }
+
+        persist_unsubscribe(sub.sender_email, sub.sender_name, {
+          unsubscribe_link: sub.unsubscribe_link,
+          list_unsubscribe_header: sub.list_unsubscribe_header,
+        });
+
+        return true;
+      } finally {
+        end_mutation();
+      }
+    },
+    [
+      subscriptions,
+      vault,
+      apply_unsubscribed,
+      persist_cache,
+      revert_sender,
+      end_mutation,
+    ],
   );
 
   const reactivate = useCallback(
@@ -563,6 +656,7 @@ export function use_subscriptions() {
     is_loading: is_loading || !is_blocked_list_ready,
     unsubscribe: unsubscribe_sender,
     bulk_unsubscribe,
+    mark_unsubscribed,
     reactivate,
     delete_senders,
   };

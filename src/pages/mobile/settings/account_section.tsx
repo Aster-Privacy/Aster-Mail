@@ -84,6 +84,7 @@ import {
   primary_address_eligibility_failed,
   type PrimaryAddressEligibility,
 } from "@/services/api/primary_address";
+import { is_email_shape } from "@/lib/email_shape";
 
 function mask_email(email: string): string {
   const [local, domain] = email.split("@");
@@ -120,7 +121,7 @@ function RecoveryModal({
   const handle_save = async () => {
     const trimmed_email = email.trim();
 
-    if (!trimmed_email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed_email)) {
+    if (!trimmed_email || !is_email_shape(trimmed_email)) {
       set_error(t("common.enter_valid_email"));
 
       return;

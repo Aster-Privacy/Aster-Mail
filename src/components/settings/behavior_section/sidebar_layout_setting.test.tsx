@@ -32,15 +32,20 @@ interface LayoutPrefs {
 }
 
 const store = vi.hoisted(() => {
-  let state = {
+  const initial_state = () => ({
     sidebar_section_order: ["mail", "folders", "labels", "aliases"],
     sidebar_hidden_items: [] as string[],
-  };
+  });
+  let state: Record<string, unknown> & ReturnType<typeof initial_state> =
+    initial_state();
   const listeners = new Set<() => void>();
   const calls: Array<{ key: string; value: unknown; immediate?: boolean }> = [];
 
   return {
     get: () => state,
+    reset: () => {
+      state = initial_state();
+    },
     set: (next: Partial<typeof state>) => {
       state = { ...state, ...next };
       listeners.forEach((listener) => listener());
@@ -155,11 +160,9 @@ function click(element: HTMLElement) {
 }
 
 beforeEach(() => {
+  localStorage.clear();
   store.calls.length = 0;
-  store.set({
-    sidebar_section_order: ["mail", "folders", "labels", "aliases"],
-    sidebar_hidden_items: [],
-  });
+  store.reset();
   container = document.createElement("div");
   document.body.appendChild(container);
   root = createRoot(container);
@@ -297,6 +300,33 @@ describe("SidebarLayoutSetting", () => {
 
     expect(prefs().sidebar_hidden_items).toEqual(["trash", "subscriptions"]);
     expect(store.calls.every((call) => call.immediate === true)).toBe(true);
+  });
+
+  it("turns showing every folder on and off and saves right away", () => {
+    render_setting();
+
+    expect(switch_for("settings.sidebar_show_all_folders").checked).toBe(
+      false,
+    );
+
+    click(switch_for("settings.sidebar_show_all_folders"));
+    expect(store.calls.at(-1)).toEqual({
+      key: "sidebar_folders_show_all",
+      value: true,
+      immediate: true,
+    });
+    expect(switch_for("settings.sidebar_show_all_folders").checked).toBe(true);
+    expect(
+      JSON.parse(localStorage.getItem("aster_sidebar_state") ?? "{}"),
+    ).toEqual({ sidebar_folders_show_all: true });
+
+    click(switch_for("settings.sidebar_show_all_folders"));
+    expect(store.calls.at(-1)).toEqual({
+      key: "sidebar_folders_show_all",
+      value: false,
+      immediate: true,
+    });
+    expect(prefs().sidebar_hidden_items).toEqual([]);
   });
 
   it("keeps unknown hidden ids when toggling", () => {

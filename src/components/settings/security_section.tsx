@@ -58,6 +58,7 @@ import {
 import { BasicsSection } from "@/components/settings/security/basics_section";
 import { VanguardSection } from "@/components/settings/security/vanguard_section";
 import { SessionSection } from "@/components/settings/security/session_section";
+import { SavedImagesRows } from "@/components/settings/security/saved_images_rows";
 import { TrustedDevicesSection } from "@/components/settings/security/trusted_devices_section";
 import { AccountRecoverySection } from "@/components/settings/security/account_recovery_section";
 import { use_recovery_section_preload } from "@/components/settings/security/recovery_section_cache";
@@ -556,6 +557,12 @@ export function SecuritySection({
               !preferences.block_remote_css,
               true,
             )
+          }
+        />
+
+        <SavedImagesRows
+          images_load_automatically={
+            !remote_content_locked && remote_content.image_mode === "always"
           }
         />
 

@@ -812,6 +812,7 @@ export function use_search_results_page(props: SearchResultsPageProps) {
     on_split_close,
     split_pane_height: preferences.split_pane_height ?? 0,
     split_pane_width: preferences.split_pane_width ?? 0,
+    split_pane_ratio: preferences.split_pane_ratio ?? 0,
     update_preference,
   });
   const is_fullpage_mode = preferences.email_view_mode === "fullpage";

@@ -40,6 +40,7 @@ export const THREAD_CONTENT_FIELDS = [
   "cc_recipients",
   "bcc_recipients",
   "raw_headers",
+  "payload_unavailable",
 ] as const satisfies readonly (keyof DecryptedThreadMessage)[];
 
 export type ThreadContentField = (typeof THREAD_CONTENT_FIELDS)[number];

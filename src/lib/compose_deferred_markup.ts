@@ -18,15 +18,21 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import {
+  ascii_lower,
+  is_ascii_word_code,
+  next_char_table,
+  next_needle_table,
+  table_lookup,
+} from "@/lib/html_text";
+import { is_js_whitespace } from "@/lib/linear_trim";
+
 const DEFERRED_PREFIX = "data-aster-deferred-";
 const DEFERRED_NAMES = new Set(["src", "srcset", "background", "poster"]);
-const TAG_PATTERN = /<[a-z][^\s/>]*(?:[^>"']|"[^"]*"|'[^']*')*>/gi;
 const TAG_HEAD_PATTERN = /^<[^\s/>]+/;
 const ATTRIBUTE_PATTERN =
   /\s+([^\s"'>/=]+)(?:\s*=\s*("[^"]*"|'[^']*'|[^\s"'=<>`]+))?/y;
 const ATTRIBUTE_NAME_PATTERN = /^(\s+)[^\s"'>/=]+/;
-const STYLE_BLOCK_PATTERN =
-  /(<style\b(?:[^>"']|"[^"]*"|'[^']*')*>)([\s\S]*?)(<\/style>)/gi;
 const PLAIN_CSS_URL_PATTERN = /(url\(")([^"\\\s]+)("\))/g;
 const ENCODED_CSS_URL_PATTERN =
   /(url\(&quot;)((?:(?!&quot;)[^"\\\s])+)(&quot;\))/g;
@@ -39,18 +45,170 @@ export const COMPOSE_IMAGE_PLACEHOLDER =
 
 export type ComposeDeferPredicate = (name: string, value: string) => boolean;
 
+function is_ascii_letter_code(code: number): boolean {
+  return (code >= 65 && code <= 90) || (code >= 97 && code <= 122);
+}
+
+function build_tag_close_table(html: string): Int32Array {
+  const length = html.length;
+  const table = new Int32Array(length + 1);
+  const next_double = next_char_table(html, (code) => code === 34);
+  const next_single = next_char_table(html, (code) => code === 39);
+
+  table[length] = -1;
+
+  for (let index = length - 1; index >= 0; index -= 1) {
+    const code = html.charCodeAt(index);
+
+    if (code === 62) {
+      table[index] = index;
+    } else if (code === 34 || code === 39) {
+      const close = table_lookup(
+        code === 34 ? next_double : next_single,
+        index + 1,
+      );
+
+      table[index] = close === -1 ? -1 : table[close + 1];
+    } else {
+      table[index] = table[index + 1];
+    }
+  }
+
+  return table;
+}
+
+export function replace_markup_tags(
+  html: string,
+  replacer: (tag: string) => string,
+): string {
+  let start = html.indexOf("<");
+
+  if (start === -1) return html;
+
+  const length = html.length;
+  const close_from = build_tag_close_table(html);
+  const name_stop = next_char_table(
+    html,
+    (code) => code === 47 || code === 62 || is_js_whitespace(code),
+  );
+  const last_closable_quote = new Int32Array(length);
+  let last_quote = -1;
+
+  for (let index = 0; index < length; index += 1) {
+    const code = html.charCodeAt(index);
+
+    if ((code === 34 || code === 39) && close_from[index] !== -1) {
+      last_quote = index;
+    }
+
+    last_closable_quote[index] = last_quote;
+  }
+
+  let result = "";
+  let cursor = 0;
+
+  while (start !== -1) {
+    let end = -1;
+
+    if (is_ascii_letter_code(html.charCodeAt(start + 1))) {
+      const name_end_found = table_lookup(name_stop, start + 2);
+      const name_end = name_end_found === -1 ? length : name_end_found;
+
+      if (close_from[name_end] !== -1) {
+        end = close_from[name_end];
+      } else {
+        const quote = last_closable_quote[name_end - 1];
+
+        if (quote >= start + 2) end = close_from[quote];
+      }
+    }
+
+    if (end === -1) {
+      start = html.indexOf("<", start + 1);
+      continue;
+    }
+
+    result += html.slice(cursor, start) + replacer(html.slice(start, end + 1));
+    cursor = end + 1;
+    start = html.indexOf("<", cursor);
+  }
+
+  return cursor === 0 ? html : result + html.slice(cursor);
+}
+
+export interface StyleBlockParts {
+  match: string;
+  open: string;
+  attributes: string;
+  css: string;
+  close: string;
+}
+
+const STYLE_OPEN = "<style";
+
+const STYLE_CLOSE = "</style>";
+
+export function replace_style_blocks(
+  html: string,
+  replacer: (parts: StyleBlockParts) => string,
+): string {
+  const lower = ascii_lower(html);
+  let start = lower.indexOf(STYLE_OPEN);
+
+  if (start === -1) return html;
+
+  const close_from = build_tag_close_table(html);
+  const next_close = next_needle_table(lower, STYLE_CLOSE);
+  let result = "";
+  let cursor = 0;
+
+  while (start !== -1) {
+    const name_end = start + STYLE_OPEN.length;
+    let end = -1;
+
+    if (
+      name_end >= html.length ||
+      !is_ascii_word_code(html.charCodeAt(name_end))
+    ) {
+      const open_end = close_from[name_end];
+
+      if (open_end !== -1) {
+        const close = table_lookup(next_close, open_end + 1);
+
+        if (close !== -1) {
+          end = close + STYLE_CLOSE.length;
+          result +=
+            html.slice(cursor, start) +
+            replacer({
+              match: html.slice(start, end),
+              open: html.slice(start, open_end + 1),
+              attributes: html.slice(name_end, open_end),
+              css: html.slice(open_end + 1, close),
+              close: html.slice(close, end),
+            });
+          cursor = end;
+        }
+      }
+    }
+
+    start = lower.indexOf(STYLE_OPEN, end === -1 ? start + 1 : end);
+  }
+
+  return cursor === 0 ? html : result + html.slice(cursor);
+}
+
 export interface ComposeCssPlaceholder {
   marker: string;
   value: string;
 }
 
-interface ParsedAttribute {
+export interface ParsedAttribute {
   name: string;
   text: string;
   raw_value: string | null;
 }
 
-interface ParsedTag {
+export interface ParsedTag {
   head: string;
   attributes: ParsedAttribute[];
   tail: string;
@@ -110,7 +268,7 @@ function decode_payload(payload: string): string | null {
   }
 }
 
-function parse_tag(tag: string): ParsedTag | null {
+export function parse_tag(tag: string): ParsedTag | null {
   const head = TAG_HEAD_PATTERN.exec(tag);
 
   if (!head) return null;
@@ -285,15 +443,15 @@ export function defer_compose_markup(
 ): string {
   if (!html) return html;
 
-  return html
-    .replace(
-      STYLE_BLOCK_PATTERN,
-      (_match: string, open: string, css: string, close: string) =>
-        open +
-        defer_css(css, PLAIN_CSS_URL_PATTERN, false, is_deferrable) +
-        close,
-    )
-    .replace(TAG_PATTERN, (tag: string) => defer_tag(tag, is_deferrable));
+  const styled = replace_style_blocks(
+    html,
+    ({ open, css, close }) =>
+      open + defer_css(css, PLAIN_CSS_URL_PATTERN, false, is_deferrable) + close,
+  );
+
+  return replace_markup_tags(styled, (tag: string) =>
+    defer_tag(tag, is_deferrable),
+  );
 }
 
 export function restore_deferred_compose_images(html: string): string {
@@ -305,7 +463,7 @@ export function restore_deferred_compose_images(html: string): string {
   if (!has_attributes && !has_markers) return html;
 
   const restored = has_attributes
-    ? html.replace(TAG_PATTERN, restore_tag)
+    ? replace_markup_tags(html, restore_tag)
     : html;
 
   if (!has_markers) return restored;

@@ -28,6 +28,7 @@ import {
 import { CloseIcon } from "@/components/common/icons";
 import { ComposeAttachments } from "@/components/compose/compose_attachments";
 import { ConfirmationModal } from "@/components/modals/confirmation_modal";
+import { ReplyFromMismatchModal } from "@/components/modals/reply_from_mismatch_modal";
 import { SchedulePicker } from "@/components/compose/schedule_picker";
 import { ExpirationPicker } from "@/components/compose/expiration_picker";
 import { TemplatePicker } from "@/components/compose/template_picker";
@@ -378,6 +379,8 @@ export function ComposeModal({
                 title={t("common.unsaved_changes_title")}
                 variant="danger"
               />
+
+              <ReplyFromMismatchModal {...compose.reply_from_mismatch} />
             </ErrorBoundary>
           </motion.div>
         </>

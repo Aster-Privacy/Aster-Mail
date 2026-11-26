@@ -18,11 +18,34 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { find_address_like } from "@/lib/address_scans";
 import { detect_homoglyph } from "@/lib/homoglyph_detector";
 import {
   check_url_blocklist,
   verify_url_with_server,
 } from "@/lib/phishing_blocklist";
+
+function is_lower_letter(code: number): boolean {
+  return code >= 0x61 && code <= 0x7a;
+}
+
+function is_name_email_domain(code: number): boolean {
+  return (
+    is_lower_letter(code) ||
+    (code >= 0x30 && code <= 0x39) ||
+    code === 0x2e ||
+    code === 0x2d
+  );
+}
+
+function is_name_email_local(code: number): boolean {
+  return (
+    is_name_email_domain(code) ||
+    code === 0x5f ||
+    code === 0x25 ||
+    code === 0x2b
+  );
+}
 
 export type PhishingLevel = "safe" | "suspicious" | "dangerous";
 
@@ -141,12 +164,15 @@ function check_display_name_spoofing(
     }
   }
 
-  const email_in_name = lower_name.match(
-    /[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}/,
+  const name_email = find_address_like(
+    lower_name,
+    is_name_email_local,
+    is_name_email_domain,
+    is_lower_letter,
+    2,
   );
 
-  if (email_in_name) {
-    const name_email = email_in_name[0];
+  if (name_email !== null) {
 
     if (name_email !== sender_email.toLowerCase()) {
       signals.push({

@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type { TranslationKey } from "@/lib/i18n/types";
+import type { KeyboardEvent as ReactKeyboardEvent } from "react";
 
 import {
   useCallback,
@@ -178,6 +179,107 @@ export function ProfilePictureDialogView({
   const grid_visible =
     shown_view === "gallery" && (reduce_motion || grid_settled);
   const main_content_ref = useRef<HTMLDivElement>(null);
+  const chips_ref = useRef<HTMLDivElement>(null);
+  const [chip_fade, set_chip_fade] = useState({ left: false, right: false });
+
+  const update_chip_fade = useCallback(() => {
+    const row = chips_ref.current;
+    if (!row) {
+      return;
+    }
+    const offset = Math.abs(row.scrollLeft);
+    const max_offset = row.scrollWidth - row.clientWidth;
+    const start = offset > 1;
+    const end = max_offset - offset > 1;
+    const next = is_rtl
+      ? { left: end, right: start }
+      : { left: start, right: end };
+    set_chip_fade((prev) =>
+      prev.left === next.left && prev.right === next.right ? prev : next,
+    );
+  }, [is_rtl]);
+
+  useEffect(() => {
+    const row = chips_ref.current;
+    if (status !== "ready" || !row) {
+      return;
+    }
+    update_chip_fade();
+    const observer = new ResizeObserver(update_chip_fade);
+    observer.observe(row);
+    const on_wheel = (event: WheelEvent) => {
+      if (event.ctrlKey || event.deltaX !== 0 || event.deltaY === 0) {
+        return;
+      }
+      const max_offset = row.scrollWidth - row.clientWidth;
+      if (max_offset <= 0) {
+        return;
+      }
+      const offset = Math.abs(row.scrollLeft);
+      const forward = event.deltaY > 0;
+      if ((forward && max_offset - offset <= 1) || (!forward && offset <= 1)) {
+        return;
+      }
+      event.preventDefault();
+      const step = event.deltaMode === 1 ? event.deltaY * 40 : event.deltaY;
+      row.scrollBy({
+        left: is_rtl ? -step : step,
+        behavior: reduce_motion ? "auto" : "smooth",
+      });
+    };
+    row.addEventListener("wheel", on_wheel, { passive: false });
+    return () => {
+      observer.disconnect();
+      row.removeEventListener("wheel", on_wheel);
+    };
+  }, [status, is_rtl, reduce_motion, update_chip_fade]);
+
+  useEffect(() => {
+    const row = chips_ref.current;
+    if (status !== "ready" || !row) {
+      return;
+    }
+    const active = row.querySelector<HTMLElement>('[aria-pressed="true"]');
+    active?.scrollIntoView({
+      block: "nearest",
+      inline: "nearest",
+      behavior: reduce_motion ? "auto" : "smooth",
+    });
+  }, [filter, status, reduce_motion]);
+
+  const on_chips_key_down = useCallback(
+    (event: ReactKeyboardEvent<HTMLDivElement>) => {
+      const row = chips_ref.current;
+      if (!row) {
+        return;
+      }
+      const chips = Array.from(
+        row.querySelectorAll<HTMLButtonElement>("button"),
+      );
+      const index = chips.indexOf(document.activeElement as HTMLButtonElement);
+      if (index < 0) {
+        return;
+      }
+      const forward_key = is_rtl ? "ArrowLeft" : "ArrowRight";
+      const back_key = is_rtl ? "ArrowRight" : "ArrowLeft";
+      let next = -1;
+      if (event.key === forward_key) {
+        next = Math.min(chips.length - 1, index + 1);
+      } else if (event.key === back_key) {
+        next = Math.max(0, index - 1);
+      } else if (event.key === "Home") {
+        next = 0;
+      } else if (event.key === "End") {
+        next = chips.length - 1;
+      }
+      if (next < 0) {
+        return;
+      }
+      event.preventDefault();
+      chips[next]?.focus();
+    },
+    [is_rtl],
+  );
   const [main_height, set_main_height] = useState<number | null>(null);
 
   useLayoutEffect(() => {
@@ -454,7 +556,18 @@ export function ProfilePictureDialogView({
 
                 {status === "ready" && (
                   <>
-                    <div className="profile_picture_chips -mx-1 flex flex-shrink-0 gap-2 overflow-x-auto px-1 pb-3">
+                    <div
+                      ref={chips_ref}
+                      className={cn(
+                        "profile_picture_chips -mx-1 flex flex-shrink-0 gap-2 overflow-x-auto px-1 pb-3",
+                        chip_fade.left && "has_fade_left",
+                        chip_fade.right && "has_fade_right",
+                      )}
+                      role="toolbar"
+                      aria-label={t("common.profile_picture_categories")}
+                      onKeyDown={on_chips_key_down}
+                      onScroll={update_chip_fade}
+                    >
                       {(["all", ...categories] as GalleryFilter[]).map(
                         (category) => (
                           <button
@@ -465,6 +578,7 @@ export function ProfilePictureDialogView({
                               filter === category && "is_active",
                             )}
                             type="button"
+                            tabIndex={filter === category ? 0 : -1}
                             onClick={() => set_filter(category)}
                           >
                             {t(

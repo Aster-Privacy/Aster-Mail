@@ -86,6 +86,7 @@ export interface MailItem {
   item_type: "received" | "sent" | "draft" | "scheduled" | "outbox";
   encrypted_envelope: string;
   envelope_nonce: string;
+  payload_unavailable?: boolean;
   ephemeral_key?: string;
   ephemeral_pq_key?: string;
   sender_sealed?: string;
@@ -359,6 +360,7 @@ export async function list_mail_items(
 
   const response = await api_client.get<MailItemsListResponse>(endpoint, {
     retry: 2,
+    retry_on_timeout: false,
     ...(is_bulk_scan ? { request_priority: "background" as const } : {}),
     ...(unlock_token ? { folder_unlock_token: unlock_token } : {}),
   });

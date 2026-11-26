@@ -64,7 +64,10 @@ export function ContactBirthdayInput({
     set_fields(split_contact_date(value));
   }, [value]);
 
-  const month_names = useMemo(() => contact_month_names(locale), [locale]);
+  const month_names = useMemo(
+    () => contact_month_names(locale, "short"),
+    [locale],
+  );
   const field_order = useMemo(() => contact_date_field_order(locale), [locale]);
   const max_day = contact_date_max_day(fields);
 
@@ -91,11 +94,11 @@ export function ContactBirthdayInput({
     });
   };
 
-  const select_class = `${field_class_name} w-full appearance-none pe-8`;
+  const select_class = `${field_class_name} w-full appearance-none ps-3 pe-7`;
 
   const controls: Record<ContactDateField, ReactElement> = {
     month: (
-      <div key="month" className="relative min-w-0 flex-[1.4]">
+      <div key="month" className="relative min-w-0 flex-[1.4] basis-0">
         <select
           aria-label={`${label}, ${t("common.birthday_month")}`}
           className={select_class}
@@ -110,11 +113,11 @@ export function ContactBirthdayInput({
             </option>
           ))}
         </select>
-        <ChevronDownIcon className="pointer-events-none absolute end-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-txt-muted" />
+        <ChevronDownIcon className="pointer-events-none absolute end-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-txt-muted" />
       </div>
     ),
     day: (
-      <div key="day" className="relative min-w-0 flex-1">
+      <div key="day" className="relative w-20 flex-none">
         <select
           aria-label={`${label}, ${t("common.birthday_day")}`}
           className={select_class}
@@ -129,7 +132,7 @@ export function ContactBirthdayInput({
             </option>
           ))}
         </select>
-        <ChevronDownIcon className="pointer-events-none absolute end-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-txt-muted" />
+        <ChevronDownIcon className="pointer-events-none absolute end-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-txt-muted" />
       </div>
     ),
     year: (
@@ -137,7 +140,7 @@ export function ContactBirthdayInput({
         key="year"
         aria-label={`${label}, ${t("common.birthday_year_optional")}`}
         autoComplete="off"
-        className={`${field_class_name} w-full min-w-0 flex-[1.2]`}
+        className={`${field_class_name} w-full min-w-[4.5rem] flex-1 basis-0 ps-3 pe-3`}
         disabled={disabled}
         inputMode="numeric"
         maxLength={4}

@@ -92,11 +92,21 @@ import { get_cached_iframe_height } from "@/components/email/sandboxed_email_ren
 import { UNMEASURED_PLACEHOLDER_HEIGHT } from "@/components/email/sandboxed_email_renderer/helpers";
 import { SpamReasonsBanner } from "@/components/email/banners/spam_reasons_banner";
 import { TranslationBanner } from "@/components/email/banners/translation_banner";
+import { PendingSendStatus } from "@/components/email/pending_send_status";
 import { ThreadMessageActions } from "@/components/email/thread_message_actions";
+import {
+  MessageNoticeRow,
+  external_content_action,
+  type UnsubscribeNoticeState,
+} from "@/components/email/message_notice_row";
 import { MessageDetailsModal } from "@/components/email/message_details_modal";
 import { MessageDetailCard } from "@/components/email/message_detail_card";
 import { SenderProfileTrigger } from "@/components/profile/sender_profile_trigger";
 import { PgpPasswordProtectedMessage } from "@/components/email/pgp_password_prompt";
+import {
+  emit_mail_soft_refresh,
+  emit_refresh_requested,
+} from "@/hooks/mail_events";
 import { request_external_link } from "@/utils/external_link_request";
 import { folder_option_indent } from "@/hooks/use_folders/tree";
 import { SenderLogoBoundary } from "@/contexts/sender_logo_context";
@@ -284,6 +294,21 @@ export function ThreadMessageBlock(
     );
   };
 
+  const external_action =
+    !lockdown_active && on_load_external_content
+      ? external_content_action(
+          sanitized_content.report?.blocked_items,
+          image_grant_allowed,
+        )
+      : null;
+  const unsubscribe_notice_state: UnsubscribeNoticeState | null =
+    unsub_state === "manual"
+      ? unsubscribe_url && !lockdown_active
+        ? "manual"
+        : null
+      : (unsub_state === "idle" || unsub_state === "loading") && on_unsubscribe
+        ? unsub_state
+        : null;
   const marks_hidden = sender_trust?.show_identity_marks === false;
   const shown_address = sender_trust ? sender_trust.address : show_sender_email;
   const auth_summary = summarize_email_authentication(message);
@@ -422,123 +447,6 @@ export function ThreadMessageBlock(
                 />
               </Tooltip>
             )}
-            {on_unsubscribe && unsub_state === "idle" && (
-              <button
-                className="flex-shrink-0 text-xs font-medium text-brand rounded px-1.5 py-0.5 hover:bg-brand/10 transition-colors"
-                onClick={async (e) => {
-                  e.stopPropagation();
-                  set_unsub_state("loading");
-                  const result = await on_unsubscribe();
-
-                  set_unsub_state(result === "success" ? "done" : "manual");
-                }}
-              >
-                {t("mail.unsubscribe")}
-              </button>
-            )}
-            {unsub_state === "manual" &&
-              unsubscribe_url &&
-              !lockdown_active && (
-                <button
-                  className="flex-shrink-0 text-xs font-medium text-brand rounded px-1.5 py-0.5 hover:bg-brand/10 transition-colors"
-                  onClick={async (e) => {
-                    e.stopPropagation();
-                    if (!(await request_external_link(unsubscribe_url))) return;
-                    set_unsub_state("done");
-                    on_manual_unsubscribed?.();
-                  }}
-                >
-                  {t("mail.open_unsubscribe_page")}
-                </button>
-              )}
-            {!lockdown_active &&
-              sanitized_content.report &&
-              sanitized_content.report.blocked_count > 0 &&
-              on_load_external_content &&
-              (() => {
-                const report = sanitized_content.report!;
-                const image_count = report.blocked_items.filter(
-                  (i) => i.type === "image",
-                ).length;
-                const tracker_count = report.blocked_items.filter(
-                  (i) => i.type === "tracking_pixel",
-                ).length;
-                const font_count = report.blocked_items.filter(
-                  (i) => i.type === "font",
-                ).length;
-                const css_count = report.blocked_items.filter(
-                  (i) => i.type === "css",
-                ).length;
-                const btn_class =
-                  "flex-shrink-0 text-xs font-medium text-brand rounded px-1.5 py-0.5 hover:bg-brand/10 transition-colors";
-
-                return (
-                  <>
-                    {!image_grant_allowed &&
-                      image_count + tracker_count > 0 && (
-                        <button
-                          className={btn_class}
-                          data-testid="image-loading-settings"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            open_settings_target({
-                              section: "security",
-                              anchor: SETTINGS_ANCHORS.images,
-                            });
-                          }}
-                        >
-                          {t("mail.image_loading_settings")}
-                        </button>
-                      )}
-                    {image_grant_allowed && image_count > 0 && (
-                      <button
-                        className={btn_class}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          on_load_external_content(message.id, ["image"]);
-                        }}
-                      >
-                        {`${t("mail.load_external_content")} (${image_count} ${image_count === 1 ? t("mail.image") : t("mail.images")})`}
-                      </button>
-                    )}
-                    {image_grant_allowed && tracker_count > 0 && (
-                      <button
-                        className={btn_class}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          on_load_external_content(message.id, [
-                            "tracking_pixel",
-                          ]);
-                        }}
-                      >
-                        {`${t("mail.load_external_content")} (${tracker_count} ${tracker_count === 1 ? t("mail.tracker") : t("mail.trackers")})`}
-                      </button>
-                    )}
-                    {(font_count > 0 || css_count > 0) && (
-                      <button
-                        className={btn_class}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          on_load_external_content(message.id, ["font", "css"]);
-                        }}
-                      >
-                        {(() => {
-                          const parts: string[] = [];
-
-                          if (font_count > 0)
-                            parts.push(
-                              `${font_count} ${font_count === 1 ? t("mail.font") : t("mail.fonts")}`,
-                            );
-                          if (css_count > 0)
-                            parts.push(`${css_count} ${t("mail.stylesheet")}`);
-
-                          return `${t("mail.load_external_content")} (${parts.join(", ")})`;
-                        })()}
-                      </button>
-                    )}
-                  </>
-                );
-              })()}
           </div>
           <div className="flex flex-wrap items-center gap-1.5">
             <Popover>
@@ -638,17 +546,6 @@ export function ThreadMessageBlock(
               <StarIcon />
             )}
           </IslandIconButton>
-          {on_reply && !is_system && (
-            <IslandIconButton
-              label={t("mail.reply")}
-              onClick={(e) => {
-                e.stopPropagation();
-                on_reply(message);
-              }}
-            >
-              <ArrowUturnLeftIcon className="rtl:-scale-x-100" />
-            </IslandIconButton>
-          )}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <IslandIconButton
@@ -663,6 +560,17 @@ export function ThreadMessageBlock(
               className="w-52"
               collisionPadding={12}
             >
+              {on_reply && !is_system && (
+                <DropdownMenuItem
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    on_reply(message);
+                  }}
+                >
+                  <ArrowUturnLeftIcon className="w-4 h-4 me-2 rtl:-scale-x-100" />
+                  {t("mail.reply")}
+                </DropdownMenuItem>
+              )}
               {on_reply_all && !is_system && (
                 <DropdownMenuItem
                   onClick={(e) => {
@@ -696,7 +604,9 @@ export function ThreadMessageBlock(
                   {t("mail.forward_as_attachment")}
                 </DropdownMenuItem>
               )}
-              {(on_reply_all && !is_system) || on_forward ? (
+              {(on_reply && !is_system) ||
+              (on_reply_all && !is_system) ||
+              on_forward ? (
                 <DropdownMenuSeparator />
               ) : null}
               {message.item_type !== "sent" && (
@@ -957,6 +867,33 @@ export function ThreadMessageBlock(
 
       <SenderTrustBanner trust={sender_trust} />
 
+      <MessageNoticeRow
+        external_action={external_action}
+        on_load_external_content={(types) =>
+          on_load_external_content?.(message.id, types)
+        }
+        on_open_image_settings={() =>
+          open_settings_target({
+            section: "security",
+            anchor: SETTINGS_ANCHORS.images,
+          })
+        }
+        on_open_unsubscribe_page={async () => {
+          if (!unsubscribe_url) return;
+          if (!(await request_external_link(unsubscribe_url))) return;
+          set_unsub_state("done");
+          on_manual_unsubscribed?.();
+        }}
+        on_unsubscribe={async () => {
+          if (!on_unsubscribe) return;
+          set_unsub_state("loading");
+          const result = await on_unsubscribe();
+
+          set_unsub_state(result === "success" ? "done" : "manual");
+        }}
+        unsubscribe_state={unsubscribe_notice_state}
+      />
+
       {message.item_type === "received" &&
         on_not_spam &&
         message.is_spam === true &&
@@ -970,6 +907,13 @@ export function ThreadMessageBlock(
       <div
         className={`${is_plain_text || show_as_text ? "ps-[52px] pb-4" : "pb-0"} pt-1`}
       >
+        {message.is_sending === true && (
+          <div
+            className={`min-w-0 ${is_plain_text || show_as_text ? "pe-4" : "ps-[52px] pe-4"}`}
+          >
+            <PendingSendStatus message_id={message.id} />
+          </div>
+        )}
         {!is_ratchet_undecryptable && (
           <div
             className={`min-w-0 ${is_plain_text || show_as_text ? "pe-4" : "ps-[52px] pe-4"}`}
@@ -986,7 +930,24 @@ export function ThreadMessageBlock(
             />
           </div>
         )}
-        {password_protected ? (
+        {message.payload_unavailable ? (
+          <div className="mx-4 mb-3 rounded-[20px] bg-surf-primary px-4 py-3">
+            <p className="text-sm text-txt-muted">
+              {t("common.message_temporarily_unavailable")}
+            </p>
+            <button
+              className="mt-3 px-4 py-2 text-sm font-medium rounded-[14px] transition-colors bg-surf-secondary text-txt-primary"
+              type="button"
+              onClick={(event) => {
+                event.stopPropagation();
+                emit_refresh_requested();
+                emit_mail_soft_refresh();
+              }}
+            >
+              {t("common.unavailable_try_again")}
+            </button>
+          </div>
+        ) : password_protected ? (
           <PgpPasswordProtectedMessage
             body={message.body}
             className="px-4 py-3"
@@ -1039,6 +1000,7 @@ export function ThreadMessageBlock(
             inline_refs={inline_refs}
             is_external={message.is_external}
             is_local={message.is_sending === true}
+            is_received={message.item_type === "received"}
             mail_item_id={message.id}
             sent_encryption_scope={message.sent_encryption_scope}
           />

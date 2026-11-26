@@ -56,6 +56,7 @@ import {
   type SenderPinMode,
 } from "@/services/api/alias_pins";
 import { is_composing } from "@/utils/ime";
+import { is_email_shape } from "@/lib/email_shape";
 
 export function SenderPinningPanel({
   alias_id,
@@ -133,7 +134,7 @@ export function SenderPinningPanel({
 
     if (!value) return;
 
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+    if (!is_email_shape(value)) {
       show_toast(t("settings.alias_sender_invalid"), "error");
 
       return;

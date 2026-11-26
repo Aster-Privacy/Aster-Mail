@@ -87,6 +87,7 @@ export function EncryptionInfoDropdown({
     has_recipient_key,
     e2e_verified,
     sent_encryption_scope,
+    is_received,
   };
   const is_encrypted = shows_end_to_end(flags);
   const sender_verification =
@@ -95,7 +96,6 @@ export function EncryptionInfoDropdown({
       : displayed_sender_verification({
           ...flags,
           sender_verification: reported_sender_verification,
-          is_received,
         });
 
   const description = description_key

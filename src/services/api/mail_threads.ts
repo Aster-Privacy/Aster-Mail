@@ -45,11 +45,13 @@ export interface ThreadMessageItem {
   item_type: string;
   encrypted_envelope: string;
   envelope_nonce: string;
+  payload_unavailable?: boolean;
   encrypted_metadata?: string;
   metadata_nonce?: string;
   metadata_version?: number;
   is_external?: boolean;
   system_origin?: boolean;
+  has_recipient_key?: boolean;
   send_status?: string;
   send_error?: string;
   message_ts: string;

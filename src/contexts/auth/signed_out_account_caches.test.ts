@@ -25,6 +25,14 @@ const hoisted = vi.hoisted(() => ({
   calls: [] as string[],
   snapshot_scopes: [] as unknown[],
   deleted_accounts: [] as string[],
+  image_scopes: [] as unknown[],
+}));
+
+vi.mock("@/lib/remote_image_cache", () => ({
+  clear_remote_image_cache: async (account_id?: string | null) => {
+    hoisted.calls.push("clear_remote_image_cache");
+    hoisted.image_scopes.push(account_id ?? null);
+  },
 }));
 
 vi.mock("@/lib/icon_cache", () => ({
@@ -110,6 +118,7 @@ describe("signing out one account clears its decrypted caches", () => {
     hoisted.calls.length = 0;
     hoisted.snapshot_scopes.length = 0;
     hoisted.deleted_accounts.length = 0;
+    hoisted.image_scopes.length = 0;
   });
 
   it("clears every cache a full sign-out clears", async () => {
@@ -123,6 +132,7 @@ describe("signing out one account clears its decrypted caches", () => {
       "clear_escrow_miss_cache",
       "clear_family_cache",
       "clear_icon_cache",
+      "clear_remote_image_cache",
       "clear_translation_cache",
       "lock_all_folders",
       "purge_favicon_cache",
@@ -154,5 +164,12 @@ describe("signing out one account clears its decrypted caches", () => {
       "current_account",
       "current_account",
     ]);
+  });
+
+  it("removes the saved images of the account that signed out", async () => {
+    await clear_signed_out_account_caches("acct-2");
+    await clear_signed_out_account_caches();
+
+    expect(hoisted.image_scopes).toEqual(["acct-2", null]);
   });
 });

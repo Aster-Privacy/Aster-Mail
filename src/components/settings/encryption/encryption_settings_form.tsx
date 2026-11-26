@@ -113,6 +113,8 @@ interface EncryptionSettingsFormProps {
   handle_auto_discover_keys_toggle: () => Promise<void>;
   handle_encrypt_emails_toggle: () => Promise<void>;
   handle_require_encryption_toggle: () => Promise<void>;
+  alias_pgp_enabled: boolean;
+  handle_alias_pgp_toggle: () => Promise<void>;
   keyserver_urls: string[];
   keyserver_input: string;
   set_keyserver_input: (v: string) => void;
@@ -137,6 +139,8 @@ export function EncryptionSettingsForm({
   handle_auto_discover_keys_toggle,
   handle_encrypt_emails_toggle,
   handle_require_encryption_toggle,
+  alias_pgp_enabled,
+  handle_alias_pgp_toggle,
   keyserver_urls,
   keyserver_input,
   set_keyserver_input,
@@ -279,6 +283,12 @@ export function EncryptionSettingsForm({
           }}
           on_toggle={handle_wkd_toggle}
           title={t("settings.publish_keys_wkd_title")}
+        />
+        <ToggleSetting
+          description={t("settings.alias_pgp_description")}
+          enabled={alias_pgp_enabled}
+          on_toggle={handle_alias_pgp_toggle}
+          title={t("settings.alias_pgp_title")}
         />
       </IslandSection>
 

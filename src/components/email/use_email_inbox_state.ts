@@ -62,7 +62,10 @@ import { use_split_pane } from "@/components/email/inbox/use_split_pane";
 import { use_inbox_list_scroll } from "@/components/email/inbox/use_inbox_list_scroll";
 import { use_inbox_keyboard } from "@/components/email/inbox/use_inbox_keyboard";
 import { use_inbox_navigation } from "@/components/email/inbox/use_inbox_navigation";
-import { use_split_reader_advance } from "@/components/email/inbox/use_split_reader_advance";
+import {
+  row_covers_open_email,
+  use_split_reader_advance,
+} from "@/components/email/inbox/use_split_reader_advance";
 import { use_inbox_selection } from "@/components/email/inbox/use_inbox_selection";
 import { use_inbox_selection_menu } from "@/components/email/inbox/use_inbox_selection_menu";
 import { use_inbox_bulk_actions } from "@/components/email/inbox/use_inbox_bulk_actions";
@@ -73,6 +76,7 @@ import {
 } from "@/components/email/inbox/category_drag";
 import type { SystemDropTarget } from "@/lib/system_drop_targets";
 import { build_selection_snapshot } from "@/components/email/inbox/selection_snapshot";
+import { cap_category_unread } from "@/components/email/inbox/cap_category_unread";
 
 export type {
   ReplyData,
@@ -101,6 +105,7 @@ export function use_email_inbox_state(props: EmailInboxProps) {
     preferences,
     update_preference,
     mail_stats,
+    mail_stats_ready,
     folders_state,
     folder_unread_counts,
     tags_state,
@@ -455,7 +460,10 @@ export function use_email_inbox_state(props: EmailInboxProps) {
     current_view === "inbox" || current_view === ""
       ? categories.enabled
         ? is_index_reconciled()
-          ? categories.counts[categories.active_category]?.unread
+          ? cap_category_unread(
+              categories.counts[categories.active_category]?.unread,
+              mail_stats_ready ? mail_stats.unread : undefined,
+            )
           : undefined
         : mail_stats.unread
       : current_view === "drafts"
@@ -669,7 +677,7 @@ export function use_email_inbox_state(props: EmailInboxProps) {
     t,
   ]);
 
-  const bulk_actions = use_inbox_bulk_actions({
+  const raw_bulk_actions = use_inbox_bulk_actions({
     categories,
     selection,
     toolbar,
@@ -682,6 +690,38 @@ export function use_email_inbox_state(props: EmailInboxProps) {
     set_current_page,
     t,
   });
+
+  const raw_mark_unread = raw_bulk_actions.handle_mark_unread_wrapped;
+  const unread_split_ref = useRef({
+    split_email_id,
+    on_split_close,
+    emails: email_state.emails,
+    select_all_mode: selection.select_all_mode,
+  });
+
+  unread_split_ref.current = {
+    split_email_id,
+    on_split_close,
+    emails: email_state.emails,
+    select_all_mode: selection.select_all_mode,
+  };
+  const mark_unread_and_close_split = useCallback(() => {
+    const current = unread_split_ref.current;
+    const closes =
+      !current.select_all_mode &&
+      current.emails.some(
+        (email) =>
+          email.is_selected &&
+          row_covers_open_email(email, current.split_email_id, current.emails),
+      );
+
+    raw_mark_unread();
+    if (closes) current.on_split_close?.();
+  }, [raw_mark_unread]);
+  const bulk_actions = {
+    ...raw_bulk_actions,
+    handle_mark_unread_wrapped: mark_unread_and_close_split,
+  };
 
   const {
     pending_select_all_action,
@@ -922,7 +962,8 @@ export function use_email_inbox_state(props: EmailInboxProps) {
 
         return;
       }
-      if (!email.is_starred) void context_menu_actions.handle_toggle_star(email);
+      if (!email.is_starred)
+        void context_menu_actions.handle_toggle_star(email);
 
       return;
     }
@@ -1030,6 +1071,7 @@ export function use_email_inbox_state(props: EmailInboxProps) {
     is_split_view,
     is_bottom_pane,
     split_pane_width: preferences.split_pane_width,
+    split_pane_ratio: preferences.split_pane_ratio ?? 0,
     split_pane_height: preferences.split_pane_height,
     update_preference,
     on_split_close,

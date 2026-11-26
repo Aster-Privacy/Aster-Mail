@@ -27,6 +27,7 @@ import {
   PaperAirplaneIcon,
 } from "@heroicons/react/24/outline";
 import {
+  Badge,
   Island,
   IslandEmpty,
   IslandRow,
@@ -45,6 +46,21 @@ import {
   update_sending_blocks,
 } from "@/services/api/alias_sending_blocks";
 
+const SENDING_BLOCK_OPTION_TYPES: SenderOption["type"][] = [
+  "primary",
+  "alias",
+  "ghost",
+  "domain",
+];
+
+export function are_all_sending_options_disabled(
+  options: SenderOption[],
+): boolean {
+  return (
+    options.length > 0 && options.every((option) => option.sending_disabled)
+  );
+}
+
 export function filter_sending_block_options(
   options: SenderOption[],
   query: string,
@@ -52,7 +68,7 @@ export function filter_sending_block_options(
   const needle = query.trim().toLowerCase();
 
   return options.filter((option) => {
-    if (option.type !== "alias" && option.type !== "domain") return false;
+    if (!SENDING_BLOCK_OPTION_TYPES.includes(option.type)) return false;
     if (option.is_catch_all) return false;
     if (!sending_block_change_for_option(option.id, true)) return false;
     if (!needle) return true;
@@ -79,6 +95,8 @@ export function AliasSendingBlocksSection() {
     () => filter_sending_block_options(sender_options, query),
     [sender_options, query],
   );
+
+  const all_disabled = are_all_sending_options_disabled(all_options);
 
   const handle_toggle = async (option: SenderOption, enabled: boolean) => {
     const change = sending_block_change_for_option(option.id, !enabled);
@@ -122,8 +140,15 @@ export function AliasSendingBlocksSection() {
                 )
               }
               label={
-                <span className="block truncate" title={option.email}>
-                  {option.email}
+                <span className="flex min-w-0 items-center gap-2">
+                  <span className="truncate" title={option.email}>
+                    {option.email}
+                  </span>
+                  {option.type === "primary" && (
+                    <Badge className="flex-shrink-0" color="gray">
+                      {t("settings.sending_blocks_primary_label")}
+                    </Badge>
+                  )}
                 </span>
               }
               toggle={{
@@ -189,6 +214,16 @@ export function AliasSendingBlocksSection() {
             />
           </div>
         </div>
+        {all_disabled && (
+          <Island
+            data-testid="sending-blocks-all-disabled"
+            padding="md"
+            role="status"
+            tone="danger"
+          >
+            <p className="text-sm">{t("settings.sending_blocks_all_disabled")}</p>
+          </Island>
+        )}
         {render_list()}
       </IslandSection>
     </IslandSections>

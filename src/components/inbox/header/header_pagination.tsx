@@ -21,6 +21,7 @@
 import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/24/outline";
 import { Button, Tooltip } from "@aster/ui";
 
+import { PageJumpMenu } from "@/components/inbox/header/page_jump_menu";
 import { resolve_page_range } from "@/components/inbox/header/page_range";
 import { use_i18n } from "@/lib/i18n/context";
 import { app_locale } from "@/utils/date_format";
@@ -38,6 +39,7 @@ interface HeaderPaginationProps {
   total_pages?: number;
   page_row_count?: number;
   on_page_change?: (page: number) => void;
+  on_jump_to_page?: (page: number) => void;
 }
 
 export function HeaderPagination({
@@ -53,6 +55,7 @@ export function HeaderPagination({
   total_pages: known_total_pages,
   page_row_count = 0,
   on_page_change,
+  on_jump_to_page,
 }: HeaderPaginationProps) {
   const { t } = use_i18n();
 
@@ -97,14 +100,47 @@ export function HeaderPagination({
     : on_page_change
       ? current_page >= total_pages - 1
       : true;
+  const jump_to_page = is_message_mode ? on_jump_to_page : on_page_change;
+  const page_label = t("mail.page_of_total", {
+    current: current_page + 1,
+    total: Math.max(total_pages, 1),
+  });
+  const message_label = (
+    <>
+      {((current_email_index ?? 0) + 1).toLocaleString(app_locale())}
+      {total_email_count > 0 && (
+        <>
+          {" "}
+          {t("common.of")} {total_email_count.toLocaleString(app_locale())}
+        </>
+      )}
+    </>
+  );
+  const range_content = (
+    <>
+      {range.start.toLocaleString(app_locale())}-
+      {range.end.toLocaleString(app_locale())}
+      {range.total !== null && (
+        <>
+          {" "}
+          {t("common.of")} {range.total.toLocaleString(app_locale())}
+        </>
+      )}
+    </>
+  );
+  const message_text =
+    total_email_count > 0
+      ? `${(current_email_index ?? 0) + 1} ${t("common.of")} ${total_email_count}`
+      : `${(current_email_index ?? 0) + 1}`;
+  const show_label = !is_message_mode || message_index_known;
 
   return (
-    <div className="hidden select-none lg:flex items-center gap-0.5 text-xs text-[var(--text-muted)] ms-1">
+    <div className="hidden select-none md:flex items-center gap-0.5 text-sm text-[var(--text-muted)] ms-1">
       <Tooltip tip={t("common.previous")}>
         <span className="inline-flex">
           <Button
             aria-disabled={prev_disabled}
-            className={`h-7 w-7 text-[var(--icon-secondary)] ${prev_disabled ? "opacity-40 pointer-events-none" : "hover:text-[var(--icon-active)]"}`}
+            className={`h-9 w-9 rounded-[10px] text-[var(--icon-secondary)] ${prev_disabled ? "opacity-40 pointer-events-none" : "hover:text-[var(--icon-active)]"}`}
             size="icon"
             tabIndex={prev_disabled ? -1 : undefined}
             variant="ghost"
@@ -118,50 +154,39 @@ export function HeaderPagination({
             }}
             onMouseDown={(e) => e.preventDefault()}
           >
-            <ChevronLeftIcon className="w-4 h-4 rtl:-scale-x-100" />
+            <ChevronLeftIcon className="w-5 h-5 rtl:-scale-x-100" />
           </Button>
         </span>
       </Tooltip>
-      {is_message_mode ? (
-        message_index_known && (
-          <span className="tabular-nums text-sm min-w-[3ch] text-center">
-            {((current_email_index ?? 0) + 1).toLocaleString(app_locale())}
-            {total_email_count > 0 && (
-              <>
-                {" "}
-                {t("common.of")}{" "}
-                {total_email_count.toLocaleString(app_locale())}
-              </>
-            )}
+      {show_label &&
+        (jump_to_page ? (
+          <PageJumpMenu
+            aria_label={`${is_message_mode ? message_text : range_label}, ${page_label}`}
+            current_page={current_page}
+            label={is_message_mode ? message_label : range_content}
+            last_page_known={range.total !== null}
+            total_pages={total_pages}
+            on_jump={jump_to_page}
+          />
+        ) : is_message_mode ? (
+          <span className="tabular-nums text-sm whitespace-nowrap min-w-[3ch] px-1 text-center @max-[420px]/listbar:hidden">
+            {message_label}
           </span>
-        )
-      ) : (
-        <Tooltip
-          tip={t("mail.page_of_total", {
-            current: current_page + 1,
-            total: Math.max(total_pages, 1),
-          })}
-        >
-          <span
-            aria-label={range_label}
-            className="tabular-nums text-[13px] whitespace-nowrap px-1 text-center"
-          >
-            {range.start.toLocaleString(app_locale())}-
-            {range.end.toLocaleString(app_locale())}
-            {range.total !== null && (
-              <>
-                {" "}
-                {t("common.of")} {range.total.toLocaleString(app_locale())}
-              </>
-            )}
-          </span>
-        </Tooltip>
-      )}
+        ) : (
+          <Tooltip tip={page_label}>
+            <span
+              aria-label={range_label}
+              className="tabular-nums text-sm whitespace-nowrap px-1 text-center @max-[420px]/listbar:hidden"
+            >
+              {range_content}
+            </span>
+          </Tooltip>
+        ))}
       <Tooltip tip={t("common.next")}>
         <span className="inline-flex">
           <Button
             aria-disabled={next_disabled}
-            className={`h-7 w-7 text-[var(--icon-secondary)] ${next_disabled ? "opacity-40 pointer-events-none" : "hover:text-[var(--icon-active)]"}`}
+            className={`h-9 w-9 rounded-[10px] text-[var(--icon-secondary)] ${next_disabled ? "opacity-40 pointer-events-none" : "hover:text-[var(--icon-active)]"}`}
             size="icon"
             tabIndex={next_disabled ? -1 : undefined}
             variant="ghost"
@@ -175,7 +200,7 @@ export function HeaderPagination({
             }}
             onMouseDown={(e) => e.preventDefault()}
           >
-            <ChevronRightIcon className="w-4 h-4 rtl:-scale-x-100" />
+            <ChevronRightIcon className="w-5 h-5 rtl:-scale-x-100" />
           </Button>
         </span>
       </Tooltip>

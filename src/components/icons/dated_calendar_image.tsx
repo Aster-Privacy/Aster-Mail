@@ -18,8 +18,6 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { useLayoutEffect, useRef, useState, type ReactNode } from "react";
-
 import {
   DATED_ICON_FONT_STACK,
   DATED_ICON_FONT_WEIGHT,
@@ -35,7 +33,6 @@ interface DatedCalendarImageProps {
   className?: string;
   alt?: string;
   align?: "center" | "start";
-  fallback?: ReactNode;
 }
 
 export function DatedCalendarImage({
@@ -43,28 +40,9 @@ export function DatedCalendarImage({
   className,
   alt = "",
   align = "center",
-  fallback,
 }: DatedCalendarImageProps) {
   const layout = use_dated_calendar_layout(kind);
   const box = dated_icon_box(kind);
-  const [failed_src, set_failed_src] = useState<string | null>(null);
-  const image_ref = useRef<SVGImageElement>(null);
-  const show_fallback = failed_src === box.src && fallback !== undefined;
-
-  useLayoutEffect(() => {
-    const node = image_ref.current;
-
-    if (!node) return;
-    const src = box.src;
-    const handle_error = () => set_failed_src(src);
-
-    node.addEventListener("error", handle_error);
-
-    return () => node.removeEventListener("error", handle_error);
-  }, [box.src, show_fallback]);
-
-  if (show_fallback) return <>{fallback}</>;
-
   const labelled = alt.length > 0;
 
   return (
@@ -85,7 +63,6 @@ export function DatedCalendarImage({
       xmlns="http://www.w3.org/2000/svg"
     >
       <image
-        ref={image_ref}
         height={box.height}
         href={box.src}
         preserveAspectRatio="none"

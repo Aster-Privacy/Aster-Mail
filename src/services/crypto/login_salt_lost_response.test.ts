@@ -148,143 +148,57 @@ beforeEach(() => {
   h.session_password = null;
 });
 
-describe("a step-up rotation whose reply is lost", () => {
-  it(
-    "recognizes a salt the server already rotated to the one this device sent",
-    LONG_TEST,
-    async () => {
-      signed_in_session();
-      const server = server_loses_rotation_reply(short_salt(), "rotated", () =>
-        Promise.reject(new TypeError("network")),
-      );
-
-      const proof = await derive_current_account_proof(
-        PASSWORD,
-        short_salt(),
-        1,
-      ).catch((error: unknown) => error);
-      const sent = server.sent_salt();
-
-      expect(sent).not.toBeNull();
-
-      const expected = await derive_password_hash(PASSWORD, sent!);
-
-      expect(proof).toBe(expected.hash_v2);
-      expect(read_session_login_salt("user-1")).toEqual(sent);
-    },
-  );
-
-  it(
-    "recognizes the rotation when the reply comes back as a gateway error",
-    LONG_TEST,
-    async () => {
-      signed_in_session();
-      const server = server_loses_rotation_reply(
-        short_salt(),
-        "rotated",
-        async () => ({ error: "bad gateway", status: 502 }),
-      );
-
-      const proof = await derive_current_account_proof(
-        PASSWORD,
-        short_salt(),
-        1,
-      ).catch((error: unknown) => error);
-      const expected = await derive_password_hash(
-        PASSWORD,
-        server.sent_salt()!,
-      );
-
-      expect(proof).toBe(expected.hash_v2);
-    },
-  );
-
-  it("still refuses when the server kept the old salt", LONG_TEST, async () => {
+describe("a step-up on a session with no recorded salt", () => {
+  it("never sends a proof under an unrecorded short salt", async () => {
     signed_in_session();
-    const old_salt = short_salt();
-
-    server_loses_rotation_reply(old_salt, "unchanged", () =>
+    server_loses_rotation_reply(short_salt(), "rotated", () =>
       Promise.reject(new TypeError("network")),
     );
 
     await expect(
-      derive_current_account_proof(PASSWORD, old_salt, 1),
+      derive_current_account_proof(PASSWORD, short_salt(), 1),
     ).rejects.toBeInstanceOf(LegacyLoginSaltError);
+    expect(h.post).not.toHaveBeenCalled();
     expect(read_session_login_salt("user-1")).toBeNull();
   });
 
-  it(
-    "still refuses when the server holds a salt this device did not send",
-    LONG_TEST,
-    async () => {
-      signed_in_session();
-      server_loses_rotation_reply(short_salt(), "other_device", () =>
-        Promise.reject(new TypeError("network")),
-      );
+  it("never sends a proof under the salt of a stored sent copy", async () => {
+    signed_in_session();
+    const envelope = new Uint8Array(16 + 12 + 32);
 
-      await expect(
-        derive_current_account_proof(PASSWORD, short_salt(), 1),
-      ).rejects.toBeInstanceOf(LegacyLoginSaltError);
-      expect(read_session_login_salt("user-1")).toBeNull();
-    },
-  );
+    crypto.getRandomValues(envelope);
+    const envelope_salt = envelope.slice(0, 16);
 
-  it(
-    "recognizes the rotation when the client reports a network error",
-    LONG_TEST,
-    async () => {
-      signed_in_session();
-      const server = server_loses_rotation_reply(
-        short_salt(),
-        "rotated",
-        async () => ({ error: "offline", code: "NETWORK_ERROR" }),
-      );
+    await expect(
+      derive_current_account_proof(PASSWORD, envelope_salt, 1),
+    ).rejects.toBeInstanceOf(LegacyLoginSaltError);
+    expect(h.post).not.toHaveBeenCalled();
+  });
 
-      const proof = await derive_current_account_proof(
-        PASSWORD,
-        short_salt(),
-        1,
-      ).catch((error: unknown) => error);
-      const expected = await derive_password_hash(
-        PASSWORD,
-        server.sent_salt()!,
-      );
+  it("reports a wrong password without contacting the server", async () => {
+    signed_in_session();
+    h.session_password = "a different password";
 
-      expect(proof).toBe(expected.hash_v2);
-    },
-  );
+    await expect(
+      derive_current_account_proof(PASSWORD, short_salt(), 1),
+    ).rejects.toBeInstanceOf(IncorrectCurrentPasswordError);
+    expect(h.post).not.toHaveBeenCalled();
+  });
 
   it(
-    "does not look up the salt after a wrong password",
+    "still accepts the salt recorded at this session's sign-in",
     LONG_TEST,
     async () => {
+      const salt = short_salt();
+
       signed_in_session();
-      server_loses_rotation_reply(short_salt(), "rotated", async () => ({
-        error: "invalid credentials",
-        status: 401,
-      }));
+      record_login_salt([user_hash_pin_key(await hash_email(EMAIL))], salt);
 
-      await expect(
-        derive_current_account_proof(PASSWORD, short_salt(), 1),
-      ).rejects.toBeInstanceOf(IncorrectCurrentPasswordError);
-      expect(salt_lookups()).toBe(0);
-    },
-  );
+      const proof = await derive_current_account_proof(PASSWORD, salt, 1);
+      const expected = await derive_password_hash(PASSWORD, salt);
 
-  it(
-    "does not look up the salt after the server answers with a refusal",
-    LONG_TEST,
-    async () => {
-      signed_in_session();
-      server_loses_rotation_reply(short_salt(), "rotated", async () => ({
-        error: "conflict",
-        status: 409,
-      }));
-
-      await expect(
-        derive_current_account_proof(PASSWORD, short_salt(), 1),
-      ).rejects.toBeInstanceOf(LegacyLoginSaltError);
-      expect(salt_lookups()).toBe(0);
+      expect(proof).toBe(expected.hash);
+      expect(h.post).not.toHaveBeenCalled();
     },
   );
 });

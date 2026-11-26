@@ -230,23 +230,33 @@ details.aster-forwarded-collapse > .aster-forwarded-content {
 }
 
 .aster-quote-toggle {
-  display: block;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
   box-sizing: border-box;
-  width: max-content;
-  height: 24px;
-  min-width: 40px;
-  margin: 8px 0;
-  padding: 10px 12px;
+  width: 24px;
+  height: 12px;
+  margin: 10px 0 8px;
+  padding: 0;
   list-style: none;
   border: 0;
-  border-radius: 12px;
+  border-radius: 6px;
   background: rgba(128, 128, 128, 0.12);
   color: rgba(80, 80, 80, 0.9);
   cursor: pointer;
   font-size: 0;
   line-height: 0;
-  vertical-align: middle;
   user-select: none;
+  transition:
+    background-color 0.12s ease,
+    transform 0.08s ease;
+}
+
+.aster-quote-toggle::after {
+  content: "";
+  position: absolute;
+  inset: -8px -6px;
 }
 
 .aster-quote-toggle::-webkit-details-marker {
@@ -259,20 +269,26 @@ details.aster-forwarded-collapse > .aster-forwarded-content {
 
 .aster-quote-toggle-dots {
   display: block;
-  margin: 0 auto;
-  width: 4px;
-  height: 4px;
+  flex: none;
+  margin: 0;
+  width: 3px;
+  height: 3px;
   border-radius: 50%;
   background: currentColor;
   box-shadow:
-    -6.5px 0 0 currentColor,
-    6.5px 0 0 currentColor;
+    -5px 0 0 currentColor,
+    5px 0 0 currentColor;
 }
 
 .aster-quote-toggle:hover,
 .aster-quote-toggle.aster-quote-expanded,
 details[open] > .aster-quote-toggle {
   background: rgba(128, 128, 128, 0.2);
+}
+
+.aster-quote-toggle:active {
+  background: rgba(128, 128, 128, 0.28);
+  transform: scale(0.94);
 }
 
 .aster-quoted-content {
@@ -450,6 +466,10 @@ blockquote blockquote blockquote {
 
 .aster-quote-toggle:hover {
   background: rgba(180, 180, 180, 0.25) !important;
+}
+
+.aster-quote-toggle:active {
+  background: rgba(180, 180, 180, 0.34) !important;
 }
 
 .aster-quoted-content {

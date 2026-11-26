@@ -28,6 +28,7 @@ import { use_guarded_trash_actions } from "@/components/email/use_permanent_dele
 import { use_popup_drag_resize } from "@/components/email/hooks/popup_viewer_drag";
 import { REPLY_ARRIVAL_POLL_DELAYS_MS } from "@/components/email/use_email_viewer";
 import { get_mail_item, type MailItem } from "@/services/api/mail";
+import { request_cache } from "@/services/api/request_cache";
 import { is_missing_mail_item } from "@/lib/stale_open_email";
 import { ignore_error } from "@/lib/ignore_error";
 import {
@@ -167,6 +168,7 @@ export function use_popup_viewer({
 
   use_close_when_folder_locked(mail_item, () => on_close_ref.current());
   const [error, set_error] = useState<string | null>(null);
+  const [unavailable_id, set_unavailable_id] = useState<string | null>(null);
   const [decrypt_failure, set_decrypt_failure] = useState<{
     id: string;
     created_at: string | null;
@@ -487,6 +489,7 @@ export function use_popup_viewer({
     };
 
     set_error(null);
+    set_unavailable_id(null);
 
     if (!is_same_email) {
       set_email(null);
@@ -601,6 +604,16 @@ export function use_popup_viewer({
       }
 
       set_error(response.error);
+
+      return;
+    }
+
+    if (response.data?.payload_unavailable === true) {
+      if (!is_same_email) {
+        requested_email_id_ref.current = null;
+        set_unavailable_id(email_id);
+        set_error(t("common.message_temporarily_unavailable"));
+      }
 
       return;
     }
@@ -880,6 +893,13 @@ export function use_popup_viewer({
     if (fetch_seq_ref.current === my_seq) set_pending_thread_count(0);
   }, [email_id, load_popup_email, t]);
 
+  const retry_load = useCallback(() => {
+    if (!email_id) return;
+    request_cache.invalidate(`/mail/v1/messages/${email_id}`);
+    requested_email_id_ref.current = null;
+    void fetch_email();
+  }, [email_id, fetch_email]);
+
   useEffect(() => {
     if (local_email) {
       requested_email_id_ref.current = null;
@@ -1036,6 +1056,20 @@ export function use_popup_viewer({
       window.removeEventListener(MAIL_EVENTS.REFRESH_REQUESTED, handle_refresh);
     };
   }, [fetch_email]);
+
+  useEffect(() => {
+    if (!error || !email_id || local_email) return;
+
+    const handle_online = () => {
+      fetch_email();
+    };
+
+    window.addEventListener("online", handle_online);
+
+    return () => {
+      window.removeEventListener("online", handle_online);
+    };
+  }, [error, email_id, local_email, fetch_email]);
 
   useEffect(() => {
     const handle_thread_reply = async (event: Event) => {
@@ -1388,17 +1422,22 @@ export function use_popup_viewer({
     [mail_item?.id, mail_item?.thread_token],
   );
 
+  const payload_unavailable = error !== null && unavailable_id === email_id;
+  const decrypt_failed =
+    error !== null && decrypt_failure?.id === email_id && !payload_unavailable;
+
   return {
     t,
     user,
     email,
     mail_item,
     error,
-    decrypt_failed: error !== null && decrypt_failure?.id === email_id,
-    decrypt_failed_created_at:
-      error !== null && decrypt_failure?.id === email_id
-        ? decrypt_failure.created_at
-        : null,
+    payload_unavailable,
+    retry_load,
+    decrypt_failed,
+    decrypt_failed_created_at: decrypt_failed
+      ? (decrypt_failure?.created_at ?? null)
+      : null,
     is_read,
     is_pinned,
     is_archive_loading,

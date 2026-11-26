@@ -18,12 +18,22 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { split_outside_quotes, strip_edge_runs } from "@/lib/address_scans";
+import { is_js_whitespace } from "@/lib/linear_trim";
 import { EMAIL_REGEX } from "@/lib/utils";
 import { decode_header_for_display } from "@/services/import/mime_utils";
 
 export interface ParsedAddress {
   name?: string;
   email: string;
+}
+
+function is_leading_wrap(code: number): boolean {
+  return code === 0x3c || code === 0x22 || is_js_whitespace(code);
+}
+
+function is_trailing_wrap(code: number): boolean {
+  return code === 0x3e || code === 0x22 || is_js_whitespace(code);
 }
 
 export function parse_address(value: string): ParsedAddress | undefined {
@@ -45,7 +55,7 @@ export function parse_address(value: string): ParsedAddress | undefined {
     return { name: raw_name || undefined, email };
   }
 
-  const bare = trimmed.replace(/^[<\s"]+|[>\s"]+$/g, "");
+  const bare = strip_edge_runs(trimmed, is_leading_wrap, is_trailing_wrap);
 
   if (!EMAIL_REGEX.test(bare)) return undefined;
 
@@ -71,7 +81,7 @@ export function extract_reply_to(
   const header = raw_headers.find((h) => h.name.toLowerCase() === "reply-to");
 
   if (!header) return undefined;
-  const first = header.value.split(/,(?=(?:[^"]*"[^"]*")*[^"]*$)/)[0];
+  const first = split_outside_quotes(header.value)[0];
   const parsed = parse_address(first);
 
   if (!parsed?.name) return parsed;

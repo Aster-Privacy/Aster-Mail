@@ -18,12 +18,16 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { is_plain_address } from "@/lib/address_scans";
+import { is_js_whitespace } from "@/lib/linear_trim";
 import {
   create_contact_encrypted,
   search_contacts,
 } from "@/services/api/contacts";
 
-const EMAIL_SHAPE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+function is_email_shape(value: string): boolean {
+  return is_plain_address(value, is_js_whitespace);
+}
 
 const in_flight = new Set<string>();
 
@@ -54,7 +58,7 @@ export async function auto_save_recipients_to_contacts(
     ...new Set(
       recipient_emails
         .map((e) => e.toLowerCase().trim())
-        .filter((e) => EMAIL_SHAPE.test(e)),
+        .filter((e) => is_email_shape(e)),
     ),
   ];
 

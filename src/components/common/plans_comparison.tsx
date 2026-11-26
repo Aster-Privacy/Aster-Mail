@@ -139,6 +139,13 @@ function get_features(
       supernova: unlimited,
     },
     {
+      name: t("settings.mta_sts_plan_feature"),
+      free: false,
+      star: false,
+      nova: true,
+      supernova: true,
+    },
+    {
       name: t("settings.feature_scheduled_sending"),
       free: true,
       star: true,

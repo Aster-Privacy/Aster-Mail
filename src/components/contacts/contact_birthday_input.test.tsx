@@ -158,4 +158,19 @@ describe("ContactBirthdayInput", () => {
     choose(month_select(), "");
     expect(on_change).toHaveBeenLastCalledWith("");
   });
+
+  it("keeps the day and month readable in a narrow row", () => {
+    render_input("--01-15");
+
+    const day_box = day_select().parentElement!;
+    const select_classes = day_select().className.split(" ");
+
+    expect(day_box.className).toContain("flex-none");
+    expect(day_box.className).toContain("w-20");
+    expect(select_classes).toContain("ps-3");
+    expect(select_classes).toContain("pe-7");
+    expect(year_input().className).toContain("min-w-[4.5rem]");
+    expect(day_select().selectedOptions[0].textContent).toBe("15");
+    expect(month_select().selectedOptions[0].textContent).toBe("Jan");
+  });
 });

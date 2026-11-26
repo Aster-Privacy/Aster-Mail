@@ -258,10 +258,13 @@ export function contact_date_field_order(
   }
 }
 
-export function contact_month_names(locale: string | undefined): string[] {
+export function contact_month_names(
+  locale: string | undefined,
+  width: "long" | "short" = "long",
+): string[] {
   return Array.from({ length: 12 }, (_, index) =>
     new Date(Date.UTC(LEAP_YEAR, index, 1)).toLocaleDateString(locale, {
-      month: "long",
+      month: width,
       timeZone: "UTC",
     }),
   );

@@ -72,6 +72,7 @@ export function use_plan_highlights(tier_id: string): PlanHighlights {
         t("settings.plan_f_smart_folders"),
         t("settings.lockdown_title"),
         t("settings.plan_f_encrypted_exports"),
+        t("settings.mta_sts_plan_feature"),
       ],
     };
   }

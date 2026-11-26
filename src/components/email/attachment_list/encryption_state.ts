@@ -35,6 +35,7 @@ export function stored_attachment_encryption(options: {
   mail_item_id: string;
   is_external: boolean;
   has_recipient_key?: boolean;
+  is_received?: boolean;
   e2e_verified: boolean;
   sent_encryption_scope?: SentEncryptionScope;
 }): StoredAttachmentEncryption {
@@ -47,6 +48,7 @@ export function stored_attachment_encryption(options: {
   const end_to_end = shows_end_to_end({
     is_external: options.is_external,
     has_recipient_key: options.has_recipient_key,
+    is_received: options.is_received,
     e2e_verified: files_e2e_verified,
     sent_encryption_scope: options.sent_encryption_scope,
   });

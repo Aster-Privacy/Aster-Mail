@@ -18,6 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { trim_end_while } from "@/lib/linear_trim";
 import { public_web_url } from "@/lib/public_origin";
 
 const TRUSTED_LINK_DOMAINS = [
@@ -27,6 +28,12 @@ const TRUSTED_LINK_DOMAINS = [
   "astermail.me",
   "astermail.net",
 ] as const;
+
+const DOT_CODE = 0x2e;
+
+function is_dot(code: number): boolean {
+  return code === DOT_CODE;
+}
 
 export function is_trusted_link(url: string): boolean {
   let host: string;
@@ -38,7 +45,7 @@ export function is_trusted_link(url: string): boolean {
       return false;
     }
 
-    host = parsed.hostname.toLowerCase().replace(/\.+$/, "");
+    host = trim_end_while(parsed.hostname.toLowerCase(), is_dot);
   } catch {
     return false;
   }

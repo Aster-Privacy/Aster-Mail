@@ -33,15 +33,23 @@ export function resolve_page_range(params: {
 }): PageRange {
   const start = params.current_page * params.page_size + 1;
   const page_end = (params.current_page + 1) * params.page_size;
-  const end =
+  const loaded_end =
     params.page_row_count > 0
       ? Math.min(start + params.page_row_count - 1, page_end)
       : page_end;
+  const total_reaches_page = params.total >= start;
+  const end = total_reaches_page
+    ? Math.min(loaded_end, params.total)
+    : loaded_end;
   const is_last_page = params.current_page >= params.total_pages - 1;
+  const page_not_full = params.page_row_count < params.page_size;
   const total_known =
-    params.total >= start && (is_last_page || params.total > end);
+    total_reaches_page &&
+    (is_last_page ||
+      params.total > end ||
+      (end === params.total && page_not_full));
 
   if (!total_known) return { start, end, total: null };
 
-  return { start, end: Math.min(end, params.total), total: params.total };
+  return { start, end, total: params.total };
 }

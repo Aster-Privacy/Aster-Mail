@@ -53,6 +53,7 @@ import {
 } from "@/services/api/alias_contacts";
 import { ignore_error } from "@/lib/ignore_error";
 import { is_composing } from "@/utils/ime";
+import { is_email_shape } from "@/lib/email_shape";
 
 export function ContactsPanel({
   alias_id,
@@ -130,7 +131,7 @@ export function ContactsPanel({
 
     if (!value || busy) return;
 
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+    if (!is_email_shape(value)) {
       show_toast(t("settings.alias_sender_invalid"), "error");
 
       return;

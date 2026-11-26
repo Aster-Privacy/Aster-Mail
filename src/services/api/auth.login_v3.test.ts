@@ -37,10 +37,13 @@ vi.mock("@/services/crypto/login_v3", async (original) => ({
   sign_in_v3,
 }));
 
-const { login_user } = await import("./auth");
-const { set_pending_login_v3, clear_pending_login_v3 } = await import(
-  "@/services/crypto/login_v3"
-);
+const { forget_standard_sign_in_consent, LOGIN_V3_UNAVAILABLE, login_user } =
+  await import("./auth");
+const { set_pending_login_v3, clear_pending_login_v3, is_login_v3_pinned } =
+  await import("@/services/crypto/login_v3");
+const { get_active_translations } = await import("@/lib/i18n/translations");
+
+const PIN_KEY = "astermail_login_v3_pin:hash";
 
 const request = {
   user_hash: "hash",
@@ -66,6 +69,8 @@ describe("login_user with the newer sign-in", () => {
     set_csrf.mockReset();
     set_dev_token.mockReset();
     clear_pending_login_v3();
+    forget_standard_sign_in_consent();
+    localStorage.clear();
   });
 
   it("uses the current sign-in when nothing is pending", async () => {
@@ -93,19 +98,108 @@ describe("login_user with the newer sign-in", () => {
     expect(set_authenticated).toHaveBeenCalledWith(true);
   });
 
-  it("falls back to the current sign-in with the same request", async () => {
+  it("asks before using the current sign-in for an enrolled account", async () => {
     set_pending_login_v3("hash", "proof");
     sign_in_v3.mockResolvedValue(null);
     post.mockResolvedValue({ data: session });
 
     const response = await login_user(request as never);
 
+    expect(post).not.toHaveBeenCalled();
+    expect(response.data).toBeUndefined();
+    expect(response.server_code).toBe(LOGIN_V3_UNAVAILABLE);
+    expect(response.error).toBe(
+      get_active_translations().auth.sign_in_enhanced_unavailable,
+    );
+    expect(set_authenticated).not.toHaveBeenCalled();
+  });
+
+  it("uses the current sign-in with the same request when asked again", async () => {
+    set_pending_login_v3("hash", "proof");
+    sign_in_v3.mockResolvedValue(null);
+    post.mockResolvedValue({ data: session });
+
+    await login_user(request as never);
+    set_pending_login_v3("hash", "proof");
+    const response = await login_user(request as never);
+
+    expect(post).toHaveBeenCalledTimes(1);
     expect(post).toHaveBeenCalledWith("/core/v1/auth/login", {
       ...request,
       device_label: expect.any(String),
     });
     expect(response.data).toMatchObject({ user_id: "user" });
     expect(set_authenticated).toHaveBeenCalledWith(true);
+  });
+
+  it("does not use the current sign-in for a pinned account with nothing pending", async () => {
+    localStorage.setItem(PIN_KEY, "1");
+    post.mockResolvedValue({ data: session });
+
+    const response = await login_user(request as never);
+
+    expect(sign_in_v3).not.toHaveBeenCalled();
+    expect(post).not.toHaveBeenCalled();
+    expect(response.server_code).toBe(LOGIN_V3_UNAVAILABLE);
+    expect(is_login_v3_pinned("hash")).toBe(true);
+  });
+
+  it("keeps the pin when the newer sign-in is unavailable", async () => {
+    localStorage.setItem(PIN_KEY, "1");
+    set_pending_login_v3("hash", "proof");
+    sign_in_v3.mockResolvedValue(null);
+
+    const response = await login_user(request as never);
+
+    expect(post).not.toHaveBeenCalled();
+    expect(response.server_code).toBe(LOGIN_V3_UNAVAILABLE);
+    expect(is_login_v3_pinned("hash")).toBe(true);
+  });
+
+  it("does not carry the second attempt over to another account", async () => {
+    localStorage.setItem(PIN_KEY, "1");
+    localStorage.setItem("astermail_login_v3_pin:other", "1");
+    post.mockResolvedValue({ data: session });
+
+    await login_user(request as never);
+    const response = await login_user({
+      ...request,
+      user_hash: "other",
+    } as never);
+
+    expect(post).not.toHaveBeenCalled();
+    expect(response.server_code).toBe(LOGIN_V3_UNAVAILABLE);
+  });
+
+  it("asks again once the second attempt window has passed", async () => {
+    vi.useFakeTimers();
+    try {
+      localStorage.setItem(PIN_KEY, "1");
+      post.mockResolvedValue({ data: session });
+
+      await login_user(request as never);
+      vi.advanceTimersByTime(5 * 60 * 1000 + 1);
+      const response = await login_user(request as never);
+
+      expect(post).not.toHaveBeenCalled();
+      expect(response.server_code).toBe(LOGIN_V3_UNAVAILABLE);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("asks again after a successful newer sign-in", async () => {
+    localStorage.setItem(PIN_KEY, "1");
+    post.mockResolvedValue({ data: session });
+
+    await login_user(request as never);
+    set_pending_login_v3("hash", "proof");
+    sign_in_v3.mockResolvedValueOnce({ data: session });
+    await login_user(request as never);
+    const response = await login_user(request as never);
+
+    expect(post).not.toHaveBeenCalled();
+    expect(response.server_code).toBe(LOGIN_V3_UNAVAILABLE);
   });
 
   it("returns a rejection without retrying on the current sign-in", async () => {

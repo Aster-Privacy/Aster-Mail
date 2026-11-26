@@ -26,12 +26,15 @@ import {
   fetch_ratchet_identity,
   type PublishedIdentityHistory,
 } from "./ratchet_prekey_bundle";
+import { verify_address_entry } from "./address_identity_entry";
 import {
+  dismiss_peer_identity_event,
   record_message_sender_identity,
   type SenderIdentityStatus,
 } from "./ratchet_verification_status";
 import {
   MAX_REMEMBERED_IDENTITIES,
+  adopt_endorsed_identity_in_lock,
   lookup_identity_pin_record,
   open_pin_contact,
   read_sender_history,
@@ -359,6 +362,112 @@ export async function check_sender_identity_continuity(
     await resolve_sender_peer(sender_email),
     sender_identity_key,
   );
+}
+
+async function is_endorsed_by_known_key(
+  peer: SenderPeer,
+  sender_identity_key: string,
+  endorsers: string[],
+): Promise<boolean> {
+  if (!peer.slot || endorsers.length === 0) return false;
+
+  const pinned = await lookup_identity_pin_record(peer.address);
+
+  if (pinned === "unreadable") return false;
+
+  if (
+    pinned?.rotated &&
+    pinned.fingerprint !==
+      (await compute_hash(base64_to_array(sender_identity_key)))
+  ) {
+    return false;
+  }
+
+  const history = await read_sender_history(peer.slot);
+
+  if (history.state !== "found" && history.state !== "absent") return false;
+
+  const remembered = history.state === "found" ? history.value : [];
+
+  if (endorsers.some((endorser) => remembered.includes(endorser))) return true;
+
+  if (!pinned || pinned.rotated) return false;
+
+  for (const endorser of endorsers) {
+    if ((await compute_hash(base64_to_array(endorser))) === pinned.fingerprint) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+export async function accept_endorsed_sender_rotation(
+  sender_email: string,
+  sender_identity_key: string,
+  persist: boolean,
+): Promise<boolean> {
+  if (!sender_email || !sender_identity_key) return false;
+
+  const peer = await resolve_sender_peer(sender_email);
+  const slot = peer.slot;
+  const username = extract_username_from_email(peer.address);
+
+  if (!slot || !username) return false;
+
+  try {
+    const entry = await fetch_ratchet_identity(username, peer.address, true);
+
+    if (
+      !entry ||
+      entry.address_scoped !== true ||
+      entry.kem_identity_key !== sender_identity_key
+    ) {
+      return false;
+    }
+
+    const verification = verify_address_entry(peer.address, entry);
+
+    if (!verification.valid) return false;
+
+    const accepted = await with_contact_lock(slot, async () => {
+      if (!(await is_endorsed_by_known_key(
+          peer,
+          sender_identity_key,
+          verification.endorsers,
+        ))) {
+        return false;
+      }
+
+      if (!persist) return true;
+
+      if (!(await adopt_endorsed_identity_in_lock(slot, sender_identity_key))) {
+        return false;
+      }
+
+      const history = await read_sender_history(slot);
+      const remembered = history.state === "found" ? history.value : [];
+
+      if (!remembered.includes(sender_identity_key)) {
+        await write_contact_entry(
+          SENDER_HISTORY_PREFIX,
+          slot,
+          [sender_identity_key, ...remembered].slice(
+            0,
+            MAX_REMEMBERED_IDENTITIES,
+          ),
+        );
+      }
+
+      return true;
+    });
+
+    if (accepted && persist) dismiss_peer_identity_event(peer.address);
+
+    return accepted;
+  } catch {
+    return false;
+  }
 }
 
 async function is_remembered(

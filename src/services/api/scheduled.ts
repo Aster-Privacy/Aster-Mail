@@ -37,6 +37,7 @@ import { build_sealed_details } from "@/utils/sealed_message_details";
 import { exceeds_sealed_schedule_window } from "@/lib/schedule_window";
 import { is_future_instant } from "@/utils/schedule_targets";
 import { sanitize_header_value } from "@/services/pgp_protected_mime";
+import { prepare_outgoing_html } from "@/lib/outgoing_trailing_blanks";
 import { HASH_ALG } from "@/services/crypto/constants";
 import {
   is_usable_identity_key,
@@ -79,6 +80,7 @@ export interface ScheduledEmail {
   id: string;
   scheduled_at: string;
   status: ScheduledEmailStatus;
+  failure_reason?: string;
   created_at: string;
   updated_at: string;
 }
@@ -539,6 +541,7 @@ interface ScheduledListApiResponse {
     has_attachments: boolean;
     scheduled_at: string;
     status: string;
+    failure_reason?: string | null;
     created_at: string;
     is_external: boolean;
   }>;
@@ -565,6 +568,7 @@ export async function list_scheduled_emails(
         id: item.id,
         scheduled_at: item.scheduled_at,
         status: item.status as ScheduledEmailStatus,
+        failure_reason: item.failure_reason ?? undefined,
         created_at: item.created_at,
         updated_at: item.created_at,
       })),
@@ -584,6 +588,7 @@ interface ScheduledEmailApiFullResponse {
   recipient_count: number;
   scheduled_at: string;
   status: string;
+  failure_reason?: string | null;
   created_at: string;
   updated_at: string;
   is_external: boolean;
@@ -695,6 +700,7 @@ export async function get_scheduled_email(
         id: response.data.id,
         scheduled_at: response.data.scheduled_at,
         status: response.data.status as ScheduledEmailStatus,
+        failure_reason: response.data.failure_reason ?? undefined,
         created_at: response.data.created_at,
         updated_at: response.data.updated_at,
         content: { ...content, scheduled_at: response.data.scheduled_at },
@@ -808,6 +814,7 @@ export async function create_scheduled_email(
   const content: ScheduledEmailContent = {
     ...input_content,
     subject: sanitize_header_value(input_content.subject),
+    body: prepare_outgoing_html(input_content.body),
     ...(input_content.from
       ? {
           from: {

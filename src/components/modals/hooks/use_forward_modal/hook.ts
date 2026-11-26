@@ -172,6 +172,7 @@ import {
   with_caret_block,
 } from "@/lib/signature_html";
 import { with_compose_default_block } from "@/lib/compose_defaults";
+import { read_file_bytes } from "@/lib/read_file_bytes";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
 import {
   find_locked_expiry_feature,
@@ -1534,7 +1535,7 @@ export function use_forward_modal({
           const name = unique_attachment_name(file.name, taken_names);
 
           try {
-            const raw = await file.arrayBuffer();
+            const raw = await read_file_bytes(file);
             const data = await apply_metadata_strip(
               raw,
               mime_type,
@@ -1644,7 +1645,7 @@ export function use_forward_modal({
           const name = unique_attachment_name(file.name, taken_names);
 
           try {
-            const raw = await file.arrayBuffer();
+            const raw = await read_file_bytes(file);
             const data = await apply_metadata_strip(
               raw,
               mime_type,

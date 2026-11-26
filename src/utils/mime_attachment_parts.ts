@@ -18,6 +18,8 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { drop_blanks_before_newline } from "@/lib/address_scans";
+
 export interface MimeAttachmentPart {
   filename: string;
   content_type: string;
@@ -287,7 +289,10 @@ function base64_decode(input: string): Uint8Array | null {
 
 function quoted_printable_decode(input: string): Uint8Array {
   const unfolded = input.replace(/=[ \t]*\r?\n/g, "");
-  const hard_breaks = unfolded.replace(/[ \t]+(?=\r?\n)/g, "").replace(/\r?\n/g, "\r\n");
+  const hard_breaks = drop_blanks_before_newline(unfolded, true).replace(
+    /\r?\n/g,
+    "\r\n",
+  );
 
   return decode_q_word(hard_breaks, false);
 }

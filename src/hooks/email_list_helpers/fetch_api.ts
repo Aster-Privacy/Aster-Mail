@@ -237,17 +237,20 @@ export async function fetch_mail_from_api(
 
         const { envelope, metadata, body_summary } =
           await decrypt_list_item_cached(item, user_email, async () => {
-            let cacheable = true;
+            const payload_unavailable = item.payload_unavailable === true;
+            let cacheable = !payload_unavailable;
             const has_metadata = !!(
               item.encrypted_metadata && item.metadata_nonce
             );
 
             const [envelope, metadata] = await Promise.all([
-              decrypt_envelope(
-                item.encrypted_envelope,
-                item.envelope_nonce,
-                item.id,
-              ),
+              payload_unavailable
+                ? Promise.resolve(null)
+                : decrypt_envelope(
+                    item.encrypted_envelope,
+                    item.envelope_nonce,
+                    item.id,
+                  ),
               has_metadata
                 ? decrypt_mail_metadata(
                     item.encrypted_metadata!,

@@ -214,15 +214,98 @@ function read_sequence(block: string): number {
   return Number.parseInt(trimmed, 10);
 }
 
+const ORGANIZER_NAME = "ORGANIZER";
+
+function is_multiline_terminator(code: number): boolean {
+  return code === 0x0a || code === 0x0d || code === 0x2028 || code === 0x2029;
+}
+
+function is_ics_line_break(code: number): boolean {
+  return code === 0x0a || code === 0x0d;
+}
+
+function matches_organizer_name(block: string, at: number): boolean {
+  if (block.length - at < ORGANIZER_NAME.length) return false;
+
+  for (let offset = 0; offset < ORGANIZER_NAME.length; offset += 1) {
+    const code = block.charCodeAt(at + offset);
+    const folded = code >= 0x61 && code <= 0x7a ? code - 0x20 : code;
+
+    if (folded !== ORGANIZER_NAME.charCodeAt(offset)) return false;
+  }
+
+  return true;
+}
+
+function scan_until(
+  block: string,
+  from: number,
+  stop: (code: number) => boolean,
+): number {
+  let index = from;
+
+  while (index < block.length && !stop(block.charCodeAt(index))) index += 1;
+
+  return index;
+}
+
+export function find_organizer_property(
+  block: string,
+): { params: string; value: string } | null {
+  let segment_start = -1;
+  let segment_end = -1;
+
+  for (let line_start = 0; line_start < block.length; line_start += 1) {
+    if (
+      line_start > 0 &&
+      !is_multiline_terminator(block.charCodeAt(line_start - 1))
+    ) {
+      continue;
+    }
+
+    if (!matches_organizer_name(block, line_start)) continue;
+
+    const params_start = line_start + ORGANIZER_NAME.length;
+    const marker = block.charCodeAt(params_start);
+    let colon = -1;
+
+    if (marker === 0x3a) {
+      colon = params_start;
+    } else if (marker === 0x3b) {
+      if (params_start < segment_start || params_start >= segment_end) {
+        segment_start = params_start;
+        segment_end = scan_until(
+          block,
+          params_start + 1,
+          (code) => code === 0x3a || is_ics_line_break(code),
+        );
+      }
+
+      if (block.charCodeAt(segment_end) === 0x3a) colon = segment_end;
+    }
+
+    if (colon === -1) continue;
+
+    const value_end = scan_until(block, colon + 1, is_ics_line_break);
+
+    return {
+      params: block.slice(params_start, colon),
+      value: block.slice(colon + 1, value_end),
+    };
+  }
+
+  return null;
+}
+
 function read_organizer(block: string): CalendarAttendee | null {
-  const match = block.match(/^ORGANIZER((?:;[^:\r\n]*)?):([^\r\n]*)/im);
+  const match = find_organizer_property(block);
 
   if (!match) {
     return null;
   }
 
-  const params = parse_params(match[1] ?? "");
-  const email = sanitize_calendar_email(match[2]);
+  const params = parse_params(match.params);
+  const email = sanitize_calendar_email(match.value);
 
   if (email.length === 0) {
     return null;

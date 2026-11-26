@@ -40,6 +40,7 @@ import {
 import { safe_boundary_for } from "./boundary";
 
 import { repair_comment_markup } from "@/lib/html_sanitizer_utils";
+import { drop_blanks_before_newlines } from "@/lib/whitespace_runs";
 
 export interface ExportAttachment {
   filename: string;
@@ -99,8 +100,7 @@ function html_to_text_fallback(html: string): string {
     .forEach((el) => el.after("\n"));
   const text = doc.body.textContent ?? "";
 
-  return text
-    .replace(/[ \t]+\n/g, "\n")
+  return drop_blanks_before_newlines(text)
     .replace(/\n{3,}/g, "\n\n")
     .trim();
 }

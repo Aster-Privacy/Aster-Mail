@@ -25,8 +25,13 @@ import {
   TRACKING_PIXEL_URL_PATTERNS,
   TRACKING_PARAMS,
   ALLOWED_ATTRIBUTES,
+  ascii_ci_at,
+  index_of_ascii_ci,
+  skip_js_whitespace,
+  word_boundary_after,
 } from "./html_sanitizer_constants";
 import { sanitize_style } from "./html_sanitizer_css";
+import { is_js_whitespace, trim_end_while } from "./linear_trim";
 
 const LOCAL_IMAGE_SOURCE_PATTERN = /^\s*(?:cid:|data:|blob:|aster:)/i;
 
@@ -197,6 +202,10 @@ function is_srcset_whitespace(character: string): boolean {
   return SRCSET_WHITESPACE_CODES.has(character.charCodeAt(0));
 }
 
+function is_comma_code(code: number): boolean {
+  return code === 0x2c;
+}
+
 export function sanitize_srcset(value: string): string {
   const safe: string[] = [];
   let position = 0;
@@ -221,7 +230,7 @@ export function sanitize_srcset(value: string): string {
     let descriptor = "";
 
     if (url_part.endsWith(",")) {
-      url_part = url_part.replace(/,+$/, "");
+      url_part = trim_end_while(url_part, is_comma_code);
     } else {
       const descriptor_start = position;
 
@@ -243,53 +252,180 @@ export function sanitize_srcset(value: string): string {
   return safe.join(", ");
 }
 
-const CONDITIONAL_OPEN_REGEX = /<!--\s*\[\s*if\b[^\]]*\]\s*>/gi;
-const REVEALED_OPEN_TAIL_REGEX = /^\s*(?:<!)?--\s*!?\s*>/;
-const LEFTOVER_ENDIF_REGEX =
-  /\s*<!--(?:\s|-)*<!\[endif\](?:\s|-)*>|\s*<!\[endif\]\s*--\s*>/gi;
+export interface MarkupSpan {
+  start: number;
+  end: number;
+}
+
+export function find_conditional_open(
+  html: string,
+  from: number,
+): MarkupSpan | null {
+  let search = from;
+
+  for (;;) {
+    const start = html.indexOf("<!--", search);
+
+    if (start === -1) return null;
+
+    let position = skip_js_whitespace(html, start + 4);
+
+    if (html.charCodeAt(position) !== 0x5b) {
+      search = start + 1;
+      continue;
+    }
+
+    position = skip_js_whitespace(html, position + 1);
+
+    if (
+      !ascii_ci_at(html, position, "if") ||
+      !word_boundary_after(html, position + 2)
+    ) {
+      search = start + 1;
+      continue;
+    }
+
+    const close = html.indexOf("]", position + 2);
+
+    if (close === -1) return null;
+
+    const after = skip_js_whitespace(html, close + 1);
+
+    if (html.charCodeAt(after) === 0x3e) return { start, end: after + 1 };
+
+    search = close + 1;
+  }
+}
+
+export function revealed_open_tail_end(html: string, from: number): number {
+  let position = skip_js_whitespace(html, from);
+
+  if (html.startsWith("<!--", position)) {
+    position += 4;
+  } else if (html.startsWith("--", position)) {
+    position += 2;
+  } else {
+    return -1;
+  }
+
+  position = skip_js_whitespace(html, position);
+
+  if (html.charCodeAt(position) === 0x21) {
+    position = skip_js_whitespace(html, position + 1);
+  }
+
+  return html.charCodeAt(position) === 0x3e ? position + 1 : -1;
+}
+
+function is_space_or_dash(code: number): boolean {
+  return code === 0x2d || is_js_whitespace(code);
+}
+
+function skip_space_or_dash(html: string, index: number): number {
+  let position = index;
+
+  while (
+    position < html.length &&
+    is_space_or_dash(html.charCodeAt(position))
+  ) {
+    position += 1;
+  }
+
+  return position;
+}
+
+const ENDIF_MARKER = "<![endif]";
+
+function leftover_endif_end(html: string, index: number): number {
+  if (html.startsWith("<!--", index)) {
+    const marker = skip_space_or_dash(html, index + 4);
+
+    if (!ascii_ci_at(html, marker, ENDIF_MARKER)) return -1;
+
+    const close = skip_space_or_dash(html, marker + ENDIF_MARKER.length);
+
+    return html.charCodeAt(close) === 0x3e ? close + 1 : -1;
+  }
+
+  if (!ascii_ci_at(html, index, ENDIF_MARKER)) return -1;
+
+  const dashes = skip_js_whitespace(html, index + ENDIF_MARKER.length);
+
+  if (!html.startsWith("--", dashes)) return -1;
+
+  const close = skip_js_whitespace(html, dashes + 2);
+
+  return html.charCodeAt(close) === 0x3e ? close + 1 : -1;
+}
+
+export function strip_leftover_endif(html: string): string {
+  let result = "";
+  let copied = 0;
+  let index = 0;
+
+  while (index < html.length) {
+    const marker = skip_js_whitespace(html, index);
+    const end = leftover_endif_end(html, marker);
+
+    if (end !== -1) {
+      result += html.slice(copied, index);
+      copied = end;
+      index = end;
+      continue;
+    }
+
+    index = marker + 1;
+  }
+
+  return copied === 0 ? html : result + html.slice(copied);
+}
 
 export function strip_mso_conditionals(html: string): string {
   if (html.indexOf("[if") === -1 && html.indexOf("[endif]") === -1) return html;
 
   let result = "";
   let cursor = 0;
-
-  CONDITIONAL_OPEN_REGEX.lastIndex = 0;
+  let search = 0;
+  let comment_end = -2;
 
   for (
-    let match = CONDITIONAL_OPEN_REGEX.exec(html);
+    let match = find_conditional_open(html, search);
     match !== null;
-    match = CONDITIONAL_OPEN_REGEX.exec(html)
+    match = find_conditional_open(html, search)
   ) {
-    const start = match.index;
+    const start = match.start;
+
+    search = match.end;
 
     if (start < cursor) continue;
 
-    const after_open = start + match[0].length;
-    const revealed = REVEALED_OPEN_TAIL_REGEX.exec(html.slice(after_open));
+    const after_open = match.end;
+    const revealed_end = revealed_open_tail_end(html, after_open);
 
     result += html.slice(cursor, start);
 
-    if (revealed) {
-      cursor = after_open + revealed[0].length;
+    if (revealed_end !== -1) {
+      cursor = revealed_end;
     } else {
-      const comment_end = html.indexOf("-->", after_open);
+      if (comment_end !== -1 && comment_end < after_open) {
+        comment_end = html.indexOf("-->", after_open);
+      }
 
       if (comment_end === -1) {
         cursor = after_open;
-        CONDITIONAL_OPEN_REGEX.lastIndex = cursor;
+        search = cursor;
         continue;
       }
 
       cursor = comment_end + 3;
     }
 
-    CONDITIONAL_OPEN_REGEX.lastIndex = cursor;
+    search = cursor;
   }
 
   result += html.slice(cursor);
 
-  return result.replace(LEFTOVER_ENDIF_REGEX, "");
+  return strip_leftover_endif(result);
 }
 
 const COMMENT_END_REGEX = /--!?>/;
@@ -331,8 +467,119 @@ export function neutralize_unterminated_comments(html: string): string {
   return result + html.slice(cursor);
 }
 
-const AMP_BOILERPLATE_STYLE_RE =
-  /<style\b[^>]*?\samp(?:4email|4ads)?-boilerplate\b[^>]*>[\s\S]*?<\/style\s*>/gi;
+export function find_tag_open(
+  html: string,
+  name_lower: string,
+  from: number,
+): number {
+  const needle = `<${name_lower}`;
+
+  for (
+    let start = index_of_ascii_ci(html, needle, from);
+    start !== -1;
+    start = index_of_ascii_ci(html, needle, start + 1)
+  ) {
+    if (word_boundary_after(html, start + needle.length)) return start;
+  }
+
+  return -1;
+}
+
+export function find_close_tag(
+  html: string,
+  name_lower: string,
+  from: number,
+): MarkupSpan | null {
+  const needle = `</${name_lower}`;
+
+  for (
+    let start = index_of_ascii_ci(html, needle, from);
+    start !== -1;
+    start = index_of_ascii_ci(html, needle, start + 1)
+  ) {
+    const close = skip_js_whitespace(html, start + needle.length);
+
+    if (html.charCodeAt(close) === 0x3e) return { start, end: close + 1 };
+  }
+
+  return null;
+}
+
+export function find_close_tag_end(
+  html: string,
+  name_lower: string,
+  from: number,
+): number {
+  return find_close_tag(html, name_lower, from)?.end ?? -1;
+}
+
+const AMP_BOILERPLATE_NAMES = [
+  "4email-boilerplate",
+  "4ads-boilerplate",
+  "-boilerplate",
+];
+
+function amp_boilerplate_end(html: string, index: number): number {
+  if (!ascii_ci_at(html, index, "amp")) return -1;
+
+  for (const name of AMP_BOILERPLATE_NAMES) {
+    if (ascii_ci_at(html, index + 3, name)) {
+      const end = index + 3 + name.length;
+
+      if (word_boundary_after(html, end)) return end;
+    }
+  }
+
+  return -1;
+}
+
+function has_amp_boilerplate_marker(
+  html: string,
+  from: number,
+  end: number,
+): boolean {
+  for (let index = from; index < end; index += 1) {
+    if (
+      is_js_whitespace(html.charCodeAt(index)) &&
+      amp_boilerplate_end(html, index + 1) !== -1
+    ) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+export function strip_amp_boilerplate_styles(html: string): string {
+  let result = "";
+  let copied = 0;
+  let from = 0;
+
+  for (;;) {
+    const start = find_tag_open(html, "style", from);
+
+    if (start === -1) break;
+
+    const tag_end = html.indexOf(">", start + 6);
+
+    if (tag_end === -1) break;
+
+    if (!has_amp_boilerplate_marker(html, start + 6, tag_end)) {
+      from = tag_end + 1;
+      continue;
+    }
+
+    const close_end = find_close_tag_end(html, "style", tag_end + 1);
+
+    if (close_end === -1) break;
+
+    result += html.slice(copied, start);
+    copied = close_end;
+    from = close_end;
+  }
+
+  return copied === 0 && from === 0 ? html : result + html.slice(copied);
+}
 
 const AMP_IMG_OPEN_RE = /<amp-img\b/gi;
 
@@ -346,7 +593,7 @@ export function neutralize_amp_markup(html: string): string {
 
   do {
     previous = result;
-    result = result.replace(AMP_BOILERPLATE_STYLE_RE, "");
+    result = strip_amp_boilerplate_styles(result);
   } while (result !== previous);
 
   return result.replace(AMP_IMG_OPEN_RE, "<img").replace(AMP_IMG_CLOSE_RE, "");

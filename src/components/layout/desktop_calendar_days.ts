@@ -281,6 +281,24 @@ export function build_event_link(
   return url.toString();
 }
 
+export function replace_markup_tags(value: string, replacement: string): string {
+  let result = "";
+  let copied = 0;
+  let open = value.indexOf("<");
+
+  while (open !== -1) {
+    const close = value.indexOf(">", open + 1);
+
+    if (close === -1) break;
+
+    result += value.slice(copied, open) + replacement;
+    copied = close + 1;
+    open = value.indexOf("<", copied);
+  }
+
+  return copied === 0 ? value : result + value.slice(copied);
+}
+
 export function plain_text(value: string): string {
   if (!value.includes("<")) return value.trim();
 
@@ -289,6 +307,6 @@ export function plain_text(value: string): string {
 
     return (parsed.body.textContent ?? "").trim();
   } catch {
-    return value.replace(/<[^>]*>/g, " ").trim();
+    return replace_markup_tags(value, " ").trim();
   }
 }

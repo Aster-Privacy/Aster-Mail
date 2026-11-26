@@ -415,6 +415,18 @@ export async function re_encrypt_alias_sub_items_recovery(
             entry.note_nonce = nonce;
           }
 
+          if (address.encrypted_websites && address.websites_nonce) {
+            const { encrypted, nonce } = await re_encrypt_field(
+              address.encrypted_websites,
+              address.websites_nonce,
+              old_aes,
+              new_aes,
+            );
+
+            entry.encrypted_websites = encrypted;
+            entry.websites_nonce = nonce;
+          }
+
           re_encrypted_domain_addresses.push(entry);
         } catch {
           continue;
