@@ -62,4 +62,24 @@ describe("hard_flush_and_reload", () => {
     expect(cache_names.has(MODEL_CACHE_NAME)).toBe(true);
     expect([...deleted].sort()).toEqual([...STALE_APP_CACHES].sort());
   });
+
+  it("still reloads when the cache storage never answers", async () => {
+    vi.useFakeTimers();
+    vi.stubGlobal("caches", {
+      keys: vi.fn(() => new Promise<string[]>(() => {})),
+      delete: vi.fn(async () => true),
+    });
+    vi.resetModules();
+    const { hard_flush_and_reload, FLUSH_STEP_TIMEOUT_MS } = await import(
+      "./version_check"
+    );
+
+    const flushing = hard_flush_and_reload();
+
+    await vi.advanceTimersByTimeAsync(FLUSH_STEP_TIMEOUT_MS * 4);
+    await flushing;
+    vi.useRealTimers();
+
+    expect(reloads).toBe(1);
+  });
 });
