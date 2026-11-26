@@ -97,6 +97,7 @@ import { MAIL_EVENTS } from "@/hooks/mail_events";
 import { ignore_error } from "@/lib/ignore_error";
 import { get_active_translations } from "@/lib/i18n/translations";
 import {
+  earlier_thread_message_ids,
   extract_cid_references,
   resolve_cid_references,
   revoke_cid_blob_urls,
@@ -800,7 +801,12 @@ export async function preload_email_detail(
           if (!sanitized) return;
           if (extract_cid_references(sanitized.html).length === 0) return;
           try {
-            const result = await resolve_cid_references(sanitized.html, msg.id);
+            const result = await resolve_cid_references(
+              sanitized.html,
+              msg.id,
+              "blob",
+              earlier_thread_message_ids(thread_messages, msg.id),
+            );
 
             if (result.unresolved > 0) {
               revoke_cid_blob_urls(result.blob_urls);
