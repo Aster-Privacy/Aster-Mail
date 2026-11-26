@@ -215,6 +215,9 @@ export interface SettingsKeywordsTranslations {
   remote_image_loading: string;
   block_remote_fonts_label: string;
   block_remote_css_label: string;
+  image_cache_label: string;
+  image_prefetch_label: string;
+  image_cache_clear_label: string;
   strip_exif_on_compose_label: string;
   send_error_reports_label: string;
   prefer_plain_text_label: string;
@@ -4027,6 +4030,15 @@ export interface SettingsTranslations {
   remote_images_always: string;
   remote_images_ask: string;
   remote_images_never: string;
+  image_cache_label: string;
+  image_cache_description: string;
+  image_prefetch_label: string;
+  image_prefetch_description: string;
+  image_prefetch_unavailable: string;
+  image_cache_clear_label: string;
+  image_cache_clear_description: string;
+  image_cache_clear_button: string;
+  image_cache_cleared: string;
   tracking_protection_title: string;
   tracking_protection_enabled: string;
   tracking_protection_enabled_description: string;
