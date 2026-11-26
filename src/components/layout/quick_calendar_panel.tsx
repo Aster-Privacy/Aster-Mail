@@ -39,6 +39,7 @@ import {
 import {
   HANDOFF_GRANT_HASH_PREFIX,
   mint_panel_handoff_grant,
+  sibling_app_launch_url,
 } from "@/contexts/auth/sibling_session_handoff";
 
 export const CALENDAR_PANEL_PATH = "/mail-panel";
@@ -140,7 +141,7 @@ export function is_signed_out_status(data: unknown): boolean {
 }
 
 export function open_calendar_externally(): void {
-  open_external(CALENDAR_WEB_ORIGIN);
+  open_external(sibling_app_launch_url(CALENDAR_WEB_ORIGIN));
 }
 
 interface QuickCalendarPanelProps {

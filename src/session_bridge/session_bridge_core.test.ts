@@ -209,6 +209,17 @@ describe("read_local_session", () => {
     ).not.toBeNull();
   });
 
+  it("refuses a shared mailbox session", () => {
+    const shared = {
+      ...base_entries(),
+      [`astermail_shared_grant_epoch_${USER_ID}`]: "3",
+    };
+
+    expect(
+      read_local_session(make_deps(shared).storage, USER_ID, NOW),
+    ).toBeNull();
+  });
+
   it("refuses when the session timeout has passed", () => {
     const recent = with_timeout_config(thirty_minutes, NOW - 10 * 60 * 1000);
     const stale = with_timeout_config(thirty_minutes, NOW - 31 * 60 * 1000);

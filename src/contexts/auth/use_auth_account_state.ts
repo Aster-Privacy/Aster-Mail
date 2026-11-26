@@ -39,6 +39,7 @@ import {
 } from "./vault_decryption";
 import {
   obtain_sibling_session,
+  should_attempt_boot_handoff,
   type SiblingSessionLogin,
 } from "./sibling_session_handoff";
 import { purge_all_local_data } from "./purge_local_data";
@@ -396,12 +397,16 @@ export function use_auth_account_state() {
 
         const current = await get_current_account();
 
+        if (
+          should_attempt_boot_handoff(current !== null) &&
+          !is_account_choice_required() &&
+          (await try_sibling_handoff())
+        ) {
+          return;
+        }
+
         if (!current) {
           const tab_scoped = account_index_routing_enabled();
-
-          if (!is_account_choice_required() && (await try_sibling_handoff())) {
-            return;
-          }
 
           api_client.set_authenticated(false);
           set_state((prev) => ({
