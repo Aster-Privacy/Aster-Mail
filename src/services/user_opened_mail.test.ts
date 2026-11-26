@@ -70,6 +70,7 @@ import {
   apply_flag_intents,
   clear_read_intent,
   get_read_intent,
+  note_read_intent,
 } from "@/services/read_intent";
 
 const flush = async () => {
@@ -115,6 +116,31 @@ describe("on_user_opened_mail", () => {
       is_read: true,
     });
     expect(on_user_opened_mail("m2", { delay: "immediate" })).toBe(false);
+  });
+
+  it("leaves the conversation unread when the user marks it unread before the read save lands", async () => {
+    let finish_save: (value: unknown) => void = () => {};
+
+    hoisted.update_item_metadata.mockReturnValue(
+      new Promise((resolve) => {
+        finish_save = resolve;
+      }),
+    );
+
+    on_user_opened_mail("m1", {
+      delay: "immediate",
+      conversation_grouping: true,
+      row: unread_row("m1", { thread_token: "t1", thread_message_count: 3 }),
+    });
+    note_read_intent(["m1"], false);
+    hoisted.emit_mail_item_updated.mockClear();
+    finish_save({ success: true });
+    await flush();
+
+    expect(hoisted.mark_conversation_read).not.toHaveBeenCalled();
+    expect(hoisted.emit_mail_item_updated).not.toHaveBeenCalledWith(
+      expect.objectContaining({ id: "m1", is_read: true }),
+    );
   });
 
   it("stops consulting a visible list once it unregisters", () => {
