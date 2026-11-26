@@ -147,6 +147,7 @@ describe("queue_email_to_server outside copies", () => {
     expect(request.obscure_subject).toBe(true);
     expect(request.body).toBe(" ");
     expect(request.signed_mime).toBeUndefined();
+    expect(request.primary_only_signing).toBe(true);
     expect(JSON.stringify(request)).not.toContain("Private subject");
     expect(JSON.stringify(request)).not.toContain("Private body");
     expect(h.build_copies.mock.calls[0]![0].outside_recipients).toEqual([
@@ -329,6 +330,7 @@ describe("execute_send outside copies", () => {
     expect(simple_request().external_pgp_bodies).toEqual({
       "pal@example.com": "armored",
     });
+    expect(simple_request().primary_only_signing).toBe(true);
   });
 });
 

@@ -78,6 +78,7 @@ import {
   await_preloaded_email,
   delete_preloaded_email,
   get_preloaded_email,
+  is_preloaded_email_fresh,
   type PreloadedEmail,
   type PreloadedSanitizedContent,
 } from "@/components/email/hooks/preload_cache";
@@ -522,6 +523,43 @@ export function use_email_viewer({
       loaded_email_id_ref.current = preloaded.email.id;
     };
 
+    async function revalidate_preloaded_thread(preloaded: PreloadedEmail) {
+      const thread_token = preloaded.mail_item.thread_token;
+
+      if (!thread_token || preferences.conversation_grouping === false) return;
+
+      try {
+        if (!is_preloaded_email_fresh(preloaded)) {
+          request_cache.invalidate(
+            `messages/threads/${encodeURIComponent(thread_token)}/messages`,
+          );
+        }
+        const thread_result = await fetch_and_decrypt_thread_messages(
+          thread_token,
+          preloaded.current_user_email || user?.email || undefined,
+          {
+            is_trashed: !!preloaded.mail_item.is_trashed,
+            is_spam: !!preloaded.mail_item.is_spam,
+          },
+        );
+
+        if (cancelled || thread_result.messages.length === 0) return;
+
+        set_thread_messages((prev) =>
+          keep_unchanged_messages(
+            prev,
+            reconcile_thread_messages(
+              prev,
+              thread_result.messages,
+              preloaded.email.id,
+            ),
+          ),
+        );
+      } catch (caught) {
+        if (import.meta.env.DEV) console.error(caught);
+      }
+    }
+
     async function load_email(reloading_same_email: boolean) {
       const cached = usable_preloaded(
         get_preloaded_email(email_id, user?.email),
@@ -578,6 +616,8 @@ export function use_email_viewer({
               if (import.meta.env.DEV) console.error(e);
             }
           }
+
+          void revalidate_preloaded_thread(preloaded);
         }
 
         if (!pe.is_read && preferences.mark_as_read_delay !== "never") {

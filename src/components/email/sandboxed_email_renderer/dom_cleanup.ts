@@ -174,6 +174,46 @@ export function create_quote_wrapper(
   return { wrapper, content };
 }
 
+function has_visible_content(node: Node): boolean {
+  return (
+    (node.textContent || "").replace(/[​‌‍⁠﻿]/g, "").trim()
+      .length > 0 || contains_media(node)
+  );
+}
+
+function is_empty_quote_block(quote: Element): boolean {
+  const quote_body = quote.querySelector(".aster_quote_body, blockquote");
+
+  return !has_visible_content(quote_body ?? quote);
+}
+
+function remove_with_leading_breaks(node: Node): void {
+  let previous: Node | null = node.previousSibling;
+
+  node.parentNode?.removeChild(node);
+
+  while (previous) {
+    const is_break =
+      previous.nodeType === Node.ELEMENT_NODE
+        ? (previous as Element).tagName === "BR"
+        : previous.nodeType === Node.TEXT_NODE &&
+          !(previous.textContent || "").trim();
+
+    if (!is_break) break;
+
+    const next_previous: Node | null = previous.previousSibling;
+
+    previous.parentNode?.removeChild(previous);
+    previous = next_previous;
+  }
+}
+
+export function has_aster_compose_markup(doc: Document): boolean {
+  return !!doc.body?.querySelector(
+    "[data-aster-signature], .aster_quote, .aster_quote_body",
+  );
+}
+
 export function collapse_forwarded_content(
   doc: Document,
   t: translate_fn,
@@ -236,6 +276,12 @@ export function collapse_forwarded_content(
     body.querySelector("div.yahoo_quoted");
 
   if (gmail_wrapper) {
+    if (is_empty_quote_block(gmail_wrapper)) {
+      remove_with_leading_breaks(gmail_wrapper);
+
+      return;
+    }
+
     if (!has_content_outside(doc, body, [gmail_wrapper])) {
       (gmail_wrapper as HTMLElement).style.display = "block";
 
@@ -264,9 +310,9 @@ export function collapse_forwarded_content(
 
   const walker = doc.createTreeWalker(body, NodeFilter.SHOW_TEXT);
   const fw_patterns = [
-    /-{3,}\s*Forwarded\s+[Mm]essage\s*-{3,}/,
+    /---\s*Forwarded\s+[Mm]essage\s*---/,
     /Begin forwarded message:/i,
-    /-{3,}\s*Original\s+[Mm]essage\s*-{3,}/i,
+    /---\s*Original\s+[Mm]essage\s*---/i,
   ];
 
   let marker_text: Text | null = null;

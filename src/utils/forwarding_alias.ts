@@ -18,6 +18,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { split_outside_quotes } from "@/lib/address_scans";
 import { EMAIL_REGEX, get_email_username } from "@/lib/utils";
 import { parse_address, type ParsedAddress } from "@/utils/reply_to";
 import { decode_header_for_display } from "@/services/import/mime_utils";
@@ -281,7 +282,7 @@ function decode_reply_to_forward_address(
   const reply_to_value = find_header(raw_headers, "Reply-To");
 
   if (!reply_to_value) return undefined;
-  const addresses = reply_to_value.split(/,(?=(?:[^"]*"[^"]*")*[^"]*$)/);
+  const addresses = split_outside_quotes(reply_to_value);
 
   if (addresses.length !== 1) return undefined;
   const reply_to = parse_address(addresses[0]);

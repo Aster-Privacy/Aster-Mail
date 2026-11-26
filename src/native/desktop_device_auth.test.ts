@@ -1048,3 +1048,95 @@ describe("device challenge format", () => {
     ).toEqual({ nonceB64: "nonce", signatureVersion: 2 });
   });
 });
+
+describe("device ids stay with their own account", () => {
+  it("never forgets the last paired account when no id is given", async () => {
+    const module = await import("./desktop_device_auth");
+
+    await module.forget_device_account(undefined);
+
+    expect(invoke_mock).not.toHaveBeenCalledWith(
+      "device_forget_account",
+      expect.anything(),
+    );
+  });
+
+  it("never reads another account's passphrase when no id is given", async () => {
+    const module = await import("./desktop_device_auth");
+
+    expect(await module.read_device_passphrase(undefined)).toBeNull();
+    expect(invoke_mock).not.toHaveBeenCalledWith(
+      "device_get_stored_passphrase",
+      expect.anything(),
+    );
+  });
+
+  it("does not borrow a device id that another account owns", async () => {
+    vi.doMock("@/services/account_manager", () => ({
+      get_all_accounts: async () => [{ id: "account-2" }],
+      get_current_account_id: async () => "account-2",
+      device_id_claimed_by_other_account: async (
+        _account_id: string | null,
+        device_id: string,
+      ) => device_id === "device-1",
+    }));
+    const module = await import("./desktop_device_auth");
+
+    expect(
+      await module.resolve_current_account_device_id(null, "device-1"),
+    ).toBeNull();
+    expect(
+      await module.resolve_current_account_device_id(null, "device-9"),
+    ).toBe("device-9");
+    expect(
+      await module.resolve_current_account_device_id("device-2", "device-1"),
+    ).toBe("device-2");
+    vi.doUnmock("@/services/account_manager");
+  });
+});
+
+describe("device login checks the account", () => {
+  it("does not sign in as another account with a borrowed device", async () => {
+    vi.doMock("@/services/account_manager", () => ({
+      get_all_accounts: async () => [{ id: "account-2" }],
+      get_current_account_id: async () => "account-2",
+      device_id_claimed_by_other_account: async () => false,
+    }));
+    const module = await import("./desktop_device_auth");
+
+    expect(await module.attempt_device_relogin("device-1")).toBe(
+      "unavailable",
+    );
+    expect(module.device_id_verified_for("account-2")).toBeNull();
+    expect(module.consume_pending_device_login()).toBeNull();
+    vi.doUnmock("@/services/account_manager");
+  });
+
+  it("does not borrow the last paired device while other accounts exist", async () => {
+    vi.doMock("@/services/account_manager", () => ({
+      get_all_accounts: async () => [{ id: "account-1" }, { id: "account-2" }],
+      get_current_account_id: async () => "account-2",
+      device_id_claimed_by_other_account: async () => false,
+    }));
+    const module = await import("./desktop_device_auth");
+
+    expect(
+      await module.resolve_current_account_device_id(null, "device-1"),
+    ).toBeNull();
+    vi.doUnmock("@/services/account_manager");
+  });
+
+  it("remembers the device only for the account it signed in", async () => {
+    vi.doMock("@/services/account_manager", () => ({
+      get_all_accounts: async () => [{ id: "account-1" }],
+      get_current_account_id: async () => "account-1",
+      device_id_claimed_by_other_account: async () => false,
+    }));
+    const module = await import("./desktop_device_auth");
+
+    expect(await module.attempt_device_relogin("device-1")).toBe("signed_in");
+    expect(module.device_id_verified_for("account-1")).toBe("device-1");
+    expect(module.device_id_verified_for("account-2")).toBeNull();
+    vi.doUnmock("@/services/account_manager");
+  });
+});

@@ -20,7 +20,13 @@
 //
 import type { ParsedAttachment } from "./types";
 
+import {
+  find_address_like,
+  first_angle_capture,
+  split_outside_quotes,
+} from "@/lib/address_scans";
 import { unflow_format_flowed } from "@/lib/format_flowed";
+import { trim_end_index } from "@/lib/linear_trim";
 
 export function is_format_flowed(content_type: string): boolean {
   return /;\s*format\s*=\s*["']?flowed\b/i.test(content_type);
@@ -199,24 +205,50 @@ export function decode_header_for_display(value: string): string {
     });
 }
 
+function is_word_char(code: number): boolean {
+  return (
+    (code >= 0x61 && code <= 0x7a) ||
+    (code >= 0x41 && code <= 0x5a) ||
+    (code >= 0x30 && code <= 0x39) ||
+    code === 0x5f
+  );
+}
+
+function is_import_domain_char(code: number): boolean {
+  return is_word_char(code) || code === 0x2e || code === 0x2d;
+}
+
+function is_import_local_char(code: number): boolean {
+  return is_import_domain_char(code) || code === 0x2b;
+}
+
+function is_equals(code: number): boolean {
+  return code === 0x3d;
+}
+
 export function parse_address_list(value: string): string[] {
   if (!value) return [];
   const decoded = decode_header(value);
 
-  return decoded
-    .split(/,(?=(?:[^"]*"[^"]*")*[^"]*$)/)
+  return split_outside_quotes(decoded)
     .map((addr) => addr.trim())
     .filter((addr) => addr.length > 0);
 }
 
 export function extract_email_address(value: string): string {
   if (!value) return "";
-  const match = value.match(/<([^>]+)>/);
+  const angle = first_angle_capture(value);
 
-  if (match) return match[1];
-  const email_match = value.match(/[\w.+-]+@[\w.-]+\.\w+/);
+  if (angle !== null) return angle;
+  const email_match = find_address_like(
+    value,
+    is_import_local_char,
+    is_import_domain_char,
+    is_word_char,
+    1,
+  );
 
-  return email_match ? email_match[0] : value.trim();
+  return email_match ?? value.trim();
 }
 
 export function extract_boundary(content_type: string): string | null {
@@ -402,7 +434,7 @@ function estimate_decoded_size(
 ): number {
   if (encoding?.toLowerCase() === "base64") {
     const cleaned = part_body.replace(/[\r\n\s]/g, "");
-    const padding = cleaned.match(/=+$/)?.[0].length ?? 0;
+    const padding = cleaned.length - trim_end_index(cleaned, is_equals);
 
     return Math.max(0, Math.floor((cleaned.length * 3) / 4) - padding);
   }

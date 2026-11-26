@@ -438,6 +438,7 @@ export const FEATURE_MIN_PLAN: Record<string, string> = {
   has_contact_merge_wizard: "nova",
   has_custom_key_rotation: "nova",
   has_encrypted_export: "nova",
+  has_mta_sts_hosting: "nova",
   has_password_protected_folders: "nova",
   has_dedicated_support: "supernova",
   has_early_access: "supernova",

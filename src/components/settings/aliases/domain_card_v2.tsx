@@ -33,6 +33,7 @@ import { Button, Island, Switch } from "@aster/ui";
 
 import { DnsRecordCard } from "./dns_record_card";
 import { BimiRow } from "./bimi/bimi_row";
+import { MtaStsRow } from "./mta_sts/mta_sts_row";
 
 import { use_i18n } from "@/lib/i18n/context";
 import { Spinner } from "@/components/ui/spinner";
@@ -442,6 +443,10 @@ export function DomainCardV2({
 
             {!is_shared && domain.bimi_available === true && (
               <BimiRow domain={domain} on_changed={on_domains_changed} />
+            )}
+
+            {!is_shared && domain.mta_sts_available === true && (
+              <MtaStsRow domain={domain} on_changed={on_domains_changed} />
             )}
 
             {!is_shared && domain.status === "active" && (

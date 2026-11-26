@@ -52,11 +52,9 @@ vi.mock("@/services/account_manager", () => ({
 }));
 
 import {
-  AuthSaltCollisionError,
   IncorrectCurrentPasswordError,
   LegacyLoginSaltError,
 } from "@/services/crypto/auth_salt_guard";
-import { base64_to_array } from "@/services/crypto/base64";
 import {
   derive_password_hash,
   hash_email,
@@ -69,7 +67,10 @@ import {
   record_login_salt,
   user_hash_pin_key,
 } from "@/services/crypto/login_proof";
-import { read_session_login_salt } from "@/services/crypto/session_login_salt";
+import {
+  read_session_login_salt,
+  store_session_login_salt,
+} from "@/services/crypto/session_login_salt";
 import {
   clear_session_passphrase,
   store_encrypted_vault,
@@ -120,14 +121,6 @@ beforeEach(() => {
   h.session_password = null;
 });
 
-function rotation_body(call_index: number): Record<string, unknown> {
-  const [path, body] = h.post.mock.calls[call_index];
-
-  expect(path).toBe("/core/v1/auth/me/login-salt");
-
-  return body as Record<string, unknown>;
-}
-
 describe("a session with no record and no session salt", () => {
   it("refuses a short salt the server substitutes at step-up", async () => {
     h.account_id = "user-1";
@@ -161,96 +154,36 @@ describe("a session with no record and no session salt", () => {
 });
 
 describe("a signed-in session with a short legacy salt", () => {
-  it("rotates to a fresh salt, then step-up succeeds, and a server-supplied short salt is still refused", async () => {
+  it("does not send a proof for a short salt this device did not record", async () => {
     h.account_id = "user-1";
     h.saved_emails = [EMAIL];
     h.session_password = PASSWORD;
     keep_pre_build_session("user-1");
     h.post.mockResolvedValue({ data: { kdf_version: 2 } });
 
-    const server_salt = short_salt();
-    const proof = await derive_current_account_proof(
-      PASSWORD,
-      server_salt,
-      1,
-    ).catch((error: unknown) => error);
-
-    expect(proof).not.toBeInstanceOf(LegacyLoginSaltError);
-    expect(h.post).toHaveBeenCalledTimes(1);
-
-    const body = rotation_body(0);
-    const current = await derive_password_hash(PASSWORD, server_salt);
-
-    expect(body.password_hash).toBe(current.hash);
-    expect(body).not.toHaveProperty("password_hash_v2");
-
-    const new_salt = base64_to_array(body.new_password_salt as string);
-
-    expect(new_salt.length).toBe(32);
-    expect(new_salt).not.toEqual(server_salt);
-
-    const expected = await derive_password_hash(PASSWORD, new_salt);
-
-    expect(body.new_password_hash).toBeUndefined();
-    expect(body.new_password_hash_v2).toBe(expected.hash_v2);
-    expect(body.new_password_hash_v2).not.toBe(current.hash_v2);
-    expect(proof).toBe(expected.hash_v2);
-    expect(read_session_login_salt("user-1")).toEqual(new_salt);
-
     await expect(
-      derive_current_account_proof(PASSWORD, new_salt, 2),
-    ).resolves.toBe(expected.hash_v2);
-
-    const refused = await derive_current_account_proof(
-      PASSWORD,
-      short_salt(),
-      1,
-    ).catch((error: unknown) => error);
-
-    expect(
-      refused instanceof LegacyLoginSaltError ||
-        refused instanceof AuthSaltCollisionError,
-    ).toBe(true);
-    expect(h.post).toHaveBeenCalledTimes(1);
-  });
-
-  it("stays refused when the server does not accept the rotation", async () => {
-    h.account_id = "user-1";
-    h.saved_emails = [EMAIL];
-    h.session_password = PASSWORD;
-    keep_pre_build_session("user-1");
-    h.post.mockRejectedValue(new Error("step up required"));
-
-    const server_salt = short_salt();
-
-    await expect(
-      derive_current_account_proof(PASSWORD, server_salt, 1),
+      derive_current_account_proof(PASSWORD, short_salt(), 1),
     ).rejects.toMatchObject({
       translation_key: "errors.legacy_login_salt_new_device",
     });
-    expect(h.post).toHaveBeenCalledTimes(1);
-
-    const body = rotation_body(0);
-    const server_proof = await derive_password_hash(PASSWORD, server_salt);
-
-    expect(body.password_hash).toBe(server_proof.hash);
-    expect(body.new_password_hash).not.toBe(server_proof.hash);
-    expect(Object.values(body)).not.toContain(server_proof.hash_v2);
+    expect(h.post).not.toHaveBeenCalled();
     expect(read_session_login_salt("user-1")).toBeNull();
   });
 
-  it("reports a wrong password when the server refuses the current proof", async () => {
+  it("passes step-up under the short salt kept from this session's sign-in", async () => {
+    const salt = short_salt();
+
     h.account_id = "user-1";
     h.saved_emails = [EMAIL];
     h.session_password = PASSWORD;
-    keep_pre_build_session("user-1");
-    h.post.mockResolvedValue({ error: "invalid credentials", status: 401 });
+    store_session_login_salt("user-1", salt);
+
+    const expected = await derive_password_hash(PASSWORD, salt);
 
     await expect(
-      derive_current_account_proof(PASSWORD, short_salt(), 1),
-    ).rejects.toBeInstanceOf(IncorrectCurrentPasswordError);
-    expect(h.post).toHaveBeenCalledTimes(1);
-    expect(read_session_login_salt("user-1")).toBeNull();
+      derive_current_account_proof(PASSWORD, salt, 1),
+    ).resolves.toBe(expected.hash);
+    expect(h.post).not.toHaveBeenCalled();
   });
 
   it("does not rotate when the password does not match the unlocked session", async () => {

@@ -33,6 +33,7 @@ vi.mock("./pq_prekey_store", async () => {
   const keypair = ml_kem768.keygen(seed);
 
   return {
+    refuse_used_pq_prekey: vi.fn(async () => false),
     save_pq_secret: vi.fn(async () => undefined),
     load_pq_secret: vi.fn(async () => new Uint8Array(keypair.secretKey)),
     delete_pq_secret: vi.fn(async () => undefined),

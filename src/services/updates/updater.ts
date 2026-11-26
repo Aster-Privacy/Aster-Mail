@@ -65,9 +65,11 @@ export function is_desktop_runtime(): boolean {
   if (typeof window === "undefined") return false;
   const w = window as unknown as {
     __ASTER_FLATPAK__?: unknown;
+    __ASTER_UPDATES_MANAGED__?: unknown;
   };
 
   if (w.__ASTER_FLATPAK__) return false;
+  if (w.__ASTER_UPDATES_MANAGED__) return false;
 
   return has_tauri_runtime();
 }

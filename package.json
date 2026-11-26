@@ -28,6 +28,7 @@
     "test:coverage": "vitest run --coverage",
     "test:ui": "playwright test --config=playwright.config.ui.ts",
     "test:a11y": "playwright test --config=playwright.config.a11y.ts",
+    "test:perf": "playwright test --config=playwright.config.perf.ts",
     "capacitor:copy:before": "node scripts/prepare_native_dist.mjs --capacitor",
     "cap:sync": "node scripts/prepare_native_dist.mjs --capacitor && npx cap sync",
     "cap:android": "node scripts/prepare_native_dist.mjs --capacitor && npx cap run android",
@@ -165,6 +166,7 @@
       "minimatch": "^11.0.1"
     },
     "glob": {
+      ".": ">=14.0.2",
       "minimatch": "^11.0.1"
     },
     "rimraf": {

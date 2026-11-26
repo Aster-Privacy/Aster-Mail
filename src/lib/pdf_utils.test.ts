@@ -35,10 +35,17 @@ vi.mock("pdfjs-dist", () => ({
   getDocument: pdf_mock.get_document,
 }));
 
+vi.mock("@/lib/canvas_readback", () => ({
+  canvas_readback_trusted: () => false,
+}));
+
 import {
+  CanvasReadbackError,
   PdfPasswordError,
+  can_render_pdf_thumbnails,
   is_pdf_password_error,
   load_pdf_document,
+  render_pdf_thumbnail,
 } from "./pdf_utils";
 import { MAX_PDF_PASSWORD_LENGTH } from "./pdf_limits";
 
@@ -149,6 +156,21 @@ describe("load_pdf_document", () => {
     ).catch((e) => e);
 
     expect((err as PdfPasswordError).reason).toBe("incorrect");
+    expect(pdf_mock.get_document).not.toHaveBeenCalled();
+  });
+});
+
+describe("render_pdf_thumbnail", () => {
+  beforeEach(() => pdf_mock.get_document.mockReset());
+
+  it("does not draw a thumbnail when canvas reads are altered", async () => {
+    expect(can_render_pdf_thumbnails()).toBe(false);
+
+    const err = await render_pdf_thumbnail(new ArrayBuffer(4), 400, 280).catch(
+      (e) => e,
+    );
+
+    expect(err).toBeInstanceOf(CanvasReadbackError);
     expect(pdf_mock.get_document).not.toHaveBeenCalled();
   });
 });

@@ -59,7 +59,10 @@ import { use_split_pane } from "@/components/email/inbox/use_split_pane";
 import { use_inbox_list_scroll } from "@/components/email/inbox/use_inbox_list_scroll";
 import { use_inbox_keyboard } from "@/components/email/inbox/use_inbox_keyboard";
 import { use_inbox_navigation } from "@/components/email/inbox/use_inbox_navigation";
-import { use_split_reader_advance } from "@/components/email/inbox/use_split_reader_advance";
+import {
+  row_covers_open_email,
+  use_split_reader_advance,
+} from "@/components/email/inbox/use_split_reader_advance";
 import { use_inbox_selection } from "@/components/email/inbox/use_inbox_selection";
 import { use_inbox_selection_menu } from "@/components/email/inbox/use_inbox_selection_menu";
 import { use_inbox_bulk_actions } from "@/components/email/inbox/use_inbox_bulk_actions";
@@ -676,7 +679,7 @@ export function use_email_inbox_state(props: EmailInboxProps) {
     t,
   ]);
 
-  const bulk_actions = use_inbox_bulk_actions({
+  const raw_bulk_actions = use_inbox_bulk_actions({
     categories,
     selection,
     toolbar,
@@ -689,6 +692,38 @@ export function use_email_inbox_state(props: EmailInboxProps) {
     set_current_page,
     t,
   });
+
+  const raw_mark_unread = raw_bulk_actions.handle_mark_unread_wrapped;
+  const unread_split_ref = useRef({
+    split_email_id,
+    on_split_close,
+    emails: email_state.emails,
+    select_all_mode: selection.select_all_mode,
+  });
+
+  unread_split_ref.current = {
+    split_email_id,
+    on_split_close,
+    emails: email_state.emails,
+    select_all_mode: selection.select_all_mode,
+  };
+  const mark_unread_and_close_split = useCallback(() => {
+    const current = unread_split_ref.current;
+    const closes =
+      !current.select_all_mode &&
+      current.emails.some(
+        (email) =>
+          email.is_selected &&
+          row_covers_open_email(email, current.split_email_id, current.emails),
+      );
+
+    raw_mark_unread();
+    if (closes) current.on_split_close?.();
+  }, [raw_mark_unread]);
+  const bulk_actions = {
+    ...raw_bulk_actions,
+    handle_mark_unread_wrapped: mark_unread_and_close_split,
+  };
 
   const {
     pending_select_all_action,

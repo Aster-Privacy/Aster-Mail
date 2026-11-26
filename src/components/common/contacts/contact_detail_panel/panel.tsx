@@ -403,21 +403,27 @@ export function ContactDetailPanel({
                   profile_color={banner}
                   size_px={92}
                 />
-                <button
-                  aria-label={t("common.upload")}
-                  className="aster_scrim absolute inset-0 flex items-center justify-center rounded-full opacity-0 transition-opacity group-hover:opacity-100"
-                  onClick={() => file_input_ref.current?.click()}
-                >
-                  <CameraIcon className="w-7 h-7 text-white" />
-                </button>
-                {draft.avatar_url && (
+                <Tooltip tip={t("common.change_photo")}>
                   <button
-                    aria-label={t("common.delete")}
-                    className="contact_photo_remove absolute -bottom-1 -end-1 flex h-7 w-7 items-center justify-center rounded-full ring-2 ring-surf-primary"
-                    onClick={handle_avatar_clear}
+                    aria-label={t("common.change_photo")}
+                    className="aster_scrim absolute inset-0 flex items-center justify-center rounded-full opacity-0 transition-opacity group-hover:opacity-100 focus-visible:opacity-100"
+                    type="button"
+                    onClick={() => file_input_ref.current?.click()}
                   >
-                    <TrashIcon className="w-3.5 h-3.5" />
+                    <CameraIcon className="w-7 h-7 text-white" />
                   </button>
+                </Tooltip>
+                {draft.avatar_url && (
+                  <Tooltip tip={t("common.remove_photo")}>
+                    <button
+                      aria-label={t("common.remove_photo")}
+                      className="contact_photo_remove absolute -bottom-1 -end-1 flex h-7 w-7 items-center justify-center rounded-full ring-2 ring-surf-primary"
+                      type="button"
+                      onClick={handle_avatar_clear}
+                    >
+                      <TrashIcon className="w-3.5 h-3.5" />
+                    </button>
+                  </Tooltip>
                 )}
                 <input
                   ref={file_input_ref}

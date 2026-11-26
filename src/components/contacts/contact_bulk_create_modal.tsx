@@ -33,6 +33,7 @@ import {
   ModalFooter,
 } from "@/components/ui/modal";
 import { use_i18n } from "@/lib/i18n/context";
+import { is_email_shape } from "@/lib/email_shape";
 
 interface ContactBulkCreateModalProps {
   is_open: boolean;
@@ -41,7 +42,6 @@ interface ContactBulkCreateModalProps {
 }
 
 const ANGLE_ADDRESS = /^(.*?)<([^<>]+)>\s*$/;
-const BARE_ADDRESS = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export function parse_bulk_contact_input(value: string): ContactFormData[] {
   const seen = new Set<string>();
@@ -59,7 +59,7 @@ export function parse_bulk_contact_input(value: string): ContactFormData[] {
     if (angle) {
       name = angle[1].trim().replace(/^["']|["']$/g, "");
       email = angle[2].trim();
-    } else if (BARE_ADDRESS.test(line)) {
+    } else if (is_email_shape(line)) {
       name = "";
       email = line;
     }

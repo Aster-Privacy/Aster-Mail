@@ -24,28 +24,38 @@ import type { EmailAuthResults } from "@/utils/email_authentication";
 import { ASTER_DOMAIN_SUFFIXES } from "@/data/category_signals";
 import { is_official_sender, is_system_email } from "@/lib/utils";
 import { normalize_email_auth_status } from "@/utils/email_authentication";
+import { char_set_predicate, trim_end_while } from "@/lib/linear_trim";
 
 export interface LearnGateSource extends SenderTrustSource, EmailAuthResults {}
 
 const ASTER_DOMAINS = new Set(ASTER_DOMAIN_SUFFIXES);
+const ASTER_DOMAIN_MAX_LENGTH = Math.max(
+  0,
+  ...ASTER_DOMAIN_SUFFIXES.map((domain) => domain.length),
+);
+const SENDER_DOMAIN_TRAILING_CHARACTERS = char_set_predicate(".>");
 
-function sender_domain(email: string): string {
+export function sender_domain(email: string): string {
   const at = email.lastIndexOf("@");
 
   if (at === -1) return "";
 
-  return email
-    .slice(at + 1)
-    .trim()
-    .toLowerCase()
-    .replace(/[.>]+$/, "");
+  return trim_end_while(
+    email.slice(at + 1).trim().toLowerCase(),
+    SENDER_DOMAIN_TRAILING_CHARACTERS,
+  );
 }
 
 export function is_aster_domain_sender(email: string): boolean {
   let current = sender_domain(email);
 
   while (current) {
-    if (ASTER_DOMAINS.has(current)) return true;
+    if (
+      current.length <= ASTER_DOMAIN_MAX_LENGTH &&
+      ASTER_DOMAINS.has(current)
+    ) {
+      return true;
+    }
 
     const dot = current.indexOf(".");
 

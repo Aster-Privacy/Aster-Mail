@@ -9,6 +9,7 @@ permissions:
 
 jobs:
   sign-windows:
+    if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')
     environment: release
     runs-on: windows-latest
     permissions:
@@ -35,14 +36,6 @@ jobs:
 
       - name: Setup MSVC environment
         uses: ilammy/msvc-dev-cmd@0b201ec74fa43914dc39ae48a89fd1d8cb592756 # v1
-
-      - name: Build @aster/ui
-        shell: bash
-        run: |
-          git clone --depth=1 https://github.com/Aster-Privacy/aster-ui.git ../aster-ui
-          cd ../aster-ui
-          npm ci --no-audit --no-fund
-          npm run build
 
       - name: Install frontend dependencies
         shell: bash

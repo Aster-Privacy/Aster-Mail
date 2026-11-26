@@ -18,6 +18,269 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { is_js_whitespace } from "./linear_trim";
+
+export function fold_ascii_code(code: number): number {
+  return code >= 0x41 && code <= 0x5a ? code + 0x20 : code;
+}
+
+export function is_ascii_word_code(code: number): boolean {
+  return (
+    (code >= 0x30 && code <= 0x39) ||
+    (code >= 0x41 && code <= 0x5a) ||
+    (code >= 0x61 && code <= 0x7a) ||
+    code === 0x5f
+  );
+}
+
+export function ascii_ci_at(
+  value: string,
+  index: number,
+  needle_lower: string,
+): boolean {
+  if (index < 0 || index + needle_lower.length > value.length) return false;
+
+  for (let offset = 0; offset < needle_lower.length; offset += 1) {
+    if (
+      fold_ascii_code(value.charCodeAt(index + offset)) !==
+      needle_lower.charCodeAt(offset)
+    ) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+export function index_of_ascii_ci(
+  value: string,
+  needle_lower: string,
+  from = 0,
+  end = value.length,
+): number {
+  const first = needle_lower.charCodeAt(0);
+  const last_start = Math.min(end, value.length) - needle_lower.length;
+
+  for (let index = Math.max(0, from); index <= last_start; index += 1) {
+    if (
+      fold_ascii_code(value.charCodeAt(index)) === first &&
+      ascii_ci_at(value, index, needle_lower)
+    ) {
+      return index;
+    }
+  }
+
+  return -1;
+}
+
+export function word_boundary_after(value: string, index: number): boolean {
+  return index >= value.length || !is_ascii_word_code(value.charCodeAt(index));
+}
+
+export function skip_js_whitespace(value: string, index: number): number {
+  let position = index;
+
+  while (
+    position < value.length &&
+    is_js_whitespace(value.charCodeAt(position))
+  ) {
+    position += 1;
+  }
+
+  return position;
+}
+
+export function replace_up_to_last(
+  value: string,
+  terminator: string,
+  pattern: RegExp,
+  replacement: string,
+): string {
+  const last = value.lastIndexOf(terminator);
+
+  if (last === -1) return value;
+
+  const end = last + terminator.length;
+
+  return value.slice(0, end).replace(pattern, replacement) + value.slice(end);
+}
+
+export interface StringTest {
+  test(value: string): boolean;
+}
+
+function is_line_terminator(code: number): boolean {
+  return code === 0x0a || code === 0x0d || code === 0x2028 || code === 0x2029;
+}
+
+function line_end(value: string, from: number): number {
+  let position = from;
+
+  while (
+    position < value.length &&
+    !is_line_terminator(value.charCodeAt(position))
+  ) {
+    position += 1;
+  }
+
+  return position;
+}
+
+function host_marker_start(value: string, index: number): boolean {
+  if (index === 0) return true;
+
+  const previous = value.charCodeAt(index - 1);
+
+  return previous === 0x2e || previous === 0x2f;
+}
+
+function host_then_on_same_line(host: string, tail: string): StringTest {
+  return {
+    test(value: string): boolean {
+      let from = 0;
+
+      for (;;) {
+        const start = index_of_ascii_ci(value, host, from);
+
+        if (start === -1) return false;
+
+        if (!host_marker_start(value, start)) {
+          from = start + 1;
+          continue;
+        }
+
+        const after = start + host.length;
+        const end = line_end(value, after);
+
+        if (index_of_ascii_ci(value, tail, after, end) !== -1) return true;
+
+        from = end + 1;
+      }
+    },
+  };
+}
+
+function open_or_track_at(value: string, index: number): boolean {
+  let after: number;
+
+  if (ascii_ci_at(value, index, "open")) {
+    after = index + 4;
+  } else if (ascii_ci_at(value, index, "track")) {
+    after = index + 5;
+  } else {
+    return false;
+  }
+
+  if (after >= value.length) return true;
+
+  const code = value.charCodeAt(after);
+
+  return code === 0x2f || code === 0x3f || code === 0x2e;
+}
+
+const AMAZONSES_HOST = "amazonses.com/";
+
+const AMAZONSES_TRACKER: StringTest = {
+  test(value: string): boolean {
+    let from = 0;
+
+    for (;;) {
+      const start = index_of_ascii_ci(value, AMAZONSES_HOST, from);
+
+      if (start === -1) return false;
+
+      if (!host_marker_start(value, start)) {
+        from = start + 1;
+        continue;
+      }
+
+      const path_start = start + AMAZONSES_HOST.length;
+      let segment_end = path_start;
+
+      while (segment_end < value.length) {
+        const code = value.charCodeAt(segment_end);
+
+        if (code === 0x3f || code === 0x23) break;
+        segment_end += 1;
+      }
+
+      if (open_or_track_at(value, path_start)) return true;
+
+      for (let slash = path_start; slash < segment_end; slash += 1) {
+        if (
+          value.charCodeAt(slash) === 0x2f &&
+          open_or_track_at(value, slash + 1)
+        ) {
+          return true;
+        }
+      }
+
+      from = segment_end + 1;
+    }
+  },
+};
+
+function dimension_pixel_test(name: string): StringTest {
+  return {
+    test(value: string): boolean {
+      for (
+        let start = index_of_ascii_ci(value, name, 0);
+        start !== -1;
+        start = index_of_ascii_ci(value, name, start + 1)
+      ) {
+        if (start > 0) {
+          const previous = value.charCodeAt(start - 1);
+
+          if (
+            previous !== 0x3b &&
+            previous !== 0x7b &&
+            !is_js_whitespace(previous)
+          ) {
+            continue;
+          }
+        }
+
+        let position = skip_js_whitespace(value, start + name.length);
+        const separator = value.charCodeAt(position);
+
+        if (separator !== 0x3a && separator !== 0x3d) continue;
+
+        position = skip_js_whitespace(value, position + 1);
+
+        const quote = value.charCodeAt(position);
+
+        if (quote === 0x22 || quote === 0x27) position += 1;
+
+        const digit = value.charCodeAt(position);
+
+        if (digit !== 0x30 && digit !== 0x31) continue;
+
+        position += 1;
+
+        const next = value.charCodeAt(position);
+
+        if (next >= 0x30 && next <= 0x39) continue;
+
+        position = skip_js_whitespace(value, position);
+
+        if (ascii_ci_at(value, position, "px")) {
+          position = skip_js_whitespace(value, position + 2);
+        }
+
+        if (position >= value.length) return true;
+
+        const terminator = value.charCodeAt(position);
+
+        if (terminator === 0x3b || terminator === 0x22 || terminator === 0x27) {
+          return true;
+        }
+      }
+
+      return false;
+    },
+  };
+}
+
 export const ALLOWED_TAGS = new Set([
   "a",
   "abbr",
@@ -259,12 +522,12 @@ export const ALLOWED_DATA_URL_TYPES = new Set([
   "data:image/vnd.microsoft.icon",
 ]);
 
-export const TRACKING_PIXEL_PATTERNS = [
-  /(?:^|[;{\s])width\s*[:=]\s*["']?[01](?!\d)\s*(?:px)?\s*(?:;|$|["'])/i,
-  /(?:^|[;{\s])height\s*[:=]\s*["']?[01](?!\d)\s*(?:px)?\s*(?:;|$|["'])/i,
+export const TRACKING_PIXEL_PATTERNS: readonly StringTest[] = [
+  dimension_pixel_test("width"),
+  dimension_pixel_test("height"),
 ];
 
-export const TRACKING_PIXEL_URL_PATTERNS = [
+export const TRACKING_PIXEL_URL_PATTERNS: readonly StringTest[] = [
   /\/track(?:ing)?(?:[/?.]|$)/i,
   /\/open\//i,
   /\/pixel(?:[/?.]|$)/i,
@@ -273,12 +536,12 @@ export const TRACKING_PIXEL_URL_PATTERNS = [
   /\/o\.gif/i,
   /\/t\.gif/i,
   /\/e\.gif/i,
-  /(?:^|[./])mailchimp\.com.*\/track/i,
-  /(?:^|[./])list-manage\.com.*\/track/i,
-  /(?:^|[./])sendgrid\.net.*\/wf\//i,
-  /(?:^|[./])amazonses\.com\/(?:[^?#]*\/)?(?:open|track)(?:[/?.]|$)/i,
+  host_then_on_same_line("mailchimp.com", "/track"),
+  host_then_on_same_line("list-manage.com", "/track"),
+  host_then_on_same_line("sendgrid.net", "/wf/"),
+  AMAZONSES_TRACKER,
   /(?:^|[./])doubleclick\.net(?:\/|$)/i,
-  /(?:^|[./])mailgun\.org.*\/o\//i,
+  host_then_on_same_line("mailgun.org", "/o/"),
   /(?:^|[./])sparkpostmail(?:\/|$)/i,
   /(?:^|[./])returnpath\.net(?:\/|$)/i,
   /emltrk\./i,

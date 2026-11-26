@@ -23,6 +23,10 @@ import { useState } from "react";
 
 import { use_i18n } from "@/lib/i18n";
 import {
+  find_paired_elements,
+  replace_matched_ranges,
+} from "@/lib/html_text";
+import {
   decode_password_protected_body,
   decrypt_pgp_with_password,
 } from "@/utils/email_crypto";
@@ -42,10 +46,38 @@ function extract_links(html: string): string[] {
   return Array.from(new Set(found)).slice(0, 5);
 }
 
-function to_visible_text(html: string): string {
-  return html
-    .replace(/<(script|style)[\s\S]*?<\/\1>/gi, " ")
-    .replace(/<[^>]*>/g, " ")
+export function replace_bracketed_tags(html: string, replacement: string): string {
+  let start = html.indexOf("<");
+
+  if (start === -1) return html;
+
+  let result = "";
+  let cursor = 0;
+
+  while (start !== -1) {
+    const end = html.indexOf(">", start + 1);
+
+    if (end === -1) break;
+
+    result += html.slice(cursor, start) + replacement;
+    cursor = end + 1;
+    start = html.indexOf("<", cursor);
+  }
+
+  return result + html.slice(cursor);
+}
+
+export function to_visible_text(html: string): string {
+  const without_code = replace_matched_ranges(
+    html,
+    find_paired_elements(html, ["script", "style"], {
+      word_boundary: false,
+      open_tag: false,
+    }),
+    () => " ",
+  );
+
+  return replace_bracketed_tags(without_code, " ")
     .replace(/&nbsp;/g, " ")
     .replace(/&lt;/g, "<")
     .replace(/&gt;/g, ">")

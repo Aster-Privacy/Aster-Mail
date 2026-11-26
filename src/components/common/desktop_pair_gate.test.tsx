@@ -124,6 +124,10 @@ vi.mock("@/native/desktop_device_auth", () => ({
   resume_device_login_after_unlock: (...args: unknown[]) =>
     resume_mock(...args),
   forget_device_account: (...args: unknown[]) => forget_mock(...args),
+  resolve_current_account_device_id: async (
+    account_device_id: string | null,
+    last_paired: string | null,
+  ) => account_device_id ?? last_paired,
   clear_device_session: (...args: unknown[]) => clear_session_mock(...args),
   clear_explicit_sign_out: () => undefined,
   take_explicit_sign_out: () => false,

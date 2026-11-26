@@ -20,6 +20,12 @@
 //
 import type { AddressOperator, TextOperator } from "@/services/api/mail_rules";
 
+import { trim_end_while } from "@/lib/linear_trim";
+
+function is_dot(code: number): boolean {
+  return code === 0x2e;
+}
+
 export function fold_case(value: string, case_sensitive: boolean): string {
   const normalized = value.normalize("NFC");
 
@@ -57,7 +63,10 @@ export function domain_list_entries(value: string): string[] {
   return value
     .split(/[,;\s]+/)
     .map((entry) =>
-      entry.trim().replace(/^@+/, "").replace(/^\*\./, "").replace(/\.+$/, ""),
+      trim_end_while(
+        entry.trim().replace(/^@+/, "").replace(/^\*\./, ""),
+        is_dot,
+      ),
     )
     .filter((entry) => entry.length > 0);
 }

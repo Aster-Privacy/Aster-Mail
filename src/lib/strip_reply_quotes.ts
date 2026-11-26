@@ -18,12 +18,27 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { is_html_content } from "./html_text";
+import {
+  find_paired_elements,
+  is_html_content,
+  replace_matched_ranges,
+} from "./html_text";
 
 const QUOTE_ATTRIBUTION_RE =
   /(^|\n|>)[ \t]*On[ \t][^\n<]{1,300}?wrote:[ \t]*(?=\n|<|$)/;
 
 const QUOTED_LINE_RE = /^[ \t]*>/;
+
+export function strip_blockquote_elements(html: string): string {
+  return replace_matched_ranges(
+    html,
+    find_paired_elements(html, ["blockquote"], {
+      word_boundary: false,
+      open_tag: true,
+    }),
+    () => "",
+  );
+}
 
 function strip_plain_text_quotes(body: string): string {
   let in_quote = false;
@@ -60,10 +75,5 @@ export function strip_reply_quotes(body: string): string {
     }
   }
 
-  return (
-    processed
-      .replace(/^>.*$/gm, "")
-      .replace(/<blockquote[^>]*>[\s\S]*?<\/blockquote>/gi, "")
-      .trim() || body
-  );
+  return strip_blockquote_elements(processed.replace(/^>.*$/gm, "")).trim() || body;
 }

@@ -23,6 +23,7 @@ import type { StoredEnvelopeBinding } from "./envelope_v2";
 
 import { decrypt_envelope_v2_with_vault } from "./envelope_v2";
 import { get_vault_owner_id } from "./memory_key_store";
+import { raise_bound_envelope_floor } from "./stored_envelope_floor";
 
 export function stored_envelope_binding(
   item_id: string | null | undefined,
@@ -53,5 +54,13 @@ export async function open_stored_envelope<T>(
 
   if (!binding) return null;
 
-  return decrypt_envelope_v2_with_vault<T>(encrypted, vault, binding);
+  const opened = await decrypt_envelope_v2_with_vault<T>(
+    encrypted,
+    vault,
+    binding,
+  );
+
+  if (opened !== null) raise_bound_envelope_floor(binding.owner_id);
+
+  return opened;
 }

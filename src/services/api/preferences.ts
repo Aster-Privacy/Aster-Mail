@@ -24,6 +24,11 @@ import type { LanguageCode } from "@/lib/i18n/types";
 import type { SkinTone } from "@/config/emoji/skin_tones";
 
 import { api_client } from "./client";
+import {
+  get_tab_account_id,
+  read_tab_account_binding,
+  tab_shares_session_cookies,
+} from "@/lib/tab_account";
 
 import { HASH_ALG } from "@/services/crypto/constants";
 import {
@@ -35,6 +40,12 @@ import {
   retry_after_account_key_load,
 } from "@/services/crypto/account_data_writer";
 import { decrypt_account_context_with_fallback } from "@/services/crypto/legacy_keks";
+import {
+  floor_retired_bytes,
+  floor_retired_preferences,
+  is_plain_object,
+  type ProtectionBaseline,
+} from "@/services/crypto/retired_protection_floor";
 import { array_to_base64, base64_to_array } from "@/services/crypto/envelope";
 import {
   DEFAULT_ENABLED_CATEGORIES,
@@ -424,16 +435,29 @@ async function decrypt_preferences(
   );
   const nonce_data = Uint8Array.from(atob(nonce), (c) => c.charCodeAt(0));
 
+  const opening = { retired: false };
   const decrypted = await retry_after_account_key_load(() =>
     decrypt_account_context_with_fallback(
       "astermail-preferences-v1",
       key,
       encrypted_data,
       nonce_data,
+      () => {
+        opening.retired = true;
+      },
     ),
   );
+  const parsed = JSON.parse(new TextDecoder().decode(decrypted));
 
-  return JSON.parse(new TextDecoder().decode(decrypted));
+  if (opening.retired && is_plain_object(parsed)) {
+    floor_retired_preferences(parsed, retired_preferences_baseline());
+  }
+
+  return parsed;
+}
+
+export function retired_preferences_baseline(): ProtectionBaseline {
+  return get_cached_preferences() ?? DEFAULT_PREFERENCES;
 }
 
 export type PreferencesConversionResult =
@@ -520,6 +544,7 @@ export async function convert_preferences_to_account_key(
   if (already_converted) return "already_converted";
 
   let plaintext: Uint8Array;
+  const opening = { retired: false };
 
   try {
     plaintext = new Uint8Array(
@@ -530,10 +555,23 @@ export async function convert_preferences_to_account_key(
           : null,
         ciphertext,
         stored_nonce,
+        () => {
+          opening.retired = true;
+        },
       ),
     );
   } catch {
     return "failed";
+  }
+
+  if (opening.retired) {
+    const floored = floor_retired_bytes(plaintext, (opened) =>
+      floor_retired_preferences(opened, retired_preferences_baseline()),
+    );
+
+    plaintext.fill(0);
+    if (!floored) return "failed";
+    plaintext = floored;
   }
 
   try {
@@ -587,6 +625,24 @@ const UNCACHED_PREFERENCE_KEYS: readonly string[] = [
 ];
 const TEXT_SIZE_CACHE_KEY = "aster_text_size";
 const MIGRATION_FLAGS_KEY = "aster_pref_migrations_done";
+
+export function forget_account_preferences_cache(account_id: string): void {
+  try {
+    localStorage.removeItem(`${PREFS_CACHE_KEY}:${account_id}`);
+    localStorage.removeItem(`${TEXT_SIZE_CACHE_KEY}:${account_id}`);
+  } catch (caught) {
+    ignore_error(
+      "services/api/preferences:forget_account_preferences_cache",
+      caught,
+    );
+  }
+}
+
+function tab_scoped_key(base: string): string {
+  const id = get_tab_account_id() ?? read_tab_account_binding()?.id ?? null;
+
+  return id ? `${base}:${id}` : base;
+}
 
 type MigrationFlag =
   | "migration_haptic_v1_done"
@@ -677,17 +733,19 @@ export function cache_preferences_locally(prefs: UserPreferences): void {
   apply_loaded_error_report_preference(prefs.send_error_reports);
 
   try {
-    localStorage.setItem(
-      PREFS_CACHE_KEY,
-      JSON.stringify(strip_uncached_fields(prefs)),
-    );
-    localStorage.setItem(
-      TEXT_SIZE_CACHE_KEY,
-      JSON.stringify({
-        font_size_scale: prefs.font_size_scale,
-        compact_mode: prefs.compact_mode === true,
-      }),
-    );
+    const prefs_json = JSON.stringify(strip_uncached_fields(prefs));
+    const text_size_json = JSON.stringify({
+      font_size_scale: prefs.font_size_scale,
+      compact_mode: prefs.compact_mode === true,
+    });
+    const scoped_prefs_key = tab_scoped_key(PREFS_CACHE_KEY);
+
+    localStorage.setItem(scoped_prefs_key, prefs_json);
+    localStorage.setItem(tab_scoped_key(TEXT_SIZE_CACHE_KEY), text_size_json);
+    if (scoped_prefs_key !== PREFS_CACHE_KEY && tab_shares_session_cookies()) {
+      localStorage.setItem(PREFS_CACHE_KEY, prefs_json);
+      localStorage.setItem(TEXT_SIZE_CACHE_KEY, text_size_json);
+    }
   } catch (caught) {
     ignore_error("services/api/preferences:cache_preferences_locally", caught);
   }
@@ -698,7 +756,7 @@ export function get_cached_text_size(): {
   compact_mode?: boolean;
 } | null {
   try {
-    const cached = localStorage.getItem(TEXT_SIZE_CACHE_KEY);
+    const cached = localStorage.getItem(tab_scoped_key(TEXT_SIZE_CACHE_KEY));
 
     if (cached) {
       const parsed = JSON.parse(cached) as Record<string, unknown>;
@@ -720,6 +778,7 @@ export function clear_preferences_cache(): void {
 
   try {
     localStorage.removeItem(PREFS_CACHE_KEY);
+    localStorage.removeItem(tab_scoped_key(PREFS_CACHE_KEY));
   } catch (caught) {
     ignore_error("services/api/preferences:clear_preferences_cache", caught);
   }
@@ -727,7 +786,7 @@ export function clear_preferences_cache(): void {
 
 export function get_cached_preferences(): UserPreferences | null {
   try {
-    const cached = localStorage.getItem(PREFS_CACHE_KEY);
+    const cached = localStorage.getItem(tab_scoped_key(PREFS_CACHE_KEY));
 
     if (cached) {
       const parsed = JSON.parse(cached) as Record<string, unknown>;
@@ -735,7 +794,10 @@ export function get_cached_preferences(): UserPreferences | null {
       if (UNCACHED_PREFERENCE_KEYS.some((key) => key in parsed)) {
         const stripped = strip_uncached_fields(parsed);
 
-        localStorage.setItem(PREFS_CACHE_KEY, JSON.stringify(stripped));
+        localStorage.setItem(
+          tab_scoped_key(PREFS_CACHE_KEY),
+          JSON.stringify(stripped),
+        );
 
         return build_merged_preferences(stripped, null);
       }
@@ -841,7 +903,7 @@ export const DEFAULT_PREFERENCES: UserPreferences = {
   warn_external_recipients: true,
   auto_discover_keys: false,
   require_encryption: false,
-  obscure_subject_when_encrypted: true,
+  obscure_subject_when_encrypted: false,
   obscure_subject_user_set: false,
   show_encryption_indicators: true,
   publish_to_wkd: false,
@@ -1218,7 +1280,7 @@ export function build_merged_preferences(
   );
 
   if (merged.obscure_subject_user_set !== true) {
-    merged.obscure_subject_when_encrypted = true;
+    merged.obscure_subject_when_encrypted = false;
   }
 
   return merged;

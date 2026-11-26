@@ -19,12 +19,14 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { safe_http_url } from "@/services/calendar/safe_url";
+import { char_set_predicate, trim_end_while } from "@/lib/linear_trim";
 
 export const MAX_INVITE_SOURCE_CHARS = 2 * 1024 * 1024;
 
-const VCALENDAR_PATTERN = /BEGIN:VCALENDAR[\s\S]*?END:VCALENDAR/i;
+const VCALENDAR_BEGIN = /BEGIN:VCALENDAR/i;
+const VCALENDAR_END = /END:VCALENDAR/gi;
 const URL_PATTERN = /https?:\/\/[^\s<>"'()]+/gi;
-const TRAILING_PUNCTUATION = /[.,;:!?]+$/;
+const is_trailing_punctuation = char_set_predicate(".,;:!?");
 
 const ENTITIES: Record<string, string> = {
   amp: "&",
@@ -36,12 +38,45 @@ const ENTITIES: Record<string, string> = {
   "#39": "'",
 };
 
+function strip_tags(value: string): string {
+  let text = "";
+  let position = 0;
+
+  for (;;) {
+    const open = value.indexOf("<", position);
+
+    if (open === -1) break;
+
+    const close = value.indexOf(">", open + 1);
+
+    if (close === -1) break;
+
+    text += value.slice(position, open);
+    position = close + 1;
+  }
+
+  return text + value.slice(position);
+}
+
+export function extract_vcalendar(value: string): string | null {
+  const begin = VCALENDAR_BEGIN.exec(value);
+
+  if (!begin) return null;
+
+  VCALENDAR_END.lastIndex = begin.index + begin[0].length;
+  const end = VCALENDAR_END.exec(value);
+
+  if (!end) return null;
+
+  return value.slice(begin.index, end.index + end[0].length);
+}
+
 function html_to_text(html: string): string {
-  return html
-    .replace(/<br\s*\/?>/gi, "\n")
-    .replace(/<\/(p|div|pre|tr|li)>/gi, "\n")
-    .replace(/<[^>]*>/g, "")
-    .replace(
+  return strip_tags(
+    html
+      .replace(/<br\s*\/?>/gi, "\n")
+      .replace(/<\/(p|div|pre|tr|li)>/gi, "\n"),
+  ).replace(
       /&(amp|lt|gt|quot|apos|nbsp|#39);/g,
       (_, name: string) => ENTITIES[name] ?? "",
     );
@@ -60,18 +95,18 @@ export function find_calendar_text(
   html: string | undefined,
 ): string | null {
   if (has_calendar_text(body)) {
-    const match = (body as string).match(VCALENDAR_PATTERN);
+    const match = extract_vcalendar(body as string);
 
     if (match) {
-      return match[0];
+      return match;
     }
   }
 
   if (has_calendar_text(html)) {
-    const match = html_to_text(html as string).match(VCALENDAR_PATTERN);
+    const match = extract_vcalendar(html_to_text(html as string));
 
     if (match) {
-      return match[0];
+      return match;
     }
   }
 
@@ -95,7 +130,9 @@ export function find_meeting_link(entry: {
     }
 
     for (const candidate of source.slice(0, 20_000).match(URL_PATTERN) ?? []) {
-      const url = safe_http_url(candidate.replace(TRAILING_PUNCTUATION, ""));
+      const url = safe_http_url(
+        trim_end_while(candidate, is_trailing_punctuation),
+      );
 
       if (url) {
         return url;

@@ -95,6 +95,40 @@ describe("image proxy grants", () => {
     expect(post).toHaveBeenCalledWith("/images/v1/grant", {});
   });
 
+  it("forgets the cached grant when account state is cleared", async () => {
+    post
+      .mockResolvedValueOnce(grant_reply("grant-one"))
+      .mockResolvedValueOnce(grant_reply("grant-two"));
+
+    expect(await get_image_proxy_grant()).toBe("grant-one");
+
+    reset_image_proxy_grant_state();
+
+    expect(await get_image_proxy_grant()).toBe("grant-two");
+    expect(post).toHaveBeenCalledTimes(2);
+  });
+
+  it("drops a grant that arrives after a reset", async () => {
+    let resolve_first: (value: unknown) => void = () => undefined;
+
+    post
+      .mockImplementationOnce(
+        () =>
+          new Promise((resolve) => {
+            resolve_first = resolve;
+          }),
+      )
+      .mockResolvedValueOnce(grant_reply("grant-two"));
+
+    const stale = get_image_proxy_grant();
+
+    reset_image_proxy_grant_state();
+    resolve_first(grant_reply("grant-one"));
+
+    expect(await stale).toBeNull();
+    expect(await get_image_proxy_grant()).toBe("grant-two");
+  });
+
   it("fetches without credentials and presents only the grant", async () => {
     post.mockResolvedValue(grant_reply("grant-one"));
     const fetcher = vi.fn().mockResolvedValue(image_reply(200));

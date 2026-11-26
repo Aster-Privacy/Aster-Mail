@@ -37,6 +37,7 @@ import { Modal, ModalTitle } from "@/components/ui/modal";
 import { Input } from "@/components/ui/input";
 import { TestResultBanner } from "@/components/settings/external_accounts/test_result_banner";
 import { is_app_password_error } from "@/lib/external_account_errors";
+import { is_email_shape } from "@/lib/email_shape";
 
 const TWO_STEP_URL =
   "https://myaccount.google.com/signinoptions/two-step-verification";
@@ -44,7 +45,6 @@ const APP_PASSWORD_URL = "https://myaccount.google.com/apppasswords";
 const LABEL_SETTINGS_URL = "https://mail.google.com/mail/u/0/#settings/labels";
 const IMAP_SETTINGS_URL =
   "https://mail.google.com/mail/u/0/#settings/fwdandpop";
-const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const TOTAL_STEPS = 5;
 const EMAIL_STEP = 4;
 
@@ -105,7 +105,7 @@ export function GmailSetupWizard({
   const [step, set_step] = useState(1);
   const [show_password, set_show_password] = useState(false);
 
-  const email_is_valid = EMAIL_PATTERN.test(form_email.trim());
+  const email_is_valid = is_email_shape(form_email.trim());
   const password_is_filled = form_password.trim() !== "";
   const can_advance =
     (step !== EMAIL_STEP || email_is_valid) &&

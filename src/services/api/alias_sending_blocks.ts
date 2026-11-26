@@ -22,20 +22,25 @@ import { api_client, type ApiResponse } from "./client";
 
 export const ALIAS_SENDING_DISABLED_CODE = "ALIAS_SENDING_DISABLED";
 
-export type SendingBlockKind = "alias" | "domain_address";
+export type SendingBlockKind = "primary" | "alias" | "domain_address";
 
 export interface SendingBlocks {
+  primary: boolean;
   alias_ids: string[];
   domain_address_ids: string[];
 }
 
 export interface SendingBlockChange {
   kind: SendingBlockKind;
-  id: string;
+  id?: string;
   sending_disabled: boolean;
 }
 
-const EMPTY_BLOCKS: SendingBlocks = { alias_ids: [], domain_address_ids: [] };
+const EMPTY_BLOCKS: SendingBlocks = {
+  primary: false,
+  alias_ids: [],
+  domain_address_ids: [],
+};
 
 let current_blocks: SendingBlocks = EMPTY_BLOCKS;
 let blocked_option_ids: Set<string> = new Set();
@@ -44,14 +49,26 @@ const listeners = new Set<() => void>();
 
 function to_option_ids(blocks: SendingBlocks): Set<string> {
   return new Set([
+    ...(blocks.primary ? ["primary"] : []),
     ...blocks.alias_ids,
+    ...blocks.alias_ids.map((id) => `ghost-${id}`),
     ...blocks.domain_address_ids.map((id) => `domain-${id}`),
   ]);
 }
 
-function publish(blocks: SendingBlocks): void {
-  current_blocks = blocks;
-  blocked_option_ids = to_option_ids(blocks);
+function normalize_blocks(blocks: Partial<SendingBlocks>): SendingBlocks {
+  return {
+    primary: blocks.primary === true,
+    alias_ids: Array.isArray(blocks.alias_ids) ? blocks.alias_ids : [],
+    domain_address_ids: Array.isArray(blocks.domain_address_ids)
+      ? blocks.domain_address_ids
+      : [],
+  };
+}
+
+function publish(blocks: Partial<SendingBlocks>): void {
+  current_blocks = normalize_blocks(blocks);
+  blocked_option_ids = to_option_ids(current_blocks);
   listeners.forEach((listener) => listener());
 }
 
@@ -65,6 +82,18 @@ export function sending_block_change_for_option(
   option_id: string,
   sending_disabled: boolean,
 ): SendingBlockChange | null {
+  if (option_id === "primary") {
+    return { kind: "primary", sending_disabled };
+  }
+
+  if (option_id.startsWith("ghost-")) {
+    return {
+      kind: "alias",
+      id: option_id.slice("ghost-".length),
+      sending_disabled,
+    };
+  }
+
   if (option_id.startsWith("domain-")) {
     return {
       kind: "domain_address",
@@ -74,8 +103,6 @@ export function sending_block_change_for_option(
   }
 
   if (
-    option_id === "primary" ||
-    option_id.startsWith("ghost-") ||
     option_id.startsWith("external-") ||
     option_id.startsWith("catch-all-")
   ) {

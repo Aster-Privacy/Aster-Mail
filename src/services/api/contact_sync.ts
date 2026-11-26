@@ -80,6 +80,8 @@ import {
   normalize_social_networks,
   social_from_vcard_tokens,
 } from "@/utils/contact_socials";
+import { find_angle_content } from "@/lib/email_shape";
+import { join_newline_runs } from "@/lib/whitespace_runs";
 
 function array_to_base64(array: Uint8Array): string {
   let binary = "";
@@ -1534,9 +1536,9 @@ function website_type_of(label: string): WebsiteType {
 
 function clean_email(value: string): string {
   const stripped = value.replace(/^mailto:/i, "").trim();
-  const angled = stripped.match(/<([^>]+)>/);
+  const angled = find_angle_content(stripped);
 
-  return (angled ? angled[1] : stripped).trim();
+  return (angled ?? stripped).trim();
 }
 
 function split_full_name(full_name: string): [string, string] {
@@ -1848,7 +1850,7 @@ export function parse_csv(
 
       if (street) entry.street = street;
       else if (slot.formatted && !slot.city && !slot.postal_code) {
-        entry.street = slot.formatted.replace(/\s*\n\s*/g, ", ");
+        entry.street = join_newline_runs(slot.formatted, ", ");
       }
       if (slot.city) entry.city = slot.city;
       if (slot.state) entry.state = slot.state;

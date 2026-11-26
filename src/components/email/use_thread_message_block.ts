@@ -134,6 +134,7 @@ const PENDING_CONTENT: SanitizedContent = {
 
 export interface ThreadMessageBlockProps {
   message: DecryptedThreadMessage;
+  related_message_ids?: readonly string[];
   is_own_message: boolean;
   is_expanded: boolean;
   is_reply?: boolean;
@@ -204,7 +205,11 @@ export function use_thread_message_block(props: ThreadMessageBlockProps) {
     on_external_content_detected,
     preloaded_sanitized: preloaded_sanitized_prop,
     loaded_content_types: granted_content_types,
+    related_message_ids,
   } = props;
+  const related_ids_key = (related_message_ids ?? [])
+    .filter((id) => id !== message.id)
+    .join(",");
 
   const { t } = use_i18n();
   const { preferences } = use_preferences();
@@ -797,7 +802,12 @@ export function use_thread_message_block(props: ThreadMessageBlockProps) {
       return;
     }
 
-    resolve_cid_references(sanitized_content.html, message.id)
+    resolve_cid_references(
+      sanitized_content.html,
+      message.id,
+      "blob",
+      related_ids_key ? related_ids_key.split(",") : [],
+    )
       .then((result) => {
         if (cancelled) {
           revoke_cid_blob_urls(result.blob_urls);
@@ -827,6 +837,7 @@ export function use_thread_message_block(props: ThreadMessageBlockProps) {
     is_expanded,
     preferences.low_network_mode,
     attachment_keys_version,
+    related_ids_key,
   ]);
 
   useEffect(() => {
@@ -852,7 +863,7 @@ export function use_thread_message_block(props: ThreadMessageBlockProps) {
 
     return guard_body_step(
       "components/email/use_thread_message_block:inline_refs",
-      () => extract_body_inline_refs(sanitized_content.html),
+      () => extract_body_inline_refs(sanitized_content.html, is_own_message),
       () => undefined,
     );
   }, [
@@ -861,6 +872,7 @@ export function use_thread_message_block(props: ThreadMessageBlockProps) {
     message.is_sending,
     preferences.low_network_mode,
     sanitized_content.html,
+    is_own_message,
   ]);
 
   const plain_text_html = useMemo(() => {

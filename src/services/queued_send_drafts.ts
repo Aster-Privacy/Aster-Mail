@@ -21,6 +21,7 @@
 import { undo_send_api } from "@/services/api/undo_send";
 import { delete_draft } from "@/services/api/multi_drafts";
 import { emit_drafts_changed } from "@/hooks/mail_events";
+import { tab_scoped_storage_key } from "@/lib/tab_account";
 
 const STORAGE_KEY = "astermail:queued_send_drafts";
 const MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
@@ -45,7 +46,7 @@ interface QueuedSendDraft {
 
 function read_entries(): QueuedSendDraft[] {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    const raw = localStorage.getItem(tab_scoped_storage_key(STORAGE_KEY));
 
     if (!raw) return [];
 
@@ -68,9 +69,12 @@ function read_entries(): QueuedSendDraft[] {
 function write_entries(entries: QueuedSendDraft[]): void {
   try {
     if (entries.length === 0) {
-      localStorage.removeItem(STORAGE_KEY);
+      localStorage.removeItem(tab_scoped_storage_key(STORAGE_KEY));
     } else {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
+      localStorage.setItem(
+        tab_scoped_storage_key(STORAGE_KEY),
+        JSON.stringify(entries),
+      );
     }
   } catch {
     return;

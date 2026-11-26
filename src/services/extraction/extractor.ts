@@ -52,6 +52,12 @@ import {
   without_quoted_markup,
 } from "./own_content";
 
+import {
+  char_set_predicate,
+  is_js_whitespace,
+  trim_end_while,
+} from "@/lib/linear_trim";
+
 const BASIC_ENTITIES: Record<string, string> = {
   "&amp;": "&",
   "&lt;": "<",
@@ -84,6 +90,24 @@ export function extraction_needs_markup_parse(
 
 const MAX_EXTRACTION_CHARS = 60_000;
 
+export function replace_tag_runs(value: string, replacement: string): string {
+  let result = "";
+  let copied = 0;
+  let open = value.indexOf("<");
+
+  while (open !== -1) {
+    const close = value.indexOf(">", open + 1);
+
+    if (close === -1) break;
+
+    result += value.slice(copied, open) + replacement;
+    copied = close + 1;
+    open = value.indexOf("<", copied);
+  }
+
+  return copied === 0 ? value : result + value.slice(copied);
+}
+
 function normalize_email_text(text: string, html?: string): string {
   const source = extraction_source(text, html);
 
@@ -111,7 +135,7 @@ function own_message_text(
 
   const is_html = is_html_content(source);
   const marker_text = is_html
-    ? source.replace(/<[^>]*>/g, "\n")
+    ? replace_tag_runs(source, "\n")
     : decode_basic_entities(source);
 
   if (is_forwarded_message(subject, marker_text)) {
@@ -263,12 +287,20 @@ const CARRIER_NAME_MAP: Record<string, ShippingCarrier> = {
   lasership: "lasership",
 };
 
+const IDENTIFIER_TRAILING_PUNCTUATION = char_set_predicate(".,;:");
+const TEXT_URL_TRAILING_CHARACTERS = char_set_predicate("'\">]");
+const RECEIPT_URL_TRAILING_CHARACTERS = char_set_predicate("),.;'\"]");
+
+function is_domain_trailing_character(code: number): boolean {
+  return code === 0x3e || is_js_whitespace(code);
+}
+
 function clean_identifier(value: string | undefined): string | null {
   const cleaned = clean_text_field(value);
 
   if (!cleaned) return null;
 
-  const trimmed = cleaned.replace(/[.,;:]+$/, "");
+  const trimmed = trim_end_while(cleaned, IDENTIFIER_TRAILING_PUNCTUATION);
 
   if (!/[0-9]/.test(trimmed)) return null;
 
@@ -593,7 +625,7 @@ function extract_tracking_url(
       )
     : [];
   const text_urls = (body.match(/https?:\/\/[^\s<>"]+/gi) ?? []).map((url) =>
-    url.replace(/['">\]]+$/, ""),
+    trim_end_while(url, TEXT_URL_TRAILING_CHARACTERS),
   );
 
   for (const candidates of [link_urls, text_urls]) {
@@ -885,10 +917,10 @@ function email_domain(address: string): string | null {
   if (at < 0) return null;
 
   return (
-    address
-      .slice(at + 1)
-      .toLowerCase()
-      .replace(/[>\s]+$/, "") || null
+    trim_end_while(
+      address.slice(at + 1).toLowerCase(),
+      is_domain_trailing_character,
+    ) || null
   );
 }
 
@@ -982,7 +1014,9 @@ function extract_receipt_url(
   }
 
   for (const match of body.matchAll(BARE_HTTPS_URL)) {
-    const url = safe_https_url(match[0].replace(/[),.;'"\]]+$/, ""));
+    const url = safe_https_url(
+      trim_end_while(match[0], RECEIPT_URL_TRAILING_CHARACTERS),
+    );
 
     if (url && is_trusted_receipt_url(url, sender_domains, null))
       return url.href;
@@ -1443,6 +1477,114 @@ export function extract_shipping_details(
   };
 }
 
+const RECEIPT_REFERENCE_KEYWORDS = ["receipt", "transaction", "confirmation"];
+const RECEIPT_REFERENCE_TOKENS = ["#", "no", "no.", "num", "number", "id"];
+
+function is_ascii_digit(code: number): boolean {
+  return code >= 0x30 && code <= 0x39;
+}
+
+function is_ascii_letter(code: number): boolean {
+  const lower = code | 0x20;
+
+  return lower >= 0x61 && lower <= 0x7a;
+}
+
+function is_ascii_word_code(code: number): boolean {
+  return is_ascii_letter(code) || is_ascii_digit(code) || code === 0x5f;
+}
+
+function is_reference_code(code: number): boolean {
+  return (
+    is_ascii_letter(code) ||
+    is_ascii_digit(code) ||
+    code === 0x2e ||
+    code === 0x2d
+  );
+}
+
+function ascii_ci_matches_at(text: string, at: number, word: string): boolean {
+  if (at + word.length > text.length) return false;
+
+  for (let offset = 0; offset < word.length; offset += 1) {
+    const expected = word.charCodeAt(offset);
+    const actual = text.charCodeAt(at + offset);
+
+    if (actual === expected) continue;
+    if (!is_ascii_letter(expected) || (actual | 0x20) !== expected) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+function skip_js_whitespace(text: string, from: number): number {
+  let index = from;
+
+  while (index < text.length && is_js_whitespace(text.charCodeAt(index))) {
+    index += 1;
+  }
+
+  return index;
+}
+
+export function has_receipt_reference(text: string): boolean {
+  let run_has_digit: Uint8Array | null = null;
+
+  const build_run_has_digit = (): Uint8Array => {
+    const runs = new Uint8Array(text.length + 1);
+
+    for (let cursor = text.length - 1; cursor >= 0; cursor -= 1) {
+      const code = text.charCodeAt(cursor);
+
+      if (is_ascii_digit(code)) runs[cursor] = 1;
+      else if (is_reference_code(code)) runs[cursor] = runs[cursor + 1];
+    }
+
+    return runs;
+  };
+
+  const reference_at = (index: number): boolean => {
+    if (run_has_digit === null) run_has_digit = build_run_has_digit();
+
+    return run_has_digit[index] === 1;
+  };
+
+  const tail_matches = (from: number): boolean => {
+    const after_space = skip_js_whitespace(text, from);
+
+    if (reference_at(after_space)) return true;
+
+    const separator = text.charCodeAt(after_space);
+
+    if (separator !== 0x3a && separator !== 0x23) return false;
+
+    return reference_at(skip_js_whitespace(text, after_space + 1));
+  };
+
+  for (let start = 0; start < text.length; start += 1) {
+    if (start > 0 && is_ascii_word_code(text.charCodeAt(start - 1))) continue;
+
+    for (const keyword of RECEIPT_REFERENCE_KEYWORDS) {
+      if (!ascii_ci_matches_at(text, start, keyword)) continue;
+
+      const token_start = skip_js_whitespace(text, start + keyword.length);
+
+      for (const token of RECEIPT_REFERENCE_TOKENS) {
+        if (
+          ascii_ci_matches_at(text, token_start, token) &&
+          tail_matches(token_start + token.length)
+        ) {
+          return true;
+        }
+      }
+    }
+  }
+
+  return false;
+}
+
 export function is_purchase_email(subject: string, body: string): boolean {
   const combined = `${subject} ${body}`.toLowerCase();
 
@@ -1450,7 +1592,7 @@ export function is_purchase_email(subject: string, body: string): boolean {
     /\border\s*(?:#|no\.?|num(?:ber)?|id)(?:\s*[:#])?\s*[A-Za-z0-9]*[0-9]/i,
     /purchase\s+(?:confirmation|complete|receipt)/i,
     /thanks?\s+(?:you\s+)?for\s+(?:your\s+)?(?:[a-z]+\s+){0,2}(?:order|purchase|booking)/i,
-    /\b(?:receipt|transaction|confirmation)\s*(?:#|no\.?|num(?:ber)?|id)(?:\s*[:#])?\s*[A-Za-z0-9.-]*[0-9]/i,
+    { test: has_receipt_reference },
     /receipt\s+(?:for|from)/i,
     /payment\s+(?:receipt|confirmation|successful)/i,
     /transaction\s+(?:receipt|complete)/i,

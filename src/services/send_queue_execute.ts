@@ -85,6 +85,14 @@ import {
   type Attachment,
 } from "@/components/compose/compose_shared_core";
 import { ignore_error } from "@/lib/ignore_error";
+import {
+  ascii_lower,
+  next_char_table,
+  next_hit_table,
+  next_needle_table,
+  table_lookup,
+} from "@/lib/html_text";
+import { is_js_whitespace } from "@/lib/linear_trim";
 
 const CLIENT_SEND_ID_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -329,6 +337,7 @@ async function execute_send_with_plans(
     ...(email.is_plain_text ? { plain_text: true } : {}),
     ...priority_request_field(email.priority),
     ...(client_copies ? { external_pgp_bodies: client_copies } : {}),
+    primary_only_signing: true,
     obscure_subject,
   };
 
@@ -409,6 +418,102 @@ async function store_sent_copy_attachments(
       caught,
     );
   }
+}
+
+const SECURE_FOOTER_LINK = 'href="https://astermail.org"';
+
+function is_line_terminator_code(code: number): boolean {
+  return code === 10 || code === 13 || code === 0x2028 || code === 0x2029;
+}
+
+function skip_js_whitespace(value: string, index: number): number {
+  let cursor = index;
+
+  while (cursor < value.length && is_js_whitespace(value.charCodeAt(cursor))) {
+    cursor += 1;
+  }
+
+  return cursor;
+}
+
+function line_break_end(lower: string, index: number): number {
+  if (!lower.startsWith("<br", index)) return -1;
+
+  let cursor = skip_js_whitespace(lower, index + 3);
+
+  if (lower.charCodeAt(cursor) === 47) cursor += 1;
+
+  return lower.charCodeAt(cursor) === 62 ? cursor + 1 : -1;
+}
+
+export function strip_secure_footer(body: string): string {
+  const lower = ascii_lower(body);
+  let start = lower.indexOf("<br");
+
+  if (start === -1) return body;
+
+  const length = body.length;
+  const next_gt = next_char_table(body, (code) => code === 62);
+  const next_line_end = next_char_table(body, is_line_terminator_code);
+  const next_link = next_needle_table(lower, SECURE_FOOTER_LINK);
+  const next_anchor_close = next_needle_table(lower, "</a>");
+  const anchor_end = new Int32Array(length).fill(-1);
+  const next_anchor = next_hit_table(length, (index) => {
+    if (!lower.startsWith("<a", index)) return false;
+    if (!is_js_whitespace(body.charCodeAt(index + 2))) return false;
+
+    const gt = table_lookup(next_gt, index + 3);
+    const link = table_lookup(next_link, index + 3);
+
+    if (gt === -1 || link === -1 || link >= gt) return false;
+
+    const close = table_lookup(next_anchor_close, gt + 1);
+
+    if (close === -1) return false;
+
+    const line_end = table_lookup(next_line_end, gt + 1);
+
+    if (line_end !== -1 && line_end < close) return false;
+
+    anchor_end[index] = close + 4;
+
+    return true;
+  });
+  let result = "";
+  let cursor = 0;
+
+  while (start !== -1) {
+    let end = -1;
+    const first_end = line_break_end(lower, start);
+
+    if (first_end !== -1) {
+      const second_end = line_break_end(
+        lower,
+        skip_js_whitespace(body, first_end),
+      );
+
+      if (second_end !== -1) {
+        const text_start = skip_js_whitespace(body, second_end);
+        const anchor = table_lookup(next_anchor, text_start);
+        const line_end = table_lookup(next_line_end, text_start);
+
+        if (anchor !== -1 && (line_end === -1 || line_end > anchor)) {
+          end = anchor_end[anchor];
+        }
+      }
+    }
+
+    if (end === -1) {
+      start = lower.indexOf("<br", start + 1);
+      continue;
+    }
+
+    result += body.slice(cursor, start);
+    cursor = end;
+    start = lower.indexOf("<br", end);
+  }
+
+  return cursor === 0 ? body : result + body.slice(cursor);
 }
 
 export async function assert_required_encryption_keys(
@@ -561,10 +666,7 @@ export async function execute_external_send(
       data: new Uint8Array(a.data),
     }));
 
-    const secure_body = body_to_send.replace(
-      /<br\s*\/?>\s*<br\s*\/?>\s*.*?<a\s[^>]*href="https:\/\/astermail\.org"[^>]*>.*?<\/a>/gi,
-      "",
-    );
+    const secure_body = strip_secure_footer(body_to_send);
     const encrypted_secure = await encrypt_secure_message(
       email.expiry_password,
       { subject: email.subject, body: secure_body },
@@ -717,6 +819,7 @@ export async function execute_external_send(
     ...(email.is_plain_text && !is_secure_external ? { plain_text: true } : {}),
     ...priority_request_field(email.priority),
     ...(client_copies ? { external_pgp_bodies: client_copies } : {}),
+    primary_only_signing: true,
     ...(is_secure_external ? {} : { obscure_subject: obscure_outer_subject }),
   };
 

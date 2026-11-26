@@ -20,8 +20,12 @@
 //
 import { describe, expect, it } from "vitest";
 
+import { AuthSaltCollisionError } from "./auth_salt_guard";
 import { derive_password_hash } from "./key_manager_pgp_keygen";
-import { derive_reset_vault_proof } from "./reset_vault_proof";
+import {
+  derive_reset_vault_proof,
+  reset_vault_proof_error_key,
+} from "./reset_vault_proof";
 
 const salt_bytes = new Uint8Array(32).map((_, index) => index + 1);
 const password_salt = btoa(String.fromCharCode(...salt_bytes));
@@ -54,18 +58,27 @@ describe("derive_reset_vault_proof", () => {
 
   it("sends nothing when an older server gives no salt", async () => {
     expect(await derive_reset_vault_proof("old password", {})).toBeUndefined();
-    expect(await derive_reset_vault_proof("old password", null)).toBeUndefined();
+    expect(
+      await derive_reset_vault_proof("old password", null),
+    ).toBeUndefined();
   });
 
-  it("sends nothing without a current password or with an unusable salt", async () => {
+  it("sends nothing without a current password", async () => {
     expect(
       await derive_reset_vault_proof("", { password_salt, kdf_version: 2 }),
     ).toBeUndefined();
-    expect(
-      await derive_reset_vault_proof("old password", {
-        password_salt: "AAAA",
-        kdf_version: 2,
-      }),
-    ).toBeUndefined();
+  });
+
+  it("refuses a salt too short to use and names the error", async () => {
+    const attempt = derive_reset_vault_proof("old password", {
+      password_salt: "AAAA",
+      kdf_version: 2,
+    });
+
+    await expect(attempt).rejects.toBeInstanceOf(AuthSaltCollisionError);
+
+    const caught = await attempt.catch((error: unknown) => error);
+
+    expect(reset_vault_proof_error_key(caught)).not.toBeNull();
   });
 });

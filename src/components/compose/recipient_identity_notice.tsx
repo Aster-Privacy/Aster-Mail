@@ -34,8 +34,7 @@ import {
 import { confirm_internal_key_trust } from "@/services/key_trust_consent";
 import { show_toast } from "@/components/toast/simple_toast";
 import { subscribe_peer_identity_events } from "@/services/crypto/ratchet_verification_status";
-
-const EMAIL_SHAPE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+import { is_email_shape } from "@/lib/email_shape";
 
 interface RecipientIdentityNoticeProps {
   recipients: string[];
@@ -63,7 +62,7 @@ export function RecipientIdentityNotice({
       recipients
         .map((email) => email.trim().toLowerCase())
         .filter(
-          (email) => EMAIL_SHAPE.test(email) && is_internal_recipient(email),
+          (email) => is_email_shape(email) && is_internal_recipient(email),
         ),
     ),
   ]

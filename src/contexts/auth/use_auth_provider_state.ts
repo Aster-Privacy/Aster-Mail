@@ -26,7 +26,6 @@ import { useLocation } from "react-router-dom";
 
 import {
   get_stored_encrypted_vault,
-  clear_stored_encrypted_vault,
   get_session_passphrase,
   clear_session_passphrase,
   is_session_passphrase_pin_locked,
@@ -38,6 +37,11 @@ import {
   with_timeout,
 } from "./auth_helpers";
 import { clear_signed_out_account_caches } from "./signed_out_account_caches";
+import {
+  clear_pending_sign_out,
+  mark_sign_out_pending,
+  run_pending_sign_out,
+} from "./pending_sign_out";
 import { use_auth_account_state } from "./use_auth_account_state";
 import { ensure_level2_storage } from "./vault_decryption";
 
@@ -58,7 +62,6 @@ import {
   type User,
   type StoredAccount,
   get_all_accounts,
-  remove_account as storage_remove_account,
   switch_account as storage_switch_account,
   update_account_user,
   get_account_kind,
@@ -105,20 +108,24 @@ import {
 } from "@/native/desktop_device_auth";
 import { process_offline_queue } from "@/native/offline_queue";
 import {
+  account_index_path,
   account_index_routing_enabled,
+  account_index_url,
   app_pathname,
   get_active_account_index,
   is_public_entry_path,
   redirect_to_account_index,
-  take_url_account_request,
 } from "@/lib/account_index_url";
 import {
-  clear_app_lock_config,
+  clear_tab_account,
+  get_tab_account_id,
+  set_account_choice_required,
+} from "@/lib/tab_account";
+import {
   clear_session_unlock,
 } from "@/services/app_lock_store";
 import { release_app_lock } from "@/services/app_lock_unlock";
 import { delete_category_index_for_account } from "@/services/category_index";
-import { delete_user_device_snapshots } from "@/services/crypto/device_recovery_store";
 import { ignore_error } from "@/lib/ignore_error";
 import { leave_guard_on_sign_out } from "@/services/guard/guard_leave";
 import {
@@ -156,6 +163,24 @@ async function resume_surviving_account(
 
   return false;
 }
+
+const SIGN_OUT_NETWORK_BUDGET_MS = 4000;
+
+async function survivor_tab_path(
+  survivor_id: string,
+  pathname: string,
+): Promise<string> {
+  if (!account_index_routing_enabled()) return pathname;
+
+  const accounts = await get_all_accounts().catch(() => []);
+  const index = accounts.findIndex((a) => a.id === survivor_id);
+
+  clear_tab_account();
+
+  return account_index_path(index === -1 ? 0 : index, pathname);
+}
+const SIGN_OUT_WIPE_BUDGET_MS = 4000;
+const SIGN_OUT_FALLBACK_MS = 10000;
 
 export function use_auth_provider_state() {
   const {
@@ -204,6 +229,16 @@ export function use_auth_provider_state() {
 
   const switch_to_account = useCallback(
     async (account_id: string) => {
+      if (account_index_routing_enabled()) {
+        const index = state.accounts.findIndex((a) => a.id === account_id);
+
+        if (index === -1 || account_id === get_tab_account_id()) return;
+
+        window.open(account_index_url(index), "_blank", "noopener");
+
+        return;
+      }
+
       if (switch_in_flight.current) return;
       switch_in_flight.current = true;
       session_expired_muted_until.current = Date.now() + 30000;
@@ -361,10 +396,14 @@ export function use_auth_provider_state() {
             session_result = await attempt();
           }
 
+          const device_login_available =
+            is_tauri() && Boolean(target.device_id);
+
           if (
             session_result === "ok" ||
             session_result === "unavailable" ||
-            device_passphrase_used
+            device_passphrase_used ||
+            device_login_available
           ) {
             if (uses_account_hub()) {
               await with_timeout(
@@ -394,6 +433,7 @@ export function use_auth_provider_state() {
     },
     [
       navigate,
+      state.accounts,
       state.current_account_id,
       set_is_adding_account,
       begin_account_reauth,
@@ -405,6 +445,7 @@ export function use_auth_provider_state() {
   const clear_local_auth_data = useCallback(
     async (options?: PurgeOptions) => {
       await purge_all_local_data(options);
+      clear_pending_sign_out();
 
       set_state({
         user: null,
@@ -428,6 +469,13 @@ export function use_auth_provider_state() {
     const other = state.accounts.find((a) => a.id !== current_id);
     let nav_target = other ? "/" : "/sign-in";
     let reload_into_survivor = false;
+    const keeps_survivor = Boolean(other && current_id);
+
+    mark_sign_out_pending(
+      other && current_id
+        ? { kind: "account", account_id: current_id, survivor_id: other.id }
+        : { kind: "all" },
+    );
     const fallback_timer = window.setTimeout(() => {
       try {
         if (has_tauri_runtime()) return;
@@ -438,9 +486,9 @@ export function use_auth_provider_state() {
           caught,
         );
       }
-    }, 6000);
+    }, SIGN_OUT_FALLBACK_MS);
 
-    if (!(other && current_id)) mark_explicit_sign_out();
+    if (!keeps_survivor) mark_explicit_sign_out();
 
     try {
       api_client.begin_intentional_logout();
@@ -450,86 +498,78 @@ export function use_auth_provider_state() {
         safe_log_error(e);
       }
 
-      if (other && current_id) {
-        await with_timeout(
-          forget_device_account(
-            (await get_all_accounts()).find((a) => a.id === current_id)
-              ?.device_id,
-          ),
-          2000,
-        ).catch((caught) =>
-          ignore_error(
-            "contexts/auth/use_auth_provider_state:use_auth_provider_state",
-            caught,
-          ),
-        );
-      } else {
-        await with_timeout(clear_device_session(), 2000).catch((caught) =>
-          ignore_error(
-            "contexts/auth/use_auth_provider_state:use_auth_provider_state",
-            caught,
-          ),
-        );
-      }
-
-      if (current_id && uses_account_hub()) {
-        await with_timeout(sign_out_hub_accounts([current_id]), 2500).catch(
-          (caught) =>
+      const release_remote_session = async (): Promise<void> => {
+        if (other && current_id) {
+          await with_timeout(
+            forget_device_account(
+              (await get_all_accounts()).find((a) => a.id === current_id)
+                ?.device_id,
+            ),
+            2000,
+          ).catch((caught) =>
             ignore_error(
               "contexts/auth/use_auth_provider_state:use_auth_provider_state",
               caught,
             ),
-        );
-      }
-
-      if (current_id) {
-        await with_timeout(release_app_lock(current_id), 4000).catch(
-          (caught) =>
+          );
+        } else {
+          await with_timeout(clear_device_session(), 2000).catch((caught) =>
             ignore_error(
               "contexts/auth/use_auth_provider_state:use_auth_provider_state",
               caught,
             ),
-        );
-      }
+          );
+        }
 
-      if (current_id) {
-        await with_timeout(leave_guard_on_sign_out(current_id), 3000).catch(
-          (caught) =>
-            ignore_error(
-              "contexts/auth/use_auth_provider_state:use_auth_provider_state",
-              caught,
-            ),
-        );
-      }
+        if (current_id && uses_account_hub()) {
+          await with_timeout(sign_out_hub_accounts([current_id]), 2500).catch(
+            (caught) =>
+              ignore_error(
+                "contexts/auth/use_auth_provider_state:use_auth_provider_state",
+                caught,
+              ),
+          );
+        }
 
-      await with_timeout(api_client.post("/core/v1/auth/logout", {}), 3000);
+        if (current_id) {
+          await with_timeout(release_app_lock(current_id), 4000).catch(
+            (caught) =>
+              ignore_error(
+                "contexts/auth/use_auth_provider_state:use_auth_provider_state",
+                caught,
+              ),
+          );
+        }
+
+        if (current_id) {
+          await with_timeout(leave_guard_on_sign_out(current_id), 3000).catch(
+            (caught) =>
+              ignore_error(
+                "contexts/auth/use_auth_provider_state:use_auth_provider_state",
+                caught,
+              ),
+          );
+        }
+
+        await with_timeout(api_client.post("/core/v1/auth/logout", {}), 3000);
+      };
+
+      await with_timeout(release_remote_session(), SIGN_OUT_NETWORK_BUDGET_MS);
       await with_timeout(
         announce_sign_out([current_id ?? state.user?.id]),
         1000,
       );
 
       if (other && current_id) {
-        stop_session_timeout();
-        clear_vault_from_memory();
-        await with_timeout(clear_signed_out_account_caches(current_id), 3000);
-        await with_timeout(delete_user_device_snapshots(current_id), 2000);
-        await with_timeout(delete_category_index_for_account(current_id), 2000);
-        clear_stored_encrypted_vault(current_id);
-        await with_timeout(clear_session_passphrase(current_id), 2000);
-        clear_session_timeout_data(current_id);
-        clear_app_lock_config(current_id);
-        clear_session_unlock(current_id);
-        api_client.clear_dev_token();
-
-        await with_timeout(api_client.clear_session_cookies(), 2000);
-
-        await with_timeout(storage_remove_account(current_id), 2000);
-        await with_timeout(storage_switch_account(other.id), 2000);
-        api_client.clear_in_memory_token();
+        await run_pending_sign_out({
+          kind: "account",
+          account_id: current_id,
+          survivor_id: other.id,
+        });
 
         if (await resume_surviving_account(other)) {
           reload_into_survivor = true;
-          nav_target = "/";
+          nav_target = await survivor_tab_path(other.id, "/");
 
           return;
         }
@@ -546,9 +586,9 @@ export function use_auth_provider_state() {
           current_account_id: other.id,
         }));
         set_is_adding_account(true);
-        nav_target = `/sign-in?u=${encodeURIComponent(survivor_local)}`;
+        nav_target = `${await survivor_tab_path(other.id, "/sign-in")}?u=${encodeURIComponent(survivor_local)}`;
       } else {
-        await with_timeout(clear_local_auth_data(), 4000);
+        await with_timeout(clear_local_auth_data(), SIGN_OUT_WIPE_BUDGET_MS);
         nav_target = "/sign-in";
       }
     } catch (e) {
@@ -578,6 +618,7 @@ export function use_auth_provider_state() {
   ]);
 
   const logout_all_handler = useCallback(async () => {
+    mark_sign_out_pending({ kind: "all" });
     const fallback_timer = window.setTimeout(() => {
       try {
         if (has_tauri_runtime()) return;
@@ -588,7 +629,7 @@ export function use_auth_provider_state() {
           caught,
         );
       }
-    }, 6000);
+    }, SIGN_OUT_FALLBACK_MS);
 
     mark_explicit_sign_out();
 
@@ -600,35 +641,42 @@ export function use_auth_provider_state() {
         safe_log_error(e);
       }
 
-      await with_timeout(clear_device_session(), 2000).catch((caught) =>
-        ignore_error(
-          "contexts/auth/use_auth_provider_state:use_auth_provider_state",
-          caught,
-        ),
+      const release_remote_sessions = async (): Promise<void> => {
+        await with_timeout(clear_device_session(), 2000).catch((caught) =>
+          ignore_error(
+            "contexts/auth/use_auth_provider_state:use_auth_provider_state",
+            caught,
+          ),
+        );
+
+        if (uses_account_hub()) {
+          await with_timeout(sign_out_hub_accounts("all"), 2500).catch((caught) =>
+            ignore_error(
+              "contexts/auth/use_auth_provider_state:use_auth_provider_state",
+              caught,
+            ),
+          );
+        }
+
+        if (state.current_account_id) {
+          await with_timeout(
+            leave_guard_on_sign_out(state.current_account_id),
+            3000,
+          ).catch((caught) =>
+            ignore_error(
+              "contexts/auth/use_auth_provider_state:use_auth_provider_state",
+              caught,
+            ),
+          );
+        }
+
+        await with_timeout(api_client.post("/core/v1/auth/logout-all", {}), 3000);
+      };
+
+      await with_timeout(
+        release_remote_sessions(),
+        SIGN_OUT_NETWORK_BUDGET_MS,
       );
-
-      if (uses_account_hub()) {
-        await with_timeout(sign_out_hub_accounts("all"), 2500).catch((caught) =>
-          ignore_error(
-            "contexts/auth/use_auth_provider_state:use_auth_provider_state",
-            caught,
-          ),
-        );
-      }
-
-      if (state.current_account_id) {
-        await with_timeout(
-          leave_guard_on_sign_out(state.current_account_id),
-          3000,
-        ).catch((caught) =>
-          ignore_error(
-            "contexts/auth/use_auth_provider_state:use_auth_provider_state",
-            caught,
-          ),
-        );
-      }
-
-      await with_timeout(api_client.post("/core/v1/auth/logout-all", {}), 3000);
       await with_timeout(
         announce_sign_out([
           state.current_account_id,
@@ -638,7 +686,7 @@ export function use_auth_provider_state() {
         1000,
       );
 
-      await with_timeout(clear_local_auth_data(), 4000);
+      await with_timeout(clear_local_auth_data(), SIGN_OUT_WIPE_BUDGET_MS);
     } catch (e) {
       safe_log_error(e);
     } finally {
@@ -1021,10 +1069,28 @@ export function use_auth_provider_state() {
 
     if (requested === state.current_account_id) return;
 
+    if (account_index_routing_enabled()) {
+      const index = state.accounts.findIndex((a) => a.id === requested);
+
+      if (index === -1) return;
+
+      clear_tab_account();
+      hard_redirect(
+        `${account_index_path(index, app_pathname())}${query ? `?${query}` : ""}${window.location.hash}`,
+      );
+
+      return;
+    }
+
     switch_to_account(requested).catch((e) => {
       safe_log_error(e);
     });
-  }, [state.is_authenticated, state.current_account_id, switch_to_account]);
+  }, [
+    state.is_authenticated,
+    state.accounts,
+    state.current_account_id,
+    switch_to_account,
+  ]);
 
   useEffect(() => {
     if (!account_index_routing_enabled()) return;
@@ -1039,22 +1105,7 @@ export function use_auth_provider_state() {
 
     const url_index = get_active_account_index();
 
-    if (url_index === null) return;
-
-    const requested_index = take_url_account_request();
-
-    if (current_index === url_index) return;
-
-    const target =
-      requested_index === null ? null : state.accounts[requested_index];
-
-    if (target && target.id !== state.current_account_id) {
-      switch_to_account(target.id).catch((e) => {
-        safe_log_error(e);
-      });
-
-      return;
-    }
+    if (url_index === null || current_index === url_index) return;
 
     redirect_to_account_index(current_index);
   }, [
@@ -1063,7 +1114,6 @@ export function use_auth_provider_state() {
     state.accounts,
     state.current_account_id,
     location.pathname,
-    switch_to_account,
   ]);
 
   useEffect(() => {
@@ -1081,6 +1131,24 @@ export function use_auth_provider_state() {
       const stored_current = await get_current_account_id().catch(() => null);
 
       if (!stored.some((acc) => acc.id === current_id)) {
+        if (account_index_routing_enabled()) {
+          api_client.clear_dev_token();
+          api_client.set_expected_user_id(null);
+          clear_vault_from_memory();
+          sync_client.disconnect();
+          set_account_choice_required(true);
+          set_state((prev) => ({
+            ...prev,
+            user: null,
+            is_authenticated: false,
+            has_keys: false,
+            accounts: stored,
+            current_account_id: null,
+          }));
+
+          return;
+        }
+
         hard_redirect(stored_current ? "/" : "/sign-in");
 
         return;

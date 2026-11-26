@@ -29,7 +29,13 @@ const h = vi.hoisted(() => ({
   restore_calls: [] as string[],
   conversion: null as Record<string, number> | null,
   conversion_calls: [] as string[],
-  reseal: { checked: 0, rewritten: 0, unreadable: 0, failed: 0 },
+  reseal: {
+    checked: 0,
+    rewritten: 0,
+    unreadable: 0,
+    failed: 0,
+    locked_attachments: 0,
+  },
   reseal_calls: [] as [string, string][],
   code_restored: { restored: 0, incomplete: 0 },
   code_error: null as Error | null,
@@ -37,6 +43,8 @@ const h = vi.hoisted(() => ({
   keys_ready_calls: 0,
   refresh_calls: 0,
   locked_vault_keys: false,
+  imported_locked: false,
+  imported_probes: 0,
 }));
 
 vi.mock("./api/recovery", () => ({
@@ -48,6 +56,8 @@ vi.mock("./api/recovery", () => ({
 
 vi.mock("./crypto/memory_key_store", () => ({
   get_passphrase_from_memory: () => h.current,
+  get_passphrase_bytes: () =>
+    h.current === null ? null : new TextEncoder().encode(h.current),
   re_trigger_keys_ready: () => {
     h.keys_ready_calls += 1;
   },
@@ -94,10 +104,23 @@ vi.mock("./sent_mail_reseal", () => ({
 
     return h.reseal;
   },
+  locked_after_reseal: (summary: {
+    unreadable: number;
+    locked_attachments: number;
+  }) => summary.unreadable + summary.locked_attachments,
+}));
+
+vi.mock("./imported_attachment_meta", () => ({
+  imported_attachments_locked: async () => {
+    h.imported_probes += 1;
+
+    return h.imported_locked;
+  },
 }));
 
 import {
   announce_locked_data_changed,
+  forget_imported_attachment_probe,
   get_locked_data_status,
   has_locked_data,
   recover_locked_data,
@@ -123,7 +146,15 @@ beforeEach(() => {
   h.restore_calls = [];
   h.conversion = null;
   h.conversion_calls = [];
-  h.reseal = { checked: 0, rewritten: 0, unreadable: 0, failed: 0 };
+  h.reseal = {
+    checked: 0,
+    rewritten: 0,
+    unreadable: 0,
+    failed: 0,
+    locked_attachments: 0,
+  };
+  h.imported_locked = false;
+  h.imported_probes = 0;
   h.reseal_calls = [];
   h.code_restored = { restored: 0, incomplete: 0 };
   h.code_error = null;
@@ -131,6 +162,7 @@ beforeEach(() => {
   h.keys_ready_calls = 0;
   h.refresh_calls = 0;
   h.locked_vault_keys = false;
+  forget_imported_attachment_probe();
 });
 
 describe("locked data status", () => {
@@ -141,6 +173,7 @@ describe("locked data status", () => {
       inactive_key_sets: 0,
       locked_sent_mail: 0,
       locked_vault_keys: false,
+      locked_imported_attachments: false,
       signature: "|",
       latest_retired_at: null,
     });
@@ -156,6 +189,44 @@ describe("locked data status", () => {
     expect(status?.locked_vault_keys).toBe(true);
     expect(status?.signature).toBe("||keys");
     expect(has_locked_data(status)).toBe(true);
+  });
+
+  it("reports imported attachments the current password cannot open", async () => {
+    h.imported_locked = true;
+
+    const status = await get_locked_data_status("account-1");
+
+    expect(status?.locked_imported_attachments).toBe(true);
+    expect(status?.signature).toBe("||imported");
+    expect(has_locked_data(status)).toBe(true);
+  });
+
+  it("probes imported attachments once per account until recovery", async () => {
+    h.imported_locked = true;
+
+    await get_locked_data_status("account-1");
+    await get_locked_data_status("account-1");
+
+    expect(h.imported_probes).toBe(1);
+
+    h.current = "current password";
+    await recover_locked_data("account-1", "old password");
+    h.imported_locked = false;
+
+    const status = await get_locked_data_status("account-1");
+
+    expect(h.imported_probes).toBe(2);
+    expect(status?.locked_imported_attachments).toBe(false);
+  });
+
+  it("skips the imported probe while the password is not in memory", async () => {
+    h.current = null;
+    h.imported_locked = true;
+
+    const status = await get_locked_data_status("account-1");
+
+    expect(h.imported_probes).toBe(0);
+    expect(status?.locked_imported_attachments).toBe(false);
   });
 
   it("reports when the most recent key set was retired", async () => {
@@ -265,7 +336,13 @@ describe("recovering locked data", () => {
 
   it("falls back to the legacy reseal while conversion is off", async () => {
     write_locked_sent_mail("account-1", 3);
-    h.reseal = { checked: 3, rewritten: 2, unreadable: 1, failed: 0 };
+    h.reseal = {
+      checked: 3,
+      rewritten: 2,
+      unreadable: 1,
+      failed: 0,
+      locked_attachments: 0,
+    };
 
     const result = await recover_locked_data("account-1", "old password");
 
@@ -273,6 +350,20 @@ describe("recovering locked data", () => {
     expect(result.recovered_sent_mail).toBe(2);
     expect(result.failed).toBe(false);
     expect(read_locked_sent_mail("account-1")).toBe(1);
+  });
+
+  it("counts imported attachments the old password cannot open", async () => {
+    h.reseal = {
+      checked: 1,
+      rewritten: 4,
+      unreadable: 0,
+      failed: 0,
+      locked_attachments: 2,
+    };
+
+    await recover_locked_data("account-1", "old password");
+
+    expect(read_locked_sent_mail("account-1")).toBe(2);
   });
 
   it("reports failure when the account is locked", async () => {

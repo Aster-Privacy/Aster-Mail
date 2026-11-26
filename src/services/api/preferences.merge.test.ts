@@ -484,20 +484,20 @@ describe("reconcile_preferences calendar keys", () => {
 });
 
 describe("build_merged_preferences subject hiding default", () => {
-  it("hides the subject for an account that never set the switch", () => {
+  it("shows the subject for an account that never set the switch", () => {
     const server: Record<string, unknown> = {
       ...DEFAULT_PREFERENCES,
-      obscure_subject_when_encrypted: false,
+      obscure_subject_when_encrypted: true,
     };
 
     delete server.obscure_subject_user_set;
 
     const merged = build_merged_preferences(server, null);
 
-    expect(merged.obscure_subject_when_encrypted).toBe(true);
+    expect(merged.obscure_subject_when_encrypted).toBe(false);
   });
 
-  it("hides the subject when the stored preferences carry neither key", () => {
+  it("shows the subject when the stored preferences carry neither key", () => {
     const server: Record<string, unknown> = { ...DEFAULT_PREFERENCES };
 
     delete server.obscure_subject_when_encrypted;
@@ -505,7 +505,7 @@ describe("build_merged_preferences subject hiding default", () => {
 
     const merged = build_merged_preferences(server, null);
 
-    expect(merged.obscure_subject_when_encrypted).toBe(true);
+    expect(merged.obscure_subject_when_encrypted).toBe(false);
   });
 
   it("keeps the subject visible for an account that turned the switch off", () => {

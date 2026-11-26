@@ -29,15 +29,21 @@ import {
   vault_keys_need_previous_password,
 } from "./crypto/restore_inactive_keys";
 import {
+  get_passphrase_bytes,
   get_passphrase_from_memory,
   re_trigger_keys_ready,
 } from "./crypto/memory_key_store";
+import { zero_uint8_array } from "./crypto/secure_memory";
+import { imported_attachments_locked } from "./imported_attachment_meta";
 import {
   LOCKED_DATA_CHANGED_EVENT,
   read_locked_sent_mail,
   write_locked_sent_mail,
 } from "./locked_sent_mail_store";
-import { reencrypt_all_sent_mail } from "./sent_mail_reseal";
+import {
+  locked_after_reseal,
+  reencrypt_all_sent_mail,
+} from "./sent_mail_reseal";
 
 import { ignore_error } from "@/lib/ignore_error";
 import { emit_refresh_requested } from "@/hooks/mail_events";
@@ -46,6 +52,7 @@ export interface LockedDataStatus {
   inactive_key_sets: number;
   locked_sent_mail: number;
   locked_vault_keys: boolean;
+  locked_imported_attachments: boolean;
   signature: string;
   latest_retired_at: number | null;
 }
@@ -64,8 +71,42 @@ export function has_locked_data(status: LockedDataStatus | null): boolean {
     !!status &&
     (status.inactive_key_sets > 0 ||
       status.locked_sent_mail > 0 ||
-      status.locked_vault_keys)
+      status.locked_vault_keys ||
+      status.locked_imported_attachments)
   );
+}
+
+const imported_probes = new Map<string, Promise<boolean>>();
+
+export function forget_imported_attachment_probe(account_id?: string): void {
+  if (account_id) imported_probes.delete(account_id);
+  else imported_probes.clear();
+}
+
+async function run_imported_probe(passphrase_bytes: Uint8Array) {
+  try {
+    return await imported_attachments_locked(passphrase_bytes);
+  } catch {
+    return false;
+  } finally {
+    zero_uint8_array(passphrase_bytes);
+  }
+}
+
+function probe_imported_attachments(account_id: string): Promise<boolean> {
+  const cached = imported_probes.get(account_id);
+
+  if (cached) return cached;
+
+  const passphrase_bytes = get_passphrase_bytes();
+
+  if (!passphrase_bytes) return Promise.resolve(false);
+
+  const probe = run_imported_probe(passphrase_bytes);
+
+  imported_probes.set(account_id, probe);
+
+  return probe;
 }
 
 export function announce_locked_data_changed(keys_restored: boolean): void {
@@ -98,13 +139,22 @@ export async function get_locked_data_status(
   const locked_vault_keys = await vault_keys_need_previous_password().catch(
     () => false,
   );
-  const signature = `${ids.join(",")}|${locked_sent_mail > 0 ? "sent" : ""}`;
+  const locked_imported_attachments =
+    await probe_imported_attachments(account_id);
+  const signature = [
+    `${ids.join(",")}|${locked_sent_mail > 0 ? "sent" : ""}`,
+    locked_vault_keys ? "keys" : "",
+    locked_imported_attachments ? "imported" : "",
+  ]
+    .filter((part, index) => index === 0 || part.length > 0)
+    .join("|");
 
   return {
     inactive_key_sets: ids.length,
     locked_sent_mail,
     locked_vault_keys,
-    signature: locked_vault_keys ? `${signature}|keys` : signature,
+    locked_imported_attachments,
+    signature,
     latest_retired_at:
       retired_times.length > 0 ? Math.max(...retired_times) : null,
   };
@@ -127,7 +177,7 @@ async function recover_sent_mail(
 
   const summary = await reencrypt_all_sent_mail(password, current);
 
-  write_locked_sent_mail(account_id, summary.unreadable);
+  write_locked_sent_mail(account_id, locked_after_reseal(summary));
 
   return { recovered: summary.rewritten, failed: summary.failed > 0 };
 }
@@ -167,6 +217,8 @@ export async function recover_locked_data(
     result.failed = true;
     ignore_error("services/locked_data:recover_sent_mail", caught);
   }
+
+  forget_imported_attachment_probe(account_id);
 
   announce_locked_data_changed(
     result.restored_key_sets > 0 || result.recovered_sent_mail > 0,

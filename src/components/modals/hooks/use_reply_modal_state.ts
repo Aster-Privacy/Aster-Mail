@@ -101,6 +101,11 @@ import {
   type EditableQuotedHtmlOptions,
 } from "@/lib/editable_quoted_html";
 import { inline_email_css } from "@/lib/forward_css_inliner";
+import {
+  cap_quoted_images,
+  embed_quoted_cid_images,
+  is_embeddable_quoted_image,
+} from "@/lib/quoted_inline_images";
 import { outgoing_html_to_plain_text } from "@/lib/outgoing_plain_text";
 import {
   editor_plain_text,
@@ -114,6 +119,7 @@ import {
   build_badge_html,
   draft_data_to_attachments,
 } from "@/components/compose/compose_draft_helpers";
+import { drop_blanks_before_newline } from "@/lib/address_scans";
 import { ignore_error } from "@/lib/ignore_error";
 import {
   app_hour12,
@@ -549,10 +555,62 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
     });
   }, []);
 
+  const quote_images_task_ref = useRef<{
+    body: string;
+    source_id: string | undefined;
+    promise: Promise<string>;
+  } | null>(null);
+  const resolved_quote_ref = useRef<{
+    body: string;
+    source_id: string | undefined;
+    html: string;
+  } | null>(null);
+  const [quote_images_version, set_quote_images_version] = useState(0);
+
+  const await_quote_images = useCallback((): Promise<string> => {
+    const current = quote_images_task_ref.current;
+
+    if (
+      current &&
+      current.body === original_body &&
+      current.source_id === original_email_id
+    ) {
+      return current.promise;
+    }
+
+    const body = original_body;
+    const source_id = original_email_id;
+    const promise = embed_quoted_cid_images(body, source_id).then((html) => {
+      if (quote_images_task_ref.current?.promise === promise) {
+        resolved_quote_ref.current = { body, source_id, html };
+        set_quote_images_version((version) => version + 1);
+      }
+
+      return html;
+    });
+
+    quote_images_task_ref.current = { body, source_id, promise };
+
+    return promise;
+  }, [original_body, original_email_id]);
+
+  useEffect(() => {
+    if (!is_open || !original_body) return;
+
+    void await_quote_images();
+  }, [is_open, original_body, await_quote_images]);
+
   const build_quoted_content = useCallback(
     (for_display: boolean | "plain" = false): string => {
       const formatted_date = format_date(original_timestamp);
-      const quotable_body = as_quotable_html(original_body);
+      const resolved_quote = resolved_quote_ref.current;
+      const quote_source =
+        resolved_quote &&
+        resolved_quote.body === original_body &&
+        resolved_quote.source_id === original_email_id
+          ? resolved_quote.html
+          : cap_quoted_images(original_body);
+      const quotable_body = as_quotable_html(quote_source);
       const attribution_name = quote_sender_name || recipient_name;
       const attribution_email = quote_sender_email || recipient_email;
       const safe_name = safe_sender_name(attribution_name, attribution_email)
@@ -584,6 +642,7 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
       }
 
       if (for_display) {
+        const preview_images: string[] = [];
         const plain_body = (() => {
           const doc = new DOMParser().parseFromString(
             repair_comment_markup(quotable_body),
@@ -594,6 +653,15 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
             .querySelectorAll("script, style, head")
             .forEach((el) => el.remove());
           doc.querySelectorAll("img").forEach((el) => {
+            const src = el.getAttribute("src") ?? "";
+
+            if (is_embeddable_quoted_image(src)) {
+              el.replaceWith(`\uE000${preview_images.length}\uE001`);
+              preview_images.push(src.replace(/\s+/g, ""));
+
+              return;
+            }
+
             const alt = el.getAttribute("alt");
 
             el.replaceWith(alt?.trim() ? `[${alt.trim()}]` : "[image]");
@@ -603,8 +671,7 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
             .querySelectorAll("p, div, tr, li")
             .forEach((el) => el.after("\n"));
 
-          return (doc.body.textContent ?? "")
-            .replace(/[ \t]+\n/g, "\n")
+          return drop_blanks_before_newline(doc.body.textContent ?? "", false)
             .replace(/\n{3,}/g, "\n\n")
             .trim();
         })();
@@ -619,7 +686,14 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
         const quoted_body = plain_body
           .split("\n")
           .map((line) => `&gt; ${escape_html(line)}`)
-          .join("<br>");
+          .join("<br>")
+          .replace(/\uE000(\d+)\uE001/g, (_match, index: string) => {
+            const src = preview_images[Number(index)];
+
+            return src && is_embeddable_quoted_image(src)
+              ? `<img src="${escape_html(src)}" alt="" style="max-width:100%;height:auto;vertical-align:middle">`
+              : "";
+          });
 
         return `<div>${header}<br><br>${quoted_body}</div>`;
       }
@@ -635,6 +709,8 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
       quote_sender_email,
       quote_sender_name,
       format_date,
+      original_email_id,
+      quote_images_version,
     ],
   );
 
@@ -1302,6 +1378,7 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
     commit_pending_recipient_inputs,
     is_mobile,
     build_quoted_content,
+    await_quote_images,
     exec_format_command,
   };
 }

@@ -68,6 +68,7 @@ export const de = {
     profile_picture_upload_hint: "JPEG, PNG oder WebP, bis zu 5 MB",
     profile_picture_gallery_failed:
       "Die Galerie wurde nicht geladen. Prüfe deine Verbindung und versuche es erneut.",
+    profile_picture_categories: "Galeriekategorien",
     profile_picture_cat_all: "Alle",
     profile_picture_cat_space: "Weltraum",
     profile_picture_cat_night_sky: "Nachthimmel",
@@ -1082,6 +1083,8 @@ export const de = {
       "Das Senden über Ihr verknüpftes externes Konto hat nicht funktioniert. Versuchen Sie es erneut. Ihr Entwurf ist gespeichert.",
     offline_change_failed:
       "Eine Änderung, die Sie offline vorgenommen haben, konnte nicht gespeichert werden.",
+    storage_key_update_pending:
+      "Aster Mail konnte den Schlüssel, der Ihre gespeicherten Daten schützt, nicht vollständig aktualisieren. Ihre Änderungen werden weiterhin gespeichert, und Aster Mail versucht es im Hintergrund weiter.",
     offline_send_failed:
       "Eine E-Mail, die Sie offline geschrieben haben, konnte nicht gesendet werden.",
     offline_email_queued:
@@ -3368,12 +3371,14 @@ export const de = {
     alias_tab_ghost: "Ghost-Aliase",
     alias_tab_sending: "Senden",
     sending_blocks_title: "Senden",
-    sending_blocks_description: "Lege fest, welche Aliasse E-Mails senden dürfen. Wenn du das Senden für einen Alias deaktivierst, empfängt er weiterhin E-Mails.",
-    sending_blocks_search_placeholder: "Aliasse suchen",
+    sending_blocks_description: "Lege fest, welche Adressen E-Mails senden dürfen. Wenn du das Senden für eine Adresse deaktivierst, empfängt sie weiterhin E-Mails.",
+    sending_blocks_search_placeholder: "Adressen suchen",
     sending_blocks_empty: "Du hast noch keine Aliasse oder Domain-Adressen.",
     sending_blocks_sending_allowed: "Senden erlaubt",
     sending_blocks_toggle_label: "Senden von {{ email }} erlauben",
-    sending_blocks_update_failed: "Das Senden für diesen Alias konnte nicht aktualisiert werden. Versuche es erneut.",
+    sending_blocks_update_failed: "Das Senden für diese Adresse konnte nicht aktualisiert werden. Versuche es erneut.",
+    sending_blocks_primary_label: "Primäre Adresse",
+    sending_blocks_all_disabled: "Das Senden ist für alle Adressen deaktiviert, daher kannst du keine E-Mails senden. Aktiviere das Senden für mindestens eine Adresse, um E-Mails zu senden.",
     alias_tab_preferences: "Einstellungen",
     alias_search_placeholder: "Aliase durchsuchen...",
     alias_filter_all: "Alle",
@@ -3503,7 +3508,7 @@ export const de = {
     alias_pref_unsubscribe_block_contact: "Absender blockieren",
     alias_pref_disabled_response: "Antwort auf blockierte Mails",
     alias_pref_disabled_response_desc:
-      "Was der Absender sieht, wenn seine Mail stillschweigend verworfen wird.",
+      "Was passiert, wenn Ihnen ein blockierter Absender schreibt oder jemand an einen deaktivierten Alias oder eine deaktivierte Adresse schreibt.",
     alias_pref_disabled_ignore: "Stillschweigend ignorieren",
     alias_pref_disabled_reject: "Ablehnen (Bounce)",
     alias_pref_delete_action: "Beim Löschen eines Alias",
@@ -3518,7 +3523,7 @@ export const de = {
     alias_pref_unsubscribe_action_info:
       "Was passiert, wenn Sie in einer weitergeleiteten E-Mail auf die Abmelden-Schaltfläche klicken.",
     alias_pref_disabled_response_info:
-      "Was der Absender sieht, wenn er an einen deaktivierten Alias oder einen blockierten Kontakt schreibt.",
+      "Wenn Sie Ignorieren wählen, erfährt der Absender nichts. E-Mails von blockierten Absendern folgen Ihrer Blockierungseinstellung, etwa dem Verschieben in den Spam, und E-Mails an einen deaktivierten Alias oder eine deaktivierte Adresse werden verworfen. Wenn Sie Ablehnen wählen, wird die E-Mail abgewiesen und der Absender erhält eine Nachricht, dass sie nicht zugestellt wurde.",
     alias_pref_delete_action_info:
       "Beim Verschieben in den Papierkorb bleiben gelöschte Aliase 30 Tage wiederherstellbar. Sofort löschen entfernt sie dauerhaft.",
     alias_pref_delete_trash: "In den Papierkorb verschieben",
@@ -3811,7 +3816,7 @@ export const de = {
     fam_org_ret_trash: "Papierkorb",
     fam_org_ret_trash_hint: "Gelöschte E-Mails automatisch entfernen",
     fam_org_ret_trash_info:
-      "Nachrichten im Papierkorb, die älter als diese Anzahl an Tagen sind, werden dauerhaft entfernt.",
+      "Nachrichten werden so viele Tage nach dem Verschieben in den Papierkorb dauerhaft entfernt.",
     fam_org_ret_spam: "Spam",
     fam_org_ret_spam_hint: "Spam automatisch löschen (Standard 30 Tage)",
     fam_org_ret_spam_info:
@@ -5029,6 +5034,9 @@ export const de = {
     show_encryption_indicators_description:
       "Schloss-Symbole bei verschlüsselten Nachrichten anzeigen",
     publish_keys_wkd_title: "Schlüssel auf WKD veröffentlichen",
+    alias_pgp_title: "PGP mit Aliassen verwenden",
+    alias_pgp_description:
+      "Wenn diese Option deaktiviert ist, enthalten E-Mails, die Sie von einem Alias senden, keine PGP-Signatur und keine Schlüsseldetails, die sie mit Ihrem Konto verknüpfen.",
     publish_keys_wkd_description:
       "Den Schlüssel Ihrer primären Adresse über das Web Key Directory auffindbar machen.",
     publish_keys_wkd_not_covered:
@@ -5857,6 +5865,72 @@ export const de = {
     bimi_step_of: "Schritt {current} von {total}",
     bimi_step_publish: "Veröffentlichen",
     bimi_title: "Markenlogo",
+    mta_sts_title: "MTA-STS",
+    mta_sts_set_up: "Einrichten",
+    mta_sts_state_locked: "Bezahlte Tarife",
+    mta_sts_state_retiring: "Wird deaktiviert",
+    mta_sts_state_pending_dns: "Warten auf DNS",
+    mta_sts_state_pending_certificate: "Zertifikat wird ausgestellt",
+    mta_sts_state_live: "Aktiv",
+    mta_sts_state_attention: "Prüfung erforderlich",
+    mta_sts_row_off: "Verschlüsselte Verbindungen für E-Mails an diese Domain verlangen.",
+    mta_sts_row_locked: "Gehostetes MTA-STS ist in Nova, Supernova, Duo und Family enthalten.",
+    mta_sts_row_retiring: "Ihre Richtlinie wird deaktiviert. Absender verlangen keine Verschlüsselung mehr, sobald ihre zwischengespeicherte Kopie abläuft.",
+    mta_sts_row_pending_dns: "Fügen Sie die DNS-Einträge aus den MTA-STS-Einstellungen hinzu.",
+    mta_sts_row_pending_dns_managed: "Aster fügt die DNS-Einträge für Sie hinzu. Das kann einige Minuten dauern.",
+    mta_sts_row_pending_certificate: "Ihre DNS-Einträge sind vorhanden. Aster stellt ein Zertifikat aus.",
+    mta_sts_row_live: "Absender können Ihre Richtlinie finden und verwenden.",
+    mta_sts_row_attention: "Etwas hat sich geändert. Öffnen Sie die MTA-STS-Einstellungen, um es zu prüfen.",
+    mta_sts_row_inactive: "Verifizieren Sie zuerst diese Domain, um MTA-STS einzurichten.",
+    mta_sts_attention_plan: "Ihr Tarif enthält kein gehostetes MTA-STS. Wechseln Sie zu einem höheren Tarif, um Ihre Richtlinie zu behalten.",
+    mta_sts_attention_domain: "Diese Domain ist nicht verifiziert, daher stellt Aster Ihre Richtlinie nicht bereit. Verifizieren Sie die Domain, um sie wieder bereitzustellen.",
+    mta_sts_attention_certificate: "Aster konnte kein Zertifikat für Ihren Richtlinien-Host ausstellen. Prüfen Sie, ob der CNAME-Eintrag dem angezeigten Wert entspricht, und prüfen Sie dann erneut.",
+    mta_sts_attention_records: "Mindestens ein DNS-Eintrag fehlt oder stimmt nicht überein. Passen Sie die Einträge an die angezeigten Werte an.",
+    mta_sts_record_policy_host: "Richtlinien-Host",
+    mta_sts_record_policy_id: "Richtlinien-ID",
+    mta_sts_record_tls_reporting: "TLS-Berichte",
+    mta_sts_record_optional: "Optional",
+    mta_sts_status_ok: "Gefunden",
+    mta_sts_status_missing: "Noch nicht gefunden",
+    mta_sts_status_wrong: "Stimmt nicht überein",
+    mta_sts_status_stale: "Alte ID",
+    mta_sts_status_multiple: "Mehr als ein Eintrag",
+    mta_sts_error_throttled: "Sie nehmen zu schnell Änderungen vor. Warten Sie einige Minuten und versuchen Sie es dann erneut.",
+    mta_sts_error_registrar: "Aster konnte die DNS-Einträge bei Ihrem Registrar nicht aktualisieren. Versuchen Sie es später erneut.",
+    mta_sts_error_record_conflict: "Diese Domain hat bereits einen anderen MTA-STS-Eintrag. Entfernen Sie ihn und versuchen Sie es dann erneut.",
+    mta_sts_error_domain_in_use: "MTA-STS ist für diese Domain bereits in einem anderen Konto eingerichtet.",
+    mta_sts_error_capacity: "Aster kann gerade keine neuen MTA-STS-Richtlinien einrichten. Versuchen Sie es später erneut.",
+    mta_sts_error_not_verified: "Verifizieren Sie diese Domain, bevor Sie MTA-STS aktivieren.",
+    mta_sts_error_unsupported: "Diese Domain kann gehostetes MTA-STS nicht verwenden.",
+    mta_sts_error_not_enabled: "MTA-STS ist für diese Domain nicht aktiviert.",
+    mta_sts_locked_description: "Mit gehostetem MTA-STS stellen andere Mailserver E-Mails an Ihre Domain nur über verschlüsselte Verbindungen zu. Es ist in Nova, Supernova, Duo und Family enthalten.",
+    mta_sts_intro: "MTA-STS weist andere Mailserver an, E-Mails an Ihre Domain nur über verschlüsselte, verifizierte Verbindungen zuzustellen. Aster hostet die Richtliniendatei und ihr Zertifikat für Sie.",
+    mta_sts_mode_label: "Modus",
+    mta_sts_mode_testing: "Test",
+    mta_sts_mode_testing_description: "Absender melden Verbindungsprobleme, stellen E-Mails aber weiterhin zu, wenn keine sichere Verbindung zustande kommt. Beginnen Sie mit diesem Modus.",
+    mta_sts_mode_enforce: "Erzwingen",
+    mta_sts_mode_enforce_description: "Absender stellen E-Mails nur zu, wenn sie eine sichere Verbindung herstellen können.",
+    mta_sts_turn_on: "Aktivieren",
+    mta_sts_turning_on: "Wird aktiviert",
+    mta_sts_save_mode: "Modus speichern",
+    mta_sts_records_title: "DNS-Einträge",
+    mta_sts_records_description: "Fügen Sie diese Einträge bei Ihrem DNS-Anbieter hinzu. Aster prüft sie automatisch.",
+    mta_sts_records_managed: "Aster verwaltet das DNS dieser Domain und fügt diese Einträge für Sie hinzu.",
+    mta_sts_tls_reporting_description: "Der TLS-Berichtseintrag ist optional. Damit bitten Sie Absender, Verbindungsprobleme an Aster zu melden.",
+    mta_sts_certificate_pending: "Aster stellt ein Zertifikat für Ihren Richtlinien-Host aus. Das dauert meist einige Minuten.",
+    mta_sts_live_message: "Ihre Richtlinie ist unter {url} aktiv.",
+    mta_sts_policy_preview: "Richtliniendatei",
+    mta_sts_retiring_message: "MTA-STS wird deaktiviert. Absender erhalten bis {date} eine Richtlinie mit dem Modus none, danach stellt Aster sie nicht mehr bereit. Aktivieren Sie MTA-STS erneut, um es zu behalten.",
+    mta_sts_turn_off: "MTA-STS deaktivieren",
+    mta_sts_turn_off_description: "Absender verlangen keine verschlüsselten Verbindungen mehr, sobald ihre zwischengespeicherte Richtlinie abläuft.",
+    mta_sts_turn_off_title: "MTA-STS deaktivieren?",
+    mta_sts_turn_off_body: "Aster stellt 8 Tage lang eine Richtlinie mit dem Modus none bereit, damit Absender ihre Kopie aktualisieren, und beendet dann die Bereitstellung. Danach können Sie die DNS-Einträge entfernen.",
+    mta_sts_turn_off_confirm: "Deaktivieren",
+    mta_sts_check_again: "Erneut prüfen",
+    mta_sts_checking: "Wird geprüft",
+    mta_sts_last_checked: "Zuletzt geprüft: {date}",
+    mta_sts_plan_feature: "Gehostetes MTA-STS",
+    mta_sts_plan_feature_description: "Aster hostet eine MTA-STS-Richtlinie für Ihre eigenen Domains, damit Absender E-Mails nur über verschlüsselte Verbindungen an Sie zustellen.",
     bimi_turn_off: "Deaktivieren",
     bimi_turn_off_body:
       "Ihr Logo wird sofort nicht mehr gehostet, und Posteingänge zeigen stattdessen ein Standardsymbol an.",
@@ -6389,7 +6463,7 @@ export const de = {
     auto_delete_spam_after: "Spam automatisch löschen nach",
     auto_delete_trash_after: "Papierkorb automatisch löschen nach",
     auto_delete_trash_description:
-      "E-Mails im Papierkorb, die älter als dieser Zeitraum sind, werden dauerhaft gelöscht.",
+      "Nachrichten werden diese Zeit nach dem Verschieben in den Papierkorb dauerhaft gelöscht.",
     save_changes: "Änderungen speichern",
     spam_low: "Niedrig",
     spam_low_description: "Nur offensichtlicher Spam wird gefiltert",
@@ -8869,6 +8943,15 @@ export const de = {
     remote_images_always: "Immer laden",
     remote_images_ask: "Vor dem Laden fragen",
     remote_images_never: "Nie laden",
+    image_cache_label: "Geladene Bilder auf diesem Gerät behalten",
+    image_cache_description: "Speichert geladene Bilder verschlüsselt auf diesem Gerät, damit beim erneuten Öffnen einer Nachricht nichts an den Absender gesendet wird.",
+    image_prefetch_label: "Bilder beim Eintreffen von E-Mails laden",
+    image_prefetch_description: "Lädt Bilder über Aster, sobald neue E-Mails dieses Gerät erreichen, damit Absender nicht erkennen, wann Sie sie öffnen.",
+    image_prefetch_unavailable: "Verfügbar, wenn externe Bilder automatisch geladen werden und gespeicherte Bilder aktiviert sind.",
+    image_cache_clear_label: "Gespeicherte Bilder",
+    image_cache_clear_description: "Entfernt alle auf diesem Gerät gespeicherten Bilder.",
+    image_cache_clear_button: "Löschen",
+    image_cache_cleared: "Gespeicherte Bilder gelöscht",
     remove_key: "Schlüssel entfernen",
     rotate_dkim_description:
       "Generieren Sie einen neuen DKIM-Signierschlüssel. Dies erstellt einen neuen DNS-Eintrag mit einem neuen Hostnamen, den Sie bei Ihrem Registrar veröffentlichen müssen.",
@@ -9772,6 +9855,9 @@ export const de = {
     empty_spam: "Spam leeren",
     report_phishing: "Spam melden",
     not_spam: "Kein Spam",
+    pending_send_failed: "Diese Nachricht konnte nicht gesendet werden.",
+    pending_send_offline:
+      "Warten auf eine Verbindung. Diese Nachricht wird gesendet, sobald Sie wieder online sind.",
     send_failed_title: "Diese Nachricht wurde nicht zugestellt.",
     send_failed_help:
       "Prüfen Sie die Adresse und senden Sie die Nachricht erneut.",
@@ -10088,6 +10174,8 @@ export const de = {
     load_more_results: "Mehr Ergebnisse laden ({{remaining}} verbleibend)",
     contacts: "Kontakte",
     scheduled_for: "Geplant für",
+    scheduled_send_failed_sending_disabled:
+      "Diese geplante Nachricht wurde nicht gesendet, weil das Senden für ihre Absenderadresse deaktiviert ist. Aktiviere das Senden für diese Adresse in den Einstellungen und plane die Nachricht erneut.",
     scheduled_send_failed:
       "Diese Nachricht konnte nicht gesendet werden. Wählen Sie eine neue Sendezeit, um es erneut zu versuchen.",
     spam_email_message: "Diese E-Mail wird in Ihren Spam-Ordner verschoben.",
@@ -10283,6 +10371,11 @@ export const de = {
     spam_label: "Spam",
     attachment_chips_more: "+{{count}} weitere",
     page_of_total: "Seite {{current}} von {{total}}",
+    page_jump_newest: "Neueste",
+    page_jump_oldest: "Älteste",
+    page_jump_go_to: "Gehe zu Seite",
+    page_jump_input: "Seitenzahl",
+    page_jump_invalid: "Geben Sie eine Seite von 1 bis {{total}} ein",
     total_pages_label: "{{count}} Seiten",
     total_pages_label_one: "{{count}} Seite",
     loading_preview: "Vorschau wird geladen…",
@@ -10575,7 +10668,7 @@ export const de = {
     spam_auto_delete_notice:
       "Nachrichten im Spam-Ordner werden nach {{ days }} Tagen gelöscht.",
     trash_auto_delete_notice_family:
-      "Nachrichten im Papierkorb werden nach {{ days }} Tagen gelöscht, wie vom Familienadministrator festgelegt.",
+      "Nachrichten werden {{ days }} Tage nach dem Verschieben in den Papierkorb gelöscht, wie vom Familienadministrator festgelegt.",
     spam_auto_delete_notice_family:
       "Nachrichten im Spam-Ordner werden nach {{ days }} Tagen gelöscht, wie vom Familienadministrator festgelegt.",
     spy_pixels_blocked: "Spionage-Pixel blockiert",
@@ -10590,7 +10683,7 @@ export const de = {
     trackers: "Tracker",
     tracking_protection: "Tracking-Schutz",
     trash_auto_delete_notice:
-      "Nachrichten im Papierkorb werden nach {{ days }} Tagen gelöscht.",
+      "Nachrichten werden {{ days }} Tage nach dem Verschieben in den Papierkorb gelöscht.",
     try_adjusting_filters:
       "Passen Sie Ihre Filter an oder suchen Sie nach etwas anderem",
     url_label: "URL",
@@ -10657,6 +10750,9 @@ export const de = {
       "Sie verschieben E-Mails von {{sender}} immer wieder nach {{category}}. Soll das automatisch passieren?",
   },
   auth: {
+    account_chooser_title: "Konto auswählen",
+    account_chooser_body: "Diese Adresse gehört zu keinem Konto, das auf diesem Gerät angemeldet ist. Wähle ein Konto aus, um fortzufahren.",
+    account_chooser_empty: "Auf diesem Gerät ist kein Konto angemeldet.",
     continue_with_app: "Mit {{app}} fortfahren",
     sibling_waiting: "Bestätigen Sie die Anmeldung im geöffneten Fenster.",
     sibling_popup_blocked: "Das Bestätigungsfenster wurde blockiert. Erlauben Sie Pop-ups für diese Website und versuchen Sie es erneut.",
@@ -10711,6 +10807,7 @@ export const de = {
     authenticating: "Authentifizierung...",
     fetching_auth_data: "Authentifizierungsdaten werden abgerufen...",
     verifying_credentials: "Zugangsdaten werden überprüft...",
+    sign_in_enhanced_unavailable: "Aster Mail konnte den erweiterten Anmeldeschutz für dieses Konto nicht verwenden, daher sind Sie noch nicht angemeldet. Wenn Sie Ihr Passwort auf einem anderen Gerät geändert haben, melden Sie sich erneut an, um mit dem Standardschutz fortzufahren.",
     sign_in_standard_protection: "Der erweiterte Anmeldeschutz ist derzeit nicht verfügbar. Sie wurden mit dem Standardschutz angemeldet.",
     decrypting_vault: "Ihr Schlüsseltresor wird entschlüsselt...",
     getting_user_info: "Benutzerinformationen werden abgerufen...",
@@ -10883,6 +10980,8 @@ export const de = {
       "Gib dein aktuelles Passwort ein, damit deine Verschlüsselungsschlüssel gleich bleiben und deine E-Mails lesbar bleiben. Wenn du es nicht kennst, verwende stattdessen einen Wiederherstellungscode.",
     reset_current_password_required:
       "Gib dein aktuelles Passwort ein oder verwende stattdessen einen Wiederherstellungscode.",
+    reset_legacy_login_salt:
+      "Um deine bisherigen E-Mails mit deinem aktuellen Passwort zu behalten, öffne diesen Link zum Zurücksetzen auf einem Gerät, das du schon mit Aster verwendet hast. Wenn das nicht möglich ist, verwende stattdessen einen Wiederherstellungscode.",
     reset_lost_everything:
       "Ich habe mein Passwort und meine Wiederherstellungscodes verloren",
     reset_remember_password:
@@ -13021,6 +13120,9 @@ export const de = {
     remote_image_loading: "Externe Bilder laden, externe Bilder blockieren, Bilder laden, Remote-Bilder, vor dem Laden fragen",
     block_remote_fonts_label: "Externe Schriftarten blockieren, externe Schriften, Webfonts",
     block_remote_css_label: "Externes CSS blockieren, externe Stylesheets, externe Stile",
+    image_cache_label: "Bildcache, gespeicherte Bilder, Bilder behalten",
+    image_prefetch_label: "Bilder vorab laden, Bilder beim Empfang laden, Lesebestätigung, Öffnungs-Tracking",
+    image_cache_clear_label: "Gespeicherte Bilder löschen, Bildcache leeren",
     strip_exif_on_compose_label: "Bildmetadaten entfernen, EXIF, Metadaten entfernen, Bild-Datenschutz",
     send_error_reports_label: "Fehlerberichte senden, Telemetrie, Diagnose, Absturzberichte",
     prefer_plain_text_label: "Nur-Text bevorzugen, Textversion, Textalternative, Multipart",
@@ -13166,6 +13268,7 @@ export const de = {
     require_encryption_title: "Verschlüsselung erzwingen, Verschlüsselung erforderlich, Unverschlüsseltes blockieren, PGP erzwingen",
     show_encryption_indicators_title: "Verschlüsselungshinweise anzeigen, Schloss-Symbol, Verschlüsselt-Badge, Hinweis",
     publish_keys_wkd_title: "Schlüssel in WKD veröffentlichen, WKD, Web Key Directory, Schlüssel veröffentlichen, öffentlicher Schlüssel",
+    alias_pgp_title: "Alias, PGP, Signatur, Signieren, öffentlicher Schlüssel, Schlüsselfreigabe",
     publish_to_keyservers_title: "Auf Keyservern veröffentlichen, Keyserver, keys.openpgp.org, Schlüssel veröffentlichen",
     keyserver_addresses_title: "Zu veröffentlichende Adressen, Keyserver, Adressen veröffentlichen, Adressen des öffentlichen Schlüssels",
     key_fingerprint: "Bestätigungscode, Fingerabdruck, Prüfcode, Schlüssel-ID",

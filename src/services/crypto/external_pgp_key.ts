@@ -31,6 +31,7 @@ import {
   on_vault_cleared,
 } from "@/services/crypto/memory_key_store";
 import { base64_to_array } from "@/services/crypto/base64";
+import { load_verifying_storage_key_bytes } from "@/services/crypto/storage_write_key";
 import {
   external_challenge_message,
   normalize_external_fingerprint,
@@ -673,6 +674,17 @@ async function adopt_material(
   return true;
 }
 
+function same_bytes(left: Uint8Array, right: Uint8Array): boolean {
+  let difference = left.length ^ right.length;
+
+  for (let i = 0; i < Math.min(left.length, right.length); i += 1) {
+    difference |= left[i] ^ right[i];
+  }
+  right.fill(0);
+
+  return difference === 0;
+}
+
 async function store_external_key(
   normalized: normalized_external_key,
   replaces_fingerprint?: string,
@@ -684,9 +696,21 @@ async function store_external_key(
     return { ok: false, code: "MASTER_KEY_REQUIRED" };
   }
 
+  const data_kek = await load_verifying_storage_key_bytes();
+
+  if (!data_kek) return { ok: false, code: "MASTER_KEY_REQUIRED" };
+
+  if (
+    !owner_unchanged(user_id, data_kek_b64) ||
+    !same_bytes(data_kek, base64_to_array(data_kek_b64))
+  ) {
+    data_kek.fill(0);
+
+    return { ok: false, code: "ACCOUNT_CHANGED" };
+  }
+
   const fingerprint = normalized.key.getFingerprint().toLowerCase();
   const plaintext = serialize_unprotected_key(normalized.key);
-  const data_kek = base64_to_array(data_kek_b64);
   let wrapped: string;
 
   try {

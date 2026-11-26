@@ -392,6 +392,7 @@ export interface RequestConfig extends RequestInit {
   timeout?: number;
   retry?: number;
   retry_delay?: number;
+  retry_on_timeout?: boolean;
   cache_ttl?: number;
   skip_cache?: boolean;
   skip_session_refresh?: boolean;

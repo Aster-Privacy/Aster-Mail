@@ -212,7 +212,7 @@ export async function purge_locked_folder_local_caches(): Promise<void> {
       "@/services/search_index_store"
     );
 
-    tasks.push(clear_search_snapshots());
+    tasks.push(clear_search_snapshots("current_account"));
   } catch (caught) {
     ignore_error(
       "services/locked_folders:purge_locked_folder_local_caches",
@@ -223,7 +223,7 @@ export async function purge_locked_folder_local_caches(): Promise<void> {
   try {
     const { clear_search_index } = await import("@/hooks/use_search");
 
-    clear_search_index();
+    clear_search_index("current_account");
   } catch (caught) {
     ignore_error(
       "services/locked_folders:purge_locked_folder_local_caches",

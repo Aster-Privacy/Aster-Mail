@@ -264,15 +264,14 @@ export async function seal_device_passphrase_for_lock(
 }
 
 async function drop_device_readable_lists(account_id: string): Promise<void> {
-  try {
-    const { clear_account_list_cache } = await import(
-      "@/services/offline_email_cache"
-    );
-
-    await clear_account_list_cache(account_id);
-  } catch {
-    return;
-  }
+  await Promise.all([
+    import("@/services/offline_email_cache")
+      .then((module) => module.clear_account_list_cache(account_id))
+      .catch(() => undefined),
+    import("@/lib/remote_image_cache")
+      .then((module) => module.clear_remote_image_cache(account_id))
+      .catch(() => undefined),
+  ]);
 }
 
 const DRAFT_FLUSH_LIMIT_MS = 4000;

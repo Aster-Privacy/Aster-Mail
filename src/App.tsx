@@ -83,6 +83,7 @@ import {
 import { UndoSendContainer } from "@/components/toast/undo_send_container";
 import { UndoSendPreviewModal } from "@/components/toast/undo_send_preview_modal";
 import { EmailNotificationManager } from "@/components/email/email_notification_manager";
+import { RemoteImagePrefetcher } from "@/components/email/remote_image_prefetcher";
 import { FolderUnlockPrompt } from "@/components/folders/folder_unlock_prompt";
 import { OfflineIndicator } from "@/components/common/offline_indicator";
 import { FullPageLoader } from "@/components/common/full_page_loader";
@@ -728,6 +729,7 @@ function App() {
       </OverlayBoundary>
       <OverlayBoundary reset_key={pathname}>
         <EmailNotificationManager />
+        <RemoteImagePrefetcher />
       </OverlayBoundary>
       <FolderUnlockPrompt />
       <MailKeyUpgradeGate />

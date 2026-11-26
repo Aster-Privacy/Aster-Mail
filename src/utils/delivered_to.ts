@@ -18,6 +18,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { strip_angle_edges } from "@/lib/address_scans";
 
 interface HeaderLike {
   name: string;
@@ -41,7 +42,7 @@ export function extract_delivered_to(
   if (!value) return undefined;
   const token = value
     .split(/[\s,;]+/)
-    .map((t) => t.replace(/^<+/, "").replace(/>+$/, ""))
+    .map((t) => strip_angle_edges(t))
     .find((t) => t.includes("@") && t.length > 2);
 
   return token ? token.toLowerCase() : undefined;

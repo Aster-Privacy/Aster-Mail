@@ -18,6 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { name_angle_address } from "@/lib/address_scans";
 export function normalize_envelope_from(
   from: unknown,
 ): { name: string; email: string } | null {
@@ -26,12 +27,12 @@ export function normalize_envelope_from(
     return from as { name: string; email: string };
   }
   if (typeof from === "string") {
-    const match = from.match(/^(.*?)\s*<([^>]+)>$/);
+    const match = name_angle_address(from);
 
     if (match) {
       return {
-        name: match[1].replace(/^["']|["']$/g, "").trim(),
-        email: match[2],
+        name: match.name.replace(/^["']|["']$/g, "").trim(),
+        email: match.address,
       };
     }
     if (from.includes("@")) return { name: "", email: from };

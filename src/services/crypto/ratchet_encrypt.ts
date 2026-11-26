@@ -866,6 +866,7 @@ async function encrypt_for_ratchet_recipient_unlocked(
         covers_pq ? bundle.x3dh_max_version : null,
         signs_pq,
         bundle_verification.signed_at ?? null,
+        resolved_bundle.trust === "endorsed",
       );
 
       if (identity_pin_status === "drift") {

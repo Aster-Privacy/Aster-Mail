@@ -20,6 +20,8 @@
 //
 import type { ExtractedAmount } from "./types";
 
+import { char_set_predicate, trim_end_while } from "@/lib/linear_trim";
+
 export const ISO_CURRENCY_CODES = new Set([
   "AED",
   "AFN",
@@ -515,16 +517,17 @@ function counts_as_evidence(raw: string, number: string): boolean {
   return true;
 }
 
-function sender_region_currency(from_email: string): string | null {
+const SENDER_HOST_TRAILING_CHARACTERS = char_set_predicate(">.");
+
+export function sender_region_currency(from_email: string): string | null {
   const at = from_email.lastIndexOf("@");
 
   if (at < 0) return null;
 
-  const host = from_email
-    .slice(at + 1)
-    .trim()
-    .replace(/[>.]+$/, "")
-    .toLowerCase();
+  const host = trim_end_while(
+    from_email.slice(at + 1).trim(),
+    SENDER_HOST_TRAILING_CHARACTERS,
+  ).toLowerCase();
   const tld = host.slice(host.lastIndexOf(".") + 1);
 
   return REGION_CURRENCIES[tld] ?? null;

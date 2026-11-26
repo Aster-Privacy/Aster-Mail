@@ -177,7 +177,7 @@ describe("build_protected_mime_entity", () => {
     expect(header_value(root, "Subject")).toMatch(/^=\?UTF-8\?B\?/);
   });
 
-  it("hides the subject when the caller does not say otherwise", () => {
+  it("shows the subject when the caller does not ask to hide it", () => {
     const mime = build_protected_mime_entity({
       subject: "Plan",
       body: "hi",
@@ -188,7 +188,10 @@ describe("build_protected_mime_entity", () => {
       attachments: [],
     });
 
-    expect(root_header_block(mime)).toContain("HP-Outer: Subject: [...]");
+    expect(root_header_block(mime)).toContain("HP-Outer: Subject: Plan");
+    expect(root_header_block(mime)).not.toContain(
+      OBSCURED_SUBJECT_PLACEHOLDER,
+    );
   });
 
   it("records every exposed outer field so none reads as removed", () => {

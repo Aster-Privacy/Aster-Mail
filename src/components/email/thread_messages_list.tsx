@@ -81,6 +81,7 @@ import {
   type RemoteContentGrants,
 } from "@/lib/remote_content_grants";
 import { resolve_reply_references } from "@/lib/reply_references";
+import { earlier_thread_message_ids } from "@/lib/cid_resolver";
 import {
   begin_read_change,
   is_read_ticket_current,
@@ -259,6 +260,16 @@ export const ThreadMessagesList = forwardRef<
   const { t } = use_i18n();
   const { preferences } = use_preferences();
   const regular_messages = useMemo(() => messages, [messages]);
+  const related_ids_by_message = useMemo(
+    () =>
+      new Map(
+        messages.map((msg) => [
+          msg.id,
+          earlier_thread_message_ids(messages, msg.id),
+        ]),
+      ),
+    [messages],
+  );
   const message_key_state_ref = useRef<MessageKeyState>({
     messages: [],
     keys: new Map(),
@@ -1214,6 +1225,7 @@ export const ThreadMessagesList = forwardRef<
         on_unsubscribe={is_last ? on_unsubscribe : undefined}
         on_view_source={on_view_source}
         preloaded_sanitized={preloaded_sanitized?.get(msg.id)}
+        related_message_ids={related_ids_by_message.get(msg.id)}
         show_inline_reply={inline_reply_msg?.id === msg.id}
         size_bytes={size_bytes}
         unsubscribe_url={is_last ? unsubscribe_url : undefined}

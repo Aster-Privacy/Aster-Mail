@@ -21,6 +21,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
+import { MemoryRouter, useLocation } from "react-router-dom";
 
 const h = vi.hoisted(() => ({
   preferences: { external_link_warning_dismissed: false as boolean },
@@ -107,15 +108,30 @@ function Capture() {
   return null;
 }
 
+function ShowPath() {
+  const location = useLocation();
+
+  return (
+    <span data-testid="path">{`${location.pathname}${location.search}`}</span>
+  );
+}
+
+function current_path() {
+  return container!.querySelector('[data-testid="path"]')!.textContent;
+}
+
 function render_provider() {
   container = document.createElement("div");
   document.body.appendChild(container);
   root = createRoot(container);
   act(() => {
     root!.render(
-      <ExternalLinkProvider>
-        <Capture />
-      </ExternalLinkProvider>,
+      <MemoryRouter initialEntries={["/inbox"]}>
+        <ExternalLinkProvider>
+          <Capture />
+          <ShowPath />
+        </ExternalLinkProvider>
+      </MemoryRouter>,
     );
   });
 }
@@ -205,6 +221,27 @@ describe("ExternalLinkProvider results", () => {
 
     expect(h.open_external).not.toHaveBeenCalled();
     expect(on_result).toHaveBeenCalledWith(false);
+  });
+
+  it("opens a family invite link in this tab without a new window", () => {
+    render_provider();
+    const token = "b".repeat(64);
+    const on_result = request(
+      `https://app.astermail.org/join/family?token=${token}`,
+    );
+
+    expect(warning()).toBeNull();
+    expect(h.open_external).not.toHaveBeenCalled();
+    expect(on_result).toHaveBeenCalledWith(true);
+    expect(current_path()).toBe(`/join/family?token=${token}`);
+  });
+
+  it("still warns before a lookalike invite link on another origin", () => {
+    render_provider();
+    request("https://app.astermail.org.example.test/join/family?token=x");
+
+    expect(warning()).not.toBeNull();
+    expect(current_path()).toBe("/inbox");
   });
 
   it("reports an opened link at once when the warning is dismissed", () => {

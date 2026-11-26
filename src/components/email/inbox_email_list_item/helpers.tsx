@@ -21,11 +21,11 @@
 import type { InboxEmail } from "@/types/email";
 import type { AttachmentPreviewEntry } from "@/hooks/use_attachment_previews";
 import type { ListToggleOptions } from "@/lib/list_click_selection";
+import type { ReactNode } from "react";
 
 import { useRef } from "react";
 import { StarIcon } from "@heroicons/react/24/outline";
 import { StarIcon as StarIconSolid } from "@heroicons/react/24/solid";
-import { Tooltip } from "@aster/ui";
 
 import { use_i18n } from "@/lib/i18n/context";
 import { is_compact_density } from "@/lib/list_density";
@@ -33,8 +33,7 @@ import { truncate_with_ellipsis } from "@/utils/preview_text";
 import { type SelectionSnapshot } from "@/components/email/inbox/selection_snapshot";
 import { format_bytes } from "@/lib/utils";
 
-export interface InboxEmailListItemProps
-  extends React.HTMLAttributes<HTMLDivElement> {
+export interface InboxEmailListItemProps extends React.HTMLAttributes<HTMLDivElement> {
   email: InboxEmail;
   density: string;
   show_profile_pictures: boolean;
@@ -115,20 +114,45 @@ export function StarToggleButton({
     }
   };
 
+  const label = email.is_starred ? t("mail.unstar") : t("mail.star");
+
   return (
-    <Tooltip tip={email.is_starred ? t("mail.unstar") : t("mail.star")}>
-      <button
-        ref={star_ref}
-        className="p-1.5 rounded-[14px] hover:bg-black/10 dark:hover:bg-white/10"
-        onClick={handle_click}
-      >
-        {email.is_starred ? (
-          <StarIconSolid className="w-4 h-4 text-amber-400" />
-        ) : (
-          <StarIcon className="w-4 h-4 text-txt-muted" />
-        )}
-      </button>
-    </Tooltip>
+    <button
+      ref={star_ref}
+      aria-label={label}
+      className="p-1.5 rounded-[14px] hover:bg-black/10 dark:hover:bg-white/10"
+      title={label}
+      type="button"
+      onClick={handle_click}
+    >
+      {email.is_starred ? (
+        <StarIconSolid className="w-4 h-4 text-amber-400" />
+      ) : (
+        <StarIcon className="w-4 h-4 text-txt-muted" />
+      )}
+    </button>
+  );
+}
+
+export function RowActionButton({
+  label,
+  on_click,
+  children,
+}: {
+  label: string;
+  on_click: () => void;
+  children: ReactNode;
+}) {
+  return (
+    <button
+      aria-label={label}
+      className="p-1.5 rounded-[14px] hover:bg-black/10 dark:hover:bg-white/10"
+      title={label}
+      type="button"
+      onClick={on_click}
+    >
+      {children}
+    </button>
   );
 }
 

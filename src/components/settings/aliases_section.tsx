@@ -217,6 +217,13 @@ export function AliasesSection() {
           on_back={close_editor}
           on_delivery_saved={hook.handle_delivery_saved}
           on_display_name_saved={hook.handle_display_name_saved}
+          on_domain_address_display_name_saved={
+            hook.handle_domain_address_display_name_saved
+          }
+          on_domain_address_note_saved={hook.handle_domain_address_note_saved}
+          on_domain_address_websites_saved={
+            hook.handle_domain_address_websites_saved
+          }
           on_note_saved={hook.handle_note_saved}
           on_toggle_enabled={hook.handle_alias_toggle}
           on_websites_saved={hook.handle_websites_saved}

@@ -150,6 +150,7 @@ async function render_list(props: {
   decrypted_content_tag?: string;
   is_external?: boolean;
   has_recipient_key?: boolean;
+  is_received?: boolean;
   e2e_verified?: boolean;
   sent_encryption_scope?: "internal" | "outside";
 }) {
@@ -278,6 +279,31 @@ describe("attachments next to a decrypted outside message", () => {
     expect(badge().textContent).toBe("common.end_to_end_encrypted_label");
     expect(badge().dataset.description).toBe("");
     expect(badge().dataset.cipher).toBe("true");
+  });
+
+  it("labels sealed files in outside mail encrypted to you like the message", async () => {
+    sealed.manifest = true;
+
+    await render_list({
+      is_external: true,
+      is_received: true,
+      e2e_verified: true,
+    });
+
+    expect(badge().textContent).toBe("common.end_to_end_encrypted_label");
+    expect(badge().dataset.cipher).toBe("true");
+  });
+
+  it("keeps sealed files on a sent copy without evidence in transit", async () => {
+    sealed.manifest = true;
+
+    await render_list({
+      is_external: true,
+      is_received: false,
+      e2e_verified: true,
+    });
+
+    expect(badge().textContent).toBe("common.protected_in_transit");
   });
 
   it("keeps the end-to-end label for files you sent encrypted", async () => {

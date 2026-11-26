@@ -24,6 +24,7 @@ import { get_recipient_public_key, is_internal_email } from "./api/keys";
 import { RecipientClassificationUnavailableError } from "./send_queue_types";
 
 import { get_active_translations } from "@/lib/i18n/translations";
+import { trim_end_while } from "@/lib/linear_trim";
 
 export type RecipientClassification = "internal" | "external";
 
@@ -37,6 +38,10 @@ export class RecipientLookupError extends Error {
 interface ClassificationEntry {
   classification: RecipientClassification;
   session: number;
+}
+
+function is_dot(code: number): boolean {
+  return code === 0x2e;
 }
 
 const ADDRESS_SHAPE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -62,7 +67,7 @@ function notify(): void {
 }
 
 export function normalize_recipient_address(email: string): string {
-  return email.trim().toLowerCase().replace(/\.+$/, "");
+  return trim_end_while(email.trim().toLowerCase(), is_dot);
 }
 
 function lookup_username(address: string): string | null {

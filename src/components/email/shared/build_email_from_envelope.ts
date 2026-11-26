@@ -192,7 +192,7 @@ async function resolve_envelope_body(
 
   const verification = sent_scope_fields(
     envelope,
-    ratchet_verified || pgp.decrypted,
+    ratchet_verified || pgp.verified === true,
     ratchet_verified || pgp.verified === true,
   );
 

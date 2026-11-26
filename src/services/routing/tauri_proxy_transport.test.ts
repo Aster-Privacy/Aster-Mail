@@ -26,7 +26,8 @@ vi.mock("@tauri-apps/api/core", () => ({
   invoke: (...args: unknown[]) => invoke(...args),
 }));
 
-const { tauri_proxy_fetch } = await import("./tauri_proxy_transport");
+const { tauri_proxy_fetch, decode_base64_body } =
+  await import("./tauri_proxy_transport");
 
 const URL_UNDER_TEST = "https://app.astermail.org/api/mail/v1/messages";
 
@@ -39,7 +40,7 @@ describe("tauri_proxy_fetch", () => {
   it("sends text bodies and every header the app sets", async () => {
     await tauri_proxy_fetch(URL_UNDER_TEST, {
       method: "POST",
-      body: "{\"a\":1}",
+      body: '{"a":1}',
       headers: {
         "Content-Type": "application/json",
         "X-Folder-Unlock": "unlock-token",
@@ -56,7 +57,7 @@ describe("tauri_proxy_fetch", () => {
       Object.entries(args.headers).map(([k, v]) => [k.toLowerCase(), v]),
     );
 
-    expect(args.body).toBe("{\"a\":1}");
+    expect(args.body).toBe('{"a":1}');
     expect(sent["x-folder-unlock"]).toBe("unlock-token");
     expect(sent["x-csrf-token"]).toBe("csrf");
   });
@@ -85,5 +86,50 @@ describe("tauri_proxy_fetch", () => {
       }),
     ).rejects.toThrow(TypeError);
     expect(invoke).not.toHaveBeenCalled();
+  });
+});
+
+describe("decode_base64_body", () => {
+  const sample = new Uint8Array(6000).map((_, index) => (index * 31) % 256);
+  const encoded = btoa(String.fromCharCode(...sample));
+
+  it("decodes with the native decoder when it exists", () => {
+    const original = (Uint8Array as unknown as Record<string, unknown>)
+      .fromBase64;
+    const native = vi.fn((value: string) =>
+      Uint8Array.from(atob(value), (char) => char.charCodeAt(0)),
+    );
+
+    (Uint8Array as unknown as Record<string, unknown>).fromBase64 = native;
+    try {
+      expect(decode_base64_body(encoded)).toEqual(sample);
+      expect(native).toHaveBeenCalledTimes(1);
+    } finally {
+      (Uint8Array as unknown as Record<string, unknown>).fromBase64 = original;
+    }
+  });
+
+  it("decodes without the native decoder", () => {
+    const original = (Uint8Array as unknown as Record<string, unknown>)
+      .fromBase64;
+
+    (Uint8Array as unknown as Record<string, unknown>).fromBase64 = undefined;
+    try {
+      expect(decode_base64_body(encoded)).toEqual(sample);
+    } finally {
+      (Uint8Array as unknown as Record<string, unknown>).fromBase64 = original;
+    }
+  });
+
+  it("returns the response body bytes", async () => {
+    invoke.mockResolvedValue({
+      status: 200,
+      body: btoa('{"ok":true}'),
+      headers: { "content-type": "application/json" },
+    });
+
+    const response = await tauri_proxy_fetch(URL_UNDER_TEST, {});
+
+    expect(await response.json()).toEqual({ ok: true });
   });
 });

@@ -201,7 +201,11 @@ export const MobileEmailRow = memo(function MobileEmailRow(
         ? email.preview
         : null;
     const code = can_copy_code
-      ? detect_verification_code(email.subject, readable_preview)
+      ? detect_verification_code(
+          email.subject,
+          readable_preview,
+          email.sender_email,
+        )
       : null;
     const items: MobileActionSheetItem[] = [];
 
@@ -240,6 +244,7 @@ export const MobileEmailRow = memo(function MobileEmailRow(
     email.phishing_level,
     email.preview,
     email.subject,
+    email.sender_email,
     show_preview,
     t,
   ]);

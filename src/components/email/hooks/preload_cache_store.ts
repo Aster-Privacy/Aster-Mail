@@ -25,6 +25,7 @@ import type { MailItem } from "@/services/api/mail";
 import type { DraftWithContent } from "@/services/api/multi_drafts";
 
 import { LOCKDOWN_CHANGED_EVENT } from "@/services/lockdown_store";
+import { MAIL_EVENTS } from "@/hooks/mail_events";
 import {
   get_vault_account_epoch,
   on_vault_cleared,
@@ -159,11 +160,26 @@ export const consume_preloaded_email = get_preloaded_email;
 
 export const PRELOAD_FRESH_MS = 30_000;
 
+let last_mail_arrival_at = 0;
+
+export function note_mail_arrival(at: number = Date.now()): void {
+  if (at > last_mail_arrival_at) last_mail_arrival_at = at;
+}
+
+if (typeof window !== "undefined") {
+  window.addEventListener(MAIL_EVENTS.EMAIL_RECEIVED, () =>
+    note_mail_arrival(),
+  );
+}
+
 export function is_preloaded_email_fresh(
   cached: PreloadedEmail,
   max_age_ms: number = PRELOAD_FRESH_MS,
 ): boolean {
-  return !cached.is_stale && Date.now() - cached.time <= max_age_ms;
+  if (cached.is_stale) return false;
+  if (cached.time < last_mail_arrival_at) return false;
+
+  return Date.now() - cached.time <= max_age_ms;
 }
 
 export async function await_preloaded_email(
