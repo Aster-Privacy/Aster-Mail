@@ -39,6 +39,14 @@ import {
   type LinkMenuDetail,
 } from "@/lib/link_menu_event";
 import { request_external_link } from "@/utils/external_link_request";
+import { get_image_proxy_url } from "@/lib/image_proxy";
+import {
+  find_viewer_image,
+  viewer_gallery_for,
+  type ImageViewerItem,
+  type ImageViewerRequest,
+  type ViewerImageHit,
+} from "@/lib/email_image_viewer";
 
 const ASTER_PATH_ALLOWLIST = /^(?:settings(?:\/[a-z0-9_-]{1,32})?)$/i;
 const ABSOLUTE_URL_REGEX = /^[a-z][a-z0-9+.-]*:/i;
@@ -191,6 +199,47 @@ function activate_link(link: MessageLink, href: string): void {
   );
 }
 
+function follow_message_link(link: MessageLink): void {
+  const href = link.getAttribute("href") || "";
+
+  if (!href) return;
+
+  if (is_mailto_link(href)) {
+    open_mailto(href);
+
+    return;
+  }
+
+  activate_link(link, href);
+}
+
+export const VIEWER_CURSOR_ATTR = "data-aster-viewable";
+
+function to_viewer_item(hit: ViewerImageHit): ImageViewerItem {
+  const link = hit.link;
+  const has_href = Boolean(link?.getAttribute("href"));
+
+  return {
+    src: hit.src,
+    alt: hit.alt,
+    open_link: link && has_href ? () => follow_message_link(link) : undefined,
+  };
+}
+
+export function build_viewer_request(
+  hit: ViewerImageHit,
+  root: ParentNode,
+  proxy_url: string = get_image_proxy_url(),
+): ImageViewerRequest {
+  const gallery = viewer_gallery_for(hit, root, proxy_url);
+
+  return { items: gallery.images.map(to_viewer_item), index: gallery.index };
+}
+
+function is_plain_click(e: MouseEvent): boolean {
+  return e.button === 0 && !e.ctrlKey && !e.metaKey && !e.shiftKey && !e.altKey;
+}
+
 function is_plain_escape(e: KeyboardEvent): boolean {
   return (
     e.key === "Escape" &&
@@ -222,10 +271,20 @@ export function attach_iframe_interactions(
   iframe_doc: Document,
   iframe_body: HTMLElement,
   update_height: () => void,
-  zoom_fn_ref: { current: ((src: string | null) => void) | null },
+  viewer_fn_ref: { current: ((request: ImageViewerRequest) => void) | null },
 ): void {
   forward_iframe_outside_interaction(iframe_doc);
   attach_frame_tips(iframe, iframe_doc);
+
+  iframe_doc.addEventListener("pointerover", (e) => {
+    const target = e.target as Element | null;
+
+    if (!viewer_fn_ref.current || target?.tagName !== "IMG") return;
+
+    const viewable = find_viewer_image(target, get_image_proxy_url()) !== null;
+
+    target.toggleAttribute(VIEWER_CURSOR_ATTR, viewable);
+  });
 
   iframe_doc.addEventListener(
     "wheel",
@@ -326,24 +385,27 @@ export function attach_iframe_interactions(
     passive: true,
   });
 
+  iframe_body.addEventListener(
+    "click",
+    (e) => {
+      const open_viewer = viewer_fn_ref.current;
+
+      if (!open_viewer || !is_plain_click(e)) return;
+
+      const hit = find_viewer_image(e.target, get_image_proxy_url());
+
+      if (!hit) return;
+
+      e.preventDefault();
+      e.stopPropagation();
+      if (hit.link && e.detail > 0) (hit.link as HTMLElement).blur();
+      open_viewer(build_viewer_request(hit, iframe_body));
+    },
+    true,
+  );
+
   iframe_body.addEventListener("click", (e) => {
     const target = e.target as HTMLElement;
-
-    if (target.tagName === "IMG" && !target.closest("a, area")) {
-      if (target.getAttribute("data-blocked") !== "true") {
-        const img_el = target as HTMLImageElement;
-
-        if (img_el.naturalWidth >= 16 && img_el.naturalHeight >= 16) {
-          e.preventDefault();
-          const src = img_el.currentSrc || img_el.src;
-
-          if (src) zoom_fn_ref.current?.(src);
-
-          return;
-        }
-      }
-    }
-
     const link = target.closest("a, area");
 
     if (!link) return;
@@ -375,6 +437,45 @@ export function attach_iframe_interactions(
   });
 
   iframe_body.addEventListener("contextmenu", (e) => {
+    const open_viewer = viewer_fn_ref.current;
+    const image_hit = open_viewer
+      ? find_viewer_image(e.target, get_image_proxy_url())
+      : null;
+
+    if (open_viewer && image_hit) {
+      e.preventDefault();
+      e.stopPropagation();
+
+      const frame = iframe.getBoundingClientRect();
+      const scale_x = iframe.clientWidth ? frame.width / iframe.clientWidth : 1;
+      const scale_y = iframe.clientHeight
+        ? frame.height / iframe.clientHeight
+        : 1;
+      const from_keyboard = e.clientX === 0 && e.clientY === 0;
+      const anchor = image_hit.img.getBoundingClientRect();
+      const inner_x = from_keyboard ? anchor.left : e.clientX;
+      const inner_y = from_keyboard ? anchor.bottom : e.clientY;
+      const link_href = image_hit.link?.getAttribute("href") || "";
+      const link_url =
+        image_hit.link && link_href && !is_mailto_link(link_href)
+          ? resolve_link_url(image_hit.link, link_href)
+          : "";
+      const detail: LinkMenuDetail = {
+        url: link_url && link_menu_host(link_url) ? link_url : undefined,
+        x: frame.left + inner_x * scale_x,
+        y: frame.top + inner_y * scale_y,
+        image: {
+          src: image_hit.src,
+          on_view: () =>
+            open_viewer(build_viewer_request(image_hit, iframe_body)),
+        },
+      };
+
+      window.dispatchEvent(new CustomEvent(LINK_MENU_EVENT, { detail }));
+
+      return;
+    }
+
     const link = (e.target as HTMLElement).closest("a, area");
 
     if (!link) return;
