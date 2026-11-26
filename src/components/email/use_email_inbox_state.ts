@@ -443,6 +443,10 @@ export function use_email_inbox_state(props: EmailInboxProps) {
     has_more: email_state.has_more,
     server_paged:
       !categories.enabled && (!is_alias_view || alias_scoped_by_server),
+    page_has_rows:
+      email_state.has_initial_load &&
+      !email_state.is_loading &&
+      email_state.emails.length > 0,
   });
 
   const totals_authoritative = categories.enabled
