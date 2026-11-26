@@ -51,12 +51,14 @@ import {
 } from "./auth_helpers";
 import { clear_signed_out_account_caches } from "./signed_out_account_caches";
 import { build_restore_sign_in_path } from "./restore_sign_in_path";
+import { finish_pending_sign_out } from "./pending_sign_out";
 import { restore_from_server_vault } from "./stale_local_vault_restore";
 
 import { ensure_ratchet_keys } from "@/services/crypto/ensure_ratchet_keys";
 import { check_recovery_backup_coverage } from "@/services/crypto/recovery_backup_refresh";
 import {
   init_desktop_device_auth,
+  device_id_verified_for,
   forget_device_account,
 } from "@/native/desktop_device_auth";
 import { api_client } from "@/services/api/client";
@@ -84,6 +86,7 @@ import {
   update_account_user,
   update_account_tokens,
   update_account_device_id,
+  device_id_claimed_by_other_account,
   get_account_kind,
 } from "@/services/account_manager";
 import {
@@ -110,7 +113,11 @@ import { connection_store } from "@/services/routing/connection_store";
 import { load_preferred_sender_from_server } from "@/lib/preferred_sender";
 import { show_toast } from "@/components/toast/simple_toast";
 import { hard_redirect } from "@/lib/hard_redirect";
-import { app_pathname } from "@/lib/account_index_url";
+import {
+  account_index_routing_enabled,
+  app_pathname,
+} from "@/lib/account_index_url";
+import { is_account_choice_required } from "@/lib/tab_account";
 import {
   clear_app_lock_config,
   clear_session_unlock,
@@ -244,6 +251,7 @@ export function use_auth_account_state() {
 
       if (
         signed_in_elsewhere &&
+        !account_index_routing_enabled() &&
         get_stored_encrypted_vault(signed_in_elsewhere.id)
       ) {
         const passphrase = await get_session_passphrase(
@@ -382,24 +390,30 @@ export function use_auth_account_state() {
   useEffect(() => {
     const init = async () => {
       try {
+        await finish_pending_sign_out().catch((caught) =>
+          ignore_error("contexts/auth/use_auth_account_state:init", caught),
+        );
         const data = await initialize_accounts();
 
         const current = await get_current_account();
 
         if (
           should_attempt_boot_handoff(current !== null) &&
+          !is_account_choice_required() &&
           (await try_sibling_handoff())
         ) {
           return;
         }
 
         if (!current) {
+          const tab_scoped = account_index_routing_enabled();
+
           api_client.set_authenticated(false);
           set_state((prev) => ({
             ...prev,
             is_loading: false,
             accounts: data.accounts,
-            current_account_id: data.current_account_id,
+            current_account_id: tab_scoped ? null : data.current_account_id,
           }));
 
           return;
@@ -411,16 +425,20 @@ export function use_auth_account_state() {
         if (has_tauri_runtime()) {
           await init_desktop_device_auth(current.device_id ?? null);
 
-          if (!current.device_id) {
-            const { invoke } = await import("@tauri-apps/api/core");
-            const pubkeys = await invoke<{ device_id: string | null }>(
-              "device_get_pubkeys",
-            ).catch(() => null);
+          const verified_device_id = current.device_id
+            ? null
+            : device_id_verified_for(current.id);
 
-            if (pubkeys?.device_id) {
+          if (verified_device_id) {
+            if (
+              !(await device_id_claimed_by_other_account(
+                current.id,
+                verified_device_id,
+              ))
+            ) {
               await update_account_device_id(
                 current.id,
-                pubkeys.device_id,
+                verified_device_id,
               ).catch((caught) =>
                 ignore_error(
                   "contexts/auth/use_auth_account_state:init",
@@ -760,7 +778,7 @@ export function use_auth_account_state() {
             is_authenticated: false,
             has_keys: false,
             accounts: data.accounts,
-            current_account_id: data.current_account_id,
+            current_account_id: current.id,
           });
 
           const local = current.user.email.split("@")[0] ?? "";
@@ -790,7 +808,7 @@ export function use_auth_account_state() {
           is_authenticated: true,
           has_keys: true,
           accounts: data.accounts,
-          current_account_id: data.current_account_id,
+          current_account_id: current.id,
         });
 
         if (verdict_pending) {

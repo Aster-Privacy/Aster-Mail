@@ -20,6 +20,8 @@
 //
 import { type LanguageCode, normalize_language } from "./engine_types";
 
+import { is_js_whitespace, trim_start_index } from "@/lib/linear_trim";
+
 export const MIN_DETECTION_LENGTH = 40;
 export const MIN_CJK_DETECTION_LENGTH = 12;
 export const MIN_DETECTION_CONFIDENCE = 0.62;
@@ -34,16 +36,146 @@ export interface DetectionResult {
   confidence: number;
 }
 
-const QUOTE_LINE = /^\s*(?:>|\|)+.*$/gm;
 const SIGNATURE_BLOCK = /\n--\s*\n[\s\S]*$/;
-const URL_OR_EMAIL =
-  /(?:https?:\/\/|www\.)\S+|[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/g;
+const URL_PREFIXES = ["https://", "http://", "www."];
+
+function is_line_terminator(code: number): boolean {
+  return code === 0x0a || code === 0x0d || code === 0x2028 || code === 0x2029;
+}
+
+function next_line_terminator(text: string, from: number): number {
+  let index = from;
+
+  while (index < text.length && !is_line_terminator(text.charCodeAt(index))) {
+    index += 1;
+  }
+
+  return index;
+}
+
+export function replace_quote_lines(text: string, replacement: string): string {
+  let result = "";
+  let copied = 0;
+  let line_start = 0;
+
+  while (line_start <= text.length) {
+    const content = trim_start_index(text, is_js_whitespace, line_start);
+
+    if (content >= text.length) break;
+
+    const code = text.charCodeAt(content);
+    const line_end = next_line_terminator(text, content);
+
+    if (code === 0x3e || code === 0x7c) {
+      result += text.slice(copied, line_start) + replacement;
+      copied = line_end;
+    }
+
+    line_start = line_end + 1;
+  }
+
+  return copied === 0 ? text : result + text.slice(copied);
+}
+
+function is_email_local_code(code: number): boolean {
+  return (
+    is_ascii_alphanumeric(code) ||
+    code === 0x2e ||
+    code === 0x5f ||
+    code === 0x25 ||
+    code === 0x2b ||
+    code === 0x2d
+  );
+}
+
+function is_email_domain_code(code: number): boolean {
+  return is_ascii_alphanumeric(code) || code === 0x2e || code === 0x2d;
+}
+
+function is_ascii_letter(code: number): boolean {
+  return (code >= 0x41 && code <= 0x5a) || (code >= 0x61 && code <= 0x7a);
+}
+
+function is_ascii_alphanumeric(code: number): boolean {
+  return is_ascii_letter(code) || (code >= 0x30 && code <= 0x39);
+}
+
+function url_match_end(text: string, at: number): number {
+  for (const prefix of URL_PREFIXES) {
+    if (!text.startsWith(prefix, at)) continue;
+
+    const body_start = at + prefix.length;
+    const body_end = trim_start_index(
+      text,
+      (code) => !is_js_whitespace(code),
+      body_start,
+    );
+
+    return body_end > body_start ? body_end : -1;
+  }
+
+  return -1;
+}
+
+function email_domain_end(text: string, domain_start: number): number {
+  const run_end = trim_start_index(text, is_email_domain_code, domain_start);
+
+  for (let dot = run_end - 3; dot > domain_start; dot -= 1) {
+    if (
+      text.charCodeAt(dot) === 0x2e &&
+      is_ascii_letter(text.charCodeAt(dot + 1)) &&
+      is_ascii_letter(text.charCodeAt(dot + 2))
+    ) {
+      return trim_start_index(text, is_ascii_letter, dot + 1);
+    }
+  }
+
+  return -1;
+}
+
+export function replace_urls_and_emails(
+  text: string,
+  replacement: string,
+): string {
+  let result = "";
+  let copied = 0;
+  let local_run_end = -1;
+  let local_match_end = -1;
+  let position = 0;
+
+  while (position < text.length) {
+    let match_end = url_match_end(text, position);
+
+    if (match_end === -1) {
+      if (position >= local_run_end) {
+        local_run_end = trim_start_index(text, is_email_local_code, position);
+        local_match_end =
+          local_run_end > position && text.charCodeAt(local_run_end) === 0x40
+            ? email_domain_end(text, local_run_end + 1)
+            : -1;
+      }
+
+      if (local_run_end > position) match_end = local_match_end;
+    }
+
+    if (match_end === -1) {
+      position += 1;
+      continue;
+    }
+
+    result += text.slice(copied, position) + replacement;
+    copied = match_end;
+    position = match_end;
+  }
+
+  return copied === 0 ? text : result + text.slice(copied);
+}
 
 export function strip_for_detection(text: string): string {
-  return text
-    .replace(QUOTE_LINE, " ")
-    .replace(SIGNATURE_BLOCK, " ")
-    .replace(URL_OR_EMAIL, " ")
+  return replace_urls_and_emails(
+    replace_quote_lines(text, " ").replace(SIGNATURE_BLOCK, " "),
+    " ",
+  )
     .replace(/\s+/g, " ")
     .trim();
 }

@@ -35,6 +35,7 @@ import {
   restore_compose_image_sources,
 } from "@/lib/compose_image_sources";
 import { sanitize_compose_paste, sanitize_html } from "@/lib/html_sanitizer";
+import { connection_store } from "@/services/routing/connection_store";
 
 const REMOTE = "https://images.example.com/banner.png?size=large&v=2";
 
@@ -63,6 +64,9 @@ describe("compose image sources", () => {
   });
 
   it("restores relative and onion proxy sources", () => {
+    vi.spyOn(connection_store, "get_api_onion_url").mockReturnValue(
+      "http://example.onion",
+    );
     const relative = `<img src="/api/images/v1/proxy?url=${encodeURIComponent(REMOTE)}">`;
     const onion = `<img alt="x" src="http://example.onion/api/images/v1/proxy?url=${encodeURIComponent(REMOTE)}">`;
 

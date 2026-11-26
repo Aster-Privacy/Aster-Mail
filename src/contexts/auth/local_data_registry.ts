@@ -52,6 +52,7 @@ export const INDEXED_DB_NAMES: readonly string[] = [
   "astermail_secure_db",
   "astermail_external_pgp",
   "astermail_offline_cache",
+  "astermail_image_cache",
   "astermail_session_db",
 ];
 

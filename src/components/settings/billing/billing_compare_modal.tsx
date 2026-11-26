@@ -68,6 +68,7 @@ const INDIVIDUAL_ROWS: CompareRow[] = [
   { label_key: "settings.bill_encrypted_export", values: [false, true, true] },
   { label_key: "settings.bill_protected_folders", values: [false, true, true] },
   { label_key: "settings.bill_key_rotation", values: [false, true, true] },
+  { label_key: "settings.mta_sts_plan_feature", values: [false, true, true] },
   { label_key: "settings.bill_receipt_tracking", values: [false, false, true] },
   { label_key: "settings.bill_early_access", values: [false, false, true] },
   {
@@ -82,6 +83,7 @@ const FAMILY_ROWS: CompareRow[] = [
   { label_key: "settings.bill_aliases", values: ["unlimited", "unlimited"] },
   { label_key: "settings.bill_shared_aliases", values: [true, true] },
   { label_key: "settings.bill_custom_domains", values: ["30", "30"] },
+  { label_key: "settings.mta_sts_plan_feature", values: [true, true] },
   { label_key: "settings.bill_tracker_protection", values: [true, true] },
   { label_key: "settings.bill_external_accounts", values: [true, true] },
   { label_key: "settings.bill_priority_support", values: [true, true] },

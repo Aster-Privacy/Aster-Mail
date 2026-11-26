@@ -180,7 +180,11 @@ describe("InboxEmailListItem attachment indicator", () => {
     const trailing = row.querySelector(".ms-auto") as HTMLElement;
 
     expect(trailing.textContent).toContain("10:00");
-    expect(trailing.querySelectorAll("svg")).toHaveLength(1);
+    expect(
+      [...trailing.querySelectorAll("svg")].filter(
+        (svg) => !svg.closest('[data-testid="row-hover-actions"]'),
+      ),
+    ).toHaveLength(1);
     expect(indicators(trailing)).toHaveLength(0);
   });
 

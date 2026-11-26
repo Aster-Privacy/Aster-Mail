@@ -23,6 +23,7 @@ import type { ExportAttachment } from "@/utils/export";
 import type { MimeAttachmentPart } from "@/utils/mime_attachment_parts";
 
 import { is_email_drag, read_email_drag } from "@/components/email/inbox/category_drag";
+import { is_js_whitespace, trim_end_while } from "@/lib/linear_trim";
 
 export const EML_MIME_TYPE = "message/rfc822";
 export const MAX_FORWARD_AS_ATTACHMENT = 20;
@@ -30,14 +31,18 @@ export const MAX_FORWARD_AS_ATTACHMENT = 20;
 const MAX_FILENAME_LENGTH = 80;
 const FALLBACK_FILENAME = "message";
 
+function is_dot_or_whitespace(code: number): boolean {
+  return code === 0x2e || is_js_whitespace(code);
+}
+
 export function eml_filename_for(subject: string | undefined | null): string {
-  const cleaned = (subject ?? "")
+  const collapsed = (subject ?? "")
     .replace(/[\u0000-\u001f\u007f]/g, " ")
     .replace(/[\\/:*?"<>|]/g, " ")
     .replace(/\s+/g, " ")
     .trim()
-    .replace(/^\.+/, "")
-    .replace(/[.\s]+$/, "")
+    .replace(/^\.+/, "");
+  const cleaned = trim_end_while(collapsed, is_dot_or_whitespace)
     .slice(0, MAX_FILENAME_LENGTH)
     .trim();
 

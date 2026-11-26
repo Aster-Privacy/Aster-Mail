@@ -18,6 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { find_bracketed_ids } from "@/lib/address_scans";
 
 export interface ReplyHeaderSource {
   id: string;
@@ -25,8 +26,6 @@ export interface ReplyHeaderSource {
 }
 
 export const MAX_REPLY_REFERENCES_LENGTH = 512;
-
-const MSG_ID_PATTERN = /<[^<>\s]+@[^<>\s]+>/g;
 
 function header_value(
   headers: { name: string; value: string }[] | undefined,
@@ -40,7 +39,7 @@ function header_value(
 export function extract_message_ids(value: string | undefined): string[] {
   if (!value) return [];
 
-  const bracketed = value.match(MSG_ID_PATTERN);
+  const bracketed = find_bracketed_ids(value);
 
   if (bracketed && bracketed.length > 0) return bracketed;
 

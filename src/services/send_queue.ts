@@ -86,6 +86,7 @@ import {
   type SendEmailPayload,
 } from "@/native/offline_queue";
 import { ignore_error } from "@/lib/ignore_error";
+import { prepare_outgoing_html } from "@/lib/outgoing_trailing_blanks";
 import { device_traces_erased } from "@/lib/device_erase_latch";
 import { emit_email_sent } from "@/hooks/mail_events";
 import { invalidate_mail_stats } from "@/hooks/use_mail_stats";
@@ -374,6 +375,7 @@ export function queue_email(
   return send_queue.queue(
     {
       ...email,
+      body: prepare_outgoing_html(email.body),
       on_error: wrapped_error_handler,
     },
     delay_ms,
@@ -731,6 +733,7 @@ async function prepare_email_with_plans(
     ...(email.is_plain_text ? { plain_text: true } : {}),
     ...priority_request_field(email.priority),
     ...(client_copies ? { external_pgp_bodies: client_copies } : {}),
+    primary_only_signing: true,
     obscure_subject,
   };
 
@@ -772,7 +775,10 @@ export async function queue_email_to_server(
   callbacks: ServerQueueCallbacks = {},
 ): Promise<ServerQueueResult | null> {
   try {
-    const prepared = await prepare_email_for_server_queue(email);
+    const prepared = await prepare_email_for_server_queue({
+      ...email,
+      body: prepare_outgoing_html(email.body),
+    });
 
     if (!prepared) {
       return null;

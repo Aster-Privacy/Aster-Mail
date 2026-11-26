@@ -13,7 +13,7 @@ crate-type = ["cdylib", "rlib"]
 [features]
 default = ["std"]
 std = []
-wasm = ["wasm-bindgen", "getrandom/js", "console_error_panic_hook"]
+wasm = ["wasm-bindgen", "getrandom/js", "getrandom_v04", "console_error_panic_hook"]
 
 [dependencies]
 pgp = "0.14"
@@ -36,5 +36,11 @@ chrono = { version = "0.4", features = ["serde"] }
 wasm-bindgen = { version = "0.2", optional = true }
 console_error_panic_hook = { version = "0.1", optional = true }
 
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+getrandom_v04 = { package = "getrandom", version = "0.4", features = ["wasm_js"], optional = true }
+
 [dev-dependencies]
 pretty_assertions = "1.4"
+
+[patch.crates-io]
+pgp = { path = "patches/pgp-0.14.2" }

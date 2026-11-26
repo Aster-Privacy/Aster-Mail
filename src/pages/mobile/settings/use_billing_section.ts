@@ -491,6 +491,7 @@ export function use_billing_section() {
         t("settings.plan_f_custom_key_rotation"),
         t("settings.ext_v2_plan_feat_external_accounts", { value: "5" }),
         t("settings.ext_v2_plan_f_custom_domain_primary"),
+        t("settings.mta_sts_plan_feature"),
         t("settings.vanguard_title"),
       ],
       supernova: [
@@ -502,6 +503,7 @@ export function use_billing_section() {
         t("settings.plan_f_receipt_tracking"),
         t("settings.ext_v2_plan_feat_external_accounts", { value: "20" }),
         t("settings.ext_v2_plan_f_custom_domain_primary"),
+        t("settings.mta_sts_plan_feature"),
         t("settings.plan_f_support_dedicated"),
         t("settings.plan_f_early_access"),
         t("settings.vanguard_title"),

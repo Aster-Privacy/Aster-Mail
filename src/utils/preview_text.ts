@@ -18,7 +18,12 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { html_to_preview_text, preview_body_source } from "@/lib/html_text";
+import {
+  find_paired_elements,
+  html_to_preview_text,
+  preview_body_source,
+  replace_matched_ranges,
+} from "@/lib/html_text";
 import { repair_comment_markup } from "@/lib/html_sanitizer_utils";
 
 export const PREVIEW_SOURCE_CHAR_CAP = 600;
@@ -52,9 +57,6 @@ const HIDDEN_STYLE_PATTERNS = [
 const HIDDEN_CLASS_PATTERN =
   /(^|[\s_-])(preheader|preview[-_]?text)([\s_-]|$)/i;
 
-const CSS_RULE_PATTERN = /([^{}]+)\{([^{}]*)\}/g;
-
-const STYLE_BLOCK_PATTERN = /<style\b[^>]*>([\s\S]*?)<\/style>/gi;
 
 type hidden_selectors = {
   classes: Set<string>;
@@ -136,15 +138,67 @@ function drop_at_rule_groups(css: string): string {
   return result;
 }
 
+interface CssRule {
+  selector: string;
+  declarations: string;
+}
+
+function is_brace_code(code: number): boolean {
+  return code === 123 || code === 125;
+}
+
+export function collect_css_rules(css: string): CssRule[] {
+  const rules: CssRule[] = [];
+  let position = 0;
+
+  while (position < css.length) {
+    let open = position;
+
+    while (open < css.length && !is_brace_code(css.charCodeAt(open))) {
+      open += 1;
+    }
+
+    if (open === css.length) break;
+
+    if (open === position || css.charCodeAt(open) !== 123) {
+      position = open + 1;
+      continue;
+    }
+
+    let close = open + 1;
+
+    while (close < css.length && !is_brace_code(css.charCodeAt(close))) {
+      close += 1;
+    }
+
+    if (close < css.length && css.charCodeAt(close) === 125) {
+      rules.push({
+        selector: css.slice(position, open),
+        declarations: css.slice(open + 1, close),
+      });
+      position = close + 1;
+    } else {
+      position = open + 1;
+    }
+  }
+
+  return rules;
+}
+
 function collect_hidden_selectors(html: string): hidden_selectors {
   const classes = new Set<string>();
   const ids = new Set<string>();
 
-  for (const block of html.matchAll(STYLE_BLOCK_PATTERN)) {
-    const css = drop_at_rule_groups(block[1] ?? "");
+  for (const block of find_paired_elements(html, ["style"], {
+    word_boundary: true,
+    open_tag: true,
+  })) {
+    const css = drop_at_rule_groups(
+      html.slice(block.content_start, block.content_end),
+    );
 
-    for (const rule of css.matchAll(CSS_RULE_PATTERN)) {
-      const declarations = rule[2] ?? "";
+    for (const rule of collect_css_rules(css)) {
+      const declarations = rule.declarations;
 
       if (
         !HIDDEN_STYLE_PATTERNS.some((pattern) => pattern.test(declarations))
@@ -152,7 +206,7 @@ function collect_hidden_selectors(html: string): hidden_selectors {
         continue;
       }
 
-      for (const selector of (rule[1] ?? "").split(",")) {
+      for (const selector of rule.selector.split(",")) {
         const target =
           selector
             .trim()
@@ -233,18 +287,50 @@ function collect_leading_hidden_text(
   return false;
 }
 
-const COMMENT_PATTERN = /<!--[\s\S]*?-->/g;
-
-const HIDDEN_ELEMENT_PATTERN =
-  /<(style|script|head|title)\b[^>]*>[\s\S]*?<\/\1>/gi;
+const HIDDEN_ELEMENT_NAMES = ["style", "script", "head", "title"];
 
 const STRIP_PASS_CAP = 32;
 
-function strip_until_stable(html: string, pattern: RegExp): string {
+export function strip_html_comments(html: string): string {
+  let start = html.indexOf("<!--");
+
+  if (start === -1) return html;
+
+  let result = "";
+  let cursor = 0;
+
+  while (start !== -1) {
+    const end = html.indexOf("-->", start + 4);
+
+    if (end === -1) break;
+
+    result += html.slice(cursor, start);
+    cursor = end + 3;
+    start = html.indexOf("<!--", cursor);
+  }
+
+  return result + html.slice(cursor);
+}
+
+export function strip_hidden_elements(html: string): string {
+  return replace_matched_ranges(
+    html,
+    find_paired_elements(html, HIDDEN_ELEMENT_NAMES, {
+      word_boundary: true,
+      open_tag: true,
+    }),
+    () => "",
+  );
+}
+
+function strip_until_stable(
+  html: string,
+  strip: (value: string) => string,
+): string {
   let current = html;
 
   for (let pass = 0; pass < STRIP_PASS_CAP; pass += 1) {
-    const next = current.replace(pattern, "");
+    const next = strip(current);
 
     if (next === current) return current;
 
@@ -261,8 +347,8 @@ export function extract_preheader_text(html: string): string {
   const scanned = html.slice(0, PREHEADER_HTML_SCAN_CAP);
   const selectors = collect_hidden_selectors(scanned);
   const cleaned = strip_until_stable(
-    strip_until_stable(scanned, COMMENT_PATTERN),
-    HIDDEN_ELEMENT_PATTERN,
+    strip_until_stable(scanned, strip_html_comments),
+    strip_hidden_elements,
   );
 
   let doc: Document;

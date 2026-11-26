@@ -414,13 +414,16 @@ async function read_server_state_record(
     conversation_id,
   );
   const confirmed = await read_sync_floor(conversation_id);
-  const floor =
-    local_state_present && !merging
-      ? Math.max(
-          confirmed,
-          await read_sync_counter(RATCHET_SYNC_SEALED_PREFIX, conversation_id),
-        )
-      : confirmed;
+  const sealed = local_state_present
+    ? await read_sync_counter(RATCHET_SYNC_SEALED_PREFIX, conversation_id)
+    : 0;
+  const floor = !local_state_present
+    ? confirmed
+    : merging
+      ? sealed > confirmed
+        ? confirmed + 1
+        : confirmed
+      : Math.max(confirmed, sealed);
   const established = floor > 0 || local_state_present;
   const decoded = decode_ratchet_state_container(
     plaintext,

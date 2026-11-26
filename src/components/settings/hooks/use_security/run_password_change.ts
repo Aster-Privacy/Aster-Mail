@@ -54,7 +54,10 @@ import {
   save_dev_mode,
 } from "@/services/api/preferences";
 import { reencrypt_all_sent_mail } from "@/services/send_queue_encryption";
-import { announce_sent_mail_resealed } from "@/services/sent_mail_reseal";
+import {
+  announce_sent_mail_resealed,
+  locked_after_reseal,
+} from "@/services/sent_mail_reseal";
 import { kept_app_lock_field } from "@/services/app_lock_password_change";
 import {
   convert_before_password_change,
@@ -413,7 +416,7 @@ export async function run_password_change(
     .then((summary) => {
       if (!summary) return;
 
-      write_locked_sent_mail(user_id, summary.unreadable);
+      write_locked_sent_mail(user_id, locked_after_reseal(summary));
       announce_sent_mail_resealed(summary);
 
       if (summary.failed > 0) {

@@ -37,6 +37,10 @@ import { use_i18n } from "@/lib/i18n/context";
 import { format_bytes } from "@/lib/utils";
 import { ButtonSpinner, Spinner } from "@/components/ui/spinner";
 import { Logo } from "@/components/auth/auth_styles";
+import { settle_within } from "@/lib/settle_within";
+
+const PREVIEW_TIMEOUT_MS = 15000;
+const AUTH_WAIT_MS = 15000;
 
 const TRANSPORT_FAILURE_CODES = new Set([
   "NETWORK_ERROR",
@@ -67,6 +71,7 @@ export default function JoinFamilyPage() {
   const [joined_bytes, set_joined_bytes] = useState<number | null>(null);
   const [preview_attempt, set_preview_attempt] = useState(0);
   const [preview_unreachable, set_preview_unreachable] = useState(false);
+  const [auth_wait_expired, set_auth_wait_expired] = useState(false);
   const redirect_timer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(
@@ -75,6 +80,26 @@ export default function JoinFamilyPage() {
     },
     [],
   );
+
+  useEffect(() => {
+    if (!is_loading) {
+      set_auth_wait_expired(false);
+
+      return;
+    }
+
+    const timer = setTimeout(() => set_auth_wait_expired(true), AUTH_WAIT_MS);
+
+    return () => clearTimeout(timer);
+  }, [is_loading]);
+
+  const is_waiting = (is_loading && !auth_wait_expired) || preview_loading;
+
+  useEffect(() => {
+    if (!is_waiting) {
+      window.dispatchEvent(new CustomEvent("astermail:app-ready"));
+    }
+  }, [is_waiting]);
 
   useEffect(() => {
     if (!token) {
@@ -89,9 +114,16 @@ export default function JoinFamilyPage() {
     set_error_msg(null);
     set_preview_unreachable(false);
 
-    preview_invite(token)
+    settle_within(preview_invite(token), PREVIEW_TIMEOUT_MS)
       .then((r) => {
         if (cancelled) return;
+
+        if (!r) {
+          set_preview_unreachable(true);
+          set_error_msg(t("common.something_went_wrong_try_again"));
+
+          return;
+        }
 
         if (r.data?.valid) {
           set_preview(r.data);
@@ -152,10 +184,36 @@ export default function JoinFamilyPage() {
     }
   };
 
-  if (is_loading || preview_loading) {
+  if (is_waiting) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <Spinner size="lg" />
+      </div>
+    );
+  }
+
+  if (is_loading) {
+    return (
+      <div className={page_wrap}>
+        <div className="max-w-sm w-full text-center space-y-6 flex flex-col items-center">
+          <Logo />
+          <ExclamationTriangleIcon className="w-12 h-12 text-red-500" />
+          <div className="space-y-2">
+            <h1 className="text-xl font-bold text-txt-primary">
+              {t("common.loading_stuck")}
+            </h1>
+            <p className="text-txt-muted text-sm">
+              {t("common.something_went_wrong_try_again")}
+            </p>
+          </div>
+          <button
+            className="aster_btn aster_btn_primary aster_btn_lg w-full text-center block"
+            type="button"
+            onClick={() => window.location.reload()}
+          >
+            {t("common.retry")}
+          </button>
+        </div>
       </div>
     );
   }

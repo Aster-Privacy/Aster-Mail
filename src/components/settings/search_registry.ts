@@ -1003,6 +1003,27 @@ export const SETTINGS_SEARCH_REGISTRY: SearchEntry[] = [
     crumb_key: "settings_search.content_protection",
   },
   {
+    id: "image_cache_label",
+    label_key: "settings.image_cache_label",
+    section: "security",
+    crumb_key: "settings_search.content_protection",
+    description_key: "settings.image_cache_description",
+  },
+  {
+    id: "image_prefetch_label",
+    label_key: "settings.image_prefetch_label",
+    section: "security",
+    crumb_key: "settings_search.content_protection",
+    description_key: "settings.image_prefetch_description",
+  },
+  {
+    id: "image_cache_clear_label",
+    label_key: "settings.image_cache_clear_label",
+    section: "security",
+    crumb_key: "settings_search.content_protection",
+    description_key: "settings.image_cache_clear_description",
+  },
+  {
     id: "strip_exif_on_compose_label",
     label_key: "settings.strip_exif_on_compose_label",
     section: "security",
@@ -1885,6 +1906,13 @@ export const SETTINGS_SEARCH_REGISTRY: SearchEntry[] = [
     section: "encryption",
     crumb_key: "settings.encryption_behavior",
     description_key: "settings.publish_keys_wkd_description",
+  },
+  {
+    id: "alias_pgp_title",
+    label_key: "settings.alias_pgp_title",
+    section: "encryption",
+    crumb_key: "settings.encryption_behavior",
+    description_key: "settings.alias_pgp_description",
   },
   {
     id: "publish_to_keyservers_title",

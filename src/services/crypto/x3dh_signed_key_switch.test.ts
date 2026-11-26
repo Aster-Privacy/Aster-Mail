@@ -37,6 +37,7 @@ vi.mock("./crypto_enforcement_policy", async (import_original) => {
 });
 
 vi.mock("./pq_prekey_store", () => ({
+  refuse_used_pq_prekey: vi.fn(async () => false),
   save_pq_secret: vi.fn(async () => {}),
   load_pq_secret: vi.fn(async () => null),
   delete_pq_secret: vi.fn(async () => {}),

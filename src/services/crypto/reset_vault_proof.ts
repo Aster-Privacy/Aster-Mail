@@ -18,29 +18,67 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import {
+  AUTH_SALT_COLLISION_TRANSLATION_KEY,
+  IncorrectCurrentPasswordError,
+  is_legacy_login_salt_error,
+  login_safety_error_key,
+} from "./auth_salt_guard";
 import { base64_to_array } from "./base64";
-import { derive_password_hash } from "./key_manager_pgp_keygen";
-import { read_kdf_version } from "./login_proof";
+import { derive_reset_account_proof, read_kdf_version } from "./login_proof";
 
 export interface ResetVaultProofSource {
   password_salt?: string;
   kdf_version?: number;
+  address?: string;
 }
 
 export async function derive_reset_vault_proof(
   current_password: string,
   source: ResetVaultProofSource | null | undefined,
+  address = "",
 ): Promise<string | undefined> {
   if (!current_password || !source?.password_salt) return undefined;
 
-  try {
-    const { hash, hash_v2 } = await derive_password_hash(
-      current_password,
-      base64_to_array(source.password_salt),
-    );
+  let salt: Uint8Array;
 
-    return read_kdf_version(source.kdf_version) === 2 ? hash_v2 : hash;
+  try {
+    salt = base64_to_array(source.password_salt);
   } catch {
     return undefined;
   }
+
+  try {
+    return await derive_reset_account_proof(
+      current_password,
+      salt,
+      read_kdf_version(source.kdf_version),
+      address || source.address || "",
+    );
+  } catch (caught) {
+    if (login_safety_error_key(caught)) throw caught;
+
+    return undefined;
+  }
+}
+
+export type ResetVaultProofErrorKey =
+  | "auth.reset_legacy_login_salt"
+  | "settings.current_password_incorrect"
+  | typeof AUTH_SALT_COLLISION_TRANSLATION_KEY;
+
+export function reset_vault_proof_error_key(
+  error: unknown,
+): ResetVaultProofErrorKey | null {
+  if (is_legacy_login_salt_error(error)) {
+    return "auth.reset_legacy_login_salt";
+  }
+
+  if (error instanceof IncorrectCurrentPasswordError) {
+    return "settings.current_password_incorrect";
+  }
+
+  return login_safety_error_key(error) === AUTH_SALT_COLLISION_TRANSLATION_KEY
+    ? AUTH_SALT_COLLISION_TRANSLATION_KEY
+    : null;
 }

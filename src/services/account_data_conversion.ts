@@ -31,6 +31,7 @@ import {
   type ConversionWriteResult,
 } from "./api/account_key";
 import { convert_preferences_to_account_key } from "./api/preferences";
+import { imported_password_meta_rows } from "./imported_attachment_meta";
 import {
   base64_to_array,
   decrypt_envelope_plaintext_with_bytes,
@@ -520,7 +521,46 @@ async function convert_sent_mail(
     if (!page.has_more || !cursor || items.length === 0) break;
   }
 
+  if (converted_attachments < status.remaining_attachments) {
+    const imported = await convert_imported_attachments(
+      keys,
+      summary,
+      deadline,
+    );
+
+    await report();
+
+    if (!imported) return { summary, complete: false };
+  }
+
   return { summary, complete: true };
+}
+
+async function convert_imported_attachments(
+  keys: ConversionKeys,
+  summary: ConversionSummary,
+  deadline?: ConversionDeadline,
+): Promise<boolean> {
+  try {
+    for await (const row of imported_password_meta_rows()) {
+      if (
+        !keys_still_current(keys) ||
+        (deadline && deadline.now() >= deadline.at)
+      ) {
+        return false;
+      }
+
+      tally(summary, await convert_attachment_row(row, keys));
+
+      await yield_to_ui();
+    }
+  } catch (caught) {
+    ignore_error("services/account_data_conversion:imported", caught);
+
+    return false;
+  }
+
+  return true;
 }
 
 function capture_keys(): ConversionKeys | null {

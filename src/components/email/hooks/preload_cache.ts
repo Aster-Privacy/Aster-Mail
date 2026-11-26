@@ -43,7 +43,7 @@ import {
 } from "@/services/thread_service";
 import {
   try_decrypt_ratchet_body,
-  try_decrypt_pgp_body,
+  resolve_inbound_pgp_body,
   has_inbound_pgp_block,
   try_extract_mime_body,
   extract_subject_bundle,
@@ -81,6 +81,7 @@ import {
   plain_text_to_html,
 } from "@/lib/html_sanitizer";
 import { get_image_proxy_url } from "@/lib/image_proxy";
+import { strip_remote_css_fetches } from "@/lib/html_sanitizer_css";
 import { should_defer_proxied_images } from "@/lib/image_proxy_grant";
 import { defer_proxied_images } from "@/lib/deferred_proxy_images";
 import { contain_untrusted_html } from "@/lib/untrusted_sources";
@@ -96,6 +97,7 @@ import { MAIL_EVENTS } from "@/hooks/mail_events";
 import { ignore_error } from "@/lib/ignore_error";
 import { get_active_translations } from "@/lib/i18n/translations";
 import {
+  earlier_thread_message_ids,
   extract_cid_references,
   resolve_cid_references,
   revoke_cid_blob_urls,
@@ -406,20 +408,6 @@ function presanitize(
 
 let measure_container: HTMLDivElement | null = null;
 
-// The height pre-measurement renders sanitized email markup into a top-origin
-// shadow DOM (not the script-disabled iframe used for display). Remote CSS
-// fetches there would beacon from the trusted origin even while the visible
-// render blocks them, so strip remote url()/@import for measurement only.
-// Background images and @import fonts do not affect block height, so the
-// measured height is unchanged.
-function strip_remote_css_fetches(html: string): string {
-  return html
-    .replace(/url\(\s*(['"]?)(?:https?:)?\/\/[^)]*\1\s*\)/gi, "url()")
-    .replace(/(?:-webkit-)?image-set\s*\([^)]*\)/gi, "none")
-    .replace(/cross-fade\s*\([^)]*\)/gi, "none")
-    .replace(/@import[^;]*;/gi, "");
-}
-
 function premeasure_height(
   email_id: string,
   sanitized_html: string,
@@ -498,6 +486,7 @@ export async function preload_email_detail(
   if (preload_in_flight.has(target_id)) return preload_in_flight.get(target_id);
   const started_generation = get_preload_generation();
   const started_account_epoch = get_preload_account_epoch();
+  const started_at = Date.now();
 
   let task: Promise<void> | undefined;
 
@@ -558,14 +547,19 @@ export async function preload_email_detail(
         body_text,
         item.id,
       );
-      const e2e_verified =
-        ratchet_sealed || sent_encryption_scope !== undefined;
-      const e2e_sender_bound = e2e_verified;
 
       resolved_html = sealed_html_source(resolved_html, ratchet_sealed);
       const pre_pgp_text = body_text;
+      const pgp = await resolve_inbound_pgp_body(
+        body_text,
+        envelope.from?.email,
+        item.id,
+      );
 
-      body_text = await try_decrypt_pgp_body(body_text, item.id);
+      body_text = pgp.body;
+      const e2e_verified =
+        ratchet_sealed || sent_encryption_scope !== undefined || pgp.verified;
+      const e2e_sender_bound = e2e_verified;
 
       const password_protected = is_password_protected_body(body_text);
       const pre_mime_text = body_text;
@@ -807,7 +801,12 @@ export async function preload_email_detail(
           if (!sanitized) return;
           if (extract_cid_references(sanitized.html).length === 0) return;
           try {
-            const result = await resolve_cid_references(sanitized.html, msg.id);
+            const result = await resolve_cid_references(
+              sanitized.html,
+              msg.id,
+              "blob",
+              earlier_thread_message_ids(thread_messages, msg.id),
+            );
 
             if (result.unresolved > 0) {
               revoke_cid_blob_urls(result.blob_urls);
@@ -897,7 +896,7 @@ export async function preload_email_detail(
         thread_sanitized,
         cid_resolved,
         thread_cid_resolved,
-        time: Date.now(),
+        time: started_at,
         is_stale: false,
         conversation_grouping: conversation_grouping !== false,
       });

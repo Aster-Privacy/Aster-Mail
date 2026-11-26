@@ -102,18 +102,22 @@ async function decrypt_dev_mode(
   );
   const nonce_data = Uint8Array.from(atob(nonce), (c) => c.charCodeAt(0));
 
+  const opening = { retired: false };
   const decrypted = await retry_after_account_key_load(() =>
     decrypt_account_context_with_fallback(
       "astermail-devmode-v1",
       key,
       encrypted_data,
       nonce_data,
+      () => {
+        opening.retired = true;
+      },
     ),
   );
 
   const result = JSON.parse(new TextDecoder().decode(decrypted));
 
-  return result.enabled === true;
+  return !opening.retired && result.enabled === true;
 }
 
 export async function get_dev_mode(

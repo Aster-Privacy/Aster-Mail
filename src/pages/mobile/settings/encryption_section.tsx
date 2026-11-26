@@ -545,6 +545,16 @@ export function EncryptionSection({
               />
             }
           />
+          <SettingsRow
+            description={t("settings.alias_pgp_description")}
+            label={t("settings.alias_pgp_title")}
+            trailing={
+              <Switch
+                checked={enc.alias_pgp_enabled}
+                onCheckedChange={() => enc.handle_alias_pgp_toggle()}
+              />
+            }
+          />
         </SettingsGroup>
 
         <UpgradeGate

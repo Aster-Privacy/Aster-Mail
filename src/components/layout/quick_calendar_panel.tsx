@@ -469,7 +469,7 @@ export function QuickCalendarPanel({
           key={frame_key}
           ref={frame_ref}
           allow="clipboard-write"
-          className={`absolute inset-0 h-full w-full border-0 bg-transparent transition-opacity duration-150 ${
+          className={`absolute inset-0 h-full w-full select-none border-0 bg-transparent transition-opacity duration-150 ${
             frame_state === "ready" ? "opacity-100" : "opacity-0"
           }`}
           referrerPolicy="strict-origin"

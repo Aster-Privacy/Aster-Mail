@@ -488,6 +488,7 @@ function MobileThreadMessageContent({
     t("common.encrypted_attachment"),
     plain_view || !has_rich_html(clean_body) ? undefined : sanitized_html,
     message.decrypted_content_tag,
+    is_own_message,
   );
 
   use_attachment_keys_version(message.id);
@@ -497,6 +498,7 @@ function MobileThreadMessageContent({
           mail_item_id: message.id,
           is_external: message.is_external,
           has_recipient_key: message.has_recipient_key,
+          is_received: message.item_type === "received",
           e2e_verified: !!message.e2e_verified,
           sent_encryption_scope: message.sent_encryption_scope,
         })
@@ -822,6 +824,7 @@ function MobileThreadMessageContent({
                     : undefined
                 }
                 is_external={message.is_external}
+                is_received={message.item_type === "received"}
                 label={
                   files_label === "outside"
                     ? t("common.files_outside_encrypted_label")

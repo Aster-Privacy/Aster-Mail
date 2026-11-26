@@ -33,6 +33,7 @@ import {
   remove_allowed_sender_by_token,
   allow_sender,
 } from "@/services/api/allowed_senders";
+import { is_email_shape } from "@/lib/email_shape";
 
 export function AllowlistTab() {
   const { t } = use_i18n();
@@ -102,7 +103,6 @@ export function AllowlistTab() {
 
     if (!value || is_adding) return;
 
-    const email_regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     const domain_regex =
       /^[a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?(\.[a-zA-Z]{2,})+$/;
 
@@ -113,7 +113,7 @@ export function AllowlistTab() {
         return;
       }
     } else {
-      if (!email_regex.test(value)) {
+      if (!is_email_shape(value)) {
         show_toast(t("common.please_enter_valid_email"), "error");
 
         return;

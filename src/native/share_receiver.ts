@@ -23,6 +23,7 @@ import { Share, type ShareResult } from "@capacitor/share";
 
 import { is_native_platform } from "./capacitor_bridge";
 
+import { split_mailto_url } from "@/lib/address_scans";
 import { ignore_error } from "@/lib/ignore_error";
 import { get_active_translations } from "@/lib/i18n/translations";
 
@@ -80,14 +81,13 @@ function parse_share_url(url: string): SharedContent | null {
 }
 
 function parse_mailto_url(url: string): SharedContent {
-  const mailto_regex = /^mailto:([^?]*)\??(.*)$/;
-  const match = url.match(mailto_regex);
+  const match = split_mailto_url(url);
 
   const content: SharedContent = {};
 
   if (match) {
-    const email = decodeURIComponent(match[1]);
-    const params = new URLSearchParams(match[2]);
+    const email = decodeURIComponent(match[0]);
+    const params = new URLSearchParams(match[1]);
 
     if (email) {
       content.text = `To: ${email}`;

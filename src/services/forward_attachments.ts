@@ -21,6 +21,7 @@
 import type { Attachment } from "@/components/compose/compose_shared";
 import type { AttachmentMeta } from "@/services/crypto/attachment_crypto";
 
+import { strip_angle_edges } from "@/lib/address_scans";
 import { list_attachments } from "@/services/api/attachments";
 import {
   decrypt_attachment_meta,
@@ -52,10 +53,7 @@ export interface LoadForwardAttachmentsOptions {
 }
 
 function normalize_reference(value: string): string {
-  return value
-    .replace(/^<+|>+$/g, "")
-    .trim()
-    .toLowerCase();
+  return strip_angle_edges(value).trim().toLowerCase();
 }
 
 function is_inline_source_attachment(

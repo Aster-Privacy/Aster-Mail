@@ -41,12 +41,14 @@ import {
   is_attachment_meta_v2_nonce,
   seal_attachment_meta_v2,
 } from "./crypto/attachment_meta_v2";
+import { reseal_imported_attachments } from "./imported_attachment_meta";
 
 export interface SentMailResealSummary {
   checked: number;
   rewritten: number;
   unreadable: number;
   failed: number;
+  locked_attachments: number;
 }
 
 export interface SentMailResealOptions {
@@ -318,6 +320,7 @@ export async function reencrypt_all_sent_mail(
     rewritten: 0,
     unreadable: 0,
     failed: 0,
+    locked_attachments: 0,
   };
 
   const item_types: ("sent" | "draft")[] = kek ? ["sent", "draft"] : ["sent"];
@@ -339,7 +342,10 @@ export async function reencrypt_all_sent_mail(
 
           if (outcome === "rewritten") summary.rewritten += 1;
           else if (outcome === "unreadable") summary.unreadable += 1;
-          else if (outcome === "failed") summary.failed += 1;
+          else if (outcome === "failed") {
+        summary.failed += 1;
+        summary.locked_attachments += 1;
+      }
 
           options.on_progress?.({ ...summary });
         }
@@ -349,6 +355,17 @@ export async function reencrypt_all_sent_mail(
         if (!cursor) break;
       }
     }
+
+    await reseal_imported_attachments(old_bytes, new_bytes, kek, (outcome) => {
+      if (outcome === "rewritten") summary.rewritten += 1;
+      else if (outcome === "unreadable") summary.locked_attachments += 1;
+      else if (outcome === "failed") {
+        summary.failed += 1;
+        summary.locked_attachments += 1;
+      }
+
+      options.on_progress?.({ ...summary });
+    });
   } finally {
     zero_uint8_array(old_bytes);
     zero_uint8_array(new_bytes);
@@ -363,4 +380,8 @@ export function announce_sent_mail_resealed(
 ): void {
   if (!summary || summary.rewritten <= 0) return;
   emit_refresh_requested();
+}
+
+export function locked_after_reseal(summary: SentMailResealSummary): number {
+  return summary.unreadable + summary.locked_attachments;
 }

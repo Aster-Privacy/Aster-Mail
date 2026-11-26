@@ -62,6 +62,7 @@ import {
   get_status_color,
   get_status_label,
   list_domain_orders,
+  update_domain_address,
   type DnsRecord,
   type DnsRecordsResponse,
   type DomainOrder,
@@ -679,6 +680,36 @@ export function AliasesSection({
                     <ClipboardDocumentIcon className="h-4 w-4 text-[var(--mobile-text-muted)]" />
                   </button>
                 </div>
+                <AliasNoteEditor
+                  alias_address={`${addr.local_part}@${addr.domain_name}`}
+                  note={addr.note}
+                  on_save={(note_value) =>
+                    update_domain_address(addr.domain_id, addr.id, {
+                      note: note_value,
+                    })
+                  }
+                  on_saved={(note_value) =>
+                    hook.handle_domain_address_note_saved(addr.id, note_value)
+                  }
+                  variant="mobile"
+                />
+                <AliasWebsitesEditor
+                  alias_address={`${addr.local_part}@${addr.domain_name}`}
+                  on_save={(websites_value) =>
+                    update_domain_address(addr.domain_id, addr.id, {
+                      websites:
+                        websites_value.length > 0 ? websites_value : null,
+                    })
+                  }
+                  on_saved={(websites_value) =>
+                    hook.handle_domain_address_websites_saved(
+                      addr.id,
+                      websites_value,
+                    )
+                  }
+                  variant="mobile"
+                  websites={addr.websites}
+                />
                 <div className="mt-2 flex items-center gap-3">
                   <span className="rounded bg-[var(--mobile-bg-card-hover)] px-1.5 py-0.5 text-[10px] font-medium text-[var(--text-muted)]">
                     {addr.domain_name}

@@ -305,7 +305,7 @@ describe.each(Object.entries(fixtures))(
 
       expect(shown_without.body_text).toContain("sealed by the server");
       expect(displayed(without_key, shown_without.e2e_verified)).toEqual({
-        end_to_end: true,
+        end_to_end: false,
         sender: "no_keys",
       });
 

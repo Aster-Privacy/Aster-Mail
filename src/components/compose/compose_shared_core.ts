@@ -32,6 +32,11 @@ import {
   calendar_day_diff,
   get_display_time_zone,
 } from "@/utils/date_format";
+import { is_email_shape } from "@/lib/email_shape";
+import {
+  is_known_placeholder_pixel,
+  is_placeholder_pixel,
+} from "@/lib/placeholder_pixel";
 
 export interface ComposeToolbarState {
   scheduled_time: Date | null;
@@ -125,6 +130,7 @@ export interface EditDraftData {
   subject: string;
   message: string;
   from_email?: string;
+  thread_addresses?: string[];
   expires_at?: string;
   expiry_password?: string;
   updated_at: string;
@@ -312,13 +318,24 @@ export function extract_inline_images(html: string): {
 
     const binary = atob(b64_data);
 
-    if (binary.length === 0) continue;
+    if (binary.length === 0) {
+      img.remove();
+      continue;
+    }
 
     const buffer = new ArrayBuffer(binary.length);
     const view = new Uint8Array(buffer);
 
     for (let i = 0; i < binary.length; i++) {
       view[i] = binary.charCodeAt(i);
+    }
+
+    if (
+      is_known_placeholder_pixel(view) ||
+      (img.closest("blockquote, .aster_quote") && is_placeholder_pixel(view))
+    ) {
+      img.remove();
+      continue;
     }
 
     if (buffer.byteLength > MAX_INLINE_IMAGE_SIZE) continue;
@@ -348,8 +365,7 @@ export function extract_inline_images(html: string): {
   };
 }
 
-export const is_valid_email = (email: string): boolean =>
-  /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+export const is_valid_email = (email: string): boolean => is_email_shape(email);
 
 export function format_last_saved(
   saved_time: Date,

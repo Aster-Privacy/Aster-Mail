@@ -420,6 +420,15 @@ export function get_plan_comparison_rows(
     },
     {
       category: mail,
+      label: t("settings.mta_sts_plan_feature"),
+      tip: t("settings.mta_sts_plan_feature_description"),
+      free: no,
+      star: no,
+      nova: yes,
+      supernova: yes,
+    },
+    {
+      category: mail,
       label: t("settings.plan_f_quiet_hours"),
       free: no,
       star: yes,

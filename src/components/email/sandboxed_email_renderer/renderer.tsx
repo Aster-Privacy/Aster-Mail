@@ -25,6 +25,11 @@ import { build_measurement_controls } from "./measurement_controls";
 import { attach_iframe_interactions } from "./iframe_interactions";
 import { has_designed_background } from "./designed_background";
 import {
+  has_centered_card_layout,
+  has_style_block_background,
+  has_table_layout_attribute,
+} from "./layout_probe";
+import {
   BODY_PADDING,
   CONTENT_READY_FALLBACK_MS,
   SETTLE_REMEASURE_DELAYS_MS,
@@ -331,18 +336,14 @@ export function SandboxedEmailRenderer({
       layout_probe,
       body_background,
     );
-    const has_style_block =
-      /<style\b[^>]*>(?:(?!<\/style\b)[\s\S])*?background/i.test(layout_probe);
-    const has_centered_card =
-      /max-width\s*:\s*[3456789]\d{2}px[^;}"']*;[^"']*margin\s*:[^;}"']*auto/i.test(
-        layout_probe,
-      );
+    const has_style_block = has_style_block_background(layout_probe);
+    const has_centered_card = has_centered_card_layout(layout_probe);
     const has_newsletter_layout =
       (has_table_layout &&
         (/style\s*=\s*["'][^"']*width\s*:\s*[456789]\d{2}px/i.test(
           layout_probe,
         ) ||
-          /<table[^>]*(?:width|bgcolor|background)\s*=/i.test(layout_probe) ||
+          has_table_layout_attribute(layout_probe) ||
           (layout_probe.match(/<table\b/gi)?.length ?? 0) > 2)) ||
       has_designed_bg ||
       has_style_block ||
@@ -487,12 +488,17 @@ a:focus-visible {
   const quote_toggle_hover_bg = quote_toggle_dark
     ? "rgba(255, 255, 255, 0.14)"
     : "rgba(60, 64, 67, 0.12)";
-  const quote_toggle_css = `.aster-quote-toggle { display: block !important; box-sizing: border-box !important; width: max-content !important; height: 24px !important; min-width: 40px !important; margin: 8px 0 !important; padding: 10px 12px !important; list-style: none !important; font-size: 0 !important; line-height: 0 !important; background: ${quote_toggle_bg} !important; border: 0 !important; border-radius: 12px !important; color: ${quote_toggle_ink} !important; cursor: pointer !important; vertical-align: middle !important; transition: background-color 0.16s ease !important; }
+  const quote_toggle_active_bg = quote_toggle_dark
+    ? "rgba(255, 255, 255, 0.2)"
+    : "rgba(60, 64, 67, 0.18)";
+  const quote_toggle_css = `.aster-quote-toggle { display: flex !important; align-items: center !important; justify-content: center !important; position: relative !important; box-sizing: border-box !important; width: 24px !important; height: 12px !important; margin: 10px 0 8px !important; padding: 0 !important; list-style: none !important; font-size: 0 !important; line-height: 0 !important; background: ${quote_toggle_bg} !important; border: 0 !important; border-radius: 6px !important; color: ${quote_toggle_ink} !important; cursor: pointer !important; transition: background-color 0.12s ease, transform 0.08s ease !important; }
+.aster-quote-toggle::after { content: "" !important; position: absolute !important; inset: -8px -6px !important; }
+.aster-quote-toggle:active { background: ${quote_toggle_active_bg} !important; transform: scale(0.94) !important; }
 .aster-quote-toggle::-webkit-details-marker { display: none !important; }
 .aster-quote-toggle::marker { content: "" !important; }
 .aster-quote-toggle:hover, .aster-quote-toggle.aster-quote-expanded, details[open] > .aster-quote-toggle { background: ${quote_toggle_hover_bg} !important; }
-.aster-quote-toggle:focus-visible { outline: 2px solid ${link_ink} !important; outline-offset: 1px !important; }
-.aster-quote-toggle-dots { display: block !important; margin: 0 auto !important; width: 4px !important; height: 4px !important; border-radius: 50% !important; background: currentColor !important; box-shadow: -6.5px 0 0 currentColor, 6.5px 0 0 currentColor !important; }
+.aster-quote-toggle:focus-visible { outline: 2px solid ${link_ink} !important; outline-offset: 2px !important; }
+.aster-quote-toggle-dots { display: block !important; flex: none !important; margin: 0 !important; width: 3px !important; height: 3px !important; border-radius: 50% !important; background: currentColor !important; box-shadow: -5px 0 0 currentColor, 5px 0 0 currentColor !important; }
 .aster-quoted-content { border-left-color: ${quote_rail_ink} !important; }`;
 
   const plain_dark_css = auto_dark_active
@@ -531,8 +537,10 @@ a:focus-visible {
     !force_light_scheme && (force_dark_mode || auto_dark_active)
       ? "dark"
       : "light";
+  const light_scheme_canvas =
+    !html_bg || html_bg === "transparent" ? "#ffffff" : html_bg;
   const html_el_style = force_light_scheme
-    ? ` style="background-color:${html_bg}"`
+    ? ` style="background-color:${light_scheme_canvas}"`
     : document_scheme === "dark"
       ? ` style="color-scheme:dark !important"`
       : "";
@@ -710,7 +718,11 @@ ${preferences.hide_scrollbars === true ? `<style>html, body { scrollbar-width: n
     dom_cleanup.reveal_fully_hidden_content(iframe.contentDocument);
     if (!preserve_formatting) {
       collapse_empty_block_runs(iframe.contentDocument);
-      if (is_plain_text || !has_rich_layout) {
+      if (
+        is_plain_text ||
+        !has_rich_layout ||
+        dom_cleanup.has_aster_compose_markup(iframe.contentDocument)
+      ) {
         trim_trailing_empty_blocks(iframe.contentDocument);
       }
     }
@@ -883,10 +895,7 @@ ${preferences.hide_scrollbars === true ? `<style>html, body { scrollbar-width: n
   }, [zoomed_image]);
 
   const effective_bg = is_html_email ? html_bg : plain_bg;
-  const frame_bg =
-    force_light_scheme && (!effective_bg || effective_bg === "transparent")
-      ? "#ffffff"
-      : effective_bg;
+  const frame_bg = force_light_scheme ? light_scheme_canvas : effective_bg;
   const skeleton_canvas = normalize_hex(effective_bg);
   const skeleton_canvas_ink = skeleton_canvas
     ? relative_luminance(skeleton_canvas) > 0.4
@@ -1128,6 +1137,8 @@ ${preferences.hide_scrollbars === true ? `<style>html, body { scrollbar-width: n
             backgroundColor: frame_bg,
             colorScheme: document_scheme,
             touchAction: "pan-y",
+            userSelect: "none",
+            WebkitUserSelect: "none",
           }}
           title={t("mail.email_content")}
           onLoad={handle_load}

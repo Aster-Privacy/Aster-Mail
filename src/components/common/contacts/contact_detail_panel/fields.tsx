@@ -28,7 +28,7 @@ import {
   ChevronDownIcon,
   KeyIcon,
 } from "@heroicons/react/24/outline";
-import { Button } from "@aster/ui";
+import { Button, Tooltip } from "@aster/ui";
 
 import {
   ADDRESS_TYPE_OPTIONS,
@@ -441,14 +441,16 @@ export function TypedList<T extends string>({
               />
             )}
             {!disabled && (
-              <button
-                aria-label={t("common.remove")}
-                className="flex-shrink-0 w-8 h-8 rounded-full hover:bg-[var(--aster-hover)] flex items-center justify-center transition-colors"
-                type="button"
-                onClick={() => on_remove(idx)}
-              >
-                <XMarkIcon className="w-4 h-4 text-txt-muted" />
-              </button>
+              <Tooltip tip={t("common.remove")}>
+                <button
+                  aria-label={t("common.remove")}
+                  className="contact_field_remove"
+                  type="button"
+                  onClick={() => on_remove(idx)}
+                >
+                  <XMarkIcon className="w-4 h-4" />
+                </button>
+              </Tooltip>
             )}
           </div>
         );
@@ -526,14 +528,16 @@ export function AddressList({
               />
             )}
             {!disabled && (
-              <button
-                aria-label={t("common.remove")}
-                className="flex-shrink-0 w-8 h-8 rounded-full hover:bg-[var(--aster-hover)] flex items-center justify-center transition-colors"
-                type="button"
-                onClick={() => on_remove(idx)}
-              >
-                <XMarkIcon className="w-4 h-4 text-txt-muted" />
-              </button>
+              <Tooltip tip={t("common.remove")}>
+                <button
+                  aria-label={t("common.remove")}
+                  className="contact_field_remove"
+                  type="button"
+                  onClick={() => on_remove(idx)}
+                >
+                  <XMarkIcon className="w-4 h-4" />
+                </button>
+              </Tooltip>
             )}
           </div>
           <input

@@ -18,6 +18,8 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { canvas_readback_trusted } from "@/lib/canvas_readback";
+
 export type ImageSizeChoice = "reduce" | "original" | "cancel";
 
 export const REDUCED_IMAGE_MAX_EDGE = 1920;
@@ -68,6 +70,8 @@ function encode_canvas(
 }
 
 export async function reduce_image_file(file: File): Promise<File> {
+  if (!canvas_readback_trusted()) return file;
+
   try {
     const bitmap = await createImageBitmap(file, {
       imageOrientation: "from-image",
