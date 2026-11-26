@@ -3823,7 +3823,7 @@ export const it = {
     fam_org_ret_trash: "Cestino",
     fam_org_ret_trash_hint: "Elimina automaticamente la posta cestinata",
     fam_org_ret_trash_info:
-      "I messaggi nel cestino più vecchi di questo numero di giorni vengono rimossi definitivamente.",
+      "I messaggi vengono rimossi definitivamente dopo questo numero di giorni dallo spostamento nel cestino.",
     fam_org_ret_spam: "Spam",
     fam_org_ret_spam_hint:
       "Elimina automaticamente lo spam (predefinito 30 giorni)",
@@ -7975,7 +7975,7 @@ export const it = {
     auto_delete_spam_after: "Elimina automaticamente lo spam dopo",
     auto_delete_trash_after: "Elimina automaticamente il cestino dopo",
     auto_delete_trash_description:
-      "Le email nel Cestino più vecchie di questo periodo vengono eliminate definitivamente.",
+      "I messaggi vengono eliminati definitivamente trascorso questo periodo dallo spostamento nel Cestino.",
     spam_delete_hint:
       "Le email spam più vecchie di questo periodo verranno eliminate definitivamente",
     save_changes: "Salva modifiche",
@@ -10426,11 +10426,11 @@ export const it = {
     fonts: "font",
     stylesheet: "foglio di stile",
     trash_auto_delete_notice:
-      "I messaggi nel Cestino vengono eliminati dopo {{ days }} giorni.",
+      "I messaggi vengono eliminati {{ days }} giorni dopo lo spostamento nel Cestino.",
     spam_auto_delete_notice:
       "I messaggi nello Spam vengono eliminati dopo {{ days }} giorni.",
     trash_auto_delete_notice_family:
-      "I messaggi nel Cestino vengono eliminati dopo {{ days }} giorni, come impostato dall'amministratore della famiglia.",
+      "I messaggi vengono eliminati {{ days }} giorni dopo lo spostamento nel Cestino, come impostato dall'amministratore della famiglia.",
     spam_auto_delete_notice_family:
       "I messaggi nello Spam vengono eliminati dopo {{ days }} giorni, come impostato dall'amministratore della famiglia.",
     insert_link_title: "Inserisci link",

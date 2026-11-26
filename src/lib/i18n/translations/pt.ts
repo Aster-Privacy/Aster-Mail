@@ -3844,7 +3844,7 @@ export const pt = {
     fam_org_ret_trash: "Lixo",
     fam_org_ret_trash_hint: "Eliminar automaticamente o correio no Lixo",
     fam_org_ret_trash_info:
-      "As mensagens no Lixo com mais do que este número de dias são removidas permanentemente.",
+      "As mensagens são removidas permanentemente após este número de dias, contados a partir da mudança para o Lixo.",
     fam_org_ret_spam: "Spam",
     fam_org_ret_spam_hint:
       "Eliminar automaticamente o spam (predefinição de 30 dias)",
@@ -6665,7 +6665,7 @@ export const pt = {
     auto_delete_spam_after: "Eliminar spam automaticamente após",
     auto_delete_trash_after: "Eliminar automaticamente do Lixo após",
     auto_delete_trash_description:
-      "Os e-mails no Lixo mais antigos do que este período são eliminados permanentemente.",
+      "As mensagens são eliminadas permanentemente depois deste período, contado a partir do momento em que as move para o Lixo.",
     spam_delete_hint:
       "E-mails de spam mais antigos que isso serão eliminados permanentemente",
     save_changes: "Guardar alterações",
@@ -10446,11 +10446,11 @@ export const pt = {
     fonts: "fontes",
     stylesheet: "folha de estilo",
     trash_auto_delete_notice:
-      "As mensagens no Lixo são eliminadas após {{ days }} dias.",
+      "As mensagens são eliminadas {{ days }} dias depois de irem para o Lixo.",
     spam_auto_delete_notice:
       "As mensagens no Spam são eliminadas após {{ days }} dias.",
     trash_auto_delete_notice_family:
-      "As mensagens no Lixo são eliminadas após {{ days }} dias, conforme definido pelo administrador da família.",
+      "As mensagens são eliminadas {{ days }} dias depois de irem para o Lixo, conforme definido pelo administrador da família.",
     spam_auto_delete_notice_family:
       "As mensagens no Spam são eliminadas após {{ days }} dias, conforme definido pelo administrador da família.",
     insert_link_title: "Inserir link",

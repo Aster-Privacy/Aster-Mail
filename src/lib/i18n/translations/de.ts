@@ -3816,7 +3816,7 @@ export const de = {
     fam_org_ret_trash: "Papierkorb",
     fam_org_ret_trash_hint: "Gelöschte E-Mails automatisch entfernen",
     fam_org_ret_trash_info:
-      "Nachrichten im Papierkorb, die älter als diese Anzahl an Tagen sind, werden dauerhaft entfernt.",
+      "Nachrichten werden so viele Tage nach dem Verschieben in den Papierkorb dauerhaft entfernt.",
     fam_org_ret_spam: "Spam",
     fam_org_ret_spam_hint: "Spam automatisch löschen (Standard 30 Tage)",
     fam_org_ret_spam_info:
@@ -6463,7 +6463,7 @@ export const de = {
     auto_delete_spam_after: "Spam automatisch löschen nach",
     auto_delete_trash_after: "Papierkorb automatisch löschen nach",
     auto_delete_trash_description:
-      "E-Mails im Papierkorb, die älter als dieser Zeitraum sind, werden dauerhaft gelöscht.",
+      "Nachrichten werden diese Zeit nach dem Verschieben in den Papierkorb dauerhaft gelöscht.",
     save_changes: "Änderungen speichern",
     spam_low: "Niedrig",
     spam_low_description: "Nur offensichtlicher Spam wird gefiltert",
@@ -10663,7 +10663,7 @@ export const de = {
     spam_auto_delete_notice:
       "Nachrichten im Spam-Ordner werden nach {{ days }} Tagen gelöscht.",
     trash_auto_delete_notice_family:
-      "Nachrichten im Papierkorb werden nach {{ days }} Tagen gelöscht, wie vom Familienadministrator festgelegt.",
+      "Nachrichten werden {{ days }} Tage nach dem Verschieben in den Papierkorb gelöscht, wie vom Familienadministrator festgelegt.",
     spam_auto_delete_notice_family:
       "Nachrichten im Spam-Ordner werden nach {{ days }} Tagen gelöscht, wie vom Familienadministrator festgelegt.",
     spy_pixels_blocked: "Spionage-Pixel blockiert",
@@ -10678,7 +10678,7 @@ export const de = {
     trackers: "Tracker",
     tracking_protection: "Tracking-Schutz",
     trash_auto_delete_notice:
-      "Nachrichten im Papierkorb werden nach {{ days }} Tagen gelöscht.",
+      "Nachrichten werden {{ days }} Tage nach dem Verschieben in den Papierkorb gelöscht.",
     try_adjusting_filters:
       "Passen Sie Ihre Filter an oder suchen Sie nach etwas anderem",
     url_label: "URL",

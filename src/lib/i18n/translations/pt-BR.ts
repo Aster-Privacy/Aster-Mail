@@ -3812,7 +3812,7 @@ export const pt_br = {
     fam_org_ret_trash: "Lixeira",
     fam_org_ret_trash_hint: "Excluir automaticamente os e-mails da Lixeira",
     fam_org_ret_trash_info:
-      "As mensagens na Lixeira com mais do que este número de dias são removidas permanentemente.",
+      "As mensagens são removidas permanentemente após este número de dias, contados a partir da mudança para a Lixeira.",
     fam_org_ret_spam: "Spam",
     fam_org_ret_spam_hint: "Excluir spam automaticamente (padrão de 30 dias)",
     fam_org_ret_spam_info:
@@ -9575,7 +9575,7 @@ export const pt_br = {
       "Sua assinatura é grande demais para ser salva. Remova uma imagem ou encurte o texto.",
     auto_delete_trash_after: "Excluir a lixeira automaticamente após",
     auto_delete_trash_description:
-      "Os e-mails na Lixeira mais antigos que este período são excluídos permanentemente.",
+      "As mensagens são excluídas permanentemente depois desse período, contado a partir do momento em que você as move para a Lixeira.",
     retention_days_count: "{{ days }} dias",
     retention_180_days: "180 dias",
     retention_365_days: "365 dias",
@@ -10386,11 +10386,11 @@ export const pt_br = {
     fonts: "fontes",
     stylesheet: "folha de estilo",
     trash_auto_delete_notice:
-      "As mensagens na Lixeira são excluídas após {{ days }} dias.",
+      "As mensagens são excluídas {{ days }} dias depois de irem para a Lixeira.",
     spam_auto_delete_notice:
       "As mensagens no Spam são excluídas após {{ days }} dias.",
     trash_auto_delete_notice_family:
-      "As mensagens na Lixeira são excluídas após {{ days }} dias, conforme definido pelo administrador da família.",
+      "As mensagens são excluídas {{ days }} dias depois de irem para a Lixeira, conforme definido pelo administrador da família.",
     spam_auto_delete_notice_family:
       "As mensagens no Spam são excluídas após {{ days }} dias, conforme definido pelo administrador da família.",
     insert_link_title: "Inserir link",

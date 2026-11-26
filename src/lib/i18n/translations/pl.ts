@@ -3966,7 +3966,7 @@ export const pl = {
     fam_org_ret_trash: "Kosz",
     fam_org_ret_trash_hint: "Automatycznie usuwaj pocztę z kosza",
     fam_org_ret_trash_info:
-      "Wiadomości w Koszu starsze niż podana liczba dni są trwale usuwane.",
+      "Wiadomości są trwale usuwane po upływie podanej liczby dni od przeniesienia do Kosza.",
     fam_org_ret_spam: "Spam",
     fam_org_ret_spam_hint: "Automatycznie usuwaj spam (domyślnie 30 dni)",
     fam_org_ret_spam_info:
@@ -6761,7 +6761,7 @@ export const pl = {
     auto_delete_spam_after: "Automatycznie usuwaj spam po",
     auto_delete_trash_after: "Automatycznie usuwaj kosz po",
     auto_delete_trash_description:
-      "Wiadomości w Koszu starsze niż ta wartość zostają trwale usunięte.",
+      "Wiadomości są trwale usuwane po upływie tego czasu od przeniesienia ich do Kosza.",
     spam_delete_hint: "Spam starszy niż ten okres zostanie trwale usunięty",
     save_changes: "Zapisz zmiany",
     spam_low: "Niska",
@@ -10611,11 +10611,11 @@ export const pl = {
     fonts: "czcionki",
     stylesheet: "arkusz stylów",
     trash_auto_delete_notice:
-      "Wiadomości w Koszu są usuwane po {{ days }} dniach.",
+      "Wiadomości są usuwane {{ days }} dni po przeniesieniu do Kosza.",
     spam_auto_delete_notice:
       "Wiadomości w folderze Spam są usuwane po {{ days }} dniach.",
     trash_auto_delete_notice_family:
-      "Wiadomości w Koszu są usuwane po {{ days }} dniach, zgodnie z ustawieniem administratora rodziny.",
+      "Wiadomości są usuwane {{ days }} dni po przeniesieniu do Kosza, zgodnie z ustawieniem administratora rodziny.",
     spam_auto_delete_notice_family:
       "Wiadomości w folderze Spam są usuwane po {{ days }} dniach, zgodnie z ustawieniem administratora rodziny.",
     insert_link_title: "Wstaw link",

@@ -3744,7 +3744,7 @@ export const tr = {
     fam_org_ret_trash: "Çöp",
     fam_org_ret_trash_hint: "Çöpteki postayı otomatik sil",
     fam_org_ret_trash_info:
-      "Çöpteki bu kadar günden eski mesajlar kalıcı olarak silinir.",
+      "Mesajlar, Çöp Kutusu'na taşındıktan bu kadar gün sonra kalıcı olarak silinir.",
     fam_org_ret_spam: "Önemsiz",
     fam_org_ret_spam_hint: "Spam'i otomatik sil (varsayılan 30 gün)",
     fam_org_ret_spam_info:
@@ -6518,7 +6518,7 @@ export const tr = {
     auto_delete_spam_after: "Spam'i şu süre sonra otomatik sil:",
     auto_delete_trash_after: "Çöp kutusunu şu süre sonra otomatik sil:",
     auto_delete_trash_description:
-      "Bu süreden eski Çöp Kutusu e-postaları kalıcı olarak silinir.",
+      "E-postalar, Çöp Kutusu'na taşındıktan bu süre sonra kalıcı olarak silinir.",
     spam_delete_hint: "Bu süreden eski spam e-postalar kalıcı olarak silinecek",
     save_changes: "Değişiklikleri Kaydet",
     spam_low: "Düşük",
@@ -10264,11 +10264,11 @@ export const tr = {
     fonts: "yazı tipleri",
     stylesheet: "stil sayfası",
     trash_auto_delete_notice:
-      "Çöp Kutusu'ndaki iletiler {{ days }} gün sonra silinir.",
+      "İletiler, Çöp Kutusu'na taşındıktan {{ days }} gün sonra silinir.",
     spam_auto_delete_notice:
       "Önemsiz klasöründeki iletiler {{ days }} gün sonra silinir.",
     trash_auto_delete_notice_family:
-      "Çöp Kutusu'ndaki iletiler, aile yöneticisinin ayarına göre {{ days }} gün sonra silinir.",
+      "İletiler, aile yöneticisinin ayarına göre Çöp Kutusu'na taşındıktan {{ days }} gün sonra silinir.",
     spam_auto_delete_notice_family:
       "Önemsiz klasöründeki iletiler, aile yöneticisinin ayarına göre {{ days }} gün sonra silinir.",
     insert_link_title: "Bağlantı Ekle",
