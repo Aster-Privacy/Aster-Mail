@@ -24,6 +24,8 @@ import {
   collapse_empty_block_runs,
   collapse_forwarded_content,
   collapse_quoted_replies,
+  has_aster_compose_markup,
+  trim_trailing_empty_blocks,
 } from "./sandboxed_email_renderer/dom_cleanup";
 
 import { clear_blocked_image } from "@/lib/blocked_image_placeholder";
@@ -120,6 +122,7 @@ export function pre_process_email_html(
   collapse_quoted_replies(doc, t);
   if (!options.preserve_formatting) {
     collapse_empty_block_runs(doc);
+    if (has_aster_compose_markup(doc)) trim_trailing_empty_blocks(doc);
   }
 
   return doc.body ? doc.body.innerHTML : body_html;
