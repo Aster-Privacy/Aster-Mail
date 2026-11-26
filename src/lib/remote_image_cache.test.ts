@@ -463,6 +463,7 @@ describe("remote image cache", () => {
 
     await load("https://cdn.example/a.png", {});
     expect(entry_rows()).toHaveLength(1);
+    const original_name = entry_rows()[0].name;
 
     await reset_image_cache_for_tests();
     unseal_fails = true;
@@ -476,15 +477,25 @@ describe("remote image cache", () => {
       now: () => clock,
     });
 
-    await load("https://cdn.example/a.png", {});
+    clock += 1000;
     await load("https://cdn.example/a.png", {});
     expect(entry_rows()).toHaveLength(1);
+    expect(entry_rows()[0].name).toBe(original_name);
+
+    clock += 1000;
+    await load("https://cdn.example/a.png", {});
+    const rotated_at = clock;
+
+    expect(entry_rows()).toHaveLength(1);
+    expect(entry_rows()[0].name).not.toBe(original_name);
+    expect(entry_rows()[0].stored_at).toBe(rotated_at);
+
     clock += 1000;
     await load("https://cdn.example/a.png", {});
 
-    expect(fetcher).toHaveBeenCalledTimes(4);
+    expect(fetcher).toHaveBeenCalledTimes(3);
     expect(entry_rows()).toHaveLength(1);
-    expect(entry_rows()[0].stored_at).toBe(clock);
+    expect(entry_rows()[0].stored_at).toBe(rotated_at);
   });
 
   it("keeps saved images through a single failed unseal", async () => {
