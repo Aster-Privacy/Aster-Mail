@@ -50,6 +50,7 @@ import {
 } from "@/lib/chunk_recovery";
 import { show_self_xss_warning } from "@/lib/security/console_warning";
 import { start_input_modality_tracking } from "@/lib/input_modality";
+import { start_press_feedback } from "@/lib/press_feedback";
 import {
   install_global_error_reporting,
   report_client_error,
@@ -105,9 +106,7 @@ function warm_signed_in_chunks(): void {
     ? () => import("@/pages/mobile/mobile_inbox")
     : () => import("@/pages/index");
 
-  load().catch((caught) =>
-    ignore_error("main:warm_signed_in_chunks", caught),
-  );
+  load().catch((caught) => ignore_error("main:warm_signed_in_chunks", caught));
   preload_openpgp();
 }
 
@@ -141,6 +140,7 @@ preload_initial_language();
 warm_startup_route_chunk();
 
 start_input_modality_tracking();
+start_press_feedback();
 install_global_error_reporting();
 install_dom_mutation_tolerance((kind) =>
   report_client_error({

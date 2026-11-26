@@ -98,16 +98,18 @@ export function TemplatePicker({
       <AnimatePresence>
         {is_open && (
           <motion.div
-            animate={{ opacity: 1, y: 0 }}
+            animate={{ opacity: 1, scale: 1 }}
             className={`aster_floating absolute z-50 w-72 overflow-hidden p-1.5 ${open_direction === "up" ? "bottom-full mb-2" : "mt-2"}`}
-            exit={{ opacity: 0, y: open_direction === "up" ? 10 : -10 }}
+            exit={{ opacity: 0, transition: { duration: 0 } }}
             id={menu_id}
-            initial={
-              reduce_motion
-                ? false
-                : { opacity: 0, y: open_direction === "up" ? 10 : -10 }
-            }
-            transition={{ duration: reduce_motion ? 0 : 0.15 }}
+            initial={reduce_motion ? false : { opacity: 0, scale: 0.98 }}
+            style={{
+              transformOrigin: open_direction === "up" ? "bottom" : "top",
+            }}
+            transition={{
+              duration: reduce_motion ? 0 : 0.11,
+              ease: [0.2, 0, 0, 1],
+            }}
           >
             <div className="max-h-96 overflow-y-auto">
               {Object.entries(grouped_templates).map(

@@ -609,13 +609,16 @@ export function SenderSelector({
           {is_open && (
             <motion.div
               ref={panel_ref}
-              animate={{ opacity: 1, y: 0 }}
+              animate={{ opacity: 1, scale: 1 }}
               className="aster_floating z-[70] overflow-y-auto p-1.5 scrollbar-hide"
-              exit={{ opacity: 0, y: -8 }}
+              exit={{ opacity: 0, transition: { duration: 0 } }}
               id={panel_id}
-              initial={reduce_motion ? false : { opacity: 0, y: -8 }}
-              style={panel_style}
-              transition={{ duration: reduce_motion ? 0 : 0.15 }}
+              initial={reduce_motion ? false : { opacity: 0, scale: 0.98 }}
+              style={{ ...panel_style, transformOrigin: "top" }}
+              transition={{
+                duration: reduce_motion ? 0 : 0.11,
+                ease: [0.2, 0, 0, 1],
+              }}
             >
               {show_search && (
                 <div className="sticky -top-1.5 z-10 -mx-1.5 -mt-1.5 mb-1 px-2 pt-2 pb-2 bg-[var(--aster-floating-bg)]">

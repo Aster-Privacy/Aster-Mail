@@ -63,9 +63,7 @@ export function TagPicker({
     const query = fold_search_text(search_query.trim());
 
     return tags_state.tags
-      .filter((tag: DecryptedTag) =>
-        fold_search_text(tag.name).includes(query),
-      )
+      .filter((tag: DecryptedTag) => fold_search_text(tag.name).includes(query))
       .map((tag) => ({ tag, depth: 0 }));
   }, [tags_state.tags, search_query]);
 
@@ -93,15 +91,19 @@ export function TagPicker({
       <div className="fixed inset-0 z-40" onClick={on_close} />
       <AnimatePresence>
         <motion.div
-          animate={{ opacity: 1, y: 0 }}
+          animate={{ opacity: 1, scale: 1 }}
           className="fixed z-50 w-64 rounded-[var(--aster-radius-floating,16px)] overflow-hidden bg-[var(--aster-floating-bg,var(--modal-bg))] shadow-[var(--aster-floating-shadow)]"
-          exit={{ opacity: 0, y: -4 }}
-          initial={reduce_motion ? false : { opacity: 0, y: -4 }}
+          exit={{ opacity: 0, transition: { duration: 0 } }}
+          initial={reduce_motion ? false : { opacity: 0, scale: 0.98 }}
           style={{
             top: computed_position.top,
             left: computed_position.left,
+            transformOrigin: "top left",
           }}
-          transition={{ duration: reduce_motion ? 0 : 0.12 }}
+          transition={{
+            duration: reduce_motion ? 0 : 0.11,
+            ease: [0.2, 0, 0, 1],
+          }}
         >
           <div className="p-1.5">
             <div className="flex items-center gap-2 px-2.5 h-8 rounded-[var(--aster-radius-control)] bg-[var(--aster-field-bg)]">

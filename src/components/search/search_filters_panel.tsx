@@ -90,9 +90,7 @@ export function QuickFilterButton({
   return (
     <button
       className={`px-3 py-1.5 text-xs rounded-full transition-colors duration-150 font-medium ${
-        is_active
-          ? "bg-brand text-[var(--accent-fg,#ffffff)]"
-          : "search_pill"
+        is_active ? "bg-brand text-[var(--accent-fg,#ffffff)]" : "search_pill"
       }`}
       onClick={on_click}
     >
@@ -516,10 +514,12 @@ export function ClearDataMenu({
 
   return (
     <motion.div
-      animate={{ opacity: 1, y: 0 }}
+      animate={{ opacity: 1, scale: 1 }}
       className="aster_floating absolute end-0 top-full mt-1 py-2 px-3 z-50 w-56"
-      exit={{ opacity: 0, y: -4 }}
-      initial={reduce_motion ? false : { opacity: 0, y: -4 }}
+      exit={{ opacity: 0, transition: { duration: 0 } }}
+      initial={reduce_motion ? false : { opacity: 0, scale: 0.98 }}
+      style={{ transformOrigin: "top right" }}
+      transition={{ duration: reduce_motion ? 0 : 0.11, ease: [0.2, 0, 0, 1] }}
       onClick={(e) => e.stopPropagation()}
     >
       <p className="text-xs font-medium mb-2 text-txt-primary">
