@@ -46,6 +46,7 @@ import {
   get_search_context,
 } from "@/components/email/inbox/inbox_view_helpers";
 import { InboxDialogs } from "@/components/email/inbox/inbox_dialogs";
+import { get_spam_total } from "@/components/email/inbox/spam_total";
 import { ConfirmModal } from "@/components/email/inbox/inbox_confirmation_dialog";
 import {
   EmailList,
@@ -184,6 +185,7 @@ export function EmailInbox(props: EmailInboxProps): React.ReactElement {
     handle_filter_change,
   } = use_email_inbox_state(props);
   const display_identity = use_primary_identity(user?.email ?? "");
+  const spam_total = get_spam_total(mail_stats.spam, email_state.emails);
 
   use_empty_folder_request({
     current_view,
@@ -444,7 +446,7 @@ export function EmailInbox(props: EmailInboxProps): React.ReactElement {
           selected_count={selection.selected_count}
           selection_scope_title={active_category_title}
           some_selected={selection.some_selected}
-          spam_count={email_state.emails.filter((e) => e.is_spam).length}
+          spam_count={spam_total}
           tags={order_tags_as_tree(tags_state.tags).map(({ tag, depth }) => ({
             tag_token: tag.tag_token,
             name: tag.name,
@@ -741,7 +743,7 @@ export function EmailInbox(props: EmailInboxProps): React.ReactElement {
           show_single_archive_confirm={toolbar.show_single_archive_confirm}
           show_single_delete_confirm={toolbar.show_single_delete_confirm}
           show_single_spam_confirm={toolbar.show_single_spam_confirm}
-          spam_count={email_state.emails.filter((e) => e.is_spam).length}
+          spam_count={spam_total}
           trash_count={mail_stats.trash}
         />
         <ConfirmModal
