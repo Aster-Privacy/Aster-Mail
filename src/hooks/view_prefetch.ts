@@ -21,11 +21,8 @@
 import type { EmailListState } from "@/types/email";
 import type { FormatOptions } from "@/utils/date_format";
 
-import {
-  VIEW_PARAMS,
-  fetch_mail_from_api,
-  resolve_list_total,
-} from "./email_list_helpers";
+import { fetch_mail_from_api, resolve_list_total } from "./email_list_helpers";
+import { VIEW_PARAMS } from "./email_list_helpers/views";
 import { set_view_cache, view_cache } from "./email_list_cache";
 
 import { drop_removed_after } from "@/services/removed_items";
