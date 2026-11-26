@@ -3365,7 +3365,7 @@ export const ko = {
     alias_pref_unsubscribe_block_contact: "발신자 차단",
     alias_pref_disabled_response: "차단된 메일에 대한 응답",
     alias_pref_disabled_response_desc:
-      "메일이 자동으로 삭제될 때 발신자에게 표시되는 내용입니다.",
+      "차단한 발신자가 메일을 보내거나 누군가 비활성화된 별칭 또는 주소로 메일을 보낼 때의 동작입니다.",
     alias_pref_disabled_ignore: "조용히 무시",
     alias_pref_disabled_reject: "거부 (반송)",
     alias_pref_delete_action: "별칭을 삭제할 때",
@@ -3380,7 +3380,7 @@ export const ko = {
     alias_pref_unsubscribe_action_info:
       "전달된 이메일에서 구독 취소 버튼을 클릭할 때 일어나는 동작입니다.",
     alias_pref_disabled_response_info:
-      "발신자가 비활성화된 별칭이나 차단된 연락처에 메일을 보낼 때 보게 되는 내용입니다.",
+      "무시를 선택하면 발신자에게 아무것도 알리지 않습니다. 차단한 발신자의 메일은 스팸으로 이동하는 등 차단 설정에 따라 처리되고, 비활성화된 별칭이나 주소로 온 메일은 삭제됩니다. 거부를 선택하면 메일 수신이 거부되고 발신자는 메일이 전달되지 않았다는 알림을 받습니다.",
     alias_pref_delete_action_info:
       "휴지통으로 이동하면 삭제된 별칭을 30일간 복구할 수 있습니다. 즉시 삭제하면 영구히 제거됩니다.",
     alias_pref_delete_trash: "휴지통으로 이동",

@@ -3168,7 +3168,7 @@ export const zh_CN = {
     alias_pref_unsubscribe_block_contact: "屏蔽发件人",
     alias_pref_disabled_response: "对被屏蔽邮件的响应",
     alias_pref_disabled_response_desc:
-      "当发件人的邮件被静默丢弃时，他们会看到的内容。",
+      "已屏蔽的发件人给你发邮件，或有人向已停用的别名或地址发邮件时的处理方式。",
     alias_pref_disabled_ignore: "静默忽略",
     alias_pref_disabled_reject: "拒收（退信）",
     alias_pref_delete_action: "删除别名时",
@@ -3182,7 +3182,7 @@ export const zh_CN = {
     alias_pref_unsubscribe_action_info:
       "在转发邮件中点击退订按钮时会发生什么。",
     alias_pref_disabled_response_info:
-      "发件人向已停用的别名或被屏蔽的联系人发邮件时看到的内容。",
+      "如果选择忽略，发件人不会收到任何通知。已屏蔽发件人的邮件会按照你的屏蔽设置处理，例如移到垃圾邮件；发往已停用别名或地址的邮件会被丢弃。如果选择拒收，邮件会被拒绝，发件人会收到未送达的通知。",
     alias_pref_delete_action_info:
       "移至垃圾箱可在 30 天内恢复已删除的别名。立即删除会将其永久移除。",
     alias_pref_delete_trash: "移至垃圾箱",

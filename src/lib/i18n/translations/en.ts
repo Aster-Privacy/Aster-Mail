@@ -9021,7 +9021,7 @@ export const en: Translations = {
     alias_pref_unsubscribe_block_contact: "Block sender",
     alias_pref_disabled_response: "Response to blocked mail",
     alias_pref_disabled_response_desc:
-      "What the sender sees when their mail is silently dropped.",
+      "What happens when a blocked sender emails you, or someone emails a disabled alias or address.",
     alias_pref_disabled_ignore: "Silently ignore",
     alias_pref_disabled_reject: "Reject (bounce)",
     alias_pref_delete_action: "When deleting an alias",
@@ -9036,7 +9036,7 @@ export const en: Translations = {
     alias_pref_unsubscribe_action_info:
       "What happens when you click the unsubscribe button in a forwarded email.",
     alias_pref_disabled_response_info:
-      "What the sender sees when they email a disabled alias or a blocked contact.",
+      "If you choose to ignore it, the sender isn't told anything. Mail from a blocked sender follows your block setting, such as moving to Spam, and mail to a disabled alias or address is dropped. If you choose to reject it, the mail is refused and the sender gets a notice that it wasn't delivered.",
     alias_pref_delete_action_info:
       "Move to trash keeps deleted aliases recoverable for 30 days. Delete immediately removes them permanently.",
     alias_pref_delete_trash: "Move to trash",

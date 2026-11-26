@@ -3669,7 +3669,7 @@ export const pl = {
     alias_pref_unsubscribe_block_contact: "Blokuj nadawcę",
     alias_pref_disabled_response: "Odpowiedź na zablokowaną pocztę",
     alias_pref_disabled_response_desc:
-      "Co widzi nadawca, gdy jego poczta jest po cichu odrzucana.",
+      "Co się dzieje, gdy pisze do Ciebie zablokowany nadawca lub gdy ktoś pisze na wyłączony alias albo adres.",
     alias_pref_disabled_ignore: "Po cichu ignoruj",
     alias_pref_disabled_reject: "Odrzuć (odbicie)",
     alias_pref_delete_action: "Podczas usuwania aliasu",
@@ -3684,7 +3684,7 @@ export const pl = {
     alias_pref_unsubscribe_action_info:
       "Co się dzieje po kliknięciu przycisku rezygnacji w przekazanej wiadomości.",
     alias_pref_disabled_response_info:
-      "Co widzi nadawca, gdy pisze na wyłączony alias lub do zablokowanego kontaktu.",
+      "Jeśli wybierzesz ignorowanie, nadawca nie dostanie żadnej informacji. Poczta od zablokowanego nadawcy jest obsługiwana zgodnie z ustawieniem blokady, na przykład trafia do spamu, a poczta wysłana na wyłączony alias lub adres jest usuwana. Jeśli wybierzesz odrzucanie, poczta zostanie odrzucona, a nadawca otrzyma powiadomienie, że nie została dostarczona.",
     alias_pref_delete_action_info:
       "Przeniesienie do kosza pozwala odzyskać usunięte aliasy przez 30 dni. Usunięcie natychmiast kasuje je na stałe.",
     alias_pref_delete_trash: "Przenieś do kosza",

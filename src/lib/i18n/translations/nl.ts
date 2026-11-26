@@ -3432,7 +3432,7 @@ export const nl = {
     alias_pref_unsubscribe_block_contact: "Afzender blokkeren",
     alias_pref_disabled_response: "Reactie op geblokkeerde e-mail",
     alias_pref_disabled_response_desc:
-      "Wat de afzender ziet wanneer hun e-mail stilzwijgend wordt verwijderd.",
+      "Wat er gebeurt als een geblokkeerde afzender je mailt, of als iemand mailt naar een uitgeschakelde alias of een uitgeschakeld adres.",
     alias_pref_disabled_ignore: "Stilzwijgend negeren",
     alias_pref_disabled_reject: "Weigeren (bounce)",
     alias_pref_delete_action: "Bij het verwijderen van een alias",
@@ -3447,7 +3447,7 @@ export const nl = {
     alias_pref_unsubscribe_action_info:
       "Wat er gebeurt wanneer je op de afmeldknop klikt in een doorgestuurde e-mail.",
     alias_pref_disabled_response_info:
-      "Wat de afzender ziet wanneer hij naar een uitgeschakelde alias of een geblokkeerd contact mailt.",
+      "Als je kiest voor negeren, krijgt de afzender niets te horen. Mail van een geblokkeerde afzender volgt je blokkeerinstelling, zoals verplaatsen naar Spam, en mail naar een uitgeschakelde alias of een uitgeschakeld adres wordt verwijderd. Als je kiest voor weigeren, wordt de mail geweigerd en krijgt de afzender een melding dat die niet is afgeleverd.",
     alias_pref_delete_action_info:
       "Naar prullenbak verplaatsen houdt verwijderde aliassen 30 dagen herstelbaar. Direct verwijderen verwijdert ze permanent.",
     alias_pref_delete_trash: "Naar prullenbak verplaatsen",

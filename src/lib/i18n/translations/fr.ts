@@ -3527,7 +3527,7 @@ export const fr = {
     alias_pref_unsubscribe_block_contact: "Bloquer l'expéditeur",
     alias_pref_disabled_response: "Réponse aux e-mails bloqués",
     alias_pref_disabled_response_desc:
-      "Ce que voit l'expéditeur lorsque son e-mail est rejeté silencieusement.",
+      "Ce qui se passe lorsqu'un expéditeur bloqué vous écrit, ou lorsque quelqu'un écrit à un alias ou une adresse désactivés.",
     alias_pref_disabled_ignore: "Ignorer silencieusement",
     alias_pref_disabled_reject: "Rejeter (renvoyer)",
     alias_pref_delete_action: "Lors de la suppression d'un alias",
@@ -3542,7 +3542,7 @@ export const fr = {
     alias_pref_unsubscribe_action_info:
       "Ce qui se passe lorsque vous cliquez sur le bouton de désabonnement dans un e-mail redirigé.",
     alias_pref_disabled_response_info:
-      "Ce que voit l'expéditeur lorsqu'il écrit à un alias désactivé ou à un contact bloqué.",
+      "Si vous choisissez d'ignorer, l'expéditeur n'est informé de rien. Les e-mails d'un expéditeur bloqué suivent votre réglage de blocage, comme le déplacement vers le dossier Spam, et les e-mails envoyés à un alias ou une adresse désactivés sont supprimés. Si vous choisissez de rejeter, l'e-mail est refusé et l'expéditeur reçoit un avis indiquant qu'il n'a pas été distribué.",
     alias_pref_delete_action_info:
       "Mettre à la corbeille garde les alias supprimés récupérables pendant 30 jours. Supprimer immédiatement les retire définitivement.",
     alias_pref_delete_trash: "Mettre à la corbeille",
