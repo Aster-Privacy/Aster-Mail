@@ -30,6 +30,8 @@ vi.mock("./email_list_helpers", async (original) => ({
 vi.mock("@/services/crypto/memory_key_store", () => ({
   has_passphrase_in_memory: () => true,
   on_vault_cleared: () => () => {},
+  on_vault_stored: () => () => {},
+  on_keys_ready: () => () => {},
 }));
 
 const { view_cache } = await import("./email_list_cache");
