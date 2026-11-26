@@ -37,6 +37,7 @@ import {
   UsersIcon,
   DocumentDuplicateIcon,
 } from "@heroicons/react/24/outline";
+import { Tooltip } from "@aster/ui";
 
 import {
   ADDRESS_TYPE_OPTIONS,
@@ -345,22 +346,26 @@ export function ContactView({
                         </span>
                       )}
                     </div>
-                    <button
-                      aria-label={t("common.copy_value")}
-                      className="contact_view_copy"
-                      title={t("common.copy_value")}
-                      type="button"
-                      onClick={() =>
-                        void Promise.resolve(
-                          on_copy(line.text, line.key),
-                        ).then((result) => {
-                          if (result === false) return;
-                          show_toast(t("common.copied_to_clipboard"), "success");
-                        })
-                      }
-                    >
-                      <DocumentDuplicateIcon className="h-4 w-4" />
-                    </button>
+                    <Tooltip tip={t("common.copy_value")}>
+                      <button
+                        aria-label={t("common.copy_value")}
+                        className="contact_view_copy"
+                        type="button"
+                        onClick={() =>
+                          void Promise.resolve(
+                            on_copy(line.text, line.key),
+                          ).then((result) => {
+                            if (result === false) return;
+                            show_toast(
+                              t("common.copied_to_clipboard"),
+                              "success",
+                            );
+                          })
+                        }
+                      >
+                        <DocumentDuplicateIcon className="h-4 w-4" />
+                      </button>
+                    </Tooltip>
                   </div>
                 ))}
               </div>
