@@ -9665,6 +9665,7 @@ export const tr = {
     pending_send_failed: "Bu ileti gönderilemedi.",
     pending_send_offline:
       "Bağlantı bekleniyor. Tekrar çevrimiçi olduğunuzda bu ileti gönderilecek.",
+    offline_saved_copy: "Çevrimdışısınız. Bu, bu cihazda kayıtlı kopyadır.",
     send_failed_title: "Bu ileti teslim edilmedi.",
     send_failed_help: "Adresi kontrol edin, sonra iletiyi yeniden gönderin.",
     spam_reasons_title: "Bu ileti spam klasörüne taşındı",

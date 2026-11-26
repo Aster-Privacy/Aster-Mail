@@ -9769,6 +9769,7 @@ export const es = {
     pending_send_failed: "No se pudo enviar este mensaje.",
     pending_send_offline:
       "Esperando conexión. Este mensaje se enviará cuando vuelvas a conectarte.",
+    offline_saved_copy: "Estás sin conexión. Esta es la copia guardada en este dispositivo.",
     send_failed_title: "Este mensaje no se entregó.",
     send_failed_help: "Comprueba la dirección y vuelve a enviar el mensaje.",
     spam_reasons_title: "Este mensaje se movió a spam",

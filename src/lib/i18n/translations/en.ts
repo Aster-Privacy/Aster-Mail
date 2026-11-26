@@ -9547,6 +9547,7 @@ export const en: Translations = {
     pending_send_failed: "Couldn’t send this message.",
     pending_send_offline:
       "Waiting for a connection. This message sends when you’re back online.",
+    offline_saved_copy: "You’re offline. This is the copy saved on this device.",
     send_failed_title: "This message wasn’t delivered.",
     send_failed_help: "Check the address, then send the message again.",
     spam_reasons_title: "This message was moved to spam",

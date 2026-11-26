@@ -9359,6 +9359,7 @@ export const ko = {
     not_spam: "스팸 아님",
     pending_send_failed: "이 메시지를 보낼 수 없습니다.",
     pending_send_offline: "연결을 기다리는 중입니다. 다시 온라인 상태가 되면 이 메시지가 전송됩니다.",
+    offline_saved_copy: "오프라인 상태입니다. 이 기기에 저장된 사본입니다.",
     send_failed_title: "이 메시지가 전달되지 않았습니다.",
     send_failed_help: "주소를 확인한 다음 메시지를 다시 보내십시오.",
     spam_reasons_title: "이 메시지는 스팸으로 이동되었습니다",

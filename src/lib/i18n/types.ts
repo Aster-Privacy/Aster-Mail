@@ -8967,6 +8967,7 @@ export interface MailTranslations {
   not_spam: string;
   pending_send_failed: string;
   pending_send_offline: string;
+  offline_saved_copy: string;
   send_failed_title: string;
   send_failed_help: string;
   spam_reasons_title: string;

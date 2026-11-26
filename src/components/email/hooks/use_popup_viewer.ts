@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type { DecryptedThreadMessage } from "@/types/thread";
+import type { PreloadedEmail } from "@/components/email/hooks/preload_cache";
 import type { ExternalContentReport } from "@/lib/html_sanitizer";
 import type { UndoSendEvent } from "@/hooks/use_undo_send";
 
@@ -109,6 +110,10 @@ import { register_popup_email } from "@/components/email/hooks/popup_email_regis
 import { viewer_still_showing } from "@/components/email/thread_reply_target";
 import { use_thread_draft_removal } from "@/components/email/hooks/use_thread_draft_removal";
 import { use_pending_reply_messages } from "@/hooks/pending_reply_messages";
+import {
+  is_offline_load_failure,
+  offline_cached_copy,
+} from "@/components/email/hooks/offline_reopen";
 import { use_reactions_seen } from "@/hooks/use_reactions_seen";
 import { use_thread_decrypt_hold } from "@/hooks/use_thread_decrypt_hold";
 import { UNDO_SEND_PREVIEW_ID } from "@/components/email/email_viewer_types";
@@ -168,6 +173,7 @@ export function use_popup_viewer({
 
   use_close_when_folder_locked(mail_item, () => on_close_ref.current());
   const [error, set_error] = useState<string | null>(null);
+  const [offline_id, set_offline_id] = useState<string | null>(null);
   const [unavailable_id, set_unavailable_id] = useState<string | null>(null);
   const [decrypt_failure, set_decrypt_failure] = useState<{
     id: string;
@@ -508,7 +514,10 @@ export function use_popup_viewer({
 
     if (fetch_seq !== fetch_seq_ref.current) return;
 
-    if (preloaded) {
+    const apply_preloaded = async (
+      preloaded: PreloadedEmail,
+      is_offline_copy: boolean,
+    ) => {
       const pe = preloaded.email;
 
       timestamp_date.current = new Date(preloaded.mail_item.created_at);
@@ -559,7 +568,9 @@ export function use_popup_viewer({
       set_thread_messages(preloaded.thread_messages);
       set_pending_thread_count(0);
       set_current_thread_token(preloaded.mail_item.thread_token || null);
-      schedule_mark_as_read(preloaded.mail_item, pe.is_read);
+      set_offline_id(is_offline_copy ? email_id : null);
+      if (!is_offline_copy)
+        schedule_mark_as_read(preloaded.mail_item, pe.is_read);
 
       if (preloaded.mail_item.thread_token) {
         const { get_vault_from_memory, wait_for_keys_ready, are_keys_ready } =
@@ -586,6 +597,10 @@ export function use_popup_viewer({
           }
         }
       }
+    };
+
+    if (preloaded) {
+      await apply_preloaded(preloaded, false);
 
       return;
     }
@@ -593,6 +608,21 @@ export function use_popup_viewer({
     const response = await get_mail_item(email_id);
 
     if (fetch_seq !== fetch_seq_ref.current) return;
+
+    if (response.error && is_offline_load_failure(response)) {
+      const offline_copy = offline_cached_copy(
+        email_id,
+        preferences.conversation_grouping !== false,
+        user?.email,
+      );
+
+      set_offline_id(email_id);
+      if (offline_copy) {
+        await apply_preloaded(offline_copy, true);
+
+        return;
+      }
+    }
 
     if (response.error) {
       requested_email_id_ref.current = null;
@@ -620,6 +650,8 @@ export function use_popup_viewer({
 
     if (response.data) {
       const item = response.data;
+
+      set_offline_id(null);
       const should_load_thread =
         preferences.conversation_grouping !== false && !!item.thread_token;
       const request_thread = () =>
@@ -1057,8 +1089,10 @@ export function use_popup_viewer({
     };
   }, [fetch_email]);
 
+  const is_offline_copy = !!email_id && offline_id === email_id && !error;
+
   useEffect(() => {
-    if (!error || !email_id || local_email) return;
+    if ((!error && !is_offline_copy) || !email_id || local_email) return;
 
     const handle_online = () => {
       fetch_email();
@@ -1069,7 +1103,7 @@ export function use_popup_viewer({
     return () => {
       window.removeEventListener("online", handle_online);
     };
-  }, [error, email_id, local_email, fetch_email]);
+  }, [error, is_offline_copy, email_id, local_email, fetch_email]);
 
   useEffect(() => {
     const handle_thread_reply = async (event: Event) => {
@@ -1434,6 +1468,7 @@ export function use_popup_viewer({
     error,
     payload_unavailable,
     retry_load,
+    is_offline_copy: is_offline_copy && !!email,
     decrypt_failed,
     decrypt_failed_created_at: decrypt_failed
       ? (decrypt_failure?.created_at ?? null)

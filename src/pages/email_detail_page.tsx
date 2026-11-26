@@ -188,7 +188,9 @@ export default function EmailDetailPage() {
             <EmailDetailBody
               current_user_email={detail.current_user_email}
               email={detail.email}
+              email_id={detail.email_id}
               error={detail.error}
+              is_offline_copy={detail.is_offline_copy}
               handle_edit_thread_draft={detail.handle_edit_thread_draft}
               handle_per_message_archive={detail.handle_per_message_archive}
               handle_per_message_not_spam={

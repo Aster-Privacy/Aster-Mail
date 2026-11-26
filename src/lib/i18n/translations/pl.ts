@@ -9996,6 +9996,7 @@ export const pl = {
     pending_send_failed: "Nie udało się wysłać tej wiadomości.",
     pending_send_offline:
       "Oczekiwanie na połączenie. Ta wiadomość zostanie wysłana, gdy wrócisz do trybu online.",
+    offline_saved_copy: "Jesteś offline. To jest kopia zapisana na tym urządzeniu.",
     send_failed_title: "Ta wiadomość nie została dostarczona.",
     send_failed_help: "Sprawdź adres, a następnie wyślij wiadomość ponownie.",
     spam_reasons_title: "Ta wiadomość została przeniesiona do spamu",

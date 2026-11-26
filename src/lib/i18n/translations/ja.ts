@@ -9517,6 +9517,7 @@ export const ja = {
     not_spam: "スパムではない",
     pending_send_failed: "このメッセージを送信できませんでした。",
     pending_send_offline: "接続を待っています。オンラインに戻るとこのメッセージが送信されます。",
+    offline_saved_copy: "オフラインです。これはこのデバイスに保存されているコピーです。",
     send_failed_title: "このメッセージは配信されませんでした。",
     send_failed_help:
       "アドレスを確認してから、メッセージをもう一度送信してください。",

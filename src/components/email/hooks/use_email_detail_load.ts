@@ -33,6 +33,7 @@ import {
 } from "@/stores/ghost_alias_store";
 import { get_recipient_hint } from "@/stores/recipient_hint_store";
 import { get_mail_item } from "@/services/api/mail";
+import { is_offline_load_failure } from "@/components/email/hooks/offline_reopen";
 import { is_missing_mail_item } from "@/lib/stale_open_email";
 import {
   fetch_and_decrypt_thread_messages,
@@ -150,6 +151,7 @@ export function use_email_detail_load() {
   >(null);
   const [is_loading, set_is_loading] = useState(true);
   const [error, set_error] = useState<string | null>(null);
+  const [offline_id, set_offline_id] = useState<string | null>(null);
   const [is_sender_dropdown_open, set_is_sender_dropdown_open] =
     useState(false);
   const [is_block_sender_modal_open, set_is_block_sender_modal_open] =
@@ -594,6 +596,7 @@ export function use_email_detail_load() {
       set_thread_draft(cached.thread_draft);
       set_current_user_email(cached.current_user_email);
       set_is_loading(false);
+      set_offline_id(is_offline_load_failure(null) ? email_id : null);
       has_loaded_once.current = true;
 
       const item = cached.mail_item;
@@ -813,6 +816,7 @@ export function use_email_detail_load() {
         return;
       }
 
+      set_offline_id(is_offline_load_failure(response) ? email_id : null);
       set_error(response.error);
       set_is_loading(false);
 
@@ -820,6 +824,7 @@ export function use_email_detail_load() {
     }
 
     if (response.data) {
+      set_offline_id(null);
       if (response.data.folders && response.data.folders.length > 0) {
         for (const mail_folder of response.data.folders) {
           const folder = folders_state.folders.find(
@@ -1007,11 +1012,11 @@ export function use_email_detail_load() {
           sent_encryption_scope,
           decrypted_content_tag,
         } = await process_envelope_body(
-            envelope,
-            user?.email,
-            response.data.id,
-            response.data.dkim_result,
-          );
+          envelope,
+          user?.email,
+          response.data.id,
+          response.data.dkim_result,
+        );
 
         start_attachment_prefetch();
 
@@ -1253,6 +1258,18 @@ export function use_email_detail_load() {
     if (load_seq_ref.current === my_seq) set_pending_thread_count(0);
   }, [load_email, t]);
 
+  useEffect(() => {
+    if (!email_id || offline_id !== email_id) return;
+
+    const handle_online = () => {
+      void fetch_email();
+    };
+
+    window.addEventListener("online", handle_online);
+
+    return () => window.removeEventListener("online", handle_online);
+  }, [email_id, offline_id, fetch_email]);
+
   return {
     t,
     email_id,
@@ -1266,6 +1283,7 @@ export function use_email_detail_load() {
     email: read_email,
     is_loading,
     error,
+    is_offline_copy: !!email_id && offline_id === email_id && !error && !!email,
     is_sender_dropdown_open,
     set_is_sender_dropdown_open,
     is_block_sender_modal_open,

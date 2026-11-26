@@ -33,6 +33,7 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmailOpenSkeleton } from "@/components/email/viewer_shared/email_open_skeleton";
 import { use_i18n } from "@/lib/i18n/context";
+import { OfflineCopyNotice } from "@/components/email/failed_open_pending_replies";
 import { type DraftWithContent } from "@/services/api/multi_drafts";
 import { is_system_email } from "@/lib/utils";
 import {
@@ -417,6 +418,7 @@ export function FullEmailViewer({
           decrypt_failed={viewer.decrypt_failed}
           message_created_at={viewer.decrypt_failed_created_at}
           payload_unavailable={viewer.payload_unavailable}
+          email_id={email_id}
           error={viewer.error}
           on_dismiss={on_back}
           on_retry={viewer.retry_load}
@@ -501,6 +503,7 @@ export function FullEmailViewer({
           </div>
         )}
       </div>
+      {viewer.is_offline_copy && <OfflineCopyNotice />}
 
       <div className="relative flex-1 min-h-0">
         {show_content_skeleton && <EmailOpenSkeleton />}
