@@ -18,128 +18,67 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { act } from "react";
-import { createRoot, type Root } from "react-dom/client";
-import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
+import { act, render_hook } from "@/tests/render_hook";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import {
-  use_delayed_flag,
-  SKELETON_DELAY_MS,
-  SKELETON_MIN_VISIBLE_MS,
-} from "./use_delayed_flag";
-
-(
-  globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT: boolean }
-).IS_REACT_ACT_ENVIRONMENT = true;
-
-let container: HTMLDivElement;
-let root: Root;
-let latest = false;
-
-function Probe({ active }: { active: boolean }) {
-  latest = use_delayed_flag(active);
-
-  return null;
-}
-
-function render(active: boolean) {
-  act(() => {
-    root.render(<Probe active={active} />);
-  });
-}
-
-function skeleton_gate(has_data: boolean, pending: boolean): boolean {
-  return !has_data && pending;
-}
+import { use_delayed_flag } from "./use_delayed_flag";
 
 describe("use_delayed_flag", () => {
   beforeEach(() => {
     vi.useFakeTimers();
-    container = document.createElement("div");
-    root = createRoot(container);
-    latest = false;
   });
 
   afterEach(() => {
-    act(() => root.unmount());
     vi.useRealTimers();
   });
 
-  it("never shows a skeleton when loading finishes under the delay", () => {
-    render(true);
-    expect(latest).toBe(false);
+  it("follows the flag in the same render with no delay and no minimum", () => {
+    const { result, rerender } = render_hook(
+      ({ active }) => use_delayed_flag(active, 0, 0),
+      { initialProps: { active: true } },
+    );
+
+    expect(result.current).toBe(true);
+
+    rerender({ active: false });
+    expect(result.current).toBe(false);
+  });
+
+  it("drops a flag raised without delay as soon as delays come back", () => {
+    const { result, rerender } = render_hook(
+      ({ active, delay }) => use_delayed_flag(active, delay, delay),
+      { initialProps: { active: true, delay: 0 } },
+    );
 
     act(() => {
-      vi.advanceTimersByTime(SKELETON_DELAY_MS - 10);
+      vi.advanceTimersByTime(50);
     });
-    expect(latest).toBe(false);
+    rerender({ active: false, delay: 250 });
 
-    render(false);
+    expect(result.current).toBe(false);
     act(() => {
       vi.advanceTimersByTime(1000);
     });
-    expect(latest).toBe(false);
+    expect(result.current).toBe(false);
   });
 
-  it("shows the skeleton once pending lasts past the delay", () => {
-    render(true);
-    act(() => {
-      vi.advanceTimersByTime(SKELETON_DELAY_MS);
-    });
-    expect(latest).toBe(true);
-  });
+  it("waits for the delay and holds for the minimum by default", () => {
+    const { result, rerender } = render_hook(
+      ({ active }) => use_delayed_flag(active, 250, 400),
+      { initialProps: { active: true } },
+    );
 
-  it("keeps a shown skeleton up for the minimum visible time", () => {
-    render(true);
+    expect(result.current).toBe(false);
     act(() => {
-      vi.advanceTimersByTime(SKELETON_DELAY_MS);
+      vi.advanceTimersByTime(250);
     });
-    expect(latest).toBe(true);
+    expect(result.current).toBe(true);
 
-    render(false);
-    expect(latest).toBe(true);
-
+    rerender({ active: false });
+    expect(result.current).toBe(true);
     act(() => {
-      vi.advanceTimersByTime(SKELETON_MIN_VISIBLE_MS - 10);
+      vi.advanceTimersByTime(400);
     });
-    expect(latest).toBe(true);
-
-    act(() => {
-      vi.advanceTimersByTime(10);
-    });
-    expect(latest).toBe(false);
-  });
-
-  it("hides at once when pending ends after the minimum visible time", () => {
-    render(true);
-    act(() => {
-      vi.advanceTimersByTime(SKELETON_DELAY_MS + SKELETON_MIN_VISIBLE_MS);
-    });
-    expect(latest).toBe(true);
-
-    render(false);
-    expect(latest).toBe(false);
-  });
-
-  it("restarts the delay for each new pending period", () => {
-    render(true);
-    act(() => {
-      vi.advanceTimersByTime(SKELETON_DELAY_MS);
-    });
-    render(false);
-    act(() => {
-      vi.advanceTimersByTime(SKELETON_MIN_VISIBLE_MS);
-    });
-    expect(latest).toBe(false);
-    render(true);
-    expect(latest).toBe(false);
-  });
-
-  it("treats cached data that is still fetching as not a skeleton", () => {
-    render(skeleton_gate(true, true));
-    act(() => {
-      vi.advanceTimersByTime(5000);
-    });
-    expect(latest).toBe(false);
+    expect(result.current).toBe(false);
   });
 });

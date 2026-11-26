@@ -47,6 +47,7 @@ import { EmailInbox } from "@/components/email/email_inbox";
 import { SenderDetailHeader } from "@/components/subscriptions/sender_detail_header";
 import { UpgradeGate } from "@/components/common/upgrade_gate";
 import { use_i18n } from "@/lib/i18n/context";
+import { use_committed_view } from "@/hooks/use_committed_view";
 import { set_pending_settings_anchor } from "@/lib/settings_anchor";
 import { read_settings_navigation } from "@/lib/settings_links";
 import { QuickSettingsPanel } from "@/components/settings/quick_settings_panel";
@@ -54,14 +55,13 @@ import { use_quick_settings_toggle } from "@/components/settings/use_quick_setti
 import { Spinner } from "@/components/ui/spinner";
 import {
   lazy_on_demand,
+  lazy_preloadable,
   lazy_with_retry,
   preload_when_idle,
 } from "@/utils/lazy_with_retry";
 import { LazyLoadBoundary } from "@/components/ui/lazy_load_boundary";
-const load_settings_content = () =>
-  import("@/components/settings/settings_content");
-const SettingsContent = lazy_with_retry(() =>
-  load_settings_content().then((m) => ({
+const SettingsContent = lazy_preloadable(() =>
+  import("@/components/settings/settings_content").then((m) => ({
     default: m.SettingsContent,
   })),
 );
@@ -73,17 +73,17 @@ function SettingsFallback() {
     </div>
   );
 }
-const ContactsContent = lazy_with_retry(() =>
+const ContactsContent = lazy_preloadable(() =>
   import("@/components/common/contacts_content").then((m) => ({
     default: m.ContactsContent,
   })),
 );
-const SubscriptionsContent = lazy_with_retry(() =>
+const SubscriptionsContent = lazy_preloadable(() =>
   import("@/components/subscriptions/subscriptions_content").then((m) => ({
     default: m.SubscriptionsContent,
   })),
 );
-const SearchResultsPage = lazy_with_retry(() =>
+const SearchResultsPage = lazy_preloadable(() =>
   import("@/components/search/search_results_page").then((m) => ({
     default: m.SearchResultsPage,
   })),
@@ -194,6 +194,7 @@ function RailAwareOnboardingChecklist({
 
 export default function IndexPage() {
   const state = use_index_page_state();
+  const committed_view = use_committed_view(state.current_view);
   const { t } = use_i18n();
   const payment_past_due = use_payment_past_due();
   const navigate = useNavigate();
@@ -327,7 +328,10 @@ export default function IndexPage() {
 
   useEffect(() => {
     const preload = () => {
-      void load_settings_content();
+      void SettingsContent.preload();
+      void SearchResultsPage.preload();
+      void ContactsContent.preload();
+      void SubscriptionsContent.preload();
     };
 
     if (typeof requestIdleCallback === "function") {
@@ -634,7 +638,7 @@ export default function IndexPage() {
                         can_go_next={state.can_go_next}
                         can_go_prev={state.can_go_prev}
                         current_email_index={state.current_email_index}
-                        current_view={state.current_view}
+                        current_view={committed_view}
                         focused_email_id={state.focused_email_id}
                         on_auto_advance={state.handle_auto_advance}
                         on_compose={state.open_compose}

@@ -589,6 +589,22 @@ export function use_category_inbox(
           (page + 1) * page_size < switch_total,
         ),
       );
+    } else if (
+      switch_ids.length === 0 &&
+      category_row_cache.owner === (user?.email ?? null) &&
+      is_index_readable() &&
+      get_index_entry_count() > 0
+    ) {
+      set_state((prev) => ({
+        ...prev,
+        emails: [],
+        is_loading: false,
+        is_loading_more: false,
+        total_messages: 0,
+        has_more: false,
+        has_initial_load: true,
+        has_load_error: false,
+      }));
     } else {
       set_state((prev) => ({ ...prev, emails: [], is_loading: true }));
     }

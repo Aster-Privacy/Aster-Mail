@@ -57,6 +57,11 @@ import { use_email_list_actions } from "./use_email_list_actions";
 import { use_email_list_bulk } from "./use_email_list_bulk";
 import { use_email_list_events } from "./use_email_list_events";
 import { get_open_reader_ids } from "./open_reader_registry";
+import {
+  PREFETCH_VIEWS,
+  prefetch_views_when_idle,
+  set_view_prefetch_context,
+} from "./view_prefetch";
 
 import { resolve_effective_page_size } from "@/lib/inbox_page_size";
 import {
@@ -978,6 +983,47 @@ export function use_email_list(
     read_filter,
     preferences.conversation_grouping,
   ]);
+
+  const prefetch_owner = is_authenticated && has_keys ? (user?.id ?? "") : "";
+  const prefetch_enabled =
+    prefetch_owner !== "" && !preferences.low_network_mode;
+
+  useEffect(() => {
+    if (!prefetch_enabled) {
+      set_view_prefetch_context(null);
+
+      return;
+    }
+
+    set_view_prefetch_context({
+      owner: prefetch_owner,
+      user_email: user?.email || "",
+      format_options,
+      conversation_grouping: preferences.conversation_grouping ?? true,
+      sort_order: preferences.inbox_sort_order ?? "newest_first",
+      page_size,
+    });
+  }, [
+    prefetch_enabled,
+    prefetch_owner,
+    user?.email,
+    format_options,
+    preferences.conversation_grouping,
+    preferences.inbox_sort_order,
+    page_size,
+  ]);
+
+  useEffect(() => () => set_view_prefetch_context(null), []);
+
+  const list_settled =
+    !is_mail_view ||
+    (state.has_initial_load && !state.is_loading && !state.has_load_error);
+
+  useEffect(() => {
+    if (!prefetch_enabled || !list_settled) return;
+
+    return prefetch_views_when_idle(PREFETCH_VIEWS, current_view);
+  }, [prefetch_enabled, list_settled, current_view, prefetch_owner]);
 
   useEffect(() => {
     if (auth_loading || !is_mail_view) return;
