@@ -47,14 +47,38 @@ export function font_size_label_from_px(px: string): FontSizeLabel | null {
 
 export const DEFAULT_FONT_FAMILY = "inherit";
 
-export const FONT_FAMILY_OPTIONS: { name: string; stack: string }[] = [
+export interface FontFamilyOption {
+  name: string;
+  stack: string;
+  label_key?: "common.font_family_monospace";
+}
+
+export const MONOSPACE_FONT_STACK =
+  "ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono', 'Courier New', monospace";
+
+export const FONT_FAMILY_OPTIONS: FontFamilyOption[] = [
   { name: "Arial", stack: "Arial, Helvetica, sans-serif" },
+  { name: "Helvetica", stack: "Helvetica, Arial, sans-serif" },
+  { name: "Verdana", stack: "Verdana, Geneva, sans-serif" },
+  { name: "Tahoma", stack: "Tahoma, Geneva, sans-serif" },
+  { name: "Trebuchet MS", stack: "'Trebuchet MS', Helvetica, sans-serif" },
   { name: "Georgia", stack: "Georgia, serif" },
   { name: "Times New Roman", stack: "'Times New Roman', Times, serif" },
-  { name: "Verdana", stack: "Verdana, Geneva, sans-serif" },
-  { name: "Trebuchet MS", stack: "'Trebuchet MS', Helvetica, sans-serif" },
-  { name: "Tahoma", stack: "Tahoma, Geneva, sans-serif" },
+  {
+    name: "Palatino",
+    stack: "'Palatino Linotype', Palatino, 'Book Antiqua', serif",
+  },
+  { name: "Garamond", stack: "Garamond, 'EB Garamond', Georgia, serif" },
+  {
+    name: "Monospace",
+    stack: MONOSPACE_FONT_STACK,
+    label_key: "common.font_family_monospace",
+  },
   { name: "Courier New", stack: "'Courier New', Courier, monospace" },
+  {
+    name: "Lucida Console",
+    stack: "'Lucida Console', Monaco, 'Courier New', monospace",
+  },
 ];
 
 export function is_allowed_font_family(family: string): boolean {
@@ -64,20 +88,28 @@ export function is_allowed_font_family(family: string): boolean {
   );
 }
 
+function primary_font_family(css: string): string {
+  return (
+    css
+      .split(",")[0]
+      ?.trim()
+      .replace(/^["']|["']$/g, "")
+      .toLowerCase() ?? ""
+  );
+}
+
 export function font_family_option_from_css(
   css: string,
-): { name: string; stack: string } | null {
-  const primary = css
-    .split(",")[0]
-    ?.trim()
-    .replace(/^["']|["']$/g, "")
-    .toLowerCase();
+): FontFamilyOption | null {
+  const primary = primary_font_family(css);
 
   if (!primary) return null;
 
   return (
     FONT_FAMILY_OPTIONS.find(
-      (option) => option.name.toLowerCase() === primary,
+      (option) =>
+        option.name.toLowerCase() === primary ||
+        primary_font_family(option.stack) === primary,
     ) ?? null
   );
 }
@@ -239,6 +271,10 @@ export function escaped_html_to_plain_text(html: string): string | null {
     .join("\n");
 }
 
+export function preserve_plain_spaces(escaped_line: string): string {
+  return escaped_line.replace(/^ /, "&nbsp;").replace(/ {2}/g, " &nbsp;");
+}
+
 export function plain_text_to_editor_html(text: string): string {
   return text
     .replace(/\r\n?/g, "\n")
@@ -246,7 +282,7 @@ export function plain_text_to_editor_html(text: string): string {
     .map((line) =>
       line === ""
         ? "<div><br></div>"
-        : `<div>${escape_html(line).replace(/ {2}/g, " &nbsp;")}</div>`,
+        : `<div>${preserve_plain_spaces(escape_html(line))}</div>`,
     )
     .join("");
 }

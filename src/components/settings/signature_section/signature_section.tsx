@@ -41,8 +41,12 @@ import {
   UpgradeBtn,
 } from "@aster/ui";
 
-import { FmtButton, FmtDivider, SignatureMode, escape_html } from "./helpers";
+import { FmtButton, FmtDivider, SignatureMode } from "./helpers";
 import { use_signature_section } from "./use_signature_section";
+import {
+  SignatureTableControl,
+  use_signature_table_keys,
+} from "./table_control";
 
 import { ConfirmationModal } from "@/components/modals/confirmation_modal";
 import { SettingsSkeleton } from "@/components/settings/settings_skeleton";
@@ -63,10 +67,12 @@ import {
   ModalFooter,
 } from "@/components/ui/modal";
 import { LinkDialog } from "@/components/compose/link_dialog";
+import { FontFamilySelect } from "@/components/compose/compose_toolbar/font_family";
 import { FontSizeSelect } from "@/components/compose/compose_toolbar/font_size";
 import { ColorPickerPopover } from "@/components/compose/compose_toolbar/color_picker";
 import { use_frozen_selection } from "@/components/compose/compose_toolbar/shared";
 import { sanitize_compose_paste } from "@/lib/html_sanitizer";
+import { plain_signature_to_html } from "@/lib/signature_html";
 import { prompt_upgrade } from "@/components/settings/aliases/feature_lock";
 import { Spinner } from "@/components/ui/spinner";
 
@@ -119,6 +125,10 @@ export function SignatureSection() {
 
   const { freeze_selection, apply_with_frozen_selection } =
     use_frozen_selection(rich_editor);
+  const handle_table_keys = use_signature_table_keys(
+    editor_div_ref,
+    rich_editor.handle_input,
+  );
 
   if (is_initial_load && is_loading && signatures.length === 0) {
     return <SettingsSkeleton variant="list" />;
@@ -373,6 +383,16 @@ export function SignatureSection() {
                     className="flex items-center flex-wrap gap-0.5 px-2 py-1.5 border-b border-input-border"
                     role="toolbar"
                   >
+                    <FontFamilySelect
+                      font_family={rich_editor.format_state.current_font_family}
+                      on_before_open={freeze_selection}
+                      on_change={(family) =>
+                        apply_with_frozen_selection(() =>
+                          rich_editor.set_font_family(family),
+                        )
+                      }
+                    />
+
                     <FontSizeSelect
                       font_size={rich_editor.format_state.current_font_size}
                       on_before_open={freeze_selection}
@@ -557,6 +577,13 @@ export function SignatureSection() {
                       </svg>
                     </FmtButton>
 
+                    <SignatureTableControl
+                      apply={apply_with_frozen_selection}
+                      editor_ref={editor_div_ref}
+                      on_before_open={freeze_selection}
+                      on_change={rich_editor.handle_input}
+                    />
+
                     <FmtDivider />
 
                     <FmtButton
@@ -583,11 +610,12 @@ export function SignatureSection() {
                     contentEditable
                     aria-labelledby="signature-content-label"
                     aria-multiline="true"
-                    className="px-3 py-2 text-sm min-h-[150px] max-h-[300px] overflow-y-auto text-txt-primary outline-none [&_img]:max-w-full"
+                    className="signature_editor px-3 py-2 text-sm min-h-[150px] max-h-[300px] overflow-auto text-txt-primary outline-none [&_img]:max-w-full"
                     role="textbox"
                     onDragOver={rich_editor.handle_drag_over}
                     onDrop={rich_editor.handle_drop}
                     onInput={rich_editor.handle_input}
+                    onKeyDown={handle_table_keys}
                     onPaste={rich_editor.handle_paste}
                   />
                 </div>
@@ -711,10 +739,7 @@ export function SignatureSection() {
                       dangerouslySetInnerHTML={{
                         __html: signature.is_html
                           ? sanitize_compose_paste(signature.content)
-                          : escape_html(signature.content).replace(
-                              /\n/g,
-                              "<br>",
-                            ),
+                          : plain_signature_to_html(signature.content),
                       }}
                       data-selectable-region
                       className="p-3 rounded-md text-xs leading-relaxed bg-surf-primary text-txt-secondary [&_img]:max-w-full"

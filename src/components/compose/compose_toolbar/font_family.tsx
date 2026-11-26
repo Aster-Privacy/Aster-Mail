@@ -28,10 +28,13 @@ import { use_anchored_layer } from "./shared";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_escape_layer } from "@/lib/overlay_layer_stack";
 import {
+  type FontFamilyOption,
   DEFAULT_FONT_FAMILY,
   FONT_FAMILY_OPTIONS,
   font_family_option_from_css,
 } from "@/hooks/editor_utils";
+
+const FONT_MENU_WIDTH = 200;
 
 export function FontFamilySelect({
   on_change,
@@ -43,10 +46,12 @@ export function FontFamilySelect({
   font_family?: string;
 }) {
   const { t } = use_i18n();
+  const option_label = (option: FontFamilyOption) =>
+    option.label_key ? t(option.label_key) : option.name;
   const [open, set_open] = useState(false);
   const [current_family, set_current_family] =
     useState<string>(DEFAULT_FONT_FAMILY);
-  const [pos, set_pos] = useState({ top: 0, left: 0 });
+  const [pos, set_pos] = useState({ top: 0, bottom: 0, left: 0 });
   const button_ref = useRef<HTMLButtonElement>(null);
   const dropdown_ref = useRef<HTMLDivElement>(null);
   const list_id = useId();
@@ -86,9 +91,11 @@ export function FontFamilySelect({
   use_anchored_layer(
     open,
     button_ref,
-    (rect) => set_pos({ top: rect.top, left: rect.left }),
+    (rect) => set_pos({ top: rect.top, bottom: rect.bottom, left: rect.left }),
     close_dropdown,
   );
+
+  const opens_below = pos.top < window.innerHeight - pos.bottom;
 
   const select = (family: string) => {
     set_current_family(family);
@@ -116,7 +123,7 @@ export function FontFamilySelect({
       >
         <span className="max-w-[88px] truncate">
           {current_option
-            ? current_option.name
+            ? option_label(current_option)
             : t("common.font_family_default")}
         </span>
         <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
@@ -131,17 +138,30 @@ export function FontFamilySelect({
         open && (
           <div
             ref={dropdown_ref}
-            className="aster_floating aster_floating_anim fixed p-1.5 min-w-[160px]"
+            className="aster_floating aster_floating_anim fixed p-1.5 min-w-[180px]"
+            role="listbox"
             data-state="open"
             id={list_id}
             style={{
               zIndex: 9999,
-              left: pos.left,
-              bottom: window.innerHeight - pos.top + 6,
+              left: Math.max(
+                8,
+                Math.min(pos.left, window.innerWidth - FONT_MENU_WIDTH - 8),
+              ),
+              maxHeight: Math.max(
+                160,
+                (opens_below ? window.innerHeight - pos.bottom : pos.top) - 16,
+              ),
+              overflowY: "auto",
+              ...(opens_below
+                ? { top: pos.bottom + 6 }
+                : { bottom: window.innerHeight - pos.top + 6 }),
             }}
           >
             <button
+              aria-selected={!current_option}
               className="w-full text-start px-2.5 py-1.5 text-[13px] text-txt-primary rounded-[var(--aster-radius-item)] transition-colors hover:bg-[var(--aster-floating-hover)]"
+              role="option"
               style={{
                 fontWeight: current_option ? 400 : 600,
               }}
@@ -154,6 +174,8 @@ export function FontFamilySelect({
             {FONT_FAMILY_OPTIONS.map((option) => (
               <button
                 key={option.stack}
+                aria-selected={current_family === option.stack}
+                role="option"
                 className="w-full text-start px-2.5 py-1.5 text-[13px] text-txt-primary rounded-[var(--aster-radius-item)] transition-colors hover:bg-[var(--aster-floating-hover)]"
                 style={{
                   fontFamily: option.stack,
@@ -163,7 +185,7 @@ export function FontFamilySelect({
                 onClick={() => select(option.stack)}
                 onMouseDown={(e) => e.preventDefault()}
               >
-                {option.name}
+                {option_label(option)}
               </button>
             ))}
           </div>

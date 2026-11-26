@@ -2275,6 +2275,17 @@ button.press_scale:active {
   color: var(--text-tertiary);
 }
 
+.signature_editor table td,
+.signature_editor table th {
+  min-width: 2em;
+}
+
+.signature_editor table[border="0"] td,
+.signature_editor table[border="0"] th {
+  outline: 1px dashed var(--border-secondary);
+  outline-offset: -1px;
+}
+
 .dark .compose_recipient_input [data-slot="input-wrapper"]:hover,
 .dark .compose_recipient_input [data-slot="input-wrapper"]:focus-within {
   background-color: var(--bg-hover) !important;

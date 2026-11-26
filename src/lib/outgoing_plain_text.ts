@@ -230,6 +230,104 @@ function collect_text(root: Node): string {
   return parts.join("").replace(/\u0000/g, "");
 }
 
+const MAX_ALIGNED_TABLE_WIDTH = 120;
+
+const TABLE_COLUMN_GAP = "  ";
+
+function direct_table_rows(table: Element): Element[] {
+  const rows: Element[] = [];
+
+  for (const child of Array.from(table.children)) {
+    const tag = child.tagName.toUpperCase();
+
+    if (tag === "TR") {
+      rows.push(child);
+    } else if (tag === "THEAD" || tag === "TBODY" || tag === "TFOOT") {
+      for (const row of Array.from(child.children)) {
+        if (row.tagName.toUpperCase() === "TR") rows.push(row);
+      }
+    }
+  }
+
+  return rows;
+}
+
+function render_cell_lines(cell: Element, context: RenderContext): string[] {
+  const text = resolve_breaks(render_children(cell, context))
+    .replace(/^\n+/, "")
+    .trimEnd();
+
+  return text ? text.split("\n").map(trim_trailing_spaces) : [];
+}
+
+function render_aligned_table(
+  table: Element,
+  context: RenderContext,
+): string | null {
+  if (table.querySelector("table")) return null;
+  if (
+    Array.from(table.children).some(
+      (child) => child.tagName.toUpperCase() === "CAPTION",
+    )
+  ) {
+    return null;
+  }
+
+  const rows = direct_table_rows(table);
+
+  if (rows.length === 0) return null;
+
+  const cell_context = { ...context, depth: context.depth + 1 };
+  const grid = rows.map((row) =>
+    Array.from(row.children)
+      .filter((cell) => /^T[DH]$/i.test(cell.tagName))
+      .map((cell) => render_cell_lines(cell, cell_context)),
+  );
+  const column_count = grid.reduce((max, row) => Math.max(max, row.length), 0);
+
+  if (column_count < 2) return null;
+
+  const widths = Array.from({ length: column_count }, (_, column) =>
+    grid.reduce(
+      (max, row) =>
+        Math.max(
+          max,
+          ...(row[column] ?? []).map((line) => Array.from(line).length),
+        ),
+      0,
+    ),
+  );
+  const used = widths.filter((width) => width > 0);
+  const total =
+    used.reduce((sum, width) => sum + width, 0) +
+    TABLE_COLUMN_GAP.length * Math.max(used.length - 1, 0);
+
+  if (total > MAX_ALIGNED_TABLE_WIDTH || used.length === 0) return null;
+
+  const lines: string[] = [];
+
+  for (const row of grid) {
+    const height = row.reduce((max, cell) => Math.max(max, cell.length), 0);
+
+    for (let line_index = 0; line_index < height; line_index += 1) {
+      const parts: string[] = [];
+
+      for (let column = 0; column < column_count; column += 1) {
+        if (widths[column] === 0) continue;
+
+        const value = row[column]?.[line_index] ?? "";
+        const padding = widths[column] - Array.from(value).length;
+
+        parts.push(value + " ".repeat(Math.max(padding, 0)));
+      }
+
+      lines.push(trim_trailing_spaces(parts.join(TABLE_COLUMN_GAP)));
+    }
+  }
+
+  return SOFT_BREAK + lines.join("\n") + SOFT_BREAK;
+}
+
 function render_node(node: Node, context: RenderContext): string {
   if (node.nodeType === 3) return render_text(node as Text, context);
 
@@ -278,6 +376,12 @@ function render_node(node: Node, context: RenderContext): string {
   }
 
   if (tag === "OL" || tag === "UL") return render_list(element, context);
+
+  if (tag === "TABLE") {
+    const aligned = render_aligned_table(element, context);
+
+    if (aligned !== null) return aligned;
+  }
 
   if (tag === "LI") {
     return SOFT_BREAK + "- " + render_children(element, context) + SOFT_BREAK;

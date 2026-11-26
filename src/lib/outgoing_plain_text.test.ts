@@ -111,12 +111,30 @@ describe("outgoing_html_to_plain_text", () => {
     ).toBe("Hello world\none\ntwo\n> Quoted");
   });
 
-  it("puts table cells on one line without trailing spaces", () => {
+  it("aligns table cells into columns without trailing spaces", () => {
     expect(
       outgoing_html_to_plain_text(
         "<table><tr><td>A</td><td>B</td></tr><tr><td>C</td><td>D</td></tr></table>",
       ),
-    ).toBe("A B\nC D");
+    ).toBe("A  B\nC  D");
+  });
+
+  it("does not align a table that has a caption, so the caption stays", () => {
+    const text = outgoing_html_to_plain_text(
+      "<table><caption>Hours</caption><tr><td>Mon</td><td>9</td></tr></table>",
+    );
+
+    expect(text).toContain("Hours");
+    expect(text).toContain("Mon");
+  });
+
+  it("drops nothing around a table whose cells are all empty", () => {
+    const text = outgoing_html_to_plain_text(
+      "<div>Before</div><table><tr><td></td><td></td></tr></table><div>After</div>",
+    );
+
+    expect(text.startsWith("Before")).toBe(true);
+    expect(text.trimEnd().endsWith("After")).toBe(true);
   });
 
   it("keeps numbering a long ordered list", () => {

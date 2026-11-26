@@ -31,7 +31,7 @@ describe("plain_text_to_editor_html", () => {
 
   it("escapes markup and keeps indentation", () => {
     expect(plain_text_to_editor_html("<b>x</b>\n  y")).toBe(
-      "<div>&lt;b&gt;x&lt;/b&gt;</div><div> &nbsp;y</div>",
+      "<div>&lt;b&gt;x&lt;/b&gt;</div><div>&nbsp; y</div>",
     );
   });
 
