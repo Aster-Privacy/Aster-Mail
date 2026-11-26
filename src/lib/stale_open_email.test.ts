@@ -21,6 +21,7 @@
 import { describe, it, expect } from "vitest";
 
 import {
+  email_id_from_hash,
   is_missing_mail_item,
   resolve_welcome_auto_open,
 } from "./stale_open_email";
@@ -65,5 +66,26 @@ describe("resolve_welcome_auto_open", () => {
     expect(resolve_welcome_auto_open({ a: "Weekly update" })).toEqual({
       kind: "none",
     });
+  });
+});
+
+describe("email_id_from_hash", () => {
+  it("reads an open email id from the hash", () => {
+    expect(email_id_from_hash("#3f2a8c1e-5b4d-4e6f-9a7b-1c2d3e4f5a6b")).toBe(
+      "3f2a8c1e-5b4d-4e6f-9a7b-1c2d3e4f5a6b",
+    );
+  });
+
+  it("ignores an empty hash", () => {
+    expect(email_id_from_hash("")).toBeNull();
+    expect(email_id_from_hash("#")).toBeNull();
+  });
+
+  it("ignores hashes that carry parameters instead of an email id", () => {
+    expect(email_id_from_hash(`#handoff=${"g".repeat(43)}`)).toBeNull();
+    expect(email_id_from_hash(`#approve=${"g".repeat(43)}`)).toBeNull();
+    expect(email_id_from_hash("#tk=abc")).toBeNull();
+    expect(email_id_from_hash("#/inbox")).toBeNull();
+    expect(email_id_from_hash("#a?b")).toBeNull();
   });
 });

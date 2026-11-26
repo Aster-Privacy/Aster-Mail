@@ -21,6 +21,7 @@
 import type { ApiResponse } from "@/services/api/client/helpers";
 
 const MISSING_ITEM_STATUSES = new Set([404, 410]);
+const NON_EMAIL_HASH_PATTERN = /[=/?&#%\s]/;
 
 export function is_missing_mail_item(
   response: Pick<ApiResponse<unknown>, "code" | "status">,
@@ -52,4 +53,14 @@ export function resolve_welcome_auto_open(
   if (!welcome_entry) return { kind: "none" };
 
   return { kind: "open", email_id: welcome_entry[0] };
+}
+
+export function email_id_from_hash(hash: string): string | null {
+  if (!hash.startsWith("#")) return null;
+
+  const id = hash.slice(1);
+
+  if (!id || NON_EMAIL_HASH_PATTERN.test(id)) return null;
+
+  return id;
 }

@@ -85,6 +85,7 @@ import { predict_startup_route } from "@/lib/startup_route";
 import { watch_device_erase } from "@/lib/device_erase_latch";
 import { capture_support_return } from "@/lib/support_return";
 import { capture_link_commitment } from "@/lib/device_link_commitment";
+import { capture_handoff_grant } from "@/lib/session_handoff/session_handoff_capture";
 import { lazy_with_retry } from "@/utils/lazy_with_retry";
 import { has_tauri_runtime } from "@/lib/tauri_runtime";
 
@@ -149,6 +150,7 @@ install_dom_mutation_tolerance((kind) =>
     severity: "warn",
   }),
 );
+capture_handoff_grant();
 capture_support_return();
 capture_link_commitment(true);
 
