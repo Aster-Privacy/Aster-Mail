@@ -351,4 +351,10 @@ describe("birthday fields without a year", () => {
     expect(contact_month_names("en")).toHaveLength(12);
     expect(contact_month_names("pt")[4]).toBe("maio");
   });
+
+  it("offers short month names for narrow fields", () => {
+    expect(contact_month_names("en", "short")[0]).toBe("Jan");
+    expect(contact_month_names("en", "short")[8]).toBe("Sep");
+    expect(contact_month_names("en", "short")).toHaveLength(12);
+  });
 });
