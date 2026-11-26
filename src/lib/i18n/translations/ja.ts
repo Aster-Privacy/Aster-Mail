@@ -3747,7 +3747,7 @@ export const ja = {
     fam_org_ret_trash: "ゴミ箱",
     fam_org_ret_trash_hint: "ゴミ箱のメールを自動削除",
     fam_org_ret_trash_info:
-      "ゴミ箱内の指定した日数より古いメッセージは完全に削除されます。",
+      "メッセージはゴミ箱に移動してから指定した日数が過ぎると完全に削除されます。",
     fam_org_ret_spam: "スパム",
     fam_org_ret_spam_hint: "スパムを自動削除（デフォルト30日）",
     fam_org_ret_spam_info:
@@ -6486,7 +6486,7 @@ export const ja = {
     auto_delete_spam_after: "スパムの自動削除期間",
     auto_delete_trash_after: "ゴミ箱の自動削除期間",
     auto_delete_trash_description:
-      "この期間より古いゴミ箱のメールは完全に削除されます。",
+      "メールはゴミ箱に移動してからこの期間が過ぎると完全に削除されます。",
     spam_delete_hint: "この期間を過ぎたスパムメールは完全に削除されます",
     save_changes: "変更を保存",
     spam_low: "低",
@@ -10095,11 +10095,11 @@ export const ja = {
     forwarded_by_label: "転送元",
     new_reaction: "新しいリアクション",
     trash_auto_delete_notice:
-      "ゴミ箱のメッセージは {{ days }} 日後に削除されます。",
+      "メッセージはゴミ箱に移動してから {{ days }} 日後に削除されます。",
     spam_auto_delete_notice:
       "スパムのメッセージは {{ days }} 日後に削除されます。",
     trash_auto_delete_notice_family:
-      "ゴミ箱のメッセージは、ファミリー管理者の設定により {{ days }} 日後に削除されます。",
+      "メッセージは、ファミリー管理者の設定により、ゴミ箱に移動してから {{ days }} 日後に削除されます。",
     spam_auto_delete_notice_family:
       "スパムのメッセージは、ファミリー管理者の設定により {{ days }} 日後に削除されます。",
     insert_link_title: "リンクを挿入",

@@ -3830,7 +3830,7 @@ export const fr = {
     fam_org_ret_trash_hint:
       "Supprimer automatiquement le courrier de la corbeille",
     fam_org_ret_trash_info:
-      "Les messages dans la corbeille plus anciens que ce nombre de jours sont définitivement supprimés.",
+      "Les messages sont définitivement supprimés ce nombre de jours après leur placement dans la corbeille.",
     fam_org_ret_spam: "Indésirables",
     fam_org_ret_spam_hint:
       "Supprimer automatiquement les indésirables (par défaut 30 jours)",
@@ -6674,7 +6674,7 @@ export const fr = {
     auto_delete_spam_after: "Supprimer automatiquement le spam après",
     auto_delete_trash_after: "Supprimer automatiquement la corbeille après",
     auto_delete_trash_description:
-      "Les e-mails de la Corbeille plus anciens que cette durée sont définitivement supprimés.",
+      "Les messages sont définitivement supprimés une fois cette durée écoulée après leur placement dans la Corbeille.",
     spam_delete_hint:
       "Les e-mails indésirables plus anciens que cette période seront définitivement supprimés",
     save_changes: "Enregistrer les modifications",
@@ -10683,7 +10683,7 @@ export const fr = {
     spam_auto_delete_notice:
       "Les messages du dossier Indésirables sont supprimés après {{ days }} jours.",
     trash_auto_delete_notice_family:
-      "Les messages de la Corbeille sont supprimés après {{ days }} jours, selon le réglage de l'administrateur de la famille.",
+      "Les messages sont supprimés {{ days }} jours après leur placement dans la Corbeille, selon le réglage de l'administrateur de la famille.",
     spam_auto_delete_notice_family:
       "Les messages du dossier Indésirables sont supprimés après {{ days }} jours, selon le réglage de l'administrateur de la famille.",
     spy_pixels_blocked: "Pixels espions bloqués",
@@ -10698,7 +10698,7 @@ export const fr = {
     trackers: "Traqueurs",
     tracking_protection: "Protection contre le suivi",
     trash_auto_delete_notice:
-      "Les messages de la Corbeille sont supprimés après {{ days }} jours.",
+      "Les messages sont supprimés {{ days }} jours après leur placement dans la Corbeille.",
     try_adjusting_filters: "Essayez d'ajuster vos filtres",
     url_label: "URL",
     official_sender: "Adresse officielle Aster",

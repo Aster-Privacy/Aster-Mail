@@ -3663,7 +3663,7 @@ export const ko = {
     fam_org_ret_trash: "휴지통",
     fam_org_ret_trash_hint: "휴지통 메일 자동 삭제",
     fam_org_ret_trash_info:
-      "휴지통에서 이 일수보다 오래된 메시지는 영구적으로 제거됩니다.",
+      "메시지는 휴지통으로 이동한 후 이 일수가 지나면 영구적으로 제거됩니다.",
     fam_org_ret_spam: "스팸",
     fam_org_ret_spam_hint: "스팸 자동 삭제 (기본 30일)",
     fam_org_ret_spam_info:
@@ -6495,7 +6495,7 @@ export const ko = {
     auto_delete_spam_after: "일정 기간 후 스팸 자동 삭제",
     auto_delete_trash_after: "일정 기간 후 휴지통 자동 삭제",
     auto_delete_trash_description:
-      "이 기간보다 오래된 휴지통의 이메일은 영구적으로 삭제됩니다.",
+      "이메일은 휴지통으로 이동한 후 이 기간이 지나면 영구적으로 삭제됩니다.",
     spam_delete_hint: "이 기간보다 오래된 스팸 이메일은 영구적으로 삭제됩니다",
     save_changes: "변경 사항 저장",
     spam_low: "낮음",
@@ -9939,10 +9939,11 @@ export const ko = {
     font: "글꼴",
     fonts: "글꼴",
     stylesheet: "스타일시트",
-    trash_auto_delete_notice: "휴지통의 메시지는 {{ days }}일 후 삭제됩니다.",
+    trash_auto_delete_notice:
+      "메시지는 휴지통으로 이동한 후 {{ days }}일이 지나면 삭제됩니다.",
     spam_auto_delete_notice: "스팸의 메시지는 {{ days }}일 후 삭제됩니다.",
     trash_auto_delete_notice_family:
-      "휴지통의 메시지는 가족 관리자 설정에 따라 {{ days }}일 후 삭제됩니다.",
+      "메시지는 가족 관리자 설정에 따라 휴지통으로 이동한 후 {{ days }}일이 지나면 삭제됩니다.",
     spam_auto_delete_notice_family:
       "스팸의 메시지는 가족 관리자 설정에 따라 {{ days }}일 후 삭제됩니다.",
     insert_link_title: "링크 삽입",

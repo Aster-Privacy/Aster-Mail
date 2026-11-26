@@ -4699,7 +4699,7 @@ export const en: Translations = {
     fam_org_ret_trash: "Trash",
     fam_org_ret_trash_hint: "Auto-delete trashed mail",
     fam_org_ret_trash_info:
-      "Messages in Trash older than this many days are permanently removed.",
+      "Messages are permanently removed this many days after they move to Trash.",
     fam_org_ret_spam: "Spam",
     fam_org_ret_spam_hint: "Auto-delete spam (default 30 days)",
     fam_org_ret_spam_info:
@@ -7987,7 +7987,7 @@ export const en: Translations = {
     auto_delete_spam_after: "Auto-delete spam after",
     auto_delete_trash_after: "Auto-delete trash after",
     auto_delete_trash_description:
-      "Emails in Trash older than this are permanently deleted.",
+      "Messages are permanently deleted this long after you move them to Trash.",
     auto_delete_spam_description:
       "Spam emails older than this will be permanently deleted.",
     spam_delete_hint: "Spam emails older than this will be permanently deleted",
@@ -9653,11 +9653,11 @@ export const en: Translations = {
     archive_subtitle: "Archive emails to keep your inbox clean",
     trash_subtitle: "Deleted emails will appear here",
     trash_auto_delete_notice:
-      "Messages in Trash are deleted after {{ days }} days.",
+      "Messages are deleted {{ days }} days after they move to Trash.",
     spam_auto_delete_notice:
       "Messages in Spam are deleted after {{ days }} days.",
     trash_auto_delete_notice_family:
-      "Messages in Trash are deleted after {{ days }} days, as set by your family admin.",
+      "Messages are deleted {{ days }} days after they move to Trash, as set by your family admin.",
     spam_auto_delete_notice_family:
       "Messages in Spam are deleted after {{ days }} days, as set by your family admin.",
     compose_email: "Compose email",

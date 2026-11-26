@@ -3805,7 +3805,7 @@ export const es = {
     fam_org_ret_trash: "Papelera",
     fam_org_ret_trash_hint: "Eliminar automáticamente el correo de la papelera",
     fam_org_ret_trash_info:
-      "Los mensajes en la papelera con más de esta cantidad de días se eliminan permanentemente.",
+      "Los mensajes se eliminan permanentemente esta cantidad de días después de moverse a la papelera.",
     fam_org_ret_spam: "Correo no deseado",
     fam_org_ret_spam_hint:
       "Eliminar automáticamente el spam (30 días por defecto)",
@@ -6619,7 +6619,7 @@ export const es = {
     auto_delete_spam_after: "Eliminar spam automáticamente después de",
     auto_delete_trash_after: "Eliminar la papelera automáticamente después de",
     auto_delete_trash_description:
-      "Los correos en la Papelera más antiguos que este periodo se eliminan permanentemente.",
+      "Los mensajes se eliminan permanentemente cuando pasa este periodo desde que los mueves a la Papelera.",
     spam_delete_hint:
       "Los correos de spam más antiguos que esto se eliminarán permanentemente",
     save_changes: "Guardar cambios",
@@ -10572,7 +10572,7 @@ export const es = {
     spam_auto_delete_notice:
       "Los mensajes de Spam se eliminan después de {{ days }} días.",
     trash_auto_delete_notice_family:
-      "Los mensajes de la Papelera se eliminan después de {{ days }} días, según lo establecido por el administrador de la familia.",
+      "Los mensajes se eliminan {{ days }} días después de moverse a la Papelera, según lo establecido por el administrador de la familia.",
     spam_auto_delete_notice_family:
       "Los mensajes de Spam se eliminan después de {{ days }} días, según lo establecido por el administrador de la familia.",
     spy_pixels_blocked: "Píxeles espía bloqueados",
@@ -10587,7 +10587,7 @@ export const es = {
     trackers: "Rastreadores",
     tracking_protection: "Protección contra rastreo",
     trash_auto_delete_notice:
-      "Los mensajes de la Papelera se eliminan después de {{ days }} días.",
+      "Los mensajes se eliminan {{ days }} días después de moverse a la Papelera.",
     try_adjusting_filters: "Intenta ajustar tus filtros",
     url_label: "URL",
     official_sender: "Dirección oficial de Aster",

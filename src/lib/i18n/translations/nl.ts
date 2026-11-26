@@ -3735,7 +3735,7 @@ export const nl = {
     fam_org_ret_trash: "Prullenbak",
     fam_org_ret_trash_hint: "Verwijderde mail automatisch wissen",
     fam_org_ret_trash_info:
-      "Berichten in de prullenbak die ouder zijn dan dit aantal dagen worden permanent verwijderd.",
+      "Berichten worden permanent verwijderd dit aantal dagen nadat ze naar de prullenbak zijn verplaatst.",
     fam_org_ret_spam: "Spam",
     fam_org_ret_spam_hint: "Spam automatisch verwijderen (standaard 30 dagen)",
     fam_org_ret_spam_info:
@@ -6457,7 +6457,7 @@ export const nl = {
     auto_delete_spam_after: "Spam automatisch verwijderen na",
     auto_delete_trash_after: "Prullenbak automatisch legen na",
     auto_delete_trash_description:
-      "E-mails in de Prullenbak die ouder zijn dan dit worden definitief verwijderd.",
+      "Berichten worden definitief verwijderd zodra deze periode voorbij is sinds je ze naar de Prullenbak hebt verplaatst.",
     spam_delete_hint: "Spam-e-mails ouder dan dit worden permanent verwijderd",
     save_changes: "Wijzigingen opslaan",
     spam_low: "Laag",
@@ -10344,11 +10344,11 @@ export const nl = {
     forwarded_by_label: "Doorgestuurd door",
     new_reaction: "Nieuwe reactie",
     trash_auto_delete_notice:
-      "Berichten in de Prullenbak worden na {{ days }} dagen verwijderd.",
+      "Berichten worden {{ days }} dagen nadat ze naar de Prullenbak zijn verplaatst verwijderd.",
     spam_auto_delete_notice:
       "Berichten in Spam worden na {{ days }} dagen verwijderd.",
     trash_auto_delete_notice_family:
-      "Berichten in de Prullenbak worden na {{ days }} dagen verwijderd, zoals ingesteld door de familiebeheerder.",
+      "Berichten worden {{ days }} dagen nadat ze naar de Prullenbak zijn verplaatst verwijderd, zoals ingesteld door de familiebeheerder.",
     spam_auto_delete_notice_family:
       "Berichten in Spam worden na {{ days }} dagen verwijderd, zoals ingesteld door de familiebeheerder.",
     insert_link_title: "Link invoegen",

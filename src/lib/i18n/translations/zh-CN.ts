@@ -3439,7 +3439,7 @@ export const zh_CN = {
     fam_org_ret_loading: "加载中…",
     fam_org_ret_trash: "垃圾箱",
     fam_org_ret_trash_hint: "自动删除垃圾箱中的邮件",
-    fam_org_ret_trash_info: "垃圾箱中超过指定天数的邮件将被永久删除。",
+    fam_org_ret_trash_info: "邮件移入垃圾箱满指定天数后将被永久删除。",
     fam_org_ret_spam: "垃圾邮件",
     fam_org_ret_spam_hint: "自动删除垃圾邮件（默认 30 天）",
     fam_org_ret_spam_info:
@@ -5922,7 +5922,7 @@ export const zh_CN = {
     spam_sensitivity: "垃圾邮件敏感度",
     auto_delete_spam_after: "自动删除垃圾邮件的时间",
     auto_delete_trash_after: "自动清空回收站的时间",
-    auto_delete_trash_description: "超过此期限的回收站邮件将被永久删除",
+    auto_delete_trash_description: "邮件移入回收站满此期限后将被永久删除。",
     spam_delete_hint: "超过此时间的垃圾邮件将被永久删除",
     save_changes: "保存更改",
     spam_low: "低",
@@ -9240,10 +9240,10 @@ export const zh_CN = {
     add_link_to_selection: '为"{{text}}"添加链接',
     url_label: "URL",
     link_text_optional: "链接文字（可选）",
-    trash_auto_delete_notice: "回收站中的邮件将在 {{ days }} 天后删除。",
+    trash_auto_delete_notice: "邮件移入回收站 {{ days }} 天后将被删除。",
     spam_auto_delete_notice: "垃圾邮件文件夹中的邮件将在 {{ days }} 天后删除。",
     trash_auto_delete_notice_family:
-      "根据家庭管理员的设置，回收站中的邮件将在 {{ days }} 天后删除。",
+      "根据家庭管理员的设置，邮件移入回收站 {{ days }} 天后将被删除。",
     spam_auto_delete_notice_family:
       "根据家庭管理员的设置，垃圾邮件文件夹中的邮件将在 {{ days }} 天后删除。",
     advanced_search: "高级搜索",
