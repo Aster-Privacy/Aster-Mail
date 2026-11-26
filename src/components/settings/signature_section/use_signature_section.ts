@@ -24,7 +24,6 @@ import {
   EditorState,
   IMAGE_MAGIC_BYTES,
   SignatureMode,
-  escape_html,
   has_editor_content,
   initial_editor_state,
   validate_image_magic_bytes,
@@ -42,7 +41,10 @@ import {
   signature_image_budget,
   signature_image_html,
 } from "@/lib/signature_image";
-import { signature_from_editor_html } from "@/lib/signature_html";
+import {
+  plain_signature_to_html,
+  signature_from_editor_html,
+} from "@/lib/signature_html";
 import { show_toast } from "@/components/toast/simple_toast";
 import {
   list_signatures,
@@ -268,7 +270,7 @@ export function use_signature_section() {
       if (editor_div_ref.current) {
         const html = signature.is_html
           ? signature.content
-          : escape_html(signature.content).replace(/\n/g, "<br>");
+          : plain_signature_to_html(signature.content);
 
         rich_editor.set_html(html);
       }

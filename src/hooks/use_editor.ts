@@ -38,6 +38,7 @@ import {
   restore_deferred_compose_images,
 } from "@/lib/compose_deferred_images";
 import { COMPOSE_DEFERRED_SRC_ATTRIBUTE } from "@/lib/compose_deferred_markup";
+import { ensure_cell_placeholders } from "@/lib/signature_table";
 import { read_compose_editor_html } from "@/lib/editable_quoted_html";
 import { use_compose_image_hydration } from "@/hooks/use_compose_image_hydration";
 import {
@@ -211,7 +212,10 @@ export function use_editor({
 
     const editor = editor_ref.current;
 
-    if (editor) serialize_editor(editor);
+    if (!editor) return;
+
+    ensure_cell_placeholders(editor);
+    serialize_editor(editor);
   }, [editor_ref, serialize_editor, take_pending_input]);
 
   const apply_signature = useCallback(

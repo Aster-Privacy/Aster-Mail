@@ -20,6 +20,8 @@
 //
 import { outgoing_html_to_plain_text } from "./outgoing_plain_text";
 
+import { preserve_plain_spaces } from "@/hooks/editor_utils";
+
 export const COMPOSE_CARET_BLOCK = "<div><br></div>";
 
 export const SIGNATURE_GAP_BLOCK = "<div><br></div>";
@@ -44,13 +46,22 @@ export interface SignatureHtmlSource {
   is_html: boolean;
 }
 
-function escape_plain_signature(content: string): string {
+export function plain_signature_to_html(content: string): string {
   return content
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/\n/g, "<br>");
+    .replace(/\r\n?/g, "\n")
+    .split("\n")
+    .map((line) =>
+      preserve_plain_spaces(
+        line
+          .replace(/\t/g, "    ")
+          .replace(/ /g, " ")
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;"),
+      ),
+    )
+    .join("<br>");
 }
 
 const SOURCE_LINE_BREAK = /[\r\n]/;
@@ -168,7 +179,7 @@ export function format_signature_html(
 
   const content = signature.is_html
     ? collapse_source_whitespace(signature.content)
-    : escape_plain_signature(signature.content);
+    : plain_signature_to_html(signature.content);
   const separator = show_separator ? "--<br>" : "";
 
   return `<div data-aster-signature="1" data-aster-signature-id="${signature.id}">${separator}${content}</div>`;
@@ -379,7 +390,12 @@ export function signature_from_editor_html(
     block.replaceWith(...block.childNodes);
   });
 
-  const content = (temp.textContent || "").replace(/\n{3,}/g, "\n\n").trim();
+  const content = (temp.textContent || "")
+    .replace(/ /g, " ")
+    .replace(/[ \t]+$/gm, "")
+    .replace(/\n{3,}/g, "\n\n")
+    .replace(/^\n+/, "")
+    .trimEnd();
 
   return { content, is_html: false };
 }

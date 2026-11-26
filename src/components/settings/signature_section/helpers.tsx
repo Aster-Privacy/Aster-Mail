@@ -22,14 +22,6 @@ import { type ReactNode } from "react";
 
 import { type SignaturePlacement } from "@/services/api/signatures";
 
-export function escape_html(str: string): string {
-  return str
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
-}
-
 export const IMAGE_MAGIC_BYTES: Record<string, number[]> = {
   "image/png": [0x89, 0x50, 0x4e, 0x47],
   "image/jpeg": [0xff, 0xd8, 0xff],

@@ -67,6 +67,7 @@ import { use_plan_limits } from "@/hooks/use_plan_limits";
 import { prompt_upgrade } from "@/components/settings/aliases/feature_lock";
 import { use_editor } from "@/hooks/use_editor";
 import { LinkDialog } from "@/components/compose/link_dialog";
+import { FontFamilySelect } from "@/components/compose/compose_toolbar/font_family";
 import { FontSizeSelect } from "@/components/compose/compose_toolbar/font_size";
 import { ColorPickerPopover } from "@/components/compose/compose_toolbar/color_picker";
 import { use_frozen_selection } from "@/components/compose/compose_toolbar/shared";
@@ -81,17 +82,16 @@ import {
   signature_image_budget,
   signature_image_html,
 } from "@/lib/signature_image";
-import { signature_from_editor_html } from "@/lib/signature_html";
-
-function escape_html(str: string): string {
-  return str
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
-}
+import {
+  plain_signature_to_html,
+  signature_from_editor_html,
+} from "@/lib/signature_html";
 
 import { MAX_HORIZONTAL_RULES } from "@/hooks/use_editor_format";
+import {
+  SignatureTableControl,
+  use_signature_table_keys,
+} from "@/components/settings/signature_section/table_control";
 
 function MobileFmtButton({
   active,
@@ -230,6 +230,10 @@ export function SignaturesSection({
 
   const { freeze_selection, apply_with_frozen_selection } =
     use_frozen_selection(rich_editor);
+  const handle_table_keys = use_signature_table_keys(
+    editor_div_ref,
+    rich_editor.handle_input,
+  );
   const [show_link_dialog, set_show_link_dialog] = useState(false);
   const [selected_text_for_link, set_selected_text_for_link] = useState("");
 
@@ -283,7 +287,7 @@ export function SignaturesSection({
       requestAnimationFrame(() => {
         const html = sig.is_html
           ? sig.content
-          : escape_html(sig.content).replace(/\n/g, "<br>");
+          : plain_signature_to_html(sig.content);
 
         rich_editor.set_html(html);
       });
@@ -485,6 +489,16 @@ export function SignaturesSection({
                 className="flex flex-wrap items-center gap-0.5 border-b border-[var(--border-secondary)] px-2 py-1.5"
                 role="toolbar"
               >
+                <FontFamilySelect
+                  font_family={rich_editor.format_state.current_font_family}
+                  on_before_open={freeze_selection}
+                  on_change={(family) =>
+                    apply_with_frozen_selection(() =>
+                      rich_editor.set_font_family(family),
+                    )
+                  }
+                />
+
                 <FontSizeSelect
                   font_size={rich_editor.format_state.current_font_size}
                   on_before_open={freeze_selection}
@@ -655,6 +669,15 @@ export function SignaturesSection({
                   </svg>
                 </MobileFmtButton>
 
+                <SignatureTableControl
+                  apply={apply_with_frozen_selection}
+                  button_class_name="rounded p-1.5 text-[var(--text-secondary)] transition-colors"
+                  editor_ref={editor_div_ref}
+                  icon_class_name="h-4 w-4"
+                  on_before_open={freeze_selection}
+                  on_change={rich_editor.handle_input}
+                />
+
                 <MobileFmtDivider />
 
                 <MobileFmtButton
@@ -679,10 +702,11 @@ export function SignaturesSection({
               <div
                 ref={editor_div_ref}
                 contentEditable
-                className="max-h-[300px] min-h-[150px] overflow-y-auto px-3 py-2 text-[15px] text-[var(--text-primary)] outline-none [&_img]:max-w-full"
+                className="signature_editor max-h-[300px] min-h-[150px] overflow-auto px-3 py-2 text-[15px] text-[var(--text-primary)] outline-none [&_img]:max-w-full"
                 onDragOver={rich_editor.handle_drag_over}
                 onDrop={rich_editor.handle_drop}
                 onInput={rich_editor.handle_input}
+                onKeyDown={handle_table_keys}
                 onPaste={rich_editor.handle_paste}
               />
             </div>
@@ -873,7 +897,7 @@ export function SignaturesSection({
                   dangerouslySetInnerHTML={{
                     __html: sig.is_html
                       ? sanitize_compose_paste(sig.content)
-                      : escape_html(sig.content).replace(/\n/g, "<br>"),
+                      : plain_signature_to_html(sig.content),
                   }}
                   data-selectable-region
                   className="mt-2 line-clamp-3 text-[13px] text-[var(--text-muted)] [&_img]:max-h-16 [&_img]:rounded"
