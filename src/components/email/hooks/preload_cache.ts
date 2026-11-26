@@ -485,6 +485,7 @@ export async function preload_email_detail(
   if (preload_in_flight.has(target_id)) return preload_in_flight.get(target_id);
   const started_generation = get_preload_generation();
   const started_account_epoch = get_preload_account_epoch();
+  const started_at = Date.now();
 
   let task: Promise<void> | undefined;
 
@@ -889,7 +890,7 @@ export async function preload_email_detail(
         thread_sanitized,
         cid_resolved,
         thread_cid_resolved,
-        time: Date.now(),
+        time: started_at,
         is_stale: false,
         conversation_grouping: conversation_grouping !== false,
       });

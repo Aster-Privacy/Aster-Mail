@@ -87,9 +87,11 @@ import { decrypt_mail_envelope } from "@/components/email/shared/decrypt_envelop
 import { is_crypto_module_load_error } from "@/services/crypto/openpgp_loader";
 import {
   get_preload_in_flight,
+  is_preloaded_email_fresh,
   peek_preloaded_email,
   preload_email_detail,
 } from "@/components/email/hooks/preload_cache";
+import { request_cache } from "@/services/api/request_cache";
 import { use_email_detail_actions } from "@/components/email/hooks/email_detail_actions";
 import { prefetch_attachment_meta } from "@/services/attachment_meta_cache";
 import { prefetch_attachment_previews } from "@/services/attachment_preview_cache";
@@ -669,8 +671,14 @@ export function use_email_detail_load() {
         }
       }
 
-      if (cached.is_stale || Date.now() - cached.time > 30_000) {
+      if (!is_preloaded_email_fresh(cached)) {
         const revalidate_id = email_id;
+
+        if (cached.mail_item.thread_token) {
+          request_cache.invalidate(
+            `messages/threads/${encodeURIComponent(cached.mail_item.thread_token)}/messages`,
+          );
+        }
 
         preload_email_detail(
           revalidate_id,
