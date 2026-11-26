@@ -11059,6 +11059,8 @@ export const fr = {
       "Saisissez votre mot de passe actuel pour conserver vos clés de chiffrement et garder vos e-mails lisibles. Si vous ne le connaissez pas, utilisez plutôt un code de récupération.",
     reset_current_password_required:
       "Saisissez votre mot de passe actuel ou utilisez plutôt un code de récupération.",
+    reset_legacy_login_salt:
+      "Pour conserver vos anciens e-mails avec votre mot de passe actuel, ouvrez ce lien de réinitialisation sur un appareil que vous avez déjà utilisé avec Aster. Si ce n'est pas possible, utilisez plutôt un code de récupération.",
     reset_lost_everything:
       "J'ai perdu mon mot de passe et mes codes de récupération",
     reset_remember_password:

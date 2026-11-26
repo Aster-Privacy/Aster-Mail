@@ -10938,6 +10938,8 @@ export const es = {
       "Introduce tu contraseña actual para que tus claves de cifrado no cambien y tu correo siga siendo legible. Si no la sabes, usa un código de recuperación.",
     reset_current_password_required:
       "Introduce tu contraseña actual o usa un código de recuperación.",
+    reset_legacy_login_salt:
+      "Para conservar tu correo anterior con tu contraseña actual, abre este enlace de restablecimiento en un dispositivo que ya hayas usado con Aster. Si no puedes, usa un código de recuperación.",
     reset_lost_everything:
       "He perdido mi contraseña y mis códigos de recuperación",
     reset_remember_password:

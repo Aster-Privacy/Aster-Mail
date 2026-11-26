@@ -10966,6 +10966,8 @@ export const de = {
       "Gib dein aktuelles Passwort ein, damit deine Verschlüsselungsschlüssel gleich bleiben und deine E-Mails lesbar bleiben. Wenn du es nicht kennst, verwende stattdessen einen Wiederherstellungscode.",
     reset_current_password_required:
       "Gib dein aktuelles Passwort ein oder verwende stattdessen einen Wiederherstellungscode.",
+    reset_legacy_login_salt:
+      "Um deine bisherigen E-Mails mit deinem aktuellen Passwort zu behalten, öffne diesen Link zum Zurücksetzen auf einem Gerät, das du schon mit Aster verwendet hast. Wenn das nicht möglich ist, verwende stattdessen einen Wiederherstellungscode.",
     reset_lost_everything:
       "Ich habe mein Passwort und meine Wiederherstellungscodes verloren",
     reset_remember_password:

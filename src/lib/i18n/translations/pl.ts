@@ -11155,6 +11155,8 @@ export const pl = {
       "Wpisz obecne hasło, aby klucze szyfrowania pozostały takie same, a poczta czytelna. Jeśli go nie znasz, użyj kodu odzyskiwania.",
     reset_current_password_required:
       "Wpisz obecne hasło lub użyj kodu odzyskiwania.",
+    reset_legacy_login_salt:
+      "Aby zachować wcześniejszą pocztę przy użyciu obecnego hasła, otwórz ten link resetowania na urządzeniu, którego używałeś już z Aster. Jeśli nie możesz, użyj kodu odzyskiwania.",
     reset_lost_everything:
       "Zgubiłem hasło i kody odzyskiwania",
     reset_remember_password:

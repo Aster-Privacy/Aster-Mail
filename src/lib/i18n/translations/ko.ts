@@ -10472,6 +10472,8 @@ export const ko = {
       "현재 비밀번호를 입력하면 암호화 키가 그대로 유지되고 메일도 계속 읽을 수 있습니다. 모르는 경우 대신 복구 코드를 사용하세요.",
     reset_current_password_required:
       "현재 비밀번호를 입력하거나 대신 복구 코드를 사용하세요.",
+    reset_legacy_login_salt:
+      "현재 비밀번호로 이전 메일을 유지하려면 이전에 Aster를 사용한 기기에서 이 재설정 링크를 여세요. 그렇게 할 수 없다면 대신 복구 코드를 사용하세요.",
     reset_lost_everything:
       "비밀번호와 복구 코드를 잃어버렸습니다",
     reset_remember_password:

@@ -65,6 +65,7 @@ import {
 import { user_facing_error } from "@/utils/user_facing_error";
 import { note_bulk_mail_removed } from "@/services/search/index_removals";
 import { get_active_translations } from "@/lib/i18n/translations";
+import { strip_outgoing_markers } from "@/lib/outgoing_markers";
 import {
   get_external_account_health_generation,
   publish_external_account_health,
@@ -747,7 +748,7 @@ export async function send_via_external_account(
       cc,
       bcc,
       subject,
-      body,
+      body: plain_text ? body : strip_outgoing_markers(body),
     };
 
     if (attachments && attachments.length > 0) {

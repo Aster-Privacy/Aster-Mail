@@ -11032,6 +11032,8 @@ export const pt = {
       "Introduza a sua palavra-passe atual para que as chaves de encriptação se mantenham e o seu correio continue legível. Se não a souber, use um código de recuperação.",
     reset_current_password_required:
       "Introduza a sua palavra-passe atual ou use um código de recuperação.",
+    reset_legacy_login_salt:
+      "Para manter o seu correio anterior com a palavra-passe atual, abra esta ligação de reposição num dispositivo que já tenha usado com o Aster. Se não for possível, use um código de recuperação.",
     reset_lost_everything:
       "Perdi a minha palavra-passe e os códigos de recuperação",
     reset_remember_password:

@@ -10964,6 +10964,8 @@ export const pt_br = {
       "Digite sua senha atual para manter suas chaves de criptografia e deixar seus e-mails legíveis. Se não souber, use um código de recuperação.",
     reset_current_password_required:
       "Digite sua senha atual ou use um código de recuperação.",
+    reset_legacy_login_salt:
+      "Para manter seus e-mails anteriores com sua senha atual, abra este link de redefinição em um dispositivo que você já usou com o Aster. Se não puder, use um código de recuperação.",
     reset_lost_everything:
       "Perdi minha senha e meus códigos de recuperação",
     reset_remember_password:
