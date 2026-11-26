@@ -963,6 +963,8 @@ describe("thread_imported_emails", () => {
       }),
     ]);
 
+    const random_spy = vi.spyOn(Math, "random").mockReturnValue(0);
+
     const mod = await reimport_module();
     const on_linked = vi.fn();
 
@@ -975,6 +977,7 @@ describe("thread_imported_emails", () => {
 
     expect(on_linked).toHaveBeenCalledWith(1);
     mod.cancel_thread_repair();
+    random_spy.mockRestore();
   });
 
   it("keeps a single scheduled run and cancels it", async () => {
@@ -996,10 +999,56 @@ describe("thread_imported_emails", () => {
 
     const mod = await reimport_module();
 
-    expect(mod.next_auto_delay()).toBe(mod.AUTO_FIRST_DELAY_MS);
+    const first = mod.next_auto_delay();
+
+    expect(first).toBeGreaterThanOrEqual(mod.AUTO_FIRST_DELAY_MS);
+    expect(first).toBeLessThan(
+      mod.AUTO_FIRST_DELAY_MS + mod.AUTO_FIRST_JITTER_MS,
+    );
 
     await mod.thread_imported_emails();
 
     expect(mod.next_auto_delay()).toBe(mod.AUTO_IDLE_INTERVAL_MS);
+  });
+
+  it("remembers the last run across reloads so a new page load does not walk the mailbox again", async () => {
+    setup_mail_items([]);
+
+    const first_mod = await reimport_module();
+
+    await first_mod.thread_imported_emails();
+    mock_list_mail_items.mockClear();
+
+    const mod = await reimport_module();
+    const on_linked = vi.fn();
+
+    expect(mod.next_auto_delay()).toBe(mod.AUTO_IDLE_INTERVAL_MS);
+
+    mod.schedule_thread_repair(on_linked);
+    await vi.advanceTimersByTimeAsync(
+      mod.AUTO_FIRST_DELAY_MS + mod.AUTO_FIRST_JITTER_MS,
+    );
+
+    expect(mock_list_mail_items).not.toHaveBeenCalled();
+    mod.cancel_thread_repair();
+  });
+
+  it("skips a scheduled run when another tab already ran", async () => {
+    setup_mail_items([]);
+
+    const mod = await reimport_module();
+    const on_linked = vi.fn();
+
+    mod.schedule_thread_repair(on_linked);
+    localStorage.setItem(
+      `aster_thread_relink_last_run:${USER_ID}`,
+      String(Date.now()),
+    );
+    await vi.advanceTimersByTimeAsync(
+      mod.AUTO_FIRST_DELAY_MS + mod.AUTO_FIRST_JITTER_MS,
+    );
+
+    expect(mock_list_mail_items).not.toHaveBeenCalled();
+    mod.cancel_thread_repair();
   });
 });

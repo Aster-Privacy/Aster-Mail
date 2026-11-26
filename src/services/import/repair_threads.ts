@@ -51,10 +51,13 @@ const MAX_PAGES = 300;
 const COOLDOWN_MS = 10_000;
 const SUBMIT_BATCH_SIZE = 200;
 const FINGERPRINT_KEY_PREFIX = "aster_thread_relink_v3:";
+const LAST_RUN_KEY_PREFIX = "aster_thread_relink_last_run:";
 
-export const AUTO_FIRST_DELAY_MS = 5_000;
-export const AUTO_ACTIVE_INTERVAL_MS = 60_000;
-export const AUTO_IDLE_INTERVAL_MS = 300_000;
+export const AUTO_FIRST_DELAY_MS = 120_000;
+export const AUTO_FIRST_JITTER_MS = 600_000;
+export const AUTO_ACTIVE_INTERVAL_MS = 600_000;
+export const AUTO_IDLE_INTERVAL_MS = 21_600_000;
+export const AUTO_MAX_FOLLOW_UPS = 3;
 export const AUTO_LOCKED_RETRY_MS = 15_000;
 const AUTO_LOCKED_MAX_RETRIES = 8;
 
@@ -108,6 +111,7 @@ interface FetchResult {
 
 let last_run_at = 0;
 let last_run_linked = true;
+let linked_streak = 0;
 let current_run: Promise<RunResult> | null = null;
 let scheduled_timer: ReturnType<typeof setTimeout> | null = null;
 let locked_retries = 0;
@@ -240,6 +244,32 @@ function read_fingerprints(user_id: string): StoredFingerprints | null {
     return { seen: parsed.seen, settled: parsed.settled };
   } catch {
     return null;
+  }
+}
+
+function current_user_id(): string | null {
+  return api_client.get_cached_user_info()?.user_id ?? null;
+}
+
+function read_last_run(user_id: string | null): number {
+  if (!user_id) return last_run_at;
+
+  try {
+    const stored = Number(localStorage.getItem(LAST_RUN_KEY_PREFIX + user_id));
+
+    return Number.isFinite(stored) && stored > last_run_at
+      ? stored
+      : last_run_at;
+  } catch {
+    return last_run_at;
+  }
+}
+
+function write_last_run(user_id: string, at: number): void {
+  try {
+    localStorage.setItem(LAST_RUN_KEY_PREFIX + user_id, String(at));
+  } catch {
+    return;
   }
 }
 
@@ -618,6 +648,8 @@ async function run_repair(force: boolean): Promise<RunResult> {
     zero_uint8_array(passphrase_bytes);
     last_run_at = Date.now();
     last_run_linked = linked_count > 0;
+    linked_streak = last_run_linked ? linked_streak + 1 : 0;
+    write_last_run(user_id, last_run_at);
   }
 }
 
@@ -651,14 +683,30 @@ export function regroup_conversations(): Promise<RunResult> {
   return start_run(true);
 }
 
+function auto_due_in(now: number): number | null {
+  const last = read_last_run(current_user_id());
+
+  if (last === 0) return null;
+
+  const follow_up =
+    last_run_at === last &&
+    last_run_linked &&
+    linked_streak <= AUTO_MAX_FOLLOW_UPS;
+  const interval = follow_up ? AUTO_ACTIVE_INTERVAL_MS : AUTO_IDLE_INTERVAL_MS;
+
+  return last + interval - now;
+}
+
 export function next_auto_delay(now: number = Date.now()): number {
-  if (last_run_at === 0) return AUTO_FIRST_DELAY_MS;
+  const due_in = auto_due_in(now);
 
-  const interval = last_run_linked
-    ? AUTO_ACTIVE_INTERVAL_MS
-    : AUTO_IDLE_INTERVAL_MS;
+  if (due_in === null) {
+    return (
+      AUTO_FIRST_DELAY_MS + Math.floor(Math.random() * AUTO_FIRST_JITTER_MS)
+    );
+  }
 
-  return Math.max(AUTO_FIRST_DELAY_MS, last_run_at + interval - now);
+  return Math.max(AUTO_FIRST_DELAY_MS, due_in);
 }
 
 export function schedule_thread_repair(
@@ -671,6 +719,14 @@ export function schedule_thread_repair(
     scheduled_timer = null;
 
     if (current_run) {
+      schedule_thread_repair(on_linked);
+
+      return;
+    }
+
+    const due_in = auto_due_in(Date.now());
+
+    if (delay_ms === undefined && due_in !== null && due_in > 0) {
       schedule_thread_repair(on_linked);
 
       return;
