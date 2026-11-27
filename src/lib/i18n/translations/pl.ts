@@ -5656,6 +5656,8 @@ export const pl = {
       "Foldery z połączonego konta się nie wczytały. Spróbuj ponownie.",
     external_sign_in_rejected:
       "Serwer poczty nie zaakceptował tej nazwy użytkownika i hasła. Sprawdź je ponownie. Jeśli dostawca wymaga hasła do aplikacji, wpisz je zamiast zwykłego hasła.",
+    external_mailbox_access_off:
+      "Dostawca poczty zaakceptował logowanie, ale nie otworzył skrzynki. Aby korzystać z tego konta, włącz dostęp IMAP w ustawieniach konta pocztowego, a następnie spróbuj ponownie.",
     external_server_unreachable:
       "Aster Mail nie może połączyć się z tym serwerem poczty. Sprawdź nazwę serwera, port i ustawienie zabezpieczeń, a potem spróbuj ponownie.",
     external_reconnect_required:

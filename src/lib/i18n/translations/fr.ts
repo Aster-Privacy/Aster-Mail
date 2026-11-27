@@ -5565,6 +5565,8 @@ export const fr = {
       "Les dossiers de votre compte associé ne se sont pas chargés. Réessayez.",
     external_sign_in_rejected:
       "Le serveur de messagerie n'a pas accepté ce nom d'utilisateur et ce mot de passe. Vérifiez-les à nouveau. Si votre fournisseur exige un mot de passe d'application, saisissez-le à la place.",
+    external_mailbox_access_off:
+      "Votre fournisseur de messagerie a accepté la connexion, mais n'a pas ouvert la boîte aux lettres. Pour utiliser ce compte, activez l'accès IMAP dans les réglages de votre compte de messagerie, puis réessayez.",
     external_server_unreachable:
       "Aster Mail n'a pas pu se connecter à ce serveur de messagerie. Vérifiez le nom du serveur, le port et le paramètre de sécurité, puis réessayez.",
     external_reconnect_required:

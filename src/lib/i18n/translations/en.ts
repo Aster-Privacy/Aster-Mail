@@ -6478,6 +6478,8 @@ export const en: Translations = {
       "Folders from your linked account did not load. Try again.",
     external_sign_in_rejected:
       "The mail server didn't accept this username and password. Check them again. If your provider requires an app password, enter that instead.",
+    external_mailbox_access_off:
+      "Your email provider accepted the sign-in but didn't open the mailbox. To use this account, turn on IMAP access in your email account settings, and then try again.",
     external_server_unreachable:
       "Aster Mail couldn't connect to this mail server. Check the server name, port, and security setting, then try again.",
     external_reconnect_required:

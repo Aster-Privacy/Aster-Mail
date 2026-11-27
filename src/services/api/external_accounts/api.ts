@@ -79,6 +79,8 @@ export function external_account_error_message(
   switch (server_code) {
     case "EXTERNAL_ACCOUNT_SIGN_IN_REJECTED":
       return settings.external_sign_in_rejected;
+    case "EXTERNAL_ACCOUNT_MAILBOX_ACCESS_OFF":
+      return settings.external_mailbox_access_off;
     case "EXTERNAL_ACCOUNT_SERVER_UNREACHABLE":
       return settings.external_server_unreachable;
     case "EXTERNAL_ACCOUNT_RECONNECT_REQUIRED":
