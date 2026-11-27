@@ -21,7 +21,6 @@
 import type { ContactFormData } from "@/types/contacts";
 
 import { useEffect, useMemo, useState } from "react";
-import { UserPlusIcon } from "@heroicons/react/24/outline";
 import { Button } from "@aster/ui";
 
 import {
@@ -117,13 +116,8 @@ export function ContactBulkCreateModal({
   return (
     <Modal is_open={is_open} on_close={on_close} size="sm">
       <ModalHeader>
-        <div className="flex items-center gap-3">
-          <UserPlusIcon className="h-5 w-5 flex-shrink-0 text-txt-muted" />
-          <div className="min-w-0">
-            <ModalTitle>{t("common.create_multiple_contacts")}</ModalTitle>
-            <ModalDescription>{t("common.bulk_create_hint")}</ModalDescription>
-          </div>
-        </div>
+        <ModalTitle>{t("common.create_multiple_contacts")}</ModalTitle>
+        <ModalDescription>{t("common.bulk_create_hint")}</ModalDescription>
       </ModalHeader>
 
       <ModalBody>

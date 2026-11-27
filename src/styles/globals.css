@@ -2174,7 +2174,8 @@ html:not([data-input-modality="keyboard"]) :focus-visible {
   outline-offset: 0;
 }
 
-html:not([data-input-modality="keyboard"]) .aster_input:focus,
+html:not([data-input-modality="keyboard"])
+  .aster_input:is(input, textarea, [contenteditable]):focus,
 html[data-input-modality="keyboard"] .aster_input:focus-visible {
   border-color: transparent;
   box-shadow: none;
@@ -2182,14 +2183,39 @@ html[data-input-modality="keyboard"] .aster_input:focus-visible {
   outline-offset: -2px;
 }
 
-html:not([data-input-modality="keyboard"]) .aster_input_success:focus,
+html:not([data-input-modality="keyboard"])
+  .aster_input_success:is(input, textarea, [contenteditable]):focus,
 html[data-input-modality="keyboard"] .aster_input_success:focus-visible {
   outline-color: #22c55e;
 }
 
-html:not([data-input-modality="keyboard"]) .aster_input_error:focus,
+html:not([data-input-modality="keyboard"])
+  .aster_input_error:is(input, textarea, [contenteditable]):focus,
 html[data-input-modality="keyboard"] .aster_input_error:focus-visible {
   outline-color: var(--color-danger, #ef4444);
+}
+
+html:not([data-input-modality="keyboard"])
+  .aster_input:not(input, textarea, [contenteditable]):focus {
+  box-shadow: none;
+  outline: none;
+}
+
+html:not([data-input-modality="keyboard"])
+  .aster_input:not(
+    input,
+    textarea,
+    [contenteditable],
+    .aster_input_error,
+    .aster_input_success,
+    .aster_input_tonal,
+    .aster_island *
+  ):focus {
+  border-color: var(--input-border);
+}
+
+html:not([data-input-modality="keyboard"]) .aster_select_trigger:focus-visible {
+  box-shadow: none;
 }
 
 html:not([data-input-modality="keyboard"]) :focus,

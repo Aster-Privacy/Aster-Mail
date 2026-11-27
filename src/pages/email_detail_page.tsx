@@ -21,7 +21,6 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { NoSymbolIcon } from "@heroicons/react/24/outline";
 
 import { Button } from "@/components/ui/button";
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
@@ -262,14 +261,9 @@ export default function EmailDetailPage() {
                 initial={reduce_motion ? false : { opacity: 0, scale: 0.95 }}
                 transition={{ duration: reduce_motion ? 0 : 0.15 }}
               >
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
-                    <NoSymbolIcon className="w-4 h-4 sm:w-5 sm:h-5 text-red-500" />
-                  </div>
-                  <h2 className="text-base sm:text-lg font-semibold text-[var(--text-primary)]">
-                    {detail.t("mail.block_sender")}
-                  </h2>
-                </div>
+                <h2 className="mb-4 text-base sm:text-lg font-semibold text-[var(--text-primary)]">
+                  {detail.t("mail.block_sender")}
+                </h2>
 
                 <div className="flex items-center gap-2 sm:gap-3 mb-4 p-2 sm:p-3 rounded-lg bg-[var(--bg-secondary)]">
                   <ProfileAvatar

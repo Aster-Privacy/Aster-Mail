@@ -19,11 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { useState, useRef, useEffect } from "react";
-import {
-  ExclamationTriangleIcon,
-  EyeIcon,
-  EyeSlashIcon,
-} from "@heroicons/react/24/outline";
+import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
 
 import { login_safety_error_key } from "@/services/crypto/auth_salt_guard";
 import { Button } from "@/components/ui/button";
@@ -181,10 +177,7 @@ export function TotpDisableModal({
       size="md"
     >
       <ModalHeader>
-        <div className="flex items-center gap-3">
-          <ExclamationTriangleIcon className="w-5 h-5 text-red-500 flex-shrink-0" />
-          <ModalTitle>{t("settings.disable_two_factor_auth")}</ModalTitle>
-        </div>
+        <ModalTitle>{t("settings.disable_two_factor_auth")}</ModalTitle>
         <ModalDescription>
           {t("settings.disable_2fa_description")}
         </ModalDescription>

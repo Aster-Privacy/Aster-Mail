@@ -23,7 +23,6 @@ import type { DecryptedFolder } from "@/hooks/use_folders";
 import { useState, useMemo, useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import {
-  FolderPlusIcon,
   FolderIcon,
   ChevronDownIcon,
 } from "@heroicons/react/24/outline";
@@ -193,14 +192,11 @@ export function CreateFolderModal({
             onClick={(e) => e.stopPropagation()}
           >
             <div className="px-6 pt-6 pb-4">
-              <div className="flex items-center gap-3 mb-5">
-                <FolderPlusIcon className="w-5 h-5 text-txt-secondary" />
-                <h2 className="text-[16px] font-semibold text-txt-primary">
-                  {selected_parent_token
-                    ? t("common.create_subfolder")
-                    : t("common.create_folder")}
-                </h2>
-              </div>
+              <h2 className="mb-5 text-[16px] font-semibold text-txt-primary">
+                {selected_parent_token
+                  ? t("common.create_subfolder")
+                  : t("common.create_folder")}
+              </h2>
 
               <div className="space-y-4">
                 <div>

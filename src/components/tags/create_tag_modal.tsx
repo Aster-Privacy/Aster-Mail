@@ -184,12 +184,9 @@ export function CreateTagModal({
             onClick={(e) => e.stopPropagation()}
           >
             <div className="px-6 pt-6 pb-4">
-              <div className="flex items-center gap-3 mb-5">
-                <TagIcon className="w-5 h-5 text-txt-secondary" />
-                <h2 className="text-[16px] font-semibold text-txt-primary">
-                  {t("common.create_label")}
-                </h2>
-              </div>
+              <h2 className="mb-5 text-[16px] font-semibold text-txt-primary">
+                {t("common.create_label")}
+              </h2>
 
               <div className="space-y-4">
                 <div>

@@ -20,7 +20,6 @@
 //
 import { useState, useCallback } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { AtSymbolIcon } from "@heroicons/react/24/outline";
 import { Button } from "@aster/ui";
 
 import { ButtonSpinner } from "@/components/ui/spinner";
@@ -133,12 +132,9 @@ export function CreateAliasModal({ is_open, on_close }: CreateAliasModalProps) {
             onClick={(e) => e.stopPropagation()}
           >
             <div className="px-6 pt-6 pb-4">
-              <div className="flex items-center gap-3 mb-5">
-                <AtSymbolIcon className="w-5 h-5 text-txt-secondary" />
-                <h2 className="text-[16px] font-semibold text-txt-primary">
-                  {t("settings.create_alias")}
-                </h2>
-              </div>
+              <h2 className="mb-5 text-[16px] font-semibold text-txt-primary">
+                {t("settings.create_alias")}
+              </h2>
 
               <div className="space-y-4">
                 <div>

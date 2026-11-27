@@ -20,7 +20,6 @@
 //
 import { useState } from "react";
 import {
-  TrashIcon,
   ExclamationTriangleIcon,
   EyeIcon,
   EyeSlashIcon,
@@ -32,6 +31,8 @@ import { Input } from "@/components/ui/input";
 import {
   Modal,
   ModalHeader,
+  ModalTitle,
+  ModalDescription,
   ModalBody,
   ModalFooter,
 } from "@/components/ui/modal";
@@ -145,16 +146,11 @@ export function DeleteAccountModal({
       on_close={handle_close}
       size="md"
     >
-      <ModalHeader className="pb-0">
-        <div className="flex items-center gap-3">
-          <TrashIcon className="w-6 h-6 text-red-500 flex-shrink-0" />
-          <div>
-            <h3 className="text-base font-semibold leading-tight text-txt-primary">
-              {t("settings.delete_account_title")}
-            </h3>
-            <p className="text-[13px] mt-1 text-txt-tertiary">{user?.email}</p>
-          </div>
-        </div>
+      <ModalHeader>
+        <ModalTitle>{t("settings.delete_account_title")}</ModalTitle>
+        <ModalDescription className="break-words">
+          {user?.email}
+        </ModalDescription>
       </ModalHeader>
 
       <ModalBody>

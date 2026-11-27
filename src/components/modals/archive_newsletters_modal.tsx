@@ -434,18 +434,12 @@ export function ArchiveNewslettersModal({
     >
       <div className="flex flex-col" style={{ height: "520px" }}>
         <div className="flex items-center justify-between px-6 py-5 flex-shrink-0">
-          <div className="flex items-center gap-3">
-            <NewspaperIcon
-              className="w-5 h-5"
-              style={{ color: "var(--text-secondary)" }}
-            />
-            <h2
-              className="text-[16px] font-semibold"
-              style={{ color: "var(--text-primary)" }}
-            >
-              {t("mail.archive_all_newsletters")}
-            </h2>
-          </div>
+          <h2
+            className="text-[16px] font-semibold"
+            style={{ color: "var(--text-primary)" }}
+          >
+            {t("mail.archive_all_newsletters")}
+          </h2>
           <button
             aria-label={t("common.close")}
             className="p-1.5 rounded-[14px] transition-colors hover:bg-[var(--aster-hover)]"

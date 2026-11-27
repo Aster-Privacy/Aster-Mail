@@ -19,13 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { useState, useEffect, useMemo } from "react";
-import {
-  ArrowRightIcon,
-  PencilIcon,
-  TagIcon,
-  TrashIcon,
-  ExclamationTriangleIcon,
-} from "@heroicons/react/24/outline";
+import { TagIcon, ExclamationTriangleIcon } from "@heroicons/react/24/outline";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -300,15 +294,10 @@ export function TagManagementModal({
         return (
           <>
             <ModalHeader>
-              <div className="flex items-center gap-3">
-                <PencilIcon className="w-5 h-5 text-[var(--accent-color)] flex-shrink-0" />
-                <div className="min-w-0">
-                  <ModalTitle>{t("common.rename_label")}</ModalTitle>
-                  <ModalDescription>
-                    {t("common.rename_label_description")}
-                  </ModalDescription>
-                </div>
-              </div>
+              <ModalTitle>{t("common.rename_label")}</ModalTitle>
+              <ModalDescription>
+                {t("common.rename_label_description")}
+              </ModalDescription>
             </ModalHeader>
 
             <ModalBody>
@@ -366,16 +355,8 @@ export function TagManagementModal({
         return (
           <>
             <ModalHeader>
-              <div className="flex items-center gap-3">
-                <TagIcon
-                  className="w-5 h-5 flex-shrink-0"
-                  style={{ color: tag_color }}
-                />
-                <div className="min-w-0">
-                  <ModalTitle>{t("common.change_label_color")}</ModalTitle>
-                  <ModalDescription>{tag_name}</ModalDescription>
-                </div>
-              </div>
+              <ModalTitle>{t("common.change_label_color")}</ModalTitle>
+              <ModalDescription>{tag_name}</ModalDescription>
             </ModalHeader>
 
             <ModalBody>
@@ -429,16 +410,8 @@ export function TagManagementModal({
         return (
           <>
             <ModalHeader>
-              <div className="flex items-center gap-3">
-                <TagIcon
-                  className="w-5 h-5 flex-shrink-0"
-                  style={{ color: tag_color }}
-                />
-                <div className="min-w-0">
-                  <ModalTitle>{t("common.change_label_icon")}</ModalTitle>
-                  <ModalDescription>{tag_name}</ModalDescription>
-                </div>
-              </div>
+              <ModalTitle>{t("common.change_label_icon")}</ModalTitle>
+              <ModalDescription>{tag_name}</ModalDescription>
             </ModalHeader>
 
             <ModalBody>
@@ -484,15 +457,10 @@ export function TagManagementModal({
         return (
           <>
             <ModalHeader>
-              <div className="flex items-start gap-3">
-                <ArrowRightIcon className="w-5 h-5 text-brand flex-shrink-0 mt-0.5 rtl:-scale-x-100" />
-                <div className="min-w-0">
-                  <ModalTitle>{t("common.move_label")}</ModalTitle>
-                  <ModalDescription>
-                    {t("common.move_label_description")}
-                  </ModalDescription>
-                </div>
-              </div>
+              <ModalTitle>{t("common.move_label")}</ModalTitle>
+              <ModalDescription>
+                {t("common.move_label_description")}
+              </ModalDescription>
             </ModalHeader>
 
             <ModalBody>
@@ -566,13 +534,8 @@ export function TagManagementModal({
         return (
           <>
             <ModalHeader>
-              <div className="flex items-center gap-3">
-                <TrashIcon className="w-5 h-5 text-red-500 flex-shrink-0" />
-                <div className="min-w-0">
-                  <ModalTitle>{t("common.delete_label")}</ModalTitle>
-                  <ModalDescription>{tag_name}</ModalDescription>
-                </div>
-              </div>
+              <ModalTitle>{t("common.delete_label")}</ModalTitle>
+              <ModalDescription>{tag_name}</ModalDescription>
             </ModalHeader>
 
             <ModalBody>

@@ -20,7 +20,6 @@
 //
 import { useState, useMemo, useCallback } from "react";
 import { isBefore } from "date-fns";
-import { CalendarIcon } from "@heroicons/react/24/outline";
 import { Button } from "@aster/ui";
 
 import { is_future_instant } from "@/utils/schedule_targets";
@@ -127,10 +126,7 @@ export function CustomSnoozeModal({
   return (
     <Modal is_open={is_open} on_close={handle_close} size="md">
       <ModalHeader>
-        <ModalTitle className="flex items-center gap-2">
-          <CalendarIcon className="h-5 w-5" />
-          {t("common.pick_snooze_time")}
-        </ModalTitle>
+        <ModalTitle>{t("common.pick_snooze_time")}</ModalTitle>
       </ModalHeader>
       <ModalBody>
         <Calendar

@@ -22,7 +22,6 @@ import type { ContactGroup } from "@/types/contacts";
 import type { TagIconName } from "@/components/ui/email_tag";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { UserGroupIcon } from "@heroicons/react/24/outline";
 import { Button } from "@/components/ui/button";
 
 import {
@@ -182,19 +181,14 @@ export function ContactGroupModal({
   return (
     <Modal is_open={is_open} on_close={handle_close} size="sm">
       <ModalHeader>
-        <div className="flex items-center gap-3">
-          <UserGroupIcon className="h-5 w-5 flex-shrink-0 text-txt-muted" />
-          <div className="min-w-0">
-            <ModalTitle>
-              {is_editing
-                ? t("common.rename_contact_group")
-                : t("common.add_new_group")}
-            </ModalTitle>
-            <ModalDescription>
-              {t("common.group_modal_description")}
-            </ModalDescription>
-          </div>
-        </div>
+        <ModalTitle>
+          {is_editing
+            ? t("common.rename_contact_group")
+            : t("common.add_new_group")}
+        </ModalTitle>
+        <ModalDescription>
+          {t("common.group_modal_description")}
+        </ModalDescription>
       </ModalHeader>
 
       <ModalBody>

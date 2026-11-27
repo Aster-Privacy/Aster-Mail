@@ -23,7 +23,6 @@ import type { SettingsTarget } from "@/lib/settings_links";
 
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { KeyIcon } from "@heroicons/react/24/outline";
 import { Button } from "@aster/ui";
 
 import { use_i18n } from "@/lib/i18n/context";
@@ -199,16 +198,9 @@ export function RecoveryReminder(): JSX.Element | null {
               initial={{ opacity: 0, y: reduce_motion ? 0 : 12 }}
               transition={{ duration, ease: "easeOut" }}
             >
-              <div className="flex items-center gap-2.5">
-                <KeyIcon
-                  aria-hidden="true"
-                  className="h-5 w-5 flex-shrink-0 text-txt-primary"
-                  strokeWidth={1.75}
-                />
-                <h2 className="text-base font-semibold text-txt-primary">
-                  {t(copy.title_key)}
-                </h2>
-              </div>
+              <h2 className="text-base font-semibold text-txt-primary">
+                {t(copy.title_key)}
+              </h2>
 
               <p className="mt-2.5 text-sm leading-relaxed text-txt-secondary">
                 {t(copy.body_key, { count: codes_remaining })}
