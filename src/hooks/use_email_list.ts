@@ -105,10 +105,23 @@ function settle_fetched_rows(
   return apply_flag_intents(drop_removed_after(rows, fetched_at), fetched_at);
 }
 
-function overlay_cached_state(cached: EmailListState): EmailListState {
-  const emails = apply_flag_intents(cached.emails);
+export function overlay_cached_state(cached: {
+  state: EmailListState;
+  time: number;
+}): EmailListState {
+  const { state } = cached;
+  const kept = drop_removed_after(state.emails, cached.time);
+  const emails = apply_flag_intents(kept);
 
-  return emails === cached.emails ? cached : { ...cached, emails };
+  if (emails === state.emails) return state;
+
+  const dropped = state.emails.length - kept.length;
+
+  return {
+    ...state,
+    emails,
+    total_messages: Math.max(0, state.total_messages - dropped),
+  };
 }
 export {
   invalidate_mail_cache,
@@ -227,7 +240,7 @@ export function use_email_list(
         cached.conversation_grouping ===
         (preferences.conversation_grouping ?? true);
 
-      const restored = overlay_cached_state(cached.state);
+      const restored = overlay_cached_state(cached);
 
       return grouping_matches ? restored : { ...restored, is_loading: true };
     }
@@ -275,7 +288,7 @@ export function use_email_list(
         cached.conversation_grouping ===
         (preferences.conversation_grouping ?? true);
 
-      const restored = overlay_cached_state(cached.state);
+      const restored = overlay_cached_state(cached);
 
       set_state(
         grouping_matches ? restored : { ...restored, is_loading: true },
@@ -1118,7 +1131,7 @@ export function use_email_list(
           cached.conversation_grouping ===
           (preferences.conversation_grouping ?? true);
 
-        const restored = overlay_cached_state(cached.state);
+        const restored = overlay_cached_state(cached);
 
         state_view_ref.current = list_key;
         set_state(
