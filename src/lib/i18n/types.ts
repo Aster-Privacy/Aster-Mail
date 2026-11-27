@@ -10665,6 +10665,7 @@ export interface GuardTranslations {
   held_already_ended: string;
   held_stale: string;
   held_toast: string;
+  held_toast_confirm: string;
   held_view: string;
   held_kind_forwarding_change: string;
   held_kind_mail_rule_change: string;
