@@ -474,7 +474,7 @@ describe("quoted reply content", () => {
           ...BLOCKING_PREFERENCES,
           source_email_id: "loaded-message",
         }),
-      ).toEqual({ block_remote_images: false, block_tracking_pixels: false });
+      ).toEqual({ block_remote_images: false, block_tracking_pixels: true });
     } finally {
       set_external_content_mode(previous ?? "");
     }

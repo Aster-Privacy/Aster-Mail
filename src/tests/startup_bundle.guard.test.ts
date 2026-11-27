@@ -209,11 +209,15 @@ function duplicated_packages(scope: string): string[] {
     .map(([name, seen]) => `${name}@${[...seen].sort().join("|")}`);
 }
 
+const INLINED_SYMBOL_SUBSETS = new Set(["lib/text_symbol_font.ts"]);
+
 function inlining_fonts(entry: string): string[] {
-  return [...eagerly_loaded(entry)].filter((module) =>
-    /data:font\/[\w-]+;base64,[\w+/]{64}/.test(
-      readFileSync(join(src, module), "utf8"),
-    ),
+  return [...eagerly_loaded(entry)].filter(
+    (module) =>
+      !INLINED_SYMBOL_SUBSETS.has(module) &&
+      /data:font\/[\w-]+;base64,[\w+/]{64}/.test(
+        readFileSync(join(src, module), "utf8"),
+      ),
   );
 }
 

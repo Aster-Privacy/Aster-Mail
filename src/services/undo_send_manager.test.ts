@@ -430,7 +430,7 @@ describe("undo_send_manager restored sends", () => {
       error: null,
     } as never);
     mocked_api.get_status.mockResolvedValue({
-      data: { status: "sent" },
+      data: { status: "sent", mail_item_id: "m_restored" },
       error: null,
     } as never);
 
@@ -439,7 +439,7 @@ describe("undo_send_manager restored sends", () => {
 
     await vi.advanceTimersByTimeAsync(10_500);
 
-    expect(settled).toHaveBeenCalledWith("q_restored", "sent");
+    expect(settled).toHaveBeenCalledWith("q_restored", "sent", "m_restored");
     stop();
   });
 
