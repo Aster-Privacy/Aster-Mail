@@ -81,6 +81,9 @@ vi.mock("@/components/email/inbox/inbox_email_list", async () => {
   };
 });
 
+vi.mock("@/components/email/inbox/inbox_bottom_pagination", () => ({
+  BottomPagination: () => null,
+}));
 vi.mock("@/components/email/email_list_header", () => ({
   EmailListHeader: ({
     on_page_change,

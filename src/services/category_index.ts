@@ -171,6 +171,7 @@ interface PersistedMeta {
   chunk_count: number;
   built_at_ms: number;
   fully_built: boolean;
+  build_capped?: boolean;
   classifier_version?: number;
   entry_schema?: number;
   seen_ts?: Record<string, number>;
@@ -667,6 +668,7 @@ async function persist_now(): Promise<void> {
       chunk_count: PERSIST_CHUNK_COUNT,
       built_at_ms: last_build_ms,
       fully_built,
+      build_capped,
       classifier_version: CLASSIFIER_VERSION,
       entry_schema: ENTRY_SCHEMA_VERSION,
       seen_ts,
@@ -888,6 +890,7 @@ async function load_from_disk(
       !chunks_incomplete &&
       typeof payload.entry_schema === "number" &&
       COMPATIBLE_ENTRY_SCHEMAS.has(payload.entry_schema);
+    build_capped = payload.build_capped === true && !chunks_incomplete;
 
     if (chunks_incomplete) {
       mark_all_dirty();
