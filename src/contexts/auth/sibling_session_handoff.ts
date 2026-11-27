@@ -45,6 +45,11 @@ import {
   safe_session_set,
 } from "@/lib/safe_storage";
 import { has_tauri_runtime } from "@/lib/tauri_runtime";
+import {
+  HANDOFF_GRANT_HASH_PREFIX,
+  PENDING_GRANT_KEY,
+  strip_handoff_hash,
+} from "@/lib/session_handoff/session_handoff_capture";
 import { api_client } from "@/services/api/client";
 import { get_csrf_token_from_cookie } from "@/services/api/csrf";
 import { verify_auth_status } from "@/services/api/auth";
@@ -64,9 +69,8 @@ const SKIPPED_PATH_PREFIXES = [
   "/book",
 ];
 
-export const HANDOFF_GRANT_HASH_PREFIX = "#handoff=";
+export { HANDOFF_GRANT_HASH_PREFIX };
 
-const PENDING_GRANT_KEY = "aster_session_handoff_grant";
 const APPROVAL_WINDOW_FEATURES = "popup=yes,width=440,height=400";
 const PANEL_GRANT_TTL_MS = 60 * 1000;
 const SHARED_ACCOUNT_MARKER_PREFIX = "astermail_shared_grant_epoch_";
@@ -102,18 +106,6 @@ export function sibling_app_origin(): string | null {
   return get_handoff_sibling_origin(window.location.origin);
 }
 
-function take_hash_grant(): string | null {
-  const { hash, pathname, search } = window.location;
-
-  if (!hash.startsWith(HANDOFF_GRANT_HASH_PREFIX)) return null;
-
-  window.history.replaceState(window.history.state, "", pathname + search);
-
-  const grant = hash.slice(HANDOFF_GRANT_HASH_PREFIX.length);
-
-  return is_handoff_grant_id(grant) ? grant : null;
-}
-
 export function has_pending_handoff_grant(): boolean {
   if (typeof window === "undefined") return false;
 
@@ -136,7 +128,7 @@ export function should_attempt_boot_handoff(
 }
 
 export function take_pending_handoff_grant(): string | null {
-  const from_hash = take_hash_grant();
+  const from_hash = strip_handoff_hash();
   const stored = safe_session_get(PENDING_GRANT_KEY);
 
   if (stored !== null) safe_session_remove(PENDING_GRANT_KEY);

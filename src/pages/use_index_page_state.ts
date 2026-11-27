@@ -94,7 +94,10 @@ import { subscribe_mailto_drafts } from "@/native/desktop_mailto_bridge";
 import { subscribe_notification_opens } from "@/native/desktop_notification_bridge";
 import { open_message_in_view_mode } from "@/components/toast/toast_action_router";
 import { on_user_opened_mail } from "@/services/user_opened_mail";
-import { resolve_welcome_auto_open } from "@/lib/stale_open_email";
+import {
+  email_id_from_hash,
+  resolve_welcome_auto_open,
+} from "@/lib/stale_open_email";
 import {
   FORWARD_AS_ATTACHMENT_EVENT,
   type ForwardAsAttachmentDetail,
@@ -712,7 +715,7 @@ export function use_index_page_state() {
 
       return;
     }
-    const hash_id = location.hash.startsWith("#") ? location.hash.slice(1) : "";
+    const hash_id = email_id_from_hash(location.hash);
 
     if (!hash_id) return;
     const open_id = use_popup_mode
@@ -875,7 +878,7 @@ export function use_index_page_state() {
     if (!vault || !current_account_id) return;
     if (is_mobile) return;
 
-    const hash_id = location.hash.startsWith("#") ? location.hash.slice(1) : "";
+    const hash_id = email_id_from_hash(location.hash);
 
     if (!hash_id) return;
 
