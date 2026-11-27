@@ -2150,9 +2150,15 @@ label:has(> .aster_btn_spinner) > :not(.aster_btn_spinner) {
   opacity: 0;
 }
 
-html[data-input-modality="keyboard"] :focus-visible {
-  outline: 2px solid var(--accent-color);
-  outline-offset: 2px;
+@layer base {
+  html {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  html[data-input-modality="keyboard"] :focus-visible {
+    outline: 2px solid var(--accent-color);
+    outline-offset: 2px;
+  }
 }
 
 html[data-input-modality="keyboard"]
