@@ -181,3 +181,146 @@ export async function render_pdf_page(
 
   await render_to_canvas(page, canvas, scaled_viewport);
 }
+
+const MAX_CANVAS_PIXELS = 16_777_216;
+
+export interface PdfPageSize {
+  width: number;
+  height: number;
+}
+
+export async function get_pdf_page_sizes(
+  doc: PDFDocumentProxy,
+): Promise<PdfPageSize[]> {
+  const sizes: PdfPageSize[] = [];
+
+  for (let i = 1; i <= doc.numPages; i++) {
+    const page = await doc.getPage(i);
+    const viewport = page.getViewport({ scale: 1 });
+
+    sizes.push({ width: viewport.width, height: viewport.height });
+  }
+
+  return sizes;
+}
+
+function abort_error(): Error {
+  const err = new Error("pdf_render_aborted");
+
+  err.name = "AbortError";
+
+  return err;
+}
+
+export function is_pdf_abort_error(err: unknown): boolean {
+  if (!err || typeof err !== "object") return false;
+
+  const { name } = err as { name?: unknown };
+
+  return (
+    name === "AbortError" ||
+    name === "AbortException" ||
+    name === "RenderingCancelledException"
+  );
+}
+
+export function effective_pixel_ratio(
+  css_width: number,
+  css_height: number,
+  pixel_ratio: number,
+): number {
+  const area = Math.max(1, css_width * css_height);
+  const cap = Math.sqrt(MAX_CANVAS_PIXELS / area);
+
+  return Math.max(0.25, Math.min(pixel_ratio, cap));
+}
+
+export async function render_pdf_page_scaled(
+  doc: PDFDocumentProxy,
+  page_number: number,
+  canvas: HTMLCanvasElement,
+  scale: number,
+  pixel_ratio: number,
+  signal?: AbortSignal,
+): Promise<void> {
+  if (signal?.aborted) throw abort_error();
+
+  const page = await doc.getPage(page_number);
+
+  if (signal?.aborted) throw abort_error();
+
+  const viewport = page.getViewport({ scale });
+  const ratio = effective_pixel_ratio(
+    viewport.width,
+    viewport.height,
+    pixel_ratio,
+  );
+  const ctx = canvas.getContext("2d");
+
+  if (!ctx) throw new Error("canvas 2d context unavailable");
+
+  canvas.width = Math.max(1, Math.floor(viewport.width * ratio));
+  canvas.height = Math.max(1, Math.floor(viewport.height * ratio));
+
+  const task = page.render({
+    canvasContext: ctx,
+    viewport,
+    transform: [
+      canvas.width / viewport.width,
+      0,
+      0,
+      canvas.height / viewport.height,
+      0,
+      0,
+    ],
+  });
+  const on_abort = () => task.cancel();
+
+  signal?.addEventListener("abort", on_abort);
+
+  try {
+    await task.promise;
+  } finally {
+    signal?.removeEventListener("abort", on_abort);
+  }
+}
+
+export async function render_pdf_text_layer(
+  doc: PDFDocumentProxy,
+  page_number: number,
+  container: HTMLElement,
+  signal?: AbortSignal,
+): Promise<void> {
+  if (signal?.aborted) throw abort_error();
+
+  const page = await doc.getPage(page_number);
+
+  if (signal?.aborted) throw abort_error();
+
+  const viewport = page.getViewport({ scale: 1 });
+  const text_layer = new pdfjs.TextLayer({
+    textContentSource: page.streamTextContent({
+      includeMarkedContent: false,
+      disableNormalization: false,
+    }),
+    container,
+    viewport,
+  });
+  const on_abort = () => text_layer.cancel();
+
+  signal?.addEventListener("abort", on_abort);
+
+  try {
+    await text_layer.render();
+  } finally {
+    signal?.removeEventListener("abort", on_abort);
+  }
+
+  container.querySelectorAll("[id]").forEach((node) => {
+    node.removeAttribute("id");
+  });
+}
+
+export function cleanup_pdf_text_layers(): void {
+  pdfjs.TextLayer.cleanup();
+}

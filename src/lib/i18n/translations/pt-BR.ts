@@ -9974,6 +9974,7 @@ export const pt_br = {
       "Tudo na lixeira será removido definitivamente e você não pode desfazer.",
     empty_tag_subtitle: "E-mails com esta etiqueta aparecerão aqui",
     self_destructs_in: "Autodestrói em {{time}}",
+    expires_in_time: "Expira em {{time}}",
     cancel_scheduled_confirmation:
       "Cancelar este e-mail agendado. Ele não será enviado e você não pode desfazer, embora seu rascunho fique salvo.",
     shipping_label_created: "Etiqueta criada",
@@ -12188,6 +12189,12 @@ export const pt_br = {
     granted_at: "Conquistado em {date}",
   },
   secure_view: {
+    preview: "Visualizar",
+    preview_attachment: "Visualizar {{name}}",
+    download_attachment: "Baixar {{name}}",
+    text_preview_truncated: "Esta visualização mostra o primeiro 1 MB. Baixe o arquivo para ver tudo.",
+    media_unsupported: "Seu navegador não consegue reproduzir este arquivo. Baixe-o para abrir.",
+    expires_on: "Expira em {{date}}",
     powered_by_prefix: "Enviado com segurança via",
     title: "Mensagem segura",
     from: "De",

@@ -10035,6 +10035,7 @@ export const de = {
       "Alles im Papierkorb wird endgültig entfernt, und dies lässt sich nicht rückgängig machen.",
     empty_tag_subtitle: "E-Mails mit diesem Label erscheinen hier",
     self_destructs_in: "Selbstzerstörung in {{time}}",
+    expires_in_time: "Läuft in {{time}} ab",
     cancel_scheduled_confirmation:
       "Diese geplante E-Mail abbrechen. Sie wird nicht gesendet und dies lässt sich nicht rückgängig machen, Ihr Entwurf bleibt jedoch gesichert.",
     shipping_label_created: "Label erstellt",
@@ -12285,6 +12286,12 @@ export const de = {
       "Ihr aktives Abzeichen anderen Aster-Nutzern anzeigen.",
   },
   secure_view: {
+    preview: "Vorschau",
+    preview_attachment: "Vorschau von {{name}}",
+    download_attachment: "{{name}} herunterladen",
+    text_preview_truncated: "Diese Vorschau zeigt das erste MB. Lade die Datei herunter, um alles zu sehen.",
+    media_unsupported: "Dein Browser kann diese Datei nicht abspielen. Lade sie herunter, um sie zu öffnen.",
+    expires_on: "Läuft am {{date}} ab",
     powered_by_prefix: "Sicher gesendet via",
     title: "Sichere Nachricht",
     from: "Von",

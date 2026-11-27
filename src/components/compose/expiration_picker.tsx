@@ -32,6 +32,12 @@ import {
 import { Button, Tooltip } from "@aster/ui";
 
 import { is_future_instant } from "@/utils/schedule_targets";
+import {
+  ExpiryPillIcon,
+  expiry_pill_class,
+  expiry_pill_style,
+  use_expiry_state,
+} from "@/components/email/expiration_countdown";
 import { submit_on_enter } from "@/lib/commit_on_enter";
 import { Calendar } from "@/components/ui/calendar";
 import { Input } from "@/components/ui/input";
@@ -252,31 +258,8 @@ export function ExpirationPicker({
     return is_future_instant(expiry);
   }, [selected_date, selected_hour, selected_minute]);
 
-  const format_relative_time = (date: Date): string => {
-    const now = new Date();
-    const diff_ms = Math.max(0, date.getTime() - now.getTime());
-    const diff_hours = Math.floor(diff_ms / (1000 * 60 * 60));
-    const diff_days = Math.floor(diff_hours / 24);
-    const day_unit = t("common.time_days_short");
-    const hour_unit = t("common.time_hours_short");
-    const minute_unit = t("common.time_minutes_short");
-
-    if (diff_days > 0) {
-      return `${diff_days}${day_unit} ${diff_hours % 24}${hour_unit}`;
-    }
-    if (diff_hours > 0) {
-      const diff_minutes = Math.floor(
-        (diff_ms % (1000 * 60 * 60)) / (1000 * 60),
-      );
-
-      return `${diff_hours}${hour_unit} ${diff_minutes}${minute_unit}`;
-    }
-    const diff_minutes = Math.floor(diff_ms / (1000 * 60));
-
-    return `${diff_minutes}${minute_unit}`;
-  };
-
   const has_protection = !!expires_at || !!password;
+  const expiry = use_expiry_state(expires_at);
   const is_disabled = disabled || expiration_locked;
 
   return (
@@ -293,26 +276,42 @@ export function ExpirationPicker({
             <PopoverTrigger asChild>
               {has_protection ? (
                 <button
-                  className="flex items-center gap-1.5 px-2 py-1 rounded-md text-xs font-medium disabled:cursor-not-allowed disabled:opacity-50"
+                  className={`${expiry_pill_class("md", expiry.urgency)} transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50`}
+                  data-testid="compose-expiry-pill"
+                  data-urgency={expires_at ? expiry.urgency : "later"}
                   disabled={is_disabled}
-                  style={{
-                    backgroundColor: "var(--cat-rose-solid)",
-                    color: "var(--cat-rose-on-solid)",
-                  }}
+                  style={expiry_pill_style(
+                    expires_at ? expiry.urgency : "later",
+                  )}
                   type="button"
                 >
                   {expires_at ? (
                     <>
-                      <FireIcon className="w-3.5 h-3.5" />
+                      <ExpiryPillIcon size="md" />
                       <span>
-                        {t("common.expires_in")}
-                        {format_relative_time(expires_at)}
+                        {expiry.urgency === "expired"
+                          ? t("common.expired")
+                          : t("mail.expires_in_time", {
+                              time: expiry.remaining,
+                            })}
                       </span>
                     </>
                   ) : (
-                    <span>{t("common.password_protected")}</span>
+                    <>
+                      <LockClosedIcon
+                        aria-hidden="true"
+                        className="h-3.5 w-3.5 shrink-0"
+                      />
+                      <span>{t("common.password_protected")}</span>
+                    </>
                   )}
-                  {password && <LockClosedIcon className="w-3 h-3 ms-0.5" />}
+                  {password && expires_at && (
+                    <LockClosedIcon
+                      aria-label={t("common.password_protected")}
+                      className="h-3 w-3 shrink-0"
+                      role="img"
+                    />
+                  )}
                 </button>
               ) : (
                 <button
@@ -329,7 +328,7 @@ export function ExpirationPicker({
           {has_protection && (
             <button
               aria-label={t("common.clear")}
-              className="hover:bg-red-500/20 rounded p-0.5 transition-colors text-danger disabled:cursor-not-allowed disabled:opacity-50"
+              className="rounded-full p-1 text-txt-tertiary transition-colors hover:bg-[var(--aster-hover)] hover:text-txt-primary disabled:cursor-not-allowed disabled:opacity-50"
               disabled={disabled}
               type="button"
               onClick={handle_clear}

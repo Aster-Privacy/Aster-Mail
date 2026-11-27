@@ -121,6 +121,37 @@ export interface DecryptedSecureAttachment {
   data: Uint8Array;
 }
 
+const MAX_CONTENT_TYPE_LENGTH = 255;
+const FALLBACK_CONTENT_TYPE = "application/octet-stream";
+
+function normalize_content_type(value: unknown): string {
+  if (typeof value !== "string") return FALLBACK_CONTENT_TYPE;
+
+  const trimmed = value.trim();
+
+  if (trimmed.length === 0 || trimmed.length > MAX_CONTENT_TYPE_LENGTH) {
+    return FALLBACK_CONTENT_TYPE;
+  }
+
+  return trimmed;
+}
+
+function read_meta_content_type(raw: string): string {
+  try {
+    const meta: unknown = JSON.parse(raw);
+
+    if (meta && typeof meta === "object") {
+      return normalize_content_type(
+        (meta as { content_type?: unknown }).content_type,
+      );
+    }
+  } catch {
+    return FALLBACK_CONTENT_TYPE;
+  }
+
+  return FALLBACK_CONTENT_TYPE;
+}
+
 export interface DecryptedSecureMessage {
   subject: string;
   body: string;
@@ -548,7 +579,10 @@ export async function decrypt_secure_message(
       field_aad("attachments_bundle"),
       aad_mode,
     );
-    const entries: AttachmentEntry[] = JSON.parse(decoder.decode(bundle_json));
+    const parsed_entries: unknown = JSON.parse(decoder.decode(bundle_json));
+    const entries: AttachmentEntry[] = Array.isArray(parsed_entries)
+      ? (parsed_entries as AttachmentEntry[])
+      : [];
 
     let seq = 0;
 
@@ -574,15 +608,10 @@ export async function decrypt_secure_message(
 
       seq += 1;
 
-      const meta = JSON.parse(decoder.decode(meta_bytes)) as {
-        content_type: string;
-        size_bytes: number;
-      };
-
       result_attachments.push({
         filename: decoder.decode(filename_bytes),
-        content_type: meta.content_type,
-        size_bytes: meta.size_bytes,
+        content_type: read_meta_content_type(decoder.decode(meta_bytes)),
+        size_bytes: data.byteLength,
         data,
       });
     }
@@ -607,8 +636,8 @@ export async function decrypt_secure_message(
 
       result_attachments.push({
         filename: decoder.decode(filename_bytes),
-        content_type: att.content_type,
-        size_bytes: att.size_bytes,
+        content_type: normalize_content_type(att.content_type),
+        size_bytes: data.byteLength,
         data,
       });
     }

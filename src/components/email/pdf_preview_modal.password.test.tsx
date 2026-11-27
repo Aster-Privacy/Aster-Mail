@@ -92,6 +92,20 @@ vi.mock("@/lib/pdf_utils", () => ({
     };
   }),
   render_pdf_page: vi.fn(async () => {}),
+  get_pdf_page_sizes: vi.fn(async (doc: { numPages: number }) =>
+    Array.from({ length: doc.numPages }, () => ({ width: 600, height: 800 })),
+  ),
+  render_pdf_page_scaled: vi.fn(async () => {}),
+  render_pdf_text_layer: vi.fn(
+    async (_doc: unknown, page_number: number, container: HTMLElement) => {
+      const span = document.createElement("span");
+
+      span.textContent = `page ${page_number} text`;
+      container.append(span);
+    },
+  ),
+  cleanup_pdf_text_layers: vi.fn(),
+  is_pdf_abort_error: () => false,
 }));
 
 import { PdfPreviewModal } from "./pdf_preview_modal";
@@ -115,7 +129,7 @@ let container: HTMLDivElement | null = null;
 async function flush() {
   for (let i = 0; i < 10; i++) {
     await act(async () => {
-      await Promise.resolve();
+      await new Promise((resolve) => setTimeout(resolve, 0));
     });
   }
 }
@@ -275,5 +289,83 @@ describe("PdfPreviewModal password flow", () => {
     ).not.toBeNull();
     expect(to_blob).not.toHaveBeenCalled();
     expect(URL.createObjectURL).not.toHaveBeenCalled();
+  });
+
+  it("expands and collapses the file name", async () => {
+    await mount();
+    await type_and_submit(state.correct);
+
+    const toggle = q("pdf-filename-toggle") as HTMLButtonElement;
+
+    expect(toggle.getAttribute("title")).toBe("statement.pdf");
+    expect(toggle.getAttribute("aria-expanded")).toBe("false");
+    expect(toggle.querySelector("span")!.className).toContain("truncate");
+
+    await act(async () => {
+      toggle.click();
+    });
+
+    expect(toggle.getAttribute("aria-expanded")).toBe("true");
+    expect(toggle.querySelector("span")!.className).not.toContain("truncate");
+    expect(toggle.className).toContain("break-all");
+
+    await act(async () => {
+      toggle.click();
+    });
+
+    expect(toggle.getAttribute("aria-expanded")).toBe("false");
+  });
+
+  it("builds a selectable text layer for every page", async () => {
+    await mount();
+    await type_and_submit(state.correct);
+
+    const layers = q("pdf-pages")!.querySelectorAll(".pdf_text_layer");
+
+    expect(layers.length).toBe(2);
+    layers.forEach((layer) => {
+      expect(layer.hasAttribute("data-selectable")).toBe(true);
+      expect(layer.querySelector(".pdf_end_of_content")).not.toBeNull();
+    });
+  });
+
+  it("selects the text of every page with Ctrl+A", async () => {
+    await mount();
+    await type_and_submit(state.correct);
+
+    const event = new KeyboardEvent("keydown", {
+      key: "a",
+      ctrlKey: true,
+      bubbles: true,
+      cancelable: true,
+    });
+
+    await act(async () => {
+      document.body.dispatchEvent(event);
+    });
+
+    const text = document.getSelection()!.toString();
+
+    expect(event.defaultPrevented).toBe(true);
+    expect(text).toContain("page 1 text");
+    expect(text).toContain("page 2 text");
+  });
+
+  it("leaves Ctrl+A alone inside the password field", async () => {
+    await mount();
+
+    const input = q("pdf-password-input") as HTMLInputElement;
+    const event = new KeyboardEvent("keydown", {
+      key: "a",
+      ctrlKey: true,
+      bubbles: true,
+      cancelable: true,
+    });
+
+    await act(async () => {
+      input.dispatchEvent(event);
+    });
+
+    expect(event.defaultPrevented).toBe(false);
   });
 });

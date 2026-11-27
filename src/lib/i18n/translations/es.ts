@@ -9942,6 +9942,7 @@ export const es = {
     empty_tag_subtitle:
       "Los correos etiquetados con esta etiqueta aparecerán aquí",
     self_destructs_in: "Se autodestruye en {{time}}",
+    expires_in_time: "Caduca en {{time}}",
     cancel_scheduled_confirmation:
       "Cancelar este correo programado. No se enviará y no podrás deshacerlo, aunque tu borrador queda guardado.",
     shipping_label_created: "Etiqueta creada",
@@ -12143,6 +12144,12 @@ export const es = {
     title: "Insignias",
   },
   secure_view: {
+    preview: "Vista previa",
+    preview_attachment: "Vista previa de {{name}}",
+    download_attachment: "Descargar {{name}}",
+    text_preview_truncated: "Esta vista previa muestra el primer MB. Descarga el archivo para verlo completo.",
+    media_unsupported: "Tu navegador no puede reproducir este archivo. Descárgalo para abrirlo.",
+    expires_on: "Caduca el {{date}}",
     powered_by_prefix: "Enviado de forma segura mediante",
     title: "Mensaje seguro",
     from: "De",

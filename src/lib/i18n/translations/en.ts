@@ -9760,6 +9760,7 @@ export const en: Translations = {
       "Everything in trash will be removed for good and you cannot undo it.",
     empty_tag_subtitle: "Emails labeled with this tag will appear here",
     self_destructs_in: "Self-destructs in {{time}}",
+    expires_in_time: "Expires in {{time}}",
     cancel_scheduled_confirmation:
       "Cancel this scheduled email. It will not send and you cannot undo this, though your draft is saved.",
     shipping_label_created: "Label Created",
@@ -11850,6 +11851,12 @@ export const en: Translations = {
     claim_failed: "This badge did not save. Try again.",
   },
   secure_view: {
+    preview: "Preview",
+    preview_attachment: "Preview {{name}}",
+    download_attachment: "Download {{name}}",
+    text_preview_truncated: "This preview shows the first 1 MB. Download the file to see all of it.",
+    media_unsupported: "Your browser can't play this file. Download it to open it.",
+    expires_on: "Expires {{date}}",
     title: "Secure message",
     from: "From",
     expires: "Expires",
