@@ -20,7 +20,14 @@
 //
 import type { ImageViewerRequest } from "@/lib/email_image_viewer";
 
-import { useRef, useEffect, useState, useCallback, useMemo } from "react";
+import {
+  useRef,
+  useEffect,
+  useLayoutEffect,
+  useState,
+  useCallback,
+  useMemo,
+} from "react";
 import { AnimatePresence } from "framer-motion";
 
 import * as dom_cleanup from "./dom_cleanup";
@@ -39,6 +46,7 @@ import {
   SKELETON_DELAY_MEASURED_MS,
   SKELETON_DELAY_MS,
   UNMEASURED_PLACEHOLDER_HEIGHT,
+  dispatch_iframe_ready,
   get_cached_iframe_height,
   link_hover_ink_for,
   link_ink_for,
@@ -778,7 +786,6 @@ ${preferences.hide_scrollbars === true ? `<style>html, body { scrollbar-width: n
       email_id,
       base_zoom_ref,
       document_ready_cleanup_ref,
-      has_fired_ready_ref,
       mutation_observer_ref,
       observer_ref,
       raf_ref,
@@ -963,6 +970,12 @@ ${preferences.hide_scrollbars === true ? `<style>html, body { scrollbar-width: n
   }, [contrast_ready, srcdoc_html]);
 
   const is_settling = !height_ready || !contrast_ready || !content_revealed;
+
+  useLayoutEffect(() => {
+    if (is_settling || !email_id || has_fired_ready_ref.current) return;
+    has_fired_ready_ref.current = true;
+    dispatch_iframe_ready(email_id);
+  }, [is_settling, email_id, srcdoc_html]);
 
   useEffect(() => {
     if (content_revealed) return;

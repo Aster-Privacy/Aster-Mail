@@ -19,7 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { useEffect, useState } from "react";
-import { CheckIcon, Square2StackIcon } from "@heroicons/react/24/outline";
+import { Square2StackIcon } from "@heroicons/react/24/outline";
 
 import { DropdownMenuItem } from "@/components/ui/dropdown_menu";
 import { use_i18n } from "@/lib/i18n/context";
@@ -52,8 +52,6 @@ export function SenderAddressCopyRow({
     set_is_copied(false);
   }, [email]);
 
-  const StatusIcon = is_copied ? CheckIcon : Square2StackIcon;
-
   return (
     <DropdownMenuItem
       aria-label={t("common.copy_address")}
@@ -76,9 +74,9 @@ export function SenderAddressCopyRow({
       >
         {email}
       </span>
-      <StatusIcon
+      <Square2StackIcon
         aria-hidden="true"
-        className={is_copied ? "text-txt-primary" : "text-txt-muted"}
+        className="text-txt-muted"
         data-testid="sender_address_copy_icon"
       />
       <span aria-live="polite" className="sr-only" role="status">

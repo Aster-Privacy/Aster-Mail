@@ -24,7 +24,6 @@ import type { SandboxedEmailRendererProps } from "./renderer";
 import {
   FIT_SLACK_PX,
   body_has_renderable_content,
-  dispatch_iframe_ready,
   fit_natural_width,
   fit_zoom_for,
   measure_content_bounds,
@@ -39,7 +38,6 @@ export interface measurement_context {
   email_id: string | undefined;
   base_zoom_ref: { current: number };
   document_ready_cleanup_ref: { current: (() => void) | null };
-  has_fired_ready_ref: { current: boolean };
   mutation_observer_ref: { current: MutationObserver | null };
   observer_ref: { current: ResizeObserver | null };
   raf_ref: { current: number };
@@ -57,7 +55,6 @@ export function build_measurement_controls(ctx: measurement_context) {
     email_id,
     base_zoom_ref,
     document_ready_cleanup_ref,
-    has_fired_ready_ref,
     mutation_observer_ref,
     observer_ref,
     raf_ref,
@@ -75,12 +72,6 @@ export function build_measurement_controls(ctx: measurement_context) {
     typeof performance !== "undefined" ? performance.now() : 0;
 
   let first_apply_at = 0;
-
-  const signal_ready = () => {
-    if (has_fired_ready_ref.current || !email_id) return;
-    has_fired_ready_ref.current = true;
-    dispatch_iframe_ready(email_id);
-  };
 
   let last_height = 0;
   let measure_deferred = false;
@@ -268,10 +259,7 @@ export function build_measurement_controls(ctx: measurement_context) {
 
     set_iframe_height(`${height}px`);
     set_height_ready(true);
-    if (email_id) {
-      remember_measured_height(email_id, body, height);
-      signal_ready();
-    }
+    if (email_id) remember_measured_height(email_id, body, height);
   };
 
   const update_height = () => {
@@ -303,7 +291,6 @@ export function build_measurement_controls(ctx: measurement_context) {
       set_height_ready(true);
       if (email_id) {
         remember_measured_height(email_id, content_doc.body, clamped);
-        signal_ready();
       }
     }
   };
@@ -344,10 +331,7 @@ export function build_measurement_controls(ctx: measurement_context) {
     last_height = candidate;
     set_iframe_height(`${candidate}px`);
     set_height_ready(true);
-    if (email_id) {
-      remember_measured_height(email_id, body, candidate);
-      signal_ready();
-    }
+    if (email_id) remember_measured_height(email_id, body, candidate);
   };
 
   const release_pointer = () => {
