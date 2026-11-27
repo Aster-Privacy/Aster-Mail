@@ -20,7 +20,8 @@
 //
 import { ignore_error } from "@/lib/ignore_error";
 
-const LOCKED_SENT_KEY_PREFIX = "aster_locked_sent_mail_";
+const LOCKED_SENT_KEY_PREFIX = "aster_locked_sent_mail_v2_";
+const RETIRED_LOCKED_SENT_KEY_PREFIX = "aster_locked_sent_mail_";
 
 export const LOCKED_DATA_CHANGED_EVENT = "aster:locked-data-changed";
 
@@ -28,8 +29,18 @@ function locked_sent_key(account_id: string): string {
   return `${LOCKED_SENT_KEY_PREFIX}${account_id}`;
 }
 
+function drop_retired_count(account_id: string): void {
+  try {
+    localStorage.removeItem(`${RETIRED_LOCKED_SENT_KEY_PREFIX}${account_id}`);
+  } catch (caught) {
+    ignore_error("services/locked_sent_mail_store:drop_retired", caught);
+  }
+}
+
 export function read_locked_sent_mail(account_id: string): number {
   if (!account_id) return 0;
+
+  drop_retired_count(account_id);
 
   try {
     const raw = Number(localStorage.getItem(locked_sent_key(account_id)) ?? 0);

@@ -30,16 +30,36 @@ vi.mock("./api/attachments", () => ({
     update_attachment_meta(id, body),
 }));
 
+const { sealed_with } = vi.hoisted(() => ({
+  sealed_with: (password: string) => `sealed:${password}:${"A".repeat(200)}`,
+}));
+
 vi.mock("./crypto/envelope", () => ({
   array_to_base64: (bytes: Uint8Array) => btoa(String.fromCharCode(...bytes)),
   decrypt_envelope_with_bytes: async (sealed: string, bytes: Uint8Array) =>
-    sealed === `sealed:${new TextDecoder().decode(bytes)}`
+    sealed === sealed_with(new TextDecoder().decode(bytes))
       ? { filename: "file.pdf" }
       : null,
   encrypt_envelope_with_bytes: async (_value: object, bytes: Uint8Array) => ({
-    encrypted: `sealed:${new TextDecoder().decode(bytes)}`,
+    encrypted: sealed_with(new TextDecoder().decode(bytes)),
     nonce: btoa(String.fromCharCode(1)),
   }),
+}));
+
+const get_mail_item = vi.fn();
+const decrypt_mail_envelope = vi.fn();
+const get_attachment_key = vi.fn();
+
+vi.mock("./api/mail", () => ({
+  get_mail_item: (id: string) => get_mail_item(id),
+}));
+
+vi.mock("@/components/email/shared/decrypt_envelope", () => ({
+  decrypt_mail_envelope: (...args: unknown[]) => decrypt_mail_envelope(...args),
+}));
+
+vi.mock("./crypto/inbound_attachment_keys", () => ({
+  get_attachment_key: (id: string, seq: number) => get_attachment_key(id, seq),
 }));
 
 vi.mock("./crypto/attachment_meta_v2", () => ({
@@ -65,6 +85,7 @@ vi.mock("./crypto/attachment_crypto", () => ({
 }));
 
 import {
+  envelope_carries_attachment_key,
   imported_attachments_locked,
   reseal_imported_attachment_row,
   reseal_imported_attachments,
@@ -72,6 +93,12 @@ import {
 } from "./imported_attachment_meta";
 
 const encode = (value: string) => new TextEncoder().encode(value);
+const no_envelope_key = async () => false;
+const envelope_key = async () => true;
+
+function server_sealed_meta(length = 88) {
+  return btoa(String.fromCharCode(...new Uint8Array(length).fill(7)));
+}
 
 function row(id: string, encrypted_meta: string) {
   return {
@@ -92,6 +119,7 @@ async function collect(old_password: string, new_password: string) {
     encode(new_password),
     null,
     (outcome) => outcomes.push(outcome),
+    no_envelope_key,
   );
 
   return outcomes;
@@ -105,16 +133,17 @@ describe("imported attachment details", () => {
 
   it("reseals details sealed with the previous password", async () => {
     const outcome = await reseal_imported_attachment_row(
-      row("a1", "sealed:old-pw"),
+      row("a1", sealed_with("old-pw")),
       encode("old-pw"),
       encode("new-pw"),
       null,
+      no_envelope_key,
     );
 
     expect(outcome).toBe("rewritten");
     expect(update_attachment_meta).toHaveBeenCalledWith(
       "a1",
-      expect.objectContaining({ encrypted_meta: "sealed:new-pw" }),
+      expect.objectContaining({ encrypted_meta: sealed_with("new-pw") }),
     );
 
     const body = update_attachment_meta.mock.calls[0][1] as {
@@ -126,10 +155,11 @@ describe("imported attachment details", () => {
 
   it("seals to the storage key when one is available", async () => {
     const outcome = await reseal_imported_attachment_row(
-      row("a1", "sealed:old-pw"),
+      row("a1", sealed_with("old-pw")),
       encode("old-pw"),
       encode("new-pw"),
       new Uint8Array(32),
+      no_envelope_key,
     );
 
     expect(outcome).toBe("rewritten");
@@ -141,10 +171,37 @@ describe("imported attachment details", () => {
 
   it("leaves details that already open with the new password", async () => {
     const outcome = await reseal_imported_attachment_row(
-      row("a1", "sealed:new-pw"),
+      row("a1", sealed_with("new-pw")),
       encode("old-pw"),
       encode("new-pw"),
       null,
+      no_envelope_key,
+    );
+
+    expect(outcome).toBe("skipped");
+    expect(update_attachment_meta).not.toHaveBeenCalled();
+  });
+
+  it("leaves short server sealed details whose key travels in the message", async () => {
+    const outcome = await reseal_imported_attachment_row(
+      row("a1", server_sealed_meta()),
+      encode("old-pw"),
+      encode("new-pw"),
+      null,
+      envelope_key,
+    );
+
+    expect(outcome).toBe("skipped");
+    expect(update_attachment_meta).not.toHaveBeenCalled();
+  });
+
+  it("leaves details whose key travels in the message", async () => {
+    const outcome = await reseal_imported_attachment_row(
+      row("a1", sealed_with("older-pw")),
+      encode("old-pw"),
+      encode("new-pw"),
+      null,
+      envelope_key,
     );
 
     expect(outcome).toBe("skipped");
@@ -153,10 +210,11 @@ describe("imported attachment details", () => {
 
   it("reports details neither password opens as unreadable", async () => {
     const outcome = await reseal_imported_attachment_row(
-      row("a1", "sealed:older-pw"),
+      row("a1", sealed_with("older-pw")),
       encode("old-pw"),
       encode("new-pw"),
       null,
+      no_envelope_key,
     );
 
     expect(outcome).toBe("unreadable");
@@ -167,10 +225,11 @@ describe("imported attachment details", () => {
     update_attachment_meta.mockResolvedValue({ error: "not found" });
 
     const outcome = await reseal_imported_attachment_row(
-      row("a1", "sealed:old-pw"),
+      row("a1", sealed_with("old-pw")),
       encode("old-pw"),
       encode("new-pw"),
       null,
+      no_envelope_key,
     );
 
     expect(outcome).toBe("failed");
@@ -179,11 +238,17 @@ describe("imported attachment details", () => {
   it("follows the cursor across every page", async () => {
     list_imported_password_meta
       .mockResolvedValueOnce({
-        data: { attachments: [row("a1", "sealed:old-pw")], next_cursor: "a1" },
+        data: {
+          attachments: [row("a1", sealed_with("old-pw"))],
+          next_cursor: "a1",
+        },
       })
       .mockResolvedValueOnce({
         data: {
-          attachments: [row("a2", "sealed:old-pw"), row("a3", "sealed:x")],
+          attachments: [
+            row("a2", sealed_with("old-pw")),
+            row("a3", sealed_with("x")),
+          ],
           next_cursor: null,
         },
       });
@@ -207,7 +272,10 @@ describe("imported attachment details", () => {
 
   it("stops when the cursor does not advance", async () => {
     list_imported_password_meta.mockResolvedValue({
-      data: { attachments: [row("a1", "sealed:new-pw")], next_cursor: "a1" },
+      data: {
+        attachments: [row("a1", sealed_with("new-pw"))],
+        next_cursor: "a1",
+      },
     });
 
     const outcomes = await collect("old-pw", "new-pw");
@@ -231,21 +299,114 @@ describe("imported attachment details", () => {
   it("finds details the current password cannot open", async () => {
     list_imported_password_meta.mockResolvedValue({
       data: {
-        attachments: [row("a1", "sealed:pw"), row("a2", "sealed:old-pw")],
+        attachments: [
+          row("a1", sealed_with("pw")),
+          row("a2", sealed_with("old-pw")),
+        ],
         next_cursor: "a2",
       },
     });
 
-    expect(await imported_attachments_locked(encode("pw"))).toBe(true);
+    expect(
+      await imported_attachments_locked(encode("pw"), no_envelope_key),
+    ).toBe(true);
     expect(list_imported_password_meta).toHaveBeenCalledWith(undefined, 5);
+  });
+
+  it("ignores details the server sealed during an import", async () => {
+    list_imported_password_meta.mockResolvedValue({
+      data: {
+        attachments: [
+          row("a1", server_sealed_meta(88)),
+          row("a2", server_sealed_meta(93)),
+        ],
+        next_cursor: null,
+      },
+    });
+
+    expect(await imported_attachments_locked(encode("pw"), envelope_key)).toBe(
+      false,
+    );
+  });
+
+  it("does not trust the length of details alone", async () => {
+    list_imported_password_meta.mockResolvedValue({
+      data: {
+        attachments: [row("a1", server_sealed_meta(88))],
+        next_cursor: null,
+      },
+    });
+
+    expect(
+      await imported_attachments_locked(encode("pw"), no_envelope_key),
+    ).toBe(true);
   });
 
   it("reports nothing locked when the current password opens every row", async () => {
     list_imported_password_meta.mockResolvedValue({
-      data: { attachments: [row("a1", "sealed:pw")], next_cursor: null },
+      data: { attachments: [row("a1", sealed_with("pw"))], next_cursor: null },
     });
 
-    expect(await imported_attachments_locked(encode("pw"))).toBe(false);
+    expect(
+      await imported_attachments_locked(encode("pw"), no_envelope_key),
+    ).toBe(false);
+  });
+
+  it("ignores long server sealed details whose key travels in the message", async () => {
+    list_imported_password_meta.mockResolvedValue({
+      data: {
+        attachments: [row("a1", server_sealed_meta(240))],
+        next_cursor: null,
+      },
+    });
+
+    expect(await imported_attachments_locked(encode("pw"), envelope_key)).toBe(
+      false,
+    );
+  });
+
+  it("reads the attachment key from the message envelope", async () => {
+    get_attachment_key.mockReturnValueOnce("").mockReturnValueOnce("a2V5");
+    get_mail_item.mockResolvedValue({
+      data: { encrypted_envelope: "ZW52", envelope_nonce: "bm9uY2U=" },
+    });
+    decrypt_mail_envelope.mockResolvedValue({ subject: "s" });
+
+    expect(
+      await envelope_carries_attachment_key({ mail_item_id: "m1", seq_num: 0 }),
+    ).toBe(true);
+    expect(decrypt_mail_envelope).toHaveBeenCalledWith(
+      "ZW52",
+      "bm9uY2U=",
+      "m1",
+    );
+  });
+
+  it("treats a message without the attachment key as password bound", async () => {
+    get_attachment_key.mockReturnValue("");
+    get_mail_item.mockResolvedValue({
+      data: { encrypted_envelope: "ZW52", envelope_nonce: "bm9uY2U=" },
+    });
+    decrypt_mail_envelope.mockResolvedValue({ subject: "s" });
+
+    expect(
+      await envelope_carries_attachment_key({ mail_item_id: "m1", seq_num: 0 }),
+    ).toBe(false);
+  });
+
+  it("treats a message it cannot read as password bound", async () => {
+    get_attachment_key.mockReturnValue("");
+    get_mail_item.mockRejectedValue(new Error("offline"));
+
+    expect(
+      await envelope_carries_attachment_key({ mail_item_id: "m1", seq_num: 0 }),
+    ).toBe(false);
+
+    get_mail_item.mockResolvedValue({ data: null });
+
+    expect(
+      await envelope_carries_attachment_key({ mail_item_id: "m1", seq_num: 0 }),
+    ).toBe(false);
   });
 
   it("reports nothing locked when the account keys open the other rows", async () => {
