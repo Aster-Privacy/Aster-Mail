@@ -3579,6 +3579,9 @@ export const pt_br = {
     low_network_mode_description:
       "Ignora fotos de perfil, favicons, imagens externas e o pré-carregamento de e-mails. Todos os e-mails são exibidos como texto simples. Útil em conexões lentas ou limitadas.",
     low_network_mode_active_banner: "Modo de rede reduzida ativo",
+    info_saved_images_title: "O que são imagens salvas?",
+    info_saved_images_description:
+      "Quando você abre uma mensagem, o Aster guarda uma cópia criptografada das imagens neste dispositivo, para que abrir a mensagem de novo não contate o remetente. Limpar as imagens libera espaço neste dispositivo e não exclui nenhum e-mail. As imagens são baixadas de novo na próxima vez que você abrir uma mensagem que as contenha.",
     info_low_network_mode_title: "O que o modo de rede reduzida faz?",
     info_low_network_mode_description:
       "Bloqueia todas as requisições de rede não essenciais para manter o Aster utilizável em conexões lentas ou limitadas. Desativa fotos de perfil, logotipos de remetentes, favicons de domínios, imagens externas em e-mails, pré-carregamento de e-mails, fontes personalizadas, pré-visualizações de anexos e sons de notificação. Todos os e-mails são exibidos como texto simples. As conversas de e-mail são limitadas a 4 mensagens. É ativado automaticamente em conexões 2G ou Economia de Dados. Você também pode ativá-lo via ?low_bandwidth=1 na URL.",

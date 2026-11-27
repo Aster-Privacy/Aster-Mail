@@ -3230,6 +3230,9 @@ export const zh_CN = {
     low_network_mode_description:
       "跳过头像、网站图标、外部图片和邮件预加载。所有邮件以纯文本显示。在网速慢或按流量计费的连接下很有用。",
     low_network_mode_active_banner: "低网络模式已启用",
+    info_saved_images_title: "什么是已保存的图片？",
+    info_saved_images_description:
+      "打开邮件时，Aster 会将其中的图片加密保存在此设备上，因此再次打开邮件时不会连接发件人。清除这些图片可释放此设备上的空间，不会删除任何邮件。下次打开包含这些图片的邮件时，图片会重新下载。",
     info_low_network_mode_title: "低网络模式有什么作用？",
     info_low_network_mode_description:
       "屏蔽所有非必要的网络请求，让 Aster 在网速慢或按流量计费的连接下仍可使用。禁用头像、发件人徽标、域名网站图标、邮件中的外部图片、邮件预加载、自定义字体、附件预览和通知声音。所有邮件以纯文本渲染。邮件会话最多显示 4 封。在 2G 或省流量连接下会自动启用。您也可以通过在 URL 中加入 ?low_bandwidth=1 来启用它。",

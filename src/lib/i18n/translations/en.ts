@@ -9087,6 +9087,9 @@ export const en: Translations = {
     low_network_mode_description:
       "Skips profile pictures, favicons, external images, and email preloading. All emails shown as plain text. Useful on slow or metered connections.",
     low_network_mode_active_banner: "Low Network Mode active",
+    info_saved_images_title: "What are saved images?",
+    info_saved_images_description:
+      "When you open a message, Aster keeps a copy of its images, encrypted on this device, so opening the message again doesn't contact the sender. Clearing them frees up space on this device and doesn't delete any mail. The images download again the next time you open a message that contains them.",
     info_low_network_mode_title: "What does Low Network Mode do?",
     info_low_network_mode_description:
       "Blocks all non-essential network requests to keep Aster usable on slow or metered connections. Disables profile pictures, sender logos, domain favicons, external images in emails, email preloading, custom fonts, attachment previews, and notification sounds. All emails are rendered as plain text. Email threads are capped at 4 messages. Activates automatically on 2G or Save-Data connections. You can also enable it via ?low_bandwidth=1 in the URL.",

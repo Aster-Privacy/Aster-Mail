@@ -3733,6 +3733,9 @@ export const pl = {
     low_network_mode_description:
       "Pomija zdjęcia profilowe, favicony, obrazy zewnętrzne i wstępne ładowanie wiadomości. Wszystkie wiadomości wyświetlane jako zwykły tekst. Przydatne przy wolnych lub taryfowych połączeniach.",
     low_network_mode_active_banner: "Tryb niskiej przepustowości aktywny",
+    info_saved_images_title: "Czym są zapisane obrazy?",
+    info_saved_images_description:
+      "Gdy otwierasz wiadomość, Aster przechowuje zaszyfrowaną kopię jej obrazów na tym urządzeniu, aby ponowne otwarcie nie łączyło się z nadawcą. Wyczyszczenie ich zwalnia miejsce na tym urządzeniu i nie usuwa żadnej poczty. Obrazy zostaną pobrane ponownie przy następnym otwarciu wiadomości, która je zawiera.",
     info_low_network_mode_title: "Co robi tryb niskiej przepustowości?",
     info_low_network_mode_description:
       "Blokuje wszystkie nieistotne żądania sieciowe, aby zachować użyteczność Aster przy wolnych lub taryfowych połączeniach. Wyłącza zdjęcia profilowe, logotypy nadawców, favicony domen, obrazy zewnętrzne w wiadomościach, wstępne ładowanie wiadomości, czcionki niestandardowe, podgląd załączników i dźwięki powiadomień. Wszystkie wiadomości są renderowane jako zwykły tekst. Wątki wiadomości są ograniczone do 4 wiadomości. Aktywuje się automatycznie przy połączeniach 2G lub Save-Data. Możesz go również włączyć przez ?low_bandwidth=1 w adresie URL.",

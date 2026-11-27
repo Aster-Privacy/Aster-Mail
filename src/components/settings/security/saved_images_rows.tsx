@@ -22,6 +22,7 @@ import { useState, useSyncExternalStore } from "react";
 import { Button, IslandRow, SettingToggleRow } from "@aster/ui";
 
 import { show_toast } from "@/components/toast/simple_toast";
+import { InfoPopover } from "@/components/ui/info_popover";
 import { use_i18n } from "@/lib/i18n/context";
 import {
   clear_remote_image_cache,
@@ -78,7 +79,15 @@ export function SavedImagesRows({
 
       <IslandRow
         description={t("settings.image_cache_clear_description")}
-        label={t("settings.image_cache_clear_label")}
+        label={
+          <span className="aster_island_row_label_group">
+            {t("settings.image_cache_clear_label")}
+            <InfoPopover
+              description={t("settings.info_saved_images_description")}
+              title={t("settings.info_saved_images_title")}
+            />
+          </span>
+        }
         trailing={
           <Button
             disabled={clearing}
