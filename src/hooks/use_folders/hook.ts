@@ -91,6 +91,7 @@ const FOLDER_RETRY_DELAYS_MS = [400, 1_200, 3_000];
 const FOLDER_BACKGROUND_RETRY_DELAYS_MS = [8_000, 20_000, 45_000];
 const FOLDER_FAILED_FETCH_RETRY_MS = 60_000;
 const RESUME_REFETCH_MIN_MS = 30_000;
+const SHARED_COUNTS_REUSE_MS = 100;
 
 type SharedCountsRequest = {
   started_at: number;
@@ -112,7 +113,10 @@ export function request_shared_folder_counts(): SharedCountsRequest {
     if (shared_counts_request === request) shared_counts_request = null;
   };
 
-  request.promise.then(release, release);
+  request.promise.then(
+    () => setTimeout(release, SHARED_COUNTS_REUSE_MS),
+    release,
+  );
 
   return request;
 }
