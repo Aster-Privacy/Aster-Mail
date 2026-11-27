@@ -11713,6 +11713,7 @@ export const zh_CN = {
     plan_feat_vanguard: "Aster Vanguard, Vanguard, 高级保护, 锁定模式",
     info_login_alerts_title: "登录提醒, 新登录通知, 登录警报",
     external_link_warnings: "外部链接警告, 链接警告, 可疑链接, 确认链接",
+    unsubscribe_confirm: "取消订阅, 确认取消订阅, 邮件列表",
     settings_search_vacation_reply: "假期自动回复, 自动回复, 外出, 不在办公室, 离开消息",
     auto_forward_tab_label: "自动转发, 转发, 邮件转发, 转发邮件, 转发所有邮件, 重定向邮件",
     settings_search_external_accounts: "外部账户, 已连接账户, 同步 Gmail, 收取邮件, 其他邮箱",

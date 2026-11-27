@@ -12815,6 +12815,7 @@ export const hi = {
     plan_feat_vanguard: "Aster Vanguard, Vanguard, उन्नत सुरक्षा, लॉकडाउन, लॉकडाउन मोड",
     info_login_alerts_title: "लॉगिन अलर्ट, नए लॉगिन की सूचना, साइन-इन अलर्ट",
     external_link_warnings: "बाहरी लिंक चेतावनी, लिंक चेतावनी, संदिग्ध लिंक, लिंक की पुष्टि",
+    unsubscribe_confirm: "सदस्यता रद्द करें, सदस्यता रद्द करने की पुष्टि, मेलिंग सूचियां",
     settings_search_vacation_reply: "छुट्टी का जवाब, ऑटो रिप्लाई, ऑफ़िस से बाहर, अनुपस्थिति संदेश, स्वचालित जवाब",
     auto_forward_tab_label: "ऑटो फ़ॉरवर्ड, फ़ॉरवर्डिंग, ईमेल फ़ॉरवर्ड, सारे मेल फ़ॉरवर्ड, मेल रीडायरेक्ट",
     settings_search_external_accounts: "बाहरी खाते, जुड़े हुए खाते, Gmail सिंक, मेल लाएं, दूसरा मेलबॉक्स",

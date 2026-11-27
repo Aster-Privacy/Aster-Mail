@@ -13167,6 +13167,7 @@ export const pt = {
     plan_feat_vanguard: "Aster Vanguard, Vanguard, proteção avançada, bloqueio total, modo de bloqueio",
     info_login_alerts_title: "alertas de início de sessão, notificação de novo início de sessão, alertas de acesso",
     external_link_warnings: "avisos de links externos, aviso de link, links suspeitos, confirmar links",
+    unsubscribe_confirm: "cancelar subscrição, confirmar cancelamento de subscrição, listas de correio",
     settings_search_vacation_reply: "resposta automática, ausência do escritório, fora do escritório, mensagem de ausência, férias",
     auto_forward_tab_label: "reencaminhamento automático, reencaminhar, reencaminhar email, reencaminhar todo o correio, redirecionar correio",
     settings_search_external_accounts: "contas externas, contas ligadas, sincronização do Gmail, obter correio, outra caixa de correio",

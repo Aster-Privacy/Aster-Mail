@@ -12760,6 +12760,7 @@ export const ja = {
     plan_feat_vanguard: "Aster Vanguard, Vanguard, 高度な保護, ロックダウン, ロックダウンモード",
     info_login_alerts_title: "ログイン通知, 新しいログインの通知, サインイン通知",
     external_link_warnings: "外部リンクの警告, リンクの警告, 不審なリンク, リンクの確認",
+    unsubscribe_confirm: "配信停止, 配信停止の確認, メーリングリスト",
     settings_search_vacation_reply: "不在時の自動返信, 自動返信, 不在通知, 休暇, 留守",
     auto_forward_tab_label: "自動転送, 転送, メール転送, メールを転送, すべてのメールを転送, リダイレクト",
     settings_search_external_accounts: "外部アカウント, 連携アカウント, Gmail同期, メールの取得, 他のメールボックス",

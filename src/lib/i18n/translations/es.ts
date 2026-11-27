@@ -13058,6 +13058,7 @@ export const es = {
     plan_feat_vanguard: "Aster Vanguard, Vanguard, protección avanzada, bloqueo, modo de bloqueo",
     info_login_alerts_title: "Alertas de inicio de sesión, aviso de nuevo inicio de sesión, alertas de acceso",
     external_link_warnings: "Avisos de enlaces externos, aviso de enlace, enlaces sospechosos, confirmar enlaces",
+    unsubscribe_confirm: "cancelar suscripción, confirmar cancelación de suscripción, listas de correo",
     settings_search_vacation_reply: "Respuesta de vacaciones, respuesta automática, fuera de la oficina, mensaje de ausencia, autorrespuesta",
     auto_forward_tab_label: "Reenvío automático, reenvío, reenviar automáticamente, reenviar correo, reenviar todo el correo, redirigir correo",
     settings_search_external_accounts: "Cuentas externas, cuentas conectadas, sincronizar Gmail, obtener correo, otro buzón",

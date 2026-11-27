@@ -13199,6 +13199,7 @@ export const fr = {
     plan_feat_vanguard: "Aster Vanguard, Vanguard, protection avancée, verrouillage, mode isolement",
     info_login_alerts_title: "Alertes de connexion, notification de nouvelle connexion, alertes de connexion suspecte",
     external_link_warnings: "Avertissements pour les liens externes, avertissement de lien, liens suspects, confirmer les liens",
+    unsubscribe_confirm: "se désabonner, confirmer le désabonnement, listes de diffusion",
     settings_search_vacation_reply: "Réponse d'absence, réponse automatique, absent du bureau, message d'absence, répondeur automatique",
     auto_forward_tab_label: "Transfert automatique, transfert, transférer automatiquement, transfert d'e-mails, transférer un e-mail, transférer tout le courrier, rediriger le courrier",
     settings_search_external_accounts: "Comptes externes, comptes connectés, synchronisation Gmail, relever le courrier, autre boîte aux lettres",

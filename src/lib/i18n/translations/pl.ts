@@ -13290,6 +13290,7 @@ export const pl = {
     plan_feat_vanguard: "Vanguard, zaawansowana ochrona, blokada, tryb blokady",
     info_login_alerts_title: "powiadomienie o nowym logowaniu, alerty logowania, ostrzeżenia o logowaniu",
     external_link_warnings: "ostrzeżenie o linku, podejrzane linki, potwierdzaj linki, linki zewnętrzne",
+    unsubscribe_confirm: "wypisz się, potwierdź wypisanie, listy mailingowe",
     settings_search_vacation_reply: "automatyczna odpowiedź, poza biurem, nieobecność, wiadomość o nieobecności, autoresponder, urlop",
     auto_forward_tab_label: "przekazywanie, automatyczne przekazywanie, przekierowanie poczty, przekaż e-mail, przekazuj całą pocztę",
     settings_search_external_accounts: "połączone konta, synchronizacja gmaila, pobieranie poczty, inna skrzynka",

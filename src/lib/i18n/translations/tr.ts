@@ -12907,6 +12907,7 @@ export const tr = {
     plan_feat_vanguard: "Aster Vanguard, Vanguard, gelişmiş koruma, kilitleme, kilitleme modu",
     info_login_alerts_title: "giriş uyarıları, yeni giriş bildirimi, oturum açma uyarıları",
     external_link_warnings: "harici bağlantı uyarıları, bağlantı uyarısı, şüpheli bağlantılar, bağlantıları onayla",
+    unsubscribe_confirm: "abonelikten çık, abonelikten çıkmayı onayla, e-posta listeleri",
     settings_search_vacation_reply: "tatil yanıtı, otomatik yanıt, ofis dışında, ofis dışı mesajı, otomatik yanıtlayıcı",
     auto_forward_tab_label: "otomatik yönlendirme, yönlendirme, e-posta yönlendirme, tüm postaları yönlendir, postayı yönlendir",
     settings_search_external_accounts: "harici hesaplar, bağlı hesaplar, Gmail senkronizasyonu, posta getir, diğer posta kutusu",

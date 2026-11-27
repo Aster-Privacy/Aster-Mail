@@ -13213,6 +13213,7 @@ export const de = {
     plan_feat_vanguard: "Aster Vanguard, Vanguard, erweiterter Schutz, Lockdown, Sperrmodus",
     info_login_alerts_title: "Anmeldewarnungen, Benachrichtigung bei neuer Anmeldung, Anmeldehinweise",
     external_link_warnings: "Warnungen bei externen Links, Link-Warnung, verdächtige Links, Links bestätigen",
+    unsubscribe_confirm: "abmelden, Abmeldung bestätigen, Newsletter, Mailinglisten",
     settings_search_vacation_reply: "Abwesenheitsnotiz, automatische Antwort, Autoresponder, Urlaubsantwort, nicht im Büro",
     auto_forward_tab_label: "Automatische Weiterleitung, Weiterleitung, E-Mail weiterleiten, alle Mails weiterleiten, Mails umleiten",
     settings_search_external_accounts: "Externe Konten, verbundene Konten, Gmail-Synchronisierung, Mails abrufen, anderes Postfach",

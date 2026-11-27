@@ -227,6 +227,7 @@ export interface SettingsKeywordsTranslations {
   plan_feat_vanguard: string;
   info_login_alerts_title: string;
   external_link_warnings: string;
+  unsubscribe_confirm: string;
   settings_search_vacation_reply: string;
   auto_forward_tab_label: string;
   settings_search_external_accounts: string;

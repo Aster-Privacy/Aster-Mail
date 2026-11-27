@@ -13043,6 +13043,7 @@ export const nl = {
     plan_feat_vanguard: "Vanguard, geavanceerde bescherming, vergrendeling, lockdown-modus",
     info_login_alerts_title: "melding nieuwe login, inlogmeldingen, aanmeldwaarschuwing",
     external_link_warnings: "linkwaarschuwing, verdachte links, links bevestigen, externe links",
+    unsubscribe_confirm: "afmelden, afmelden bevestigen, mailinglijsten",
     settings_search_vacation_reply: "automatisch antwoord, afwezigheidsbericht, buiten kantoor, afwezig, autoreply, vakantie",
     auto_forward_tab_label: "doorsturen, automatisch doorsturen, e-mail doorsturen, alle mail doorsturen, mail omleiden",
     settings_search_external_accounts: "gekoppelde accounts, gmail synchroniseren, mail ophalen, andere mailbox",

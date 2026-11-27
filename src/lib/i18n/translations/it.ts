@@ -13121,6 +13121,7 @@ export const it = {
     plan_feat_vanguard: "Aster Vanguard, Vanguard, protezione avanzata, blocco totale, modalità isolamento",
     info_login_alerts_title: "avvisi di accesso, notifica nuovo accesso, avvisi login",
     external_link_warnings: "avvisi link esterni, avviso link, link sospetti, conferma link",
+    unsubscribe_confirm: "annulla iscrizione, conferma annullamento iscrizione, mailing list",
     settings_search_vacation_reply: "risposta automatica, fuori ufficio, assenza, messaggio di assenza, risponditore automatico, ferie",
     auto_forward_tab_label: "inoltro automatico, inoltro, inoltra email, inoltra tutta la posta, reindirizza posta",
     settings_search_external_accounts: "account esterni, account collegati, sincronizzazione Gmail, recupera posta, altra casella",

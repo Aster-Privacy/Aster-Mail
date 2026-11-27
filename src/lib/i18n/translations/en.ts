@@ -12761,6 +12761,7 @@ export const en: Translations = {
     plan_feat_vanguard: "vanguard, advanced protection, lockdown, lockdown mode",
     info_login_alerts_title: "new login notification, sign-in alerts",
     external_link_warnings: "link warning, suspicious links, confirm links",
+    unsubscribe_confirm: "unsubscribe, confirm unsubscribe, mailing lists",
     settings_search_vacation_reply: "auto reply, out of office, ooo, away message, autoresponder",
     auto_forward_tab_label: "forwarding, automatic forward, email forwarding, forward email, forward all mail, redirect mail",
     settings_search_external_accounts: "connected accounts, gmail sync, fetch mail, other mailbox",

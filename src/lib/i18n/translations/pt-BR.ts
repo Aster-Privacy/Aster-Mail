@@ -13103,6 +13103,7 @@ export const pt_br = {
     plan_feat_vanguard: "Aster Vanguard, Vanguard, proteção avançada, bloqueio total, modo de bloqueio",
     info_login_alerts_title: "alertas de login, notificação de novo login, alertas de acesso",
     external_link_warnings: "avisos de links externos, aviso de link, links suspeitos, confirmar links",
+    unsubscribe_confirm: "cancelar inscrição, confirmar cancelamento de inscrição, listas de e-mail",
     settings_search_vacation_reply: "resposta automática, fora do escritório, ausência, mensagem de ausência, férias",
     auto_forward_tab_label: "encaminhamento automático, encaminhar, encaminhar email, encaminhar todos os emails, redirecionar emails",
     settings_search_external_accounts: "contas externas, contas conectadas, sincronizar Gmail, buscar emails, outra caixa de correio",

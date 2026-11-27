@@ -12545,6 +12545,7 @@ export const ko = {
     plan_feat_vanguard: "Aster Vanguard, Vanguard, 고급 보호, 잠금 모드, 락다운",
     info_login_alerts_title: "로그인 알림, 새 로그인 알림, 로그인 경고",
     external_link_warnings: "외부 링크 경고, 링크 경고, 의심스러운 링크, 링크 확인",
+    unsubscribe_confirm: "구독 취소, 구독 취소 확인, 메일링 리스트",
     settings_search_vacation_reply: "부재중 자동 응답, 자동 응답, 부재중, 휴가, 자리 비움 메시지",
     auto_forward_tab_label: "자동 전달, 전달, 메일 전달, 이메일 전달, 모든 메일 전달, 메일 리디렉션",
     settings_search_external_accounts: "외부 계정, 연결된 계정, Gmail 동기화, 메일 가져오기, 다른 메일함",
