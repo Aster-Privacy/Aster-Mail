@@ -412,7 +412,7 @@ describe("imported attachment details", () => {
   it("reports nothing locked when the account keys open the other rows", async () => {
     list_imported_password_meta.mockResolvedValue({
       data: {
-        attachments: [row("a1", "sealed:pw"), row("a2", "key-sealed:identity")],
+        attachments: [row("a1", sealed_with("pw")), row("a2", "key-sealed:identity")],
         next_cursor: null,
       },
     });
