@@ -163,92 +163,45 @@ export type AttachmentChipKind =
   | "code"
   | "file";
 
-const EXTENSION_CHIP_KINDS: Record<string, AttachmentChipKind> = {
-  pdf: "pdf",
-  jpg: "image",
-  jpeg: "image",
-  png: "image",
-  gif: "image",
-  webp: "image",
-  bmp: "image",
-  tif: "image",
-  tiff: "image",
-  svg: "image",
-  heic: "image",
-  heif: "image",
-  avif: "image",
-  ico: "image",
-  doc: "document",
-  docx: "document",
-  odt: "document",
-  rtf: "document",
-  txt: "document",
-  md: "document",
-  pages: "document",
-  xls: "sheet",
-  xlsx: "sheet",
-  ods: "sheet",
-  csv: "sheet",
-  tsv: "sheet",
-  numbers: "sheet",
-  ppt: "presentation",
-  pptx: "presentation",
-  odp: "presentation",
-  key: "presentation",
-  zip: "archive",
-  rar: "archive",
-  "7z": "archive",
-  gz: "archive",
-  tgz: "archive",
-  tar: "archive",
-  bz2: "archive",
-  xz: "archive",
-  mp3: "audio",
-  wav: "audio",
-  m4a: "audio",
-  aac: "audio",
-  flac: "audio",
-  ogg: "audio",
-  opus: "audio",
-  mp4: "video",
-  mov: "video",
-  m4v: "video",
-  mkv: "video",
-  webm: "video",
-  avi: "video",
-  html: "code",
-  htm: "code",
-  xml: "code",
-  json: "code",
-  js: "code",
-  ts: "code",
-  css: "code",
-  py: "code",
-  sh: "code",
-  yml: "code",
-  yaml: "code",
+const GLYPH_CHIP_KINDS: Record<AttachmentGlyph, AttachmentChipKind> = {
+  photo: "image",
+  video: "video",
+  music: "audio",
+  table: "sheet",
+  presentation: "presentation",
+  code: "code",
+  archive: "archive",
+  document: "document",
+  file: "file",
 };
 
-function kind_from_content_type(content_type: string): AttachmentChipKind {
-  if (content_type === "application/pdf") return "pdf";
+const EXTENSION_GROUPS: [AttachmentChipKind, string][] = [
+  ["pdf", "pdf"],
+  ["image", "jpg jpeg png gif webp bmp tif tiff svg heic heif avif ico"],
+  ["document", "doc docx odt rtf txt md pages"],
+  ["sheet", "xls xlsx ods csv tsv numbers"],
+  ["presentation", "ppt pptx odp key"],
+  ["archive", "zip rar 7z gz tgz tar bz2 xz"],
+  ["audio", "mp3 wav m4a aac flac ogg opus"],
+  ["video", "mp4 mov m4v mkv webm avi"],
+  ["code", "html htm xml json js ts css py sh yml yaml"],
+];
 
-  const glyph = get_type_glyph(content_type);
-
-  if (glyph === "photo") return "image";
-  if (glyph === "music") return "audio";
-  if (glyph === "table") return "sheet";
-  if (glyph === "video" || glyph === "presentation" || glyph === "code")
-    return glyph;
-  if (glyph === "archive" || glyph === "document") return glyph;
-
-  return "file";
-}
+const EXTENSION_CHIP_KINDS = new Map(
+  EXTENSION_GROUPS.flatMap(([kind, extensions]) =>
+    extensions.split(" ").map((ext): [string, AttachmentChipKind] => [ext, kind]),
+  ),
+);
 
 export function get_chip_kind(
   content_type: string,
   filename: string,
 ): AttachmentChipKind {
-  const from_type = kind_from_content_type(content_type.toLowerCase());
+  const lowered = content_type.toLowerCase();
+
+  if (lowered === "application/pdf") return "pdf";
+
+  const from_type = GLYPH_CHIP_KINDS[get_type_glyph(lowered)];
 
   if (from_type !== "file") return from_type;
 
@@ -257,11 +210,12 @@ export function get_chip_kind(
   if (dot_index <= 0) return "file";
 
   return (
-    EXTENSION_CHIP_KINDS[filename.slice(dot_index + 1).toLowerCase()] ?? "file"
+    EXTENSION_CHIP_KINDS.get(filename.slice(dot_index + 1).toLowerCase()) ??
+    "file"
   );
 }
 
-const CHIP_KIND_COLORS: Record<AttachmentChipKind, string> = {
+export const CHIP_KIND_COLORS: Record<AttachmentChipKind, string> = {
   pdf: "#e24942",
   image: "#0eb09b",
   document: "#3981f6",
@@ -273,10 +227,6 @@ const CHIP_KIND_COLORS: Record<AttachmentChipKind, string> = {
   code: "#6d89a7",
   file: "#83868c",
 };
-
-export function get_chip_color(kind: AttachmentChipKind): string {
-  return CHIP_KIND_COLORS[kind];
-}
 
 const PREVIEWABLE_IMAGE_TYPES = new Set([
   "image/jpeg",

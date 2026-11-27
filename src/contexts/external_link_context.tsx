@@ -149,10 +149,12 @@ export function ExternalLinkProvider({ children }: { children: ReactNode }) {
       }
 
       const currently_locked = lockdown_active || is_any_lockdown_active();
-      const is_blocked = describe_link(url).kind === "blocked";
+      const destination = describe_link(url, link_text);
+      const is_blocked = destination.kind === "blocked";
       const skip_prompt =
         kind === "unsubscribe"
-          ? preferences.unsubscribe_confirm_dismissed
+          ? preferences.unsubscribe_confirm_dismissed &&
+            destination.signals.length === 0
           : preferences.external_link_warning_dismissed || is_trusted_link(url);
 
       if (!currently_locked && !is_blocked && skip_prompt) {

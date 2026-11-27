@@ -35,7 +35,7 @@ import {
 } from "@heroicons/react/16/solid";
 
 import {
-  get_chip_color,
+  CHIP_KIND_COLORS,
   get_chip_kind,
   truncate_filename,
   type AttachmentChipKind,
@@ -83,7 +83,7 @@ export const AttachmentChip = memo(function AttachmentChip({
         aria-hidden="true"
         className="h-3 w-3 flex-shrink-0"
         data-testid="attachment-chip-icon"
-        style={{ color: get_chip_color(kind) }}
+        style={{ color: CHIP_KIND_COLORS[kind] }}
       />
       <span className="sr-only">{`${type_label} `}</span>
       <span

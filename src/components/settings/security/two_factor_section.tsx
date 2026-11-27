@@ -439,7 +439,7 @@ export function ExternalLinkWarningsGroup({
         title={t("settings.unsubscribe_confirm")}
         toggle={{
           checked: !unsubscribe_confirm_dismissed,
-          on_change: () => on_unsubscribe_confirm_toggle(),
+          on_change: on_unsubscribe_confirm_toggle,
           size: "lg",
         }}
       />

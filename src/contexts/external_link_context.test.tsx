@@ -445,6 +445,16 @@ describe("ExternalLinkProvider unsubscribe pages", () => {
     expect(on_result).toHaveBeenCalledWith(true);
   });
 
+  it("still warns about a risky unsubscribe page after the confirmation is dismissed", () => {
+    h.preferences.unsubscribe_confirm_dismissed = true;
+    render_provider();
+    const on_result = request_unsubscribe("http://sender.example/page");
+
+    expect(warning()?.dataset.kind).toBe("unsubscribe");
+    expect(h.open_external).not.toHaveBeenCalled();
+    expect(on_result).not.toHaveBeenCalled();
+  });
+
   it("keeps link warnings on when the unsubscribe confirmation is dismissed", () => {
     h.preferences.unsubscribe_confirm_dismissed = true;
     render_provider();
