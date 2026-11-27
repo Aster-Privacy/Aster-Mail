@@ -22,6 +22,7 @@ import type { ShortcutActionId } from "@/constants/keyboard_shortcuts";
 
 import { useCallback, useEffect, useRef } from "react";
 
+import { is_list_selection_context } from "@/lib/multi_click_selection";
 import { has_open_overlay_layer } from "@/lib/overlay_layer_stack";
 
 export type KeyboardShortcutHandler = () => void;
@@ -295,6 +296,7 @@ export function use_keyboard_shortcuts(
     if (is_in_menu()) return;
 
     if (has_cmd && key === "a" && !has_shift) {
+      if (e.defaultPrevented) return;
       if (is_typing()) return;
 
       const region = get_select_all_region();
@@ -316,6 +318,7 @@ export function use_keyboard_shortcuts(
       e.stopPropagation();
 
       if (e.repeat) return;
+      if (has_viewed_email && !is_list_selection_context()) return;
 
       window.dispatchEvent(new CustomEvent("astermail:keyboard-select-all"));
 

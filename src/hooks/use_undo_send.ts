@@ -356,6 +356,7 @@ export const undo_send_manager = new UndoSendManager();
 export function handle_restored_send_settled(
   queue_id: string,
   status: TerminalSendStatus,
+  sent_id?: string,
 ): void {
   const restored = undo_send_manager
     .get_all()
@@ -378,6 +379,7 @@ export function handle_restored_send_settled(
     emit_thread_reply_sent({
       thread_token: restored.thread_token,
       optimistic_id: restored.optimistic_id,
+      sent_id,
     });
   }
 }

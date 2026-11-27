@@ -21,6 +21,7 @@
 import { clear_contact_groups_cache } from "@/hooks/use_contact_groups";
 import { clear_sidebar_aliases_cache } from "@/hooks/use_sidebar_aliases";
 import { clear_referral_summary_cache } from "@/hooks/use_referral_summary";
+import { clear_referral_tab_cache } from "@/components/settings/referral_tab_cache";
 import { reset_pending_thread_replies } from "@/hooks/pending_thread_replies";
 import { reset_pending_reply_messages } from "@/hooks/pending_reply_messages";
 import { reset_mail_rules_store } from "@/stores/mail_rules_store";
@@ -50,6 +51,7 @@ const ACCOUNT_MEMORY_CLEARERS: ReadonlyArray<() => void> = [
   () => clear_contact_groups_cache(),
   () => clear_sidebar_aliases_cache(),
   () => clear_referral_summary_cache(),
+  () => clear_referral_tab_cache(),
   () => reset_pending_thread_replies(),
   () => reset_pending_reply_messages(),
   () => reset_mail_rules_store(),

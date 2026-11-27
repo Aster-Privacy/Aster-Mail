@@ -27,6 +27,7 @@ import {
   send_in_chunks,
 } from "./chunked_request";
 import { begin_foreground_request } from "./client/request_priority";
+import { is_background_paused } from "./client/request_governor";
 import { with_folder_unlock } from "./folder_unlock_retry";
 
 import { ignore_error } from "@/lib/ignore_error";
@@ -306,11 +307,126 @@ export async function list_mail_items(
     return response;
   }
 
-  const query_params = new URLSearchParams();
+  const endpoint = build_mail_list_endpoint(params);
   const is_bulk_scan =
     params.limit !== undefined &&
     params.limit > MAX_INBOX_PAGE_SIZE &&
     params.offset === undefined;
+  const unlock_token =
+    params.folder_unlock_token ??
+    get_unlock_token_for_label(params.label_token) ??
+    undefined;
+
+  if (unlock_token && params.label_token) {
+    set_active_folder_token(params.label_token);
+  }
+
+  const prefetched = unlock_token ? null : take_prefetched_mail_list(endpoint);
+  const prefetched_response = prefetched ? await prefetched : null;
+  const response =
+    prefetched_response &&
+    !prefetched_response.error &&
+    prefetched_response.data
+      ? prefetched_response
+      : await api_client.get<MailItemsListResponse>(endpoint, {
+          retry: 2,
+          retry_on_timeout: false,
+          ...(is_bulk_scan ? { request_priority: "background" as const } : {}),
+          ...(unlock_token ? { folder_unlock_token: unlock_token } : {}),
+        });
+
+  if (response.data?.items) {
+    remember_items_folder_context(response.data.items, params.label_token);
+    ingest_unseen_reaction_flags(response.data.items);
+    if (unlock_token && params.label_token) {
+      note_locked_folder_listing(params.label_token, response.data.items);
+    }
+  }
+
+  return response;
+}
+
+export const MAIL_LIST_PREFETCH_TTL_MS = 15_000;
+
+interface PrefetchedMailList {
+  user_id: string;
+  started_at: number;
+  response: Promise<ApiResponse<MailItemsListResponse>>;
+}
+
+const prefetched_mail_lists = new Map<string, PrefetchedMailList>();
+
+function prefetch_key(user_id: string, endpoint: string): string {
+  return `${user_id}|${endpoint}`;
+}
+
+function drop_expired_prefetches(now: number): void {
+  for (const [key, entry] of prefetched_mail_lists) {
+    if (now - entry.started_at > MAIL_LIST_PREFETCH_TTL_MS) {
+      prefetched_mail_lists.delete(key);
+    }
+  }
+}
+
+export function prefetch_mail_list(
+  user_id: string,
+  params: ListMailItemsParams,
+): boolean {
+  if (!user_id || (params.ids && params.ids.length > 0)) return false;
+  if (get_unlock_token_for_label(params.label_token)) return false;
+
+  const now = Date.now();
+
+  drop_expired_prefetches(now);
+
+  const endpoint = build_mail_list_endpoint(params);
+  const key = prefetch_key(user_id, endpoint);
+
+  if (prefetched_mail_lists.has(key)) return true;
+
+  const response = api_client
+    .get<MailItemsListResponse>(endpoint, {
+      retry: 2,
+      retry_on_timeout: false,
+    })
+    .catch((caught: unknown): ApiResponse<MailItemsListResponse> => ({
+      error: caught instanceof Error ? caught.message : "prefetch failed",
+    }));
+
+  prefetched_mail_lists.set(key, { user_id, started_at: now, response });
+
+  return true;
+}
+
+export function take_prefetched_mail_list(
+  endpoint: string,
+): Promise<ApiResponse<MailItemsListResponse>> | null {
+  if (prefetched_mail_lists.size === 0) return null;
+
+  const user_id = api_client.get_expected_user_id();
+
+  if (!user_id) return null;
+
+  const now = Date.now();
+
+  drop_expired_prefetches(now);
+
+  const key = prefetch_key(user_id, endpoint);
+  const entry = prefetched_mail_lists.get(key);
+
+  if (!entry || entry.user_id !== user_id) return null;
+
+  prefetched_mail_lists.delete(key);
+
+  return entry.response;
+}
+
+export function clear_prefetched_mail_lists(): void {
+  prefetched_mail_lists.clear();
+}
+
+export function build_mail_list_endpoint(params: ListMailItemsParams): string {
+  const query_params = new URLSearchParams();
 
   if (params.limit) query_params.set("limit", params.limit.toString());
   if (params.offset !== undefined)
@@ -348,32 +464,8 @@ export async function list_mail_items(
   if (params.pinned_first) query_params.set("pinned_first", "true");
 
   const query_string = query_params.toString();
-  const endpoint = `/mail/v1/messages${query_string ? `?${query_string}` : ""}`;
-  const unlock_token =
-    params.folder_unlock_token ??
-    get_unlock_token_for_label(params.label_token) ??
-    undefined;
 
-  if (unlock_token && params.label_token) {
-    set_active_folder_token(params.label_token);
-  }
-
-  const response = await api_client.get<MailItemsListResponse>(endpoint, {
-    retry: 2,
-    retry_on_timeout: false,
-    ...(is_bulk_scan ? { request_priority: "background" as const } : {}),
-    ...(unlock_token ? { folder_unlock_token: unlock_token } : {}),
-  });
-
-  if (response.data?.items) {
-    remember_items_folder_context(response.data.items, params.label_token);
-    ingest_unseen_reaction_flags(response.data.items);
-    if (unlock_token && params.label_token) {
-      note_locked_folder_listing(params.label_token, response.data.items);
-    }
-  }
-
-  return response;
+  return `/mail/v1/messages${query_string ? `?${query_string}` : ""}`;
 }
 
 export async function list_locked_folder_page(
@@ -459,6 +551,8 @@ async function fetch_mail_item(
 }
 
 export function prefetch_mail_item(item_id: string): void {
+  if (is_background_paused()) return;
+
   fetch_mail_item(item_id).catch((caught) =>
     ignore_error("services/api/mail:prefetch_mail_item", caught),
   );
@@ -1188,4 +1282,5 @@ export {
   rethread_items,
   report_spam_sender,
   remove_spam_sender,
+  retract_spam_report,
 } from "./mail_threads";

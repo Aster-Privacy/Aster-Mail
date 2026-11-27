@@ -22,7 +22,8 @@ import { describe, it, expect } from "vitest";
 
 import { sanitize_html, type SanitizeOptions } from "./html_sanitizer";
 
-const TRACKER = "https://tracker.example.com/beacon.png";
+const TRACKER = "https://tracker.example.com/hero.png";
+const BEACON = "https://tracker.example.com/beacon/open.gif";
 
 const options = (
   external_content_mode: "never" | "ask" | "always",
@@ -440,6 +441,27 @@ describe("remote css images follow the image decision", () => {
       expect(result.external_content.blocked_items).toContainEqual({
         url: TRACKER,
         type: "image",
+      });
+    },
+  );
+
+  it.each([
+    ["head", head_style_email(`.a { background-image: url(${BEACON}); }`)],
+    ["body", body_style_email(`.a { background-image: url(${BEACON}); }`)],
+    ["inline", inline_style_email(`background-image: url(${BEACON})`)],
+  ])(
+    "drops %s css tracker beacons after images are allowed",
+    (_place, html) => {
+      const result = sanitize_html(
+        html,
+        options("ask", images_allowed_css_blocked),
+      );
+
+      expect(result.html).not.toContain("beacon");
+      expect(result.external_content.has_tracking_pixels).toBe(true);
+      expect(result.external_content.blocked_items).toContainEqual({
+        url: BEACON,
+        type: "tracking_pixel",
       });
     },
   );

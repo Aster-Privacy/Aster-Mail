@@ -35,6 +35,7 @@ import {
   is_usable_identity_key,
 } from "@/services/crypto/identity_key_required";
 import { is_onion_host } from "@/lib/onion_host";
+import { is_resume_settling, subscribe_page_resume } from "@/lib/page_resume";
 import {
   get_suspension_state,
   subscribe_suspension_state,
@@ -451,7 +452,7 @@ class SyncClient {
       if (!this.should_reconnect) return;
 
       if (tick_gap >= SUSPEND_GAP_MS) {
-        this.on_wake();
+        if (!is_resume_settling()) this.on_wake();
 
         return;
       }
@@ -469,6 +470,8 @@ class SyncClient {
       }
 
       const hidden = is_page_hidden();
+
+      if (!hidden && is_resume_settling()) return;
       const since_last = now - this.last_catch_up_at;
       const live_gap = hidden
         ? HIDDEN_CATCH_UP_WHILE_LIVE_MS
@@ -1028,18 +1031,10 @@ if (typeof window !== "undefined") {
       sync_client.disconnect();
     }
   });
-  window.addEventListener("online", () => {
-    sync_client.on_wake();
-  });
   window.addEventListener(MAIL_EVENTS.MAIL_SOFT_REFRESH, () => {
     sync_client.note_soft_refresh();
   });
-  document.addEventListener("visibilitychange", () => {
-    if (document.visibilityState === "visible") {
-      sync_client.on_wake();
-    }
-  });
-  window.addEventListener("focus", () => {
+  subscribe_page_resume(() => {
     sync_client.on_wake();
   });
   if (typeof navigator !== "undefined" && "serviceWorker" in navigator) {

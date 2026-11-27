@@ -20,6 +20,8 @@
 //
 export const pl = {
   common: {
+    couldnt_load: "Nie udało się wczytać.",
+    try_again_action: "Spróbuj ponownie",
     merge_primary_label: "Główny",
     merge_make_primary: "Ustaw jako główny",
     merge_primary_description:
@@ -450,6 +452,8 @@ export const pl = {
     birthday_year_optional: "Rok (opcjonalnie)",
     notes: "Notatki",
     hide_notes: "Ukryj notatki",
+    sender_note_load_failed: "Nie udało się wczytać notatki.",
+    sender_note_save_failed: "Nie udało się zapisać notatki.",
     favorite: "Ulubiony",
     favorited: "Dodano do ulubionych",
     added_to_favorites: "Dodano do ulubionych",
@@ -1852,8 +1856,8 @@ export const pl = {
     alias_note_too_long: "Ta notatka przekracza limit długości. Użyj krótszej.",
     add_alias_note_placeholder: "Dodaj notatkę",
     edit_alias_note: "Edytuj notatkę",
-    change_alias_avatar: "Zmień avatar",
-    remove_alias_avatar: "Usuń avatar",
+    change_alias_avatar: "Zmień zdjęcie profilowe",
+    remove_alias_avatar: "Usuń zdjęcie profilowe",
     alias_avatars_locked:
       "Niestandardowe avatary są dostępne w planach płatnych. Uaktualnij plan, aby je włączyć.",
     not_now: "Nie teraz",
@@ -2455,6 +2459,7 @@ export const pl = {
     zip_archive: "Archiwum ZIP",
   },
   settings: {
+    referral_load_failed: "Nie udało się wczytać szczegółów zaproszenia.",
     sandbox_off_by_setting_notice:
       "To okno działa bez piaskownicy, ponieważ wyłączyła ją zmienna środowiskowa.",
     sandbox_off_notice:
@@ -10610,6 +10615,9 @@ export const pl = {
       "Ta wiadomość została odebrana na {{ received }}, ale odpowiedź zostanie wysłana z {{ selected }}. Odpowiedź z innego adresu może ujawnić go nadawcy i zostać odrzucona.",
     reply_from_mismatch_use_received: "Użyj adresu odbioru",
     sending_disabled_badge: "Wysyłanie wyłączone",
+    shake_feedback_prompt: "Coś nie działa? Daj nam znać.",
+    shake_feedback_send: "Wyślij opinię",
+    shake_feedback_dismiss: "Nie, dziękuję",
     reply_from_mismatch_banner: "Ta wiadomość dotarła na {{ received }}, ale odpowiedź zostanie wysłana z {{ selected }}.",
     reply_from_mismatch_banner_switch: "Wyślij z {{ received }}",
     reply_from_mismatch_send_anyway: "Wyślij mimo to",
@@ -10637,6 +10645,9 @@ export const pl = {
     load_external_content: "Załaduj zewnętrzną zawartość",
     external_content_hidden: "Zawartość zewnętrzna jest ukryta",
     show_external_content: "Pokaż zawartość",
+    trackers_blocked_count: "Zablokowane elementy śledzące: {{count}}",
+    trackers_stay_blocked:
+      "Elementy śledzące pozostają zablokowane po wyświetleniu zawartości.",
     image_loading_settings: "Ustawienia obrazów",
     image: "obraz",
     images: "obrazy",
@@ -10712,6 +10723,13 @@ export const pl = {
     search_index_resume: "Wznów",
     search_searching_title: "Przeszukiwanie poczty",
     search_index_preparing: "Przygotowywanie prywatnego indeksu",
+    search_index_eta_under_minute: "Zostało mniej niż minutę",
+    search_index_eta_minutes: "Zostało około {{value}} minut",
+    search_index_eta_minutes_one: "Została około {{value}} minuta",
+    search_index_eta_minutes_few: "Zostały około {{value}} minuty",
+    search_index_eta_hours: "Zostało około {{value}} godzin",
+    search_index_eta_hours_one: "Została około {{value}} godzina",
+    search_index_eta_hours_few: "Zostały około {{value}} godziny",
     search_index_live_hint: "Dopasowania pojawiają się od razu po znalezieniu.",
     search_searching_more: "Przeszukiwanie kolejnych wiadomości",
     search_index_why_label: "Dlaczego wyszukiwanie wymaga indeksu",

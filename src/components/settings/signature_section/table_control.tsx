@@ -37,7 +37,10 @@ import {
 
 import { use_i18n } from "@/lib/i18n/context";
 import { use_escape_layer } from "@/lib/overlay_layer_stack";
-import { use_anchored_layer } from "@/components/compose/compose_toolbar/shared";
+import {
+  toolbar_button_class,
+  use_anchored_layer,
+} from "@/components/compose/compose_toolbar/shared";
 import {
   DEFAULT_SIGNATURE_TABLE_COLUMNS,
   DEFAULT_SIGNATURE_TABLE_ROWS,
@@ -453,7 +456,7 @@ export function SignatureTableControl({
         aria-label={t("common.table_insert")}
         className={
           button_class_name ??
-          `p-1.5 rounded-[14px] transition-all duration-150 ${open ? "bg-brand/15 text-brand" : "hover:bg-[var(--aster-hover)] text-txt-muted"}`
+          toolbar_button_class(open)
         }
         data-testid="signature_table_button"
         title={t("common.table_insert")}

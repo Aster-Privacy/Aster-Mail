@@ -82,14 +82,43 @@ export const LEGACY_MIGRATION_MAX_INFLIGHT = 4;
 export const legacy_migration_queue: Array<() => void> = [];
 export let legacy_migration_disabled = true;
 let legacy_migration_succeeded = false;
-let legacy_migration_retired = false;
+export const LEGACY_MIGRATION_RETIRED_KEY = "aster_envelope_migrate_retired_v1";
+let legacy_migration_retired = read_legacy_migration_retired();
+
+function read_legacy_migration_retired(): boolean {
+  try {
+    return (
+      globalThis.localStorage?.getItem(LEGACY_MIGRATION_RETIRED_KEY) === "1"
+    );
+  } catch {
+    return false;
+  }
+}
+
+function persist_legacy_migration_retired(): void {
+  try {
+    globalThis.localStorage?.setItem(LEGACY_MIGRATION_RETIRED_KEY, "1");
+  } catch {
+    return;
+  }
+}
+
+export function is_legacy_migration_retired(): boolean {
+  return legacy_migration_retired;
+}
 
 export function reset_legacy_migration_state(): void {
   legacy_migration_attempted.clear();
   legacy_migration_queue.length = 0;
   legacy_migration_inflight = 0;
-  legacy_migration_disabled = false;
+  legacy_migration_retired =
+    legacy_migration_retired || read_legacy_migration_retired();
+  legacy_migration_disabled = legacy_migration_retired;
   legacy_migration_succeeded = false;
+}
+
+function legacy_migration_slots(): number {
+  return legacy_migration_succeeded ? LEGACY_MIGRATION_MAX_INFLIGHT : 1;
 }
 
 export function schedule_legacy_envelope_migration(
@@ -138,6 +167,7 @@ export function schedule_legacy_envelope_migration(
       if (response.status === 404 || response.status === 410) {
         legacy_migration_retired = true;
         legacy_migration_disabled = true;
+        persist_legacy_migration_retired();
       } else if (response.data) legacy_migration_succeeded = true;
       else if (!legacy_migration_succeeded) legacy_migration_disabled = true;
     } catch {
@@ -146,13 +176,17 @@ export function schedule_legacy_envelope_migration(
       if (legacy_migration_disabled) legacy_migration_queue.length = 0;
 
       legacy_migration_inflight--;
-      const next = legacy_migration_queue.shift();
 
-      if (next) next();
+      while (
+        legacy_migration_queue.length > 0 &&
+        legacy_migration_inflight < legacy_migration_slots()
+      ) {
+        legacy_migration_queue.shift()?.();
+      }
     }
   };
 
-  if (legacy_migration_inflight < LEGACY_MIGRATION_MAX_INFLIGHT) {
+  if (legacy_migration_inflight < legacy_migration_slots()) {
     run();
   } else {
     legacy_migration_queue.push(run);

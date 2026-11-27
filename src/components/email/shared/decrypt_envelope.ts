@@ -19,7 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type { DecryptedEnvelope } from "@/types/email";
-import type { PrivateKey } from "openpgp";
+import type { verifiable_decrypted_message } from "@/services/crypto/key_manager_pgp";
 
 import { ml_kem768 } from "@noble/post-quantum/ml-kem.js";
 
@@ -36,7 +36,6 @@ import {
   wait_for_keys_ready,
 } from "@/services/crypto/memory_key_store";
 import {
-  decrypt_message_verifiable_with_any_key,
   import_ke_public_key,
   import_ke_private_key,
   compute_agreement_bits,
@@ -78,10 +77,8 @@ import {
   load_openpgp,
 } from "@/services/crypto/openpgp_loader";
 import { ignore_error } from "@/lib/ignore_error";
-import {
-  get_external_decryption_keys,
-  settle_external_pgp_key_load,
-} from "@/services/crypto/external_pgp_key";
+import { settle_external_pgp_key_load } from "@/services/crypto/external_pgp_key";
+import { decrypt_pgp_verifiable_parallel } from "@/workers/pgp_decrypt_pool";
 
 import { get_current_account } from "@/services/account_manager";
 import { is_internal_email } from "@/services/api/keys";
@@ -592,14 +589,25 @@ export async function decrypt_mail_envelope<T = DecryptedEnvelope>(
         const passphrase = pass;
         const decrypt_pgp_envelope = async (
           envelope_keys: string[],
-          external_keys: PrivateKey[] = [],
+          use_external_keys = false,
         ): Promise<T> => {
-          const first_pass = await decrypt_message_verifiable_with_any_key(
+          const first_pass = await decrypt_pgp_verifiable_parallel(
             text,
             envelope_keys,
             passphrase,
-            external_keys,
+            use_external_keys,
           );
+
+          try {
+            return await settle_pgp_envelope(first_pass, envelope_keys);
+          } finally {
+            first_pass.release();
+          }
+        };
+        const settle_pgp_envelope = async (
+          first_pass: verifiable_decrypted_message,
+          envelope_keys: string[],
+        ): Promise<T> => {
           const parsed = normalize_parsed_envelope(
             drop_sender_verification(JSON.parse(first_pass.plaintext)),
           ) as T & { from?: { email?: string }; sender_verification?: string };
@@ -668,10 +676,7 @@ export async function decrypt_mail_envelope<T = DecryptedEnvelope>(
         await settle_external_pgp_key_load();
 
         try {
-          return await decrypt_pgp_envelope(
-            envelope_keys,
-            get_external_decryption_keys(),
-          );
+          return await decrypt_pgp_envelope(envelope_keys, true);
         } catch (pgp_error) {
           const refreshed = await fetch_refreshed_vault();
 

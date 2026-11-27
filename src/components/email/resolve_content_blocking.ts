@@ -59,9 +59,7 @@ export function resolve_content_blocking(
     ),
     block_remote_fonts: unblocked("font", input.preferences.block_remote_fonts),
     block_remote_css: unblocked("css", input.preferences.block_remote_css),
-    block_tracking_pixels: unblocked(
-      "tracking_pixel",
-      input.preferences.block_tracking_pixels,
-    ),
+    block_tracking_pixels:
+      lockdown_active || input.preferences.block_tracking_pixels,
   };
 }

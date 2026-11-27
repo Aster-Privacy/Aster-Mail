@@ -44,15 +44,14 @@ import {
   undo_action_toast_by_key,
   type UndoToastResult,
 } from "@/components/toast/action_toast";
-import { plan_undo_send_result } from "@/components/toast/undo_send_result";
+import {
+  plan_undo_send_result,
+  undo_send_toast_key,
+} from "@/components/toast/undo_send_result";
 import { use_toast_action_bridge } from "@/components/toast/use_toast_action_hosts";
 import { ignore_error } from "@/lib/ignore_error";
 import { show_toast } from "@/components/toast/simple_toast";
 import { get_active_translations } from "@/lib/i18n/translations";
-
-function undo_send_toast_key(id: string): string {
-  return `undo_send:${id}`;
-}
 
 interface UndoSendContainerProps {
   position?: string;

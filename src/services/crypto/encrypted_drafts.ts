@@ -492,6 +492,14 @@ class DraftManager {
     }
   }
 
+  revive_context(context_id: string): void {
+    const context = this.contexts.get(context_id);
+
+    if (context && !context.id) {
+      context.is_deleted = false;
+    }
+  }
+
   clear_context(context_id: string): void {
     this.contexts.delete(context_id);
   }

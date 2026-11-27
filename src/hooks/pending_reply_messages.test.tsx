@@ -501,4 +501,58 @@ describe("pending reply stays in the thread", () => {
 
     expect(shown()).toBe("orig,opt-1,opt-2");
   });
+
+  it("drops the pending copy when the sent copy loads before the send settles", () => {
+    mount({ thread_token: "t1", email_id: "orig", initial: [ORIGINAL] });
+    optimistic("t1", "opt-1");
+
+    act(() =>
+      replace_messages([
+        ORIGINAL,
+        server_message("srv-1", "sent", START.toISOString()),
+      ]),
+    );
+    expect(shown()).toBe("orig,srv-1");
+
+    sent("t1", "opt-1");
+    act(() =>
+      replace_messages([
+        ORIGINAL,
+        server_message("srv-1", "sent", START.toISOString()),
+      ]),
+    );
+    expect(shown()).toBe("orig,srv-1");
+    expect(get_pending_reply_status("opt-1")?.phase).toBe("sent");
+  });
+
+  it("drops the pending copy when the send settles before the sent copy loads", () => {
+    mount({ thread_token: "t1", email_id: "orig", initial: [ORIGINAL] });
+    optimistic("t1", "opt-1");
+    act(() => {
+      emit_thread_reply_sent({
+        thread_token: "t1",
+        optimistic_id: "opt-1",
+        sent_id: "srv-1",
+      });
+    });
+    expect(shown()).toBe("orig,opt-1");
+
+    act(() =>
+      replace_messages([
+        ORIGINAL,
+        server_message("srv-1", "sent", "2026-10-12T09:59:00.000Z"),
+      ]),
+    );
+    expect(shown()).toBe("orig,srv-1");
+  });
+
+  it("keeps the pending copy next to an older sent message", () => {
+    const older = server_message("old-sent", "sent", "2026-10-12T09:30:00.000Z");
+
+    mount({ thread_token: "t1", email_id: "orig", initial: [ORIGINAL, older] });
+    optimistic("t1", "opt-1");
+    act(() => replace_messages([ORIGINAL, older]));
+
+    expect(shown()).toBe("orig,old-sent,opt-1");
+  });
 });

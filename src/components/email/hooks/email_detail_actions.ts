@@ -42,7 +42,8 @@ import {
   get_cached_alias_for_routing_token,
   get_cached_ghost_for_routing_token,
 } from "@/hooks/use_sender_aliases";
-import { report_spam_sender, remove_spam_sender } from "@/services/api/mail";
+import { remove_spam_sender } from "@/services/api/mail";
+import { report_phishing_with_undo } from "@/components/email/viewer_shared/report_phishing";
 import {
   update_item_metadata,
   bulk_update_metadata_by_ids,
@@ -549,29 +550,8 @@ export function use_email_detail_actions(deps: EmailDetailActionsDeps) {
 
   const handle_per_message_report_phishing = useCallback(
     async (msg: DecryptedThreadMessage) => {
-      const result = await update_item_metadata(
-        msg.id,
-        {
-          encrypted_metadata: msg.encrypted_metadata,
-          metadata_nonce: msg.metadata_nonce,
-        },
-        { is_spam: true, is_trashed: false },
-      );
-
-      if (result.success) {
-        if (msg.sender_email) {
-          report_spam_sender(msg.sender_email).catch((caught) =>
-            ignore_error(
-              "components/email/hooks/email_detail_actions:use_email_detail_actions",
-              caught,
-            ),
-          );
-        }
-        emit_mail_items_removed({ ids: [msg.id] });
-        show_toast(deps.t("common.reported_as_phishing"), "success");
+      if (await report_phishing_with_undo(msg, deps.t)) {
         deps.navigate(deps.get_next_email_destination());
-      } else {
-        show_toast(deps.t("common.failed_to_mark_as_spam"), "error");
       }
     },
     [deps.navigate, deps.get_next_email_destination, deps.t],

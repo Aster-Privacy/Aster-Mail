@@ -37,7 +37,7 @@ export const AttachmentChip = memo(function AttachmentChip({
 }: AttachmentChipProps): React.ReactElement {
   return (
     <span
-      className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] leading-tight max-w-[160px] border border-edge-secondary"
+      className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] leading-tight max-w-[160px] border border-edge-secondary select-none"
       data-testid="attachment-chip"
       style={{ opacity: muted ? 0.6 : 1 }}
     >

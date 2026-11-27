@@ -51,6 +51,7 @@ import {
 import { show_self_xss_warning } from "@/lib/security/console_warning";
 import { start_input_modality_tracking } from "@/lib/input_modality";
 import { start_press_feedback } from "@/lib/press_feedback";
+import { install_handoff_renewal_responder } from "@/contexts/auth/sibling_session_handoff";
 import {
   install_global_error_reporting,
   report_client_error,
@@ -69,6 +70,7 @@ import {
   use_mobile_experience,
 } from "@/hooks/use_mobile_experience";
 import { preload_initial_language } from "@/lib/i18n/context";
+import { start_multi_click_selection_guard } from "@/lib/multi_click_selection";
 import { preload_openpgp } from "@/services/crypto/openpgp_loader";
 import {
   app_pathname,
@@ -142,6 +144,8 @@ warm_startup_route_chunk();
 
 start_input_modality_tracking();
 start_press_feedback();
+start_multi_click_selection_guard();
+install_handoff_renewal_responder();
 install_global_error_reporting();
 install_dom_mutation_tolerance((kind) =>
   report_client_error({

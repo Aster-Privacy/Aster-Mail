@@ -73,7 +73,7 @@ let account_write_base_keys = new Map<AccountDataContext, CryptoKey>();
 let account_write_key_id: string | null = null;
 let account_write_epoch = 0;
 let account_key_generation = 0;
-let remembered_raw_key: CryptoKey | null = null;
+let hinted_raw_keys: CryptoKey[] = [];
 let remembered_hkdf_key: CryptoKey | null = null;
 let retired_context_keys = new Map<AccountDataContext, CryptoKey>();
 let retired_read_guard: ((context: AccountDataContext) => boolean) | null =
@@ -82,6 +82,88 @@ let retired_read_guard: ((context: AccountDataContext) => boolean) | null =
 export const PUBLIC_FALLBACK_KEY = "public";
 
 const fallback_key_ids = new WeakMap<CryptoKey, string>();
+
+export const UNOPENABLE_CACHE_LIMIT = 4096;
+const RAW_KEY_HINT_LIMIT = 8;
+const GCM_TAG_LENGTH = 16;
+
+let fallback_key_set_epoch = 0;
+let unopenable_fallbacks = new Map<string, true>();
+
+export function get_fallback_key_set_epoch(): number {
+  return fallback_key_set_epoch;
+}
+
+export function get_unopenable_fallback_count(): number {
+  return unopenable_fallbacks.size;
+}
+
+function fallback_key_set_changed(): void {
+  fallback_key_set_epoch += 1;
+  unopenable_fallbacks = new Map();
+}
+
+function byte_view(source: BufferSource): Uint8Array {
+  if (ArrayBuffer.isView(source)) {
+    return new Uint8Array(source.buffer, source.byteOffset, source.byteLength);
+  }
+
+  return new Uint8Array(source);
+}
+
+function bytes_to_hex(bytes: Uint8Array): string {
+  let out = "";
+
+  for (let index = 0; index < bytes.length; index += 1) {
+    out += bytes[index].toString(16).padStart(2, "0");
+  }
+
+  return out;
+}
+
+function fallback_fingerprint(
+  scope: string,
+  ciphertext: BufferSource,
+  iv: BufferSource,
+): string {
+  const sealed = byte_view(ciphertext);
+  const tag = sealed.subarray(Math.max(0, sealed.length - GCM_TAG_LENGTH));
+
+  return `${scope}:${sealed.length}:${bytes_to_hex(byte_view(iv))}:${bytes_to_hex(tag)}`;
+}
+
+function is_known_unopenable(fingerprint: string): boolean {
+  if (!unopenable_fallbacks.has(fingerprint)) return false;
+
+  unopenable_fallbacks.delete(fingerprint);
+  unopenable_fallbacks.set(fingerprint, true);
+
+  return true;
+}
+
+function remember_unopenable(fingerprint: string, epoch: number): void {
+  if (epoch !== fallback_key_set_epoch) return;
+
+  unopenable_fallbacks.set(fingerprint, true);
+
+  while (unopenable_fallbacks.size > UNOPENABLE_CACHE_LIMIT) {
+    const oldest = unopenable_fallbacks.keys().next().value;
+
+    if (oldest === undefined) break;
+    unopenable_fallbacks.delete(oldest);
+  }
+}
+
+function note_raw_key_hint(key: CryptoKey): void {
+  hinted_raw_keys = [
+    key,
+    ...hinted_raw_keys.filter((held) => held !== key),
+  ].slice(0, RAW_KEY_HINT_LIMIT);
+}
+
+function hinted_keys_within(candidates: CryptoKey[]): CryptoKey[] {
+  return hinted_raw_keys.filter((key) => candidates.includes(key));
+}
 
 export function fallback_key_server_id(key: CryptoKey): string | null {
   return fallback_key_ids.get(key) ?? null;
@@ -263,6 +345,7 @@ async function remember_legacy_raw(raw: Uint8Array): Promise<void> {
 
   const id = server_known_kek_id(raw);
 
+  fallback_key_set_changed();
   legacy_crypto_keys.push(
     tag_fallback_key(await import_raw_as_aes_key(raw), id),
   );
@@ -277,6 +360,7 @@ async function remember_legacy_raw(raw: Uint8Array): Promise<void> {
 }
 
 async function remember_mail_envelope_raw(raw: Uint8Array): Promise<void> {
+  fallback_key_set_changed();
   mail_envelope_crypto_keys.push(
     tag_fallback_key(await import_raw_as_aes_key(raw), PUBLIC_FALLBACK_KEY),
   );
@@ -418,6 +502,7 @@ export async function load_account_key_derived_keks_into_memory(
   if (loaded_account_key_ids.has(key_id)) return true;
 
   loaded_account_key_ids.add(key_id);
+  fallback_key_set_changed();
   account_crypto_keys = [...account_crypto_keys, ...aes_keys];
   account_hkdf_keys = [...account_hkdf_keys, ...hkdf_keys];
   for (const [context, base] of base_keys) {
@@ -480,8 +565,9 @@ export function clear_account_key_derived_keks(): void {
   loaded_account_key_ids = new Set();
   clear_account_data_write_keys();
   account_key_generation += 1;
-  remembered_raw_key = null;
+  hinted_raw_keys = [];
   remembered_hkdf_key = null;
+  fallback_key_set_changed();
 }
 
 export function clear_legacy_keks_from_memory(): void {
@@ -490,8 +576,9 @@ export function clear_legacy_keks_from_memory(): void {
   mail_envelope_crypto_keys = [];
   mail_envelope_hkdf_keys = [];
   retired_context_keys = new Map();
-  remembered_raw_key = null;
+  hinted_raw_keys = [];
   remembered_hkdf_key = null;
+  fallback_key_set_changed();
 }
 
 export function get_legacy_crypto_keys(): CryptoKey[] {
@@ -507,17 +594,6 @@ function gcm_params(
   return additional_data
     ? { name: "AES-GCM", iv, additionalData: additional_data }
     : { name: "AES-GCM", iv };
-}
-
-function held_raw_key(): CryptoKey | null {
-  const key = remembered_raw_key;
-
-  if (!key) return null;
-  if (legacy_crypto_keys.includes(key) || account_crypto_keys.includes(key)) {
-    return key;
-  }
-
-  return null;
 }
 
 function held_hkdf_key(): CryptoKey | null {
@@ -628,24 +704,25 @@ async function open_with_raw_keys(
   ciphertext: BufferSource,
   iv: BufferSource,
 ): Promise<FallbackOpen | null> {
-  if (keys.length === 0) return null;
+  for (const key of keys) {
+    let plaintext: ArrayBuffer;
 
-  return new Promise<FallbackOpen | null>((resolve) => {
-    let remaining = keys.length;
-
-    for (const key of keys) {
-      crypto.subtle.decrypt({ name: "AES-GCM", iv }, key, ciphertext).then(
-        (plaintext) => {
-          remembered_raw_key = key;
-          resolve({ plaintext, fallback_key: key });
-        },
-        () => {
-          remaining -= 1;
-          if (remaining === 0) resolve(null);
-        },
+    try {
+      plaintext = await crypto.subtle.decrypt(
+        { name: "AES-GCM", iv },
+        key,
+        ciphertext,
       );
+    } catch {
+      continue;
     }
-  });
+
+    note_raw_key_hint(key);
+
+    return { plaintext, fallback_key: key };
+  }
+
+  return null;
 }
 
 async function open_with_primary_key(
@@ -674,10 +751,14 @@ export async function open_aes_gcm_with_fallback(
   try {
     return await open_with_primary_key(primary_key, ciphertext, iv);
   } catch (primary_error) {
-    const remembered = held_raw_key();
+    const epoch = fallback_key_set_epoch;
+    const candidates = [...legacy_crypto_keys, ...account_crypto_keys];
+    const fingerprint = fallback_fingerprint("raw", ciphertext, iv);
+    const skip_raw = is_known_unopenable(fingerprint);
+    const hinted = skip_raw ? [] : hinted_keys_within(candidates);
 
-    if (remembered) {
-      const opened = await open_with_raw_keys([remembered], ciphertext, iv);
+    if (hinted.length > 0) {
+      const opened = await open_with_raw_keys(hinted, ciphertext, iv);
 
       if (opened) return opened;
     }
@@ -696,12 +777,14 @@ export async function open_aes_gcm_with_fallback(
       if (opened) return opened;
     }
 
-    const rest = [...legacy_crypto_keys, ...account_crypto_keys].filter(
-      (key) => key !== remembered,
-    );
-    const recovered = await open_with_raw_keys(rest, ciphertext, iv);
+    if (!skip_raw) {
+      const rest = candidates.filter((key) => !hinted.includes(key));
+      const recovered = await open_with_raw_keys(rest, ciphertext, iv);
 
-    if (recovered) return recovered;
+      if (recovered) return recovered;
+
+      remember_unopenable(fingerprint, epoch);
+    }
 
     throw primary_error;
   }
@@ -750,13 +833,20 @@ export async function open_mail_envelope_with_fallback(
       derive,
     );
   } catch (primary_error) {
-    const opened = await open_with_raw_keys(
-      [...mail_envelope_crypto_keys],
-      ciphertext,
-      iv,
-    );
+    const epoch = fallback_key_set_epoch;
+    const fingerprint = fallback_fingerprint("mail", ciphertext, iv);
 
-    if (opened) return opened;
+    if (!is_known_unopenable(fingerprint)) {
+      const opened = await open_with_raw_keys(
+        [...mail_envelope_crypto_keys],
+        ciphertext,
+        iv,
+      );
+
+      if (opened) return opened;
+
+      remember_unopenable(fingerprint, epoch);
+    }
 
     const derived = derive
       ? await open_with_mail_envelope_hkdf_keys(derive, ciphertext, iv)
@@ -783,13 +873,24 @@ export async function decrypt_mail_envelope_with_legacy_derived_keys(
   derive: LegacyKeyDeriver,
   ciphertext: BufferSource,
   iv: BufferSource,
+  cache_scope?: string,
 ): Promise<ArrayBuffer | null> {
-  return (
+  const epoch = fallback_key_set_epoch;
+  const fingerprint = cache_scope
+    ? fallback_fingerprint(`derived:${cache_scope}`, ciphertext, iv)
+    : null;
+
+  if (fingerprint && is_known_unopenable(fingerprint)) return null;
+
+  const opened =
     (await decrypt_with_legacy_derived_keys(derive, ciphertext, iv)) ??
     (await open_with_mail_envelope_hkdf_keys(derive, ciphertext, iv))
       ?.plaintext ??
-    null
-  );
+    null;
+
+  if (!opened && fingerprint) remember_unopenable(fingerprint, epoch);
+
+  return opened;
 }
 
 export async function decrypt_account_context_with_fallback(

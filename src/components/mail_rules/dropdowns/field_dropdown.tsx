@@ -161,7 +161,7 @@ export function FieldDropdown({
       <DropdownMenuTrigger asChild>{trigger}</DropdownMenuTrigger>
       <DropdownMenuContent
         align="start"
-        className="z-[200] w-64 max-h-[420px]"
+        className="z-[200] min-w-64 max-h-[420px]"
         sideOffset={6}
       >
         {sections.map((section, i) => (

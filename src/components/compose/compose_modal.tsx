@@ -35,6 +35,7 @@ import { TemplatePicker } from "@/components/compose/template_picker";
 import { SignaturePicker } from "@/components/compose/signature_picker";
 import { SenderSelector } from "@/components/compose/sender_selector";
 import { use_draggable_modal } from "@/hooks/use_draggable_modal";
+import { prevent_drag_text_selection } from "@/lib/drag_selection_lock";
 import { MODAL_SIZES } from "@/constants/modal";
 import { use_should_reduce_motion } from "@/provider";
 import {
@@ -176,17 +177,23 @@ export function ComposeModal({
           >
             <ErrorBoundary fallback={<ComposeErrorFallback />}>
               <div
-                className="flex items-center justify-between px-4 py-2 sm:py-3 border-b border-[var(--aster-floating-divider)] sm:cursor-move select-none"
+                className="flex items-center justify-between px-4 py-2 sm:py-3 border-b border-[var(--aster-floating-divider)] sm:cursor-move select-none sm:touch-none"
+                draggable={false}
                 role="presentation"
-                onMouseDown={handle_drag_start}
+                onMouseDown={prevent_drag_text_selection}
+                onPointerDown={handle_drag_start}
               >
-                <h2 className="text-sm font-medium text-txt-primary">
+                <h2
+                  className="text-sm font-medium text-txt-primary select-none"
+                  draggable={false}
+                >
                   {edit_draft ? t("mail.edit_draft") : t("common.new_message")}
                 </h2>
                 <div
                   className="flex items-center gap-1"
                   role="presentation"
                   onMouseDown={(e) => e.stopPropagation()}
+                  onPointerDown={(e) => e.stopPropagation()}
                 >
                   <button
                     className="hidden sm:flex transition-colors duration-150 p-1.5 w-7 h-7 items-center justify-center rounded hover_bg text-txt-muted"
@@ -253,7 +260,10 @@ export function ComposeModal({
                 <div className="flex-1 flex flex-col min-h-0">
                   <div className="pt-3 relative z-20">
                     <div className="flex items-center gap-2 px-4 py-2 border-b border-[var(--aster-floating-divider)]">
-                      <span className="text-sm flex-shrink-0 text-txt-tertiary">
+                      <span
+                        className="text-sm flex-shrink-0 text-txt-tertiary select-none"
+                        draggable={false}
+                      >
                         {t("mail.from")}
                       </span>
                       <SenderSelector

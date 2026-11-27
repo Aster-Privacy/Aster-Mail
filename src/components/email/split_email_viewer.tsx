@@ -482,7 +482,7 @@ export function SplitEmailViewer({
     !viewer.error;
 
   const viewer_content = (
-    <div className="flex flex-col h-full bg-surf-primary">
+    <div className="flex flex-col h-full bg-surf-primary" data-reading-pane="">
       <div className="flex items-center gap-1 px-2 @md:px-3 min-h-[52px] border-b border-edge-primary flex-shrink-0">
         {email ? (
           <ViewerToolbarActions
@@ -606,7 +606,7 @@ export function SplitEmailViewer({
                 </h1>
                 {viewer.mail_item?.is_spam === true && (
                   <EmailTag
-                    className="flex-shrink-0"
+                    className="flex-shrink-0 select-none"
                     label={t("mail.spam_label")}
                     variant="spam"
                   />
@@ -614,7 +614,7 @@ export function SplitEmailViewer({
                 {label_chips.map((chip) => (
                   <EmailTag
                     key={chip.token}
-                    className="flex-shrink-0"
+                    className="flex-shrink-0 select-none"
                     custom_color={chip.color}
                     icon={(chip.icon as TagIconName) || "folder"}
                     label={chip.name}

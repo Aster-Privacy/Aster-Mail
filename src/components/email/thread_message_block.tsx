@@ -96,6 +96,7 @@ import { PendingSendStatus } from "@/components/email/pending_send_status";
 import { ThreadMessageActions } from "@/components/email/thread_message_actions";
 import {
   MessageNoticeRow,
+  blocked_tracker_count,
   external_content_action,
   type UnsubscribeNoticeState,
 } from "@/components/email/message_notice_row";
@@ -113,6 +114,7 @@ import { SenderLogoBoundary } from "@/contexts/sender_logo_context";
 import { SETTINGS_ANCHORS, open_settings_target } from "@/lib/settings_links";
 import { ForwardedViaLine } from "@/components/email/shared/forwarded_via_line";
 import { use_forward_as_attachment } from "@/components/compose/use_forward_as_attachment";
+import { has_text_selection_within } from "@/lib/text_selection";
 
 export function ThreadMessageBlock(
   props: ThreadMessageBlockProps,
@@ -301,6 +303,9 @@ export function ThreadMessageBlock(
           image_grant_allowed,
         )
       : null;
+  const tracker_count = blocked_tracker_count(
+    sanitized_content.report?.blocked_items,
+  );
   const unsubscribe_notice_state: UnsubscribeNoticeState | null =
     unsub_state === "manual"
       ? unsubscribe_url && !lockdown_active
@@ -344,6 +349,7 @@ export function ThreadMessageBlock(
             ? (e) => {
                 e.stopPropagation();
                 if (!e.currentTarget.contains(e.target as Node)) return;
+                if (has_text_selection_within(e.currentTarget)) return;
                 on_toggle();
               }
             : undefined
@@ -364,7 +370,7 @@ export function ThreadMessageBlock(
         {is_own_message ? (
           <ProfileAvatar
             use_domain_logo
-            className="flex-shrink-0 mt-0.5"
+            className="flex-shrink-0 mt-0.5 select-none"
             email={message.sender_email}
             name={message.sender_name}
             sender_authenticated={is_system_email(message)}
@@ -372,7 +378,7 @@ export function ThreadMessageBlock(
           />
         ) : (
           <SenderProfileTrigger
-            className="flex-shrink-0 mt-0.5 rounded-full hover:opacity-80 transition-opacity focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/40"
+            className="flex-shrink-0 mt-0.5 select-none rounded-full hover:opacity-80 transition-opacity focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/40"
             email={message.sender_email}
             name={sender_trust ? sender_trust.name : message.sender_name}
             plain={marks_hidden}
@@ -395,7 +401,10 @@ export function ThreadMessageBlock(
         <div className="flex-1 min-w-0">
           <div className="flex flex-wrap items-center gap-x-1.5 gap-y-1 min-w-0">
             {is_own_message ? (
-              <span className="text-sm font-semibold truncate text-txt-primary max-w-full">
+              <span
+                data-selectable
+                className="text-sm font-semibold truncate text-txt-primary max-w-full"
+              >
                 {name}
               </span>
             ) : (
@@ -404,6 +413,7 @@ export function ThreadMessageBlock(
                 email={message.sender_email}
                 name={sender_trust ? sender_trust.name : message.sender_name}
                 plain={marks_hidden}
+                selectable
               >
                 {name}
               </SenderProfileTrigger>
@@ -430,6 +440,7 @@ export function ThreadMessageBlock(
             )}
             {shown_address && shown_address !== name && (
               <span
+                data-selectable
                 className={`text-xs text-txt-muted truncate max-w-full ${sender_trust ? "" : "hidden sm:inline"}`}
               >
                 &lt;<bdi>{shown_address}</bdi>&gt;
@@ -524,7 +535,7 @@ export function ThreadMessageBlock(
           )}
         </div>
 
-        <div className="flex flex-shrink-0 items-center gap-0.5 -mt-1.5 -me-2">
+        <div className="flex flex-shrink-0 items-center gap-0.5 -mt-1.5 -me-2 select-none">
           <PriorityBadge
             class_name="me-1"
             priority={priority_from_headers(message.raw_headers)}
@@ -557,7 +568,7 @@ export function ThreadMessageBlock(
             </DropdownMenuTrigger>
             <DropdownMenuContent
               align="end"
-              className="w-52"
+              className="min-w-52"
               collisionPadding={12}
             >
               {on_reply && !is_system && (
@@ -869,6 +880,7 @@ export function ThreadMessageBlock(
 
       <MessageNoticeRow
         external_action={external_action}
+        tracker_count={tracker_count}
         on_load_external_content={(types) =>
           on_load_external_content?.(message.id, types)
         }
@@ -909,14 +921,14 @@ export function ThreadMessageBlock(
       >
         {message.is_sending === true && (
           <div
-            className={`min-w-0 ${is_plain_text || show_as_text ? "pe-4" : "ps-[52px] pe-4"}`}
+            className={`min-w-0 ${is_plain_text || show_as_text ? "ps-4 pe-4" : "ps-[68px] pe-4"}`}
           >
             <PendingSendStatus message_id={message.id} />
           </div>
         )}
         {!is_ratchet_undecryptable && (
           <div
-            className={`min-w-0 ${is_plain_text || show_as_text ? "pe-4" : "ps-[52px] pe-4"}`}
+            className={`min-w-0 ${is_plain_text || show_as_text ? "ps-4 pe-4" : "ps-[68px] pe-4"}`}
           >
             <TranslationBanner
               download_bytes={translation.download_bytes}

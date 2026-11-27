@@ -58,6 +58,34 @@ export function yield_to_next_paint(): Promise<void> {
   });
 }
 
+export const DEFAULT_SLICE_BUDGET_MS = 8;
+
+export interface TimeSlicer {
+  should_yield(): boolean;
+  yield(): Promise<void>;
+}
+
+function slice_clock(): number {
+  return typeof performance !== "undefined" &&
+    typeof performance.now === "function"
+    ? performance.now()
+    : Date.now();
+}
+
+export function create_time_slicer(
+  budget_ms: number = DEFAULT_SLICE_BUDGET_MS,
+): TimeSlicer {
+  let slice_started_at = slice_clock();
+
+  return {
+    should_yield: () => slice_clock() - slice_started_at >= budget_ms,
+    yield: async () => {
+      await yield_to_browser();
+      slice_started_at = slice_clock();
+    },
+  };
+}
+
 export const DEFAULT_MAP_CHUNK = 32;
 
 export async function map_sync_in_chunks<T, R>(

@@ -96,7 +96,7 @@ export function EmailDetailHeader({
   handle_report_spam,
 }: EmailDetailHeaderProps) {
   return (
-    <div className="flex items-center gap-1 px-2 sm:px-3 py-2 border-b flex-shrink-0 border-edge-secondary">
+    <div className="flex items-center gap-1 px-2 sm:px-3 lg:px-5 py-2 border-b flex-shrink-0 border-edge-secondary">
       {!is_popup && (
         <div className="md:hidden me-1">
           <MobileMenuButton on_click={toggle_mobile_sidebar} />

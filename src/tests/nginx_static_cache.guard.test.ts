@@ -50,7 +50,9 @@ function header_lines(body: string): string[] {
 }
 
 const fonts = block_body("location ^~ /fonts/ {");
-const generic_static = block_body("|webmanifest|mp3)$ {");
+const generic_static = block_body("css|m?js|webmanifest)$ {");
+const static_media = block_body("|ico|webp|mp3)$ {");
+const hashed_assets = block_body("location ^~ /assets/ {");
 
 describe("font files", () => {
   it("are kept by the browser between visits", () => {
@@ -100,5 +102,25 @@ describe("static file serving", () => {
 
   it("never resolves a route name to a directory", () => {
     expect(nginx).not.toMatch(/try_files[^;]*\$uri\//);
+  });
+});
+
+describe("cached static responses", () => {
+  it("send one long-lived header for hashed build assets", () => {
+    const cache_lines = hashed_assets.match(/add_header Cache-Control [^;]*;/g);
+
+    expect(cache_lines).toEqual([
+      'add_header Cache-Control "public, max-age=31536000, immutable";',
+    ]);
+    expect(hashed_assets).not.toMatch(/expires /);
+  });
+
+  it("reuse images and fonts while revalidating them in the background", () => {
+    expect(static_media).toMatch(
+      /add_header Cache-Control "public, max-age=86400, stale-while-revalidate=\d+";/,
+    );
+    expect(static_media).not.toMatch(/immutable/);
+    expect(static_media).not.toMatch(/add_header Cache-Control [^;]* always;/);
+    expect(header_lines(static_media)).toEqual(header_lines(generic_static));
   });
 });

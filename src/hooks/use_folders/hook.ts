@@ -82,6 +82,7 @@ import {
 } from "@/hooks/mail_events";
 import { use_auth_safe } from "@/contexts/auth_context";
 import { use_i18n } from "@/lib/i18n/context";
+import { subscribe_page_resume } from "@/lib/page_resume";
 
 const COUNTS_DEBOUNCE_MS = 500;
 const COUNTS_CONFIRM_MS = 4_000;
@@ -89,6 +90,44 @@ const FOLDERS_REFETCH_DEBOUNCE_MS = 300;
 const FOLDER_RETRY_DELAYS_MS = [400, 1_200, 3_000];
 const FOLDER_BACKGROUND_RETRY_DELAYS_MS = [8_000, 20_000, 45_000];
 const FOLDER_FAILED_FETCH_RETRY_MS = 60_000;
+const RESUME_REFETCH_MIN_MS = 30_000;
+
+type SharedCountsRequest = {
+  started_at: number;
+  promise: ReturnType<typeof get_folder_counts>;
+};
+
+let shared_counts_request: SharedCountsRequest | null = null;
+
+export function request_shared_folder_counts(): SharedCountsRequest {
+  if (shared_counts_request) return shared_counts_request;
+
+  const request: SharedCountsRequest = {
+    started_at: Date.now(),
+    promise: get_folder_counts(),
+  };
+
+  shared_counts_request = request;
+  const release = () => {
+    if (shared_counts_request === request) shared_counts_request = null;
+  };
+
+  request.promise.then(release, release);
+
+  return request;
+}
+
+export function same_folder_counts(a: FolderCounts, b: FolderCounts): boolean {
+  const a_keys = Object.keys(a);
+
+  if (a_keys.length !== Object.keys(b).length) return false;
+
+  for (const key of a_keys) {
+    if (a[key] !== b[key]) return false;
+  }
+
+  return true;
+}
 
 function wait(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -338,10 +377,11 @@ export function use_folders(): UseFoldersReturn {
     const this_generation = ++counts_generation_ref.current;
 
     for (let attempt = 0; attempt < 3; attempt++) {
-      const fetch_started_at = Date.now();
+      const shared_request = request_shared_folder_counts();
+      const fetch_started_at = shared_request.started_at;
 
       try {
-        const response = await get_folder_counts();
+        const response = await shared_request.promise;
 
         if (this_generation !== counts_generation_ref.current) return;
 
@@ -377,8 +417,14 @@ export function use_folders(): UseFoldersReturn {
           new_counts[item.folder_token] = item.count;
           new_unread_counts[item.folder_token] = item.unread_count;
         }
-        set_counts(new_counts);
-        set_unread_counts(new_unread_counts);
+        set_counts((prev) =>
+          same_folder_counts(prev, new_counts) ? prev : new_counts,
+        );
+        set_unread_counts((prev) =>
+          same_folder_counts(prev, new_unread_counts)
+            ? prev
+            : new_unread_counts,
+        );
 
         return;
       } catch {
@@ -985,14 +1031,10 @@ export function use_folders(): UseFoldersReturn {
       }
     };
 
-    const visibility_handler = () => {
-      if (
-        document.visibilityState === "visible" &&
-        has_passphrase_in_memory()
-      ) {
-        fetch_folders();
-        fetch_counts();
-      }
+    const resume_handler = () => {
+      if (!has_passphrase_in_memory()) return;
+      folders_handler();
+      counts_handler();
     };
 
     const channel = get_folder_broadcast_channel();
@@ -1015,8 +1057,9 @@ export function use_folders(): UseFoldersReturn {
     window.addEventListener(MAIL_EVENTS.FOLDERS_CHANGED, folders_handler);
     window.addEventListener(MAIL_EVENTS.DEFINITIONS_STALE, folders_handler);
     window.addEventListener(MAIL_EVENTS.AUTH_READY, reload_handler);
-    document.addEventListener("visibilitychange", visibility_handler);
-    window.addEventListener("online", reload_handler);
+    const unsubscribe_resume = subscribe_page_resume(resume_handler, {
+      min_interval_ms: RESUME_REFETCH_MIN_MS,
+    });
     channel?.addEventListener("message", broadcast_handler);
 
     return () => {
@@ -1039,8 +1082,7 @@ export function use_folders(): UseFoldersReturn {
         folders_handler,
       );
       window.removeEventListener(MAIL_EVENTS.AUTH_READY, reload_handler);
-      document.removeEventListener("visibilitychange", visibility_handler);
-      window.removeEventListener("online", reload_handler);
+      unsubscribe_resume();
       channel?.removeEventListener("message", broadcast_handler);
     };
   }, [fetch_counts, fetch_folders]);

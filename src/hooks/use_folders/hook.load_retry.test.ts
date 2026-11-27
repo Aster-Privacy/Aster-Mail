@@ -293,7 +293,7 @@ describe("use_folders load retry", () => {
     await act(async () => {
       window.dispatchEvent(new Event("online"));
     });
-    await advance(0);
+    await advance(1_000);
 
     expect(first.state.error).toBeNull();
     expect(second.state.error).toBeNull();

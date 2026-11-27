@@ -34,6 +34,13 @@ import {
 } from "@/services/crypto/memory_key_store";
 import { zero_uint8_array } from "@/services/crypto/secure_memory";
 import {
+  has_walk_marker,
+  pace_walk_page,
+  run_in_single_tab,
+  set_walk_marker,
+  wait_until_visible,
+} from "@/services/background_walk";
+import {
   has_reply_prefix,
   hash_message_id,
   is_usable_msgid,
@@ -59,6 +66,8 @@ export const AUTO_ACTIVE_INTERVAL_MS = 600_000;
 export const AUTO_IDLE_INTERVAL_MS = 21_600_000;
 export const AUTO_MAX_FOLLOW_UPS = 3;
 export const AUTO_LOCKED_RETRY_MS = 15_000;
+export const AUTO_WALK_NAME = "thread_relink";
+export const AUTO_WALK_VERSION = 3;
 const AUTO_LOCKED_MAX_RETRIES = 8;
 
 interface HeaderEntry {
@@ -115,6 +124,7 @@ let linked_streak = 0;
 let current_run: Promise<RunResult> | null = null;
 let scheduled_timer: ReturnType<typeof setTimeout> | null = null;
 let locked_retries = 0;
+let auto_settled_user: string | null = null;
 let cache_user_id: string | null = null;
 const record_cache = new Map<string, CachedFields>();
 
@@ -300,7 +310,7 @@ export function fingerprint_items(
   );
 }
 
-async function fetch_all_items(): Promise<FetchResult> {
+async function fetch_all_items(paced: boolean): Promise<FetchResult> {
   const items: MailItem[] = [];
   const seen = new Set<string>();
   let cursor: string | undefined;
@@ -326,6 +336,8 @@ async function fetch_all_items(): Promise<FetchResult> {
       return { items, complete: true };
     }
     cursor = response.data.next_cursor;
+
+    if (paced) await pace_walk_page();
   }
 
   return { items, complete: false };
@@ -565,7 +577,10 @@ export function plan_updates(
   return updates;
 }
 
-async function run_repair(force: boolean): Promise<RunResult> {
+async function run_repair(
+  force: boolean,
+  paced: boolean,
+): Promise<RunResult> {
   if (!force && Date.now() - last_run_at < COOLDOWN_MS) {
     return { status: "skipped", linked: 0 };
   }
@@ -592,7 +607,7 @@ async function run_repair(force: boolean): Promise<RunResult> {
   let linked_count = 0;
 
   try {
-    const { items, complete } = await fetch_all_items();
+    const { items, complete } = await fetch_all_items(paced);
     const fingerprint = fingerprint_items(items);
     const stored = read_fingerprints(user_id);
 
@@ -638,6 +653,7 @@ async function run_repair(force: boolean): Promise<RunResult> {
         seen: fingerprint,
         settled: fingerprint_items(items, applied),
       });
+      set_walk_marker(AUTO_WALK_NAME, AUTO_WALK_VERSION, user_id);
     }
 
     return {
@@ -653,14 +669,17 @@ async function run_repair(force: boolean): Promise<RunResult> {
   }
 }
 
-async function start_run(force: boolean): Promise<RunResult> {
+async function start_run(
+  force: boolean,
+  paced = false,
+): Promise<RunResult> {
   while (current_run) {
     if (!force) return { status: "skipped", linked: 0 };
 
     await current_run.catch(() => undefined);
   }
 
-  const run = run_repair(force);
+  const run = run_repair(force, paced);
 
   current_run = run;
 
@@ -709,11 +728,41 @@ export function next_auto_delay(now: number = Date.now()): number {
   return Math.max(AUTO_FIRST_DELAY_MS, due_in);
 }
 
+export function has_completed_auto_repair(user_id: string): boolean {
+  return has_walk_marker(AUTO_WALK_NAME, AUTO_WALK_VERSION, user_id);
+}
+
+async function run_auto_repair(): Promise<RunResult | null> {
+  const user_id = api_client.get_cached_user_info()?.user_id;
+
+  if (!user_id) return { status: "locked", linked: 0 };
+  if (auto_settled_user === user_id || has_completed_auto_repair(user_id)) {
+    return null;
+  }
+
+  await wait_until_visible();
+
+  const outcome = await run_in_single_tab(AUTO_WALK_NAME, () =>
+    start_run(false, true),
+  );
+
+  if (!outcome.ran || !outcome.value) return null;
+
+  if (outcome.value.status !== "locked") auto_settled_user = user_id;
+
+  return outcome.value;
+}
+
 export function schedule_thread_repair(
   on_linked: (count: number) => void,
   delay_ms?: number,
 ): void {
   if (scheduled_timer !== null) return;
+
+  const user_id = api_client.get_cached_user_info()?.user_id;
+
+  if (user_id && auto_settled_user === user_id) return;
+  if (user_id && has_completed_auto_repair(user_id)) return;
 
   scheduled_timer = setTimeout(() => {
     scheduled_timer = null;
@@ -732,8 +781,10 @@ export function schedule_thread_repair(
       return;
     }
 
-    start_run(false)
+    run_auto_repair()
       .then((result) => {
+        if (!result) return;
+
         if (result.status === "locked") {
           if (locked_retries < AUTO_LOCKED_MAX_RETRIES) {
             locked_retries += 1;

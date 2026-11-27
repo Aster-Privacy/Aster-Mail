@@ -35,6 +35,7 @@ import {
 const USER_ID = "3f2a8c1e-5b4d-4e6f-9a7b-1c2d3e4f5a6b";
 const OTHER_ID = "9b8a7c6d-5e4f-4a3b-8c2d-1e0f9a8b7c6d";
 const GRANT = "g".repeat(43);
+const TOKEN = "aGVhZGVy.ZmluZGxleQ.c2ln";
 const WITH_GRANT = { grant: GRANT };
 
 const session = {
@@ -144,7 +145,68 @@ describe("request_sibling_session", () => {
         expected_user_id: OTHER_ID,
       }),
     ).toBeNull();
-    expect(sent).toHaveLength(1);
+    expect(sent[1]).toEqual(
+      build_handoff_message({ type: "request", grant: GRANT, user_id: OTHER_ID }),
+    );
+  });
+
+  it("confirms the expected user with the returned token, not the shared cookie", async () => {
+    const reply = build_handoff_message({
+      type: "session",
+      session: { ...session, access_token: TOKEN },
+    });
+    const verify = vi.fn(async (access_token?: string) =>
+      access_token === TOKEN ? USER_ID : OTHER_ID,
+    );
+    const { channel, sent } = fake_channel([available, reply]);
+    const { deps } = make_deps(channel, {
+      has_session_cookie: () => false,
+      verify_server_session: verify,
+    });
+
+    expect(
+      await request_sibling_session(deps, {
+        grant: GRANT,
+        expected_user_id: USER_ID,
+      }),
+    ).toEqual({ ...session, access_token: TOKEN });
+    expect(verify).toHaveBeenCalledTimes(1);
+    expect(verify).toHaveBeenCalledWith(TOKEN);
+    expect(sent[1]).toEqual(
+      build_handoff_message({ type: "request", grant: GRANT, user_id: USER_ID }),
+    );
+  });
+
+  it("rejects an expected user the server does not confirm", async () => {
+    const with_token = build_handoff_message({
+      type: "session",
+      session: { ...session, access_token: TOKEN },
+    });
+    const cases: Array<{
+      reply: unknown;
+      verify: (access_token?: string) => Promise<string | null>;
+    }> = [
+      { reply: with_token, verify: async () => OTHER_ID },
+      { reply: with_token, verify: async () => null },
+      {
+        reply: session_reply,
+        verify: async (access_token?: string) =>
+          access_token ? USER_ID : OTHER_ID,
+      },
+    ];
+
+    for (const { reply, verify } of cases) {
+      const { channel, close } = fake_channel([available, reply]);
+      const { deps } = make_deps(channel, { verify_server_session: verify });
+
+      expect(
+        await request_sibling_session(deps, {
+          grant: GRANT,
+          expected_user_id: USER_ID,
+        }),
+      ).toBeNull();
+      expect(close).toHaveBeenCalled();
+    }
   });
 
   it("refuses when this app is locked", async () => {

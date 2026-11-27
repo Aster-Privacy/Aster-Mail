@@ -44,6 +44,7 @@ import { API_ENDPOINTS } from "@/services/api/endpoints";
 import { show_toast } from "@/components/toast/simple_toast";
 import { use_i18n } from "@/lib/i18n/context";
 import { open_external } from "@/utils/open_link";
+import { take_feedback_category } from "@/lib/feedback_preset";
 
 const MAX_FEEDBACK_LENGTH = 2000;
 
@@ -69,7 +70,9 @@ export function FeedbackSection() {
   const navigate = useNavigate();
   const [feedback_text, set_feedback_text] = useState("");
   const [is_sending, set_is_sending] = useState(false);
-  const [category, set_category] = useState<FeedbackCategory>("general");
+  const [category, set_category] = useState<FeedbackCategory>(
+    () => take_feedback_category() ?? "general",
+  );
 
   const compose_to = useCallback(
     (address: string) => {

@@ -29,11 +29,12 @@ import {
   EMAIL_FONT_WEIGHTS,
 } from "@/lib/email_body_styles";
 import { EMAIL_INLINE_FONT_FACE_CSS } from "@/lib/email_inline_fonts";
+import { TEXT_SYMBOL_FONT_SRC } from "@/lib/text_symbol_font";
 
 function font_sources(css: string): string[] {
-  return [...css.matchAll(/src: url\('([^']*)'\) format\('woff2'\)/g)].map(
-    (match) => match[1],
-  );
+  return [...css.matchAll(/src: url\('([^']*)'\) format\('woff2'\)/g)]
+    .map((match) => match[1])
+    .filter((source) => source !== TEXT_SYMBOL_FONT_SRC);
 }
 
 describe("email body font", () => {
@@ -42,7 +43,11 @@ describe("email body font", () => {
   });
 
   it("points the shared body css at the app's font files", () => {
-    expect(EMAIL_BODY_CSS.match(/data:font\//g) ?? []).toHaveLength(0);
+    expect(
+      EMAIL_BODY_CSS.split(TEXT_SYMBOL_FONT_SRC)
+        .join("")
+        .match(/data:font\//g) ?? [],
+    ).toHaveLength(0);
     expect(font_sources(EMAIL_BODY_CSS)).toEqual(
       EMAIL_FONT_WEIGHTS.map(
         (weight) => `/fonts/GoogleSansFlex-${weight}.woff2`,

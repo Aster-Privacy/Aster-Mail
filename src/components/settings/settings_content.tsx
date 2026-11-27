@@ -230,7 +230,7 @@ function SettingsContentInner(props: SettingsContentProps) {
         ref={(el) => {
           nav_item_refs.current[item.id] = el;
         }}
-        className={`w-full flex items-center gap-2.5 px-2.5 h-[34px] rounded-[10px] text-[13px] transition-colors duration-150 relative z-[1] outline-none focus-visible:ring-2 focus-visible:ring-[color-mix(in_srgb,var(--accent-color)_40%,transparent)] font-medium ${is_selected ? "" : "hover:bg-[var(--aster-hover)]"}`}
+        className={`w-full flex items-center gap-2.5 px-2.5 h-[34px] rounded-[10px] text-[13px] transition-colors duration-150 relative z-[1] font-medium ${is_selected ? "" : "hover:bg-[var(--aster-hover)]"}`}
         style={{
           color: is_selected ? "var(--text-primary)" : "var(--text-secondary)",
         }}

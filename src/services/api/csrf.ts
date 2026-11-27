@@ -28,6 +28,7 @@ const CSRF_COOKIE_NAME = "csrf_token";
 let cached_csrf_token: string | null = null;
 let cached_from_cookie = false;
 let cached_for_account: string | null = null;
+let cookie_seen_in_document = false;
 
 function remember_token(token: string, from_cookie: boolean): void {
   cached_csrf_token = token;
@@ -45,8 +46,47 @@ function cached_token_still_valid(): boolean {
   return !(cached_for_account !== null && bound !== cached_for_account);
 }
 
+const csrf_waiters = new Set<() => void>();
+
+export const CSRF_WAIT_POLL_MS = 100;
+
 export function set_csrf_token(token: string): void {
   remember_token(token, false);
+
+  for (const wake of [...csrf_waiters]) wake();
+}
+
+export function wait_for_csrf_token(
+  timeout_ms: number,
+): Promise<string | null> {
+  const existing = get_csrf_token_from_cookie();
+
+  if (existing || timeout_ms <= 0) return Promise.resolve(existing);
+
+  return new Promise((resolve) => {
+    let poll: ReturnType<typeof setInterval> | undefined;
+    let deadline: ReturnType<typeof setTimeout> | undefined;
+
+    const finish = (token: string | null): void => {
+      csrf_waiters.delete(wake);
+      clearInterval(poll);
+      clearTimeout(deadline);
+      resolve(token);
+    };
+
+    const wake = (): void => {
+      const token = get_csrf_token_from_cookie();
+
+      if (token) finish(token);
+    };
+
+    csrf_waiters.add(wake);
+    poll = setInterval(wake, CSRF_WAIT_POLL_MS);
+    deadline = setTimeout(
+      () => finish(get_csrf_token_from_cookie()),
+      timeout_ms,
+    );
+  });
 }
 
 export function get_csrf_token_from_cookie(): string | null {
@@ -60,7 +100,25 @@ export function get_csrf_token_from_cookie(): string | null {
     return null;
   }
 
-  const cookies = document.cookie.split(";");
+  const value = read_csrf_cookie();
+
+  if (!value) return null;
+
+  remember_token(value, true);
+
+  return cached_csrf_token;
+}
+
+function read_csrf_cookie(): string | null {
+  if (typeof document === "undefined") return null;
+
+  let cookies: string[];
+
+  try {
+    cookies = document.cookie.split(";");
+  } catch {
+    return null;
+  }
 
   for (const cookie of cookies) {
     const trimmed = cookie.trim();
@@ -72,13 +130,20 @@ export function get_csrf_token_from_cookie(): string | null {
     const value = trimmed.substring(eq_index + 1);
 
     if (name === CSRF_COOKIE_NAME && value) {
-      remember_token(decodeURIComponent(value), true);
+      cookie_seen_in_document = true;
 
-      return cached_csrf_token;
+      return decodeURIComponent(value);
     }
   }
 
   return null;
+}
+
+export function csrf_cookie_went_missing(): boolean {
+  if (!tab_shares_session_cookies()) return false;
+  if (read_csrf_cookie() !== null) return false;
+
+  return cookie_seen_in_document;
 }
 
 export function clear_csrf_cache(): void {

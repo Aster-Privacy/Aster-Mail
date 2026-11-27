@@ -989,7 +989,7 @@ describe("thread_imported_emails", () => {
     mod.schedule_thread_repair(on_linked);
     mod.schedule_thread_repair(on_linked);
     mod.cancel_thread_repair();
-    await vi.advanceTimersByTimeAsync(mod.AUTO_IDLE_INTERVAL_MS);
+    await vi.advanceTimersByTimeAsync(mod.AUTO_FIRST_DELAY_MS * 4);
 
     expect(mock_list_mail_items).not.toHaveBeenCalled();
   });
@@ -1009,6 +1009,43 @@ describe("thread_imported_emails", () => {
     await mod.thread_imported_emails();
 
     expect(mod.next_auto_delay()).toBe(mod.AUTO_IDLE_INTERVAL_MS);
+  });
+
+  it("runs the automatic walk once and records completion", async () => {
+    setup_mail_items([]);
+
+    const random_spy = vi.spyOn(Math, "random").mockReturnValue(0);
+
+    const mod = await reimport_module();
+    const on_linked = vi.fn();
+
+    mod.schedule_thread_repair(on_linked);
+    await vi.advanceTimersByTimeAsync(mod.AUTO_FIRST_DELAY_MS);
+
+    expect(mock_list_mail_items).toHaveBeenCalledTimes(1);
+    expect(mod.has_completed_auto_repair(USER_ID)).toBe(true);
+
+    mod.schedule_thread_repair(on_linked);
+    await vi.advanceTimersByTimeAsync(mod.AUTO_FIRST_DELAY_MS * 10);
+
+    expect(mock_list_mail_items).toHaveBeenCalledTimes(1);
+    random_spy.mockRestore();
+  });
+
+  it("skips the automatic walk on a later load once it completed", async () => {
+    setup_mail_items([]);
+
+    const first = await reimport_module();
+
+    await first.thread_imported_emails();
+    mock_list_mail_items.mockClear();
+
+    const second = await reimport_module();
+
+    second.schedule_thread_repair(vi.fn());
+    await vi.advanceTimersByTimeAsync(second.AUTO_FIRST_DELAY_MS * 10);
+
+    expect(mock_list_mail_items).not.toHaveBeenCalled();
   });
 
   it("remembers the last run across reloads so a new page load does not walk the mailbox again", async () => {

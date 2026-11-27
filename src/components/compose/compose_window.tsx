@@ -37,6 +37,16 @@ import { TemplatePicker } from "@/components/compose/template_picker";
 import { SignaturePicker } from "@/components/compose/signature_picker";
 import { SenderSelector } from "@/components/compose/sender_selector";
 import { use_draggable_modal } from "@/hooks/use_draggable_modal";
+import {
+  begin_drag_selection_guard,
+  capture_drag_pointer,
+  hold_drag_selection_guard_until_release,
+  is_drag_handle_target,
+  prevent_drag_text_selection,
+} from "@/lib/drag_selection_lock";
+import { use_shake_feedback } from "@/components/compose/use_shake_feedback";
+import { PriorityTag } from "@/components/compose/compose_toolbar/priority_picker";
+import { COMPOSE_ICON_BUTTON_CLASS } from "@/components/compose/compose_toolbar/shared";
 import { use_should_reduce_motion } from "@/provider";
 import {
   ErrorBoundary,
@@ -129,9 +139,14 @@ export function ComposeWindow({
   }, []);
 
   const handle_resize_start = useCallback(
-    (e: React.MouseEvent) => {
+    (e: React.PointerEvent) => {
+      if (e.button !== 0) return;
       e.preventDefault();
       e.stopPropagation();
+      resize_cleanup_ref.current?.();
+      capture_drag_pointer(e);
+
+      const release_guard = begin_drag_selection_guard();
 
       const start_x = e.clientX;
       const start_y = e.clientY;
@@ -154,7 +169,7 @@ export function ComposeWindow({
         pending = null;
       };
 
-      const handle_move = (ev: MouseEvent) => {
+      const handle_move = (ev: PointerEvent) => {
         const dx = ev.clientX - start_x;
         const dy = ev.clientY - start_y;
         const max_width = window.innerWidth - 48;
@@ -177,8 +192,11 @@ export function ComposeWindow({
       const detach = () => {
         if (frame !== 0) window.cancelAnimationFrame(frame);
         frame = 0;
-        window.removeEventListener("mousemove", handle_move);
-        window.removeEventListener("mouseup", handle_up);
+        window.removeEventListener("pointermove", handle_move);
+        window.removeEventListener("pointerup", handle_up);
+        window.removeEventListener("pointercancel", handle_up);
+        window.removeEventListener("blur", handle_up);
+        release_guard();
         resize_cleanup_ref.current = null;
       };
 
@@ -188,8 +206,10 @@ export function ComposeWindow({
         detach();
       }
 
-      window.addEventListener("mousemove", handle_move);
-      window.addEventListener("mouseup", handle_up);
+      window.addEventListener("pointermove", handle_move);
+      window.addEventListener("pointerup", handle_up);
+      window.addEventListener("pointercancel", handle_up);
+      window.addEventListener("blur", handle_up);
       resize_cleanup_ref.current = detach;
     },
     [effective_width, effective_height, has_been_moved, position],
@@ -214,6 +234,8 @@ export function ComposeWindow({
     compose.ghost_mode.toggle_ghost_mode();
   }, [initial_ghost_mode]);
 
+  const start_shake_watch = use_shake_feedback();
+
   const handle_header_click = useCallback(() => {
     if (did_drag()) {
       return;
@@ -221,15 +243,20 @@ export function ComposeWindow({
     on_toggle_minimize();
   }, [did_drag, on_toggle_minimize]);
 
-  const handle_header_mouse_down = useCallback(
-    (e: React.MouseEvent) => {
+  const handle_header_pointer_down = useCallback(
+    (e: React.PointerEvent) => {
       if (is_minimized) {
+        if (e.button !== 0 || !is_drag_handle_target(e.target)) return;
+        e.preventDefault();
+        hold_drag_selection_guard_until_release();
+
         return;
       }
       resize_anchor_right_ref.current = null;
       handle_drag_start(e);
+      start_shake_watch(e);
     },
-    [is_minimized, handle_drag_start],
+    [is_minimized, handle_drag_start, start_shake_watch],
   );
 
   useEffect(() => {
@@ -375,18 +402,30 @@ export function ComposeWindow({
       >
         <ErrorBoundary fallback={<ComposeErrorFallback />}>
           <div
-            className={`flex items-center justify-between px-4 py-3 border-b border-[var(--aster-floating-divider)] select-none flex-shrink-0 ${
+            className={`flex items-center justify-between gap-2 ps-4 pe-2 py-2 border-b border-[var(--aster-floating-divider)] select-none touch-none flex-shrink-0 ${
               is_minimized ? "cursor-pointer" : "cursor-move"
             }`}
+            data-press-skip
+            draggable={false}
             role="presentation"
             onClick={handle_header_click}
-            onMouseDown={handle_header_mouse_down}
+            onMouseDown={prevent_drag_text_selection}
+            onPointerDown={handle_header_pointer_down}
           >
-            <h2 className="text-sm font-medium truncate flex-1 me-2 text-txt-primary">
-              {window_title}
-            </h2>
             <div
-              className="flex items-center gap-1"
+              className="flex min-w-0 flex-1 items-center gap-2"
+              data-testid="compose_header_title"
+            >
+              <h2
+                className="min-w-0 truncate text-sm font-medium text-txt-primary select-none"
+                draggable={false}
+              >
+                {window_title}
+              </h2>
+              <PriorityTag compose={compose_with_pickers} />
+            </div>
+            <div
+              className="flex flex-shrink-0 items-center gap-0.5"
               role="presentation"
               onClick={(e) => e.stopPropagation()}
             >
@@ -396,7 +435,8 @@ export function ComposeWindow({
                     ? t("mail.expand_compose")
                     : t("mail.minimize_compose")
                 }
-                className="transition-colors duration-150 p-1.5 w-7 h-7 flex items-center justify-center rounded hover_bg text-txt-muted"
+                className={COMPOSE_ICON_BUTTON_CLASS}
+                type="button"
                 onClick={on_toggle_minimize}
               >
                 <svg
@@ -415,7 +455,8 @@ export function ComposeWindow({
                     ? t("mail.exit_fullscreen")
                     : t("mail.enter_fullscreen")
                 }
-                className="transition-colors duration-150 p-1.5 w-7 h-7 flex items-center justify-center rounded hover_bg text-txt-muted"
+                className={COMPOSE_ICON_BUTTON_CLASS}
+                type="button"
                 onClick={() => set_is_expanded(!is_expanded)}
               >
                 {is_expanded ? (
@@ -450,7 +491,8 @@ export function ComposeWindow({
               </button>
               <button
                 aria-label={t("mail.close_compose")}
-                className="transition-colors duration-150 p-1.5 w-7 h-7 flex items-center justify-center rounded hover_bg text-txt-muted"
+                className={COMPOSE_ICON_BUTTON_CLASS}
+                type="button"
                 onClick={compose.handle_close}
               >
                 <CloseIcon className="w-4 h-4" />
@@ -460,10 +502,11 @@ export function ComposeWindow({
 
           {!is_minimized && (
             <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
-              <div className="pt-3 relative z-20">
+              <div className="relative z-20">
                 <div className="flex items-center gap-2 px-4 py-2 border-b border-[var(--aster-floating-divider)]">
                   <button
-                    className="text-sm flex-shrink-0 text-txt-tertiary"
+                    className="text-sm flex-shrink-0 text-txt-tertiary select-none"
+                    draggable={false}
                     type="button"
                     onClick={(e) =>
                       e.currentTarget.parentElement
@@ -495,7 +538,7 @@ export function ComposeWindow({
                 </div>
               </div>
 
-              <div className="pb-2 min-h-0 overflow-y-auto">
+              <div className="min-h-0 overflow-y-auto">
                 <ComposeFormFields
                   auto_focus_to={
                     !edit_draft && compose.recipients.to.length === 0
@@ -517,6 +560,7 @@ export function ComposeWindow({
           {!is_minimized && (
             <ComposeToolbar
               show_expiration
+              show_priority_tag={false}
               compose={compose_with_pickers}
               extra_toolbar_items={
                 <SignaturePicker
@@ -572,8 +616,10 @@ export function ComposeWindow({
             aria-label={t("mail.resize_compose")}
             className="hidden sm:block absolute bottom-0 start-0 w-4 h-4 cursor-nesw-resize z-10 touch-none"
             role="button"
+            draggable={false}
             tabIndex={-1}
-            onMouseDown={handle_resize_start}
+            onMouseDown={prevent_drag_text_selection}
+            onPointerDown={handle_resize_start}
           />
         )}
       </div>

@@ -57,7 +57,6 @@ import { use_snooze } from "@/hooks/use_snooze";
 import { use_mail_stats } from "@/hooks/use_mail_stats";
 import {
   MAIL_EVENTS,
-  mail_event_bus,
   on_mail_event,
   emit_mail_item_updated,
   emit_mail_changed,
@@ -441,12 +440,7 @@ export function use_inbox_view_state(props: EmailInboxProps) {
 
     schedule_thread_repair(handle_linked);
 
-    const unsub = mail_event_bus.subscribe(MAIL_EVENTS.MAIL_CHANGED, () => {
-      schedule_thread_repair(handle_linked);
-    });
-
     return () => {
-      unsub();
       cancel_thread_repair();
     };
   }, []);

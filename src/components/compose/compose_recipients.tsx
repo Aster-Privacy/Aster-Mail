@@ -32,6 +32,10 @@ import {
 } from "react";
 
 import { CloseIcon, LockIcon } from "@/components/common/icons";
+import {
+  COMPOSE_ROW_ICON_BUTTON_CLASS,
+  COMPOSE_TEXT_BUTTON_CLASS,
+} from "@/components/compose/compose_toolbar/shared";
 import { EmailAutocomplete } from "@/components/common/email_autocomplete";
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
 import { cn, get_email_username } from "@/lib/utils";
@@ -134,7 +138,7 @@ export function RecipientBadge({
   return (
     <div
       className={cn(
-        "flex min-w-0 max-w-full items-center gap-1.5 bg-surf-tertiary rounded-full px-2 py-1 border border-transparent",
+        "flex min-w-0 max-w-full items-center gap-1.5 bg-surf-tertiary rounded-full px-2 py-1 border border-transparent select-none",
         class_name,
       )}
     >
@@ -865,11 +869,12 @@ export function RecipientField({
         </div>
       </div>
       {show_cc_bcc_buttons && (
-        <div className="flex items-center gap-1 flex-shrink-0 py-1">
+        <div className="flex items-center gap-1 flex-shrink-0">
           {!show_cc && (
             <button
-              className="text-xs px-2.5 py-1 rounded-full transition-colors hover_bg text-txt-tertiary"
+              className={COMPOSE_TEXT_BUTTON_CLASS}
               title={t("common.carbon_copy")}
+              type="button"
               onClick={on_show_cc}
             >
               {t("mail.cc")}
@@ -877,8 +882,9 @@ export function RecipientField({
           )}
           {!show_bcc && (
             <button
-              className="text-xs px-2.5 py-1 rounded-full transition-colors hover_bg text-txt-tertiary"
+              className={COMPOSE_TEXT_BUTTON_CLASS}
               title={t("common.blind_carbon_copy")}
+              type="button"
               onClick={on_show_bcc}
             >
               {t("mail.bcc")}
@@ -889,10 +895,11 @@ export function RecipientField({
       {on_close && (
         <button
           aria-label={t("common.close")}
-          className="h-8 flex items-center px-1 rounded transition-colors flex-shrink-0 hover_bg text-txt-muted"
+          className={COMPOSE_ROW_ICON_BUTTON_CLASS}
+          type="button"
           onClick={on_close}
         >
-          <CloseIcon className="w-3.5 h-3.5" />
+          <CloseIcon className="w-4 h-4" />
         </button>
       )}
     </div>

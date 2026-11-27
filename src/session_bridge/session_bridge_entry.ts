@@ -19,7 +19,13 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import {
+  ask_for_renewal,
+  broadcast_renewal_port,
+} from "@/lib/session_handoff/handoff_renewal";
+import { generate_grant_id } from "@/lib/session_handoff/session_handoff_grant";
+import {
   answer_port_message,
+  me_request_init,
   read_local_session,
   to_wire,
   user_from_me_response,
@@ -142,23 +148,18 @@ async function load_session_key(): Promise<CryptoKey | null> {
   }
 }
 
-async function fetch_current_user(): Promise<unknown> {
+async function fetch_current_user(
+  expected_user_id: string | null = null,
+  access_token: string | null = null,
+): Promise<unknown> {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), ME_TIMEOUT_MS);
 
   try {
-    const response = await fetch(ME_ENDPOINT, {
-      method: "GET",
-      credentials: "same-origin",
-      cache: "no-store",
-      redirect: "error",
-      headers: {
-        Accept: "application/json",
-        "X-Aster-Client": "web",
-        "X-Aster-Vault-Level": "2",
-      },
-      signal: controller.signal,
-    });
+    const response = await fetch(
+      ME_ENDPOINT,
+      me_request_init(expected_user_id, access_token, controller.signal),
+    );
 
     if (response.status !== 200) return null;
 
@@ -174,6 +175,13 @@ const bridge_deps: BridgeDeps = {
   sleep: (ms) => new Promise((resolve) => setTimeout(resolve, ms)),
   load_session_key,
   fetch_current_user,
+  request_renewal: (user_id, audience) => {
+    const port = broadcast_renewal_port();
+
+    if (!port) return Promise.resolve(null);
+
+    return ask_for_renewal(port, user_id, audience, generate_grant_id());
+  },
   decrypt: (key, ciphertext, iv) =>
     window.crypto.subtle.decrypt(
       { name: "AES-GCM", iv: iv as BufferSource },

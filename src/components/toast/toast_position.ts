@@ -36,9 +36,9 @@ export {
 } from "@aster/ui";
 export type { ToastPosition, ToastPositionLayout } from "@aster/ui";
 
-export function center_toast_position(
-  position: ToastPosition,
-): ToastPosition {
+export const TOAST_FRAME_ANCHOR = "inset-x-0 mx-auto w-fit aster_toast_frame";
+
+export function center_toast_position(position: ToastPosition): ToastPosition {
   return is_top_position(position) ? "top" : "bottom";
 }
 
@@ -51,5 +51,10 @@ export function use_toast_position(
     override ?? resolve_toast_position(preferences.toast_position),
   );
 
-  return resolve_toast_layout(position, lift_above_island);
+  const resolved = resolve_toast_layout(position, lift_above_island);
+
+  return {
+    ...resolved,
+    layout: { ...resolved.layout, anchor: TOAST_FRAME_ANCHOR },
+  };
 }

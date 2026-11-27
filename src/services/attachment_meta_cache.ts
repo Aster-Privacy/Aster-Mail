@@ -48,6 +48,9 @@ export interface CachedAttachmentMeta {
 
 const MAX_CACHED_MAIL_ITEMS = 200;
 const MAX_META_BATCH_SIZE = 50;
+const PREFETCH_FAILURE_PAUSE_MS = 30_000;
+
+let prefetch_paused_until = 0;
 
 interface MetaCacheEntry {
   items: CachedAttachmentMeta[];
@@ -102,6 +105,7 @@ export function get_cached_attachment_meta(
 
 export function clear_attachment_meta_cache(): void {
   meta_cache.clear();
+  prefetch_paused_until = 0;
 }
 
 function store_cached_meta(
@@ -157,6 +161,7 @@ export function prefetch_attachment_meta(
 ): Promise<void> {
   const pending: Promise<void>[] = [];
   const to_fetch: string[] = [];
+  const is_paused = Date.now() < prefetch_paused_until;
 
   for (const mail_item_id of mail_item_ids) {
     if (!mail_item_id) continue;
@@ -168,6 +173,8 @@ export function prefetch_attachment_meta(
       pending.push(in_flight);
       continue;
     }
+
+    if (is_paused) continue;
 
     if (!to_fetch.includes(mail_item_id)) to_fetch.push(mail_item_id);
   }
@@ -186,6 +193,11 @@ export function prefetch_attachment_meta(
           );
           const response = await batch_attachment_meta(chunk);
           const items = response.data?.items;
+
+          if (response.error) {
+            prefetch_paused_until = Date.now() + PREFETCH_FAILURE_PAUSE_MS;
+            break;
+          }
 
           if (!items) continue;
 

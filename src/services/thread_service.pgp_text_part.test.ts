@@ -109,6 +109,10 @@ vi.mock("@/services/thread_decrypt_cache", () => ({
     decode: () => Promise<{ value: unknown }>,
   ) => (await decode()).value,
   decrypt_thread_metadata_cached: async () => null,
+  ciphertext_fingerprint: (value: string | undefined) => value ?? "",
+  get_cached_reaction: () => null,
+  reaction_cache_key: () => "",
+  remember_reaction: () => undefined,
 }));
 
 import {

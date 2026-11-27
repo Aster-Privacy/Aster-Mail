@@ -72,7 +72,29 @@ function evict_oldest<T>(entries: Map<string, T> | Set<string>, max: number) {
   }
 }
 
-export async function unlock_private_key(
+const IN_FLIGHT_UNLOCKS = new Map<string, Promise<PrivateKey>>();
+
+export function unlock_private_key(
+  secret_key: string,
+  passphrase: string,
+): Promise<PrivateKey> {
+  const in_flight_id = `${secret_key.length}:${secret_key}:${passphrase}`;
+  const in_flight = IN_FLIGHT_UNLOCKS.get(in_flight_id);
+
+  if (in_flight) return in_flight;
+
+  const pending = resolve_unlocked_key(secret_key, passphrase).finally(() => {
+    if (IN_FLIGHT_UNLOCKS.get(in_flight_id) === pending) {
+      IN_FLIGHT_UNLOCKS.delete(in_flight_id);
+    }
+  });
+
+  IN_FLIGHT_UNLOCKS.set(in_flight_id, pending);
+
+  return pending;
+}
+
+async function resolve_unlocked_key(
   secret_key: string,
   passphrase: string,
 ): Promise<PrivateKey> {
@@ -120,5 +142,6 @@ export async function unlock_private_key(
 export function clear_unlocked_key_cache(): void {
   UNLOCKED_KEY_CACHE.clear();
   FAILED_UNLOCKS.clear();
+  IN_FLIGHT_UNLOCKS.clear();
   clear_key_id_cache();
 }

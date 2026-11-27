@@ -911,3 +911,98 @@ describe("undo and queued sends keep the draft until delivery", () => {
     expect(confirm_draft_deleted).toHaveBeenCalledTimes(1);
   });
 });
+
+describe("a sent reply carries the server id to the thread", () => {
+  const reply_ctx = (overrides: Record<string, unknown> = {}) =>
+    make_ctx({
+      echo_sender: { name: "Me", email: "me@example.com" },
+      edit_draft: {
+        id: "",
+        version: 0,
+        draft_type: "reply",
+        reply_to_id: "mail-uuid",
+        thread_token: "thread-7",
+        to_recipients: [],
+        cc_recipients: [],
+        bcc_recipients: [],
+        subject: "",
+        message: "",
+        updated_at: "",
+      },
+      ...overrides,
+    });
+  const reply_data = { ...email_data, thread_id: "thread-7" };
+
+  function optimistic_id_of_echo(): string {
+    const echo = emit_thread_reply_optimistic.mock.calls[0][0] as {
+      optimistic_id: string;
+    };
+
+    return echo.optimistic_id;
+  }
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("passes the id from a server queued reply", async () => {
+    undo_send_delay_ms = 10_000;
+    queue_email_to_server.mockResolvedValue({ queue_id: "queue_7" });
+
+    await execute_internal_send(
+      reply_ctx({
+        undo_send_enabled: true,
+        undo_send_seconds: 10,
+        undo_send_period: "seconds",
+      }),
+      reply_data,
+    );
+
+    const callbacks = queue_email_to_server.mock.calls[0][2] as {
+      on_sent: (sent_id?: string) => void;
+    };
+
+    callbacks.on_sent("server_mail_7");
+
+    expect(emit_thread_reply_sent).toHaveBeenCalledWith({
+      thread_token: "thread-7",
+      original_email_id: "mail-uuid",
+      optimistic_id: optimistic_id_of_echo(),
+      sent_id: "server_mail_7",
+    });
+  });
+
+  it("passes the id from an immediately sent reply", async () => {
+    undo_send_delay_ms = 0;
+    queue_email.mockReturnValue("local_8");
+
+    await execute_internal_send(reply_ctx(), reply_data);
+
+    const queued = queue_email.mock.calls[0][0] as {
+      on_complete: (sent_id?: string) => void;
+    };
+
+    queued.on_complete("server_mail_8");
+
+    expect(emit_thread_reply_sent).toHaveBeenCalledWith({
+      thread_token: "thread-7",
+      original_email_id: "mail-uuid",
+      optimistic_id: optimistic_id_of_echo(),
+      sent_id: "server_mail_8",
+    });
+  });
+
+  it("passes the id from an immediate external reply", async () => {
+    undo_send_delay_ms = 0;
+    execute_external_send.mockResolvedValue("server_mail_9");
+
+    await execute_external_email_send(reply_ctx(), reply_data);
+
+    expect(emit_thread_reply_sent).toHaveBeenCalledWith({
+      thread_token: "thread-7",
+      original_email_id: "mail-uuid",
+      optimistic_id: optimistic_id_of_echo(),
+      sent_id: "server_mail_9",
+    });
+  });
+});

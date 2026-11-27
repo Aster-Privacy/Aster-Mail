@@ -26,7 +26,7 @@ import { TrashIcon } from "@heroicons/react/24/outline";
 import { Button } from "@aster/ui";
 
 import { DraftStatusIndicator } from "./draft_status";
-import { FormatTools } from "./format_tools";
+import { FormatBar } from "./format_bar";
 import { InsertTools } from "./insert_tools";
 import { PriorityPicker, PriorityTag } from "./priority_picker";
 import {
@@ -43,6 +43,7 @@ export interface ComposeToolbarProps {
   reduce_motion: boolean;
   show_expiration?: boolean;
   extra_toolbar_items?: React.ReactNode;
+  show_priority_tag?: boolean;
 }
 
 function PlainTextTag({ compose }: { compose: ComposeToolbarState }) {
@@ -81,6 +82,7 @@ export function ComposeToolbar({
   reduce_motion,
   show_expiration = false,
   extra_toolbar_items,
+  show_priority_tag = true,
 }: ComposeToolbarProps) {
   const { t } = use_i18n();
   const [show_format_bar, set_show_format_bar] = useState(
@@ -130,17 +132,11 @@ export function ComposeToolbar({
       className="relative flex-shrink-0 border-t border-[var(--aster-floating-divider)]"
     >
       {show_format_bar && !compose.is_plain_text_mode && (
-        <div
-          aria-label={t("mail.text_formatting")}
-          className="px-3 pt-1.5 flex items-center gap-0.5 overflow-x-auto scrollbar-hide"
-          role="toolbar"
-        >
-          <FormatTools compose={compose} />
-        </div>
+        <FormatBar className="px-3 pt-1.5" compose={compose} />
       )}
 
       <div
-        className={`px-4 ${show_format_bar && !compose.is_plain_text_mode ? "pt-1" : "pt-2.5"} pb-2.5 flex items-center gap-2`}
+        className={`px-4 ${show_format_bar && !compose.is_plain_text_mode ? "pt-1" : "pt-2.5"} pb-2.5 flex min-w-0 items-center gap-2`}
       >
         {compose.scheduled_time ? (
           <Button
@@ -175,9 +171,12 @@ export function ComposeToolbar({
           <PlainTextTag compose={compose} />
         )}
 
-        <PriorityTag compose={compose} />
+        {show_priority_tag && <PriorityTag compose={compose} />}
 
-        <div className="flex items-center gap-1 ms-1">
+        <div
+          className="flex min-w-0 shrink-[100] items-center gap-1 ms-1 overflow-x-auto scrollbar-hide"
+          data-testid="compose_toolbar_tools"
+        >
           {!compose.is_plain_text_mode && (
             <ToolbarButton
               active={show_format_bar}
@@ -219,7 +218,7 @@ export function ComposeToolbar({
           {compose.template_picker_element}
         </div>
 
-        <div className="ms-auto flex items-center gap-2 min-w-0">
+        <div className="ms-auto flex min-w-0 items-center justify-end gap-2">
           <DraftStatusIndicator
             compose={compose}
             reduce_motion={reduce_motion}

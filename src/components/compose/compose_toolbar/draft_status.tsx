@@ -34,13 +34,17 @@ export function DraftStatusIndicator({
   reduce_motion: boolean;
 }) {
   const { t } = use_i18n();
+  const saved_label = compose.last_saved_time
+    ? format_last_saved(compose.last_saved_time, t)
+    : t("mail.saved");
 
   return (
     <AnimatePresence>
       {compose.draft_status !== "idle" && (
         <motion.div
           animate={{ opacity: 1 }}
-          className="text-xs flex items-center gap-1.5 overflow-hidden whitespace-nowrap text-txt-muted"
+          className="text-xs flex min-w-0 items-center gap-1.5 overflow-hidden whitespace-nowrap text-txt-muted"
+          data-testid="compose_draft_status"
           exit={{ opacity: 0 }}
           initial={reduce_motion ? false : { opacity: 0 }}
           transition={{ duration: reduce_motion ? 0 : 0.2, ease: "easeOut" }}
@@ -77,13 +81,15 @@ export function DraftStatusIndicator({
               <motion.div
                 key="error"
                 animate={{ opacity: 1 }}
-                className="flex items-center gap-1.5 text-red-700 dark:text-red-400"
+                className="flex min-w-0 items-center gap-1.5 text-red-700 dark:text-red-400"
+                title={t("common.save_failed")}
                 exit={{ opacity: 0 }}
                 initial={reduce_motion ? false : { opacity: 0 }}
                 transition={{ duration: reduce_motion ? 0 : 0.15 }}
               >
                 <svg
-                  className="w-3.5 h-3.5"
+                  aria-hidden="true"
+                  className="w-3.5 h-3.5 flex-shrink-0"
                   fill="none"
                   stroke="currentColor"
                   strokeWidth="2"
@@ -93,29 +99,29 @@ export function DraftStatusIndicator({
                   <line x1="12" x2="12" y1="8" y2="12" />
                   <line x1="12" x2="12.01" y1="16" y2="16" />
                 </svg>
-                <span>{t("common.save_failed")}</span>
+                <span className="min-w-0 truncate">
+                  {t("common.save_failed")}
+                </span>
               </motion.div>
             ) : (
               <motion.div
                 key="saved"
                 animate={{ opacity: 1 }}
-                className="flex items-center gap-1.5"
+                className="flex min-w-0 items-center gap-1.5"
+                title={saved_label}
                 exit={{ opacity: 0 }}
                 initial={reduce_motion ? false : { opacity: 0 }}
                 transition={{ duration: reduce_motion ? 0 : 0.15 }}
               >
                 <svg
-                  className="w-3.5 h-3.5"
+                  aria-hidden="true"
+                  className="w-3.5 h-3.5 flex-shrink-0"
                   fill="currentColor"
                   viewBox="0 0 24 24"
                 >
                   <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" />
                 </svg>
-                <span>
-                  {compose.last_saved_time
-                    ? format_last_saved(compose.last_saved_time, t)
-                    : t("mail.saved")}
-                </span>
+                <span className="min-w-0 truncate">{saved_label}</span>
               </motion.div>
             )}
           </AnimatePresence>

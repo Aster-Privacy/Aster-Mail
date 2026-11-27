@@ -40,7 +40,7 @@ import {
   AdjustmentsHorizontalIcon,
   ArrowPathIcon,
 } from "@heroicons/react/24/outline";
-import { Button, Checkbox, Tooltip } from "@aster/ui";
+import { Button, Tooltip } from "@aster/ui";
 import { Capacitor } from "@capacitor/core";
 
 import { ReportSpamIcon } from "@/components/email/spam_action_icons";
@@ -68,16 +68,12 @@ import {
   ToolbarModals,
   use_batch_actions,
 } from "@/components/inbox/header/header_toolbar";
-import { cn } from "@/lib/utils";
-import {
-  is_compact_density,
-  list_select_menu_offset_class,
-  list_select_slot_class,
-} from "@/lib/list_density";
+import { is_compact_density } from "@/lib/list_density";
 import { use_preferences } from "@/contexts/preferences_context";
 import { FilterDropdown } from "@/components/inbox/header/header_filters";
 import { HeaderPagination } from "@/components/inbox/header/header_pagination";
 import { resolve_select_all_banner } from "@/components/inbox/header/select_all_banner";
+import { SelectAllControl } from "@/components/inbox/header/select_all_control";
 import { DEFAULT_PAGE_SIZE } from "@/hooks/email_list_helpers";
 import { ignore_error } from "@/lib/ignore_error";
 import { app_locale } from "@/utils/date_format";
@@ -256,14 +252,6 @@ export function InboxHeader({
     preferences.compact_mode ?? false,
   );
   const show_profile_pictures = preferences.show_profile_pictures !== false;
-  const select_all_size_class = list_select_slot_class(
-    compact_rows,
-    show_profile_pictures,
-  );
-  const select_menu_offset_class = list_select_menu_offset_class(
-    compact_rows,
-    show_profile_pictures,
-  );
   const has_selection = all_selected || some_selected;
   const bulk_move_handlers: Partial<
     Record<SystemMoveTarget, (() => void) | undefined>
@@ -401,97 +389,17 @@ export function InboxHeader({
         <div className="flex items-center gap-2 sm:gap-3 min-w-0 shrink">
           {leading_left_slot}
           {on_toggle_select_all && (
-            <div className="group flex items-center flex-shrink-0">
-              <Tooltip
-                tip={
-                  all_selected || some_selected
-                    ? t("common.deselect_all")
-                    : t("common.select_all")
-                }
-              >
-                <div
-                  className={cn(
-                    "flex flex-shrink-0 items-center justify-center cursor-pointer rounded-full",
-                    select_all_size_class,
-                  )}
-                  role="button"
-                  tabIndex={0}
-                  onClick={() => on_toggle_select_all()}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" || e.key === " ") {
-                      e.preventDefault();
-                      on_toggle_select_all();
-                    }
-                  }}
-                >
-                  <Checkbox
-                    checked={all_selected}
-                    className="pointer-events-none"
-                    indeterminate={!all_selected && some_selected}
-                  />
-                </div>
-              </Tooltip>
-              {select_all_label && !has_selection && (
-                <span
-                  className="pe-2 text-[13px] hidden sm:inline"
-                  style={{ color: "var(--text-muted)" }}
-                >
-                  {select_all_label}
-                </span>
-              )}
-              {on_select_by_filter && !hide_mail_actions && (
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <button
-                      aria-label={t("common.select_label")}
-                      className={cn(
-                        "h-9 w-5 flex flex-shrink-0 items-center justify-center focus:outline-none",
-                        select_menu_offset_class,
-                      )}
-                    >
-                      <ChevronDownIcon className="w-4 h-4 stroke-[1.75] text-[var(--icon-secondary)] transition-colors" />
-                    </button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent
-                    align="start"
-                    className="w-40"
-                    sideOffset={4}
-                  >
-                    <DropdownMenuItem
-                      onClick={() => on_select_by_filter("all")}
-                    >
-                      {t("common.all_short")}
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onClick={() => on_select_by_filter("none")}
-                    >
-                      {t("common.select_none")}
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem
-                      onClick={() => on_select_by_filter("read")}
-                    >
-                      {t("common.select_read")}
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onClick={() => on_select_by_filter("unread")}
-                    >
-                      {t("common.select_unread")}
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onClick={() => on_select_by_filter("starred")}
-                    >
-                      {t("common.select_starred")}
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onClick={() => on_select_by_filter("unstarred")}
-                    >
-                      {t("common.select_unstarred")}
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              )}
-            </div>
+            <SelectAllControl
+              all_selected={all_selected}
+              compact={compact_rows}
+              label={select_all_label}
+              on_select_by_filter={
+                hide_mail_actions ? undefined : on_select_by_filter
+              }
+              on_toggle={on_toggle_select_all}
+              show_profile_pictures={show_profile_pictures}
+              some_selected={some_selected}
+            />
           )}
 
           {!hide_refresh && (
@@ -527,7 +435,7 @@ export function InboxHeader({
                   <ChevronDownIcon className="w-4 h-4 text-[var(--icon-muted)] flex-shrink-0" />
                 </button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="start" className="w-48">
+              <DropdownMenuContent align="start" className="min-w-48">
                 <DropdownMenuLabel>{t("mail.views")}</DropdownMenuLabel>
                 <DropdownMenuItem onClick={() => handle_view_change("inbox")}>
                   {t("mail.inbox")}
@@ -871,7 +779,7 @@ export function InboxHeader({
                           <FolderIcon className="w-4 h-4 me-2" />
                           {t("mail.move_to")}
                         </DropdownMenuSubTrigger>
-                        <DropdownMenuSubContent className="w-48">
+                        <DropdownMenuSubContent className="min-w-48">
                           {bulk_move_targets.map((target) => (
                             <DropdownMenuItem
                               key={target}

@@ -18,6 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { start_startup_list_prefetch } from "@/services/startup_list_prefetch";
 import type { EncryptedVault } from "@/services/crypto/key_manager";
 import type { AuthState } from "./auth_types";
 
@@ -36,6 +37,7 @@ import {
 import {
   decrypt_vault_with_lock,
   ensure_level2_storage,
+  record_password_strength_from_input,
 } from "./vault_decryption";
 import {
   obtain_sibling_session,
@@ -53,6 +55,11 @@ import { clear_signed_out_account_caches } from "./signed_out_account_caches";
 import { build_restore_sign_in_path } from "./restore_sign_in_path";
 import { finish_pending_sign_out } from "./pending_sign_out";
 import { restore_from_server_vault } from "./stale_local_vault_restore";
+import {
+  begin_session_confirmation,
+  end_session_confirmation,
+  session_confirmed_for,
+} from "./session_confirmation";
 
 import { ensure_ratchet_keys } from "@/services/crypto/ensure_ratchet_keys";
 import { check_recovery_backup_coverage } from "@/services/crypto/recovery_backup_refresh";
@@ -512,8 +519,24 @@ export function use_auth_account_state() {
             return false;
           }
         };
-        const session_keys_restore = restore_session_keys();
         const verdict = verify_auth_status().catch(() => false);
+
+        begin_session_confirmation(current.user.id, verdict);
+        const session_keys_restore = restore_session_keys();
+
+        if (!pin_locked_at_start) {
+          void verdict.then((is_valid) => {
+            if (!is_valid) return;
+            if (api_client.get_expected_user_id() !== current.user.id) return;
+
+            start_startup_list_prefetch(
+              current.user.id,
+              has_tauri_runtime()
+                ? window.location.hash.slice(1).split("?")[0] || "/"
+                : app_pathname(),
+            );
+          });
+        }
 
         const reject_session = async () => {
           stop_session_timeout();
@@ -709,6 +732,7 @@ export function use_auth_account_state() {
         if (
           !has_keys &&
           refused_rolled_back_vault &&
+          (await session_confirmed_for(current.user.id)) &&
           (await restore_from_server_vault(current.id, current.user.id))
         ) {
           has_keys = true;
@@ -982,6 +1006,7 @@ export function use_auth_account_state() {
         }
       }
 
+      end_session_confirmation();
       refuse_rolled_back_vault_with_notice(
         user.id,
         vault,
@@ -991,6 +1016,7 @@ export function use_auth_account_state() {
       await store_vault_in_memory(vault, passphrase, user.id);
       api_client.set_expected_user_id(user.id);
       ensure_level2_storage(user.id);
+      record_password_strength_from_input(passphrase);
 
       try {
         await Promise.race([
@@ -1118,6 +1144,7 @@ export function use_auth_account_state() {
       remember_on_device: boolean = true,
       vault_recovered_write_count?: number,
     ) => {
+      end_session_confirmation();
       refuse_rolled_back_vault_with_notice(
         user.id,
         vault,
@@ -1127,6 +1154,7 @@ export function use_auth_account_state() {
       await store_vault_in_memory(vault, passphrase, user.id);
       api_client.set_expected_user_id(user.id);
       ensure_level2_storage(user.id);
+      record_password_strength_from_input(passphrase);
 
       try {
         await Promise.race([

@@ -50,6 +50,7 @@ import {
   unwrap_bundle_html,
   is_ratchet_envelope,
   is_password_protected_body,
+  is_ratchet_end_to_end_body,
   is_ratchet_verified_body,
 } from "@/utils/email_crypto";
 import { is_pending_decrypt_body } from "@/utils/undecryptable_body";
@@ -269,6 +270,7 @@ if (typeof window !== "undefined") {
         preload_cache.set(key, {
           ...cached,
           thread_draft: null,
+          thread_signature: undefined,
           thread_messages: already_has
             ? cached.thread_messages
             : [...cached.thread_messages, optimistic_msg],
@@ -288,6 +290,7 @@ if (typeof window !== "undefined") {
       if (cached.mail_item.thread_token === detail.thread_token) {
         preload_cache.set(key, {
           ...cached,
+          thread_signature: undefined,
           thread_messages: cached.thread_messages.filter(
             (m) => m.id !== detail.optimistic_id,
           ),
@@ -359,6 +362,7 @@ if (typeof window !== "undefined") {
           metadata_nonce: detail.metadata_nonce,
         }),
       },
+      thread_signature: undefined,
       thread_messages: cached.thread_messages.map((message) =>
         message.id === detail.id
           ? {
@@ -557,9 +561,11 @@ export async function preload_email_detail(
       );
 
       body_text = pgp.body;
-      const e2e_verified =
+      const e2e_sender_bound =
         ratchet_sealed || sent_encryption_scope !== undefined || pgp.verified;
-      const e2e_sender_bound = e2e_verified;
+      const e2e_verified =
+        e2e_sender_bound ||
+        is_ratchet_end_to_end_body(resolved_text, pre_pgp_text, item.id);
 
       const password_protected = is_password_protected_body(body_text);
       const pre_mime_text = body_text;
@@ -726,6 +732,7 @@ export async function preload_email_detail(
       await resolve_reaction_emojis([single_message], user_email);
 
       let thread_messages: DecryptedThreadMessage[] = [single_message];
+      let thread_signature: string | undefined;
 
       if (conversation_grouping !== false && item.thread_token) {
         const thread_result = await fetch_and_decrypt_thread_messages(
@@ -738,6 +745,7 @@ export async function preload_email_detail(
           thread_result.messages,
           single_message,
         );
+        thread_signature = thread_result.signature;
       }
 
       let thread_draft: DraftWithContent | null = null;
@@ -889,6 +897,7 @@ export async function preload_email_detail(
         mail_item: item,
         email: decrypted,
         thread_messages,
+        ...(thread_signature ? { thread_signature } : {}),
         thread_draft,
         current_user_email: user_email || "",
         current_user_name,

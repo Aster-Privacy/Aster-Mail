@@ -35,6 +35,19 @@ import { is_js_whitespace, trim_end_while } from "./linear_trim";
 
 const LOCAL_IMAGE_SOURCE_PATTERN = /^\s*(?:cid:|data:|blob:|aster:)/i;
 
+const HIDDEN_STYLE_PATTERN =
+  /(?:^|[;{\s])(?:display\s*:\s*none|visibility\s*:\s*hidden|opacity\s*:\s*0(?:\.0+)?\s*(?:;|!|$))/i;
+
+export function is_tracker_url(url: string): boolean {
+  if (!url || LOCAL_IMAGE_SOURCE_PATTERN.test(url)) return false;
+
+  return TRACKING_PIXEL_URL_PATTERNS.some((p) => p.test(url));
+}
+
+function is_hidden_image(img: HTMLImageElement, style: string): boolean {
+  return img.hasAttribute("hidden") || HIDDEN_STYLE_PATTERN.test(style);
+}
+
 export const is_tracking_pixel = (img: HTMLImageElement): boolean => {
   const width = img.getAttribute("width");
   const height = img.getAttribute("height");
@@ -60,11 +73,9 @@ export const is_tracking_pixel = (img: HTMLImageElement): boolean => {
   )
     return true;
 
-  if (
-    src &&
-    !looks_like_content_image(img) &&
-    TRACKING_PIXEL_URL_PATTERNS.some((p) => p.test(src))
-  )
+  if (src && !looks_like_content_image(img) && is_tracker_url(src)) return true;
+
+  if (src && is_hidden_image(img, style) && !looks_like_content_image(img))
     return true;
 
   return false;

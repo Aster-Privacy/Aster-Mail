@@ -82,7 +82,7 @@ export function FilterDropdown({
           </Button>
         </DropdownMenuTrigger>
       </Tooltip>
-      <DropdownMenuContent align="end" className="w-56">
+      <DropdownMenuContent align="end" className="min-w-56">
         {alias_direction && (
           <AliasDirectionMenuItems direction={alias_direction} />
         )}

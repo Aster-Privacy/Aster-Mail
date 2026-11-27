@@ -47,6 +47,7 @@ import {
   strip_css_urls,
   proxy_css_urls,
   list_remote_css_urls,
+  strip_matching_css_urls,
   escape_style_terminator,
   strip_dark_media_queries,
   scope_css_to_media_attribute,
@@ -54,6 +55,7 @@ import {
 
 export { is_transparent_color_value } from "./html_sanitizer_css";
 import {
+  is_tracker_url,
   is_tracking_pixel,
   strip_tracking_params,
   repair_comment_markup,
@@ -777,14 +779,36 @@ function sanitize_html_impl(
     cleaned_links: [],
   };
 
+  const record_tracker = (url: string): void => {
+    external_content.has_remote_images = true;
+    external_content.has_tracking_pixels = true;
+    external_content.blocked_count++;
+    external_content.blocked_items.push({ url, type: "tracking_pixel" });
+  };
+
+  const record_css_trackers = (
+    urls: string[],
+  ): ((url: string) => boolean) | undefined => {
+    const trackers = urls.filter(is_tracker_url);
+
+    if (trackers.length === 0) return undefined;
+    for (const url of trackers) record_tracker(url);
+
+    return is_tracker_url;
+  };
+
   const filter_css_images = (css: string): string => {
     if (css_images_blocked) {
       const remote_css_urls = list_remote_css_urls(css);
 
       if (remote_css_urls.length > 0) {
         external_content.has_remote_images = true;
-        external_content.blocked_count += remote_css_urls.length;
         for (const url of remote_css_urls) {
+          if (block_pixels && is_tracker_url(url)) {
+            record_tracker(url);
+            continue;
+          }
+          external_content.blocked_count++;
           external_content.blocked_items.push({ url, type: "image" });
         }
       }
@@ -792,11 +816,17 @@ function sanitize_html_impl(
       return strip_css_urls(css);
     }
 
+    const drop_tracker = block_pixels
+      ? record_css_trackers(list_remote_css_urls(css))
+      : undefined;
+
     if (allowed_css_image_proxy) {
-      return proxy_css_urls(css, allowed_css_image_proxy);
+      return proxy_css_urls(css, allowed_css_image_proxy, drop_tracker);
     }
 
-    return block_css ? strip_css_urls(css) : css;
+    if (block_css) return strip_css_urls(css);
+
+    return drop_tracker ? strip_matching_css_urls(css, drop_tracker) : css;
   };
 
   let body_background: string | undefined;
@@ -1192,6 +1222,11 @@ function sanitize_html_impl(
 
             external_content.has_remote_images = true;
 
+            if (block_pixels && is_tracker_url(candidate.url)) {
+              record_tracker(candidate.url);
+              continue;
+            }
+
             if (block_images) {
               external_content.blocked_count++;
               external_content.blocked_items.push({
@@ -1239,6 +1274,10 @@ function sanitize_html_impl(
             is_remote_url_value(sanitized_value)
           ) {
             external_content.has_remote_images = true;
+            if (block_pixels && is_tracker_url(sanitized_value)) {
+              record_tracker(sanitized_value);
+              continue;
+            }
             if (block_images) {
               external_content.blocked_count++;
               external_content.blocked_items.push({
@@ -1359,6 +1398,7 @@ function sanitize_html_impl(
           : block_images;
 
         if (should_block_this_image) {
+          if (is_pixel) new_element.removeAttribute("srcset");
           external_content.blocked_count++;
           external_content.blocked_items.push({
             url: src,

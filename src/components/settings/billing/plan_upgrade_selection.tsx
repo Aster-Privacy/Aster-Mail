@@ -26,18 +26,17 @@ import {
   ArrowTopRightOnSquareIcon,
   UserGroupIcon,
 } from "@heroicons/react/24/outline";
+import { Badge, Button } from "@aster/ui";
+
+import { checkout_error_text } from "./checkout_error_text";
+
 import {
-  Badge,
-  Button,
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@aster/ui";
-
-import { checkout_error_text } from "./checkout_error_text";
-
+} from "@/components/ui/select";
 import { safe_local_set } from "@/lib/safe_storage";
 import {
   PlanCheckList,

@@ -18,6 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { is_background_paused } from "@/services/api/client/request_governor";
 import type { EmailListState } from "@/types/email";
 import type { FormatOptions } from "@/utils/date_format";
 
@@ -155,6 +156,7 @@ async function run_prefetch(
 
 export function prefetch_view(view: string): Promise<boolean> {
   if (is_list_view_ready(view)) return Promise.resolve(true);
+  if (is_background_paused()) return Promise.resolve(false);
 
   const ctx = context;
 

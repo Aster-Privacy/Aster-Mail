@@ -157,7 +157,7 @@ export function EmailDetailBody({
   );
 
   return (
-    <div className="flex-1 min-h-0 overflow-y-auto px-3 sm:px-4 md:px-6 pt-3 sm:pt-4 pb-20 sm:pb-6">
+    <div className="flex-1 min-h-0 overflow-y-auto px-5 sm:px-6 lg:px-8 pt-3 sm:pt-4 pb-20 sm:pb-6">
       {is_loading && !email ? (
         <div className="relative h-full min-h-[320px]">
           <EmailOpenSkeleton variant="detail" />
@@ -179,7 +179,7 @@ export function EmailDetailBody({
           <FailedOpenPendingReplies email_id={email_id} thread_token={null} />
         </div>
       ) : email ? (
-        <div className="max-w-4xl mx-auto flex flex-col h-full">
+        <div className="w-full flex flex-col h-full">
           {is_offline_copy && (
             <div className="mb-4">
               <OfflineCopyNotice />
@@ -215,19 +215,19 @@ export function EmailDetailBody({
                   />
                 )}
               </div>
-              <div className="flex items-center gap-2 flex-wrap">
-                <span className="text-xs sm:text-sm text-txt-muted">
-                  {email.timestamp}
-                </span>
+              <div className="flex flex-wrap items-center gap-x-1.5 gap-y-1 text-xs sm:text-sm text-txt-muted">
+                <span>{email.timestamp}</span>
                 <PriorityBadge
                   priority={priority_from_headers(email.raw_headers)}
                 />
                 {thread_messages.length > 1 && (
-                  <span className="text-xs text-txt-muted">
-                    ·{" "}
-                    {t("common.n_messages_count" as TranslationKey, {
-                      count: thread_messages.length,
-                    })}
+                  <span className="inline-flex items-center gap-x-1.5 whitespace-nowrap">
+                    <span aria-hidden="true">·</span>
+                    <span>
+                      {t("common.n_messages_count" as TranslationKey, {
+                        count: thread_messages.length,
+                      })}
+                    </span>
                   </span>
                 )}
               </div>

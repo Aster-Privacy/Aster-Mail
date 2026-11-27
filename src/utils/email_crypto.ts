@@ -57,7 +57,10 @@ import {
   get_external_decryption_keys,
   settle_external_pgp_key_load,
 } from "@/services/crypto/external_pgp_key";
-import { is_trusted_ratchet_plaintext } from "@/services/crypto/ratchet_verification_status";
+import {
+  is_end_to_end_ratchet_plaintext,
+  is_trusted_ratchet_plaintext,
+} from "@/services/crypto/ratchet_verification_status";
 import {
   parse_sealed_details,
   serialize_sealed_details,
@@ -159,17 +162,37 @@ export async function settle_ratchet_attempt(
     : RATCHET_UNDECRYPTABLE_SENTINEL;
 }
 
+function is_decrypted_ratchet_body(
+  raw_body: string | null | undefined,
+  decrypted_body: string | null | undefined,
+): decrypted_body is string {
+  return (
+    is_ratchet_envelope(raw_body) &&
+    !!decrypted_body &&
+    decrypted_body !== RATCHET_UNDECRYPTABLE_SENTINEL &&
+    decrypted_body !== RATCHET_PENDING_SENTINEL &&
+    !is_ratchet_envelope(decrypted_body)
+  );
+}
+
+export function is_ratchet_end_to_end_body(
+  raw_body: string | null | undefined,
+  decrypted_body: string | null | undefined,
+  message_id?: string,
+): boolean {
+  return (
+    is_decrypted_ratchet_body(raw_body, decrypted_body) &&
+    is_end_to_end_ratchet_plaintext(decrypted_body, message_id)
+  );
+}
+
 export function is_ratchet_verified_body(
   raw_body: string | null | undefined,
   decrypted_body: string | null | undefined,
   message_id?: string,
 ): boolean {
   return (
-    is_ratchet_envelope(raw_body) &&
-    !!decrypted_body &&
-    decrypted_body !== RATCHET_UNDECRYPTABLE_SENTINEL &&
-    decrypted_body !== RATCHET_PENDING_SENTINEL &&
-    !is_ratchet_envelope(decrypted_body) &&
+    is_decrypted_ratchet_body(raw_body, decrypted_body) &&
     is_trusted_ratchet_plaintext(decrypted_body, message_id)
   );
 }

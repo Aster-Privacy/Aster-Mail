@@ -241,8 +241,7 @@ export function ContactDetailPanel({
 
   const handle_save = async () => {
     const date_entries = draft.date_entries.filter((d) => d.value.trim());
-    const related_people =
-      normalize_related_people(draft.related_people) ?? [];
+    const related_people = normalize_related_people(draft.related_people) ?? [];
     const social_networks =
       normalize_social_networks(draft.social_networks) ?? [];
     const websites = draft.websites.filter((w) => w.value.trim());
@@ -483,7 +482,7 @@ export function ContactDetailPanel({
                   </button>
                 </DropdownMenuTrigger>
               </Tooltip>
-              <DropdownMenuContent align="start" className="w-56">
+              <DropdownMenuContent align="start" className="min-w-56">
                 <DropdownMenuItem
                   aria-checked={show_history}
                   role="menuitemcheckbox"
@@ -521,7 +520,7 @@ export function ContactDetailPanel({
                       <ArrowUpOnSquareIcon className="w-4 h-4" />
                       {t("common.share_contact")}
                     </DropdownMenuSubTrigger>
-                    <DropdownMenuSubContent className="w-56">
+                    <DropdownMenuSubContent className="min-w-56">
                       {on_share_via_email && (
                         <DropdownMenuItem onSelect={handle_share_via_email}>
                           <EnvelopeIcon className="w-4 h-4" />
@@ -987,11 +986,15 @@ export function ContactDetailPanel({
                 />
               </div>
               <div>
-                <FieldLabel icon={UsersIcon}>{t("common.relations")}</FieldLabel>
+                <FieldLabel icon={UsersIcon}>
+                  {t("common.relations")}
+                </FieldLabel>
                 <RelationList
                   disabled={!is_editing}
                   entries={draft.related_people}
-                  on_change={(next) => update_list("related_people", () => next)}
+                  on_change={(next) =>
+                    update_list("related_people", () => next)
+                  }
                   t={t}
                 />
               </div>

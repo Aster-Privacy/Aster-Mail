@@ -41,6 +41,7 @@ import {
 import { attachments_to_draft_data } from "@/components/compose/compose_draft_helpers";
 import { create_inline_image_bytes_counter } from "@/lib/inline_image_bytes";
 import { device_traces_erased } from "@/lib/device_erase_latch";
+import { is_compose_pristine } from "@/components/compose/compose_pristine";
 
 const AUTOSAVE_DELAY_MS = 1000;
 const LOW_NETWORK_AUTOSAVE_DELAY_MS = 5000;
@@ -85,6 +86,7 @@ export interface UseComposeDraftsOptions {
   has_pending_attachment_reads?: () => boolean;
   flush_input?: () => void;
   take_pending_message?: () => string | null;
+  get_auto_inserted_bodies?: () => string[];
 }
 
 export interface UseComposeDraftsReturn {
@@ -121,6 +123,7 @@ export function use_compose_drafts({
   has_pending_attachment_reads,
   flush_input,
   take_pending_message,
+  get_auto_inserted_bodies,
 }: UseComposeDraftsOptions): UseComposeDraftsReturn {
   const { vault } = use_auth();
   const { preferences } = use_preferences();
@@ -144,6 +147,43 @@ export function use_compose_drafts({
   const count_inline_image_bytes_ref = useRef(
     create_inline_image_bytes_counter(),
   );
+  const get_auto_inserted_bodies_ref = useRef(get_auto_inserted_bodies);
+  const pristine_delete_ref = useRef<Promise<void> | null>(null);
+
+  get_auto_inserted_bodies_ref.current = get_auto_inserted_bodies;
+
+  const draft_has_content = useCallback(
+    (data: DraftRefData, attachment_count: number): boolean =>
+      !is_compose_pristine({
+        recipients: data.recipients,
+        subject: data.subject,
+        attachment_count,
+        message: data.message,
+        auto_inserted_bodies: get_auto_inserted_bodies_ref.current?.() ?? [],
+      }),
+    [],
+  );
+
+  const discard_pristine_draft = useCallback((context_id: string) => {
+    if (pristine_delete_ref.current) return;
+
+    pristine_delete_ref.current = (async () => {
+      try {
+        await draft_manager.await_pending_save(context_id);
+        const deleted = await draft_manager.delete_draft(context_id);
+
+        if (deleted && draft_context_id_ref.current === context_id) {
+          set_draft_status("idle");
+          set_last_saved_time(null);
+        }
+      } catch {
+        return;
+      } finally {
+        draft_manager.revive_context(context_id);
+        pristine_delete_ref.current = null;
+      }
+    })();
+  }, []);
 
   useEffect(() => {
     t_ref.current = t;
@@ -168,19 +208,38 @@ export function use_compose_drafts({
       return;
     }
 
-    const has_content =
-      recipients.to.length > 0 ||
-      recipients.cc.length > 0 ||
-      recipients.bcc.length > 0 ||
-      subject ||
-      message ||
-      attachments.length > 0;
+    const has_content = draft_has_content(
+      { recipients, subject, message, is_plain_text, from_email },
+      attachments.length,
+    );
 
     if (!has_content) {
       set_draft_status("idle");
       if (save_timer_ref.current) {
         clearTimeout(save_timer_ref.current);
         save_timer_ref.current = null;
+      }
+      unsaved_since_ref.current = null;
+
+      const pristine_context_id = draft_context_id_ref.current;
+
+      if (
+        user_modified_ref.current &&
+        draft_manager.get_draft_id(pristine_context_id)
+      ) {
+        save_timer_ref.current = setTimeout(() => {
+          save_timer_ref.current = null;
+          if (draft_context_id_ref.current !== pristine_context_id) return;
+          if (
+            draft_has_content(
+              draft_data_ref.current,
+              attachments_ref.current.length,
+            )
+          ) {
+            return;
+          }
+          discard_pristine_draft(pristine_context_id);
+        }, AUTOSAVE_DELAY_MS);
       }
 
       return;
@@ -214,7 +273,15 @@ export function use_compose_drafts({
       save_timer_ref.current = null;
       unsaved_since_ref.current = null;
 
+      if (pristine_delete_ref.current) {
+        await pristine_delete_ref.current;
+      }
+
       if (is_sending_ref.current || !context_id) {
+        return;
+      }
+
+      if (!draft_has_content(draft_data_ref.current, attachments.length)) {
         return;
       }
 
@@ -359,13 +426,7 @@ export function use_compose_drafts({
       if (auto_save_drafts) {
         const data = draft_data_ref.current;
         const current_attachments = attachments_ref.current;
-        const has_content =
-          data.recipients.to.length > 0 ||
-          data.recipients.cc.length > 0 ||
-          data.recipients.bcc.length > 0 ||
-          data.subject ||
-          data.message ||
-          current_attachments.length > 0;
+        const has_content = draft_has_content(data, current_attachments.length);
 
         const body_empty = !data.message;
         const skipped_for_low_network =
@@ -460,13 +521,7 @@ export function use_compose_drafts({
       return;
     }
     const data = draft_data_ref.current;
-    const has_content =
-      data.recipients.to.length > 0 ||
-      data.recipients.cc.length > 0 ||
-      data.recipients.bcc.length > 0 ||
-      !!data.subject ||
-      !!data.message ||
-      attachments_ref.current.length > 0;
+    const has_content = draft_has_content(data, attachments_ref.current.length);
 
     if (!auto_save_drafts && has_content && user_modified_ref.current) {
       set_show_discard_confirm(true);
@@ -515,13 +570,7 @@ export function use_compose_drafts({
 
     const data = draft_data_ref.current;
     const current_attachments = attachments_ref.current;
-    const has_content =
-      data.recipients.to.length > 0 ||
-      data.recipients.cc.length > 0 ||
-      data.recipients.bcc.length > 0 ||
-      data.subject ||
-      data.message ||
-      current_attachments.length > 0;
+    const has_content = draft_has_content(data, current_attachments.length);
 
     const body_empty = !data.message;
     const should_save =
@@ -579,7 +628,10 @@ export function use_compose_drafts({
     return () => {
       window.removeEventListener("pagehide", handle_pagehide);
       document.removeEventListener("visibilitychange", handle_visibilitychange);
-      window.removeEventListener(MAIL_EVENTS.FLUSH_DRAFTS, handle_flush_request);
+      window.removeEventListener(
+        MAIL_EVENTS.FLUSH_DRAFTS,
+        handle_flush_request,
+      );
 
       const pending_message = take_pending_message_ref.current?.() ?? null;
 

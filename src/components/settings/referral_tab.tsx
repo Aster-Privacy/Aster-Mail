@@ -22,7 +22,6 @@ import { useState, useEffect, useCallback } from "react";
 import {
   UserGroupIcon,
   ClipboardDocumentIcon,
-  ArrowPathIcon,
   EnvelopeIcon,
   GiftIcon,
   BanknotesIcon,
@@ -77,6 +76,12 @@ import { copy_text } from "@/utils/copy_text";
 import { ignore_error } from "@/lib/ignore_error";
 import { use_auth } from "@/contexts/auth/use_auth_hook";
 import { LoadFailedNotice } from "@/components/settings/load_failed_notice";
+import {
+  peek_referral_tab,
+  remember_referral_tab,
+} from "@/components/settings/referral_tab_cache";
+import { ReferralTabSkeleton } from "@/components/settings/referral_tab_skeleton";
+import { use_delayed_flag } from "@/hooks/use_delayed_flag";
 import { RoundedQrCode } from "@/components/ui/rounded_qr_code";
 import { format_bytes } from "@/lib/utils";
 import { has_storage_bonus } from "@/lib/referral_bonus";
@@ -117,26 +122,30 @@ async function get_all_contact_emails(): Promise<string[]> {
 export function ReferralTab() {
   const { t } = use_i18n();
   const { user } = use_auth();
+  const [cached_snapshot] = useState(peek_referral_tab);
   const [info_load_failed, set_info_load_failed] = useState(false);
   const [history_load_failed, set_history_load_failed] = useState(false);
   const [referral_info, set_referral_info] = useState<ReferralInfo | null>(
-    null,
+    cached_snapshot?.info ?? null,
   );
   const [referral_history, set_referral_history] = useState<
     ReferralHistoryItem[]
-  >([]);
+  >(cached_snapshot?.history ?? []);
   const [my_referral_status, set_my_referral_status] =
-    useState<MyReferralStatus | null>(null);
+    useState<MyReferralStatus | null>(cached_snapshot?.my_status ?? null);
   const [my_affiliate_status, set_my_affiliate_status] =
-    useState<MyAffiliateStatus | null>(null);
-  const [is_loading, set_is_loading] = useState(true);
+    useState<MyAffiliateStatus | null>(
+      cached_snapshot?.affiliate_status ?? null,
+    );
+  const [is_loading, set_is_loading] = useState(!cached_snapshot);
+  const skeleton_visible = use_delayed_flag(is_loading, 150);
   const [is_sending_referral, set_is_sending_referral] = useState(false);
   const [is_sending_affiliate_link, set_is_sending_affiliate_link] =
     useState(false);
   const [is_requesting_payout, set_is_requesting_payout] = useState(false);
   const [payout_history, set_payout_history] = useState<
     MyAffiliatePayoutRequestItem[]
-  >([]);
+  >(cached_snapshot?.payout_history ?? []);
   const [payout_amount_input, set_payout_amount_input] = useState("");
   const [payout_amount_touched, set_payout_amount_touched] = useState(false);
   const [is_irs_confirm_open, set_is_irs_confirm_open] = useState(false);
@@ -384,7 +393,7 @@ export function ReferralTab() {
   }, [claim_input, t]);
 
   const load_data = useCallback(async () => {
-    set_is_loading(true);
+    if (!peek_referral_tab()) set_is_loading(true);
 
     try {
       const [
@@ -426,6 +435,18 @@ export function ReferralTab() {
       if (payout_history_res.data) {
         set_payout_history(payout_history_res.data);
       }
+
+      const previous = peek_referral_tab();
+
+      remember_referral_tab({
+        info: info_res.data ?? previous?.info ?? null,
+        history: history_res.data?.referrals ?? previous?.history ?? [],
+        my_status: my_status_res.data ?? previous?.my_status ?? null,
+        affiliate_status:
+          affiliate_status_res.data ?? previous?.affiliate_status ?? null,
+        payout_history:
+          payout_history_res.data ?? previous?.payout_history ?? [],
+      });
     } catch (caught) {
       set_info_load_failed(true);
       set_history_load_failed(true);
@@ -440,11 +461,7 @@ export function ReferralTab() {
   }, [load_data]);
 
   if (is_loading) {
-    return (
-      <div className="flex items-center justify-center py-16">
-        <ArrowPathIcon className="w-5 h-5 animate-spin text-txt-muted" />
-      </div>
-    );
+    return skeleton_visible ? <ReferralTabSkeleton /> : null;
   }
 
   const my_discount_section = my_referral_status?.was_referred ? (
@@ -861,7 +878,10 @@ export function ReferralTab() {
       <IslandSections>
         {affiliate_section}
         {my_discount_section}
-        <LoadFailedNotice on_retry={() => void load_data()} />
+        <LoadFailedNotice
+          message={t("settings.referral_load_failed")}
+          on_retry={() => void load_data()}
+        />
       </IslandSections>
     );
   }

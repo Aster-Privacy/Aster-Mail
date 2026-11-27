@@ -20,6 +20,8 @@
 //
 export const ar = {
   common: {
+    couldnt_load: "تعذّر التحميل.",
+    try_again_action: "إعادة المحاولة",
     merge_primary_label: "أساسية",
     merge_make_primary: "تعيين كأساسية",
     merge_primary_description:
@@ -434,6 +436,8 @@ export const ar = {
     birthday_year_optional: "السنة (اختياري)",
     notes: "ملاحظات",
     hide_notes: "إخفاء الملاحظات",
+    sender_note_load_failed: "تعذر تحميل الملاحظة.",
+    sender_note_save_failed: "تعذر حفظ الملاحظة.",
     favorite: "مفضل",
     favorited: "في المفضلة",
     added_to_favorites: "تمت الإضافة إلى المفضلة",
@@ -1923,8 +1927,8 @@ export const ar = {
     alias_note_too_long: "هذه الملاحظة تتجاوز حد الطول. ملاحظة أقصر ستعمل.",
     add_alias_note_placeholder: "أضف ملاحظة",
     edit_alias_note: "تعديل الملاحظة",
-    change_alias_avatar: "تغيير الصورة الرمزية",
-    remove_alias_avatar: "إزالة الصورة الرمزية",
+    change_alias_avatar: "تغيير صورة الملف الشخصي",
+    remove_alias_avatar: "إزالة صورة الملف الشخصي",
     alias_avatars_locked:
       "الصور الرمزية المخصصة جزء من الخطط المدفوعة. الترقية ستفعّلها.",
     not_now: "ليس الآن",
@@ -2406,6 +2410,7 @@ export const ar = {
     zip_archive: "أرشيف ZIP",
   },
   settings: {
+    referral_load_failed: "تعذّر تحميل تفاصيل الدعوة.",
     sandbox_off_by_setting_notice:
       "تعمل هذه النافذة بدون وضع الحماية لأن متغير بيئة أوقفه.",
     sandbox_off_notice:
@@ -10180,6 +10185,9 @@ export const ar = {
       "تم استلام هذا البريد على {{ received }}، لكن ردك سيُرسل من {{ selected }}. الرد من عنوان مختلف قد يكشفه للمرسل وقد يُرفض الرد.",
     reply_from_mismatch_use_received: "استخدام عنوان الاستلام",
     sending_disabled_badge: "الإرسال معطّل",
+    shake_feedback_prompt: "هل هناك شيء لا يعمل؟ أخبرنا بذلك.",
+    shake_feedback_send: "إرسال ملاحظات",
+    shake_feedback_dismiss: "لا، شكرًا",
     reply_from_mismatch_banner: "تم استلام هذه الرسالة على {{ received }}، لكن ردك سيُرسل من {{ selected }}.",
     reply_from_mismatch_banner_switch: "الإرسال من {{ received }}",
     reply_from_mismatch_send_anyway: "الإرسال على أي حال",
@@ -10207,6 +10215,8 @@ export const ar = {
     load_external_content: "تحميل المحتوى الخارجي",
     external_content_hidden: "المحتوى الخارجي مخفي",
     show_external_content: "عرض المحتوى",
+    trackers_blocked_count: "أدوات التتبع المحظورة: {{count}}",
+    trackers_stay_blocked: "تبقى أدوات التتبع محظورة عند عرض المحتوى.",
     image_loading_settings: "إعدادات الصور",
     images: "صور",
     tracker: "متتبع",
@@ -10278,6 +10288,11 @@ export const ar = {
     search_index_resume: "استئناف",
     search_searching_title: "جارٍ البحث في بريدك",
     search_index_preparing: "جارٍ تجهيز فهرسك الخاص",
+    search_index_eta_under_minute: "أقل من دقيقة متبقية",
+    search_index_eta_minutes: "حوالي {{value}} دقيقة متبقية",
+    search_index_eta_minutes_one: "حوالي دقيقة واحدة متبقية",
+    search_index_eta_hours: "حوالي {{value}} ساعة متبقية",
+    search_index_eta_hours_one: "حوالي ساعة واحدة متبقية",
     search_index_live_hint: "تظهر النتائج المطابقة فور العثور عليها.",
     search_searching_more: "جارٍ البحث في المزيد من البريد",
     search_index_why_label: "لماذا يحتاج البحث إلى فهرس",

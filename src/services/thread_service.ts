@@ -47,6 +47,10 @@ import { decrypt_mail_metadata } from "./crypto/mail_metadata";
 import {
   decrypt_thread_content_cached,
   decrypt_thread_metadata_cached,
+  ciphertext_fingerprint,
+  get_cached_reaction,
+  reaction_cache_key,
+  remember_reaction,
   type ThreadMessageContent,
 } from "./thread_decrypt_cache";
 
@@ -76,7 +80,10 @@ import {
   capture_decrypt_readiness,
   settle_decrypt_failure,
 } from "@/services/crypto/decrypt_readiness";
-import { is_trusted_ratchet_plaintext } from "@/services/crypto/ratchet_verification_status";
+import {
+  is_end_to_end_ratchet_plaintext,
+  is_trusted_ratchet_plaintext,
+} from "@/services/crypto/ratchet_verification_status";
 import {
   has_sealed_details,
   settle_sealed_fields,
@@ -111,6 +118,16 @@ async function decrypt_reaction_body(
     if (response.error || !response.data) return null;
 
     const item = response.data;
+    const cache_key = reaction_cache_key(
+      mail_item_id,
+      our_email,
+      item.encrypted_envelope,
+      item.envelope_nonce,
+    );
+    const cached = get_cached_reaction(cache_key);
+
+    if (cached) return cached;
+
     const envelope = await decrypt_mail_envelope<DecryptedEnvelope>(
       item.encrypted_envelope,
       item.envelope_nonce,
@@ -155,7 +172,14 @@ async function decrypt_reaction_body(
 
     if (!parsed.aster_reaction || !parsed.emoji) return null;
 
-    return { emoji: parsed.emoji, reactor_email: envelope.from.email };
+    const reaction = {
+      emoji: parsed.emoji,
+      reactor_email: envelope.from.email,
+    };
+
+    remember_reaction(cache_key, reaction);
+
+    return reaction;
   } catch {
     return null;
   }
@@ -325,8 +349,8 @@ async function decode_thread_envelope(
         ) {
           body_content = decrypted;
           body_decrypted = true;
-          e2e_verified = is_trusted_ratchet_plaintext(decrypted, msg.id);
-          ratchet_sealed = e2e_verified;
+          e2e_verified = is_end_to_end_ratchet_plaintext(decrypted, msg.id);
+          ratchet_sealed = is_trusted_ratchet_plaintext(decrypted, msg.id);
         } else {
           body_content = decrypted || RATCHET_UNDECRYPTABLE_SENTINEL;
         }
@@ -461,14 +485,45 @@ export function resolve_thread_trash_flag(
   return options?.is_trashed === true;
 }
 
+export function thread_response_signature(
+  thread_data: ThreadWithMessages,
+  our_email: string | undefined,
+  options?: { is_trashed?: boolean; is_spam?: boolean; limit?: number },
+): string {
+  return ciphertext_fingerprint(
+    JSON.stringify([
+      our_email ?? "",
+      options?.is_trashed === true,
+      options?.is_spam === true,
+      options?.limit ?? null,
+      thread_data.messages,
+    ]),
+  );
+}
+
+function has_unresolved_reactions(messages: DecryptedThreadMessage[]): boolean {
+  return messages.some((msg) =>
+    (msg.reactions ?? []).some(
+      (reaction) => !reaction.emoji && reaction.source === "internal",
+    ),
+  );
+}
+
 export async function fetch_and_decrypt_thread_messages(
   thread_token: string,
   our_email_hint?: string,
-  options?: { is_trashed?: boolean; is_spam?: boolean; limit?: number },
+  options?: {
+    is_trashed?: boolean;
+    is_spam?: boolean;
+    limit?: number;
+    unchanged_signature?: string;
+  },
 ): Promise<{
   messages: DecryptedThreadMessage[];
   thread_data: ThreadWithMessages | null;
   truncated: boolean;
+  signature?: string;
+  unchanged?: boolean;
 }> {
   const our_email = await resolve_our_email(our_email_hint);
   const response = await get_thread_messages(thread_token, options);
@@ -478,6 +533,22 @@ export async function fetch_and_decrypt_thread_messages(
   }
 
   const thread_data = response.data;
+  const signature = thread_response_signature(thread_data, our_email, options);
+
+  if (
+    options?.unchanged_signature &&
+    options.unchanged_signature === signature
+  ) {
+    return {
+      messages: [],
+      thread_data,
+      truncated: false,
+      signature,
+      unchanged: true,
+    };
+  }
+
+  let complete = true;
   const all_messages = thread_data.messages.filter((msg) => !msg.is_reaction);
   let messages_to_decrypt = all_messages;
   let truncated = false;
@@ -499,8 +570,17 @@ export async function fetch_and_decrypt_thread_messages(
     const [content, decrypted_metadata] = await Promise.all([
       payload_unavailable
         ? Promise.resolve(null)
-        : decrypt_thread_content_cached(msg, thread_token, cache_user, () =>
-            decode_thread_envelope(msg, our_email),
+        : decrypt_thread_content_cached(
+            msg,
+            thread_token,
+            cache_user,
+            async () => {
+              const decoded = await decode_thread_envelope(msg, our_email);
+
+              if (!decoded.cacheable) complete = false;
+
+              return decoded;
+            },
           ),
       msg.encrypted_metadata && msg.metadata_nonce
         ? decrypt_thread_metadata_cached(msg, cache_user, () =>
@@ -514,6 +594,8 @@ export async function fetch_and_decrypt_thread_messages(
     ]);
 
     if (!content) {
+      complete = false;
+
       return {
         id: msg.id,
         item_type: msg.item_type as "received" | "sent" | "draft",
@@ -620,7 +702,14 @@ export async function fetch_and_decrypt_thread_messages(
 
   await resolve_reaction_emojis(decrypted_messages, our_email);
 
-  return { messages: decrypted_messages, thread_data, truncated };
+  return {
+    messages: decrypted_messages,
+    thread_data,
+    truncated,
+    ...(complete && !has_unresolved_reactions(decrypted_messages)
+      ? { signature }
+      : {}),
+  };
 }
 
 export async function fetch_and_decrypt_virtual_group(
@@ -753,8 +842,8 @@ export async function fetch_and_decrypt_virtual_group(
           ) {
             body_content = decrypted;
             body_decrypted = true;
-            e2e_verified = is_trusted_ratchet_plaintext(decrypted, item.id);
-            ratchet_sealed = e2e_verified;
+            e2e_verified = is_end_to_end_ratchet_plaintext(decrypted, item.id);
+            ratchet_sealed = is_trusted_ratchet_plaintext(decrypted, item.id);
           } else {
             body_content = decrypted || RATCHET_UNDECRYPTABLE_SENTINEL;
           }

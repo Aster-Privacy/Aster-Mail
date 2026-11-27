@@ -53,7 +53,60 @@ function retry_after_ms(headers: Headers): number | undefined {
   return match ? Number(match[1]) * 1000 : undefined;
 }
 
+export const MAX_CONCURRENT_FAVICON_LOADS = 6;
+export const DEFAULT_FAVICON_RATE_LIMIT_MS = 30_000;
+const MAX_FAVICON_RATE_LIMIT_MS = 5 * 60 * 1000;
+
 const cookieless_loads = new Map<string, Promise<string | null>>();
+const rate_limited_until = new Map<string, number>();
+const waiting_for_slot: Array<() => void> = [];
+let active_favicon_loads = 0;
+
+function acquire_favicon_slot(): Promise<void> {
+  if (active_favicon_loads < MAX_CONCURRENT_FAVICON_LOADS) {
+    active_favicon_loads++;
+
+    return Promise.resolve();
+  }
+
+  return new Promise((resolve) => {
+    waiting_for_slot.push(() => {
+      active_favicon_loads++;
+      resolve();
+    });
+  });
+}
+
+function release_favicon_slot(): void {
+  active_favicon_loads = Math.max(0, active_favicon_loads - 1);
+  waiting_for_slot.shift()?.();
+}
+
+function limited_fetch(url: string): Promise<Response> {
+  return acquire_favicon_slot()
+    .then(() => routed_fetch(url, { credentials: "omit" }))
+    .finally(release_favicon_slot);
+}
+
+function rate_limit_ms(headers: Headers): number {
+  const seconds = Number(headers.get("retry-after"));
+
+  if (!Number.isFinite(seconds) || seconds <= 0) {
+    return DEFAULT_FAVICON_RATE_LIMIT_MS;
+  }
+
+  return Math.min(seconds * 1000, MAX_FAVICON_RATE_LIMIT_MS);
+}
+
+function is_rate_limited(domain: string): boolean {
+  const until = rate_limited_until.get(domain);
+
+  if (until === undefined) return false;
+  if (Date.now() < until) return true;
+  rate_limited_until.delete(domain);
+
+  return false;
+}
 
 function load_cookieless_favicon(
   domain: string,
@@ -63,16 +116,19 @@ function load_cookieless_favicon(
 
   if (loaded) return Promise.resolve(loaded);
   if (is_icon_failed(domain)) return Promise.resolve(null);
+  if (is_rate_limited(domain)) return Promise.resolve(null);
 
   const existing = cookieless_loads.get(domain);
 
   if (existing) return existing;
 
-  const promise = routed_fetch(url, { credentials: "omit" })
+  const promise = limited_fetch(url)
     .then((r) => {
       if (!r.ok) {
         if (r.status === 404 || r.status === 410) {
           mark_icon_failed(domain, retry_after_ms(r.headers));
+        } else if (r.status === 429) {
+          rate_limited_until.set(domain, Date.now() + rate_limit_ms(r.headers));
         }
 
         return null;

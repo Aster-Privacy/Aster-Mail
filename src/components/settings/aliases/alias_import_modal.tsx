@@ -28,15 +28,15 @@ import {
   MinusCircleIcon,
   XCircleIcon,
 } from "@heroicons/react/24/outline";
+import { Button } from "@aster/ui";
+
 import {
-  Button,
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@aster/ui";
-
+} from "@/components/ui/select";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
 import {
@@ -1133,14 +1133,13 @@ export function AliasImportModal({
           </div>
         )}
 
-        {turnstile_required &&
-          (step === "preview" || step === "progress") && (
-            <TurnstileWidget
-              ref={turnstile_ref}
-              on_expire={() => store_captcha_token(null)}
-              on_verify={store_captcha_token}
-            />
-          )}
+        {turnstile_required && (step === "preview" || step === "progress") && (
+          <TurnstileWidget
+            ref={turnstile_ref}
+            on_expire={() => store_captcha_token(null)}
+            on_verify={store_captcha_token}
+          />
+        )}
 
         {step === "done" && result && (
           <div className="space-y-3 py-2">

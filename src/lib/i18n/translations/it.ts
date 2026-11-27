@@ -21,6 +21,8 @@
 
 export const it = {
   common: {
+    couldnt_load: "Impossibile caricare.",
+    try_again_action: "Riprova",
     merge_primary_label: "Principale",
     merge_make_primary: "Rendi principale",
     merge_primary_description:
@@ -450,6 +452,8 @@ export const it = {
     birthday_year_optional: "Anno (facoltativo)",
     notes: "Note",
     hide_notes: "Nascondi note",
+    sender_note_load_failed: "La nota non è stata caricata.",
+    sender_note_save_failed: "La nota non è stata salvata.",
     favorite: "Preferito",
     favorited: "Tra i preferiti",
     added_to_favorites: "Aggiunto ai preferiti",
@@ -1835,8 +1839,8 @@ export const it = {
       "Questa nota supera il limite di lunghezza. Una più breve funzionerà.",
     add_alias_note_placeholder: "Aggiungi nota",
     edit_alias_note: "Modifica nota",
-    change_alias_avatar: "Cambia avatar",
-    remove_alias_avatar: "Rimuovi avatar",
+    change_alias_avatar: "Cambia immagine del profilo",
+    remove_alias_avatar: "Rimuovi immagine del profilo",
     alias_avatars_locked:
       "Gli avatar personalizzati fanno parte dei piani a pagamento. Un aggiornamento li attiverà.",
     not_now: "Non adesso",
@@ -2310,6 +2314,7 @@ export const it = {
     zip_archive: "Archivio ZIP",
   },
   settings: {
+    referral_load_failed: "Impossibile caricare i dettagli del tuo invito.",
     sandbox_off_by_setting_notice:
       "Questa finestra è in esecuzione senza sandbox perché una variabile d'ambiente l'ha disattivata.",
     sandbox_off_notice:
@@ -10425,6 +10430,9 @@ export const it = {
       "Questa email è stata ricevuta su {{ received }}, ma la risposta verrà inviata da {{ selected }}. Rispondere da un altro indirizzo può rivelarlo al mittente e la risposta potrebbe essere rifiutata.",
     reply_from_mismatch_use_received: "Usa l'indirizzo di ricezione",
     sending_disabled_badge: "Invio disattivato",
+    shake_feedback_prompt: "Qualcosa non funziona? Faccelo sapere.",
+    shake_feedback_send: "Invia feedback",
+    shake_feedback_dismiss: "No, grazie",
     reply_from_mismatch_banner: "Questa email è stata ricevuta su {{ received }}, ma la risposta verrà inviata da {{ selected }}.",
     reply_from_mismatch_banner_switch: "Invia da {{ received }}",
     reply_from_mismatch_send_anyway: "Invia comunque",
@@ -10452,6 +10460,9 @@ export const it = {
     load_external_content: "Carica contenuto esterno",
     external_content_hidden: "Il contenuto esterno è nascosto",
     show_external_content: "Mostra contenuto",
+    trackers_blocked_count: "Tracker bloccati: {{count}}",
+    trackers_stay_blocked:
+      "I tracker restano bloccati anche quando mostri il contenuto.",
     image_loading_settings: "Impostazioni immagini",
     image: "immagine",
     images: "immagini",
@@ -10528,6 +10539,11 @@ export const it = {
     search_index_resume: "Riprendi",
     search_searching_title: "Ricerca nella tua posta",
     search_index_preparing: "Preparazione dell'indice privato",
+    search_index_eta_under_minute: "Manca meno di un minuto",
+    search_index_eta_minutes: "Mancano circa {{value}} minuti",
+    search_index_eta_minutes_one: "Manca circa {{value}} minuto",
+    search_index_eta_hours: "Mancano circa {{value}} ore",
+    search_index_eta_hours_one: "Manca circa {{value}} ora",
     search_index_live_hint:
       "Le corrispondenze compaiono non appena vengono trovate.",
     search_searching_more: "Ricerca in altra posta",

@@ -105,7 +105,10 @@ const { fetch_and_decrypt_thread_messages } = await import("./thread_service");
 const {
   clear_thread_decrypt_cache,
   decrypt_thread_metadata_cached,
+  get_cached_reaction,
   hold_thread_decrypt_cache,
+  reaction_cache_key,
+  remember_reaction,
   thread_decrypt_cache_size,
   CLOSED_THREAD_GRACE_MS,
   HIDDEN_PAGE_PURGE_MS,
@@ -396,6 +399,138 @@ describe("thread decrypt cache", () => {
     await load();
 
     expect(decrypts().envelope).toBe(1);
+  });
+});
+
+describe("thread revalidation with an unchanged signature", () => {
+  beforeEach(() => {
+    clear_thread_decrypt_cache();
+    h.messages = [message(1), message(2), message(3)];
+    h.threads.clear();
+    h.envelope_decrypts = 0;
+    h.metadata_decrypts = 0;
+  });
+
+  it("skips every decrypt when the thread did not change", async () => {
+    const first = await fetch_and_decrypt_thread_messages(
+      "t",
+      "me@example.test",
+    );
+
+    expect(first.signature).toBeTruthy();
+    clear_thread_decrypt_cache();
+    decrypts();
+
+    const again = await fetch_and_decrypt_thread_messages(
+      "t",
+      "me@example.test",
+      { unchanged_signature: first.signature },
+    );
+
+    expect(again.unchanged).toBe(true);
+    expect(again.messages).toEqual([]);
+    expect(decrypts()).toEqual({ envelope: 0, metadata: 0 });
+  });
+
+  it("decrypts again when a message changed on the server", async () => {
+    const first = await fetch_and_decrypt_thread_messages(
+      "t",
+      "me@example.test",
+    );
+
+    clear_thread_decrypt_cache();
+    decrypts();
+    h.messages[0] = message(1, { encrypted_envelope: "env-1-edited" });
+
+    const again = await fetch_and_decrypt_thread_messages(
+      "t",
+      "me@example.test",
+      { unchanged_signature: first.signature },
+    );
+
+    expect(again.unchanged).toBeUndefined();
+    expect(again.signature).not.toBe(first.signature);
+    expect(again.messages).toHaveLength(3);
+    expect(decrypts().envelope).toBe(3);
+  });
+
+  it("does not match a signature taken for another account", async () => {
+    const first = await fetch_and_decrypt_thread_messages(
+      "t",
+      "me@example.test",
+    );
+    const other = await fetch_and_decrypt_thread_messages(
+      "t",
+      "other@example.test",
+      { unchanged_signature: first.signature },
+    );
+
+    expect(other.unchanged).toBeUndefined();
+    expect(other.messages).toHaveLength(3);
+  });
+
+  it("gives no signature when a message failed to decrypt", async () => {
+    h.failing_envelopes.add("env-2");
+
+    const result = await fetch_and_decrypt_thread_messages(
+      "t",
+      "me@example.test",
+    );
+
+    h.failing_envelopes.clear();
+    expect(result.signature).toBeUndefined();
+  });
+});
+
+describe("decrypted reaction cache", () => {
+  beforeEach(() => {
+    visibility = "visible";
+    clear_thread_decrypt_cache();
+  });
+
+  it("keys reactions by id, account and ciphertext", () => {
+    const key = reaction_cache_key("r1", "Me@Example.test", "env", "nonce");
+
+    expect(key).toBe(
+      reaction_cache_key("r1", "me@example.test", "env", "nonce"),
+    );
+    expect(key).not.toBe(
+      reaction_cache_key("r1", "me@example.test", "env2", "nonce"),
+    );
+    expect(key).not.toBe(
+      reaction_cache_key("r1", "me@example.test", "env", "n2"),
+    );
+    expect(key).not.toBe(
+      reaction_cache_key("r2", "me@example.test", "env", "nonce"),
+    );
+    expect(key).not.toBe(
+      reaction_cache_key("r1", "you@example.test", "env", "nonce"),
+    );
+  });
+
+  it("returns copies and forgets everything on clear", () => {
+    const key = reaction_cache_key("r1", "me@example.test", "env", "nonce");
+
+    remember_reaction(key, { emoji: "+1", reactor_email: "a@example.test" });
+
+    const hit = get_cached_reaction(key);
+
+    expect(hit).toEqual({ emoji: "+1", reactor_email: "a@example.test" });
+    if (hit) hit.emoji = "changed";
+    expect(get_cached_reaction(key)?.emoji).toBe("+1");
+
+    clear_thread_decrypt_cache();
+    expect(get_cached_reaction(key)).toBeNull();
+  });
+
+  it("does not keep reactions while the page is hidden", () => {
+    const key = reaction_cache_key("r1", "me@example.test", "env", "nonce");
+
+    visibility = "hidden";
+    remember_reaction(key, { emoji: "+1", reactor_email: "a@example.test" });
+    visibility = "visible";
+
+    expect(get_cached_reaction(key)).toBeNull();
   });
 });
 

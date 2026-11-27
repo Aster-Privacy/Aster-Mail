@@ -115,6 +115,29 @@ describe("format_signature_html", () => {
     );
   });
 
+  it("drops blank lines at the top of a signature", () => {
+    expect(
+      format_signature_html(
+        {
+          id: "s",
+          content: '<div><br></div><p style="margin:0"> </p><br><b>Alex</b>',
+          is_html: true,
+        },
+        false,
+      ),
+    ).toBe(
+      '<div data-aster-signature="1" data-aster-signature-id="s"><b>Alex</b></div>',
+    );
+    expect(
+      format_signature_html(
+        { id: "s", content: "\n\nAlex", is_html: false },
+        false,
+      ),
+    ).toBe(
+      '<div data-aster-signature="1" data-aster-signature-id="s">Alex</div>',
+    );
+  });
+
   it("keeps spaces typed inside a rich signature", () => {
     expect(
       format_signature_html(

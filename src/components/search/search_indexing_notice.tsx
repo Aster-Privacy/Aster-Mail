@@ -21,7 +21,7 @@
 
 import type { ComponentType, ReactNode, SVGProps } from "react";
 
-import { useEffect, useRef, useState } from "react";
+import { memo, useEffect, useRef, useState } from "react";
 import { PauseIcon, PlayIcon } from "@heroicons/react/20/solid";
 import { InformationCircleIcon } from "@heroicons/react/24/outline";
 
@@ -39,6 +39,11 @@ import {
   use_indexing_progress,
 } from "@/hooks/use_search/progress";
 import { progress_percent } from "@/hooks/use_search/progress_math";
+import {
+  create_eta_estimator,
+  eta_phrase,
+  type EtaEstimator,
+} from "@/hooks/use_search/index_eta";
 
 export interface SearchIndexStatus {
   is_active: boolean;
@@ -111,9 +116,6 @@ export function use_search_index_status(
   );
 }
 
-const ETA_SAMPLE_WINDOW_MS = 60000;
-const ETA_MIN_ELAPSED_S = 2;
-
 export function format_remaining_duration(
   seconds: number,
   locale: string,
@@ -154,45 +156,40 @@ export function use_download_eta(
   total: number,
   active: boolean,
 ): number | null {
-  const samples_ref = useRef<{ at: number; done: number }[]>([]);
+  const estimator_ref = useRef<EtaEstimator | null>(null);
   const [eta_seconds, set_eta_seconds] = useState<number | null>(null);
 
   useEffect(() => {
+    const estimator = (estimator_ref.current ??= create_eta_estimator());
+
     if (!active || total <= 0) {
-      samples_ref.current = [];
+      estimator.reset();
       set_eta_seconds(null);
 
       return;
     }
 
-    const now = Date.now();
-    const samples = samples_ref.current;
-
-    if (samples.length > 0 && done < samples[samples.length - 1].done) {
-      samples.length = 0;
-    }
-
-    samples.push({ at: now, done });
-
-    while (samples.length > 1 && now - samples[0].at > ETA_SAMPLE_WINDOW_MS) {
-      samples.shift();
-    }
-
-    if (samples.length < 2) return;
-
-    const first = samples[0];
-    const elapsed_s = (now - first.at) / 1000;
-    const downloaded = done - first.done;
-
-    if (elapsed_s < ETA_MIN_ELAPSED_S || downloaded <= 0) return;
-
-    const rate = downloaded / elapsed_s;
-    const remaining = Math.max(total - done, 0);
-
-    set_eta_seconds(Math.max(1, Math.round(remaining / rate)));
+    set_eta_seconds(estimator.sample(Date.now(), done, total));
   }, [done, total, active]);
 
   return active ? eta_seconds : null;
+}
+
+export function use_eta_text(eta_seconds: number | null): string | null {
+  const { t, language } = use_i18n();
+
+  if (eta_seconds === null) return null;
+
+  const phrase = eta_phrase(eta_seconds);
+
+  if (phrase.key === "search_index_eta_under_minute") {
+    return t("mail.search_index_eta_under_minute");
+  }
+
+  return t(`mail.${phrase.key}`, {
+    count: phrase.count,
+    value: phrase.count.toLocaleString(language),
+  });
 }
 
 interface IndexRingProps {
@@ -274,12 +271,8 @@ export function SearchIndexBadge({
     : t("mail.search_index_progress_unknown", {
         done: done.toLocaleString(language),
       });
-  const eta =
-    eta_seconds !== null && !is_paused
-      ? t("mail.estimated_time_remaining", {
-          duration: format_remaining_duration(eta_seconds, language),
-        })
-      : null;
+  const eta_text = use_eta_text(eta_seconds);
+  const eta = is_paused ? null : eta_text;
   const action = is_paused ? on_resume : on_pause;
 
   return (
@@ -332,12 +325,10 @@ export function SearchIndexBadge({
             </span>
           )}
         </div>
-        <p
-          className="mt-1 ps-6 text-[12px] tabular-nums"
-          style={{ color: "var(--text-muted)" }}
-        >
-          {eta ? `${count} · ${eta}` : count}
-        </p>
+        <ProgressLine
+          className="mt-1 justify-start ps-6 text-[12px]"
+          parts={[count, eta]}
+        />
         <p
           className="mt-3 text-[12px] leading-[18px]"
           style={{ color: "var(--text-secondary)" }}
@@ -378,10 +369,99 @@ export function SearchIndexBadge({
 }
 
 const LENS_ROWS = [
-  { y: 14, width: 46, delay: "0s" },
-  { y: 36, width: 34, delay: "1.2s" },
-  { y: 58, width: 40, delay: "2.4s" },
+  { top: 14, width: 46, glint: "aster_search_glint_a" },
+  { top: 36, width: 34, glint: "aster_search_glint_b" },
+  { top: 58, width: 40, glint: "aster_search_glint_c" },
 ];
+
+function LensMark({ ink }: { ink: string }) {
+  return (
+    <svg
+      aria-hidden="true"
+      className="h-[30px] w-[30px] overflow-visible"
+      viewBox="-11 -11 30 30"
+    >
+      <circle
+        cx="0"
+        cy="0"
+        fill="var(--bg-primary)"
+        r="9"
+        stroke={ink}
+        strokeWidth="2.5"
+      />
+      <rect fill={ink} height="6" rx="3" width="12" x="-6" y="-3" />
+      <path
+        d="M6.6 6.6l6 6"
+        stroke={ink}
+        strokeLinecap="round"
+        strokeWidth="3"
+      />
+    </svg>
+  );
+}
+
+function LensRow({
+  width,
+  color,
+  opacity,
+}: {
+  width: number;
+  color: string;
+  opacity?: number;
+}) {
+  return (
+    <>
+      <span
+        className="h-[9px] w-[9px] flex-shrink-0 rounded-full"
+        style={{ marginInlineStart: 5.5, background: color, opacity }}
+      />
+      <span
+        className="h-1 flex-shrink-0 rounded-full"
+        style={{ marginInlineStart: 6.5, width, background: color, opacity }}
+      />
+    </>
+  );
+}
+
+const LensLoop = memo(function LensLoop({ paused }: { paused: boolean }) {
+  const moving = !paused;
+  const ink = paused ? "var(--text-muted)" : "var(--accent-color)";
+
+  return (
+    <div
+      aria-hidden="true"
+      className="relative h-[72px] w-24"
+      data-lens-loop=""
+    >
+      {LENS_ROWS.map((row) => (
+        <div
+          key={row.top}
+          className="absolute start-0 flex h-[9px] items-center"
+          style={{ top: row.top - 4.5 }}
+        >
+          <LensRow
+            color="var(--text-muted)"
+            opacity={paused ? 0.2 : 0.3}
+            width={row.width}
+          />
+          {moving && (
+            <span
+              className={`absolute inset-y-0 start-0 flex items-center ${row.glint}`}
+            >
+              <LensRow color={ink} width={row.width} />
+            </span>
+          )}
+        </div>
+      ))}
+      <div
+        className={`absolute ${moving ? "aster_search_lens_sweep" : ""}`}
+        style={{ insetInlineStart: 50, top: 3 }}
+      >
+        <LensMark ink={ink} />
+      </div>
+    </div>
+  );
+});
 
 interface SearchLensProps {
   percent: number;
@@ -389,131 +469,103 @@ interface SearchLensProps {
   paused: boolean;
 }
 
-function SearchLens({ percent, indeterminate, paused }: SearchLensProps) {
-  const filled = Math.min(Math.max(percent, 0), 100);
+const SearchLens = memo(function SearchLens({
+  percent,
+  indeterminate,
+  paused,
+}: SearchLensProps) {
+  const filled = Math.min(Math.max(Math.floor(percent), 0), 100);
   const moving = !paused;
   const ink = paused ? "var(--text-muted)" : "var(--accent-color)";
 
   return (
     <div
       className="flex flex-shrink-0 flex-col items-center"
-      data-dial-percent={indeterminate ? undefined : Math.floor(filled)}
+      data-dial-percent={indeterminate ? undefined : filled}
       data-lens-state={paused ? "paused" : "searching"}
     >
-      <svg
-        aria-hidden="true"
-        className="h-[72px] w-24 overflow-visible"
-        height="72"
-        viewBox="0 0 96 72"
-        width="96"
-      >
-        {LENS_ROWS.map((row) => (
-          <g key={row.y}>
-            <circle
-              cx="10"
-              cy={row.y}
-              fill="var(--text-muted)"
-              opacity={paused ? 0.2 : 0.3}
-              r="4.5"
-            />
-            <rect
-              fill="var(--text-muted)"
-              height="4"
-              opacity={paused ? 0.2 : 0.3}
-              rx="2"
-              width={row.width}
-              x="21"
-              y={row.y - 2}
-            />
-            {moving && (
-              <g
-                className="aster_search_lens_glint"
-                style={{ animationDelay: row.delay }}
-              >
-                <circle cx="10" cy={row.y} fill={ink} r="4.5" />
-                <rect
-                  fill={ink}
-                  height="4"
-                  rx="2"
-                  width={row.width}
-                  x="21"
-                  y={row.y - 2}
-                />
-              </g>
-            )}
-          </g>
-        ))}
-        <g transform="translate(61 14)">
-          <g className={moving ? "aster_search_lens_sweep" : undefined}>
-            <circle
-              cx="0"
-              cy="0"
-              fill="var(--bg-primary)"
-              r="9"
-              stroke={ink}
-              strokeWidth="2.5"
-            />
-            <rect
-              fill={ink}
-              height="6"
-              rx="3"
-              width="12"
-              x="-6"
-              y="-3"
-            />
-            <path
-              d="M6.6 6.6l6 6"
-              stroke={ink}
-              strokeLinecap="round"
-              strokeWidth="3"
-            />
-          </g>
-        </g>
-      </svg>
+      <LensLoop paused={paused} />
       <div
         className="relative mt-4 h-[3px] w-24 overflow-hidden rounded-full"
         style={{ background: "var(--border-secondary)" }}
       >
-        <div
-          className={`absolute inset-y-0 start-0 rounded-full ${
-            indeterminate && moving ? "aster_search_bar_slide" : ""
-          }`}
-          style={{
-            background: ink,
-            opacity: paused ? 0.5 : 1,
-            transition: "width 500ms ease-out",
-            width: indeterminate ? "36%" : `${filled}%`,
-          }}
-        />
+        {indeterminate ? (
+          <div
+            className={`absolute inset-y-0 start-0 w-[36%] rounded-full ${
+              moving ? "aster_search_bar_slide" : ""
+            }`}
+            style={{ background: ink, opacity: paused ? 0.5 : 1 }}
+          />
+        ) : (
+          <div
+            className="aster_search_bar_fill absolute inset-0 rounded-full"
+            data-bar-fill={filled}
+            style={{
+              background: ink,
+              opacity: paused ? 0.5 : 1,
+              transform: `scaleX(${filled / 100})`,
+            }}
+          />
+        )}
       </div>
     </div>
+  );
+});
+
+function ProgressLine({
+  parts,
+  className = "",
+  testid,
+}: {
+  parts: (string | null | undefined)[];
+  className?: string;
+  testid?: string;
+}) {
+  const shown = parts.filter((part): part is string => !!part);
+
+  if (shown.length === 0) return null;
+
+  return (
+    <p
+      className={`flex max-w-full flex-wrap items-baseline justify-center gap-x-1.5 tabular-nums ${className}`}
+      data-testid={testid}
+      style={{ color: "var(--text-muted)" }}
+    >
+      {shown.map((part, index) => (
+        <span key={index} className="flex min-w-0 items-baseline gap-x-1.5">
+          {index > 0 && <span aria-hidden="true">·</span>}
+          <span className="break-words">{part}</span>
+        </span>
+      ))}
+    </p>
   );
 }
 
 function LensGlyph() {
   return (
-    <svg
+    <span
       aria-hidden="true"
-      className="h-4 w-4 flex-shrink-0 overflow-visible"
-      viewBox="0 0 16 16"
+      className="aster_search_lens_nudge inline-flex h-4 w-4 flex-shrink-0"
     >
-      <g className="aster_search_lens_nudge">
-        <circle
-          cx="7"
-          cy="7"
-          fill="none"
-          r="4.5"
-          stroke="currentColor"
-          strokeWidth="1.75"
-        />
-        <path
-          d="M10.4 10.4l3 3"
-          stroke="currentColor"
-          strokeLinecap="round"
-          strokeWidth="2"
-        />
-      </g>
-    </svg>
+      <svg className="h-4 w-4 overflow-visible" viewBox="0 0 16 16">
+        <g>
+          <circle
+            cx="7"
+            cy="7"
+            fill="none"
+            r="4.5"
+            stroke="currentColor"
+            strokeWidth="1.75"
+          />
+          <path
+            d="M10.4 10.4l3 3"
+            stroke="currentColor"
+            strokeLinecap="round"
+            strokeWidth="2"
+          />
+        </g>
+      </svg>
+    </span>
   );
 }
 
@@ -588,16 +640,15 @@ function use_index_controls(
             done: status.done.toLocaleString(language),
           })
         : "";
-  const eta =
-    eta_seconds !== null && running
-      ? t("mail.estimated_time_remaining", {
-          duration: format_remaining_duration(eta_seconds, language),
-        })
-      : null;
-  const progress = [count, eta].filter(Boolean).join(" · ");
+  const eta_text = use_eta_text(eta_seconds);
+  const eta = running ? eta_text : null;
+  const parts = [count, eta].filter((part): part is string => !!part);
 
   return {
-    detail: running && !progress ? t("mail.search_index_preparing") : progress,
+    detail:
+      running && parts.length === 0
+        ? [t("mail.search_index_preparing")]
+        : parts,
     hint: running ? t("mail.search_index_live_hint") : "",
     resume: () => resume_index_download(user?.email || "", search_content),
   };
@@ -694,14 +745,11 @@ export function SearchIndexingState({
           testid={`${testid}-why`}
         />
       </div>
-      {detail && (
-        <p
-          className="mt-0.5 text-[13px] leading-5 tabular-nums"
-          style={{ color: "var(--text-muted)" }}
-        >
-          {detail}
-        </p>
-      )}
+      <ProgressLine
+        className="mt-0.5 w-full max-w-[420px] text-[13px] leading-5"
+        parts={detail}
+        testid={`${testid}-detail`}
+      />
       {hint && (
         <p
           className="mt-0.5 text-[13px] leading-5"

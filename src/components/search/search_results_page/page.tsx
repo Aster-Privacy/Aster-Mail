@@ -36,7 +36,8 @@ import { IslandIconButton, Tooltip } from "@aster/ui";
 
 import {
   MIN_LIST_WIDTH,
-  SearchResultSkeleton,
+  SEARCH_LOADING_DELAY_MS,
+  SEARCH_ROW_DIVIDER_CLASS,
   SearchResultsPageProps,
   SortOption,
   extract_snippet,
@@ -54,7 +55,10 @@ import {
 import { emit_mail_items_removed } from "@/hooks/mail_events";
 import { build_sender_mail_query } from "@/utils/contact_mail_search";
 import { InboxHeader } from "@/components/inbox/inbox_header";
-import { InboxEmailListItem } from "@/components/email/inbox_email_list_item";
+import {
+  InboxEmailListItem,
+  MailRowSkeletonList,
+} from "@/components/email/inbox_email_list_item";
 import { EmailContextMenuContent } from "@/components/email/email_context_menu";
 import {
   can_move_to_category,
@@ -94,6 +98,8 @@ import { show_toast } from "@/components/toast/simple_toast";
 import { use_open_reply_compose } from "@/components/email/inbox/use_open_reply_compose";
 import { use_auth } from "@/contexts/auth_context";
 import { use_folders } from "@/hooks/use_folders";
+import { use_delayed_flag } from "@/hooks/use_delayed_flag";
+import { cn } from "@/lib/utils";
 import { order_folders_as_tree } from "@/hooks/use_folders/tree";
 import { order_tags_as_tree } from "@/hooks/tag_tree";
 import { snooze_email } from "@/services/api/snooze";
@@ -182,10 +188,22 @@ export function SearchResultsPage(props: SearchResultsPageProps) {
     handle_search_auto_advance,
     show_full_email_viewer,
   } = use_search_results_page(props);
+  const is_awaiting_first_results = is_loading && filtered_results.length === 0;
+  const show_loading_rows = use_delayed_flag(
+    is_awaiting_first_results,
+    SEARCH_LOADING_DELAY_MS,
+  );
+  const is_showing_stale_results = use_delayed_flag(
+    state.is_searching &&
+      state.results_query !== state.query &&
+      filtered_results.length > 0,
+    SEARCH_LOADING_DELAY_MS,
+    0,
+  );
   const index_status = use_search_index_status(
     state.index_pending,
     state.indexed_count,
-    is_loading && filtered_results.length === 0,
+    is_awaiting_first_results,
   );
   const is_split_view = !!split_email_id;
 
@@ -441,7 +459,7 @@ export function SearchResultsPage(props: SearchResultsPageProps) {
           <EllipsisVerticalIcon />
         </IslandIconButton>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="start" className="w-56">
+      <DropdownMenuContent align="start" className="min-w-56">
         <DropdownMenuItem onClick={() => handle_select_by_filter("unread")}>
           <EnvelopeOpenIcon className="w-4 h-4" />
           {t("common.select_unread")}
@@ -556,13 +574,13 @@ export function SearchResultsPage(props: SearchResultsPageProps) {
           status={index_status}
           testid="search-indexing-empty"
         />
-      ) : is_loading && filtered_results.length === 0 ? (
-        <div>
-          {is_slow && slow_notice}
-          {Array.from({ length: 10 }).map((_, i) => (
-            <SearchResultSkeleton key={i} />
-          ))}
-        </div>
+      ) : is_awaiting_first_results ? (
+        show_loading_rows && (
+          <div>
+            {is_slow && slow_notice}
+            <MailRowSkeletonList row_class_name={SEARCH_ROW_DIVIDER_CLASS} />
+          </div>
+        )
       ) : state.error && filtered_results.length === 0 ? (
         <SearchEmptyState
           actions={[
@@ -607,7 +625,19 @@ export function SearchResultsPage(props: SearchResultsPageProps) {
           }
         />
       ) : (
-        <>
+        <div
+          aria-busy={is_showing_stale_results || undefined}
+          className="contents"
+        >
+          {is_showing_stale_results && (
+            <div
+              aria-hidden="true"
+              className="h-0.5 w-full overflow-hidden"
+              data-testid="search-refresh-bar"
+            >
+              <div className="h-full w-2/5 rounded-full bg-brand animate-[sync_bar_indeterminate_1.5s_ease-in-out_infinite] motion-reduce:animate-none" />
+            </div>
+          )}
           {index_status.is_active && (
             <SearchIndexingRow
               className="border-b border-[var(--aster-island-divider,var(--aster-floating-divider,var(--border-secondary)))]"
@@ -635,7 +665,11 @@ export function SearchResultsPage(props: SearchResultsPageProps) {
                   email,
                   preferences.conversation_grouping !== false,
                 )}
-                className="border-b border-[var(--aster-island-divider,var(--aster-floating-divider,var(--border-secondary)))]"
+                className={cn(
+                  SEARCH_ROW_DIVIDER_CLASS,
+                  "transition-opacity duration-150",
+                  is_showing_stale_results && "opacity-60",
+                )}
                 current_view="search"
                 density={resolve_list_density(preferences.mail_list_density)}
                 email={email as InboxEmail}
@@ -682,7 +716,7 @@ export function SearchResultsPage(props: SearchResultsPageProps) {
                 : t("mail.end_of_results")}
             </div>
           )}
-        </>
+        </div>
       )}
     </>
   );
@@ -886,7 +920,9 @@ export function SearchResultsPage(props: SearchResultsPageProps) {
             }
             on_settings_click={on_settings_click || (() => {})}
             on_spam={handle_bulk_spam}
-            on_tag_toggle={(tag_token) => void handle_bulk_tag_toggle(tag_token)}
+            on_tag_toggle={(tag_token) =>
+              void handle_bulk_tag_toggle(tag_token)
+            }
             on_toggle_select_all={
               paged_results.length > 0 ? handle_select_all_visible : undefined
             }

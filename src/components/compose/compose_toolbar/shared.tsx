@@ -24,6 +24,11 @@ import type { ComposeToolbarState } from "@/components/compose/compose_shared";
 
 import { useRef, useEffect, useLayoutEffect, useCallback } from "react";
 
+import {
+  use_dismiss_on_window_leave,
+  use_dismiss_with_host,
+} from "@/lib/nested_overlay";
+
 export const FORMAT_BAR_STORAGE_KEY = "aster_compose_format_bar_open";
 
 export function use_anchored_layer(
@@ -39,6 +44,11 @@ export function use_anchored_layer(
     reposition_ref.current = reposition;
     dismiss_ref.current = on_dismiss;
   });
+
+  const dismiss = useCallback(() => dismiss_ref.current(), []);
+  const visible = use_dismiss_with_host(open, dismiss);
+
+  use_dismiss_on_window_leave(visible, dismiss);
 
   useLayoutEffect(() => {
     if (!open) return;
@@ -80,6 +90,8 @@ export function use_anchored_layer(
       window.removeEventListener("resize", schedule);
     };
   }, [open, anchor_ref]);
+
+  return visible;
 }
 
 export function read_format_bar_preference(): boolean {
@@ -151,6 +163,27 @@ export const FONT_SIZE_OPTIONS: {
   { value: "huge", label_key: "settings.font_size_extra_large" },
 ];
 
+const COMPOSE_CONTROL_BASE_CLASS =
+  "press_scale flex-shrink-0 rounded-full transition-[background-color,color,transform] duration-150 disabled:cursor-not-allowed disabled:opacity-50";
+
+const COMPOSE_CONTROL_IDLE_CLASS =
+  "text-txt-tertiary hover:bg-[var(--aster-hover)] hover:text-txt-primary";
+
+export const COMPOSE_ICON_BUTTON_CLASS = `${COMPOSE_CONTROL_BASE_CLASS} ${COMPOSE_CONTROL_IDLE_CLASS} flex h-9 w-9 items-center justify-center`;
+
+export const COMPOSE_ROW_ICON_BUTTON_CLASS = `${COMPOSE_CONTROL_BASE_CLASS} ${COMPOSE_CONTROL_IDLE_CLASS} flex h-8 w-8 items-center justify-center`;
+
+export const COMPOSE_TEXT_BUTTON_CLASS = `${COMPOSE_CONTROL_BASE_CLASS} ${COMPOSE_CONTROL_IDLE_CLASS} inline-flex h-8 items-center justify-center px-3 text-xs font-medium`;
+
+export const COMPOSE_PICKER_TRIGGER_CLASS = `${COMPOSE_CONTROL_BASE_CLASS} inline-flex h-8 min-w-0 max-w-full items-center gap-1.5 px-2 -ms-2 hover:bg-[var(--aster-hover)] disabled:hover:bg-transparent`;
+
+const COMPOSE_CONTROL_ACTIVE_CLASS =
+  "bg-black/10 text-txt-primary dark:bg-white/10 dark:text-white";
+
+export function toolbar_button_class(active: boolean): string {
+  return `${COMPOSE_CONTROL_BASE_CLASS} flex w-9 h-9 items-center justify-center ${active ? COMPOSE_CONTROL_ACTIVE_CLASS : COMPOSE_CONTROL_IDLE_CLASS}`;
+}
+
 export interface ToolbarButtonProps {
   onClick?: () => void;
   children: React.ReactNode;
@@ -168,7 +201,7 @@ export function ToolbarButton({
 }: ToolbarButtonProps) {
   return (
     <button
-      className={`press_scale w-9 h-9 flex items-center justify-center flex-shrink-0 rounded-full transition-transform duration-150 disabled:cursor-not-allowed disabled:opacity-50 ${active ? "bg-black/10 text-txt-primary dark:bg-white/10 dark:text-white" : "hover:bg-[var(--aster-hover)] text-txt-tertiary hover:text-txt-primary"}`}
+      className={toolbar_button_class(!!active)}
       disabled={disabled}
       title={title}
       type="button"

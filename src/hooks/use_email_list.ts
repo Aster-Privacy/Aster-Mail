@@ -29,7 +29,11 @@ import type {
 import { useState, useCallback, useEffect, useRef, useMemo } from "react";
 import { Capacitor } from "@capacitor/core";
 
-import { drop_removed_after } from "@/services/removed_items";
+import {
+  drop_removed_after,
+  forget_removed_ids,
+  note_removed_ids,
+} from "@/services/removed_items";
 import { apply_flag_intents } from "@/services/read_intent";
 import {
   merge_silent_refresh_emails,
@@ -52,7 +56,7 @@ import {
   remove_email_from_view_cache,
   mark_view_stale,
 } from "./email_list_cache";
-import { MIN_SKELETON_MS } from "./email_list_types";
+import { MIN_SKELETON_MS, is_settled_empty_list } from "./email_list_types";
 import { use_email_list_actions } from "./use_email_list_actions";
 import { use_email_list_bulk } from "./use_email_list_bulk";
 import { use_email_list_events } from "./use_email_list_events";
@@ -115,6 +119,14 @@ export {
 
 const LOADING_SAFETY_MS = 10_000;
 const LOAD_RETRY_DELAY_MS = 1_500;
+const SILENT_FETCH_STALE_MS = 30_000;
+
+interface SilentFetchFlight {
+  key: string;
+  page: number;
+  started_at: number;
+  trailing: boolean;
+}
 
 export function derive_page_from_list_length(
   list_length: number,
@@ -660,10 +672,33 @@ export function use_email_list(
   fetch_page_ref.current = fetch_page;
 
   const silent_seq_ref = useRef(0);
+  const silent_inflight_ref = useRef<SilentFetchFlight | null>(null);
 
   const silent_fetch = useCallback(async (): Promise<void> => {
     if (!is_mail_view) return;
     if (!has_passphrase_in_memory()) return;
+
+    const inflight = silent_inflight_ref.current;
+
+    if (
+      inflight &&
+      inflight.key === list_key &&
+      inflight.page === page_ref.current &&
+      Date.now() - inflight.started_at < SILENT_FETCH_STALE_MS
+    ) {
+      inflight.trailing = true;
+
+      return;
+    }
+
+    const flight: SilentFetchFlight = {
+      key: list_key,
+      page: page_ref.current,
+      started_at: Date.now(),
+      trailing: false,
+    };
+
+    silent_inflight_ref.current = flight;
 
     const my_silent_seq = ++silent_seq_ref.current;
 
@@ -762,6 +797,11 @@ export function use_email_list(
       });
     } catch (caught) {
       ignore_error("hooks/use_email_list:use_email_list", caught);
+    } finally {
+      if (silent_inflight_ref.current === flight) {
+        silent_inflight_ref.current = null;
+        if (flight.trailing) void silent_fetch_ref.current?.();
+      }
     }
   }, [
     current_view,
@@ -881,12 +921,16 @@ export function use_email_list(
   const has_emails_ref = useRef(false);
 
   has_emails_ref.current = state.emails.length > 0;
+  const settled_empty_ref = useRef(false);
+
+  settled_empty_ref.current = is_settled_empty_list(state);
   const loaded_emails_ref = useRef<InboxEmail[]>([]);
 
   loaded_emails_ref.current = state.emails;
 
   const refresh = useCallback(() => {
     const keep_visible = has_emails_ref.current;
+    const keep_settled_empty = !keep_visible && settled_empty_ref.current;
     const failed = failed_page_ref.current;
     const retry_page =
       failed && failed.view === committed_view_ref.current ? failed.page : 0;
@@ -898,6 +942,8 @@ export function use_email_list(
     request_cache.invalidate("GET:/mail/v1/messages");
     set_state((prev) => {
       if (keep_visible && prev.emails.length > 0)
+        return { ...prev, is_loading_more: false };
+      if (keep_settled_empty && is_settled_empty_list(prev))
         return { ...prev, is_loading_more: false };
 
       return {
@@ -911,7 +957,7 @@ export function use_email_list(
     });
     fetch_page_ref.current?.(retry_page, page_size, {
       force: true,
-      silent: keep_visible,
+      silent: keep_visible || keep_settled_empty,
     });
   }, [page_size]);
 
@@ -1380,6 +1426,7 @@ export function use_email_list(
   );
 
   const remove_email = useCallback((id: string): void => {
+    note_removed_ids([id]);
     page_cache_ref.current.clear();
     const removed_rows = loaded_emails_ref.current.filter((e) => e.id === id);
     const absorbed = Math.min(
@@ -1402,6 +1449,7 @@ export function use_email_list(
   const remove_emails = useCallback((ids: string[]): void => {
     const id_set = new Set(ids);
 
+    note_removed_ids(ids);
     page_cache_ref.current.clear();
     const removed_rows = loaded_emails_ref.current.filter((e) =>
       id_set.has(e.id),
@@ -1433,6 +1481,7 @@ export function use_email_list(
 
   const restore_emails = useCallback((entries: RestoredEmailEntry[]): void => {
     if (entries.length === 0) return;
+    forget_removed_ids(entries.map((entry) => entry.email.id));
     page_cache_ref.current.clear();
     set_state((prev) => {
       const emails = insert_emails_at(prev.emails, entries);

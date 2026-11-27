@@ -41,7 +41,9 @@ import {
 } from "@/services/category_index";
 import { use_category_drop } from "@/components/email/inbox/use_category_drop";
 import { use_settled_empty_state } from "@/components/email/inbox/use_settled_empty_state";
+import { use_removal_emptied } from "@/components/email/inbox/use_removal_emptied";
 import {
+  BLANK_LIST_SKELETON_DELAY_MS,
   SKELETON_DELAY_MS,
   SKELETON_MIN_VISIBLE_MS,
   use_delayed_flag,
@@ -340,16 +342,24 @@ export function use_email_inbox_state(props: EmailInboxProps) {
     !folders_loading_for_view &&
     !manual_refresh_active &&
     (!categories.enabled || is_index_settled());
+  const emptied_by_removal = use_removal_emptied({
+    view_key: empty_state_key,
+    row_count: filtered_emails.length,
+  });
   const empty_state_visible = use_settled_empty_state({
     view_key: empty_state_key,
     is_empty: filtered_emails.length === 0,
-    is_settled: empty_state_settled,
+    is_settled:
+      empty_state_settled && !(emptied_by_removal && email_state.has_more),
+    immediate: emptied_by_removal,
   });
   const list_is_blank = filtered_emails.length === 0 && !is_paginating;
   const skeleton_visible = use_delayed_flag(
-    !empty_state_visible && (skeleton_pending || filtered_emails.length === 0),
-    list_is_blank ? 0 : SKELETON_DELAY_MS,
-    list_is_blank ? 0 : SKELETON_MIN_VISIBLE_MS,
+    !emptied_by_removal &&
+      !empty_state_visible &&
+      (skeleton_pending || filtered_emails.length === 0),
+    list_is_blank ? BLANK_LIST_SKELETON_DELAY_MS : SKELETON_DELAY_MS,
+    SKELETON_MIN_VISIBLE_MS,
   );
 
   const is_client_filtered = active_filter !== "all";
@@ -811,13 +821,25 @@ export function use_email_inbox_state(props: EmailInboxProps) {
       on_split_close,
     });
 
+  const full_viewer_open_ref = useRef(false);
+  const {
+    handle_toggle_select: toggle_select,
+    handle_toggle_select_all: toggle_select_all,
+  } = selection;
+
   const extra_keyboard_actions = useMemo(
     () => ({
       handle_open_snooze: (email: InboxEmail) => set_custom_snooze_email(email),
-      handle_select: selection.handle_toggle_select,
-      handle_select_all: selection.handle_toggle_select_all,
+      handle_select: (...args: Parameters<typeof toggle_select>) => {
+        if (full_viewer_open_ref.current) return;
+        toggle_select(...args);
+      },
+      handle_select_all: () => {
+        if (full_viewer_open_ref.current) return;
+        toggle_select_all();
+      },
     }),
-    [selection.handle_toggle_select, selection.handle_toggle_select_all],
+    [toggle_select, toggle_select_all],
   );
 
   const keyboard_context_menu_actions = useMemo(() => {
@@ -1020,6 +1042,8 @@ export function use_email_inbox_state(props: EmailInboxProps) {
     (is_full_view_mode || is_reading_pane_expanded) &&
     !!split_email_id &&
     !split_scheduled_data;
+
+  full_viewer_open_ref.current = show_full_email_viewer;
 
   useEffect(() => {
     if (!split_email_id) set_expanded_email_id(null);

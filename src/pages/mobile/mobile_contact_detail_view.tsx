@@ -49,10 +49,7 @@ import { use_i18n } from "@/lib/i18n/context";
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
 import { use_external_link } from "@/contexts/external_link_context";
 import { build_contact_social_url } from "@/utils/contact_links";
-import {
-  extra_social_networks,
-  social_href,
-} from "@/utils/contact_socials";
+import { extra_social_networks, social_href } from "@/utils/contact_socials";
 import { format_contact_date } from "@/utils/date_utils";
 import {
   decode_related_people,
@@ -257,7 +254,7 @@ export function ContactDetailView({
               <ArrowUpOnSquareIcon className="h-4 w-4" />
             </motion.button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-56">
+          <DropdownMenuContent align="end" className="min-w-56">
             <DropdownMenuItem
               onSelect={() => void run_share_contact_text(t, contact)}
             >

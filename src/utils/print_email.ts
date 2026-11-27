@@ -36,6 +36,7 @@ import {
   type DeferredImageSession,
 } from "@/lib/deferred_proxy_images";
 import { get_image_proxy_url } from "@/lib/image_proxy";
+import { convert_plain_quote_html } from "@/lib/quoted_history_clean";
 import { should_defer_proxied_images } from "@/lib/image_proxy_grant";
 import { effective_remote_image_mode } from "@/lib/remote_content_policy";
 import { active_granted_types } from "@/lib/remote_content_grants";
@@ -352,12 +353,14 @@ export function format_body(
     }).html;
     const printable = strip_style_blocks(sanitized);
 
-    if (mode === "always" || granted.size > 0) return printable;
+    if (mode === "always" || granted.size > 0) {
+      return convert_plain_quote_html(printable);
+    }
 
-    return strip_remote_loads(printable);
+    return convert_plain_quote_html(strip_remote_loads(printable));
   }
 
-  return plain_text_to_html(body);
+  return convert_plain_quote_html(plain_text_to_html(body));
 }
 
 const PRINT_ROOT_STYLES = `

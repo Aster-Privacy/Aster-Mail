@@ -114,7 +114,7 @@ export function FolderContextMenu({
   return (
     <ContextMenu>
       <ContextMenuTrigger asChild>{children}</ContextMenuTrigger>
-      <ContextMenuContent className="w-48">
+      <ContextMenuContent className="min-w-48">
         {on_create_subfolder && can_have_children && (
           <ContextMenuItem onClick={on_create_subfolder}>
             <FolderPlusIcon className="me-2 h-4 w-4" />

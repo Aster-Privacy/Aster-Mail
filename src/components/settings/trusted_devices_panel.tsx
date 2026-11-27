@@ -61,6 +61,14 @@ import {
   get_display_time_zone,
 } from "@/utils/date_format";
 import { has_tauri_runtime } from "@/lib/tauri_runtime";
+import { get_provider_icon } from "@/components/settings/import_section/provider_icon";
+
+const BRIDGE_CLIENTS: { name: string; logo_src: string | null }[] = [
+  { name: "Thunderbird", logo_src: "/providers/thunderbird_logo.svg" },
+  { name: "Apple Mail", logo_src: "/providers/apple_mail_logo.png" },
+  { name: "Outlook", logo_src: "/providers/outlook_logo.svg" },
+  { name: "Generic IMAP", logo_src: null },
+];
 
 const BRIDGE_LAUNCH_TIMEOUT_MS = 2500;
 const BRIDGE_HINT_TOAST_MS = 10000;
@@ -292,15 +300,25 @@ export function TrustedDevicesPanel() {
           icon={<EnvelopeIcon />}
           title={t("settings.desktop_bridge_title")}
         >
-          {["Thunderbird", "Apple Mail", "Outlook", "Generic IMAP"].map(
-            (client) => (
-              <IslandRow
-                key={client}
-                label={t("settings.desktop_bridge_set_up", { client })}
-                on_press={() => handle_set_up(client)}
-              />
-            ),
-          )}
+          {BRIDGE_CLIENTS.map(({ name, logo_src }) => (
+            <IslandRow
+              key={name}
+              icon={
+                logo_src ? (
+                  <img
+                    alt=""
+                    aria-hidden="true"
+                    className="w-5 h-5 object-contain"
+                    src={logo_src}
+                  />
+                ) : (
+                  get_provider_icon("imap", "")
+                )
+              }
+              label={t("settings.desktop_bridge_set_up", { client: name })}
+              on_press={() => handle_set_up(name)}
+            />
+          ))}
         </IslandSection>
       )}
 

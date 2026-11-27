@@ -61,6 +61,17 @@ describe("EmailOpenSkeleton column", () => {
     ).toEqual([]);
   });
 
+  it("spans the window in the standalone reader", () => {
+    act(() => root.render(<EmailOpenSkeleton variant="detail" />));
+
+    expect(classes_of(column())).toContain("w-full");
+    expect(
+      classes_of(column()).filter(
+        (c) => c === "mx-auto" || c.startsWith("max-w-"),
+      ),
+    ).toEqual([]);
+  });
+
   it("keeps the width of a viewer that caps its own content", () => {
     act(() => root.render(<EmailOpenSkeleton variant="popup" />));
 

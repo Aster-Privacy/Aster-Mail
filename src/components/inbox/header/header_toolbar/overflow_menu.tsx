@@ -65,7 +65,7 @@ export function MobileOverflowMenu({
           <EllipsisVerticalIcon />
         </IslandIconButton>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-56">
+      <DropdownMenuContent align="end" className="min-w-56">
         <DropdownMenuItem onClick={handle_refresh}>
           <ArrowPathIcon className="w-4 h-4 me-2" />
           {t("common.refresh")}

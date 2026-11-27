@@ -18,5 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-export { ToolbarButton } from "./shared";
+export { Divider, ToolbarButton, toolbar_button_class } from "./shared";
+export { FormatBar } from "./format_bar";
+export { LinkTool } from "./link_tool";
 export { ComposeToolbar } from "./toolbar";

@@ -20,6 +20,8 @@
 //
 export const ja = {
   common: {
+    couldnt_load: "読み込めませんでした。",
+    try_again_action: "再試行",
     merge_primary_label: "メイン",
     merge_make_primary: "メインにする",
     merge_primary_description:
@@ -488,6 +490,8 @@ export const ja = {
     birthday_year_optional: "年（任意）",
     notes: "メモ",
     hide_notes: "メモを非表示",
+    sender_note_load_failed: "メモを読み込めませんでした。",
+    sender_note_save_failed: "メモを保存できませんでした。",
     favorite: "お気に入り",
     favorited: "お気に入り済み",
     added_to_favorites: "お気に入りに追加しました",
@@ -1844,8 +1848,8 @@ export const ja = {
       "このメモは長さの上限を超えています。短くすると使えます。",
     add_alias_note_placeholder: "メモを追加",
     edit_alias_note: "メモを編集",
-    change_alias_avatar: "アバターを変更",
-    remove_alias_avatar: "アバターを削除",
+    change_alias_avatar: "プロフィール写真を変更",
+    remove_alias_avatar: "プロフィール写真を削除",
     alias_avatars_locked:
       "カスタムアバターは有料プランの機能です。アップグレードすると利用できます。",
     image_load_failed:
@@ -2253,6 +2257,7 @@ export const ja = {
     zip_archive: "ZIP アーカイブ",
   },
   settings: {
+    referral_load_failed: "招待の詳細を読み込めませんでした。",
     sandbox_off_by_setting_notice:
       "環境変数によって無効にされているため、このウインドウはサンドボックスなしで動作しています。",
     sandbox_off_notice:
@@ -10105,6 +10110,9 @@ export const ja = {
       "このメールは {{ received }} で受信しましたが、返信は {{ selected }} から送信されます。別のアドレスから返信すると、そのアドレスが送信者に知られたり、返信が拒否されたりする可能性があります。",
     reply_from_mismatch_use_received: "受信アドレスを使用",
     sending_disabled_badge: "送信無効",
+    shake_feedback_prompt: "うまく動かない点がありますか？お知らせください。",
+    shake_feedback_send: "フィードバックを送信",
+    shake_feedback_dismiss: "今はしない",
     reply_from_mismatch_banner: "このメールは {{ received }} で受信しましたが、返信は {{ selected }} から送信されます。",
     reply_from_mismatch_banner_switch: "{{ received }} から送信",
     reply_from_mismatch_send_anyway: "そのまま送信",
@@ -10145,6 +10153,8 @@ export const ja = {
     load_external_content: "外部コンテンツを読み込む",
     external_content_hidden: "外部コンテンツは非表示です",
     show_external_content: "コンテンツを表示",
+    trackers_blocked_count: "ブロックしたトラッカー: {{count}}",
+    trackers_stay_blocked: "コンテンツを表示してもトラッカーはブロックされたままです。",
     image_loading_settings: "画像の設定",
     image: "画像",
     images: "画像",
@@ -10277,6 +10287,9 @@ export const ja = {
     search_index_resume: "再開",
     search_searching_title: "メールを検索中",
     search_index_preparing: "プライベートインデックスを準備しています",
+    search_index_eta_under_minute: "残り1分未満",
+    search_index_eta_minutes: "残り約{{value}}分",
+    search_index_eta_hours: "残り約{{value}}時間",
     search_index_live_hint: "一致するメールは見つかり次第表示されます。",
     search_searching_more: "ほかのメールを検索中",
     search_index_why_label: "検索にインデックスが必要な理由",

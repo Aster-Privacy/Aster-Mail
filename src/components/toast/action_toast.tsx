@@ -76,7 +76,8 @@ export interface ActionToastState {
     | "progress"
     | "refresh"
     | "download"
-    | "unsubscribe";
+    | "unsubscribe"
+    | "feedback";
   email_ids: string[];
   on_undo?: () => Promise<void | UndoToastResult>;
   action_label?: string;
@@ -224,6 +225,7 @@ export function settle_undo_toast(
 }
 
 const UNDO_DONE_MS = 2000;
+const PROGRESS_TOAST_MIN_WIDTH = "min(300px, var(--aster-toast-max-width))";
 const UNDO_RESULT_MS = 5000;
 
 let translate_undo_text: (key: TranslationKey) => string = (key) => key;
@@ -637,10 +639,7 @@ export function ActionToast({ position }: ActionToastProps) {
               toast.progress ? "gap-2.5 px-4 py-3" : "gap-2 px-4 py-2.5"
             }`}
             style={{
-              minWidth: toast.progress
-                ? "min(300px, calc(100vw - 32px))"
-                : undefined,
-              maxWidth: "min(480px, calc(100vw - 32px))",
+              minWidth: toast.progress ? PROGRESS_TOAST_MIN_WIDTH : undefined,
             }}
           >
             <div className="flex items-center gap-2">
@@ -648,12 +647,9 @@ export function ActionToast({ position }: ActionToastProps) {
                 {render_toast_icon(resolve_toast_icon(toast))}
               </span>
               <span
-                className={`min-w-0 text-[13px] font-medium leading-snug text-txt-primary ${
-                  toast.progress
-                    ? "flex-1 truncate"
-                    : "line-clamp-2 break-words"
+                className={`min-w-0 text-[13px] font-medium leading-snug text-txt-primary text-pretty [overflow-wrap:anywhere] ${
+                  toast.progress ? "flex-1" : ""
                 }`}
-                title={toast.progress ? undefined : toast.message}
               >
                 {toast.message}
               </span>

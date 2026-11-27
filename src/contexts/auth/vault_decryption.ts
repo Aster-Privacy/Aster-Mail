@@ -34,6 +34,10 @@ import {
 } from "@/services/crypto/memory_key_store";
 import { create_level2_storage } from "@/contexts/auth/level2_storage";
 import {
+  run_when_session_confirmed,
+  session_confirmed_for,
+} from "@/contexts/auth/session_confirmation";
+import {
   envelope_v2_write_key,
   wipe_envelope_v2_keys,
 } from "@/services/crypto/envelope_v2";
@@ -351,7 +355,10 @@ async function current_data_kek_tag(): Promise<string | null> {
 }
 
 const level2_storage = create_level2_storage({
-  request_admission: () => request_level2_admission(api_client),
+  request_admission: async (user_id) =>
+    (await session_confirmed_for(user_id)) && has_vault_in_memory_for(user_id)
+      ? request_level2_admission(api_client)
+      : "unknown",
   reset_admission_state: () => reset_level2_state(),
   is_admitted: () => is_level2_admitted(),
   start_rekey: (user_id) =>
@@ -374,19 +381,27 @@ on_vault_cleared((event) => {
 });
 
 on_vault_stored((event) => {
-  if (event.owner_id) {
-    start_mail_legacy_migration(
-      event.owner_id,
-      mail_legacy_migration_deps(event.owner_id),
+  const owner_id = event.owner_id;
+
+  if (owner_id) {
+    run_when_session_confirmed(
+      owner_id,
+      () => has_vault_in_memory_for(owner_id),
+      () => {
+        start_mail_legacy_migration(
+          owner_id,
+          mail_legacy_migration_deps(owner_id),
+        );
+        import("@/services/api/scheduled")
+          .then((scheduled) => scheduled.snapshot_untagged_scheduled())
+          .catch((caught) =>
+            ignore_error(
+              "contexts/auth/vault_decryption:scheduled_snapshot",
+              caught,
+            ),
+          );
+      },
     );
-    import("@/services/api/scheduled")
-      .then((scheduled) => scheduled.snapshot_untagged_scheduled())
-      .catch((caught) =>
-        ignore_error(
-          "contexts/auth/vault_decryption:scheduled_snapshot",
-          caught,
-        ),
-      );
   }
   level2_storage
     .handle_stored(event)
@@ -395,10 +410,88 @@ on_vault_stored((event) => {
     );
 });
 
-export function ensure_level2_storage(
-  owner_user_id?: string | null,
-): void {
+export function ensure_level2_storage(owner_user_id?: string | null): void {
   level2_storage.ensure(owner_user_id ?? get_last_vault_owner_id());
+}
+
+async function start_vault_background_jobs(
+  vault: EncryptedVault,
+  passphrase: string,
+): Promise<void> {
+  try {
+    await adopt_master_key_if_needed(vault, passphrase);
+  } catch (caught) {
+    ignore_error("contexts/auth/vault_decryption:reusable", caught);
+  }
+
+  run_storage_key_maintenance(passphrase)
+    .then(async (maintenance) => {
+      if (maintenance === "reseal_started") return;
+
+      const did_rekey = await auto_rekey_if_needed();
+
+      if (did_rekey) {
+        emit_aliases_changed();
+        emit_contacts_changed();
+      }
+    })
+    .catch((caught) =>
+      ignore_error("contexts/auth/vault_decryption:reusable", caught),
+    );
+
+  rewrap_legacy_entries().catch((caught) =>
+    ignore_error("contexts/auth/vault_decryption:rewrap", caught),
+  );
+
+  check_and_run_recovery_reencryption(vault, passphrase).catch((caught) =>
+    ignore_error("contexts/auth/vault_decryption:reusable", caught),
+  );
+
+  ensure_pgp_key_published().catch((caught) =>
+    ignore_error("contexts/auth/vault_decryption:reusable", caught),
+  );
+
+  const ratchet_keys_ready = ensure_ratchet_keys();
+
+  ratchet_keys_ready
+    .catch(() => false)
+    .then(() => check_recovery_backup_coverage())
+    .catch((caught) =>
+      ignore_error("contexts/auth/vault_decryption:reseal", caught),
+    );
+
+  ratchet_keys_ready
+    .then(async () => {
+      await ensure_pq_prekeys_available();
+
+      const sync_key = await wait_for_sync_encryption_key();
+
+      if (!sync_key) return;
+
+      try {
+        await sync_all_ratchet_states(sync_key);
+      } catch {
+        /* best-effort */
+      }
+
+      start_prekey_seal_migration();
+      await backfill_pq_secrets_to_server();
+      await reconcile_pq_secrets_with_server();
+      sync_escrow_to_cache().catch((caught) =>
+        ignore_error("contexts/auth/vault_decryption:reusable", caught),
+      );
+    })
+    .catch((caught) =>
+      ignore_error("contexts/auth/vault_decryption:reusable", caught),
+    );
+}
+
+export function record_password_strength_from_input(passphrase: string): void {
+  backfill_password_strength_tier(
+    compute_password_strength_tier(passphrase),
+  ).catch((caught) =>
+    ignore_error("contexts/auth/vault_decryption:password_strength", caught),
+  );
 }
 
 export async function decrypt_vault_with_lock(
@@ -442,78 +535,9 @@ export async function decrypt_vault_with_lock(
     await store_vault_in_memory(vault, passphrase, owner_user_id);
     ensure_level2_storage(owner_user_id);
 
-    backfill_password_strength_tier(
-      compute_password_strength_tier(passphrase),
-    ).catch((caught) =>
-      ignore_error("contexts/auth/vault_decryption:reusable", caught),
-    );
-
-    try {
-      await adopt_master_key_if_needed(vault, passphrase);
-    } catch (caught) {
-      ignore_error("contexts/auth/vault_decryption:reusable", caught);
-    }
-
-    run_storage_key_maintenance(passphrase)
-      .then(async (maintenance) => {
-        if (maintenance === "reseal_started") return;
-
-        const did_rekey = await auto_rekey_if_needed();
-
-        if (did_rekey) {
-          emit_aliases_changed();
-          emit_contacts_changed();
-        }
-      })
-      .catch((caught) =>
-        ignore_error("contexts/auth/vault_decryption:reusable", caught),
-      );
-
-    rewrap_legacy_entries().catch((caught) =>
-      ignore_error("contexts/auth/vault_decryption:rewrap", caught),
-    );
-
-    check_and_run_recovery_reencryption(vault, passphrase).catch((caught) =>
-      ignore_error("contexts/auth/vault_decryption:reusable", caught),
-    );
-
-    ensure_pgp_key_published().catch((caught) =>
-      ignore_error("contexts/auth/vault_decryption:reusable", caught),
-    );
-
-    const ratchet_keys_ready = ensure_ratchet_keys();
-
-    ratchet_keys_ready
-      .catch(() => false)
-      .then(() => check_recovery_backup_coverage())
-      .catch((caught) =>
-        ignore_error("contexts/auth/vault_decryption:reseal", caught),
-      );
-
-    ratchet_keys_ready
-      .then(async () => {
-        await ensure_pq_prekeys_available();
-
-        const sync_key = await wait_for_sync_encryption_key();
-
-        if (!sync_key) return;
-
-        try {
-          await sync_all_ratchet_states(sync_key);
-        } catch {
-          /* best-effort */
-        }
-
-        start_prekey_seal_migration();
-        await backfill_pq_secrets_to_server();
-        await reconcile_pq_secrets_with_server();
-        sync_escrow_to_cache().catch((caught) =>
-          ignore_error("contexts/auth/vault_decryption:reusable", caught),
-        );
-      })
-      .catch((caught) =>
-        ignore_error("contexts/auth/vault_decryption:reusable", caught),
-      );
+    run_when_session_confirmed(owner_user_id, reusable, () => {
+      void start_vault_background_jobs(vault, passphrase);
+    });
 
     return vault;
   } finally {

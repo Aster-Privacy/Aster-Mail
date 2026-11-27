@@ -151,7 +151,7 @@ export function ValueDropdown(props: ValueDropdownProps) {
         <DropdownMenuTrigger asChild>{trigger}</DropdownMenuTrigger>
         <DropdownMenuContent
           align="start"
-          className="z-[200] w-32"
+          className="z-[200] min-w-32"
           sideOffset={6}
         >
           <DropdownMenuItem
@@ -187,7 +187,7 @@ export function ValueDropdown(props: ValueDropdownProps) {
         <DropdownMenuTrigger asChild>{trigger}</DropdownMenuTrigger>
         <DropdownMenuContent
           align="start"
-          className="z-[200] w-40"
+          className="z-[200] min-w-40"
           sideOffset={6}
         >
           {AUTH_OPTIONS.map((v) => (
@@ -457,7 +457,7 @@ function UnitDropdown({
       </DropdownMenuTrigger>
       <DropdownMenuContent
         align="start"
-        className="z-[200] w-32"
+        className="z-[200] min-w-32"
         sideOffset={6}
       >
         {(Object.keys(UNIT_MULTIPLIER) as SizeUnit[]).map((u) => (

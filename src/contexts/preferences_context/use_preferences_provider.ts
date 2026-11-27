@@ -100,6 +100,10 @@ import {
   get_vault_from_memory,
   on_vault_cleared,
 } from "@/services/crypto/memory_key_store";
+import {
+  should_skip_interval_tick,
+  subscribe_page_resume,
+} from "@/lib/page_resume";
 
 export function use_preferences_provider() {
   const {
@@ -122,6 +126,7 @@ export function use_preferences_provider() {
     has_loaded_ref,
     fallback_base_ref,
     server_base_ref,
+    applied_blob_marker_ref,
     debounce_timer,
     saved_indicator_timer,
     save_retry_timer,
@@ -146,10 +151,15 @@ export function use_preferences_provider() {
 
       if (!v) return;
 
-      let response = await get_preferences(v);
+      let response = await get_preferences(
+        v,
+        false,
+        background ? applied_blob_marker_ref.current : null,
+      );
       let attempt = 0;
 
       if (background && !response.loaded_from_server) return;
+      if (response.unchanged) return;
 
       while (!response.loaded_from_server && attempt < 6) {
         attempt += 1;
@@ -233,15 +243,23 @@ export function use_preferences_provider() {
           pending_keys_ref.current,
         );
 
+        if (vault_ref.current?.identity_key === v.identity_key) {
+          applied_blob_marker_ref.current = response.blob_marker ?? null;
+        }
+
         cache_preferences_locally(applied);
 
-        if (!preferences_equal(applied, preferences_ref.current)) {
+        const changed = !preferences_equal(applied, preferences_ref.current);
+
+        if (changed) {
           preferences_ref.current = applied;
           set_preferences(applied);
         }
 
-        set_low_network_mode(applied.low_network_mode);
-        apply_visual_preferences(applied);
+        if (changed || !background) {
+          set_low_network_mode(applied.low_network_mode);
+          apply_visual_preferences(applied);
+        }
       } else {
         const cached = get_cached_preferences();
 
@@ -313,6 +331,7 @@ export function use_preferences_provider() {
     has_loaded_ref.current = false;
     fallback_base_ref.current = null;
     server_base_ref.current = null;
+    applied_blob_marker_ref.current = null;
     synced_muted_folders_ref.current = null;
 
     (async () => {
@@ -399,6 +418,7 @@ export function use_preferences_provider() {
             pending_keys_ref.current,
           );
 
+          applied_blob_marker_ref.current = response.blob_marker ?? null;
           cache_preferences_locally(applied);
           preferences_ref.current = applied;
           set_preferences(applied);
@@ -801,6 +821,7 @@ export function use_preferences_provider() {
     };
 
     const poll_from_other_devices = () => {
+      if (should_skip_interval_tick()) return;
       if (
         sync_client.is_connected() &&
         Date.now() - last_refresh_ms < CROSS_DEVICE_REFRESH_LIVE_POLL_MS
@@ -816,17 +837,14 @@ export function use_preferences_provider() {
       CROSS_DEVICE_REFRESH_POLL_MS,
     );
 
-    window.addEventListener("focus", refresh_from_other_devices);
-    document.addEventListener("visibilitychange", refresh_from_other_devices);
+    const unsubscribe_resume = subscribe_page_resume(
+      refresh_from_other_devices,
+    );
 
     return () => {
       cancelled = true;
       window.clearInterval(poll_id);
-      window.removeEventListener("focus", refresh_from_other_devices);
-      document.removeEventListener(
-        "visibilitychange",
-        refresh_from_other_devices,
-      );
+      unsubscribe_resume();
     };
   }, [vault_identity, is_completing_registration, reload_preferences]);
 

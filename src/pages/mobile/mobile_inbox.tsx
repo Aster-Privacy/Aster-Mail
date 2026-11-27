@@ -1321,7 +1321,7 @@ function MobileInbox({
               <span>{t("mail.filter")}</span>
             </button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-48">
+          <DropdownMenuContent align="end" className="min-w-48">
             {alias_address && (
               <AliasDirectionMenuItems direction={alias_direction} />
             )}
@@ -1731,7 +1731,9 @@ function MobileInbox({
           </p>
           {scheduled_target?.status === "failed" && (
             <div className="mb-3 rounded-[12px] border border-danger/40 bg-danger/10 px-3 py-2 text-[12px] text-danger">
-              {t(scheduled_failure_message_key(scheduled_target?.failure_reason))}
+              {t(
+                scheduled_failure_message_key(scheduled_target?.failure_reason),
+              )}
             </div>
           )}
           <div className="space-y-1">

@@ -35,6 +35,7 @@ import { should_keep_email_in_view } from "./display";
 import { group_emails_by_thread, sort_emails_by_timestamp } from "./grouping";
 import { mail_to_email_safe, type ListBodySummary } from "./mapping";
 import {
+  build_list_page_params,
   resolve_view_list_params,
   DEFAULT_PAGE_SIZE,
   MAX_PAGE_TOP_UP_ROUNDS,
@@ -175,19 +176,14 @@ export async function fetch_mail_from_api(
     return { emails: [], total: 0, has_more: false, raw_consumed: 0 };
   }
 
-  const params: ListMailItemsParams = {
-    ...view_params,
+  const params = build_list_page_params(view, view_params, {
     limit,
-    order,
-    pinned_first: true,
-    ...(offset !== undefined ? { offset } : cursor ? { cursor } : {}),
-    ...(offset !== undefined ? { group_by_thread: should_group } : {}),
-    ...(should_group ? { thread_pages: true } : {}),
-    ...((offset !== undefined && offset > 0) || cursor
-      ? { skip_total: true }
-      : {}),
-    ...(options.is_read !== undefined ? { is_read: options.is_read } : {}),
-  };
+    cursor,
+    offset,
+    conversation_grouping,
+    sort_order,
+    is_read: options.is_read,
+  });
 
   const reused = new Map<string, ReusedListItem>();
   const reuse_envelopes =

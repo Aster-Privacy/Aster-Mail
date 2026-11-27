@@ -544,6 +544,7 @@ async function decrypt_metadata_bytes(
       (base) => derive_legacy_metadata_key(base, context),
       ciphertext,
       nonce,
+      `metadata:${context}`,
     );
 
     if (recovered) return recovered;

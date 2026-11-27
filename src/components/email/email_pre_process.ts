@@ -23,6 +23,7 @@ import type { use_i18n } from "@/lib/i18n/context";
 import {
   collapse_empty_block_runs,
   collapse_forwarded_content,
+  convert_plain_quotes,
   collapse_quoted_replies,
   has_aster_compose_markup,
   trim_trailing_empty_blocks,
@@ -41,8 +42,11 @@ export interface PreProcessOptions {
   proxy_base: string;
 }
 
+const LOADABLE_BLOCKED_IMAGES =
+  "img[data-blocked='true']:not([data-tracking-pixel='true'])";
+
 function unblock_remote_content(doc: Document): void {
-  doc.querySelectorAll("img[data-blocked='true']").forEach((el) => {
+  doc.querySelectorAll(LOADABLE_BLOCKED_IMAGES).forEach((el) => {
     const src =
       el.getAttribute("data-proxy-src") || el.getAttribute("data-original-src");
 
@@ -120,10 +124,9 @@ export function pre_process_email_html(
 
   collapse_forwarded_content(doc, t);
   collapse_quoted_replies(doc, t);
-  if (!options.preserve_formatting) {
-    collapse_empty_block_runs(doc);
-    if (has_aster_compose_markup(doc)) trim_trailing_empty_blocks(doc);
-  }
+  convert_plain_quotes(doc);
+  if (!options.preserve_formatting) collapse_empty_block_runs(doc);
+  if (has_aster_compose_markup(doc)) trim_trailing_empty_blocks(doc);
 
   return doc.body ? doc.body.innerHTML : body_html;
 }

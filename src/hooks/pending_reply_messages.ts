@@ -52,6 +52,7 @@ export interface PendingReplyEntry {
   message: DecryptedThreadMessage;
   is_settled: boolean;
   status: PendingReplyStatus;
+  sent_id?: string;
 }
 
 export type PendingReplyRetry = () => void;
@@ -173,14 +174,26 @@ export function get_pending_reply_status(
   return pending_entries.get(optimistic_id)?.status ?? null;
 }
 
-export function settle_pending_reply_message(optimistic_id: string): void {
+export function settle_pending_reply_message(
+  optimistic_id: string,
+  sent_id?: string,
+): void {
   const entry = pending_entries.get(optimistic_id);
 
-  if (!entry || entry.is_settled) return;
+  if (!entry) return;
+  if (entry.is_settled) {
+    if (sent_id && !entry.sent_id) {
+      pending_entries.set(optimistic_id, { ...entry, sent_id });
+      notify();
+    }
+
+    return;
+  }
 
   retry_handlers.delete(optimistic_id);
   pending_entries.set(optimistic_id, {
     ...entry,
+    sent_id: sent_id ?? entry.sent_id,
     is_settled: true,
     status: { phase: "sent", can_retry: false },
   });
@@ -247,26 +260,116 @@ function has_sent_copy(
   );
 }
 
+function is_server_copy(message: DecryptedThreadMessage): boolean {
+  return (
+    message.item_type === "sent" &&
+    message.is_sending !== true &&
+    message.send_status !== "pending_server"
+  );
+}
+
+function recipient_emails(message: DecryptedThreadMessage): Set<string> {
+  return new Set(
+    [...(message.to_recipients ?? []), ...(message.cc_recipients ?? [])]
+      .map((recipient) => (recipient.email || "").trim().toLowerCase())
+      .filter((email) => email.length > 0),
+  );
+}
+
+function covers_recipients(
+  server: DecryptedThreadMessage,
+  pending: DecryptedThreadMessage,
+): boolean {
+  const wanted = recipient_emails(pending);
+  const got = recipient_emails(server);
+
+  if (wanted.size === 0 || got.size === 0) return true;
+
+  return [...wanted].every((email) => got.has(email));
+}
+
+function time_of(message: DecryptedThreadMessage): number {
+  return new Date(message.timestamp).getTime();
+}
+
+export function match_sent_copies(
+  current: DecryptedThreadMessage[],
+  entries: PendingReplyEntry[],
+  baselines?: ReadonlyMap<string, ReadonlySet<string>>,
+): Map<string, string> {
+  const matches = new Map<string, string>();
+  const pending_ids = new Set(entries.map((entry) => entry.message.id));
+  const servers = current
+    .filter(
+      (message) => !pending_ids.has(message.id) && is_server_copy(message),
+    )
+    .sort((a, b) => time_of(a) - time_of(b));
+  const server_ids = new Set(servers.map((message) => message.id));
+  const claimed = new Set<string>();
+
+  entries.forEach((entry) => {
+    if (entry.sent_id && server_ids.has(entry.sent_id)) {
+      matches.set(entry.message.id, entry.sent_id);
+      claimed.add(entry.sent_id);
+    }
+  });
+
+  entries
+    .filter(
+      (entry) =>
+        !entry.sent_id &&
+        !matches.has(entry.message.id) &&
+        !!baselines?.has(entry.message.id),
+    )
+    .sort((a, b) => time_of(a.message) - time_of(b.message))
+    .forEach((entry) => {
+      const baseline = baselines?.get(entry.message.id);
+      const earliest = time_of(entry.message) - SENT_COPY_CLOCK_SKEW_MS;
+      const found = servers.find(
+        (server) =>
+          !claimed.has(server.id) &&
+          !baseline?.has(server.id) &&
+          time_of(server) >= earliest &&
+          covers_recipients(server, entry.message),
+      );
+
+      if (!found) return;
+      matches.set(entry.message.id, found.id);
+      claimed.add(found.id);
+    });
+
+  return matches;
+}
+
 export function merge_pending_reply_messages(
   current: DecryptedThreadMessage[],
   entries: PendingReplyEntry[],
   reconciled_ids?: ReadonlySet<string>,
+  baselines?: ReadonlyMap<string, ReadonlySet<string>>,
 ): DecryptedThreadMessage[] {
   if (entries.length === 0) return current;
   if (!current.some((message) => message.is_sending !== true)) return current;
 
-  const present = new Set(current.map((message) => message.id));
+  const matched = match_sent_copies(current, entries, baselines);
+  const base =
+    matched.size === 0
+      ? current
+      : current.filter((message) => !matched.has(message.id));
+  const present = new Set(base.map((message) => message.id));
   const missing = entries
     .filter((entry) => {
+      if (matched.has(entry.message.id)) return false;
       if (present.has(entry.message.id)) return false;
       if (!entry.is_settled) return true;
       if (reconciled_ids?.has(entry.message.id)) return false;
 
-      return !has_sent_copy(current, entry.message);
+      return !has_sent_copy(base, entry.message);
     })
     .map((entry) => entry.message);
 
-  return missing.length === 0 ? current : [...current, ...missing];
+  if (missing.length === 0 && base.length === current.length) return current;
+
+  return [...base, ...missing];
 }
 
 export function bind_pending_reply_events(): void {
@@ -306,7 +409,7 @@ export function bind_pending_reply_events(): void {
       );
     }
     if (detail.optimistic_id) {
-      settle_pending_reply_message(detail.optimistic_id);
+      settle_pending_reply_message(detail.optimistic_id, detail.sent_id);
     }
   }) as EventListener);
 
@@ -366,12 +469,14 @@ export function use_pending_reply_messages({
   const tracked_email_id_ref = useRef(email_id);
   const shown_ids_ref = useRef(new Set<string>());
   const restored_ids_ref = useRef(new Set<string>());
+  const baselines_ref = useRef(new Map<string, ReadonlySet<string>>());
 
   useLayoutEffect(() => {
     if (tracked_email_id_ref.current !== email_id) {
       tracked_email_id_ref.current = email_id;
       shown_ids_ref.current = new Set();
       restored_ids_ref.current = new Set();
+      baselines_ref.current = new Map();
     }
 
     const expired = [...restored_ids_ref.current].filter(
@@ -402,9 +507,35 @@ export function use_pending_reply_messages({
       email_id && present.has(email_id) ? email_id : undefined,
     );
 
+    const pending_ids = new Set(entries.map((entry) => entry.message.id));
+    const loaded_ids = thread_messages
+      .filter(
+        (message) => !pending_ids.has(message.id) && message.is_sending !== true,
+      )
+      .map((message) => message.id);
+
+    [...baselines_ref.current.keys()].forEach((id) => {
+      if (!has_pending_reply_message(id)) baselines_ref.current.delete(id);
+    });
     entries.forEach((entry) => {
       if (present.has(entry.message.id)) {
         shown_ids_ref.current.add(entry.message.id);
+      }
+      if (loaded_ids.length > 0 && !baselines_ref.current.has(entry.message.id)) {
+        baselines_ref.current.set(entry.message.id, new Set(loaded_ids));
+      }
+    });
+
+    const baselines = baselines_ref.current;
+    const matched = match_sent_copies(thread_messages, entries, baselines);
+
+    entries.forEach((entry) => {
+      const sent_id = matched.get(entry.message.id);
+
+      if (!sent_id) return;
+      shown_ids_ref.current.add(entry.message.id);
+      if (!entry.is_settled || !entry.sent_id) {
+        settle_pending_reply_message(entry.message.id, sent_id);
       }
     });
 
@@ -415,6 +546,7 @@ export function use_pending_reply_messages({
       thread_messages,
       entries,
       reconciled_ids,
+      baselines,
     );
 
     if (merged === thread_messages) return;
@@ -423,7 +555,7 @@ export function use_pending_reply_messages({
       if (!present.has(message.id)) restored_ids_ref.current.add(message.id);
     });
     set_thread_messages((prev) =>
-      merge_pending_reply_messages(prev, entries, reconciled_ids),
+      merge_pending_reply_messages(prev, entries, reconciled_ids, baselines),
     );
   }, [
     enabled,

@@ -24,9 +24,10 @@ import type { ComposeToolbarState } from "@/components/compose/compose_shared";
 import { useId, useState, useRef, useEffect, useCallback } from "react";
 import { createPortal } from "react-dom";
 
-import { LinkPopover } from "./link_popover";
+import { LinkTool } from "./link_tool";
 import {
   ToolbarButton,
+  toolbar_button_class,
   use_anchored_layer,
   use_frozen_selection,
 } from "./shared";
@@ -73,10 +74,6 @@ export function InsertTools({ compose }: { compose: ComposeToolbarState }) {
   const { freeze_selection, apply_with_frozen_selection } =
     use_frozen_selection(editor);
 
-  const [show_link_dialog, set_show_link_dialog] = useState(false);
-  const [selected_text_for_link, set_selected_text_for_link] = useState("");
-  const [link_initial_url, set_link_initial_url] = useState("");
-  const link_btn_ref = useRef<HTMLButtonElement>(null);
   const [show_emoji, set_show_emoji] = useState(false);
   const [emoji_pos, set_emoji_pos] = useState({ bottom: 0, right: 0 });
   const emoji_btn_ref = useRef<HTMLButtonElement>(null);
@@ -104,34 +101,12 @@ export function InsertTools({ compose }: { compose: ComposeToolbarState }) {
 
   use_escape_layer(show_emoji, close_emoji, "compose_emoji_picker");
 
-  use_anchored_layer(
+  const emoji_visible = use_anchored_layer(
     show_emoji,
     emoji_btn_ref,
     (rect) => set_emoji_pos(clamp_emoji_picker_position(rect)),
     close_emoji,
   );
-
-  const handle_open_link_dialog = () => {
-    const anchor = editor?.get_link_at_selection() ?? null;
-
-    if (anchor) {
-      const selection = window.getSelection();
-
-      if (selection?.isCollapsed) {
-        const range = document.createRange();
-
-        range.selectNodeContents(anchor);
-        selection.removeAllRanges();
-        selection.addRange(range);
-      }
-    }
-
-    freeze_selection();
-    editor?.save_selection();
-    set_link_initial_url(anchor?.getAttribute("href") ?? "");
-    set_selected_text_for_link(window.getSelection()?.toString() || "");
-    set_show_link_dialog(true);
-  };
 
   return (
     <>
@@ -142,32 +117,7 @@ export function InsertTools({ compose }: { compose: ComposeToolbarState }) {
         <AttachmentIcon className="w-4 h-4" />
       </ToolbarButton>
 
-      {editor && !compose.is_plain_text_mode && (
-        <div>
-          <button
-            ref={link_btn_ref}
-            className={`press_scale w-9 h-9 flex items-center justify-center flex-shrink-0 rounded-full transition-transform duration-150 ${show_link_dialog ? "bg-black/10 text-txt-primary dark:bg-white/10 dark:text-white" : "hover:bg-[var(--aster-hover)] text-txt-tertiary hover:text-txt-primary"}`}
-            title={t("mail.insert_link")}
-            type="button"
-            onClick={handle_open_link_dialog}
-            onMouseDown={(e) => e.preventDefault()}
-          >
-            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z" />
-            </svg>
-          </button>
-          <LinkPopover
-            anchor_ref={link_btn_ref}
-            initial_url={link_initial_url}
-            on_close={() => set_show_link_dialog(false)}
-            on_insert={(url, text) =>
-              apply_with_frozen_selection(() => editor.insert_link(url, text))
-            }
-            open={show_link_dialog}
-            selected_text={selected_text_for_link}
-          />
-        </div>
-      )}
+      {editor && !compose.is_plain_text_mode && <LinkTool editor={editor} />}
 
       {editor && (
         <div>
@@ -176,7 +126,7 @@ export function InsertTools({ compose }: { compose: ComposeToolbarState }) {
             aria-controls={show_emoji ? emoji_panel_id : undefined}
             aria-expanded={show_emoji}
             aria-haspopup="dialog"
-            className={`press_scale w-9 h-9 flex items-center justify-center flex-shrink-0 rounded-full transition-transform duration-150 ${show_emoji ? "bg-black/10 text-txt-primary dark:bg-white/10 dark:text-white" : "hover:bg-[var(--aster-hover)] text-txt-tertiary hover:text-txt-primary"}`}
+            className={toolbar_button_class(show_emoji)}
             title={t("common.emoji")}
             type="button"
             onClick={() => {
@@ -192,7 +142,7 @@ export function InsertTools({ compose }: { compose: ComposeToolbarState }) {
             </svg>
           </button>
           {createPortal(
-            show_emoji && (
+            emoji_visible && (
               <div
                 ref={emoji_picker_ref}
                 className="aster_floating_anim fixed"

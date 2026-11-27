@@ -22,6 +22,8 @@ import type { Translations } from "../types";
 
 export const en: Translations = {
   common: {
+    couldnt_load: "Couldn't load.",
+    try_again_action: "Try again",
     merge_primary_label: "Primary",
     merge_make_primary: "Make primary",
     merge_primary_description:
@@ -279,8 +281,8 @@ export const en: Translations = {
     add_alias_note_placeholder: "Add note",
     edit_alias_note: "Edit note",
     toggle_alias: "Enable or disable this alias",
-    change_alias_avatar: "Change avatar",
-    remove_alias_avatar: "Remove avatar",
+    change_alias_avatar: "Change profile picture",
+    remove_alias_avatar: "Remove profile picture",
     alias_avatars_locked:
       "Custom avatars are part of paid plans. An upgrade will turn them on.",
     recovery_conflict:
@@ -436,6 +438,8 @@ export const en: Translations = {
     birthday_year_optional: "Year (optional)",
     notes: "Notes",
     hide_notes: "Hide notes",
+    sender_note_load_failed: "Your note did not load.",
+    sender_note_save_failed: "Your note was not saved.",
     favorite: "Favorite",
     favorited: "Favorited",
     added_to_favorites: "Added to favorites",
@@ -2249,6 +2253,7 @@ export const en: Translations = {
     zip_archive: "ZIP archive",
   },
   settings: {
+    referral_load_failed: "Couldn't load your invite details.",
     sandbox_off_by_setting_notice:
       "This window is running without its sandbox because an environment variable turned it off.",
     sandbox_off_notice:
@@ -9438,6 +9443,9 @@ export const en: Translations = {
       "This email was received on {{ received }}, but your reply is set to send from {{ selected }}. Replying from a different address can expose it to the sender, and the reply may be rejected.",
     reply_from_mismatch_use_received: "Use received address",
     sending_disabled_badge: "Sending disabled",
+    shake_feedback_prompt: "Something not working? Tell us about it.",
+    shake_feedback_send: "Send feedback",
+    shake_feedback_dismiss: "No thanks",
     reply_from_mismatch_banner: "This email was received on {{ received }}, but your reply is set to send from {{ selected }}.",
     reply_from_mismatch_banner_switch: "Send from {{ received }}",
     reply_from_mismatch_send_anyway: "Send anyway",
@@ -9617,6 +9625,8 @@ export const en: Translations = {
     load_external_content: "Load external content",
     external_content_hidden: "External content is hidden",
     show_external_content: "Show content",
+    trackers_blocked_count: "Trackers blocked: {{count}}",
+    trackers_stay_blocked: "Trackers stay blocked when you show content.",
     image_loading_settings: "Image settings",
     image: "image",
     images: "images",
@@ -10029,6 +10039,11 @@ export const en: Translations = {
     search_index_resume: "Resume",
     search_searching_title: "Searching your mail",
     search_index_preparing: "Getting your private index ready",
+    search_index_eta_under_minute: "Less than a minute left",
+    search_index_eta_minutes: "About {{value}} minutes left",
+    search_index_eta_minutes_one: "About {{value}} minute left",
+    search_index_eta_hours: "About {{value}} hours left",
+    search_index_eta_hours_one: "About {{value}} hour left",
     search_index_live_hint: "Matches appear as soon as they are found.",
     search_searching_more: "Searching more mail",
     search_index_why_label: "Why search needs an index",

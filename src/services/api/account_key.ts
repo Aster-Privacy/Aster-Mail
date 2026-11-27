@@ -111,8 +111,17 @@ let capabilities_cache: {
   fetched_at: number;
 } | null = null;
 
+let capabilities_failed_at = 0;
+let capabilities_in_flight: Promise<AccountKeyCapabilities> | null = null;
+let capabilities_generation = 0;
+
+export const CAPABILITIES_FAILURE_RETRY_MS = 15_000;
+
 export function reset_account_key_capabilities_cache(): void {
   capabilities_cache = null;
+  capabilities_failed_at = 0;
+  capabilities_in_flight = null;
+  capabilities_generation += 1;
 }
 
 export function account_key_capabilities_known(): boolean {
@@ -128,14 +137,9 @@ export function peek_account_key_capabilities(): AccountKeyCapabilities {
     : CAPABILITIES_DISABLED;
 }
 
-export async function get_account_key_capabilities(): Promise<AccountKeyCapabilities> {
-  if (
-    capabilities_cache &&
-    Date.now() - capabilities_cache.fetched_at < CAPABILITIES_TTL_MS
-  ) {
-    return capabilities_cache.value;
-  }
-
+async function fetch_account_key_capabilities(
+  generation: number,
+): Promise<AccountKeyCapabilities> {
   try {
     const response = await api_client.get<{
       format_writes?: unknown;
@@ -150,36 +154,68 @@ export async function get_account_key_capabilities(): Promise<AccountKeyCapabili
       bound_escrow_writes?: unknown;
       sealed_passkey_names?: unknown;
     }>("/crypto/v1/keys/account-key/capabilities");
-    const format_writes =
-      !response.error && response.data?.format_writes === true;
+
+    if (response.error || !response.data) {
+      if (generation === capabilities_generation) {
+        capabilities_failed_at = Date.now();
+      }
+
+      return CAPABILITIES_DISABLED;
+    }
+
+    const data = response.data;
+    const format_writes = data.format_writes === true;
     const value: AccountKeyCapabilities = {
       format_writes,
-      data_conversion: format_writes && response.data?.data_conversion === true,
-      device_recovery:
-        !response.error && response.data?.device_recovery === true,
-      key_escrow: !response.error && response.data?.key_escrow === true,
-      external_pgp_keys:
-        !response.error && response.data?.external_pgp_keys === true,
-      bound_vault_writes:
-        !response.error && response.data?.bound_vault_writes === true,
-      split_attachment_copies:
-        !response.error && response.data?.split_attachment_copies === true,
-      bound_envelope_writes:
-        !response.error && response.data?.bound_envelope_writes === true,
-      bound_prekey_writes:
-        !response.error && response.data?.bound_prekey_writes === true,
-      bound_escrow_writes:
-        !response.error && response.data?.bound_escrow_writes === true,
-      sealed_passkey_names:
-        !response.error && response.data?.sealed_passkey_names === true,
+      data_conversion: format_writes && data.data_conversion === true,
+      device_recovery: data.device_recovery === true,
+      key_escrow: data.key_escrow === true,
+      external_pgp_keys: data.external_pgp_keys === true,
+      bound_vault_writes: data.bound_vault_writes === true,
+      split_attachment_copies: data.split_attachment_copies === true,
+      bound_envelope_writes: data.bound_envelope_writes === true,
+      bound_prekey_writes: data.bound_prekey_writes === true,
+      bound_escrow_writes: data.bound_escrow_writes === true,
+      sealed_passkey_names: data.sealed_passkey_names === true,
     };
 
-    capabilities_cache = { value, fetched_at: Date.now() };
+    if (generation === capabilities_generation) {
+      capabilities_cache = { value, fetched_at: Date.now() };
+      capabilities_failed_at = 0;
+    }
 
     return value;
   } catch {
+    if (generation === capabilities_generation) {
+      capabilities_failed_at = Date.now();
+    }
+
     return CAPABILITIES_DISABLED;
   }
+}
+
+export async function get_account_key_capabilities(): Promise<AccountKeyCapabilities> {
+  if (account_key_capabilities_known() && capabilities_cache) {
+    return capabilities_cache.value;
+  }
+
+  if (
+    capabilities_failed_at &&
+    Date.now() - capabilities_failed_at < CAPABILITIES_FAILURE_RETRY_MS
+  ) {
+    return CAPABILITIES_DISABLED;
+  }
+
+  if (capabilities_in_flight) return capabilities_in_flight;
+
+  const generation = capabilities_generation;
+  const pending = fetch_account_key_capabilities(generation).finally(() => {
+    if (capabilities_in_flight === pending) capabilities_in_flight = null;
+  });
+
+  capabilities_in_flight = pending;
+
+  return pending;
 }
 
 export interface AccountDataConversionStatus {

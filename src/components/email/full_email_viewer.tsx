@@ -436,7 +436,7 @@ export function FullEmailViewer({
     !viewer.error;
 
   const viewer_content = (
-    <div className="flex flex-col h-full bg-surf-primary">
+    <div className="flex flex-col h-full bg-surf-primary" data-reading-pane="">
       <div className="flex items-center gap-1 px-2 sm:px-3 py-2 border-b border-edge-primary flex-shrink-0">
         <button
           className="flex items-center gap-1.5 px-2 py-1.5 me-1 rounded-[var(--aster-radius-control)] text-sm font-medium transition-all hover:bg-surf-hover text-txt-secondary"
@@ -542,7 +542,7 @@ export function FullEmailViewer({
                 </h1>
                 {viewer.mail_item?.is_spam === true && (
                   <EmailTag
-                    className="flex-shrink-0"
+                    className="flex-shrink-0 select-none"
                     label={t("mail.spam_label")}
                     variant="spam"
                   />
@@ -550,7 +550,7 @@ export function FullEmailViewer({
                 {label_chips.map((chip) => (
                   <EmailTag
                     key={chip.token}
-                    className="flex-shrink-0"
+                    className="flex-shrink-0 select-none"
                     custom_color={chip.color}
                     icon={(chip.icon as TagIconName) || "folder"}
                     label={chip.name}

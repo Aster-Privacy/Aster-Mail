@@ -164,6 +164,7 @@ describe("use_email_list_events background poll", () => {
 
     await act(async () => {
       document.dispatchEvent(new Event("visibilitychange"));
+      await vi.advanceTimersByTimeAsync(300);
     });
 
     expect(hoisted.silent_fetch).toHaveBeenCalledTimes(1);

@@ -24,8 +24,11 @@ import {
   clear_removed_items,
   drop_removed_after,
   forget_removed_ids,
+  hold_removed_ids,
   is_recently_removed,
   note_removed_ids,
+  release_removed_ids,
+  removed_within,
 } from "./removed_items";
 
 const rows = [{ id: "a" }, { id: "b" }, { id: "c" }];
@@ -64,5 +67,38 @@ describe("removed_items", () => {
 
     expect(is_recently_removed("b")).toBe(false);
     expect(drop_removed_after(rows, Date.now() - 1000)).toEqual(rows);
+  });
+
+  it("drops a held row from fetches that start after the removal", () => {
+    hold_removed_ids(["b"]);
+
+    expect(drop_removed_after(rows, Date.now() + 60_000)).toEqual([
+      { id: "a" },
+      { id: "c" },
+    ]);
+  });
+
+  it("returns to normal timing once the hold is released", () => {
+    hold_removed_ids(["b"]);
+    release_removed_ids(["b"]);
+
+    expect(drop_removed_after(rows, Date.now() + 60_000)).toEqual(rows);
+    expect(is_recently_removed("b")).toBe(true);
+  });
+
+  it("keeps a row held until every hold is released", () => {
+    hold_removed_ids(["b"]);
+    hold_removed_ids(["b"]);
+    release_removed_ids(["b"]);
+
+    expect(drop_removed_after(rows, Date.now() + 60_000)).toHaveLength(2);
+  });
+
+  it("reports a recent removal", () => {
+    expect(removed_within(2_000)).toBe(false);
+
+    note_removed_ids(["a"]);
+
+    expect(removed_within(2_000)).toBe(true);
   });
 });

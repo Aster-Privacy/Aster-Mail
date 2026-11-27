@@ -125,7 +125,7 @@ export function HeaderToolbar({
               </Button>
             </DropdownMenuTrigger>
           </Tooltip>
-          <DropdownMenuContent align="end" className="w-56">
+          <DropdownMenuContent align="end" className="min-w-56">
             <DropdownMenuLabel>{t("mail.quick_actions")}</DropdownMenuLabel>
             <DropdownMenuItem
               onClick={() => handle_batch_action("mark_all_read")}

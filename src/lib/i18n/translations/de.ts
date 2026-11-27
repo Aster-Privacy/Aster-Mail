@@ -20,6 +20,8 @@
 //
 export const de = {
   common: {
+    couldnt_load: "Laden fehlgeschlagen.",
+    try_again_action: "Erneut versuchen",
     merge_primary_label: "Hauptkontakt",
     merge_make_primary: "Als Hauptkontakt",
     merge_primary_description:
@@ -354,6 +356,8 @@ export const de = {
     birthday_year_optional: "Jahr (optional)",
     notes: "Notizen",
     hide_notes: "Notizen ausblenden",
+    sender_note_load_failed: "Ihre Notiz wurde nicht geladen.",
+    sender_note_save_failed: "Ihre Notiz wurde nicht gespeichert.",
     favorite: "Favorit",
     favorited: "Favorisiert",
     added_to_favorites: "Zu Favoriten hinzugefügt",
@@ -1703,7 +1707,7 @@ export const de = {
       "Der Server, der diese Nachricht gesendet hat, ist kein genehmigter Absender für die Domain in der Von-Zeile.",
     back_to_inbox: "Zurück zum Posteingang",
     blocked_items_count: "{{count}} Elemente",
-    change_alias_avatar: "Avatar ändern",
+    change_alias_avatar: "Profilbild ändern",
     click_to_add_value: "Zum Hinzufügen klicken...",
     contacts_deleted: "{{ count }} Kontakt(e) gelöscht",
     contacts_starred: "{{ count }} Kontakt(e) mit Stern markiert",
@@ -1889,7 +1893,7 @@ export const de = {
     recovery_text_unrecoverable:
       "Ohne diese Codes kann niemand Sie zurück in Ihr Konto bringen, wenn Sie Ihr Passwort vergessen.",
     recovery_text_your_codes: "IHRE WIEDERHERSTELLUNGSCODES:",
-    remove_alias_avatar: "Avatar entfernen",
+    remove_alias_avatar: "Profilbild entfernen",
     remove_recovery_email: "Wiederherstellungs-E-Mail entfernen",
     step_up_description:
       "Bestätigen Sie zu Ihrer Sicherheit Ihr Passwort, um fortzufahren.",
@@ -2307,6 +2311,8 @@ export const de = {
     zip_archive: "ZIP-Archiv",
   },
   settings: {
+    referral_load_failed:
+      "Deine Einladungsdetails konnten nicht geladen werden.",
     sandbox_off_by_setting_notice:
       "Dieses Fenster läuft ohne Sandbox, weil eine Umgebungsvariable sie ausgeschaltet hat.",
     sandbox_off_notice:
@@ -10549,6 +10555,11 @@ export const de = {
     search_index_resume: "Fortsetzen",
     search_searching_title: "Ihre E-Mails werden durchsucht",
     search_index_preparing: "Ihr privater Index wird vorbereitet",
+    search_index_eta_under_minute: "Weniger als eine Minute verbleibend",
+    search_index_eta_minutes: "Noch etwa {{value}} Minuten",
+    search_index_eta_minutes_one: "Noch etwa {{value}} Minute",
+    search_index_eta_hours: "Noch etwa {{value}} Stunden",
+    search_index_eta_hours_one: "Noch etwa {{value}} Stunde",
     search_index_live_hint: "Treffer erscheinen, sobald sie gefunden werden.",
     search_searching_more: "Weitere E-Mails werden durchsucht",
     search_index_why_label: "Warum die Suche einen Index benötigt",
@@ -10559,6 +10570,9 @@ export const de = {
     load_external_content: "Externe Inhalte laden",
     external_content_hidden: "Externe Inhalte sind ausgeblendet",
     show_external_content: "Inhalte anzeigen",
+    trackers_blocked_count: "Blockierte Tracker: {{count}}",
+    trackers_stay_blocked:
+      "Tracker bleiben auch beim Anzeigen von Inhalten blockiert.",
     image_loading_settings: "Bildeinstellungen",
     location_label: "Ort:",
     message_details: "Nachrichtendetails",
@@ -10645,6 +10659,9 @@ export const de = {
       "Diese E-Mail wurde an {{ received }} empfangen, Ihre Antwort wird aber von {{ selected }} gesendet. Eine Antwort von einer anderen Adresse kann diese dem Absender offenlegen, und die Antwort kann abgelehnt werden.",
     reply_from_mismatch_use_received: "Empfangsadresse verwenden",
     sending_disabled_badge: "Senden deaktiviert",
+    shake_feedback_prompt: "Funktioniert etwas nicht? Teilen Sie es uns mit.",
+    shake_feedback_send: "Feedback senden",
+    shake_feedback_dismiss: "Nein, danke",
     reply_from_mismatch_banner: "Diese E-Mail ging an {{ received }}, aber deine Antwort wird von {{ selected }} gesendet.",
     reply_from_mismatch_banner_switch: "Von {{ received }} senden",
     reply_from_mismatch_send_anyway: "Trotzdem senden",

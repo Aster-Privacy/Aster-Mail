@@ -515,7 +515,7 @@ export const InlineReplySection = forwardRef<
         require_encryption: preferences.require_encryption === true,
       },
       {
-        on_complete: () => {
+        on_complete: (sent_id?: string) => {
           is_sending_ref.current = false;
           set_send_state("sent");
           on_sending_end?.();
@@ -526,6 +526,7 @@ export const InlineReplySection = forwardRef<
             emit_thread_reply_sent({
               thread_token,
               original_email_id: email_id,
+              sent_id,
             });
           }
 

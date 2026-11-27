@@ -96,8 +96,10 @@ vi.mock("@/services/api/key_rotation", () => ({
   get_identity_key_status: () => identity_key_status(),
 }));
 
+let alias_counts = { count: 3, max: 10 };
+
 vi.mock("@/services/api/aliases", () => ({
-  get_alias_counts: () => Promise.resolve({ data: { count: 3, max: 10 } }),
+  get_alias_counts: () => Promise.resolve({ data: alias_counts }),
 }));
 
 let alias_cache: {
@@ -195,6 +197,7 @@ describe("quick security panel", () => {
     });
     guard_status.mockResolvedValue({ error: "not found", status: 404 });
     alias_cache = [];
+    alias_counts = { count: 3, max: 10 };
     container = document.createElement("div");
     document.body.appendChild(container);
     root = createRoot(container);
@@ -434,6 +437,19 @@ describe("quick security panel", () => {
       "settings.security_center_encryption_title",
     );
     expect(container.textContent).toContain("3456 789A");
+  });
+
+  it("shows the alias count alone on a plan with unlimited aliases", async () => {
+    alias_counts = { count: 4, max: -1 };
+    await render_panel();
+
+    const aliases_row = Array.from(container.querySelectorAll("button")).find(
+      (button) => button.textContent?.includes("common.aliases"),
+    );
+
+    expect(aliases_row?.textContent).toContain("4");
+    expect(container.textContent).not.toContain("-1");
+    expect(container.textContent).not.toContain("4/");
   });
 
   it("hides the encryption section without an identity key fingerprint", async () => {

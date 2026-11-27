@@ -48,6 +48,7 @@ import {
   waiting_queued_send_draft_count,
 } from "@/services/queued_send_drafts";
 import { sync_client } from "@/services/sync_client";
+import { subscribe_page_resume } from "@/lib/page_resume";
 
 export interface MailStats {
   total_items: number;
@@ -135,6 +136,7 @@ const FETCH_STUCK_MS = 45_000;
 const VERIFY_AFTER_RECEIVE_MS = 8_000;
 
 const INITIAL_STATS_DELAY_MS = 1_000;
+const RESUME_REFETCH_MIN_MS = 15_000;
 const STORAGE_KEY_PREFIX = "aster_mail_stats_";
 const STORAGE_SCHEMA_VERSION = 3;
 
@@ -786,12 +788,18 @@ export function use_mail_stats(): UseMailStatsReturn {
     if (!mounted_ref.current) return;
     const cache = stats_store.get_cache();
 
-    set_state((prev) => ({
-      ...prev,
-      stats: cache.data,
-      is_loading: cache.fetching,
-      has_initialized: cache.has_initialized,
-    }));
+    set_state((prev) =>
+      prev.stats === cache.data &&
+      prev.is_loading === cache.fetching &&
+      prev.has_initialized === cache.has_initialized
+        ? prev
+        : {
+            ...prev,
+            stats: cache.data,
+            is_loading: cache.fetching,
+            has_initialized: cache.has_initialized,
+          },
+    );
   }, []);
 
   const refresh = useCallback(() => {
@@ -879,16 +887,6 @@ export function use_mail_stats(): UseMailStatsReturn {
       stats_store.fetch(true);
     };
 
-    const handle_visibility = () => {
-      if (
-        document.visibilityState === "visible" &&
-        has_passphrase_in_memory()
-      ) {
-        stats_store.invalidate();
-        stats_store.fetch(false);
-      }
-    };
-
     window.addEventListener(MAIL_EVENTS.MAIL_CHANGED, handle_change);
     window.addEventListener(MAIL_EVENTS.MAIL_ITEM_UPDATED, handle_item_update);
     window.addEventListener(MAIL_EVENTS.MAIL_SOFT_REFRESH, handle_change);
@@ -902,16 +900,15 @@ export function use_mail_stats(): UseMailStatsReturn {
     window.addEventListener(MAIL_EVENTS.FOLDERS_CHANGED, handle_change);
     window.addEventListener(MAIL_EVENTS.PROTECTED_FOLDERS_READY, handle_change);
     window.addEventListener("astermail:folder-locked", handle_change);
-    const handle_online = () => {
-      if (!has_passphrase_in_memory()) return;
-
-      stats_store.invalidate();
-      stats_store.fetch(false);
-    };
+    const unsubscribe_resume = subscribe_page_resume(
+      () => {
+        if (!has_passphrase_in_memory()) return;
+        stats_store.fetch_debounced();
+      },
+      { min_interval_ms: RESUME_REFETCH_MIN_MS },
+    );
 
     window.addEventListener(MAIL_EVENTS.AUTH_READY, handle_auth_ready);
-    window.addEventListener("online", handle_online);
-    document.addEventListener("visibilitychange", handle_visibility);
 
     return () => {
       window.removeEventListener(MAIL_EVENTS.MAIL_CHANGED, handle_change);
@@ -934,8 +931,7 @@ export function use_mail_stats(): UseMailStatsReturn {
       );
       window.removeEventListener("astermail:folder-locked", handle_change);
       window.removeEventListener(MAIL_EVENTS.AUTH_READY, handle_auth_ready);
-      window.removeEventListener("online", handle_online);
-      document.removeEventListener("visibilitychange", handle_visibility);
+      unsubscribe_resume();
     };
   }, []);
 

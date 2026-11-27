@@ -46,6 +46,17 @@ class FakeResizeObserver {
   disconnect() {}
 }
 
+let measure_count = 0;
+
+async function resize(times = 1) {
+  await act(async () => {
+    for (let i = 0; i < times; i++) observer_callback?.();
+    await new Promise<void>((resolve) =>
+      requestAnimationFrame(() => resolve()),
+    );
+  });
+}
+
 function Probe({ saved_width }: { saved_width: number }) {
   const pane = use_split_pane({
     is_split_view: true,
@@ -61,8 +72,11 @@ function Probe({ saved_width }: { saved_width: number }) {
     <div
       ref={(node) => {
         if (node) {
-          node.getBoundingClientRect = () =>
-            ({ width: container_width, height: 800 }) as DOMRect;
+          node.getBoundingClientRect = () => {
+            measure_count += 1;
+
+            return { width: container_width, height: 800 } as DOMRect;
+          };
         }
       }}
     >
@@ -88,26 +102,38 @@ describe("use_split_pane", () => {
     container_width = 1600;
   });
 
-  it("shrinks the list when the container gets narrower", () => {
+  it("shrinks the list when the container gets narrower", async () => {
     vi.stubGlobal("ResizeObserver", FakeResizeObserver);
     mount(1200);
 
     expect(latest_width).toBe(1200);
 
     container_width = 1100;
-    act(() => observer_callback?.());
+    await resize();
 
     expect(latest_width).toBe(1100 - 360);
   });
 
-  it("never goes below the minimum list width", () => {
+  it("never goes below the minimum list width", async () => {
     vi.stubGlobal("ResizeObserver", FakeResizeObserver);
     mount(1200);
 
     container_width = 500;
-    act(() => observer_callback?.());
+    await resize();
 
     expect(latest_width).toBe(256);
+  });
+
+  it("measures once per frame however often the size changes", async () => {
+    vi.stubGlobal("ResizeObserver", FakeResizeObserver);
+    mount(1200);
+    measure_count = 0;
+
+    container_width = 1100;
+    await resize(5);
+
+    expect(measure_count).toBe(1);
+    expect(latest_width).toBe(1100 - 360);
   });
 });
 
@@ -274,14 +300,14 @@ describe("use_split_pane resizing", () => {
     document.body.style.userSelect = "";
   });
 
-  it("scales a saved ratio with the window", () => {
+  it("scales a saved ratio with the window", async () => {
     vi.stubGlobal("ResizeObserver", FakeResizeObserver);
     mount_controlled({ saved_ratio: 0.4 });
 
     expect(latest_width).toBe(640);
 
     container_width = 2400;
-    act(() => observer_callback?.());
+    await resize();
 
     expect(latest_width).toBe(960);
   });

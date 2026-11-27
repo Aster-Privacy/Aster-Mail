@@ -37,8 +37,10 @@ import {
 } from "@heroicons/react/24/outline";
 import { Button } from "@aster/ui";
 
-import { Skeleton } from "@/components/ui/skeleton";
-import { InboxEmailListItem } from "@/components/email/inbox_email_list_item";
+import {
+  InboxEmailListItem,
+  MailRowSkeletonList,
+} from "@/components/email/inbox_email_list_item";
 import { EmailContextMenuContent } from "@/components/email/email_context_menu";
 import { ContextMenu, ContextMenuTrigger } from "@/components/ui/context_menu";
 import { FolderPasswordModal } from "@/components/folders/folder_password_modal";
@@ -58,11 +60,7 @@ import { ignore_error } from "@/lib/ignore_error";
 import { MAIL_EVENTS, on_mail_event } from "@/hooks/mail_events";
 import { cn } from "@/lib/utils";
 import { type ListToggleOptions } from "@/lib/list_click_selection";
-import {
-  is_compact_density,
-  list_row_intrinsic_height,
-  resolve_list_density,
-} from "@/lib/list_density";
+import { list_row_intrinsic_height } from "@/lib/list_density";
 import {
   build_selection_snapshot,
   empty_selection_snapshot,
@@ -851,89 +849,7 @@ export function EmailList({
 }
 
 export function LoadingState(): React.ReactElement {
-  const { preferences } = use_preferences();
-  const is_compact = is_compact_density(
-    resolve_list_density(preferences.mail_list_density),
-    preferences.compact_mode ?? false,
-  );
-  const row_height = is_compact ? 41 : 49;
-  const container_ref = useRef<HTMLDivElement>(null);
-  const [row_count, set_row_count] = useState(() => {
-    const header_height = 41;
-
-    return Math.max(
-      Math.ceil((window.innerHeight - header_height) / row_height) + 1,
-      1,
-    );
-  });
-
-  useEffect(() => {
-    const calculate_rows = () => {
-      if (container_ref.current) {
-        const parent = container_ref.current.parentElement;
-        const container_height = parent
-          ? parent.clientHeight
-          : container_ref.current.clientHeight;
-        const header_height = 41;
-
-        set_row_count(
-          Math.max(
-            Math.ceil((container_height - header_height) / row_height) + 1,
-            1,
-          ),
-        );
-      }
-    };
-
-    calculate_rows();
-    window.addEventListener("resize", calculate_rows);
-
-    return () => window.removeEventListener("resize", calculate_rows);
-  }, [row_height]);
-
-  return (
-    <div ref={container_ref} className="overflow-hidden">
-      {Array.from({ length: row_count }).map((_, i) => (
-        <SkeletonEmailRow
-          key={i}
-          is_compact={is_compact}
-          show_avatar={preferences.show_profile_pictures !== false}
-        />
-      ))}
-    </div>
-  );
-}
-
-function SkeletonEmailRow({
-  is_compact,
-  show_avatar,
-}: {
-  is_compact: boolean;
-  show_avatar: boolean;
-}): React.ReactElement {
-  return (
-    <div
-      className={`flex items-center gap-2 sm:gap-3 px-3 sm:px-4 ${is_compact ? "py-1.5" : "py-2"} border-b overflow-hidden border-edge-secondary`}
-    >
-      <Skeleton className="w-[18px] h-[18px] flex-shrink-0" />
-      {show_avatar && (
-        <Skeleton
-          className={`${is_compact ? "w-7 h-7" : "w-8 h-8"} rounded-full flex-shrink-0 hidden sm:block`}
-        />
-      )}
-      <div className="flex-1 min-w-0 flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3 overflow-hidden">
-        <div className="flex items-center gap-2 min-w-0">
-          <Skeleton className="h-4 w-full max-w-[100px]" />
-          <Skeleton className="w-10 h-3 sm:hidden ms-auto flex-shrink-0" />
-        </div>
-        <div className="flex items-center gap-2 sm:contents min-w-0 overflow-hidden">
-          <Skeleton className="h-4 flex-1 min-w-0 max-w-[140px]" />
-          <Skeleton className="h-3 flex-1 max-w-[100px] hidden xl:block" />
-        </div>
-      </div>
-      <Skeleton className="w-10 h-3 hidden sm:block flex-shrink-0" />
-    </div>
-  );
+  return <MailRowSkeletonList first_row_class_name="border-t-0" />;
 }
 
 interface EmptyStateProps {

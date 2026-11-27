@@ -24,8 +24,9 @@ import { useMemo, forwardRef, memo } from "react";
 import { FolderIcon } from "@heroicons/react/24/outline";
 
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
+import { SEARCH_RESULT_ROW_LAYOUT } from "@/components/search/search_results_list";
 import { use_search_sender_trust } from "@/hooks/use_sender_trust";
-import { is_system_email } from "@/lib/utils";
+import { cn, is_system_email } from "@/lib/utils";
 import { strip_html_tags, strip_leading_css_rules } from "@/lib/html_text";
 import { strip_preview_filler } from "@/utils/preview_text";
 import { format_relative_time } from "@/utils/date_utils";
@@ -127,7 +128,9 @@ const SearchResultRowBase = forwardRef<
 
   const preview_lines = useMemo(() => {
     const raw_preview = result.preview || "";
-    const plain_text = strip_preview_filler(strip_leading_css_rules(strip_html_tags(raw_preview)));
+    const plain_text = strip_preview_filler(
+      strip_leading_css_rules(strip_html_tags(raw_preview)),
+    );
     const lines = plain_text
       .split(/\n/)
       .filter((l) => l.trim())
@@ -155,7 +158,10 @@ const SearchResultRowBase = forwardRef<
   return (
     <button
       ref={ref}
-      className="search_result_row flex items-center gap-3 w-full px-3 py-2.5 text-start rounded-[14px]"
+      className={cn(
+        "search_result_row text-start rounded-[14px]",
+        SEARCH_RESULT_ROW_LAYOUT,
+      )}
       onClick={on_click}
     >
       <ProfileAvatar

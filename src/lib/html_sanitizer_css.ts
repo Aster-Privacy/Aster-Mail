@@ -192,6 +192,7 @@ export function escape_style_terminator(css: string): string {
 
 export interface StripCssUrlOptions {
   image_proxy_url?: string;
+  drop_url?: (url: string) => boolean;
 }
 
 const SAFE_CSS_IMAGE_SOURCE = /^(?:cid:|data:image\/)/i;
@@ -492,6 +493,14 @@ export function strip_css_urls(
           : "none";
       }
 
+      if (
+        options.drop_url &&
+        is_remote_url_value(trimmed) &&
+        options.drop_url(normalize_url_value(inner))
+      ) {
+        return "none";
+      }
+
       if (options.image_proxy_url && is_remote_url_value(trimmed)) {
         const proxied = build_proxy_url(
           options.image_proxy_url,
@@ -681,17 +690,38 @@ function proxy_font_face_urls(css: string, image_proxy_url: string): string {
   });
 }
 
-export function proxy_css_urls(css: string, image_proxy_url: string): string {
+export function proxy_css_urls(
+  css: string,
+  image_proxy_url: string,
+  drop_url?: (url: string) => boolean,
+): string {
   let result = "";
   let cursor = 0;
 
   for (const [start, end] of find_font_face_ranges(css)) {
-    result += strip_css_urls(css.slice(cursor, start), { image_proxy_url });
+    result += strip_css_urls(css.slice(cursor, start), {
+      image_proxy_url,
+      drop_url,
+    });
     result += proxy_font_face_urls(css.slice(start, end), image_proxy_url);
     cursor = end;
   }
 
-  return result + strip_css_urls(css.slice(cursor), { image_proxy_url });
+  return (
+    result + strip_css_urls(css.slice(cursor), { image_proxy_url, drop_url })
+  );
+}
+
+export function strip_matching_css_urls(
+  css: string,
+  drop_url: (url: string) => boolean,
+): string {
+  return walk_css_urls(strip_css_comments(decode_css_escapes(css)), {
+    url: (whole, inner) =>
+      is_remote_url_value(inner) && drop_url(normalize_url_value(inner))
+        ? "none"
+        : whole,
+  });
 }
 
 export function block_remote_fonts(css: string): string {

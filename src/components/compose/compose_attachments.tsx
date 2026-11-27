@@ -113,7 +113,7 @@ function AttachmentRow({
   const color = get_file_icon_color(attachment.mime_type);
 
   return (
-    <div className="flex items-center gap-2 px-2 py-1 rounded group hover:bg-[var(--aster-hover)] transition-colors">
+    <div className="flex items-center gap-2 px-2 py-1 rounded group hover:bg-[var(--aster-hover)] transition-colors select-none">
       <span className="flex-shrink-0" style={{ color: color.text }}>
         {get_file_type_icon(attachment.mime_type)}
       </span>

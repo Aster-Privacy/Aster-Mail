@@ -321,6 +321,7 @@ export function EmailPopupViewer({
       ref={viewer.popup_ref}
       animate={{ opacity: 1 }}
       className="fixed z-50 flex flex-col shadow-[var(--aster-floating-shadow)] bg-modal-bg"
+      data-reading-pane=""
       exit={{ opacity: 0 }}
       initial={reduce_motion ? false : { opacity: 0 }}
       style={{

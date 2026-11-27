@@ -21,7 +21,7 @@
 
 import {
   is_vocabulary_term,
-  release_deletion_index,
+  schedule_deletion_index_release,
   vocabulary_candidates,
   vocabulary_count,
   vocabulary_has_term,
@@ -227,6 +227,6 @@ export function suggest_query_correction(
 
     return null;
   } finally {
-    release_deletion_index();
+    schedule_deletion_index_release();
   }
 }

@@ -294,9 +294,10 @@ export function QuickSecurityPanel({
     return state_label(item.met);
   };
 
-  const alias_value = overview.alias_max
-    ? `${overview.alias_count}/${overview.alias_max}`
-    : String(overview.alias_count);
+  const alias_value =
+    overview.alias_max > 0
+      ? `${overview.alias_count}/${overview.alias_max}`
+      : String(overview.alias_count);
 
   const open_security = useCallback(() => {
     go_to_settings(SECURITY_CENTER_TARGETS.overview);

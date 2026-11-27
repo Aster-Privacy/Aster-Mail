@@ -103,9 +103,7 @@ describe("quoted original stays out of the visible body", () => {
       `<div><img src="cid:note@aster" alt=""></div><div class="protonmail_quote">-------- Original Message --------<br><blockquote class="protonmail_quote">Quoted original.</blockquote></div>`,
     );
 
-    expect(
-      doc.body.querySelector("details.aster-forwarded-collapse"),
-    ).not.toBeNull();
+    expect(doc.body.querySelector(".aster-quoted-wrapper")).not.toBeNull();
     expect(visible_text(doc)).not.toContain("Quoted original.");
     expect(collapsed_text(doc)).toContain("Quoted original.");
   });
@@ -115,8 +113,7 @@ describe("quoted original stays out of the visible body", () => {
 
     expect(run(html, 3).body.innerHTML).toBe(run(html, 1).body.innerHTML);
     expect(
-      run(html, 3).body.querySelectorAll("details.aster-forwarded-collapse")
-        .length,
+      run(html, 3).body.querySelectorAll(".aster-quoted-wrapper").length,
     ).toBe(1);
   });
 });

@@ -26,6 +26,7 @@ import {
   find_quote_start,
   find_trailing_quote,
   has_reply_text_before,
+  is_attribution_text,
   is_boilerplate_text,
   is_separator_text,
   resolve_quote_end,
@@ -40,6 +41,7 @@ import { connection_store } from "@/services/routing/connection_store";
 import { clear_blocked_image } from "@/lib/blocked_image_placeholder";
 import { ignore_error } from "@/lib/ignore_error";
 import { remove_aster_footers } from "@/lib/aster_footer_strip";
+import { convert_plain_quote_markup } from "@/lib/quoted_history_clean";
 import { LITERAL_TEXT_SELECTOR } from "@/lib/literal_text";
 import {
   proxied_image_target,
@@ -176,8 +178,8 @@ export function create_quote_wrapper(
 
 function has_visible_content(node: Node): boolean {
   return (
-    (node.textContent || "").replace(/[​‌‍⁠﻿]/g, "").trim()
-      .length > 0 || contains_media(node)
+    (node.textContent || "").replace(/[​‌‍⁠﻿]/g, "").trim().length > 0 ||
+    contains_media(node)
   );
 }
 
@@ -214,6 +216,195 @@ export function has_aster_compose_markup(doc: Document): boolean {
   );
 }
 
+const NESTING_QUOTE_SELECTOR =
+  "blockquote, .aster_quote, .gmail_quote, .yahoo_quoted, .protonmail_quote, .aster-quoted-content, .aster-forwarded-content";
+
+const FORWARD_HEADER_RE =
+  /-{2,}\s*Forwarded\s+message\s*-{2,}|Begin forwarded message:/i;
+const ORIGINAL_HEADER_RE = /-{2,}\s*Original\s+message\s*-{2,}/i;
+const HEADER_FIELD_RE = /(?:^|\s)(From|Date|Sent|Subject):/gi;
+
+function quote_header_text(wrapper: Element): string {
+  const clone = wrapper.cloneNode(true) as Element;
+
+  clone.querySelectorAll("blockquote").forEach((el) => el.remove());
+  clone.querySelectorAll("br").forEach((el) => el.replaceWith("\n"));
+
+  return clone.textContent || "";
+}
+
+function marker_window_text(marker_block: Element): string {
+  const parts: string[] = [quote_header_text(marker_block)];
+  let sib: Node | null = marker_block.nextSibling;
+
+  for (let i = 0; sib && i < 8; i++) {
+    parts.push(
+      sib.nodeType === Node.ELEMENT_NODE
+        ? quote_header_text(sib as Element)
+        : sib.textContent || "",
+    );
+    sib = sib.nextSibling;
+  }
+
+  return parts.join("\n");
+}
+
+function is_forward_header_text(text: string): boolean {
+  if (FORWARD_HEADER_RE.test(text)) return true;
+  if (!ORIGINAL_HEADER_RE.test(text)) return false;
+  const fields = new Set(
+    Array.from(text.matchAll(HEADER_FIELD_RE), (m) => m[1].toLowerCase()),
+  );
+
+  return fields.has("from") && fields.has("subject");
+}
+
+function is_quote_header_line(nodes: Node[]): boolean {
+  const has_quote_block = nodes.some(
+    (n) =>
+      n.nodeType === Node.ELEMENT_NODE &&
+      ((n as Element).tagName === "BLOCKQUOTE" ||
+        !!(n as Element).querySelector("blockquote")),
+  );
+
+  if (has_quote_block) return true;
+  const text = nodes
+    .map((n) => n.textContent || "")
+    .join("")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  return !!text && (ORIGINAL_HEADER_RE.test(text) || is_attribution_text(text));
+}
+
+function hoist_reply_text_from_quote(wrapper: Element): void {
+  const leading: Node[] = [];
+  let line: Node[] = [];
+  let header_found = false;
+
+  for (const child of Array.from(wrapper.childNodes)) {
+    if (is_line_break(child)) {
+      leading.push(...line, child);
+      line = [];
+      continue;
+    }
+    if (
+      child.nodeType === Node.ELEMENT_NODE &&
+      !["SPAN", "A", "B", "I", "STRONG", "EM", "FONT"].includes(
+        (child as Element).tagName,
+      )
+    ) {
+      if (is_quote_header_line(line) || is_quote_header_line([child])) {
+        header_found = true;
+        break;
+      }
+      leading.push(...line, child);
+      line = [];
+      continue;
+    }
+    line.push(child);
+    if (is_quote_header_line(line)) {
+      header_found = true;
+      break;
+    }
+  }
+  if (!header_found || !leading.some(has_visible_content)) return;
+
+  while (leading.length && !has_visible_content(leading[leading.length - 1])) {
+    const spacer = leading.pop()!;
+
+    spacer.parentNode?.removeChild(spacer);
+  }
+  for (const node of leading) {
+    wrapper.parentNode?.insertBefore(node, wrapper);
+  }
+}
+
+function remove_separator_rule_before(wrapper: Element): void {
+  let prev: Node | null = wrapper.previousSibling;
+
+  while (
+    prev &&
+    !has_visible_content(prev) &&
+    (prev as Element).tagName !== "HR"
+  ) {
+    prev = prev.previousSibling;
+  }
+  if (prev && (prev as Element).tagName === "HR") {
+    prev.parentNode?.removeChild(prev);
+  }
+}
+
+function collapse_proton_reply(
+  doc: Document,
+  body: Element,
+  proton_wrapper: Element,
+  t: translate_fn,
+): void {
+  hoist_reply_text_from_quote(proton_wrapper);
+
+  if (!has_content_outside(doc, body, [proton_wrapper])) {
+    reveal_hidden_quote_blocks(proton_wrapper);
+
+    return;
+  }
+
+  remove_separator_rule_before(proton_wrapper);
+
+  const { wrapper, content } = create_quote_wrapper(doc, t);
+
+  proton_wrapper.parentNode!.insertBefore(wrapper, proton_wrapper);
+  content.appendChild(proton_wrapper);
+}
+
+function collapse_proton_forward(
+  doc: Document,
+  body: Element,
+  proton_wrapper: Element,
+  t: translate_fn,
+): void {
+  const metadata_nodes: Node[] = [];
+  let prev: Node | null = proton_wrapper.previousSibling;
+
+  while (prev) {
+    const el = prev.nodeType === Node.ELEMENT_NODE ? (prev as Element) : null;
+    const text = prev.textContent?.trim() || "";
+    const is_sig = el?.classList?.contains("protonmail_signature_block");
+    const is_spacer = !text && !contains_media(prev);
+
+    if (is_sig || is_spacer) {
+      metadata_nodes.unshift(prev);
+      prev = prev.previousSibling;
+    } else {
+      break;
+    }
+  }
+
+  metadata_nodes.push(proton_wrapper);
+
+  if (!has_content_outside(doc, body, metadata_nodes)) {
+    reveal_hidden_quote_blocks(proton_wrapper);
+
+    return;
+  }
+
+  const details = doc.createElement("details");
+
+  details.className = "aster-forwarded-collapse";
+  const summary = doc.createElement("summary");
+
+  summary.textContent = t("common.forwarded_message");
+  details.appendChild(summary);
+  const content_div = doc.createElement("div");
+
+  content_div.className = "aster-forwarded-content";
+  for (const n of metadata_nodes) {
+    content_div.appendChild(n);
+  }
+  details.appendChild(content_div);
+  body.appendChild(details);
+}
+
 export function collapse_forwarded_content(
   doc: Document,
   t: translate_fn,
@@ -223,49 +414,17 @@ export function collapse_forwarded_content(
   if (!body) return;
   if (body.querySelector("details.aster-forwarded-collapse")) return;
 
-  const proton_wrapper = body.querySelector("div.protonmail_quote");
+  const proton_wrapper = Array.from(
+    body.querySelectorAll("div.protonmail_quote"),
+  ).find((el) => !el.parentElement?.closest(NESTING_QUOTE_SELECTOR));
 
   if (proton_wrapper) {
-    const metadata_nodes: Node[] = [];
-    let prev: Node | null = proton_wrapper.previousSibling;
-
-    while (prev) {
-      const el = prev.nodeType === Node.ELEMENT_NODE ? (prev as Element) : null;
-      const text = prev.textContent?.trim() || "";
-      const is_sig = el?.classList?.contains("protonmail_signature_block");
-      const is_spacer = !text && !contains_media(prev);
-
-      if (is_sig || is_spacer) {
-        metadata_nodes.unshift(prev);
-        prev = prev.previousSibling;
-      } else {
-        break;
-      }
-    }
-
-    metadata_nodes.push(proton_wrapper);
-
-    if (!has_content_outside(doc, body, metadata_nodes)) {
-      reveal_hidden_quote_blocks(proton_wrapper);
+    if (is_forward_header_text(quote_header_text(proton_wrapper))) {
+      collapse_proton_forward(doc, body, proton_wrapper, t);
 
       return;
     }
-
-    const details = doc.createElement("details");
-
-    details.className = "aster-forwarded-collapse";
-    const summary = doc.createElement("summary");
-
-    summary.textContent = t("common.forwarded_message");
-    details.appendChild(summary);
-    const content_div = doc.createElement("div");
-
-    content_div.className = "aster-forwarded-content";
-    for (const n of metadata_nodes) {
-      content_div.appendChild(n);
-    }
-    details.appendChild(content_div);
-    body.appendChild(details);
+    collapse_proton_reply(doc, body, proton_wrapper, t);
 
     return;
   }
@@ -344,6 +503,7 @@ export function collapse_forwarded_content(
     n = n.parentNode;
   }
   if (!marker_block) return;
+  if (!is_forward_header_text(marker_window_text(marker_block))) return;
 
   const has_content_before_marker = (() => {
     const before_walker = doc.createTreeWalker(body, NodeFilter.SHOW_TEXT);
@@ -664,6 +824,7 @@ function build_quote_wrapper(
   const { wrapper, content: content_div } = create_quote_wrapper(doc, t);
 
   content_div.appendChild(content);
+  convert_plain_quote_markup(content_div);
   strip_quote_prefixes(doc, content_div);
 
   return wrapper;
@@ -748,6 +909,14 @@ function break_preformatted_lines(doc: Document, body: Element): void {
   }
 }
 
+export function convert_plain_quotes(doc: Document): boolean {
+  const body = doc.body;
+
+  if (!body) return false;
+
+  return convert_plain_quote_markup(body);
+}
+
 export function collapse_quoted_replies(doc: Document, t: translate_fn): void {
   const body = doc.body;
 
@@ -769,7 +938,8 @@ export function collapse_quoted_replies(doc: Document, t: translate_fn): void {
 
   if (!quote_end) return;
 
-  const start_node = quote_start_node(body, lines[found.start].first);
+  const quote_start = include_original_header_line(lines, found.start);
+  const start_node = quote_start_node(body, lines[quote_start].first);
   const end_node = quote_end.to_end ? null : lines[quote_end.end].last;
   const cell = (
     start_node.nodeType === Node.ELEMENT_NODE
@@ -781,7 +951,7 @@ export function collapse_quoted_replies(doc: Document, t: translate_fn): void {
   if (!end_scope.lastChild) return;
 
   const content_before =
-    has_reply_text_before(lines, found.start) ||
+    has_reply_text_before(lines, quote_start) ||
     has_media_before_node(doc, body, start_node);
 
   if (!content_before) {
@@ -866,6 +1036,19 @@ export function collapse_quoted_replies(doc: Document, t: translate_fn): void {
   end_scope.insertBefore(wrapper, anchor);
   trim_edge_breaks(wrapper.previousSibling, true);
   trim_edge_breaks(wrapper.nextSibling, false);
+}
+
+function include_original_header_line(
+  lines: { text: string }[],
+  start: number,
+): number {
+  let index = start - 1;
+
+  while (index >= 0 && !lines[index].text.trim()) index--;
+
+  return index >= 0 && ORIGINAL_HEADER_RE.test(lines[index].text)
+    ? index
+    : start;
 }
 
 function line_top_end(node: Node): Node {
@@ -1081,6 +1264,9 @@ function install_image_load_fallback(img_el: HTMLImageElement): void {
   );
 }
 
+const LOADABLE_BLOCKED_IMAGES =
+  "img[data-blocked='true']:not([data-tracking-pixel='true'])";
+
 export function unblock_remote_content(
   doc: Document,
   options: { defer_proxied?: boolean } = {},
@@ -1089,7 +1275,7 @@ export function unblock_remote_content(
   const m = connection_store.get_method();
 
   if (m === "tor" || m === "tor_snowflake") return;
-  doc.querySelectorAll("img[data-blocked='true']").forEach((el) => {
+  doc.querySelectorAll(LOADABLE_BLOCKED_IMAGES).forEach((el) => {
     const proxy_src = el.getAttribute("data-proxy-src");
     const original_src = el.getAttribute("data-original-src");
     const src =

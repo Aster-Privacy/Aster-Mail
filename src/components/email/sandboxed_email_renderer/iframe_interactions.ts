@@ -24,6 +24,8 @@ import {
   type FrameTipDetail,
 } from "@/components/ui/title_tip_layer";
 import { forward_iframe_outside_interaction } from "@/lib/iframe_outside_interaction";
+import { handle_message_copy } from "@/lib/message_copy_text";
+import { note_message_frame_activity } from "@/lib/multi_click_selection";
 import {
   is_mailto_link,
   parse_mailto_link,
@@ -275,6 +277,14 @@ export function attach_iframe_interactions(
 ): void {
   forward_iframe_outside_interaction(iframe_doc);
   attach_frame_tips(iframe, iframe_doc);
+
+  const note_activity = () => note_message_frame_activity(iframe);
+
+  iframe_doc.addEventListener("pointerdown", note_activity, true);
+  iframe_doc.addEventListener("focusin", note_activity, true);
+  iframe_doc.addEventListener("copy", (e) =>
+    handle_message_copy(e, iframe_doc),
+  );
 
   iframe_doc.addEventListener("pointerover", (e) => {
     const target = e.target as Element | null;
@@ -553,6 +563,7 @@ export function attach_iframe_interactions(
     if (!doc || !body || !selection) return;
 
     e.preventDefault();
+    note_activity();
     const range = doc.createRange();
 
     range.selectNodeContents(body);

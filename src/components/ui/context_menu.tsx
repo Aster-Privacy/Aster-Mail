@@ -28,14 +28,22 @@ import {
 } from "react";
 import {
   RadixContextMenu,
+  RadixContextMenuCheckboxItem,
   RadixContextMenuContent,
+  RadixContextMenuItem,
+  RadixContextMenuRadioItem,
   RadixContextMenuSubContent,
+  RadixContextMenuSubTrigger,
 } from "@aster/ui";
 
+import { with_menu_item_labels } from "@/components/ui/menu_item_label";
 import { cn } from "@/lib/utils";
 
 const MENU_MAX_HEIGHT =
   "max-h-[var(--radix-context-menu-content-available-height,calc(100dvh_-_16px))]";
+
+const MENU_MAX_WIDTH =
+  "max-w-[min(var(--radix-context-menu-content-available-width,100vw),calc(100vw_-_1rem))]";
 
 const ContextMenuOpenContext = createContext<boolean | null>(null);
 
@@ -91,6 +99,8 @@ export const ContextMenuContent = forwardRef<
       ref={ref}
       className={cn(
         MENU_MAX_HEIGHT,
+        MENU_MAX_WIDTH,
+        "select-none",
         !placed && "invisible [animation:none]",
         className,
       )}
@@ -108,23 +118,63 @@ export const ContextMenuSubContent = forwardRef<
 >(({ className, ...props }, ref) => (
   <RadixContextMenuSubContent
     ref={ref}
-    className={cn(MENU_MAX_HEIGHT, className)}
+    className={cn(MENU_MAX_HEIGHT, MENU_MAX_WIDTH, "select-none", className)}
     {...props}
   />
 ));
 
 ContextMenuSubContent.displayName = "ContextMenuSubContent";
 
+export const ContextMenuItem = forwardRef<
+  React.ElementRef<typeof RadixContextMenuItem>,
+  React.ComponentPropsWithoutRef<typeof RadixContextMenuItem>
+>(({ asChild, children, ...props }, ref) => (
+  <RadixContextMenuItem ref={ref} asChild={asChild} {...props}>
+    {asChild ? children : with_menu_item_labels(children)}
+  </RadixContextMenuItem>
+));
+
+ContextMenuItem.displayName = "ContextMenuItem";
+
+export const ContextMenuCheckboxItem = forwardRef<
+  React.ElementRef<typeof RadixContextMenuCheckboxItem>,
+  React.ComponentPropsWithoutRef<typeof RadixContextMenuCheckboxItem>
+>(({ children, ...props }, ref) => (
+  <RadixContextMenuCheckboxItem ref={ref} {...props}>
+    {with_menu_item_labels(children)}
+  </RadixContextMenuCheckboxItem>
+));
+
+ContextMenuCheckboxItem.displayName = "ContextMenuCheckboxItem";
+
+export const ContextMenuRadioItem = forwardRef<
+  React.ElementRef<typeof RadixContextMenuRadioItem>,
+  React.ComponentPropsWithoutRef<typeof RadixContextMenuRadioItem>
+>(({ children, ...props }, ref) => (
+  <RadixContextMenuRadioItem ref={ref} {...props}>
+    {with_menu_item_labels(children)}
+  </RadixContextMenuRadioItem>
+));
+
+ContextMenuRadioItem.displayName = "ContextMenuRadioItem";
+
+export const ContextMenuSubTrigger = forwardRef<
+  React.ElementRef<typeof RadixContextMenuSubTrigger>,
+  React.ComponentPropsWithoutRef<typeof RadixContextMenuSubTrigger>
+>(({ children, ...props }, ref) => (
+  <RadixContextMenuSubTrigger ref={ref} {...props}>
+    {with_menu_item_labels(children)}
+  </RadixContextMenuSubTrigger>
+));
+
+ContextMenuSubTrigger.displayName = "ContextMenuSubTrigger";
+
 export {
   RadixContextMenuTrigger as ContextMenuTrigger,
-  RadixContextMenuItem as ContextMenuItem,
-  RadixContextMenuCheckboxItem as ContextMenuCheckboxItem,
-  RadixContextMenuRadioItem as ContextMenuRadioItem,
   RadixContextMenuLabel as ContextMenuLabel,
   RadixContextMenuSeparator as ContextMenuSeparator,
   RadixContextMenuGroup as ContextMenuGroup,
   RadixContextMenuPortal as ContextMenuPortal,
   RadixContextMenuSub as ContextMenuSub,
-  RadixContextMenuSubTrigger as ContextMenuSubTrigger,
   RadixContextMenuRadioGroup as ContextMenuRadioGroup,
 } from "@aster/ui";

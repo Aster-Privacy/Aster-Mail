@@ -1,5 +1,5 @@
 diff --git a/node_modules/@aster/ui/dist/index.cjs b/node_modules/@aster/ui/dist/index.cjs
-index f94e215..619a34a 100644
+index f94e215..aef8364 100644
 --- a/node_modules/@aster/ui/dist/index.cjs
 +++ b/node_modules/@aster/ui/dist/index.cjs
 @@ -12918,7 +12918,8 @@ function EncryptionInfoDropdownView({
@@ -21,8 +21,28 @@ index f94e215..619a34a 100644
                "AES-256-GCM \xB7 ",
                has_pq_protection ? "ML-KEM-768" : "KEM-768"
              ] }),
+@@ -14529,7 +14530,8 @@ function SenderProfileCardView({
+   show_notes,
+   on_toggle_notes,
+   is_blocked,
+-  strings
++  strings,
++  address_row
+ }) {
+   return /* @__PURE__ */ (0, import_jsx_runtime108.jsxs)(DropdownMenu, { open: is_open, onOpenChange: on_open_change, children: [
+     /* @__PURE__ */ (0, import_jsx_runtime108.jsx)(
+@@ -14565,7 +14567,8 @@ function SenderProfileCardView({
+                 is_aster_user ? /* @__PURE__ */ (0, import_jsx_runtime108.jsx)("p", { className: "text-[11px] truncate text-txt-muted", children: email }) : domain && /* @__PURE__ */ (0, import_jsx_runtime108.jsx)("p", { className: "text-[11px] truncate text-txt-muted", children: domain })
+               ] })
+             ] }),
+-            !is_aster_user && /* @__PURE__ */ (0, import_jsx_runtime108.jsxs)(
++            !is_aster_user && address_row !== void 0 && address_row,
++            !is_aster_user && address_row === void 0 && /* @__PURE__ */ (0, import_jsx_runtime108.jsxs)(
+               "button",
+               {
+                 className: "mt-2 w-full flex items-center justify-center gap-1.5 py-1.5 rounded-[12px] text-[12px] transition-colors border text-txt-secondary border-edge-secondary bg-surf-secondary hover:bg-surf-hover",
 diff --git a/node_modules/@aster/ui/dist/index.d.cts b/node_modules/@aster/ui/dist/index.d.cts
-index c3712fb..bae1386 100644
+index c3712fb..15f94d5 100644
 --- a/node_modules/@aster/ui/dist/index.d.cts
 +++ b/node_modules/@aster/ui/dist/index.d.cts
 @@ -2020,9 +2020,10 @@ interface EncryptionInfoDropdownViewProps {
@@ -37,8 +57,19 @@ index c3712fb..bae1386 100644
  
  interface ContactAvatarViewProps {
      size_px: number;
+@@ -2358,8 +2359,9 @@ interface SenderProfileCardViewProps extends SenderProfileBaseProps {
+     on_toggle_notes: () => void;
+     is_blocked: boolean;
+     strings: SenderProfileCardStrings;
++    address_row?: ReactNode;
+ }
+-declare function SenderProfileCardView({ email, display_name, domain, is_aster_user, render_avatar, on_copy_email, is_contact, is_contact_loading, contact_disabled, on_contact_action, on_messages_from, on_compose, is_allowlisted, is_allowlist_loading, allowlist_disabled, on_allowlist_action, is_blocking, on_block_action, notes, is_open, on_open_change, on_trigger_intent, trigger_className, children, show_notes, on_toggle_notes, is_blocked, strings, }: SenderProfileCardViewProps): react_jsx_runtime.JSX.Element;
++declare function SenderProfileCardView({ email, display_name, domain, is_aster_user, render_avatar, on_copy_email, is_contact, is_contact_loading, contact_disabled, on_contact_action, on_messages_from, on_compose, is_allowlisted, is_allowlist_loading, allowlist_disabled, on_allowlist_action, is_blocking, on_block_action, notes, is_open, on_open_change, on_trigger_intent, trigger_className, children, show_notes, on_toggle_notes, is_blocked, strings, address_row, }: SenderProfileCardViewProps): react_jsx_runtime.JSX.Element;
+ interface SenderProfileModalStrings {
+     add_to_contacts: string;
+     remove_from_contacts: string;
 diff --git a/node_modules/@aster/ui/dist/index.d.ts b/node_modules/@aster/ui/dist/index.d.ts
-index 0a0cf22..eff22d6 100644
+index 0a0cf22..615f3e0 100644
 --- a/node_modules/@aster/ui/dist/index.d.ts
 +++ b/node_modules/@aster/ui/dist/index.d.ts
 @@ -2020,9 +2020,10 @@ interface EncryptionInfoDropdownViewProps {
@@ -53,8 +84,19 @@ index 0a0cf22..eff22d6 100644
  
  interface ContactAvatarViewProps {
      size_px: number;
+@@ -2358,8 +2359,9 @@ interface SenderProfileCardViewProps extends SenderProfileBaseProps {
+     on_toggle_notes: () => void;
+     is_blocked: boolean;
+     strings: SenderProfileCardStrings;
++    address_row?: ReactNode;
+ }
+-declare function SenderProfileCardView({ email, display_name, domain, is_aster_user, render_avatar, on_copy_email, is_contact, is_contact_loading, contact_disabled, on_contact_action, on_messages_from, on_compose, is_allowlisted, is_allowlist_loading, allowlist_disabled, on_allowlist_action, is_blocking, on_block_action, notes, is_open, on_open_change, on_trigger_intent, trigger_className, children, show_notes, on_toggle_notes, is_blocked, strings, }: SenderProfileCardViewProps): react_jsx_runtime.JSX.Element;
++declare function SenderProfileCardView({ email, display_name, domain, is_aster_user, render_avatar, on_copy_email, is_contact, is_contact_loading, contact_disabled, on_contact_action, on_messages_from, on_compose, is_allowlisted, is_allowlist_loading, allowlist_disabled, on_allowlist_action, is_blocking, on_block_action, notes, is_open, on_open_change, on_trigger_intent, trigger_className, children, show_notes, on_toggle_notes, is_blocked, strings, address_row, }: SenderProfileCardViewProps): react_jsx_runtime.JSX.Element;
+ interface SenderProfileModalStrings {
+     add_to_contacts: string;
+     remove_from_contacts: string;
 diff --git a/node_modules/@aster/ui/dist/index.js b/node_modules/@aster/ui/dist/index.js
-index 9ccda88..db3c59d 100644
+index 9ccda88..2b5c997 100644
 --- a/node_modules/@aster/ui/dist/index.js
 +++ b/node_modules/@aster/ui/dist/index.js
 @@ -12589,7 +12589,8 @@ function EncryptionInfoDropdownView({
@@ -76,3 +118,23 @@ index 9ccda88..db3c59d 100644
                "AES-256-GCM \xB7 ",
                has_pq_protection ? "ML-KEM-768" : "KEM-768"
              ] }),
+@@ -14247,7 +14248,8 @@ function SenderProfileCardView({
+   show_notes,
+   on_toggle_notes,
+   is_blocked,
+-  strings
++  strings,
++  address_row
+ }) {
+   return /* @__PURE__ */ jsxs86(DropdownMenu, { open: is_open, onOpenChange: on_open_change, children: [
+     /* @__PURE__ */ jsx108(
+@@ -14283,7 +14285,8 @@ function SenderProfileCardView({
+                 is_aster_user ? /* @__PURE__ */ jsx108("p", { className: "text-[11px] truncate text-txt-muted", children: email }) : domain && /* @__PURE__ */ jsx108("p", { className: "text-[11px] truncate text-txt-muted", children: domain })
+               ] })
+             ] }),
+-            !is_aster_user && /* @__PURE__ */ jsxs86(
++            !is_aster_user && address_row !== void 0 && address_row,
++            !is_aster_user && address_row === void 0 && /* @__PURE__ */ jsxs86(
+               "button",
+               {
+                 className: "mt-2 w-full flex items-center justify-center gap-1.5 py-1.5 rounded-[12px] text-[12px] transition-colors border text-txt-secondary border-edge-secondary bg-surf-secondary hover:bg-surf-hover",

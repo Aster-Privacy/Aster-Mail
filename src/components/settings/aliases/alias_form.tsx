@@ -486,7 +486,7 @@ export function CreateAliasModal({
                       set_alias_format(v as "words" | "uuid")
                     }
                   >
-                    <SelectTrigger className="h-10 w-24 shrink-0">
+                    <SelectTrigger className="h-10 w-auto shrink-0">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>

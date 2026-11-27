@@ -38,8 +38,6 @@ import {
   EllipsisHorizontalIcon,
   EnvelopeIcon,
   ExclamationTriangleIcon,
-  LockClosedIcon,
-  LockOpenIcon,
   PencilIcon,
   PlusIcon,
   PrinterIcon,
@@ -53,6 +51,7 @@ import { StarIcon as StarSolidIcon } from "@heroicons/react/24/solid";
 import { Checkbox, PillButton, Spinner, Tooltip } from "@aster/ui";
 
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -188,35 +187,48 @@ function ContactKeyLine({
 }) {
   if (is_loading) {
     return (
-      <span className="mt-1 block text-[11px] text-txt-muted">
-        {t("common.checking_for_keys")}
+      <span
+        aria-busy="true"
+        aria-label={t("common.checking_for_keys")}
+        className="contact_key_line_loading mt-0.5 block"
+        role="status"
+      >
+        <span className="flex h-4 items-center">
+          <Skeleton className="h-2.5 w-40 max-w-full" />
+        </span>
+        <span className="flex h-4 items-center">
+          <Skeleton className="h-2.5 w-24 max-w-full" />
+        </span>
       </span>
     );
   }
 
   if (!key_info) {
     return (
-      <span className="mt-1 flex items-center gap-1.5">
-        <LockOpenIcon className="h-3 w-3 flex-shrink-0 text-txt-muted" />
-        <span className="text-[11px] text-txt-muted">
-          {t("common.no_published_key")}
-        </span>
+      <span className="mt-0.5 block truncate text-[11px] leading-4 text-txt-muted">
+        {t("common.no_published_key")}
       </span>
     );
   }
 
+  const fingerprint = format_fingerprint(key_info.fingerprint);
+  const source = t("settings.pgp_key_discovered_via", {
+    source: t(get_key_source_label_key(key_info.source)),
+  });
+
   return (
-    <span className="mt-1 flex items-start gap-1.5">
-      <LockClosedIcon className="mt-0.5 h-3 w-3 flex-shrink-0 text-[var(--color-success)]" />
-      <span className="min-w-0 flex-1">
-        <span className="block truncate font-mono text-[11px] text-txt-secondary">
-          {format_fingerprint(key_info.fingerprint)}
-        </span>
-        <span className="block text-[11px] text-txt-muted">
-          {t("settings.pgp_key_discovered_via", {
-            source: t(get_key_source_label_key(key_info.source)),
-          })}
-        </span>
+    <span className="mt-0.5 block min-w-0">
+      <span
+        className="block truncate font-mono text-[11px] leading-4 text-txt-secondary"
+        title={fingerprint}
+      >
+        {fingerprint}
+      </span>
+      <span
+        className="block truncate text-[11px] leading-4 text-txt-muted"
+        title={source}
+      >
+        {source}
       </span>
     </span>
   );
@@ -279,9 +291,9 @@ export function QuickContactsPanel({
   const [is_import_open, set_is_import_open] = useState(false);
   const [detail_id, set_detail_id] = useState<string | null>(null);
   const [detail_keys, set_detail_keys] = useState<
-    Record<string, ExternalKeyInfo>
+    Record<string, ExternalKeyInfo | null>
   >({});
-  const [is_keys_loading, set_is_keys_loading] = useState(false);
+  const key_cache_ref = useRef(new Map<string, ExternalKeyInfo | null>());
   const {
     groups,
     is_loading: is_groups_loading,
@@ -509,46 +521,69 @@ export function QuickContactsPanel({
     set_detail_id(null);
   }, []);
 
+  const detail_emails_key = detail_contact
+    ? detail_contact.emails.map((email) => email.toLowerCase()).join("\n")
+    : "";
+
   useEffect(() => {
-    if (!detail_contact || detail_contact.emails.length === 0) {
+    const emails = detail_emails_key ? detail_emails_key.split("\n") : [];
+
+    if (emails.length === 0) {
       set_detail_keys({});
-      set_is_keys_loading(false);
 
       return;
     }
 
     let cancelled = false;
+    const cache = key_cache_ref.current;
+    const initial: Record<string, ExternalKeyInfo | null> = {};
 
-    set_detail_keys({});
-    set_is_keys_loading(true);
+    for (const email of emails) {
+      if (cache.has(email)) initial[email] = cache.get(email) ?? null;
+    }
 
-    void discover_contact_keys_batch(detail_contact.emails).then(
+    set_detail_keys(initial);
+
+    void discover_contact_keys_batch(emails).then(
       (response) => {
         if (cancelled) return;
 
-        const next: Record<string, ExternalKeyInfo> = {};
+        const found = new Map<string, ExternalKeyInfo>();
 
         for (const key_info of response.data ?? []) {
           if (has_pgp_key(key_info)) {
-            next[key_info.email.toLowerCase()] = key_info;
+            found.set(key_info.email.toLowerCase(), key_info);
           }
         }
 
+        const next: Record<string, ExternalKeyInfo | null> = {};
+
+        for (const email of emails) {
+          const key_info = found.get(email) ?? null;
+
+          if (!response.error) cache.set(email, key_info);
+          next[email] = response.error ? (cache.get(email) ?? null) : key_info;
+        }
+
         set_detail_keys(next);
-        set_is_keys_loading(false);
       },
       () => {
         if (cancelled) return;
 
-        set_detail_keys({});
-        set_is_keys_loading(false);
+        const next: Record<string, ExternalKeyInfo | null> = {};
+
+        for (const email of emails) {
+          next[email] = cache.get(email) ?? null;
+        }
+
+        set_detail_keys(next);
       },
     );
 
     return () => {
       cancelled = true;
     };
-  }, [detail_contact]);
+  }, [detail_emails_key]);
 
   const open_new = useCallback(() => {
     set_editor_contact(null);
@@ -903,7 +938,10 @@ export function QuickContactsPanel({
                 <ArrowLeftIcon className="h-4 w-4" />
               </Button>
             </Tooltip>
-            <h2 className="flex-1 truncate text-[15px] font-medium text-txt-primary">
+            <h2
+              className="min-w-0 flex-1 truncate text-[15px] font-medium text-txt-primary"
+              title={display_name(detail_contact)}
+            >
               {display_name(detail_contact)}
             </h2>
             <Tooltip position="bottom" tip={t("common.edit_contact")}>
@@ -1022,7 +1060,7 @@ export function QuickContactsPanel({
                   </Button>
                 </DropdownMenuTrigger>
               </Tooltip>
-              <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuContent align="end" className="min-w-56">
                 <DropdownMenuItem
                   disabled={selection_count < 2}
                   onSelect={() => set_merge_targets(selected_contacts)}
@@ -1269,8 +1307,11 @@ export function QuickContactsPanel({
                   profile_color={detail_contact.profile_color}
                   size_px={64}
                 />
-                <div className="mt-3 flex items-center gap-1.5">
-                  <p className="truncate text-[15px] font-medium text-txt-primary">
+                <div className="mt-3 flex min-w-0 max-w-full items-center gap-1.5">
+                  <p
+                    className="min-w-0 truncate text-[15px] font-medium text-txt-primary"
+                    title={display_name(detail_contact)}
+                  >
                     {display_name(detail_contact)}
                   </p>
                   {detail_contact.is_favorite && (
@@ -1281,7 +1322,7 @@ export function QuickContactsPanel({
                   )}
                 </div>
                 {(detail_contact.job_title || detail_contact.company) && (
-                  <p className="mt-0.5 text-[12.5px] text-txt-muted">
+                  <p className="mt-0.5 max-w-full break-words text-[12.5px] text-txt-muted">
                     {[detail_contact.job_title, detail_contact.company]
                       .filter(Boolean)
                       .join(" · ")}
@@ -1333,11 +1374,14 @@ export function QuickContactsPanel({
                           size_px={28}
                         />
                         <span className="min-w-0 flex-1">
-                          <span className="block truncate text-[13.5px] text-txt-primary">
+                          <span
+                            className="block truncate text-[13.5px] text-txt-primary"
+                            title={address}
+                          >
                             {address}
                           </span>
                           <ContactKeyLine
-                            is_loading={is_keys_loading}
+                            is_loading={!(address.toLowerCase() in detail_keys)}
                             key_info={
                               detail_keys[address.toLowerCase()] ?? null
                             }

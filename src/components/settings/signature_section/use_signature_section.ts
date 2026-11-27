@@ -105,8 +105,6 @@ export function use_signature_section() {
   const image_input_ref = useRef<HTMLInputElement>(null);
   const [confirm_discard_open, set_confirm_discard_open] = useState(false);
   const editor_baseline_ref = useRef<string>("");
-  const [show_link_dialog, set_show_link_dialog] = useState(false);
-  const [selected_text_for_link, set_selected_text_for_link] = useState("");
 
   const rich_editor = use_editor({
     editor_ref: editor_div_ref,
@@ -178,11 +176,6 @@ export function use_signature_section() {
     }
   }, [rich_editor, t]);
 
-  const handle_open_link_dialog = () => {
-    rich_editor.save_selection();
-    set_selected_text_for_link(window.getSelection()?.toString() || "");
-    set_show_link_dialog(true);
-  };
   const [local_mode, set_local_mode] = useState<SignatureMode>(
     (preferences.signature_mode as SignatureMode) || "auto",
   );
@@ -498,15 +491,11 @@ export function use_signature_section() {
     set_confirm_delete_id,
     editor_div_ref,
     image_input_ref,
-    show_link_dialog,
-    set_show_link_dialog,
-    selected_text_for_link,
     rich_editor,
     name_invalid,
     content_invalid,
     handle_image_upload,
     handle_insert_horizontal_rule,
-    handle_open_link_dialog,
     local_mode,
     local_placement,
     handle_mode_change,

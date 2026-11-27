@@ -58,7 +58,7 @@ function render_like_viewer(raw_html: string): Document {
   return doc;
 }
 
-describe("sanitized proton forward through the viewer pipeline", () => {
+describe("sanitized proton reply through the viewer pipeline", () => {
   it("keeps the quote class the collapse depends on", () => {
     const sanitized = sanitize_html(proton_forward, {
       external_content_mode: "never",
@@ -70,13 +70,16 @@ describe("sanitized proton forward through the viewer pipeline", () => {
 
   it("shows only the sender's own text and hides the original below the toggle", () => {
     const doc = render_like_viewer(proton_forward);
-    const details = doc.body.querySelector("details.aster-forwarded-collapse");
+    const details = doc.body.querySelector("details.aster-quoted-wrapper");
     const visible = doc.body.cloneNode(true) as HTMLElement;
 
     visible
-      .querySelectorAll("details.aster-forwarded-collapse")
+      .querySelectorAll("details.aster-quoted-wrapper")
       .forEach((el) => el.remove());
 
+    expect(
+      doc.body.querySelector("details.aster-forwarded-collapse"),
+    ).toBeNull();
     expect(details).not.toBeNull();
     expect(visible.textContent).toContain("FYI.");
     expect(visible.textContent).not.toContain("Test");

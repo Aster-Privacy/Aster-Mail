@@ -243,14 +243,19 @@ export function remove_email_from_view_cache(email_id: string): void {
     const filtered = cached.state.emails.filter((e) => e.id !== email_id);
 
     if (filtered.length !== cached.state.emails.length) {
-      if (filtered.length === 0) {
+      const total_messages = Math.max(0, cached.state.total_messages - 1);
+
+      if (
+        filtered.length === 0 &&
+        (total_messages > 0 || cached.state.has_more)
+      ) {
         view_cache.delete(view);
       } else {
         view_cache.set(view, {
           state: {
             ...cached.state,
             emails: filtered,
-            total_messages: Math.max(0, cached.state.total_messages - 1),
+            total_messages,
           },
           time: cached.time,
           is_stale: true,

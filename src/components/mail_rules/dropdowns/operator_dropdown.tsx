@@ -162,7 +162,7 @@ export function OperatorDropdown({
       <DropdownMenuTrigger asChild>{trigger}</DropdownMenuTrigger>
       <DropdownMenuContent
         align="start"
-        className="z-[200] w-44"
+        className="z-[200] min-w-44"
         sideOffset={6}
       >
         {options.map((opt) => (

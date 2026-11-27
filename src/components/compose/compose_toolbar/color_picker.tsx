@@ -101,7 +101,7 @@ export function ColorPickerPopover({
 
   use_escape_layer(open, close_popover, "compose_color_picker");
 
-  use_anchored_layer(
+  const visible = use_anchored_layer(
     open,
     button_ref,
     (rect) => set_pos({ top: rect.top, center_x: rect.left + rect.width / 2 }),
@@ -149,7 +149,7 @@ export function ColorPickerPopover({
         </button>
       </Tooltip>
       {createPortal(
-        open && (
+        visible && (
           <div
             ref={dropdown_ref}
             className="aster_floating aster_floating_anim fixed -translate-x-1/2 w-[280px]"

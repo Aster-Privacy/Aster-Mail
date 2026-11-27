@@ -20,6 +20,12 @@
 //
 import { useState, useEffect, useCallback, useRef } from "react";
 
+import {
+  begin_drag_selection_guard,
+  capture_drag_pointer,
+  is_drag_handle_target,
+} from "@/lib/drag_selection_lock";
+
 interface ModalSize {
   width: number;
   height: number;
@@ -41,7 +47,7 @@ interface DraggableModalReturn {
   has_been_moved: boolean;
   is_dragging: boolean;
   did_drag: () => boolean;
-  handle_drag_start: (e: React.MouseEvent) => void;
+  handle_drag_start: (e: React.PointerEvent | React.MouseEvent) => void;
   reset: () => void;
   get_position_style: () => React.CSSProperties;
 }
@@ -63,6 +69,16 @@ export function use_draggable_modal(
     y: 0,
   });
   const movement_occurred_ref = useRef(false);
+  const release_guard_ref = useRef<(() => void) | null>(null);
+
+  const release_guard = useCallback(() => {
+    const release = release_guard_ref.current;
+
+    release_guard_ref.current = null;
+    release?.();
+  }, []);
+
+  useEffect(() => release_guard, [release_guard]);
 
   useEffect(() => {
     if (is_open) {
@@ -74,29 +90,40 @@ export function use_draggable_modal(
     }
   }, [is_open]);
 
-  const handle_drag_start = useCallback((e: React.MouseEvent) => {
-    const rect = (
-      e.currentTarget as HTMLElement
-    ).parentElement?.getBoundingClientRect();
+  const handle_drag_start = useCallback(
+    (e: React.PointerEvent | React.MouseEvent) => {
+      if (e.button !== 0) return;
+      if (!is_drag_handle_target(e.target)) return;
 
-    if (!rect) return;
+      const rect = (
+        e.currentTarget as HTMLElement
+      ).parentElement?.getBoundingClientRect();
 
-    movement_occurred_ref.current = false;
-    set_initial_mouse_pos({ x: e.clientX, y: e.clientY });
+      if (!rect) return;
 
-    const new_drag_start = {
-      x: e.clientX - rect.left,
-      y: e.clientY - rect.top,
-    };
+      e.preventDefault();
+      capture_drag_pointer(e);
+      release_guard();
+      release_guard_ref.current = begin_drag_selection_guard();
 
-    set_state((prev) => ({
-      ...prev,
-      position: { x: rect.left, y: rect.top },
-      is_dragging: true,
-    }));
+      movement_occurred_ref.current = false;
+      set_initial_mouse_pos({ x: e.clientX, y: e.clientY });
 
-    set_drag_start(new_drag_start);
-  }, []);
+      const new_drag_start = {
+        x: e.clientX - rect.left,
+        y: e.clientY - rect.top,
+      };
+
+      set_state((prev) => ({
+        ...prev,
+        position: { x: rect.left, y: rect.top },
+        is_dragging: true,
+      }));
+
+      set_drag_start(new_drag_start);
+    },
+    [release_guard],
+  );
 
   useEffect(() => {
     if (!state.is_dragging) return;
@@ -117,7 +144,7 @@ export function use_draggable_modal(
       }));
     };
 
-    const handle_move = (e: MouseEvent) => {
+    const handle_move = (e: PointerEvent | MouseEvent) => {
       const dx = Math.abs(e.clientX - initial_mouse_pos.x);
       const dy = Math.abs(e.clientY - initial_mouse_pos.y);
       const distance = Math.sqrt(dx * dx + dy * dy);
@@ -150,27 +177,43 @@ export function use_draggable_modal(
 
     const handle_up = () => {
       flush();
+      release_guard();
       set_state((prev) => ({ ...prev, is_dragging: false }));
     };
 
+    window.addEventListener("pointermove", handle_move);
+    window.addEventListener("pointerup", handle_up);
+    window.addEventListener("pointercancel", handle_up);
     window.addEventListener("mousemove", handle_move);
     window.addEventListener("mouseup", handle_up);
+    window.addEventListener("blur", handle_up);
 
     return () => {
       if (frame !== 0) window.cancelAnimationFrame(frame);
+      window.removeEventListener("pointermove", handle_move);
+      window.removeEventListener("pointerup", handle_up);
+      window.removeEventListener("pointercancel", handle_up);
       window.removeEventListener("mousemove", handle_move);
       window.removeEventListener("mouseup", handle_up);
+      window.removeEventListener("blur", handle_up);
     };
-  }, [state.is_dragging, drag_start, modal_size, initial_mouse_pos]);
+  }, [
+    state.is_dragging,
+    drag_start,
+    modal_size,
+    initial_mouse_pos,
+    release_guard,
+  ]);
 
   const reset = useCallback(() => {
+    release_guard();
     set_state({
       position: { x: 0, y: 0 },
       is_dragging: false,
       has_been_moved: false,
     });
     movement_occurred_ref.current = false;
-  }, []);
+  }, [release_guard]);
 
   const did_drag = useCallback(() => {
     const result = movement_occurred_ref.current;

@@ -24,6 +24,7 @@ import {
   prepare_outgoing_html,
   trim_outgoing_trailing_blanks,
 } from "./outgoing_trailing_blanks";
+import { assemble_reply_with_placement } from "./signature_placement";
 
 const SIGNATURE =
   '<div data-aster-signature="1">Best regards,<br>Aster Support</div>';
@@ -109,5 +110,16 @@ describe("prepare_outgoing_html", () => {
     );
 
     expect(prepare_outgoing_html(once)).toBe(once);
+  });
+
+  it("leaves no blank lines between the signature and the quoted reply", () => {
+    const quote =
+      '<div class="aster_quote"><div>On Monday, you wrote:</div><blockquote>Original</blockquote></div>';
+    const body = trim_outgoing_trailing_blanks(
+      `<div>Thanks,</div>${SIGNATURE}<div><br></div><p>&nbsp;</p><div><br></div>`,
+    );
+    const assembled = assemble_reply_with_placement(body, quote, () => "above");
+
+    expect(assembled).toBe(`<div>Thanks,</div>${SIGNATURE}${quote}`);
   });
 });

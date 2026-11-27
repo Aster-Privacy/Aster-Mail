@@ -62,7 +62,7 @@ const SKELETON_LAYOUTS: Record<EmailOpenSkeletonVariant, SkeletonLayout> = {
   },
   detail: {
     surface: "bg-surf-primary",
-    frame: "mx-auto w-full max-w-4xl",
+    frame: "w-full",
     subject_row: "mb-3",
     subject_bar: "h-7",
     thread_wrap: "mt-4",

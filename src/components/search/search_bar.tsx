@@ -46,11 +46,14 @@ import {
 
 import { AdvancedFilterModal } from "@/components/search/advanced_filter_modal";
 import { SearchContentBanner } from "@/components/search/search_content_banner";
-import { SearchResultSkeleton } from "@/components/search/search_results_list";
+import {
+  SEARCH_PREVIEW_ROW_LAYOUT,
+  SearchPreviewSkeleton,
+} from "@/components/search/search_results_list";
 import { CorrectionNotice } from "@/components/search/correction_notice";
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
 import { use_search_sender_trust } from "@/hooks/use_sender_trust";
-import { is_system_email } from "@/lib/utils";
+import { cn, is_system_email } from "@/lib/utils";
 import {
   format_date,
   format_date_short,
@@ -703,9 +706,9 @@ export function SearchBar({
               is_preview_loading &&
               preview_results.length === 0 && (
                 <div className="px-1.5 pb-2">
-                  <SearchResultSkeleton />
-                  <SearchResultSkeleton />
-                  <SearchResultSkeleton />
+                  <SearchPreviewSkeleton />
+                  <SearchPreviewSkeleton />
+                  <SearchPreviewSkeleton />
                 </div>
               )}
 
@@ -840,7 +843,10 @@ const PreviewRow = memo(function PreviewRow({
 
   return (
     <button
-      className="search_list_row w-full flex items-center gap-3 px-2.5 py-2 rounded-[var(--aster-radius-item,8px)] text-start"
+      className={cn(
+        "search_list_row rounded-[var(--aster-radius-item,8px)] text-start",
+        SEARCH_PREVIEW_ROW_LAYOUT,
+      )}
       type="button"
       onClick={on_click}
     >
