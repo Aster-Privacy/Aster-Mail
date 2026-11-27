@@ -20,6 +20,7 @@
 //
 import { is_safe_viewer_src } from "@/lib/email_image_viewer";
 import { get_image_proxy_url } from "@/lib/image_proxy";
+import { has_tauri_runtime } from "@/lib/tauri_runtime";
 
 const IMAGE_EXTENSIONS: Record<string, string> = {
   "image/png": "png",
@@ -44,11 +45,72 @@ export class UnsafeImageSourceError extends Error {
   }
 }
 
+const DATA_URL_PATTERN = /^data:([^,]*),([\s\S]*)$/i;
+
+function normalized_type(content_type: string): string {
+  return content_type.split(";")[0].trim().toLowerCase();
+}
+
+function is_data_src(src: string): boolean {
+  return src.slice(0, 5).toLowerCase() === "data:";
+}
+
+function is_blob_src(src: string): boolean {
+  return src.slice(0, 5).toLowerCase() === "blob:";
+}
+
+function decode_payload(payload: string): string {
+  try {
+    return decodeURIComponent(payload);
+  } catch {
+    throw new Error("image_unavailable");
+  }
+}
+
+export function decode_image_data_url(src: string): Blob {
+  const match = DATA_URL_PATTERN.exec(src);
+
+  if (!match) throw new Error("image_unavailable");
+
+  const [type, ...params] = match[1].split(";");
+  const content_type = normalized_type(type);
+
+  if (!content_type.startsWith("image/")) throw new Error("image_unavailable");
+
+  const is_base64 = params.some(
+    (param) => param.trim().toLowerCase() === "base64",
+  );
+
+  if (!is_base64) {
+    return new Blob([new TextEncoder().encode(decode_payload(match[2]))], {
+      type: content_type,
+    });
+  }
+
+  let binary: string;
+
+  try {
+    binary = atob(decode_payload(match[2]).replace(/\s+/g, ""));
+  } catch {
+    throw new Error("image_unavailable");
+  }
+
+  const bytes = new Uint8Array(binary.length);
+
+  for (let index = 0; index < binary.length; index++) {
+    bytes[index] = binary.charCodeAt(index);
+  }
+
+  return new Blob([bytes], { type: content_type });
+}
+
 export async function load_viewer_image_blob(
   src: string,
   proxy_url: string = get_image_proxy_url(),
 ): Promise<Blob> {
   if (!is_safe_viewer_src(src, proxy_url)) throw new UnsafeImageSourceError();
+
+  if (is_data_src(src)) return decode_image_data_url(src);
 
   const response = await fetch(src, {
     cache: "force-cache",
@@ -59,50 +121,81 @@ export async function load_viewer_image_blob(
   if (!response.ok) throw new Error("image_unavailable");
 
   const blob = await response.blob();
-  const type = blob.type.split(";")[0].trim().toLowerCase();
 
-  if (!type.startsWith("image/")) throw new Error("image_unavailable");
+  if (!normalized_type(blob.type).startsWith("image/")) {
+    throw new Error("image_unavailable");
+  }
 
   return blob;
 }
 
 export function viewer_image_filename(content_type: string): string {
-  const type = content_type.split(";")[0].trim().toLowerCase();
+  return `image.${IMAGE_EXTENSIONS[normalized_type(content_type)] ?? "png"}`;
+}
 
-  return `image.${IMAGE_EXTENSIONS[type] ?? "png"}`;
+function click_download(href: string, filename: string): void {
+  const link = document.createElement("a");
+
+  link.href = href;
+  link.download = filename;
+  link.rel = "noopener";
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
 }
 
 export async function save_viewer_image(
   src: string,
   proxy_url: string = get_image_proxy_url(),
 ): Promise<void> {
+  if (!is_safe_viewer_src(src, proxy_url)) throw new UnsafeImageSourceError();
+
+  if (is_blob_src(src)) {
+    const png = await image_source_to_png(src);
+    const url = URL.createObjectURL(png);
+
+    click_download(url, viewer_image_filename(png.type));
+    setTimeout(() => URL.revokeObjectURL(url), SAVE_URL_LIFETIME_MS);
+
+    return;
+  }
+
   const blob = await load_viewer_image_blob(src, proxy_url);
-
   const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
 
-  link.href = url;
-  link.download = viewer_image_filename(blob.type);
-  link.rel = "noopener";
-  document.body.appendChild(link);
-  link.click();
-  link.remove();
+  click_download(url, viewer_image_filename(blob.type));
   setTimeout(() => URL.revokeObjectURL(url), SAVE_URL_LIFETIME_MS);
 }
 
-async function to_png(blob: Blob): Promise<Blob> {
-  if (blob.type === "image/png") return blob;
+function load_image_element(src: string): Promise<HTMLImageElement> {
+  return new Promise<HTMLImageElement>((resolve, reject) => {
+    const image = new Image();
 
-  const bitmap = await createImageBitmap(blob);
+    image.decoding = "async";
+    image.referrerPolicy = "no-referrer";
+    image.onload = () => resolve(image);
+    image.onerror = () => reject(new Error("image_unavailable"));
+    image.src = src;
+  });
+}
+
+function canvas_to_png(
+  source: CanvasImageSource,
+  width: number,
+  height: number,
+): Promise<Blob> {
+  if (!width || !height) {
+    return Promise.reject(new Error("image_unavailable"));
+  }
+
   const canvas = document.createElement("canvas");
 
-  canvas.width = bitmap.width;
-  canvas.height = bitmap.height;
+  canvas.width = width;
+  canvas.height = height;
   const context = canvas.getContext("2d");
 
-  if (!context) throw new Error("canvas_unavailable");
-  context.drawImage(bitmap, 0, 0);
-  bitmap.close?.();
+  if (!context) return Promise.reject(new Error("canvas_unavailable"));
+  context.drawImage(source, 0, 0, width, height);
 
   return new Promise<Blob>((resolve, reject) => {
     canvas.toBlob((png) => {
@@ -112,20 +205,107 @@ async function to_png(blob: Blob): Promise<Blob> {
   });
 }
 
+export async function image_source_to_png(src: string): Promise<Blob> {
+  const image = await load_image_element(src);
+
+  return canvas_to_png(image, image.naturalWidth, image.naturalHeight);
+}
+
+async function bitmap_to_png(blob: Blob): Promise<Blob> {
+  const bitmap = await createImageBitmap(blob);
+
+  try {
+    return await canvas_to_png(bitmap, bitmap.width, bitmap.height);
+  } finally {
+    bitmap.close?.();
+  }
+}
+
+export async function image_blob_to_png(blob: Blob): Promise<Blob> {
+  if (normalized_type(blob.type) === "image/png") {
+    return blob.type === "image/png"
+      ? blob
+      : new Blob([blob], { type: "image/png" });
+  }
+
+  if (typeof createImageBitmap === "function") {
+    try {
+      return await bitmap_to_png(blob);
+    } catch {
+      return blob_url_to_png(blob);
+    }
+  }
+
+  return blob_url_to_png(blob);
+}
+
+async function blob_url_to_png(blob: Blob): Promise<Blob> {
+  const url = URL.createObjectURL(blob);
+
+  try {
+    return await image_source_to_png(url);
+  } finally {
+    URL.revokeObjectURL(url);
+  }
+}
+
+export async function viewer_image_png(
+  src: string,
+  proxy_url: string = get_image_proxy_url(),
+): Promise<Blob> {
+  if (!is_safe_viewer_src(src, proxy_url)) throw new UnsafeImageSourceError();
+
+  if (is_blob_src(src)) return image_source_to_png(src);
+
+  return image_blob_to_png(await load_viewer_image_blob(src, proxy_url));
+}
+
+async function write_native_clipboard(png: Blob): Promise<void> {
+  const core = await import("@tauri-apps/api/core");
+  const bytes = new Uint8Array(await png.arrayBuffer());
+
+  await core.invoke("plugin:clipboard-manager|write_image", {
+    image: Array.from(bytes),
+  });
+}
+
+function has_web_clipboard(): boolean {
+  return (
+    typeof ClipboardItem !== "undefined" &&
+    typeof navigator.clipboard?.write === "function"
+  );
+}
+
+async function write_web_clipboard(png: Promise<Blob>): Promise<void> {
+  if (!has_web_clipboard()) throw new Error("clipboard_unavailable");
+
+  await navigator.clipboard.write([new ClipboardItem({ "image/png": png })]);
+}
+
 export async function copy_viewer_image(
   src: string,
   proxy_url: string = get_image_proxy_url(),
 ): Promise<void> {
-  if (
-    typeof ClipboardItem === "undefined" ||
-    typeof navigator.clipboard?.write !== "function"
-  ) {
+  const is_native = has_tauri_runtime();
+
+  if (!is_native && !has_web_clipboard()) {
     throw new Error("clipboard_unavailable");
   }
 
   if (!is_safe_viewer_src(src, proxy_url)) throw new UnsafeImageSourceError();
 
-  const png = load_viewer_image_blob(src, proxy_url).then(to_png);
+  const png = viewer_image_png(src, proxy_url);
 
-  await navigator.clipboard.write([new ClipboardItem({ "image/png": png })]);
+  if (!is_native) {
+    await write_web_clipboard(png);
+
+    return;
+  }
+
+  try {
+    await write_native_clipboard(await png);
+  } catch (native_error) {
+    if (!has_web_clipboard()) throw native_error;
+    await write_web_clipboard(png);
+  }
 }
