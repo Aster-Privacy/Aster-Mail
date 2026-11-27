@@ -96,3 +96,47 @@ export function strip_aster_footers_html(html: string): string {
 
   return doc.body.innerHTML;
 }
+
+function escape_pattern(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+export function remove_own_aster_footer(root: ParentNode): boolean {
+  let removed = false;
+
+  for (const link of Array.from(root.querySelectorAll(FOOTER_HREF_SELECTOR))) {
+    if (link.closest(QUOTE_SCOPE_SELECTOR)) continue;
+    if (remove_footer_link(link)) removed = true;
+  }
+
+  return removed;
+}
+
+export function strip_own_aster_footer_html(
+  html: string,
+  plain_footer: string | null = null,
+): string {
+  let result = html;
+
+  if (typeof DOMParser !== "undefined") {
+    const doc = new DOMParser().parseFromString(
+      `<!DOCTYPE html><html><body>${result}</body></html>`,
+      "text/html",
+    );
+
+    if (doc.body && remove_own_aster_footer(doc.body)) {
+      result = doc.body.innerHTML;
+    }
+  }
+
+  const label = plain_footer?.trim();
+
+  if (!label) return result;
+
+  const separator = String.raw`(?:\s|&nbsp;|<br\s*/?>)*`;
+  const trailing_footer = new RegExp(
+    `${separator}${escape_pattern(label)}${separator}$`,
+  );
+
+  return result.replace(trailing_footer, "");
+}

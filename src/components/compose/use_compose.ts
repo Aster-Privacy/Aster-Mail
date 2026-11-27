@@ -124,6 +124,10 @@ import { use_compose_send } from "@/components/compose/use_compose_send";
 import { use_compose_drafts } from "@/components/compose/use_compose_drafts";
 import { use_compose_editor } from "@/components/compose/use_compose_editor";
 import { take_pending_send_stash } from "@/components/compose/pending_send_stash";
+import {
+  remove_own_aster_footer,
+  strip_own_aster_footer_html,
+} from "@/lib/aster_footer_strip";
 import { ignore_error } from "@/lib/ignore_error";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
 import {
@@ -492,6 +496,23 @@ export function use_compose({
   const outgoing_message = editor_hook.is_plain_text_mode
     ? escape_html(message).replace(/\n/g, "<br>")
     : message;
+  const branding_off = preferences.show_aster_branding === false;
+  const plain_footer_label = `${t("common.secured_by_aster_mail")} Aster Mail`;
+  const send_message = useMemo(
+    () =>
+      branding_off
+        ? strip_own_aster_footer_html(
+            outgoing_message,
+            editor_hook.is_plain_text_mode ? plain_footer_label : null,
+          )
+        : outgoing_message,
+    [
+      branding_off,
+      outgoing_message,
+      editor_hook.is_plain_text_mode,
+      plain_footer_label,
+    ],
+  );
 
   const auto_inserted_bodies_ref = useRef<string[]>([]);
   const auto_body_session_ref = useRef(false);
@@ -590,7 +611,7 @@ export function use_compose({
   const send_hook = use_compose_send({
     recipients,
     subject,
-    message: outgoing_message,
+    message: send_message,
     is_plain_text: editor_hook.is_plain_text_mode,
     priority,
     attachments: attachment_hook.attachments,
@@ -1300,6 +1321,17 @@ export function use_compose({
     selected_sender,
     t,
   ]);
+
+  useLayoutEffect(() => {
+    if (!branding_off) return;
+    if (!content_initialized_ref.current) return;
+    if (is_plain_text_ref.current) return;
+    const editor = message_textarea_ref.current;
+
+    if (!editor || !remove_own_aster_footer(editor)) return;
+
+    set_message(read_compose_editor_html(editor.innerHTML));
+  }, [branding_off, message]);
 
   const last_signature_id_ref = useRef<string | null>(null);
 
