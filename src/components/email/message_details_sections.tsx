@@ -152,13 +152,13 @@ export function EmailAuthCheckPill({
         align="start"
         aria-describedby={desc_id}
         aria-labelledby={title_id}
-        className="w-72 max-w-[calc(100vw-24px)] p-3"
+        className="w-80 max-w-[calc(100vw-24px)] p-3"
         collisionPadding={12}
         side="bottom"
       >
         <div className="flex items-center justify-between gap-3">
           <p
-            className="text-[13px] font-semibold text-txt-primary"
+            className="min-w-0 truncate whitespace-nowrap text-[13px] font-semibold text-txt-primary"
             id={title_id}
           >
             {CHECK_NAME[result.check]}

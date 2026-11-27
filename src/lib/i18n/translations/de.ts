@@ -3573,6 +3573,9 @@ export const de = {
     low_network_mode_description:
       "Überspringt Profilbilder, Favicons, externe Bilder und das Vorladen von E-Mails. Alle E-Mails werden als reiner Text angezeigt. Nützlich bei langsamen oder getakteten Verbindungen.",
     low_network_mode_active_banner: "Sparsamer Netzwerkmodus aktiv",
+    info_saved_images_title: "Was sind gespeicherte Bilder?",
+    info_saved_images_description:
+      "Wenn du eine Nachricht öffnest, speichert Aster eine verschlüsselte Kopie ihrer Bilder auf diesem Gerät, damit beim erneuten Öffnen keine Verbindung zum Absender entsteht. Das Löschen gibt Speicherplatz auf diesem Gerät frei und löscht keine E-Mails. Die Bilder werden beim nächsten Öffnen einer Nachricht, die sie enthält, erneut geladen.",
     info_low_network_mode_title: "Was bewirkt der sparsame Netzwerkmodus?",
     info_low_network_mode_description:
       "Blockiert alle nicht wesentlichen Netzwerkanfragen, damit Aster bei langsamen oder getakteten Verbindungen nutzbar bleibt. Deaktiviert Profilbilder, Absenderlogos, Domain-Favicons, externe Bilder in E-Mails, das Vorladen von E-Mails, eigene Schriftarten, Anhangsvorschauen und Benachrichtigungstöne. Alle E-Mails werden als reiner Text dargestellt. E-Mail-Threads sind auf 4 Nachrichten begrenzt. Wird bei 2G- oder Save-Data-Verbindungen automatisch aktiviert. Sie können den Modus auch über ?low_bandwidth=1 in der URL aktivieren.",

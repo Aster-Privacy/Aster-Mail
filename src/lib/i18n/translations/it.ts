@@ -3583,6 +3583,9 @@ export const it = {
     low_network_mode_description:
       "Salta immagini del profilo, favicon, immagini esterne e precaricamento delle email. Tutte le email vengono mostrate come testo semplice. Utile su connessioni lente o a consumo.",
     low_network_mode_active_banner: "Modalità rete ridotta attiva",
+    info_saved_images_title: "Cosa sono le immagini salvate?",
+    info_saved_images_description:
+      "Quando apri un messaggio, Aster conserva una copia crittografata delle sue immagini su questo dispositivo, così riaprirlo non contatta il mittente. Cancellarle libera spazio su questo dispositivo e non elimina alcuna email. Le immagini vengono scaricate di nuovo la prossima volta che apri un messaggio che le contiene.",
     info_low_network_mode_title: "Cosa fa la modalità rete ridotta?",
     info_low_network_mode_description:
       "Blocca tutte le richieste di rete non essenziali per mantenere Aster utilizzabile su connessioni lente o a consumo. Disabilita immagini del profilo, loghi dei mittenti, favicon dei domini, immagini esterne nelle email, precaricamento delle email, font personalizzati, anteprime degli allegati e suoni di notifica. Tutte le email vengono visualizzate come testo semplice. I thread delle email sono limitati a 4 messaggi. Si attiva automaticamente su connessioni 2G o Risparmio dati. Puoi anche abilitarla tramite ?low_bandwidth=1 nell'URL.",

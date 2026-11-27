@@ -3496,6 +3496,9 @@ export const nl = {
     low_network_mode_description:
       "Slaat profielfoto's, favicons, externe afbeeldingen en het vooraf laden van e-mail over. Alle e-mails worden als platte tekst getoond. Handig bij trage of beperkte verbindingen.",
     low_network_mode_active_banner: "Modus voor laag netwerkverbruik actief",
+    info_saved_images_title: "Wat zijn opgeslagen afbeeldingen?",
+    info_saved_images_description:
+      "Wanneer je een bericht opent, bewaart Aster een versleutelde kopie van de afbeeldingen op dit apparaat, zodat het opnieuw openen geen contact maakt met de afzender. Wissen maakt ruimte vrij op dit apparaat en verwijdert geen e-mail. De afbeeldingen worden opnieuw gedownload wanneer je een bericht opent dat ze bevat.",
     info_low_network_mode_title: "Wat doet de modus voor laag netwerkverbruik?",
     info_low_network_mode_description:
       "Blokkeert alle niet-essentiële netwerkverzoeken om Aster bruikbaar te houden bij trage of beperkte verbindingen. Schakelt profielfoto's, afzenderlogo's, domeinfavicons, externe afbeeldingen in e-mails, het vooraf laden van e-mail, aangepaste lettertypen, voorbeelden van bijlagen en meldingsgeluiden uit. Alle e-mails worden weergegeven als platte tekst. E-mailgesprekken zijn beperkt tot 4 berichten. Wordt automatisch geactiveerd bij 2G- of Save-Data-verbindingen. Je kunt deze ook inschakelen via ?low_bandwidth=1 in de URL.",

@@ -8761,6 +8761,8 @@ export interface SettingsTranslations {
   low_network_mode_label: string;
   low_network_mode_description: string;
   low_network_mode_active_banner: string;
+  info_saved_images_title: string;
+  info_saved_images_description: string;
   info_low_network_mode_title: string;
   info_low_network_mode_description: string;
   app_lock_attempts_remaining_one: string;

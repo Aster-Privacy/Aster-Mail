@@ -3513,6 +3513,9 @@ export const tr = {
     low_network_mode_description:
       "Profil fotoğraflarını, favicon'ları, harici görselleri ve e-posta ön yüklemesini atlar. Tüm e-postalar düz metin olarak gösterilir. Yavaş veya sınırlı bağlantılarda kullanışlıdır.",
     low_network_mode_active_banner: "Düşük Ağ Modu etkin",
+    info_saved_images_title: "Kaydedilen görseller nedir?",
+    info_saved_images_description:
+      "Bir iletiyi açtığınızda Aster, görsellerinin şifreli bir kopyasını bu cihazda saklar; böylece iletiyi yeniden açmak gönderene bağlanmaz. Temizlemek bu cihazda yer açar ve hiçbir e-postayı silmez. Görseller, onları içeren bir iletiyi bir sonraki açışınızda yeniden indirilir.",
     info_low_network_mode_title: "Düşük Ağ Modu ne işe yarar?",
     info_low_network_mode_description:
       "Aster'i yavaş veya sınırlı bağlantılarda kullanılabilir tutmak için gerekli olmayan tüm ağ isteklerini engeller. Profil fotoğraflarını, gönderen logolarını, alan adı favicon'larını, e-postalardaki harici görselleri, e-posta ön yüklemesini, özel yazı tiplerini, ek önizlemelerini ve bildirim seslerini devre dışı bırakır. Tüm e-postalar düz metin olarak görüntülenir. E-posta dizileri 4 mesajla sınırlandırılır. 2G veya Veri Tasarrufu bağlantılarında otomatik olarak etkinleşir. Ayrıca URL'de ?low_bandwidth=1 ile de etkinleştirebilirsiniz.",
