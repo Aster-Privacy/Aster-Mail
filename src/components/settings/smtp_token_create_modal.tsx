@@ -25,7 +25,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   ClipboardDocumentIcon,
   ExclamationTriangleIcon,
-  KeyIcon,
 } from "@heroicons/react/24/outline";
 import { Button } from "@/components/ui/button";
 
@@ -311,10 +310,7 @@ export function SmtpTokenCreateModal({
     return (
       <>
         <ModalHeader>
-          <div className="flex items-center gap-3">
-            <KeyIcon className="w-5 h-5 text-txt-muted flex-shrink-0" />
-            <ModalTitle>{t("settings.smtp_token_ready_title")}</ModalTitle>
-          </div>
+          <ModalTitle>{t("settings.smtp_token_ready_title")}</ModalTitle>
           <ModalDescription>
             {t("settings.smtp_token_ready_description")}
           </ModalDescription>

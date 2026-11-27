@@ -35,7 +35,6 @@ import { FaviconOrInitial } from "@/components/ui/favicon_or_initial";
 import { use_shift_range_select } from "@/lib/use_shift_range_select";
 import { Modal, ModalBody } from "@/components/ui/modal";
 import { Spinner } from "@/components/ui/spinner";
-import { SnoozeIcon } from "@/components/common/icons";
 import { batched_bulk_patch_metadata } from "@/services/api/mail";
 import {
   scan_received_items,
@@ -520,15 +519,12 @@ export function MassUnsubscribeModal({
     >
       <div className="flex flex-col" style={{ height: "520px" }}>
         <div className="flex items-center justify-between px-6 py-5 flex-shrink-0">
-          <div className="flex items-center gap-3">
-            <SnoozeIcon size={20} />
-            <h2
-              className="text-[16px] font-semibold"
-              style={{ color: "var(--text-primary)" }}
-            >
-              {t("settings.bulk_unsubscribe")}
-            </h2>
-          </div>
+          <h2
+            className="text-[16px] font-semibold"
+            style={{ color: "var(--text-primary)" }}
+          >
+            {t("settings.bulk_unsubscribe")}
+          </h2>
           <button
             aria-label={t("common.close")}
             className="p-1.5 rounded-[14px] transition-colors hover:bg-[var(--aster-hover)]"

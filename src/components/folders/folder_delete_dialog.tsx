@@ -22,10 +22,7 @@ import type { KeyboardEvent } from "react";
 
 import { Checkbox } from "@aster/ui";
 import { useCallback, useEffect, useRef, useState } from "react";
-import {
-  ExclamationTriangleIcon,
-  TrashIcon,
-} from "@heroicons/react/24/outline";
+import { ExclamationTriangleIcon } from "@heroicons/react/24/outline";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -473,13 +470,8 @@ export function FolderDeleteDialog({
   return (
     <Modal is_open={is_open} on_close={handle_dismiss} size="md">
       <ModalHeader>
-        <div className="flex items-center gap-3">
-          <TrashIcon className="w-5 h-5 text-red-500 flex-shrink-0" />
-          <div className="min-w-0">
-            <ModalTitle>{t("common.delete_folder")}</ModalTitle>
-            <ModalDescription>{folder_name}</ModalDescription>
-          </div>
-        </div>
+        <ModalTitle>{t("common.delete_folder")}</ModalTitle>
+        <ModalDescription className="break-words">{folder_name}</ModalDescription>
       </ModalHeader>
 
       <ModalBody>

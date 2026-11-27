@@ -671,7 +671,7 @@ export function ContactImportModal({
                     </span>
                     <ArrowRightIcon className="w-4 h-4 text-txt-muted rtl:-scale-x-100" />
                     <select
-                      className="h-8 px-2 rounded-[var(--aster-radius-item)] border-0 text-sm min-w-32 bg-[var(--aster-field-bg)] hover:bg-[var(--aster-field-hover)] text-txt-primary outline-none focus:shadow-[inset_0_0_0_2px_var(--accent-color)]"
+                      className="h-8 px-2 rounded-[var(--aster-radius-item)] border-0 text-sm min-w-32 bg-[var(--aster-field-bg)] hover:bg-[var(--aster-field-hover)] text-txt-primary outline-none focus-visible:shadow-[inset_0_0_0_2px_var(--accent-color)]"
                       value={csv_mapping[header] || ""}
                       onChange={(e) =>
                         set_csv_mapping((prev) => ({

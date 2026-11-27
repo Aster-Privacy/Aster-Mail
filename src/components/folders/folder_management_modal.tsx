@@ -20,12 +20,9 @@
 //
 import { useState, useEffect, useMemo, useCallback } from "react";
 import {
-  LockClosedIcon,
-  PencilIcon,
   FolderIcon,
   InboxIcon,
   ShieldCheckIcon,
-  ArrowRightIcon,
 } from "@heroicons/react/24/outline";
 import { Button } from "@/components/ui/button";
 
@@ -335,21 +332,12 @@ export function FolderManagementModal({
         return (
           <>
             <ModalHeader>
-              <div className="flex items-center gap-3">
-                {is_locked ? (
-                  <ShieldCheckIcon className="w-5 h-5 text-green-500 flex-shrink-0" />
-                ) : (
-                  <LockClosedIcon className="w-5 h-5 text-brand flex-shrink-0" />
-                )}
-                <div className="min-w-0">
-                  <ModalTitle>
-                    {is_locked
-                      ? t("common.unlock_folder")
-                      : t("common.lock_folder")}
-                  </ModalTitle>
-                  <ModalDescription>{folder_name}</ModalDescription>
-                </div>
-              </div>
+              <ModalTitle>
+                {is_locked
+                  ? t("common.unlock_folder")
+                  : t("common.lock_folder")}
+              </ModalTitle>
+              <ModalDescription>{folder_name}</ModalDescription>
             </ModalHeader>
 
             <ModalBody>
@@ -416,15 +404,10 @@ export function FolderManagementModal({
         return (
           <>
             <ModalHeader>
-              <div className="flex items-center gap-3">
-                <PencilIcon className="w-5 h-5 text-brand flex-shrink-0" />
-                <div className="min-w-0">
-                  <ModalTitle>{t("common.rename_folder")}</ModalTitle>
-                  <ModalDescription>
-                    {t("common.rename_folder_description")}
-                  </ModalDescription>
-                </div>
-              </div>
+              <ModalTitle>{t("common.rename_folder")}</ModalTitle>
+              <ModalDescription>
+                {t("common.rename_folder_description")}
+              </ModalDescription>
             </ModalHeader>
 
             <ModalBody>
@@ -482,16 +465,8 @@ export function FolderManagementModal({
         return (
           <>
             <ModalHeader>
-              <div className="flex items-center gap-3">
-                <FolderIcon
-                  className="w-5 h-5 flex-shrink-0"
-                  style={{ color: folder_color }}
-                />
-                <div className="min-w-0">
-                  <ModalTitle>{t("common.change_folder_color")}</ModalTitle>
-                  <ModalDescription>{folder_name}</ModalDescription>
-                </div>
-              </div>
+              <ModalTitle>{t("common.change_folder_color")}</ModalTitle>
+              <ModalDescription>{folder_name}</ModalDescription>
             </ModalHeader>
 
             <ModalBody>
@@ -543,15 +518,10 @@ export function FolderManagementModal({
         return (
           <>
             <ModalHeader>
-              <div className="flex items-start gap-3">
-                <ArrowRightIcon className="w-5 h-5 text-brand flex-shrink-0 mt-0.5 rtl:-scale-x-100" />
-                <div className="min-w-0">
-                  <ModalTitle>{t("common.move_folder")}</ModalTitle>
-                  <ModalDescription>
-                    {t("common.move_folder_description")}
-                  </ModalDescription>
-                </div>
-              </div>
+              <ModalTitle>{t("common.move_folder")}</ModalTitle>
+              <ModalDescription>
+                {t("common.move_folder_description")}
+              </ModalDescription>
             </ModalHeader>
 
             <ModalBody>

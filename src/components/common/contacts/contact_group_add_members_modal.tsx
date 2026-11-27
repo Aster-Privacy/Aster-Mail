@@ -22,7 +22,6 @@ import type { ContactGroup, DecryptedContact } from "@/types/contacts";
 import type { TranslationKey } from "@/lib/i18n/types";
 
 import { useEffect, useMemo, useState } from "react";
-import { UserPlusIcon } from "@heroicons/react/24/outline";
 import { Checkbox } from "@aster/ui";
 
 import { Button } from "@/components/ui/button";
@@ -107,12 +106,9 @@ export function ContactGroupAddMembersModal({
   return (
     <Modal is_open={!!group} on_close={is_saving ? () => {} : on_close} size="sm">
       <ModalHeader>
-        <div className="flex items-center gap-3">
-          <UserPlusIcon className="h-5 w-5 flex-shrink-0 text-txt-muted" />
-          <ModalTitle className="min-w-0 truncate">
-            {t("common.add_members_title", { name: group?.name ?? "" })}
-          </ModalTitle>
-        </div>
+        <ModalTitle className="truncate">
+          {t("common.add_members_title", { name: group?.name ?? "" })}
+        </ModalTitle>
       </ModalHeader>
 
       <ModalBody>

@@ -378,12 +378,9 @@ export function SnoozeSimilarModal({
               }}
             >
               <div className="flex items-center justify-between px-6 py-5">
-                <div className="flex items-center gap-3">
-                  <ClockIcon className="w-5 h-5 text-txt-secondary" />
-                  <h2 className="text-[16px] font-semibold text-txt-primary">
-                    {t("mail.snooze_similar_emails")}
-                  </h2>
-                </div>
+                <h2 className="text-[16px] font-semibold text-txt-primary">
+                  {t("mail.snooze_similar_emails")}
+                </h2>
                 <button
                   aria-label={t("common.close")}
                   className="p-1.5 rounded-[14px] transition-colors hover:bg-[var(--aster-hover)] text-txt-muted"
