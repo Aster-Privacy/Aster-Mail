@@ -5436,6 +5436,8 @@ export const ko = {
       "연결된 계정의 폴더를 불러오지 못했습니다. 다시 시도하세요.",
     external_sign_in_rejected:
       "메일 서버가 이 사용자 이름과 비밀번호를 허용하지 않았습니다. 다시 확인하세요. 제공업체에서 앱 비밀번호를 요구하면 대신 앱 비밀번호를 입력하세요.",
+    external_mailbox_access_off:
+      "이메일 제공업체가 로그인은 수락했지만 메일함을 열지 않았습니다. 이 계정을 사용하려면 이메일 계정 설정에서 IMAP 액세스를 켠 다음 다시 시도하세요.",
     external_server_unreachable:
       "Aster Mail이 이 메일 서버에 연결하지 못했습니다. 서버 이름, 포트, 보안 설정을 확인한 후 다시 시도하세요.",
     external_reconnect_required:

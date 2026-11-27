@@ -51,6 +51,9 @@ describe("external account upstream error codes", () => {
       external_account_error_message("EXTERNAL_ACCOUNT_SIGN_IN_REJECTED"),
     ).toBe(en.settings.external_sign_in_rejected);
     expect(
+      external_account_error_message("EXTERNAL_ACCOUNT_MAILBOX_ACCESS_OFF"),
+    ).toBe(en.settings.external_mailbox_access_off);
+    expect(
       external_account_error_message("EXTERNAL_ACCOUNT_SERVER_UNREACHABLE"),
     ).toBe(en.settings.external_server_unreachable);
     expect(

@@ -6876,6 +6876,8 @@ export const it = {
       "Le cartelle dell'account collegato non sono state caricate. Riprova.",
     external_sign_in_rejected:
       "Il server di posta non ha accettato questo nome utente e questa password. Li controlli di nuovo. Se il suo provider richiede una password per app, inserisca quella.",
+    external_mailbox_access_off:
+      "Il tuo provider email ha accettato l'accesso, ma non ha aperto la casella di posta. Per usare questo account, attiva l'accesso IMAP nelle impostazioni del tuo account email, quindi riprova.",
     external_server_unreachable:
       "Aster Mail non è riuscito a connettersi a questo server di posta. Controlli il nome del server, la porta e l'impostazione di sicurezza, poi riprovi.",
     external_reconnect_required:

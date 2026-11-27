@@ -5403,6 +5403,8 @@ export const nl = {
       "De mappen van je gekoppelde account zijn niet geladen. Probeer het opnieuw.",
     external_sign_in_rejected:
       "De mailserver heeft deze gebruikersnaam en dit wachtwoord niet geaccepteerd. Controleer ze opnieuw. Als je provider een app-wachtwoord vereist, voer je dat in.",
+    external_mailbox_access_off:
+      "Je e-mailprovider heeft de aanmelding geaccepteerd, maar de mailbox niet geopend. Zet IMAP-toegang aan in de instellingen van je e-mailaccount om dit account te gebruiken, en probeer het daarna opnieuw.",
     external_server_unreachable:
       "Aster Mail kan geen verbinding maken met deze mailserver. Controleer de servernaam, de poort en de beveiligingsinstelling en probeer het opnieuw.",
     external_reconnect_required:

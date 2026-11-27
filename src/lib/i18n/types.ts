@@ -6215,6 +6215,7 @@ export interface SettingsTranslations {
   failed_delete_emails_external: string;
   failed_fetch_folders_external: string;
   external_sign_in_rejected: string;
+  external_mailbox_access_off: string;
   external_server_unreachable: string;
   external_reconnect_required: string;
   external_message_rejected: string;

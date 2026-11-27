@@ -5412,6 +5412,8 @@ export const de = {
       "Die Ordner aus Ihrem verknüpften Konto wurden nicht geladen. Versuchen Sie es erneut.",
     external_sign_in_rejected:
       "Der Mailserver hat diesen Benutzernamen und dieses Passwort nicht akzeptiert. Prüfen Sie beide erneut. Wenn Ihr Anbieter ein App-Passwort verlangt, geben Sie stattdessen dieses ein.",
+    external_mailbox_access_off:
+      "Ihr E-Mail-Anbieter hat die Anmeldung akzeptiert, das Postfach aber nicht geöffnet. Um dieses Konto zu verwenden, aktivieren Sie den IMAP-Zugriff in den Einstellungen Ihres E-Mail-Kontos und versuchen Sie es dann erneut.",
     external_server_unreachable:
       "Aster Mail konnte keine Verbindung zu diesem Mailserver herstellen. Prüfen Sie Servername, Port und Sicherheitseinstellung und versuchen Sie es dann erneut.",
     external_reconnect_required:

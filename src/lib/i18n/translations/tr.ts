@@ -5426,6 +5426,8 @@ export const tr = {
       "Bağlı hesabınızdaki klasörler yüklenmedi. Tekrar deneyin.",
     external_sign_in_rejected:
       "Posta sunucusu bu kullanıcı adını ve parolayı kabul etmedi. Bilgileri yeniden kontrol edin. Sağlayıcınız uygulama parolası istiyorsa bunun yerine onu girin.",
+    external_mailbox_access_off:
+      "E-posta sağlayıcınız oturum açmayı kabul etti ancak posta kutusunu açmadı. Bu hesabı kullanmak için e-posta hesabınızın ayarlarında IMAP erişimini açın ve tekrar deneyin.",
     external_server_unreachable:
       "Aster Mail bu posta sunucusuna bağlanamadı. Sunucu adını, bağlantı noktasını ve güvenlik ayarını kontrol edip yeniden deneyin.",
     external_reconnect_required:

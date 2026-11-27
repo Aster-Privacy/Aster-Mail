@@ -4952,6 +4952,8 @@ export const zh_CN = {
     failed_fetch_folders_external: "您关联账户中的文件夹未能加载。请重试。",
     external_sign_in_rejected:
       "邮件服务器未接受此用户名和密码。请重新检查。如果您的服务提供商要求使用应用专用密码，请改为输入该密码。",
+    external_mailbox_access_off:
+      "你的邮件服务提供商已接受登录，但没有打开邮箱。要使用此账户，请在邮件账户设置中开启 IMAP 访问，然后重试。",
     external_server_unreachable:
       "Aster Mail 无法连接到此邮件服务器。请检查服务器名称、端口和安全设置，然后重试。",
     external_reconnect_required:

@@ -5556,6 +5556,8 @@ export const pt = {
       "As pastas da sua conta associada não foram carregadas. Tente novamente.",
     external_sign_in_rejected:
       "O servidor de correio não aceitou este nome de utilizador e palavra-passe. Verifique-os novamente. Se o seu fornecedor exigir uma palavra-passe de aplicação, introduza-a em alternativa.",
+    external_mailbox_access_off:
+      "O seu fornecedor de email aceitou o início de sessão, mas não abriu a caixa de correio. Para usar esta conta, ative o acesso IMAP nas definições da sua conta de email e tente novamente.",
     external_server_unreachable:
       "O Aster Mail não conseguiu ligar-se a este servidor de correio. Verifique o nome do servidor, a porta e a definição de segurança e tente novamente.",
     external_reconnect_required:
