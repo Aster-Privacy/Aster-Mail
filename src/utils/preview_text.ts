@@ -39,7 +39,10 @@ const PREHEADER_MIN_CHARS = 4;
 const PREHEADER_MAX_CHARS = 600;
 
 const FILLER_CHARS =
-  /[\u200b\u200c\u200d\u2060\u2066-\u2069\ufeff\u034f\u00ad\u180e\u3164\ufff9-\ufffc]/g;
+  /[\u200b\u2060\u2066-\u2069\ufeff\u034f\u00ad\u180e\u3164\ufff9-\ufffc]/g;
+
+const STRAY_JOINER_CHARS =
+  /(?<![^\s\u200c\u200d])[\u200c\u200d]+|[\u200c\u200d]+(?![^\s\u200c\u200d])/g;
 
 const SPACE_LIKE_CHARS =
   /[\u00a0\u1680\u2000-\u200a\u2028\u2029\u202f\u205f\u2800\u3000]/g;
@@ -97,6 +100,7 @@ export function strip_preview_filler(value: string): string {
   return value
     .replace(FILLER_CHARS, "")
     .replace(SPACE_LIKE_CHARS, " ")
+    .replace(STRAY_JOINER_CHARS, "")
     .replace(/\s+/g, " ")
     .trim();
 }

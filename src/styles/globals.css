@@ -1986,6 +1986,14 @@
     sans-serif;
 }
 
+::selection {
+  background-color: color-mix(in srgb, var(--accent-color) 24%, transparent);
+}
+
+.dark ::selection {
+  background-color: color-mix(in srgb, var(--accent-color) 40%, transparent);
+}
+
 html,
 body,
 #root {
