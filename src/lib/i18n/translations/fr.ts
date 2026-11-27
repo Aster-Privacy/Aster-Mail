@@ -5577,6 +5577,7 @@ export const fr = {
     external_message_rejected:
       "Le serveur de messagerie de ce compte a refusé d'envoyer ce message.",
     external_send_reconnect_required: "Pour envoyer depuis ce compte, reconnectez-le et autorisez Aster Mail à envoyer des e-mails.",
+    external_provider_not_ready: "Votre fournisseur a accepté la connexion, mais n'a pas encore ouvert la boîte aux lettres pour Aster Mail. Patientez quelques minutes, puis réessayez.",
     oauth_folder_picker_title: "Choisir les dossiers à synchroniser",
     oauth_folder_picker_description: "Aster Mail copie uniquement les e-mails des dossiers que vous sélectionnez. La boîte de réception est déjà sélectionnée.",
     oauth_folder_picker_load_failed: "Impossible de charger les dossiers de ce compte.",

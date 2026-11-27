@@ -5438,6 +5438,7 @@ export const tr = {
     external_message_rejected:
       "Bu hesabın posta sunucusu bu iletiyi göndermeyi reddetti.",
     external_send_reconnect_required: "Bu hesaptan göndermek için hesabı yeniden bağlayın ve Aster Mail'in e-posta göndermesine izin verin.",
+    external_provider_not_ready: "Sağlayıcınız oturum açmayı kabul etti ancak posta kutusunu Aster Mail için henüz açmadı. Birkaç dakika bekleyin, ardından tekrar deneyin.",
     oauth_folder_picker_title: "Eşitlenecek klasörleri seçin",
     oauth_folder_picker_description: "Aster Mail yalnızca seçtiğiniz klasörlerdeki e-postaları kopyalar. Gelen Kutusu zaten seçili.",
     oauth_folder_picker_load_failed: "Bu hesabın klasörleri yüklenemedi.",

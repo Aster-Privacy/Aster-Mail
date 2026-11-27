@@ -5415,6 +5415,7 @@ export const nl = {
     external_message_rejected:
       "De mailserver van dit account heeft geweigerd dit bericht te verzenden.",
     external_send_reconnect_required: "Als je vanaf dit account wilt verzenden, koppel je het opnieuw en geef je Aster Mail toestemming om e-mail te verzenden.",
+    external_provider_not_ready: "Je provider heeft de aanmelding geaccepteerd, maar heeft de mailbox nog niet geopend voor Aster Mail. Wacht een paar minuten en probeer het daarna opnieuw.",
     oauth_folder_picker_title: "Kies mappen om te synchroniseren",
     oauth_folder_picker_description: "Aster Mail kopieert alleen e-mail uit de mappen die je selecteert. Postvak IN is al geselecteerd.",
     oauth_folder_picker_load_failed: "De mappen van dit account kunnen niet worden geladen.",

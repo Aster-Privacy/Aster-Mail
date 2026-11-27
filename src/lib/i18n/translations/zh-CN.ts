@@ -4963,6 +4963,7 @@ export const zh_CN = {
       "您的服务提供商已不再接受此账户保存的登录信息。如需继续使用，请重新连接该账户。",
     external_message_rejected: "此账户的邮件服务器拒绝发送这封邮件。",
     external_send_reconnect_required: "要从此账户发送邮件，请重新连接该账户并允许 Aster Mail 发送邮件。",
+    external_provider_not_ready: "你的服务提供商已接受登录，但尚未向 Aster Mail 开放邮箱。请等几分钟后再试。",
     oauth_folder_picker_title: "选择要同步的文件夹",
     oauth_folder_picker_description: "Aster Mail 仅复制你所选文件夹中的邮件。收件箱已为你选中。",
     oauth_folder_picker_load_failed: "无法加载此账户的文件夹。",

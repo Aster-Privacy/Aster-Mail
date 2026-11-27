@@ -6569,6 +6569,7 @@ export const hi = {
     external_message_rejected:
       "इस खाते के मेल सर्वर ने यह संदेश भेजने से मना कर दिया।",
     external_send_reconnect_required: "इस खाते से भेजने के लिए, इसे फिर से कनेक्ट करें और Aster Mail को मेल भेजने की अनुमति दें।",
+    external_provider_not_ready: "आपके प्रदाता ने साइन-इन स्वीकार कर लिया है, लेकिन अभी तक Aster Mail के लिए मेलबॉक्स नहीं खोला है। कुछ मिनट रुकें, फिर दोबारा कोशिश करें।",
     oauth_folder_picker_title: "सिंक करने के लिए फ़ोल्डर चुनें",
     oauth_folder_picker_description: "Aster Mail केवल आपके चुने हुए फ़ोल्डर से मेल कॉपी करता है। इनबॉक्स पहले से चुना हुआ है।",
     oauth_folder_picker_load_failed: "इस खाते के फ़ोल्डर लोड नहीं हो सके।",

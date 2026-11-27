@@ -5424,6 +5424,7 @@ export const de = {
     external_message_rejected:
       "Der Mailserver dieses Kontos hat das Senden dieser Nachricht abgelehnt.",
     external_send_reconnect_required: "Um von diesem Konto zu senden, verbinden Sie es erneut und erlauben Sie Aster Mail, E-Mails zu senden.",
+    external_provider_not_ready: "Dein Anbieter hat die Anmeldung akzeptiert, das Postfach für Aster Mail aber noch nicht geöffnet. Warte ein paar Minuten und versuche es dann erneut.",
     oauth_folder_picker_title: "Ordner für die Synchronisierung auswählen",
     oauth_folder_picker_description: "Aster Mail kopiert nur E-Mails aus den Ordnern, die Sie auswählen. Der Posteingang ist bereits ausgewählt.",
     oauth_folder_picker_load_failed: "Die Ordner dieses Kontos konnten nicht geladen werden.",

@@ -5573,6 +5573,7 @@ export const ar = {
       "لم يعد مزودك يقبل بيانات تسجيل الدخول المحفوظة لهذا الحساب. لمواصلة استخدامه، أعد ربط الحساب.",
     external_message_rejected: "رفض خادم البريد لهذا الحساب إرسال هذه الرسالة.",
     external_send_reconnect_required: "للإرسال من هذا الحساب، أعد ربطه واسمح لـ Aster Mail بإرسال البريد.",
+    external_provider_not_ready: "قبِل مزوّدك تسجيل الدخول لكنه لم يفتح صندوق البريد لـ Aster Mail بعد. انتظر بضع دقائق، ثم حاول مرة أخرى.",
     oauth_folder_picker_title: "اختر المجلدات المراد مزامنتها",
     oauth_folder_picker_description: "ينسخ Aster Mail البريد من المجلدات التي تختارها فقط. تم تحديد البريد الوارد لك.",
     oauth_folder_picker_load_failed: "تعذر تحميل مجلدات هذا الحساب.",

@@ -6888,6 +6888,7 @@ export const it = {
     external_message_rejected:
       "Il server di posta di questo account ha rifiutato di inviare questo messaggio.",
     external_send_reconnect_required: "Per inviare da questo account, lo ricolleghi e consenta ad Aster Mail di inviare posta.",
+    external_provider_not_ready: "Il tuo provider ha accettato l'accesso, ma non ha ancora aperto la casella di posta per Aster Mail. Attendi qualche minuto, poi riprova.",
     oauth_folder_picker_title: "Scelga le cartelle da sincronizzare",
     oauth_folder_picker_description: "Aster Mail copia solo la posta delle cartelle che seleziona. La posta in arrivo è già selezionata.",
     oauth_folder_picker_load_failed: "Impossibile caricare le cartelle di questo account.",

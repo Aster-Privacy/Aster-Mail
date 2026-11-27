@@ -5417,6 +5417,7 @@ export const ja = {
     external_message_rejected:
       "このアカウントのメールサーバーがこのメッセージの送信を拒否しました。",
     external_send_reconnect_required: "このアカウントから送信するには、アカウントを再接続して Aster Mail にメールの送信を許可してください。",
+    external_provider_not_ready: "プロバイダはサインインを受け付けましたが、Aster Mail 用のメールボックスはまだ開かれていません。数分待ってから、もう一度お試しください。",
     oauth_folder_picker_title: "同期するフォルダを選択",
     oauth_folder_picker_description: "Aster Mail は選択したフォルダのメールのみをコピーします。受信トレイは選択済みです。",
     oauth_folder_picker_load_failed: "このアカウントのフォルダを読み込めませんでした。",

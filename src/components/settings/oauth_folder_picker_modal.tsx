@@ -76,16 +76,23 @@ export function OAuthFolderPickerModal({
   const [import_existing, set_import_existing] = useState(for_import);
   const [is_loading, set_is_loading] = useState(false);
   const [load_failed, set_load_failed] = useState(false);
+  const [load_error, set_load_error] = useState<string | undefined>();
 
   const load = useCallback(async (token: string, is_stale: () => boolean) => {
     set_is_loading(true);
     set_load_failed(false);
+    set_load_error(undefined);
     const response = await list_oauth_folders(token);
 
     if (is_stale()) return;
     set_is_loading(false);
     if (response.error || !response.data) {
       set_load_failed(true);
+      set_load_error(
+        response.server_code === "EXTERNAL_ACCOUNT_PROVIDER_NOT_READY"
+          ? response.error
+          : undefined,
+      );
 
       return;
     }
@@ -175,6 +182,7 @@ export function OAuthFolderPickerModal({
         {load_failed && !is_loading && (
           <Island tone="danger">
             <IslandRow
+              description={load_error}
               label={t("settings.oauth_folder_picker_load_failed")}
               trailing={
                 <Button

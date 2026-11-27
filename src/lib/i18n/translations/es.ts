@@ -5526,6 +5526,7 @@ export const es = {
     external_message_rejected:
       "El servidor de correo de esta cuenta rechazó el envío de este mensaje.",
     external_send_reconnect_required: "Para enviar desde esta cuenta, vuelve a conectarla y permite que Aster Mail envíe correo.",
+    external_provider_not_ready: "Tu proveedor aceptó el inicio de sesión, pero aún no ha abierto el buzón para Aster Mail. Espera unos minutos y vuelve a intentarlo.",
     oauth_folder_picker_title: "Elige las carpetas que quieres sincronizar",
     oauth_folder_picker_description: "Aster Mail solo copia el correo de las carpetas que selecciones. La bandeja de entrada ya está seleccionada.",
     oauth_folder_picker_load_failed: "No se pudieron cargar las carpetas de esta cuenta.",

@@ -6220,6 +6220,7 @@ export interface SettingsTranslations {
   external_reconnect_required: string;
   external_message_rejected: string;
   external_send_reconnect_required: string;
+  external_provider_not_ready: string;
   oauth_folder_picker_title: string;
   oauth_folder_picker_description: string;
   oauth_folder_picker_load_failed: string;

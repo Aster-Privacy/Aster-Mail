@@ -5462,6 +5462,7 @@ export const pt_br = {
     external_message_rejected:
       "O servidor de e-mail desta conta se recusou a enviar esta mensagem.",
     external_send_reconnect_required: "Para enviar desta conta, reconecte-a e permita que o Aster Mail envie e-mails.",
+    external_provider_not_ready: "Seu provedor aceitou o login, mas ainda não abriu a caixa de correio para o Aster Mail. Aguarde alguns minutos e tente novamente.",
     oauth_folder_picker_title: "Escolha as pastas para sincronizar",
     oauth_folder_picker_description: "O Aster Mail copia apenas os e-mails das pastas que você selecionar. A caixa de entrada já está selecionada.",
     oauth_folder_picker_load_failed: "Não foi possível carregar as pastas desta conta.",

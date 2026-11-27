@@ -5668,6 +5668,7 @@ export const pl = {
     external_message_rejected:
       "Serwer poczty tego konta odmówił wysłania tej wiadomości.",
     external_send_reconnect_required: "Aby wysyłać z tego konta, połącz je ponownie i zezwól Aster Mail na wysyłanie poczty.",
+    external_provider_not_ready: "Twój dostawca zaakceptował logowanie, ale nie otworzył jeszcze skrzynki pocztowej dla Aster Mail. Poczekaj kilka minut i spróbuj ponownie.",
     oauth_folder_picker_title: "Wybierz foldery do synchronizacji",
     oauth_folder_picker_description: "Aster Mail kopiuje wiadomości tylko z wybranych folderów. Skrzynka odbiorcza jest już zaznaczona.",
     oauth_folder_picker_load_failed: "Nie udało się wczytać folderów tego konta.",

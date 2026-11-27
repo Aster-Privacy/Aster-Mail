@@ -5632,6 +5632,7 @@ export const ru = {
     external_message_rejected:
       "Почтовый сервер этой учётной записи отказался отправлять это сообщение.",
     external_send_reconnect_required: "Чтобы отправлять письма с этой учётной записи, подключите её заново и разрешите Aster Mail отправлять почту.",
+    external_provider_not_ready: "Ваш провайдер принял вход, но ещё не открыл почтовый ящик для Aster Mail. Подождите несколько минут и повторите попытку.",
     oauth_folder_picker_title: "Выберите папки для синхронизации",
     oauth_folder_picker_description: "Aster Mail копирует письма только из выбранных папок. Папка «Входящие» уже выбрана.",
     oauth_folder_picker_load_failed: "Не удалось загрузить папки этой учётной записи.",

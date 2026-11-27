@@ -5448,6 +5448,7 @@ export const ko = {
     external_message_rejected:
       "이 계정의 메일 서버가 이 메시지 전송을 거부했습니다.",
     external_send_reconnect_required: "이 계정에서 보내려면 계정을 다시 연결하고 Aster Mail이 메일을 보내도록 허용하세요.",
+    external_provider_not_ready: "제공업체가 로그인을 수락했지만 아직 Aster Mail용 메일함을 열지 않았습니다. 몇 분 후에 다시 시도하세요.",
     oauth_folder_picker_title: "동기화할 폴더 선택",
     oauth_folder_picker_description: "Aster Mail은 선택한 폴더의 메일만 복사합니다. 받은편지함은 이미 선택되어 있습니다.",
     oauth_folder_picker_load_failed: "이 계정의 폴더를 불러올 수 없습니다.",

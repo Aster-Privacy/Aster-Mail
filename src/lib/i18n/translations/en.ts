@@ -6487,6 +6487,7 @@ export const en: Translations = {
     external_message_rejected:
       "The mail server for this account refused to send this message.",
     external_send_reconnect_required: "To send from this account, reconnect it and allow Aster Mail to send mail.",
+    external_provider_not_ready: "Your provider accepted the sign-in but hasn't opened the mailbox for Aster Mail yet. Wait a few minutes, then try again.",
     oauth_folder_picker_title: "Choose folders to sync",
     oauth_folder_picker_description: "Aster Mail copies mail only from the folders you select. Inbox is selected for you.",
     oauth_folder_picker_load_failed: "Couldn't load the folders for this account.",
