@@ -23,8 +23,21 @@ import { PlusIcon } from "@heroicons/react/24/outline";
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
 import { use_auth } from "@/contexts/auth_context";
 import { use_i18n } from "@/lib/i18n/context";
-import { account_index_path, account_index_url } from "@/lib/account_index_url";
+import {
+  account_index_path,
+  account_index_url,
+  app_pathname,
+  is_signed_in_entry_path,
+} from "@/lib/account_index_url";
 import { hard_redirect } from "@/lib/hard_redirect";
+
+function account_destination(index: number): string {
+  const path = app_pathname();
+
+  if (!is_signed_in_entry_path(path)) return account_index_url(index);
+
+  return `${account_index_path(index, path)}${window.location.search}${window.location.hash}`;
+}
 
 export function AccountChooser(): JSX.Element {
   const { t } = use_i18n();
@@ -54,7 +67,7 @@ export function AccountChooser(): JSX.Element {
                 className="flex w-full items-center gap-3 border-b border-[var(--border-primary)] px-4 py-3 text-start hover:bg-[var(--bg-tertiary)]"
                 data-testid="account_chooser_option"
                 type="button"
-                onClick={() => hard_redirect(account_index_url(index))}
+                onClick={() => hard_redirect(account_destination(index))}
               >
                 <ProfileAvatar
                   email={account.user.email}
