@@ -1245,6 +1245,9 @@ export const pt = {
     leaving_aster_mail: "A sair do Aster Mail",
     link_dialog_title: "Abrir esta ligação?",
     link_dialog_body: "Esta ligação abre uma página web fora do Aster Mail.",
+    link_dialog_lockdown_title: "As ligações não abrem no modo de bloqueio",
+    link_dialog_lockdown_body:
+      "O modo de bloqueio mantém as ligações fechadas para que o site não veja o seu endereço IP. Pode copiar o endereço em alternativa.",
     link_dialog_mail_title: "Abrir a app de email?",
     link_dialog_mail_body:
       "Esta ligação cria uma nova mensagem para este endereço na app de email do dispositivo.",
@@ -8313,7 +8316,7 @@ export const pt = {
     vanguard_description:
       "Proteção avançada para jornalistas, ativistas e contas de alto risco. Apenas Nova+.",
     vanguard_info:
-      "O Aster Vanguard ativa funcionalidades de segurança sofisticadas, concebidas para jornalistas, ativistas, advogados e qualquer pessoa com risco elevado. Inclui bloqueio da aplicação por PIN, controlos de sessão avançados e mais proteções à medida que forem lançadas.",
+      "O Aster Vanguard acrescenta proteção adicional para jornalistas, ativistas, advogados e qualquer pessoa com risco mais elevado. Inclui bloqueio da aplicação com PIN e modo de bloqueio.",
     vanguard_active: "Vanguard ativo",
     vanguard_learn_more: "Saiba mais",
     vanguard_enable: "Ativar Vanguard",
@@ -8330,12 +8333,12 @@ export const pt = {
       "Proteções adicionais para a sua conta",
     vanguard_confirm_disable_title: "Desativar Aster Vanguard?",
     vanguard_confirm_disable_desc:
-      "Isso desativará todas as funcionalidades do Vanguard, incluindo o bloqueio com PIN. Pode reativá-lo a qualquer momento.",
+      "O bloqueio da aplicação com PIN é removido e as outras proteções do Vanguard são desativadas. Pode voltar a ativar o Vanguard a qualquer momento.",
     vanguard_enabled_toast: "Aster Vanguard ativado",
     vanguard_disabled_toast: "Aster Vanguard desativado",
     lockdown_title: "Modo de bloqueio",
     lockdown_description:
-      "Bloqueia todo o conteúdo externo, remove as pré-visualizações das notificações, desativa a sincronização em tempo real e pede confirmação antes de abrir links. Não é possível contorná-lo enquanto estiver ativo.",
+      "Bloqueia conteúdo externo, oculta pré-visualizações de notificações, pausa a sincronização em tempo real e impede que as ligações abram. Continua a poder copiar ligações.",
     lockdown_active: "Modo de bloqueio ativo",
     lockdown_enable: "Ativar modo de bloqueio",
     lockdown_disable: "Desativar modo de bloqueio",
@@ -8343,16 +8346,16 @@ export const pt = {
     lockdown_disabled_toast: "Modo de bloqueio desativado",
     lockdown_confirm_disable_title: "Desativar o modo de bloqueio?",
     lockdown_confirm_disable_desc:
-      "Isto permitirá conteúdo externo, o rastreamento de links e pré-visualizações nas notificações. Pode reativá-lo quando quiser.",
+      "O conteúdo externo, as ligações e as pré-visualizações de notificações voltam a funcionar. Pode voltar a ativar o modo de bloqueio a qualquer momento.",
     lockdown_notification_generic: "Nova mensagem",
     lockdown_content_blocked_note: "Modo de bloqueio ativo",
     lockdown_link_warning_title: "A abrir link externo",
     lockdown_link_warning_body: "Isso revelará o seu endereço IP para:",
     lockdown_info:
-      "O modo de bloqueio fecha todos os vetores de fuga de dados durante a sessão. As imagens, os tipos de letra e o CSS externos são bloqueados sem exceção. As notificações push não mostram conteúdo. A sincronização por WebSocket fica desativada. Todos os links externos exigem confirmação antes de serem abertos.",
+      "O modo de bloqueio impede que os e-mails que lê contactem outros servidores. Imagens, tipos de letra e estilos externos não carregam, as notificações não mostram o conteúdo e a sincronização em tempo real fica em pausa. As ligações não abrem, mas pode copiá-las.",
     lockdown_badge: "Bloqueio",
     lockdown_must_disable_first:
-      "Desative o modo de bloqueio antes de desativar o Vanguard.",
+      "Para desativar o Vanguard, desative primeiro o modo de bloqueio.",
     security_key_registered: "Chave de segurança registada",
     security_key_removed: "Chave de segurança removida",
     name_your_key: "Dê um nome à sua chave de segurança",

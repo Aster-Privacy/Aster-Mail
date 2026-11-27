@@ -1438,6 +1438,9 @@ export const en: Translations = {
     leaving_aster_mail: "Leaving Aster Mail",
     link_dialog_title: "Open this link?",
     link_dialog_body: "This link opens a webpage outside Aster Mail.",
+    link_dialog_lockdown_title: "Links don't open in Lockdown Mode",
+    link_dialog_lockdown_body:
+      "Lockdown Mode keeps links closed so the site can't see your IP address. You can copy the address instead.",
     link_dialog_mail_title: "Open your email app?",
     link_dialog_mail_body:
       "This link starts a new message to this address in your device's email app.",
@@ -2789,7 +2792,7 @@ export const en: Translations = {
     vanguard_description:
       "Advanced protection for journalists, activists, and high-risk accounts. Nova+ only.",
     vanguard_info:
-      "Aster Vanguard enables sophisticated security features designed for journalists, activists, lawyers, and anyone with elevated risk. Includes PIN app lock, enhanced session controls, and more protections as they roll out.",
+      "Aster Vanguard adds extra protection for journalists, activists, lawyers, and anyone at higher risk. It includes a PIN app lock and Lockdown Mode.",
     vanguard_active: "Vanguard Active",
     vanguard_learn_more: "Learn more",
     vanguard_enable: "Enable Vanguard",
@@ -2805,12 +2808,12 @@ export const en: Translations = {
       "Additional protections for your account",
     vanguard_confirm_disable_title: "Disable Aster Vanguard?",
     vanguard_confirm_disable_desc:
-      "This will disable all Vanguard features, including your PIN app lock. You can re-enable it at any time.",
+      "Your PIN app lock is removed and the other Vanguard protections turn off. You can turn Vanguard on again at any time.",
     vanguard_enabled_toast: "Aster Vanguard enabled",
     vanguard_disabled_toast: "Aster Vanguard disabled",
     lockdown_title: "Lockdown Mode",
     lockdown_description:
-      "Blocks all external content, strips notification previews, disables real-time sync, and requires confirmation before opening links. No bypass while active.",
+      "Blocks external content, hides notification previews, pauses real-time sync, and keeps links from opening. You can still copy links.",
     lockdown_active: "Lockdown Active",
     lockdown_enable: "Enable Lockdown Mode",
     lockdown_disable: "Disable Lockdown Mode",
@@ -2818,16 +2821,16 @@ export const en: Translations = {
     lockdown_disabled_toast: "Lockdown Mode disabled",
     lockdown_confirm_disable_title: "Disable Lockdown Mode?",
     lockdown_confirm_disable_desc:
-      "This will allow external content, link tracking, and notification previews. You can re-enable it at any time.",
+      "External content, links, and notification previews work again. You can turn Lockdown Mode on again at any time.",
     lockdown_notification_generic: "New message",
     lockdown_content_blocked_note: "Lockdown Mode active",
     lockdown_link_warning_title: "Opening external link",
     lockdown_link_warning_body: "This will reveal your IP address to:",
     lockdown_info:
-      "Lockdown Mode closes every in-session data leak vector. External images, fonts, and CSS are blocked with no bypass. Push notifications show no content. WebSocket sync is disabled. Every external link requires confirmation before opening.",
+      "Lockdown Mode keeps the mail you read from contacting other servers. External images, fonts, and styles don't load, notifications don't show message content, and real-time sync is paused. Links don't open, but you can copy them.",
     lockdown_badge: "Lockdown",
     lockdown_must_disable_first:
-      "Disable Lockdown Mode before disabling Vanguard.",
+      "To turn off Vanguard, first turn off Lockdown Mode.",
     encryption_keys: "Encryption Keys",
     encryption_keys_description:
       "Your encryption keys are stored securely in memory",

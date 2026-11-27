@@ -527,6 +527,16 @@ describe("ExternalLinkWarningModal", () => {
     expect(q("#external-link-dont-show-checkbox")).toBeNull();
   });
 
+  it("explains why links stay closed in lockdown", () => {
+    render({ lockdown_active: true });
+
+    const dialog = q('[role="alertdialog"]');
+
+    expect(dialog?.textContent).toContain("common.link_dialog_lockdown_title");
+    expect(dialog?.textContent).toContain("common.link_dialog_lockdown_body");
+    expect(dialog?.textContent).not.toContain("common.link_dialog_body");
+  });
+
   it("shows the address of a mailto link", () => {
     render({ url: "mailto:ada@example.com?subject=Hi" });
 

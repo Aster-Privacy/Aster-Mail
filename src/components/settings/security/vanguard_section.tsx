@@ -42,7 +42,7 @@ import { AppLockSection } from "@/components/settings/security/app_lock_section"
 import {
   is_vanguard_enabled,
   set_vanguard_enabled,
-  init_vanguard_from_server,
+  load_vanguard_state,
 } from "@/services/vanguard_store";
 import {
   is_lockdown_enabled,
@@ -311,7 +311,7 @@ export function VanguardSection() {
   const auth = use_auth_safe();
   const account_id = auth?.current_account_id ?? "";
 
-  const is_nova_plus = [
+  const plan_allows_vanguard = [
     "nova",
     "supernova",
     "duo",
@@ -323,6 +323,10 @@ export function VanguardSection() {
   const [enabled, set_enabled] = useState(() =>
     account_id ? is_vanguard_enabled(account_id) : false,
   );
+  const [server_eligible, set_server_eligible] = useState<boolean | null>(
+    null,
+  );
+  const is_nova_plus = server_eligible ?? (plan_allows_vanguard || enabled);
   const [show_disable_confirm, set_show_disable_confirm] = useState(false);
   const [is_disabling, set_is_disabling] = useState(false);
 
@@ -332,10 +336,12 @@ export function VanguardSection() {
     let cancelled = false;
 
     set_enabled(is_vanguard_enabled(account_id));
-    init_vanguard_from_server(account_id).then((server_enabled) => {
+    set_server_eligible(null);
+    load_vanguard_state(account_id).then((state) => {
       if (cancelled) return;
 
-      set_enabled(server_enabled);
+      set_enabled(state.enabled);
+      set_server_eligible(state.eligible);
     });
 
     return () => {
@@ -344,8 +350,8 @@ export function VanguardSection() {
   }, [account_id]);
 
   useEffect(() => {
-    if (is_loading || !limits || !limits.plan_code) return;
-    if (!is_nova_plus && enabled && account_id) {
+    if (server_eligible !== false) return;
+    if (enabled && account_id) {
       disable_vanguard().then((res) => {
         if (res.error) return;
 
@@ -356,7 +362,7 @@ export function VanguardSection() {
         set_enabled(false);
       });
     }
-  }, [is_loading, limits, is_nova_plus, enabled, account_id]);
+  }, [server_eligible, enabled, account_id]);
 
   const handle_toggle = (checked: boolean) => {
     if (checked) {
@@ -371,13 +377,15 @@ export function VanguardSection() {
           show_toast(t("settings.vanguard_enabled_toast"), "success");
         }
       });
+    } else if (server_eligible !== false && is_lockdown_enabled(account_id)) {
+      show_toast(t("settings.lockdown_must_disable_first"), "error");
     } else {
       set_show_disable_confirm(true);
     }
   };
 
   const confirm_disable = async () => {
-    if (is_lockdown_enabled(account_id)) {
+    if (server_eligible !== false && is_lockdown_enabled(account_id)) {
       set_show_disable_confirm(false);
       show_toast(t("settings.lockdown_must_disable_first"), "error");
 

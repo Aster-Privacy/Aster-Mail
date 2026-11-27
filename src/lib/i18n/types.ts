@@ -2450,6 +2450,8 @@ export interface CommonTranslations {
   leaving_aster_mail: string;
   link_dialog_title: string;
   link_dialog_body: string;
+  link_dialog_lockdown_title: string;
+  link_dialog_lockdown_body: string;
   link_dialog_mail_title: string;
   link_dialog_mail_body: string;
   link_dialog_blocked_title: string;

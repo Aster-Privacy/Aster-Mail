@@ -1381,6 +1381,9 @@ export const fr = {
     leaving_aster_mail: "Quitter Aster Mail",
     link_dialog_title: "Ouvrir ce lien ?",
     link_dialog_body: "Ce lien ouvre une page web en dehors d'Aster Mail.",
+    link_dialog_lockdown_title: "Les liens ne s'ouvrent pas en mode isolement",
+    link_dialog_lockdown_body:
+      "Le mode isolement garde les liens fermés pour que le site ne voie pas votre adresse IP. Vous pouvez copier l'adresse à la place.",
     link_dialog_mail_title: "Ouvrir votre app de messagerie ?",
     link_dialog_mail_body:
       "Ce lien crée un nouveau message à cette adresse dans l'app de messagerie de votre appareil.",
@@ -8923,7 +8926,7 @@ export const fr = {
     vanguard_description:
       "Protection avancée pour les journalistes, les militants et les comptes à haut risque. Nova+ uniquement.",
     vanguard_info:
-      "Aster Vanguard active des fonctionnalités de sécurité avancées pour les journalistes, avocats et personnes à risque élevé. Comprend le verrouillage par code PIN, des contrôles de session renforcés et plus encore.",
+      "Aster Vanguard ajoute une protection supplémentaire pour les journalistes, les militants, les avocats et toute personne plus exposée. Il comprend le verrouillage par PIN et le mode isolement.",
     vanguard_active: "Vanguard Actif",
     vanguard_learn_more: "En savoir plus",
     vanguard_enable: "Activer Vanguard",
@@ -8939,12 +8942,12 @@ export const fr = {
       "Protections supplémentaires pour votre compte",
     vanguard_confirm_disable_title: "Désactiver Aster Vanguard ?",
     vanguard_confirm_disable_desc:
-      "Cela désactivera toutes les fonctionnalités Vanguard, y compris votre verrouillage par PIN. Vous pouvez le réactiver à tout moment.",
+      "Votre verrouillage par PIN est supprimé et les autres protections Vanguard sont désactivées. Vous pouvez réactiver Vanguard à tout moment.",
     vanguard_enabled_toast: "Aster Vanguard activé",
     vanguard_disabled_toast: "Aster Vanguard désactivé",
     lockdown_title: "Mode isolement",
     lockdown_description:
-      "Bloque tout le contenu externe, supprime les aperçus dans les notifications, désactive la synchronisation en temps réel et demande confirmation avant d’ouvrir un lien. Aucune dérogation n’est possible tant qu’il est actif.",
+      "Bloque le contenu externe, masque les aperçus des notifications, met en pause la synchronisation en temps réel et empêche l'ouverture des liens. Vous pouvez toujours copier les liens.",
     lockdown_active: "Mode isolement actif",
     lockdown_enable: "Activer le mode isolement",
     lockdown_disable: "Désactiver le mode isolement",
@@ -8952,16 +8955,16 @@ export const fr = {
     lockdown_disabled_toast: "Mode isolement désactivé",
     lockdown_confirm_disable_title: "Désactiver le mode isolement ?",
     lockdown_confirm_disable_desc:
-      "Cela autorisera le contenu externe, le suivi des liens et les aperçus dans les notifications. Vous pourrez le réactiver à tout moment.",
+      "Le contenu externe, les liens et les aperçus des notifications fonctionnent de nouveau. Vous pouvez réactiver le mode isolement à tout moment.",
     lockdown_notification_generic: "Nouveau message",
     lockdown_content_blocked_note: "Mode isolement actif",
     lockdown_link_warning_title: "Ouverture d’un lien externe",
     lockdown_link_warning_body: "Cela révélera votre adresse IP à :",
     lockdown_info:
-      "Lockdown Mode closes every in-session data leak vector. External images, fonts, and CSS are blocked with no bypass.",
+      "Le mode isolement empêche les e-mails que vous lisez de contacter d'autres serveurs. Les images, polices et styles externes ne se chargent pas, les notifications n'affichent pas le contenu et la synchronisation en temps réel est en pause. Les liens ne s'ouvrent pas, mais vous pouvez les copier.",
     lockdown_badge: "Isolement",
     lockdown_must_disable_first:
-      "Désactivez le mode isolement avant de désactiver Vanguard.",
+      "Pour désactiver Vanguard, désactivez d'abord le mode isolement.",
     oauth_folders_error:
       "La configuration de vos dossiers n'a pas abouti. Réessayez.",
     oauth_folders_partial:

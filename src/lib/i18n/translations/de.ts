@@ -1200,6 +1200,9 @@ export const de = {
     link_dialog_title: "Diesen Link öffnen?",
     link_dialog_body:
       "Dieser Link öffnet eine Webseite außerhalb von Aster Mail.",
+    link_dialog_lockdown_title: "Links öffnen sich im Blockierungsmodus nicht",
+    link_dialog_lockdown_body:
+      "Der Blockierungsmodus hält Links geschlossen, damit die Website Ihre IP-Adresse nicht sieht. Sie können die Adresse stattdessen kopieren.",
     link_dialog_mail_title: "E-Mail-App öffnen?",
     link_dialog_mail_body:
       "Dieser Link erstellt in der E-Mail-App Ihres Geräts eine neue Nachricht an diese Adresse.",
@@ -8768,7 +8771,7 @@ export const de = {
     vanguard_description:
       "Erweiterter Schutz für Journalisten, Aktivisten und besonders gefährdete Konten. Nur Nova+.",
     vanguard_info:
-      "Aster Vanguard aktiviert ausgefeilte Sicherheitsfunktionen für Journalisten, Anwälte und Hochrisikopersonen. Enthält PIN-App-Sperre, erweiterte Sitzungskontrollen und weitere Schutzmaßnahmen.",
+      "Aster Vanguard bietet zusätzlichen Schutz für Journalisten, Aktivisten, Anwälte und alle mit erhöhtem Risiko. Enthalten sind eine PIN-App-Sperre und der Blockierungsmodus.",
     vanguard_active: "Vanguard Aktiv",
     vanguard_learn_more: "Mehr erfahren",
     vanguard_enable: "Vanguard aktivieren",
@@ -8784,12 +8787,12 @@ export const de = {
       "Zusätzliche Schutzmaßnahmen für Ihr Konto",
     vanguard_confirm_disable_title: "Aster Vanguard deaktivieren?",
     vanguard_confirm_disable_desc:
-      "Dadurch werden alle Vanguard-Funktionen deaktiviert, einschließlich Ihrer PIN-App-Sperre. Sie können es jederzeit wieder aktivieren.",
+      "Ihre PIN-App-Sperre wird entfernt und die übrigen Vanguard-Schutzfunktionen werden ausgeschaltet. Sie können Vanguard jederzeit wieder einschalten.",
     vanguard_enabled_toast: "Aster Vanguard aktiviert",
     vanguard_disabled_toast: "Aster Vanguard deaktiviert",
     lockdown_title: "Blockierungsmodus",
     lockdown_description:
-      "Blockiert alle externen Inhalte, entfernt Vorschauen in Benachrichtigungen, deaktiviert die Echtzeitsynchronisierung und verlangt eine Bestätigung, bevor Links geöffnet werden. Solange der Modus aktiv ist, gibt es keine Ausnahme.",
+      "Blockiert externe Inhalte, blendet Benachrichtigungsvorschauen aus, pausiert die Echtzeitsynchronisierung und verhindert das Öffnen von Links. Links können Sie weiterhin kopieren.",
     lockdown_active: "Blockierungsmodus aktiv",
     lockdown_enable: "Blockierungsmodus aktivieren",
     lockdown_disable: "Blockierungsmodus deaktivieren",
@@ -8797,17 +8800,17 @@ export const de = {
     lockdown_disabled_toast: "Blockierungsmodus deaktiviert",
     lockdown_confirm_disable_title: "Blockierungsmodus deaktivieren?",
     lockdown_confirm_disable_desc:
-      "Damit werden externe Inhalte, Linkverfolgung und Vorschauen in Benachrichtigungen wieder zugelassen. Sie können den Modus jederzeit erneut aktivieren.",
+      "Externe Inhalte, Links und Benachrichtigungsvorschauen funktionieren wieder. Sie können den Blockierungsmodus jederzeit wieder einschalten.",
     lockdown_notification_generic: "Neue Nachricht",
     lockdown_content_blocked_note: "Blockierungsmodus aktiv",
     lockdown_link_warning_title: "Externer Link wird geöffnet",
     lockdown_link_warning_body:
       "Dadurch wird Ihre IP-Adresse offengelegt gegenüber:",
     lockdown_info:
-      "Lockdown Mode closes every in-session data leak vector. External images, fonts, and CSS are blocked with no bypass.",
+      "Der Blockierungsmodus verhindert, dass E-Mails beim Lesen andere Server kontaktieren. Externe Bilder, Schriften und Stile werden nicht geladen, Benachrichtigungen zeigen keine Inhalte und die Echtzeitsynchronisierung ist pausiert. Links öffnen sich nicht, Sie können sie aber kopieren.",
     lockdown_badge: "Blockierung",
     lockdown_must_disable_first:
-      "Deaktivieren Sie den Blockierungsmodus, bevor Sie Vanguard deaktivieren.",
+      "Um Vanguard auszuschalten, schalten Sie zuerst den Blockierungsmodus aus.",
     oauth_folders_error: "Versuchen Sie es erneut.",
     oauth_folders_partial:
       "{{count}} Ordner wurden nicht vollständig eingerichtet, der Rest ist bereit.",

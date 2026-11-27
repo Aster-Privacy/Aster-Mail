@@ -252,14 +252,18 @@ export function ExternalLinkWarningModal({
 
   const title = is_blocked
     ? t("common.link_dialog_blocked_title")
-    : is_mail
-      ? t("common.link_dialog_mail_title")
-      : t("common.link_dialog_title");
+    : lockdown_active
+      ? t("common.link_dialog_lockdown_title")
+      : is_mail
+        ? t("common.link_dialog_mail_title")
+        : t("common.link_dialog_title");
   const body = is_blocked
     ? t("common.link_dialog_blocked_body")
-    : is_mail
-      ? t("common.link_dialog_mail_body")
-      : t("common.link_dialog_body");
+    : lockdown_active
+      ? t("common.link_dialog_lockdown_body")
+      : is_mail
+        ? t("common.link_dialog_mail_body")
+        : t("common.link_dialog_body");
   const hero = is_mail
     ? destination.mail_address
     : is_blocked

@@ -1371,6 +1371,9 @@ export const es = {
     leaving_aster_mail: "Saliendo de Aster Mail",
     link_dialog_title: "¿Abrir este enlace?",
     link_dialog_body: "Este enlace abre una página web fuera de Aster Mail.",
+    link_dialog_lockdown_title: "Los enlaces no se abren en el modo de bloqueo",
+    link_dialog_lockdown_body:
+      "El modo de bloqueo mantiene los enlaces cerrados para que el sitio no vea tu dirección IP. Puedes copiar la dirección en su lugar.",
     link_dialog_mail_title: "¿Abrir tu app de correo?",
     link_dialog_mail_body:
       "Este enlace crea un mensaje nuevo para esta dirección en la app de correo de tu dispositivo.",
@@ -8844,7 +8847,7 @@ export const es = {
     vanguard_description:
       "Protección avanzada para periodistas, activistas y cuentas de alto riesgo. Solo Nova+.",
     vanguard_info:
-      "Aster Vanguard activa funciones de seguridad sofisticadas diseñadas para periodistas, abogados y personas con riesgo elevado. Incluye bloqueo por PIN, controles de sesión mejorados y más protecciones.",
+      "Aster Vanguard añade protección adicional para periodistas, activistas, abogados y cualquier persona con mayor riesgo. Incluye bloqueo de app con PIN y modo de bloqueo.",
     vanguard_active: "Vanguard Activo",
     vanguard_learn_more: "Más información",
     vanguard_enable: "Activar Vanguard",
@@ -8860,12 +8863,12 @@ export const es = {
       "Protecciones adicionales para tu cuenta",
     vanguard_confirm_disable_title: "¿Desactivar Aster Vanguard?",
     vanguard_confirm_disable_desc:
-      "Esto desactivará todas las funciones de Vanguard, incluido tu bloqueo de app con PIN. Puedes reactivarlo en cualquier momento.",
+      "Se quitará tu bloqueo de app con PIN y se desactivarán las demás protecciones de Vanguard. Puedes volver a activar Vanguard cuando quieras.",
     vanguard_enabled_toast: "Aster Vanguard activado",
     vanguard_disabled_toast: "Aster Vanguard desactivado",
     lockdown_title: "Modo de bloqueo",
     lockdown_description:
-      "Bloquea todo el contenido externo, elimina las vistas previas de las notificaciones, desactiva la sincronización en tiempo real y pide confirmación antes de abrir enlaces. No se puede omitir mientras está activo.",
+      "Bloquea el contenido externo, oculta las vistas previas de las notificaciones, pausa la sincronización en tiempo real e impide que se abran los enlaces. Puedes seguir copiando enlaces.",
     lockdown_active: "Modo de bloqueo activo",
     lockdown_enable: "Activar el modo de bloqueo",
     lockdown_disable: "Desactivar el modo de bloqueo",
@@ -8873,16 +8876,16 @@ export const es = {
     lockdown_disabled_toast: "Modo de bloqueo desactivado",
     lockdown_confirm_disable_title: "¿Desactivar el modo de bloqueo?",
     lockdown_confirm_disable_desc:
-      "Se permitirá el contenido externo, el rastreo de enlaces y las vistas previas de las notificaciones. Puedes volver a activarlo cuando quieras.",
+      "El contenido externo, los enlaces y las vistas previas de las notificaciones vuelven a funcionar. Puedes volver a activar el modo de bloqueo cuando quieras.",
     lockdown_notification_generic: "Mensaje nuevo",
     lockdown_content_blocked_note: "Modo de bloqueo activo",
     lockdown_link_warning_title: "Abriendo un enlace externo",
     lockdown_link_warning_body: "Esto revelará tu dirección IP a:",
     lockdown_info:
-      "Lockdown Mode closes every in-session data leak vector. External images, fonts, and CSS are blocked with no bypass.",
+      "El modo de bloqueo impide que los correos que lees contacten con otros servidores. Las imágenes, fuentes y estilos externos no se cargan, las notificaciones no muestran el contenido y la sincronización en tiempo real se pausa. Los enlaces no se abren, pero puedes copiarlos.",
     lockdown_badge: "Bloqueo",
     lockdown_must_disable_first:
-      "Desactiva el modo de bloqueo antes de desactivar Vanguard.",
+      "Para desactivar Vanguard, primero desactiva el modo de bloqueo.",
     oauth_folders_error:
       "Tus carpetas no terminaron de configurarse. Inténtalo de nuevo.",
     oauth_folders_partial:
