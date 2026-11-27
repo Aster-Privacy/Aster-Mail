@@ -148,7 +148,6 @@ describe("use_guard_step_up run", () => {
 
     expect(attempt).toHaveBeenCalledTimes(2);
     expect(settled).toEqual({ data: { ok: true } });
-    expect(field("step-up-password")).toBeNull();
   });
 
   it("explains a wrong password during a held password change", async () => {

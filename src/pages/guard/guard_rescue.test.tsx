@@ -65,6 +65,9 @@ vi.mock("@/components/guard/guard_switches_panel", () => ({
 vi.mock("@/components/guard/use_guard_step_up", () => ({
   use_guard_step_up: () => ({
     request_proof: vi.fn(async () => PROOF),
+    run: vi.fn(async (attempt: (proof: unknown) => Promise<unknown>) =>
+      attempt(PROOF),
+    ),
     step_up_modal: null,
   }),
 }));
