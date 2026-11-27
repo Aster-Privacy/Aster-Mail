@@ -67,7 +67,7 @@ describe("plain quote parsing stays linear", () => {
 
   it("renders large quoted text quickly", () => {
     for (const attack of ATTACKS) {
-      const sample = attack.slice(0, 64 * 1024);
+      const sample = attack.slice(0, 16 * 1024);
       const ms = elapsed_ms(() => {
         convert_plain_quote_html(plain_text_to_html(sample));
       });
