@@ -1236,6 +1236,9 @@ export const pt_br = {
     leaving_aster_mail: "Saindo do Aster Mail",
     link_dialog_title: "Abrir este link?",
     link_dialog_body: "Este link abre uma página da web fora do Aster Mail.",
+    link_dialog_lockdown_title: "Links não abrem no modo de bloqueio",
+    link_dialog_lockdown_body:
+      "O modo de bloqueio mantém os links fechados para que o site não veja seu endereço IP. Você pode copiar o endereço.",
     link_dialog_mail_title: "Abrir seu app de e-mail?",
     link_dialog_mail_body:
       "Este link cria uma nova mensagem para este endereço no app de e-mail do seu dispositivo.",
@@ -8167,7 +8170,7 @@ export const pt_br = {
     vanguard_description:
       "Proteção avançada para jornalistas, ativistas e contas de alto risco. Somente Nova+.",
     vanguard_info:
-      "O Aster Vanguard ativa recursos de segurança sofisticados para jornalistas, ativistas, advogados e qualquer pessoa com risco elevado. Inclui bloqueio do app por PIN, controles de sessão aprimorados e mais proteções à medida que forem lançadas.",
+      "O Aster Vanguard adiciona proteção extra para jornalistas, ativistas, advogados e qualquer pessoa com risco maior. Inclui bloqueio do app com PIN e modo de bloqueio.",
     vanguard_active: "Vanguard ativo",
     vanguard_learn_more: "Saiba mais",
     vanguard_enable: "Ativar Vanguard",
@@ -8184,12 +8187,12 @@ export const pt_br = {
       "Proteções adicionais para a sua conta",
     vanguard_confirm_disable_title: "Desativar Aster Vanguard?",
     vanguard_confirm_disable_desc:
-      "Isso desativará todos os recursos do Vanguard, incluindo o bloqueio com PIN. Você pode reativá-lo a qualquer momento.",
+      "Seu bloqueio do app com PIN será removido e as outras proteções do Vanguard serão desativadas. Você pode ativar o Vanguard de novo quando quiser.",
     vanguard_enabled_toast: "Aster Vanguard ativado",
     vanguard_disabled_toast: "Aster Vanguard desativado",
     lockdown_title: "Modo de bloqueio",
     lockdown_description:
-      "Bloqueia todo o conteúdo externo, remove as prévias das notificações, desativa a sincronização em tempo real e pede confirmação antes de abrir links. Não há como ignorá-lo enquanto estiver ativo.",
+      "Bloqueia conteúdo externo, oculta prévias de notificações, pausa a sincronização em tempo real e impede que links sejam abertos. Você ainda pode copiar links.",
     lockdown_active: "Modo de bloqueio ativo",
     lockdown_enable: "Ativar modo de bloqueio",
     lockdown_disable: "Desativar modo de bloqueio",
@@ -8197,16 +8200,16 @@ export const pt_br = {
     lockdown_disabled_toast: "Modo de bloqueio desativado",
     lockdown_confirm_disable_title: "Desativar o modo de bloqueio?",
     lockdown_confirm_disable_desc:
-      "Isso permitirá conteúdo externo, rastreamento de links e prévias nas notificações. Você pode reativar quando quiser.",
+      "Conteúdo externo, links e prévias de notificações voltam a funcionar. Você pode ativar o modo de bloqueio de novo quando quiser.",
     lockdown_notification_generic: "Nova mensagem",
     lockdown_content_blocked_note: "Modo de bloqueio ativo",
     lockdown_link_warning_title: "Abrindo link externo",
     lockdown_link_warning_body: "Isso revelará seu endereço IP para:",
     lockdown_info:
-      "O modo de bloqueio fecha todos os vetores de vazamento de dados durante a sessão. Imagens, fontes e CSS externos são bloqueados sem exceção. As notificações push não mostram conteúdo. A sincronização via WebSocket fica desativada. Todo link externo exige confirmação antes de ser aberto.",
+      "O modo de bloqueio impede que os e-mails que você lê entrem em contato com outros servidores. Imagens, fontes e estilos externos não carregam, as notificações não mostram o conteúdo e a sincronização em tempo real fica pausada. Os links não abrem, mas você pode copiá-los.",
     lockdown_badge: "Bloqueio",
     lockdown_must_disable_first:
-      "Desative o modo de bloqueio antes de desativar o Vanguard.",
+      "Para desativar o Vanguard, desative primeiro o modo de bloqueio.",
     security_key_registered: "Chave de segurança registrada",
     security_key_removed: "Chave de segurança removida",
     name_your_key: "Dê um nome à sua chave de segurança",

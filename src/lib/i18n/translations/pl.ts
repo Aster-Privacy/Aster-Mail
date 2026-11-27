@@ -1374,6 +1374,9 @@ export const pl = {
     leaving_aster_mail: "Opuszczanie Aster Mail",
     link_dialog_title: "Otworzyć ten link?",
     link_dialog_body: "Ten link otwiera stronę internetową poza Aster Mail.",
+    link_dialog_lockdown_title: "Linki nie otwierają się w trybie blokady",
+    link_dialog_lockdown_body:
+      "Tryb blokady nie otwiera linków, aby strona nie zobaczyła Twojego adresu IP. Zamiast tego możesz skopiować adres.",
     link_dialog_mail_title: "Otworzyć aplikację pocztową?",
     link_dialog_mail_body:
       "Ten link tworzy nową wiadomość na ten adres w aplikacji pocztowej na urządzeniu.",
@@ -8385,7 +8388,7 @@ export const pl = {
     vanguard_description:
       "Zaawansowana ochrona dla dziennikarzy, aktywistów i kont wysokiego ryzyka. Tylko Nova+.",
     vanguard_info:
-      "Aster Vanguard aktywuje zaawansowane funkcje bezpieczeństwa dla dziennikarzy, prawników i osób o podwyższonym ryzyku. Obejmuje blokadę PIN, lepszą kontrolę sesji i więcej zabezpieczeń.",
+      "Aster Vanguard dodaje ochronę dla dziennikarzy, aktywistów, prawników i wszystkich bardziej narażonych osób. Obejmuje blokadę aplikacji PIN i tryb blokady.",
     vanguard_active: "Vanguard Aktywny",
     vanguard_learn_more: "Dowiedz się więcej",
     vanguard_enable: "Włącz Vanguard",
@@ -8402,12 +8405,12 @@ export const pl = {
       "Dodatkowe zabezpieczenia dla Twojego konta",
     vanguard_confirm_disable_title: "Wyłączyć Aster Vanguard?",
     vanguard_confirm_disable_desc:
-      "Spowoduje to wyłączenie wszystkich funkcji Vanguard, w tym blokady PIN. Możesz je ponownie włączyć w dowolnym momencie.",
+      "Blokada aplikacji PIN zostanie usunięta, a pozostałe zabezpieczenia Vanguard zostaną wyłączone. Możesz ponownie włączyć Vanguard w dowolnym momencie.",
     vanguard_enabled_toast: "Aster Vanguard włączony",
     vanguard_disabled_toast: "Aster Vanguard wyłączony",
     lockdown_title: "Tryb blokady",
     lockdown_description:
-      "Blokuje wszystkie treści zewnętrzne, usuwa podglądy z powiadomień, wyłącza synchronizację na bieżąco i prosi o potwierdzenie przed otwarciem linków. Dopóki jest włączony, nie da się go obejść.",
+      "Blokuje treści zewnętrzne, ukrywa podglądy powiadomień, wstrzymuje synchronizację w czasie rzeczywistym i nie pozwala otwierać linków. Nadal możesz kopiować linki.",
     lockdown_active: "Tryb blokady aktywny",
     lockdown_enable: "Włącz tryb blokady",
     lockdown_disable: "Wyłącz tryb blokady",
@@ -8415,16 +8418,16 @@ export const pl = {
     lockdown_disabled_toast: "Wyłączono tryb blokady",
     lockdown_confirm_disable_title: "Wyłączyć tryb blokady?",
     lockdown_confirm_disable_desc:
-      "Spowoduje to ponowne dopuszczenie treści zewnętrznych, śledzenia linków i podglądów w powiadomieniach. Możesz włączyć tryb ponownie w każdej chwili.",
+      "Treści zewnętrzne, linki i podglądy powiadomień znów działają. Możesz ponownie włączyć tryb blokady w dowolnym momencie.",
     lockdown_notification_generic: "Nowa wiadomość",
     lockdown_content_blocked_note: "Tryb blokady aktywny",
     lockdown_link_warning_title: "Otwieranie linku zewnętrznego",
     lockdown_link_warning_body: "Spowoduje to ujawnienie Twojego adresu IP:",
     lockdown_info:
-      "Lockdown Mode closes every in-session data leak vector. External images, fonts, and CSS are blocked with no bypass.",
+      "Tryb blokady nie pozwala czytanym wiadomościom łączyć się z innymi serwerami. Zewnętrzne obrazy, czcionki i style się nie ładują, powiadomienia nie pokazują treści, a synchronizacja w czasie rzeczywistym jest wstrzymana. Linki się nie otwierają, ale możesz je skopiować.",
     lockdown_badge: "Blokada",
     lockdown_must_disable_first:
-      "Wyłącz tryb blokady, zanim wyłączysz Vanguard.",
+      "Aby wyłączyć Vanguard, najpierw wyłącz tryb blokady.",
     security_key_registered:
       "Klucz bezpieczeństwa został pomyślnie zarejestrowany",
     security_key_removed: "Klucz bezpieczeństwa został usunięty",

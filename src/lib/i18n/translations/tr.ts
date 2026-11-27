@@ -1344,6 +1344,9 @@ export const tr = {
     leaving_aster_mail: "Aster Mail'den Ayrılıyorsunuz",
     link_dialog_title: "Bu bağlantı açılsın mı?",
     link_dialog_body: "Bu bağlantı, Aster Mail dışında bir web sayfası açar.",
+    link_dialog_lockdown_title: "Kilitleme modunda bağlantılar açılmaz",
+    link_dialog_lockdown_body:
+      "Kilitleme modu, sitenin IP adresinizi görmemesi için bağlantıları kapalı tutar. Bunun yerine adresi kopyalayabilirsiniz.",
     link_dialog_mail_title: "E-posta uygulamanız açılsın mı?",
     link_dialog_mail_body:
       "Bu bağlantı, cihazınızın e-posta uygulamasında bu adrese yeni bir ileti oluşturur.",
@@ -8144,7 +8147,7 @@ export const tr = {
     vanguard_description:
       "Gazeteciler, aktivistler ve yüksek risk taşıyan hesaplar için gelişmiş koruma. Yalnızca Nova+.",
     vanguard_info:
-      "Aster Vanguard, gazeteciler, avukatlar ve yüksek riskli kullanıcılar için gelişmiş güvenlik özelliklerini etkinleştirir. PIN kilit, gelişmiş oturum kontrolleri ve daha fazlasını içerir.",
+      "Aster Vanguard; gazeteciler, aktivistler, avukatlar ve daha yüksek risk altındaki herkes için ek koruma sağlar. PIN uygulama kilidi ve kilitleme modunu içerir.",
     vanguard_active: "Vanguard Aktif",
     vanguard_learn_more: "Daha fazla bilgi",
     vanguard_enable: "Vanguard'ı Etkinleştir",
@@ -8159,12 +8162,12 @@ export const tr = {
     vanguard_feature_enhanced_monitoring_desc: "Hesabınız için ek korumalar",
     vanguard_confirm_disable_title: "Aster Vanguard Devre Dışı Bırakılsın mı?",
     vanguard_confirm_disable_desc:
-      "Bu, PIN uygulama kilidi dahil tüm Vanguard özelliklerini devre dışı bırakacak. İstediğiniz zaman yeniden etkinleştirebilirsiniz.",
+      "PIN uygulama kilidiniz kaldırılır ve diğer Vanguard korumaları kapanır. Vanguard’ı istediğiniz zaman yeniden açabilirsiniz.",
     vanguard_enabled_toast: "Aster Vanguard etkinleştirildi",
     vanguard_disabled_toast: "Aster Vanguard devre dışı bırakıldı",
     lockdown_title: "Kilitleme modu",
     lockdown_description:
-      "Tüm dış içeriği engeller, bildirim önizlemelerini kaldırır, anlık eşitlemeyi kapatır ve bağlantıları açmadan önce onay ister. Etkinken atlanamaz.",
+      "Harici içeriği engeller, bildirim önizlemelerini gizler, gerçek zamanlı eşitlemeyi duraklatır ve bağlantıların açılmasını önler. Bağlantıları yine de kopyalayabilirsiniz.",
     lockdown_active: "Kilitleme modu etkin",
     lockdown_enable: "Kilitleme modunu aç",
     lockdown_disable: "Kilitleme modunu kapat",
@@ -8172,16 +8175,16 @@ export const tr = {
     lockdown_disabled_toast: "Kilitleme modu kapatıldı",
     lockdown_confirm_disable_title: "Kilitleme modu kapatılsın mı?",
     lockdown_confirm_disable_desc:
-      "Bu işlem dış içeriğe, bağlantı takibine ve bildirim önizlemelerine yeniden izin verir. Dilediğiniz zaman tekrar açabilirsiniz.",
+      "Harici içerik, bağlantılar ve bildirim önizlemeleri yeniden çalışır. Kilitleme modunu istediğiniz zaman yeniden açabilirsiniz.",
     lockdown_notification_generic: "Yeni ileti",
     lockdown_content_blocked_note: "Kilitleme modu etkin",
     lockdown_link_warning_title: "Dış bağlantı açılıyor",
     lockdown_link_warning_body: "Bu işlem IP adresinizi şuna açar:",
     lockdown_info:
-      "Lockdown Mode closes every in-session data leak vector. External images, fonts, and CSS are blocked with no bypass.",
+      "Kilitleme modu, okuduğunuz e-postaların diğer sunuculara bağlanmasını önler. Harici görseller, yazı tipleri ve stiller yüklenmez, bildirimler içerik göstermez ve gerçek zamanlı eşitleme duraklatılır. Bağlantılar açılmaz ama onları kopyalayabilirsiniz.",
     lockdown_badge: "Kilitleme",
     lockdown_must_disable_first:
-      "Vanguard’ı kapatmadan önce kilitleme modunu kapatın.",
+      "Vanguard’ı kapatmak için önce kilitleme modunu kapatın.",
     security_key_registered: "Güvenlik anahtarı başarıyla kaydedildi",
     security_key_removed: "Güvenlik anahtarı kaldırıldı",
     name_your_key: "Güvenlik anahtarınıza ad verin",

@@ -1377,6 +1377,9 @@ export const ko = {
     leaving_aster_mail: "Aster Mail을 떠납니다",
     link_dialog_title: "이 링크를 열까요?",
     link_dialog_body: "이 링크는 Aster Mail 외부의 웹 페이지를 엽니다.",
+    link_dialog_lockdown_title: "차단 모드에서는 링크가 열리지 않습니다",
+    link_dialog_lockdown_body:
+      "차단 모드는 사이트가 IP 주소를 볼 수 없도록 링크를 열지 않습니다. 대신 주소를 복사할 수 있습니다.",
     link_dialog_mail_title: "이메일 앱을 열까요?",
     link_dialog_mail_body: "이 링크는 기기의 이메일 앱에서 이 주소로 보내는 새 메시지를 만듭니다.",
     link_dialog_blocked_title: "이 링크를 열 수 없습니다",
@@ -7920,7 +7923,7 @@ export const ko = {
     vanguard_description:
       "기자, 활동가 및 고위험 계정을 위한 고급 보호 기능입니다. Nova+ 전용입니다.",
     vanguard_info:
-      "Aster Vanguard는 기자, 변호사, 위험 노출이 높은 사용자를 위한 정교한 보안 기능을 활성화합니다. PIN 앱 잠금, 향상된 세션 제어 등이 포함됩니다.",
+      "Aster Vanguard는 기자, 활동가, 변호사 등 위험이 큰 모든 사람을 위한 추가 보호 기능입니다. PIN 앱 잠금과 차단 모드가 포함됩니다.",
     vanguard_active: "Vanguard 활성",
     vanguard_learn_more: "자세히 알아보기",
     vanguard_enable: "Vanguard 활성화",
@@ -7934,12 +7937,12 @@ export const ko = {
     vanguard_feature_enhanced_monitoring_desc: "계정에 대한 추가 보호 기능",
     vanguard_confirm_disable_title: "Aster Vanguard를 비활성화할까요?",
     vanguard_confirm_disable_desc:
-      "PIN 앱 잠금을 포함한 모든 Vanguard 기능이 비활성화됩니다. 언제든지 다시 활성화할 수 있습니다.",
+      "PIN 앱 잠금이 제거되고 다른 Vanguard 보호 기능도 꺼집니다. Vanguard는 언제든지 다시 켤 수 있습니다.",
     vanguard_enabled_toast: "Aster Vanguard가 활성화되었습니다",
     vanguard_disabled_toast: "Aster Vanguard가 비활성화되었습니다",
     lockdown_title: "차단 모드",
     lockdown_description:
-      "모든 외부 콘텐츠를 차단하고, 알림 미리보기를 제거하며, 실시간 동기화를 끄고, 링크를 열기 전에 확인을 요청합니다. 켜져 있는 동안에는 우회할 수 없습니다.",
+      "외부 콘텐츠를 차단하고, 알림 미리보기를 숨기고, 실시간 동기화를 일시 중지하며, 링크가 열리지 않게 합니다. 링크 복사는 계속할 수 있습니다.",
     lockdown_active: "차단 모드 사용 중",
     lockdown_enable: "차단 모드 켜기",
     lockdown_disable: "차단 모드 끄기",
@@ -7947,16 +7950,15 @@ export const ko = {
     lockdown_disabled_toast: "차단 모드를 껐습니다",
     lockdown_confirm_disable_title: "차단 모드를 끌까요?",
     lockdown_confirm_disable_desc:
-      "외부 콘텐츠와 링크 추적, 알림 미리보기가 다시 허용됩니다. 언제든 다시 켤 수 있습니다.",
+      "외부 콘텐츠, 링크, 알림 미리보기가 다시 작동합니다. 차단 모드는 언제든지 다시 켤 수 있습니다.",
     lockdown_notification_generic: "새 메시지",
     lockdown_content_blocked_note: "차단 모드 사용 중",
     lockdown_link_warning_title: "외부 링크를 여는 중",
     lockdown_link_warning_body: "다음에게 IP 주소가 노출됩니다:",
     lockdown_info:
-      "Lockdown Mode closes every in-session data leak vector. External images, fonts, and CSS are blocked with no bypass.",
+      "차단 모드는 읽고 있는 메일이 다른 서버에 연결하지 못하게 합니다. 외부 이미지, 글꼴, 스타일이 로드되지 않고, 알림에 메시지 내용이 표시되지 않으며, 실시간 동기화가 일시 중지됩니다. 링크는 열리지 않지만 복사할 수 있습니다.",
     lockdown_badge: "차단",
-    lockdown_must_disable_first:
-      "Vanguard를 끄기 전에 차단 모드를 먼저 끄세요.",
+    lockdown_must_disable_first: "Vanguard를 끄려면 먼저 차단 모드를 끄세요.",
     security_key_registered: "보안 키가 성공적으로 등록되었습니다",
     security_key_removed: "보안 키가 제거되었습니다",
     name_your_key: "보안 키 이름 입력",

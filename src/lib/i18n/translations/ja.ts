@@ -1378,6 +1378,9 @@ export const ja = {
     leaving_aster_mail: "Aster Mailを離れます",
     link_dialog_title: "このリンクを開きますか？",
     link_dialog_body: "このリンクは Aster Mail の外部にある Web ページを開きます。",
+    link_dialog_lockdown_title: "ロックダウンモードではリンクは開きません",
+    link_dialog_lockdown_body:
+      "ロックダウンモードでは、サイトに IP アドレスが知られないようにリンクを開きません。代わりにアドレスをコピーできます。",
     link_dialog_mail_title: "メールアプリを開きますか？",
     link_dialog_mail_body: "このリンクは、デバイスのメールアプリでこのアドレス宛ての新規メッセージを作成します。",
     link_dialog_blocked_title: "このリンクは開けません",
@@ -8520,7 +8523,7 @@ export const ja = {
     vanguard_description:
       "ジャーナリスト、活動家、リスクの高いアカウントのための高度な保護機能です。Nova+ 限定。",
     vanguard_info:
-      "Aster Vanguardは、ジャーナリスト、弁護士、高リスクなユーザー向けの高度なセキュリティ機能を有効にします。PINアプリロック、強化されたセッション制御などが含まれます。",
+      "Aster Vanguard は、ジャーナリスト、活動家、弁護士など、リスクの高い方のための追加の保護機能です。PINアプロックとロックダウンモードが含まれます。",
     vanguard_active: "Vanguard 有効",
     vanguard_learn_more: "詳細を見る",
     vanguard_enable: "Vanguardを有効にする",
@@ -8534,12 +8537,12 @@ export const ja = {
     vanguard_feature_enhanced_monitoring_desc: "アカウントへの追加保護",
     vanguard_confirm_disable_title: "Aster Vanguardを無効にしますか？",
     vanguard_confirm_disable_desc:
-      "PINアプロックを含むすべてのVanguard機能が無効になります。いつでも再度有効にできます。",
+      "PINアプロックが削除され、その他の Vanguard の保護機能もオフになります。Vanguard はいつでも再びオンにできます。",
     vanguard_enabled_toast: "Aster Vanguardが有効になりました",
     vanguard_disabled_toast: "Aster Vanguardが無効になりました",
     lockdown_title: "ロックダウンモード",
     lockdown_description:
-      "外部コンテンツをすべてブロックし、通知のプレビューを消し、リアルタイム同期を停止し、リンクを開く前に確認を求めます。有効な間は迂回できません。",
+      "外部コンテンツをブロックし、通知のプレビューを非表示にし、リアルタイム同期を一時停止して、リンクを開かないようにします。リンクのコピーは引き続きできます。",
     lockdown_active: "ロックダウンモード有効",
     lockdown_enable: "ロックダウンモードをオンにする",
     lockdown_disable: "ロックダウンモードをオフにする",
@@ -8547,16 +8550,15 @@ export const ja = {
     lockdown_disabled_toast: "ロックダウンモードをオフにしました",
     lockdown_confirm_disable_title: "ロックダウンモードをオフにしますか。",
     lockdown_confirm_disable_desc:
-      "外部コンテンツ、リンクの追跡、通知のプレビューが再び有効になります。いつでもオンに戻せます。",
+      "外部コンテンツ、リンク、通知のプレビューが再び使えるようになります。ロックダウンモードはいつでも再びオンにできます。",
     lockdown_notification_generic: "新着メッセージ",
     lockdown_content_blocked_note: "ロックダウンモード有効",
     lockdown_link_warning_title: "外部リンクを開こうとしています",
     lockdown_link_warning_body: "次の相手にあなたの IP アドレスが伝わります:",
     lockdown_info:
-      "Lockdown Mode closes every in-session data leak vector. External images, fonts, and CSS are blocked with no bypass.",
+      "ロックダウンモードでは、読んでいるメールが他のサーバーに接続しないようにします。外部の画像、フォント、スタイルは読み込まれず、通知にメッセージの内容は表示されず、リアルタイム同期は一時停止します。リンクは開きませんが、コピーはできます。",
     lockdown_badge: "ロックダウン",
-    lockdown_must_disable_first:
-      "Vanguard をオフにする前に、ロックダウンモードをオフにしてください。",
+    lockdown_must_disable_first: "Vanguard をオフにするには、先にロックダウンモードをオフにしてください。",
     oauth_folders_error:
       "フォルダーの設定を完了できませんでした。もう一度お試しください。",
     oauth_folders_partial:

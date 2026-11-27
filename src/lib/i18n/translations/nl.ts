@@ -1321,6 +1321,10 @@ export const nl = {
     leaving_aster_mail: "Aster Mail verlaten",
     link_dialog_title: "Deze link openen?",
     link_dialog_body: "Deze link opent een webpagina buiten Aster Mail.",
+    link_dialog_lockdown_title:
+      "Links worden niet geopend in de blokkeringsmodus",
+    link_dialog_lockdown_body:
+      "De blokkeringsmodus houdt links gesloten zodat de site je IP-adres niet ziet. Je kunt het adres in plaats daarvan kopiëren.",
     link_dialog_mail_title: "Je e-mailapp openen?",
     link_dialog_mail_body:
       "Deze link maakt in de e-mailapp van je apparaat een nieuw bericht aan dit adres.",
@@ -8802,7 +8806,7 @@ export const nl = {
     vanguard_description:
       "Geavanceerde bescherming voor journalisten, activisten en accounts met een hoog risico. Alleen Nova+.",
     vanguard_info:
-      "Aster Vanguard activeert geavanceerde beveiligingsfuncties voor journalisten, advocaten en personen met verhoogd risico. Inclusief PIN-appvergrendeling, verbeterde sessiebeheer en meer.",
+      "Aster Vanguard voegt extra bescherming toe voor journalisten, activisten, advocaten en iedereen met een hoger risico. Het bevat een PIN-appvergrendeling en de blokkeringsmodus.",
     vanguard_active: "Vanguard Actief",
     vanguard_learn_more: "Meer informatie",
     vanguard_enable: "Vanguard inschakelen",
@@ -8818,12 +8822,12 @@ export const nl = {
       "Aanvullende beveiliging voor je account",
     vanguard_confirm_disable_title: "Aster Vanguard uitschakelen?",
     vanguard_confirm_disable_desc:
-      "Dit schakelt alle Vanguard-functies uit, inclusief je PIN-appvergrendeling. Je kunt het op elk moment opnieuw inschakelen.",
+      "Je PIN-appvergrendeling wordt verwijderd en de andere Vanguard-beveiligingen worden uitgeschakeld. Je kunt Vanguard op elk moment weer inschakelen.",
     vanguard_enabled_toast: "Aster Vanguard ingeschakeld",
     vanguard_disabled_toast: "Aster Vanguard uitgeschakeld",
     lockdown_title: "Blokkeringsmodus",
     lockdown_description:
-      "Blokkeert alle externe inhoud, verwijdert voorbeelden uit meldingen, schakelt realtimesynchronisatie uit en vraagt om bevestiging voordat links worden geopend. Zolang de modus aanstaat, is er geen omweg.",
+      "Blokkeert externe inhoud, verbergt meldingsvoorbeelden, pauzeert realtime synchronisatie en voorkomt dat links worden geopend. Je kunt links nog steeds kopiëren.",
     lockdown_active: "Blokkeringsmodus actief",
     lockdown_enable: "Blokkeringsmodus inschakelen",
     lockdown_disable: "Blokkeringsmodus uitschakelen",
@@ -8831,16 +8835,16 @@ export const nl = {
     lockdown_disabled_toast: "Blokkeringsmodus uitgeschakeld",
     lockdown_confirm_disable_title: "Blokkeringsmodus uitschakelen?",
     lockdown_confirm_disable_desc:
-      "Hiermee sta je externe inhoud, linktracking en meldingsvoorbeelden weer toe. Je kunt het altijd opnieuw inschakelen.",
+      "Externe inhoud, links en meldingsvoorbeelden werken weer. Je kunt de blokkeringsmodus op elk moment weer inschakelen.",
     lockdown_notification_generic: "Nieuw bericht",
     lockdown_content_blocked_note: "Blokkeringsmodus actief",
     lockdown_link_warning_title: "Externe link openen",
     lockdown_link_warning_body: "Hiermee wordt je IP-adres bekend bij:",
     lockdown_info:
-      "Lockdown Mode closes every in-session data leak vector. External images, fonts, and CSS are blocked with no bypass.",
+      "De blokkeringsmodus voorkomt dat e-mails die je leest contact maken met andere servers. Externe afbeeldingen, lettertypen en stijlen worden niet geladen, meldingen tonen geen inhoud en realtime synchronisatie is gepauzeerd. Links worden niet geopend, maar je kunt ze kopiëren.",
     lockdown_badge: "Blokkering",
     lockdown_must_disable_first:
-      "Schakel de blokkeringsmodus uit voordat je Vanguard uitschakelt.",
+      "Schakel eerst de blokkeringsmodus uit om Vanguard uit te schakelen.",
     oauth_folders_error:
       "Het instellen van je mappen is niet voltooid. Probeer het opnieuw.",
     oauth_folders_partial: "{{count}} mappen konden niet worden aangemaakt",

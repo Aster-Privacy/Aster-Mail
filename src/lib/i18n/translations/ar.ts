@@ -1305,6 +1305,9 @@ export const ar = {
     leaving_aster_mail: "مغادرة Aster Mail",
     link_dialog_title: "هل تريد فتح هذا الرابط؟",
     link_dialog_body: "يفتح هذا الرابط صفحة ويب خارج Aster Mail.",
+    link_dialog_lockdown_title: "لا تُفتح الروابط في وضع الإغلاق",
+    link_dialog_lockdown_body:
+      "يُبقي وضع الإغلاق الروابط مغلقة حتى لا يتمكن الموقع من رؤية عنوان IP الخاص بك. يمكنك نسخ العنوان بدلاً من ذلك.",
     link_dialog_mail_title: "هل تريد فتح تطبيق البريد؟",
     link_dialog_mail_body:
       "ينشئ هذا الرابط رسالة جديدة إلى هذا العنوان في تطبيق البريد على جهازك.",
@@ -8046,7 +8049,7 @@ export const ar = {
     vanguard_description:
       "حماية متقدمة للصحفيين والناشطين والحسابات عالية الخطورة. متاحة لـ Nova+ فقط.",
     vanguard_info:
-      "يُتيح Aster Vanguard ميزات أمان متطورة مصممة للصحفيين والمحامين وأصحاب المخاطر العالية. يشمل قفل التطبيق بالرمز والتحكم المحسّن في الجلسات والمزيد.",
+      "يضيف Aster Vanguard حماية إضافية للصحفيين والناشطين والمحامين وكل من يواجه مخاطر أعلى. ويتضمن قفل التطبيق بالرمز السري ووضع الإغلاق.",
     vanguard_active: "Vanguard نشط",
     vanguard_learn_more: "اعرف المزيد",
     vanguard_enable: "تفعيل Vanguard",
@@ -8060,12 +8063,12 @@ export const ar = {
     vanguard_feature_enhanced_monitoring_desc: "حمايات إضافية لحسابك",
     vanguard_confirm_disable_title: "تعطيل Aster Vanguard؟",
     vanguard_confirm_disable_desc:
-      "سيؤدي هذا إلى تعطيل جميع ميزات Vanguard بما في ذلك قفل التطبيق بالرمز السري. يمكنك إعادة تفعيله في أي وقت.",
+      "ستتم إزالة قفل التطبيق بالرمز السري وإيقاف حمايات Vanguard الأخرى. يمكنك تشغيل Vanguard مرة أخرى في أي وقت.",
     vanguard_enabled_toast: "تم تفعيل Aster Vanguard",
     vanguard_disabled_toast: "تم تعطيل Aster Vanguard",
     lockdown_title: "وضع الإغلاق",
     lockdown_description:
-      "يحظر كل المحتوى الخارجي، ويزيل معاينات الإشعارات، ويعطّل المزامنة الفورية، ويطلب تأكيدًا قبل فتح الروابط. لا يمكن تجاوزه أثناء تفعيله.",
+      "يحظر المحتوى الخارجي ويخفي معاينات الإشعارات ويوقف المزامنة الفورية مؤقتًا ويمنع فتح الروابط. لا يزال بإمكانك نسخ الروابط.",
     lockdown_active: "وضع الإغلاق نشط",
     lockdown_enable: "تفعيل وضع الإغلاق",
     lockdown_disable: "إيقاف وضع الإغلاق",
@@ -8073,15 +8076,15 @@ export const ar = {
     lockdown_disabled_toast: "تم إيقاف وضع الإغلاق",
     lockdown_confirm_disable_title: "إيقاف وضع الإغلاق؟",
     lockdown_confirm_disable_desc:
-      "سيسمح هذا بالمحتوى الخارجي وتتبّع الروابط ومعاينات الإشعارات. يمكنك تفعيله مرة أخرى في أي وقت.",
+      "سيعود المحتوى الخارجي والروابط ومعاينات الإشعارات إلى العمل. يمكنك تشغيل وضع الإغلاق مرة أخرى في أي وقت.",
     lockdown_notification_generic: "رسالة جديدة",
     lockdown_content_blocked_note: "وضع الإغلاق نشط",
     lockdown_link_warning_title: "فتح رابط خارجي",
     lockdown_link_warning_body: "سيكشف هذا عنوان IP الخاص بك لـ:",
     lockdown_info:
-      "Lockdown Mode closes every in-session data leak vector. External images, fonts, and CSS are blocked with no bypass.",
+      "يمنع وضع الإغلاق الرسائل التي تقرأها من الاتصال بخوادم أخرى. لا يتم تحميل الصور والخطوط والأنماط الخارجية، ولا تعرض الإشعارات محتوى الرسائل، وتتوقف المزامنة الفورية مؤقتًا. لا تُفتح الروابط، لكن يمكنك نسخها.",
     lockdown_badge: "إغلاق",
-    lockdown_must_disable_first: "أوقف وضع الإغلاق قبل إيقاف Vanguard.",
+    lockdown_must_disable_first: "لإيقاف Vanguard، أوقف وضع الإغلاق أولاً.",
     security_key_registered: "تم تسجيل مفتاح الأمان بنجاح",
     security_key_removed: "تمت إزالة مفتاح الأمان",
     name_your_key: "أعطِ اسمًا لمفتاح أمانك",

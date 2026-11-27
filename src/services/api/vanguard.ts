@@ -24,6 +24,8 @@ import { api_client, ApiResponse } from "./client";
 
 export interface VanguardStatusResponse {
   enabled: boolean;
+  eligible?: boolean;
+  lockdown_enabled?: boolean;
 }
 
 export async function get_vanguard_status(): Promise<

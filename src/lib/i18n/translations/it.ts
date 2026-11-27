@@ -1372,6 +1372,9 @@ export const it = {
     leaving_aster_mail: "Stai lasciando Aster Mail",
     link_dialog_title: "Aprire questo link?",
     link_dialog_body: "Questo link apre una pagina web esterna ad Aster Mail.",
+    link_dialog_lockdown_title: "I link non si aprono in modalità isolamento",
+    link_dialog_lockdown_body:
+      "La modalità isolamento tiene chiusi i link così il sito non vede il tuo indirizzo IP. Puoi copiare l'indirizzo.",
     link_dialog_mail_title: "Aprire l'app di posta?",
     link_dialog_mail_body:
       "Questo link crea un nuovo messaggio a questo indirizzo nell'app di posta del dispositivo.",
@@ -8250,7 +8253,7 @@ export const it = {
     vanguard_description:
       "Protezione avanzata per giornalisti, attivisti e account ad alto rischio. Solo Nova+.",
     vanguard_info:
-      "Aster Vanguard attiva funzionalità di sicurezza sofisticate per giornalisti, avvocati e persone ad alto rischio. Include il blocco PIN, controlli avanzati delle sessioni e ulteriori protezioni.",
+      "Aster Vanguard aggiunge una protezione extra per giornalisti, attivisti, avvocati e chiunque sia più a rischio. Include il blocco app con PIN e la modalità isolamento.",
     vanguard_active: "Vanguard Attivo",
     vanguard_learn_more: "Scopri di più",
     vanguard_enable: "Attiva Vanguard",
@@ -8266,12 +8269,12 @@ export const it = {
       "Protezioni aggiuntive per il tuo account",
     vanguard_confirm_disable_title: "Disattivare Aster Vanguard?",
     vanguard_confirm_disable_desc:
-      "Questo disattiverà tutte le funzionalità Vanguard, incluso il blocco app con PIN. Puoi riattivarlo in qualsiasi momento.",
+      "Il blocco app con PIN viene rimosso e le altre protezioni di Vanguard vengono disattivate. Puoi riattivare Vanguard in qualsiasi momento.",
     vanguard_enabled_toast: "Aster Vanguard attivato",
     vanguard_disabled_toast: "Aster Vanguard disattivato",
     lockdown_title: "Modalità isolamento",
     lockdown_description:
-      "Blocca tutti i contenuti esterni, rimuove le anteprime dalle notifiche, disattiva la sincronizzazione in tempo reale e chiede conferma prima di aprire i link. Finché è attivo non è possibile aggirarlo.",
+      "Blocca i contenuti esterni, nasconde le anteprime delle notifiche, sospende la sincronizzazione in tempo reale e impedisce l'apertura dei link. Puoi comunque copiare i link.",
     lockdown_active: "Modalità isolamento attiva",
     lockdown_enable: "Attiva la modalità isolamento",
     lockdown_disable: "Disattiva la modalità isolamento",
@@ -8279,16 +8282,16 @@ export const it = {
     lockdown_disabled_toast: "Modalità isolamento disattivata",
     lockdown_confirm_disable_title: "Disattivare la modalità isolamento?",
     lockdown_confirm_disable_desc:
-      "Verranno di nuovo consentiti contenuti esterni, tracciamento dei link e anteprime nelle notifiche. Puoi riattivarla quando vuoi.",
+      "Contenuti esterni, link e anteprime delle notifiche tornano a funzionare. Puoi riattivare la modalità isolamento in qualsiasi momento.",
     lockdown_notification_generic: "Nuovo messaggio",
     lockdown_content_blocked_note: "Modalità isolamento attiva",
     lockdown_link_warning_title: "Apertura di un link esterno",
     lockdown_link_warning_body: "Questo rivelerà il tuo indirizzo IP a:",
     lockdown_info:
-      "Lockdown Mode closes every in-session data leak vector. External images, fonts, and CSS are blocked with no bypass.",
+      "La modalità isolamento impedisce alle email che leggi di contattare altri server. Immagini, font e stili esterni non vengono caricati, le notifiche non mostrano il contenuto e la sincronizzazione in tempo reale è sospesa. I link non si aprono, ma puoi copiarli.",
     lockdown_badge: "Isolamento",
     lockdown_must_disable_first:
-      "Disattiva la modalità isolamento prima di disattivare Vanguard.",
+      "Per disattivare Vanguard, disattiva prima la modalità isolamento.",
     security_key_registered: "Chiave di sicurezza registrata con successo",
     security_key_removed: "Chiave di sicurezza rimossa",
     name_your_key: "Assegna un nome alla chiave di sicurezza",

@@ -42,16 +42,41 @@ export function set_vanguard_enabled(
   }
 }
 
-export async function init_vanguard_from_server(
+export interface VanguardServerState {
+  enabled: boolean;
+  eligible: boolean | null;
+  from_server: boolean;
+}
+
+export async function load_vanguard_state(
   account_id: string,
-): Promise<boolean> {
+): Promise<VanguardServerState> {
   const response = await get_vanguard_status();
 
   if (response.data) {
     set_vanguard_enabled(account_id, response.data.enabled);
 
-    return response.data.enabled;
+    return {
+      enabled: response.data.enabled,
+      eligible:
+        typeof response.data.eligible === "boolean"
+          ? response.data.eligible
+          : null,
+      from_server: true,
+    };
   }
 
-  return is_vanguard_enabled(account_id);
+  return {
+    enabled: is_vanguard_enabled(account_id),
+    eligible: null,
+    from_server: false,
+  };
+}
+
+export async function init_vanguard_from_server(
+  account_id: string,
+): Promise<boolean> {
+  const state = await load_vanguard_state(account_id);
+
+  return state.enabled;
 }
