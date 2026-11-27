@@ -39,6 +39,7 @@ export interface AttachmentPreviewInfo {
   size_bytes: number;
   type_label: string;
   type_color: string;
+  is_inline?: boolean;
 }
 
 export interface AttachmentPreviewEntry {
@@ -117,7 +118,8 @@ export function same_preview_entry(
       before.content_type !== next.content_type ||
       before.size_bytes !== next.size_bytes ||
       before.type_label !== next.type_label ||
-      before.type_color !== next.type_color
+      before.type_color !== next.type_color ||
+      before.is_inline !== next.is_inline
     ) {
       return false;
     }
@@ -241,6 +243,7 @@ export function use_attachment_previews(
                 size_bytes: meta.size_bytes || item.size_bytes,
                 type_label: get_type_label(content_type, filename),
                 type_color: get_type_color(content_type),
+                is_inline: meta.is_inline === true,
               };
             }),
           );

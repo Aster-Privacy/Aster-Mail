@@ -33,6 +33,7 @@ import {
 import { TagIcon } from "@heroicons/react/24/solid";
 import { Button, Tooltip } from "@aster/ui";
 
+import { with_shortcut_hint } from "@/constants/keyboard_shortcuts";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -335,7 +336,7 @@ function top_bar_base({
 
       <div className="flex items-center gap-0.5 sm:gap-1 flex-shrink-0 ms-auto ps-2">
         <DropdownMenu>
-          <Tooltip tip={t("common.help")}>
+          <Tooltip tip={with_shortcut_hint(t("common.help"), "show_shortcuts")}>
             <DropdownMenuTrigger asChild>
               <button
                 aria-label={t("common.help")}

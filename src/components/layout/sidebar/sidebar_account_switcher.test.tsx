@@ -58,7 +58,7 @@ function render(props: {
     root!.render(
       <SidebarAccountSwitcher
         is_collapsed={props.is_collapsed ?? false}
-        storage_percentage={props.storage_percentage ?? 42}
+        storage_percentage={props.storage_percentage ?? 72}
         storage_total_bytes={props.storage_total_bytes ?? 1024 ** 3}
         storage_used_bytes={450 * 1024 ** 2}
         on_settings_click={props.on_settings_click ?? (() => {})}
@@ -96,7 +96,7 @@ describe("SidebarAccountSwitcher", () => {
     render({});
 
     expect(text_classes("common.storage_used")).toContain("text-[13px]");
-    expect(text_classes("42%")).toContain("text-[13px]");
+    expect(text_classes("72%")).toContain("text-[13px]");
     expect(text_classes("common.buy_more_storage")).toContain("text-xs");
     expect(text_classes("settings.invite_friends").join(" ")).not.toMatch(
       /text-\[(9|10|11)px\]/,
@@ -111,7 +111,7 @@ describe("SidebarAccountSwitcher", () => {
 
     const bar = container!.querySelector('[role="progressbar"]');
 
-    expect(bar?.getAttribute("aria-valuenow")).toBe("42");
+    expect(bar?.getAttribute("aria-valuenow")).toBe("72");
     act(() =>
       (
         container!.querySelector(
@@ -131,13 +131,18 @@ describe("SidebarAccountSwitcher", () => {
     ).toBe("var(--color-danger)");
   });
 
-  it("shows a placeholder until the quota is known", () => {
+  it("hides the meter until the quota is known", () => {
     render({ storage_total_bytes: 0 });
 
-    expect(
-      container!.querySelector('[data-testid="sidebar-storage-loading"]'),
-    ).not.toBeNull();
     expect(container!.querySelector('[role="progressbar"]')).toBeNull();
+    expect(container!.textContent).not.toContain("common.buy_more_storage");
+  });
+
+  it("hides the meter while usage is at or below half", () => {
+    render({ storage_percentage: 50 });
+
+    expect(container!.querySelector('[role="progressbar"]')).toBeNull();
+    expect(container!.textContent).not.toContain("common.buy_more_storage");
   });
 
   it("keeps the collapsed rail to icon buttons", () => {

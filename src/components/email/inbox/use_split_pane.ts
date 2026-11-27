@@ -28,6 +28,7 @@ const MIN_LIST_WIDTH = 256;
 const MIN_LIST_HEIGHT = 150;
 const MIN_EMAIL_VIEWER_HEIGHT = 200;
 const DEFAULT_LIST_RATIO = 0.5;
+export const DEFAULT_LIST_MAX_WIDTH = 680;
 const KEYBOARD_STEP = 24;
 
 export function resolve_list_width({
@@ -48,7 +49,10 @@ export function resolve_list_width({
       ? Math.round(container_width * saved_ratio)
       : saved_width > 0
         ? saved_width
-        : Math.floor(container_width * DEFAULT_LIST_RATIO);
+        : Math.min(
+            DEFAULT_LIST_MAX_WIDTH,
+            Math.floor(container_width * DEFAULT_LIST_RATIO),
+          );
 
   return Math.max(MIN_LIST_WIDTH, Math.min(preferred, max_allowed));
 }
@@ -295,7 +299,7 @@ export function use_split_pane({
     apply_size(
       resolve_list_width({
         container_width: container.width,
-        saved_ratio: DEFAULT_LIST_RATIO,
+        saved_ratio: 0,
         saved_width: 0,
       }),
     );

@@ -260,7 +260,7 @@ describe("resolve_list_width", () => {
     ).toBe(800);
   });
 
-  it("falls back to the saved width, then to half the container", () => {
+  it("falls back to the saved width, then to a capped half of the container", () => {
     expect(
       resolve_list_width({
         container_width: 2000,
@@ -274,7 +274,14 @@ describe("resolve_list_width", () => {
         saved_ratio: 0,
         saved_width: 0,
       }),
-    ).toBe(1000);
+    ).toBe(680);
+    expect(
+      resolve_list_width({
+        container_width: 1100,
+        saved_ratio: 0,
+        saved_width: 0,
+      }),
+    ).toBe(550);
   });
 
   it("keeps room for the reading pane", () => {

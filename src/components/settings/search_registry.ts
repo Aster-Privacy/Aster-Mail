@@ -839,13 +839,6 @@ export const SETTINGS_SEARCH_REGISTRY: SearchEntry[] = [
     description_key: "settings.reading_pane_description",
   },
   {
-    id: "show_message_size",
-    label_key: "settings.show_message_size",
-    section: "behavior",
-    crumb_key: "settings_search.reading_and_conversations",
-    description_key: "settings.show_message_size_description",
-  },
-  {
     id: "force_dark_mode_emails",
     label_key: "settings.force_dark_mode_emails",
     section: "behavior",
