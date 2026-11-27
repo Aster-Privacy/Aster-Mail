@@ -793,9 +793,8 @@ export function ContactList({
                 onCheckedChange={on_toggle_select_all}
               />
             </span>
-            <label
+            <span
               className="contact_list_header_label"
-              htmlFor={select_all_id}
               style={{ paddingInlineStart: avatar_px + 12 }}
             >
               {has_selection
@@ -805,7 +804,7 @@ export function ContactList({
                 : t("common.contact_count", {
                     count: filtered_contacts.length,
                   })}
-            </label>
+            </span>
             {has_selection && (
               <div className="flex flex-shrink-0 items-center gap-0.5">
                 <Tooltip
@@ -1021,13 +1020,21 @@ export function ContactList({
                     containIntrinsicSize: `auto ${avatar_px + (is_compact ? 10 : 14)}px`,
                   }}
                   tabIndex={0}
-                  onClick={() =>
-                    set_selected_contact(is_active ? null : contact)
-                  }
+                  onClick={() => {
+                    if (has_selection) {
+                      on_toggle_select(contact.id);
+                      return;
+                    }
+                    set_selected_contact(is_active ? null : contact);
+                  }}
                   onKeyDown={(e) => {
                     if (e.target !== e.currentTarget) return;
                     if (e["key"] === "Enter" || e["key"] === " ") {
                       e.preventDefault();
+                      if (has_selection) {
+                        on_toggle_select(contact.id);
+                        return;
+                      }
                       set_selected_contact(is_active ? null : contact);
                     }
                   }}
