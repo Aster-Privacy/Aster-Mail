@@ -133,6 +133,12 @@ export function get_type_glyph(content_type: string): AttachmentGlyph {
     content_type.includes("powerpoint")
   )
     return "presentation";
+  if (
+    content_type.includes("wordprocessingml") ||
+    content_type.includes("msword") ||
+    content_type.includes("opendocument.text")
+  )
+    return "document";
   if (is_code_type(content_type)) return "code";
   if (
     content_type === "application/pdf" ||
@@ -143,6 +149,133 @@ export function get_type_glyph(content_type: string): AttachmentGlyph {
     return "document";
 
   return "file";
+}
+
+export type AttachmentChipKind =
+  | "pdf"
+  | "image"
+  | "document"
+  | "sheet"
+  | "presentation"
+  | "archive"
+  | "audio"
+  | "video"
+  | "code"
+  | "file";
+
+const EXTENSION_CHIP_KINDS: Record<string, AttachmentChipKind> = {
+  pdf: "pdf",
+  jpg: "image",
+  jpeg: "image",
+  png: "image",
+  gif: "image",
+  webp: "image",
+  bmp: "image",
+  tif: "image",
+  tiff: "image",
+  svg: "image",
+  heic: "image",
+  heif: "image",
+  avif: "image",
+  ico: "image",
+  doc: "document",
+  docx: "document",
+  odt: "document",
+  rtf: "document",
+  txt: "document",
+  md: "document",
+  pages: "document",
+  xls: "sheet",
+  xlsx: "sheet",
+  ods: "sheet",
+  csv: "sheet",
+  tsv: "sheet",
+  numbers: "sheet",
+  ppt: "presentation",
+  pptx: "presentation",
+  odp: "presentation",
+  key: "presentation",
+  zip: "archive",
+  rar: "archive",
+  "7z": "archive",
+  gz: "archive",
+  tgz: "archive",
+  tar: "archive",
+  bz2: "archive",
+  xz: "archive",
+  mp3: "audio",
+  wav: "audio",
+  m4a: "audio",
+  aac: "audio",
+  flac: "audio",
+  ogg: "audio",
+  opus: "audio",
+  mp4: "video",
+  mov: "video",
+  m4v: "video",
+  mkv: "video",
+  webm: "video",
+  avi: "video",
+  html: "code",
+  htm: "code",
+  xml: "code",
+  json: "code",
+  js: "code",
+  ts: "code",
+  css: "code",
+  py: "code",
+  sh: "code",
+  yml: "code",
+  yaml: "code",
+};
+
+function kind_from_content_type(content_type: string): AttachmentChipKind {
+  if (content_type === "application/pdf") return "pdf";
+
+  const glyph = get_type_glyph(content_type);
+
+  if (glyph === "photo") return "image";
+  if (glyph === "music") return "audio";
+  if (glyph === "table") return "sheet";
+  if (glyph === "video" || glyph === "presentation" || glyph === "code")
+    return glyph;
+  if (glyph === "archive" || glyph === "document") return glyph;
+
+  return "file";
+}
+
+export function get_chip_kind(
+  content_type: string,
+  filename: string,
+): AttachmentChipKind {
+  const from_type = kind_from_content_type(content_type.toLowerCase());
+
+  if (from_type !== "file") return from_type;
+
+  const dot_index = filename.lastIndexOf(".");
+
+  if (dot_index <= 0) return "file";
+
+  return (
+    EXTENSION_CHIP_KINDS[filename.slice(dot_index + 1).toLowerCase()] ?? "file"
+  );
+}
+
+const CHIP_KIND_COLORS: Record<AttachmentChipKind, string> = {
+  pdf: "#e24942",
+  image: "#0eb09b",
+  document: "#3981f6",
+  sheet: "#0ca844",
+  presentation: "#e38f0c",
+  archive: "#9964e5",
+  audio: "#0fb1cb",
+  video: "#d64992",
+  code: "#6d89a7",
+  file: "#83868c",
+};
+
+export function get_chip_color(kind: AttachmentChipKind): string {
+  return CHIP_KIND_COLORS[kind];
 }
 
 const PREVIEWABLE_IMAGE_TYPES = new Set([

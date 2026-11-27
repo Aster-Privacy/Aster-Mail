@@ -18,39 +18,100 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { memo } from "react";
+import type { ComponentType, SVGProps } from "react";
 
-import { truncate_filename } from "@/lib/attachment_utils";
+import { memo } from "react";
+import {
+  ArchiveBoxIcon,
+  CodeBracketIcon,
+  DocumentIcon,
+  DocumentTextIcon,
+  FilmIcon,
+  MusicalNoteIcon,
+  PaperClipIcon,
+  PhotoIcon,
+  PresentationChartBarIcon,
+  TableCellsIcon,
+} from "@heroicons/react/16/solid";
+
+import {
+  get_chip_color,
+  get_chip_kind,
+  truncate_filename,
+  type AttachmentChipKind,
+} from "@/lib/attachment_utils";
+
+type ChipIcon = ComponentType<SVGProps<SVGSVGElement>>;
+
+const CHIP_ICONS: Record<AttachmentChipKind, ChipIcon> = {
+  pdf: DocumentIcon,
+  image: PhotoIcon,
+  document: DocumentTextIcon,
+  sheet: TableCellsIcon,
+  presentation: PresentationChartBarIcon,
+  archive: ArchiveBoxIcon,
+  audio: MusicalNoteIcon,
+  video: FilmIcon,
+  code: CodeBracketIcon,
+  file: PaperClipIcon,
+};
 
 interface AttachmentChipProps {
   filename: string;
+  content_type: string;
   type_label: string;
-  type_color: string;
   muted?: boolean;
 }
 
 export const AttachmentChip = memo(function AttachmentChip({
   filename,
+  content_type,
   type_label,
-  type_color,
   muted,
 }: AttachmentChipProps): React.ReactElement {
+  const kind = get_chip_kind(content_type, filename);
+  const Icon = CHIP_ICONS[kind];
+
   return (
     <span
-      className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] leading-tight max-w-[160px] border border-edge-secondary select-none"
+      className="inline-flex h-5 min-w-0 max-w-[168px] flex-shrink items-center gap-1 rounded-[6px] border border-edge-secondary px-1.5 text-[11px] leading-none select-none"
+      data-kind={kind}
       data-testid="attachment-chip"
-      style={{ opacity: muted ? 0.6 : 1 }}
+      title={filename}
     >
-      <span
-        className="w-1.5 h-1.5 rounded-full flex-shrink-0"
-        style={{ backgroundColor: type_color }}
+      <Icon
+        aria-hidden="true"
+        className="h-3 w-3 flex-shrink-0"
+        data-testid="attachment-chip-icon"
+        style={{ color: get_chip_color(kind) }}
       />
-      <span className="font-medium flex-shrink-0 text-txt-secondary">
-        {type_label}
-      </span>
-      <span className="truncate text-txt-muted">
-        {truncate_filename(filename)}
+      <span className="sr-only">{`${type_label} `}</span>
+      <span
+        className={`truncate ${muted ? "text-txt-muted" : "text-txt-secondary"}`}
+      >
+        {truncate_filename(filename, 28)}
       </span>
     </span>
   );
 });
+
+export function AttachmentChipOverflow({
+  count,
+  label,
+}: {
+  count: number;
+  label: string;
+}): React.ReactElement | null {
+  if (count <= 0) return null;
+
+  return (
+    <span
+      className="inline-flex h-5 flex-shrink-0 items-center rounded-[6px] border border-edge-secondary px-1.5 text-[11px] font-medium leading-none tabular-nums text-txt-muted select-none"
+      data-testid="attachment-chip-overflow"
+      title={label}
+    >
+      <span aria-hidden="true">{`+${count}`}</span>
+      <span className="sr-only">{label}</span>
+    </span>
+  );
+}

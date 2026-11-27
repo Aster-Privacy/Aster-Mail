@@ -84,7 +84,10 @@ import {
 import { SnoozeBadge } from "@/components/ui/snooze_badge";
 import { CheckGlyph } from "@/components/ui/check_glyph";
 import { ExpirationCountdown } from "@/components/email/expiration_countdown";
-import { AttachmentChip } from "@/components/email/attachment_chip";
+import {
+  AttachmentChip,
+  AttachmentChipOverflow,
+} from "@/components/email/attachment_chip";
 import { fetch_priority_attr } from "@/lib/fetch_priority";
 import {
   cn,
@@ -917,25 +920,24 @@ export const InboxEmailListItem = memo(
               {attachment_previews?.state === "loaded" &&
                 attachment_previews.attachments.length > 0 && (
                   <div
-                    className="hidden md:flex items-center gap-1 mt-1 mb-0.5"
+                    className="hidden md:flex min-w-0 items-center gap-1 mt-1 mb-0.5 overflow-hidden"
                     data-testid="attachment-chips-container"
                   >
                     {attachment_previews.attachments.slice(0, 3).map((att) => (
                       <AttachmentChip
                         key={att.id}
+                        content_type={att.content_type}
                         filename={att.filename}
                         muted={email.is_read}
-                        type_color={att.type_color}
                         type_label={att.type_label}
                       />
                     ))}
-                    {attachment_previews.attachments.length > 3 && (
-                      <span className="text-xs text-txt-muted">
-                        {t("mail.attachment_chips_more", {
-                          count: attachment_previews.attachments.length - 3,
-                        })}
-                      </span>
-                    )}
+                    <AttachmentChipOverflow
+                      count={attachment_previews.attachments.length - 3}
+                      label={t("mail.attachment_chips_more", {
+                        count: attachment_previews.attachments.length - 3,
+                      })}
+                    />
                   </div>
                 )}
             </div>
