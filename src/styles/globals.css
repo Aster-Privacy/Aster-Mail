@@ -3313,7 +3313,8 @@ html:not([data-input-modality="keyboard"])
   text-overflow: ellipsis;
   white-space: nowrap;
   align-self: center;
-  cursor: pointer;
+  cursor: default;
+  user-select: none;
   font-size: 12.5px;
   line-height: 20px;
   font-weight: 500;

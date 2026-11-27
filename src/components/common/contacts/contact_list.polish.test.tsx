@@ -86,6 +86,7 @@ describe("contact list page polish", () => {
   const render_list = async (
     contacts: DecryptedContact[],
     is_loading = false,
+    overrides: Record<string, unknown> = {},
   ) => {
     await act(async () => {
       root.render(
@@ -147,6 +148,7 @@ describe("contact list page polish", () => {
             trashed_contacts={[]}
             upcoming_birthdays_count={upcoming}
             view_mode={"list" as never}
+            {...overrides}
           />
         </MemoryRouter>,
       );
@@ -213,6 +215,70 @@ describe("contact list page polish", () => {
     expect(header.querySelector(".contact_list_header_label")!.textContent).toBe(
       "common.contact_count",
     );
+  });
+
+  it("keeps the header count from selecting every contact", async () => {
+    const on_toggle_select_all = vi.fn();
+
+    await render_list(base_contacts, false, { on_toggle_select_all });
+
+    const header = container.querySelector(".contact_list_header")!;
+    const label = header.querySelector(".contact_list_header_label")!;
+
+    expect(label.tagName).toBe("SPAN");
+    expect(label.closest("label")).toBeNull();
+    expect(header.querySelector("label[for]")).toBeNull();
+
+    await act(async () => {
+      (label as HTMLElement).click();
+      (header as HTMLElement).click();
+    });
+
+    expect(on_toggle_select_all).not.toHaveBeenCalled();
+  });
+
+  it("toggles a row instead of opening it while contacts are selected", async () => {
+    const on_toggle_select = vi.fn();
+    const set_selected_contact = vi.fn();
+
+    await render_list(base_contacts, false, {
+      has_selection: true,
+      on_toggle_select,
+      set_selected_contact,
+      selected_ids: new Set(["c0"]),
+      selection_state: {
+        selected_count: 1,
+        all_selected: false,
+        some_selected: true,
+      },
+    });
+
+    const rows = container.querySelectorAll(".contact_row");
+
+    await act(async () => {
+      (rows[1] as HTMLElement).click();
+    });
+
+    expect(on_toggle_select).toHaveBeenCalledTimes(1);
+    expect(on_toggle_select).toHaveBeenCalledWith("c1");
+    expect(set_selected_contact).not.toHaveBeenCalled();
+  });
+
+  it("opens a row when nothing is selected", async () => {
+    const on_toggle_select = vi.fn();
+    const set_selected_contact = vi.fn();
+
+    await render_list(base_contacts, false, {
+      on_toggle_select,
+      set_selected_contact,
+    });
+
+    await act(async () => {
+      (container.querySelectorAll(".contact_row")[0] as HTMLElement).click();
+    });
+
+    expect(set_selected_contact).toHaveBeenCalledTimes(1);
+    expect(on_toggle_select).not.toHaveBeenCalled();
   });
 
   it("drops the loading skeleton once contacts are on screen", async () => {

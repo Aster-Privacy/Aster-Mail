@@ -161,6 +161,14 @@ describe("contact list select-all and auto-save rows", () => {
       : null;
   };
 
+  const select_all_checkbox = () =>
+    container.querySelector(
+      "input[aria-label='common.select_all']",
+    ) as HTMLInputElement | null;
+
+  const header_count = () =>
+    container.querySelector(".contact_list_header_label") as HTMLElement;
+
   const click = async (element: Element) => {
     await act(async () => {
       (element as HTMLElement).click();
@@ -188,7 +196,7 @@ describe("contact list select-all and auto-save rows", () => {
   it("labels select-all and the auto-save switch as separate controls", async () => {
     await render_list();
 
-    const select_all = control_for("common.contact_count");
+    const select_all = select_all_checkbox();
     const auto_save_switch = control_for(
       "settings.auto_save_recipients_to_contacts",
     );
@@ -234,13 +242,13 @@ describe("contact list select-all and auto-save rows", () => {
     expect(on_toggle_select_all).not.toHaveBeenCalled();
   });
 
-  it("selects all from the checkbox and from its label", async () => {
+  it("selects all only from the checkbox, not from the count beside it", async () => {
     await render_list();
 
-    await click(control_for("common.contact_count")!);
-    await click(label_for("common.contact_count"));
+    await click(select_all_checkbox()!);
+    await click(header_count());
 
-    expect(on_toggle_select_all).toHaveBeenCalledTimes(2);
+    expect(on_toggle_select_all).toHaveBeenCalledTimes(1);
     expect(update_preference).not.toHaveBeenCalled();
   });
 });
