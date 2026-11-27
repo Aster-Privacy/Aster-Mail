@@ -671,7 +671,9 @@ export async function preload_email_detail(
         ),
         is_read: item.is_read ?? decrypted_metadata?.is_read ?? false,
         is_starred: decrypted_metadata?.is_starred ?? false,
-        has_attachment: decrypted_metadata?.has_attachments ?? false,
+        has_attachment:
+          (decrypted_metadata?.has_attachments ?? false) ||
+          (pgp.decrypted_attachments?.length ?? 0) > 0,
         thread_count: 1,
         body: body_text,
         html_content: safe_html,
@@ -727,6 +729,9 @@ export async function preload_email_detail(
         spf_result: item.spf_result,
         dkim_result: item.dkim_result,
         dmarc_result: item.dmarc_result,
+        ...(pgp.decrypted_content_tag
+          ? { decrypted_content_tag: pgp.decrypted_content_tag }
+          : {}),
       };
 
       await resolve_reaction_emojis([single_message], user_email);

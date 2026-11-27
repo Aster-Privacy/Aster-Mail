@@ -39,6 +39,7 @@ import { is_composing } from "@/utils/ime";
 import { format_bytes } from "@/lib/utils";
 import { use_compose_readable_color } from "@/hooks/use_compose_readable_color";
 import { inline_image_bytes } from "@/lib/inline_image_bytes";
+import { should_place_caret_at_end } from "@/lib/editor_caret_click";
 import { get_max_total_attachments_size } from "@/services/attachment_limits";
 
 function get_file_type_icon(mime_type: string): React.ReactNode {
@@ -716,16 +717,36 @@ export function ComposeEditor({ compose, placeholder }: ComposeEditorProps) {
     }
   });
 
-  const focus_editor_at_click = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (e.target !== e.currentTarget) return;
+  const press_target_ref = useRef<EventTarget | null>(null);
 
+  const remember_press_target = (e: React.PointerEvent<HTMLDivElement>) => {
+    press_target_ref.current = e.target;
+  };
+
+  const focus_editor_at_click = (e: React.MouseEvent<HTMLDivElement>) => {
     const el = compose.message_textarea_ref.current;
+    const press_target = press_target_ref.current;
+
+    press_target_ref.current = null;
 
     if (!el) return;
 
+    const selection = window.getSelection();
+
+    if (
+      !should_place_caret_at_end({
+        container: e.currentTarget,
+        editor: el,
+        press_target,
+        click_target: e.target,
+        selection,
+      })
+    ) {
+      return;
+    }
+
     el.focus();
 
-    const selection = window.getSelection();
     const range = document.createRange();
 
     range.selectNodeContents(el);
@@ -741,6 +762,7 @@ export function ComposeEditor({ compose, placeholder }: ComposeEditorProps) {
         className="flex-1 overflow-auto cursor-text"
         style={{ position: "relative" }}
         onClick={focus_editor_at_click}
+        onPointerDown={remember_press_target}
       >
         <div
           ref={compose.message_textarea_ref}
