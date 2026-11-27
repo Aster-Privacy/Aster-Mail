@@ -140,6 +140,7 @@ export interface ThreadMessageBlockProps {
   is_reply?: boolean;
   is_single_message?: boolean;
   is_last_in_thread?: boolean;
+  is_last_displayed?: boolean;
   on_toggle: () => void;
   is_starred?: boolean;
   is_read?: boolean;
