@@ -92,6 +92,15 @@ describe("is_safe_viewer_src", () => {
     expect(
       is_safe_viewer_src("blob:https://evil.example/1234-abcd", PROXY),
     ).toBe(false);
+    expect(
+      is_safe_viewer_src(
+        `blob:${window.location.origin}.evil.example/1234-abcd`,
+        PROXY,
+      ),
+    ).toBe(false);
+    expect(is_safe_viewer_src(`blob:${window.location.origin}/`, PROXY)).toBe(
+      false,
+    );
     expect(is_safe_viewer_src("https://cdn.example.com/a.png", PROXY)).toBe(
       false,
     );

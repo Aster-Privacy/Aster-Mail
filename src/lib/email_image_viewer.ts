@@ -63,9 +63,12 @@ export function is_safe_viewer_src(src: string, proxy_url: string): boolean {
   if (lower.startsWith("data:")) return VIEWER_DATA_IMAGE_PATTERN.test(value);
 
   if (lower.startsWith("blob:")) {
-    const inner = resolve_url(value.slice("blob:".length), "http://invalid");
+    const origin = app_origin();
+    const prefix = `blob:${origin}/`;
 
-    return inner !== null && inner.origin === app_origin();
+    if (!origin || origin === "null") return false;
+
+    return value.startsWith(prefix) && value.length > prefix.length;
   }
 
   const base =

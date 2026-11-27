@@ -9,6 +9,7 @@
     "core:menu:default",
     "shell:allow-open",
     "clipboard-manager:allow-write-text",
+    "clipboard-manager:allow-write-image",
     "notification:default",
     "core:event:default",
     "updater:default",
