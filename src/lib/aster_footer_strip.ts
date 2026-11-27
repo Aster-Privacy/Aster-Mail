@@ -118,7 +118,7 @@ export function strip_own_aster_footer_html(
 ): string {
   let result = html;
 
-  if (result.includes("astermail.org") && typeof DOMParser !== "undefined") {
+  if (typeof DOMParser !== "undefined") {
     const doc = new DOMParser().parseFromString(
       `<!DOCTYPE html><html><body>${result}</body></html>`,
       "text/html",
