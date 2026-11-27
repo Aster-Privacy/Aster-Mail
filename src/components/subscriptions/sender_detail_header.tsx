@@ -69,7 +69,7 @@ export function SenderDetailHeader({
     const link = sub.unsubscribe_link || sub.list_unsubscribe_header;
 
     if (link) {
-      handle_external_link(link);
+      handle_external_link(link, undefined, null, null, "unsubscribe");
     }
   };
 

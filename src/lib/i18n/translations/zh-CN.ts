@@ -1160,6 +1160,10 @@ export const zh_CN = {
     enter_label_name: "输入标签名称",
     leaving_aster_mail: "离开 Aster Mail",
     link_dialog_title: "打开此链接？",
+    unsubscribe_dialog_title: "打开退订页面？",
+    unsubscribe_dialog_body:
+      "此页面由发件人运营。打开后，发件人会知道你的地址仍在使用，页面可能会在退订前要求你确认。",
+    unsubscribe_dialog_open: "打开页面",
     link_dialog_body: "此链接会在 Aster Mail 之外打开一个网页。",
     link_dialog_lockdown_title: "锁定模式下链接不会打开",
     link_dialog_lockdown_body: "锁定模式会保持链接关闭，使网站无法看到你的 IP 地址。你可以改为复制地址。",
@@ -3943,6 +3947,11 @@ export const zh_CN = {
     recent_sign_ins: "最近登录",
     no_sign_in_history: "暂无登录历史",
     external_link_warnings: "外部链接警告",
+    unsubscribe_confirm: "退订确认",
+    unsubscribe_confirm_enabled:
+      "打开发件人的退订页面前先确认",
+    unsubscribe_confirm_disabled:
+      "退订页面直接打开，无需确认",
     external_link_warning_enabled: "打开邮件中的外部链接前显示警告",
     external_link_warning_disabled: "直接打开链接，无需确认",
     ipfs_attachment_storage: "IPFS 附件存储",

@@ -353,6 +353,16 @@ export function SecuritySection({
             true,
           )
         }
+        on_unsubscribe_confirm_toggle={() =>
+          security.update_preference(
+            "unsubscribe_confirm_dismissed",
+            !security.preferences.unsubscribe_confirm_dismissed,
+            true,
+          )
+        }
+        unsubscribe_confirm_dismissed={
+          security.preferences.unsubscribe_confirm_dismissed
+        }
       />
 
       <ForwardSecrecyGroup

@@ -114,9 +114,11 @@ export function show_unsubscribe_toast({
         {
           label: t("mail.open_page"),
           on_press: () => {
-            void request_external_link(url).then((opened) => {
-              if (opened) on_page_opened?.();
-            });
+            void request_external_link(url, null, "unsubscribe").then(
+              (opened) => {
+                if (opened) on_page_opened?.();
+              },
+            );
           },
         },
       ],

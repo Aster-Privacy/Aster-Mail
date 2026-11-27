@@ -892,7 +892,10 @@ export function ThreadMessageBlock(
         }
         on_open_unsubscribe_page={async () => {
           if (!unsubscribe_url) return;
-          if (!(await request_external_link(unsubscribe_url))) return;
+          if (
+            !(await request_external_link(unsubscribe_url, null, "unsubscribe"))
+          )
+            return;
           set_unsub_state("done");
           on_manual_unsubscribed?.();
         }}

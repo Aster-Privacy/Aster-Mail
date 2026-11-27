@@ -70,6 +70,7 @@ const LONG_URL =
 
 interface RenderOptions {
   url?: string;
+  kind?: "link" | "unsubscribe";
   link_text?: string;
   lockdown_active?: boolean;
   return_focus_to?: HTMLElement | null;
@@ -89,6 +90,7 @@ function render(options: RenderOptions = {}) {
     root!.render(
       <ExternalLinkWarningModal
         is_open
+        kind={options.kind}
         link_text={options.link_text}
         lockdown_active={options.lockdown_active}
         on_close={on_close}
@@ -582,5 +584,43 @@ describe("ExternalLinkWarningModal", () => {
     render({ url: "https://www.forbes.com/sites/story" });
     expect(q('[data-testid="link_destination_favicon"]')).toBeNull();
     expect(h.favicon_calls.every(([, enabled]) => !enabled)).toBe(true);
+  });
+
+  it("asks before opening an unsubscribe page and keeps the site visible", () => {
+    render({ kind: "unsubscribe", url: "https://news.example.com/unsub?u=1" });
+
+    expect(q("h2")?.textContent ?? document.body.textContent).toContain(
+      "common.unsubscribe_dialog_title",
+    );
+    expect(document.body.textContent).toContain(
+      "common.unsubscribe_dialog_body",
+    );
+    expect(button("open")?.textContent).toBe("common.unsubscribe_dialog_open");
+    expect(q('[data-testid="link_destination_site"]')?.textContent).toBe(
+      "example.com",
+    );
+    expect(q("#external-link-dont-show-checkbox")).not.toBeNull();
+  });
+
+  it("remembers Don't show again for an unsubscribe page when it opens", () => {
+    render({ kind: "unsubscribe", url: "https://news.example.com/unsub" });
+
+    click(q("#external-link-dont-show-checkbox"));
+    click(button("open"));
+    act(() => {
+      vi.advanceTimersByTime(200);
+    });
+
+    expect(on_dismiss_permanently).toHaveBeenCalledTimes(1);
+    expect(on_confirm).toHaveBeenCalledTimes(1);
+  });
+
+  it("keeps the blocked copy for an unsafe unsubscribe link", () => {
+    render({ kind: "unsubscribe", url: "javascript:alert(1)" });
+
+    expect(button("open")).toBeNull();
+    expect(document.body.textContent).toContain(
+      "common.link_dialog_blocked_title",
+    );
   });
 });

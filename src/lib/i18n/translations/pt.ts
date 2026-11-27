@@ -1244,6 +1244,10 @@ export const pt = {
     enter_label_name: "Introduza o nome da etiqueta",
     leaving_aster_mail: "A sair do Aster Mail",
     link_dialog_title: "Abrir esta ligação?",
+    unsubscribe_dialog_title: "Abrir a página de cancelamento da subscrição?",
+    unsubscribe_dialog_body:
+      "O remetente gere esta página. Ao abri-la, o remetente fica a saber que o seu endereço está ativo, e a página pode pedir uma confirmação antes de cancelar a subscrição.",
+    unsubscribe_dialog_open: "Abrir página",
     link_dialog_body: "Esta ligação abre uma página web fora do Aster Mail.",
     link_dialog_lockdown_title: "As ligações não abrem no modo de bloqueio",
     link_dialog_lockdown_body:
@@ -4395,6 +4399,11 @@ export const pt = {
     recent_sign_ins: "Inícios de sessão recentes",
     no_sign_in_history: "Ainda sem histórico de início de sessão",
     external_link_warnings: "Avisos de links externos",
+    unsubscribe_confirm: "Confirmação de cancelamento da subscrição",
+    unsubscribe_confirm_enabled:
+      "Confirmar antes de abrir a página de cancelamento da subscrição de um remetente",
+    unsubscribe_confirm_disabled:
+      "As páginas de cancelamento da subscrição abrem sem confirmação",
     external_link_warning_enabled:
       "Mostrar aviso antes de abrir links externos em e-mails",
     external_link_warning_disabled:

@@ -1304,6 +1304,10 @@ export const ar = {
     enter_label_name: "أدخل اسم التصنيف",
     leaving_aster_mail: "مغادرة Aster Mail",
     link_dialog_title: "هل تريد فتح هذا الرابط؟",
+    unsubscribe_dialog_title: "هل تريد فتح صفحة إلغاء الاشتراك؟",
+    unsubscribe_dialog_body:
+      "يدير المرسل هذه الصفحة. عند فتحها، يعرف المرسل أن عنوانك نشط، وقد تطلب منك الصفحة التأكيد قبل إلغاء اشتراكك.",
+    unsubscribe_dialog_open: "فتح الصفحة",
     link_dialog_body: "يفتح هذا الرابط صفحة ويب خارج Aster Mail.",
     link_dialog_lockdown_title: "لا تُفتح الروابط في وضع الإغلاق",
     link_dialog_lockdown_body:
@@ -4477,6 +4481,11 @@ export const ar = {
     recent_sign_ins: "عمليات تسجيل الدخول الأخيرة",
     no_sign_in_history: "لا يوجد سجل تسجيل دخول بعد",
     external_link_warnings: "تحذيرات الروابط الخارجية",
+    unsubscribe_confirm: "تأكيد إلغاء الاشتراك",
+    unsubscribe_confirm_enabled:
+      "التأكيد قبل فتح صفحة إلغاء الاشتراك الخاصة بالمرسل",
+    unsubscribe_confirm_disabled:
+      "تُفتح صفحات إلغاء الاشتراك دون تأكيد",
     external_link_warning_enabled:
       "إظهار تحذير قبل فتح الروابط الخارجية في الرسائل",
     external_link_warning_disabled: "تُفتح الروابط مباشرة بدون تأكيد",

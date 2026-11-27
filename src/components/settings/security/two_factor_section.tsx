@@ -396,11 +396,15 @@ export function LoginAlertsSessionsGroup({
 interface ExternalLinkWarningsGroupProps {
   external_link_warning_dismissed: boolean;
   on_external_link_toggle: () => void;
+  unsubscribe_confirm_dismissed: boolean;
+  on_unsubscribe_confirm_toggle: () => void;
 }
 
 export function ExternalLinkWarningsGroup({
   external_link_warning_dismissed,
   on_external_link_toggle,
+  unsubscribe_confirm_dismissed,
+  on_unsubscribe_confirm_toggle,
 }: ExternalLinkWarningsGroupProps) {
   const { t } = use_i18n();
 
@@ -423,6 +427,19 @@ export function ExternalLinkWarningsGroup({
         toggle={{
           checked: !external_link_warning_dismissed,
           on_change: () => on_external_link_toggle(),
+          size: "lg",
+        }}
+      />
+      <SecuritySetting
+        description={
+          unsubscribe_confirm_dismissed
+            ? t("settings.unsubscribe_confirm_disabled")
+            : t("settings.unsubscribe_confirm_enabled")
+        }
+        title={t("settings.unsubscribe_confirm")}
+        toggle={{
+          checked: !unsubscribe_confirm_dismissed,
+          on_change: () => on_unsubscribe_confirm_toggle(),
           size: "lg",
         }}
       />

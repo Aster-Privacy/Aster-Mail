@@ -1235,6 +1235,10 @@ export const pt_br = {
     enter_label_name: "Digite o nome da etiqueta",
     leaving_aster_mail: "Saindo do Aster Mail",
     link_dialog_title: "Abrir este link?",
+    unsubscribe_dialog_title: "Abrir a página de cancelamento da inscrição?",
+    unsubscribe_dialog_body:
+      "O remetente controla esta página. Ao abri-la, o remetente fica sabendo que seu endereço está ativo, e a página pode pedir uma confirmação antes de cancelar sua inscrição.",
+    unsubscribe_dialog_open: "Abrir página",
     link_dialog_body: "Este link abre uma página da web fora do Aster Mail.",
     link_dialog_lockdown_title: "Links não abrem no modo de bloqueio",
     link_dialog_lockdown_body:
@@ -4358,6 +4362,11 @@ export const pt_br = {
     recent_sign_ins: "Logins recentes",
     no_sign_in_history: "Nenhum histórico de login ainda",
     external_link_warnings: "Avisos de links externos",
+    unsubscribe_confirm: "Confirmação de cancelamento de inscrição",
+    unsubscribe_confirm_enabled:
+      "Confirmar antes de abrir a página de cancelamento de inscrição de um remetente",
+    unsubscribe_confirm_disabled:
+      "As páginas de cancelamento de inscrição abrem sem confirmação",
     external_link_warning_enabled:
       "Mostrar aviso antes de abrir links externos em e-mails",
     external_link_warning_disabled:

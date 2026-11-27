@@ -1371,6 +1371,10 @@ export const it = {
     enter_label_name: "Inserisci nome etichetta",
     leaving_aster_mail: "Stai lasciando Aster Mail",
     link_dialog_title: "Aprire questo link?",
+    unsubscribe_dialog_title: "Aprire la pagina di annullamento dell’iscrizione?",
+    unsubscribe_dialog_body:
+      "Questa pagina è gestita dal mittente. Aprendola, il mittente saprà che il tuo indirizzo è attivo e la pagina potrebbe chiederti una conferma prima di annullare l’iscrizione.",
+    unsubscribe_dialog_open: "Apri pagina",
     link_dialog_body: "Questo link apre una pagina web esterna ad Aster Mail.",
     link_dialog_lockdown_title: "I link non si aprono in modalità isolamento",
     link_dialog_lockdown_body:
@@ -4377,6 +4381,11 @@ export const it = {
     recent_sign_ins: "Accessi recenti",
     no_sign_in_history: "Nessuna cronologia di accesso",
     external_link_warnings: "Avvisi link esterni",
+    unsubscribe_confirm: "Conferma annullamento iscrizione",
+    unsubscribe_confirm_enabled:
+      "Chiedi conferma prima di aprire la pagina di annullamento dell’iscrizione di un mittente",
+    unsubscribe_confirm_disabled:
+      "Le pagine di annullamento dell’iscrizione si aprono senza conferma",
     external_link_warning_enabled:
       "Mostra avviso prima di aprire link esterni nelle email",
     external_link_warning_disabled:

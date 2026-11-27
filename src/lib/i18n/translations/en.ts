@@ -1437,6 +1437,10 @@ export const en: Translations = {
     enter_label_name: "Enter label name",
     leaving_aster_mail: "Leaving Aster Mail",
     link_dialog_title: "Open this link?",
+    unsubscribe_dialog_title: "Open the unsubscribe page?",
+    unsubscribe_dialog_body:
+      "The sender runs this page. Opening it tells the sender that your address is active, and the page might ask you to confirm before it unsubscribes you.",
+    unsubscribe_dialog_open: "Open page",
     link_dialog_body: "This link opens a webpage outside Aster Mail.",
     link_dialog_lockdown_title: "Links don't open in Lockdown Mode",
     link_dialog_lockdown_body:
@@ -3020,6 +3024,11 @@ export const en: Translations = {
     recent_sign_ins: "Recent Sign-ins",
     no_sign_in_history: "No sign-in history yet",
     external_link_warnings: "External Link Warnings",
+    unsubscribe_confirm: "Unsubscribe Confirmation",
+    unsubscribe_confirm_enabled:
+      "Confirm before opening a sender's unsubscribe page",
+    unsubscribe_confirm_disabled:
+      "Unsubscribe pages open without confirmation",
     external_link_warning_enabled:
       "Show warning before opening external links in emails",
     external_link_warning_disabled: "Links open directly without confirmation",

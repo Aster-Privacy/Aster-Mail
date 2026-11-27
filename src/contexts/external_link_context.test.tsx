@@ -24,7 +24,11 @@ import { createRoot, type Root } from "react-dom/client";
 import { MemoryRouter, useLocation } from "react-router-dom";
 
 const h = vi.hoisted(() => ({
-  preferences: { external_link_warning_dismissed: false as boolean },
+  preferences: {
+    external_link_warning_dismissed: false as boolean,
+    unsubscribe_confirm_dismissed: false as boolean,
+  },
+  update_preference: vi.fn(),
   lockdown_active: false as boolean,
   trusted: false as boolean,
   open_external: vi.fn(),
@@ -33,7 +37,7 @@ const h = vi.hoisted(() => ({
 vi.mock("@/contexts/preferences_context", () => ({
   use_preferences: () => ({
     preferences: h.preferences,
-    update_preference: vi.fn(),
+    update_preference: h.update_preference,
   }),
 }));
 
@@ -54,20 +58,25 @@ vi.mock("@/components/modals/external_link_warning_modal", () => ({
   ExternalLinkWarningModal: ({
     is_open,
     url,
+    kind,
     link_text,
     return_focus_to,
     on_confirm,
     on_close,
+    on_dismiss_permanently,
   }: {
     is_open: boolean;
     url: string;
+    kind?: string;
     link_text?: string | null;
     return_focus_to?: HTMLElement | null;
     on_confirm: () => void;
     on_close: () => void;
+    on_dismiss_permanently: () => void;
   }) =>
     is_open ? (
       <div
+        data-kind={kind ?? ""}
         data-link-text={link_text ?? ""}
         data-return-focus={return_focus_to?.id ?? ""}
         data-testid="link_warning"
@@ -78,6 +87,13 @@ vi.mock("@/components/modals/external_link_warning_modal", () => ({
         </button>
         <button data-action="cancel" type="button" onClick={on_close}>
           cancel
+        </button>
+        <button
+          data-action="dismiss"
+          type="button"
+          onClick={on_dismiss_permanently}
+        >
+          dismiss
         </button>
       </div>
     ) : null,
@@ -140,7 +156,7 @@ function warning() {
   return container!.querySelector<HTMLElement>('[data-testid="link_warning"]');
 }
 
-function click_warning(action: "confirm" | "cancel") {
+function click_warning(action: "confirm" | "cancel" | "dismiss") {
   act(() =>
     warning()!
       .querySelector<HTMLButtonElement>(`[data-action="${action}"]`)!
@@ -159,6 +175,8 @@ function request(url: string) {
 describe("ExternalLinkProvider results", () => {
   beforeEach(() => {
     h.preferences.external_link_warning_dismissed = false;
+    h.preferences.unsubscribe_confirm_dismissed = false;
+    h.update_preference.mockClear();
     h.lockdown_active = false;
     h.trusted = false;
     h.open_external.mockClear();
@@ -373,5 +391,95 @@ describe("ExternalLinkProvider results", () => {
       expect(h.open_external).not.toHaveBeenCalled();
       expect(on_result).toHaveBeenCalledWith(false);
     }
+  });
+});
+
+describe("ExternalLinkProvider unsubscribe pages", () => {
+  beforeEach(() => {
+    h.preferences.external_link_warning_dismissed = false;
+    h.preferences.unsubscribe_confirm_dismissed = false;
+    h.update_preference.mockClear();
+    h.lockdown_active = false;
+    h.trusted = false;
+    h.open_external.mockClear();
+  });
+
+  afterEach(() => {
+    act(() => root?.unmount());
+    container?.remove();
+    root = null;
+    container = null;
+    handle_external_link = null;
+  });
+
+  function request_unsubscribe(url: string) {
+    const on_result = vi.fn();
+
+    act(() => handle_external_link!(url, on_result, null, null, "unsubscribe"));
+
+    return on_result;
+  }
+
+  it("confirms an unsubscribe page even when link warnings are off", () => {
+    h.preferences.external_link_warning_dismissed = true;
+    h.trusted = true;
+    render_provider();
+    const on_result = request_unsubscribe(FIRST_URL);
+
+    expect(warning()?.dataset.kind).toBe("unsubscribe");
+    expect(h.open_external).not.toHaveBeenCalled();
+
+    click_warning("confirm");
+
+    expect(h.open_external).toHaveBeenCalledWith(FIRST_URL);
+    expect(on_result).toHaveBeenCalledWith(true);
+  });
+
+  it("opens an unsubscribe page at once after the confirmation is dismissed", () => {
+    h.preferences.unsubscribe_confirm_dismissed = true;
+    render_provider();
+    const on_result = request_unsubscribe(FIRST_URL);
+
+    expect(warning()).toBeNull();
+    expect(h.open_external).toHaveBeenCalledWith(FIRST_URL);
+    expect(on_result).toHaveBeenCalledWith(true);
+  });
+
+  it("keeps link warnings on when the unsubscribe confirmation is dismissed", () => {
+    h.preferences.unsubscribe_confirm_dismissed = true;
+    render_provider();
+    request(SECOND_URL);
+
+    expect(warning()?.dataset.kind).toBe("link");
+  });
+
+  it("stores the unsubscribe preference, not the link preference", () => {
+    render_provider();
+    request_unsubscribe(FIRST_URL);
+    click_warning("dismiss");
+
+    expect(h.update_preference).toHaveBeenCalledWith(
+      "unsubscribe_confirm_dismissed",
+      true,
+      true,
+    );
+    expect(h.update_preference).not.toHaveBeenCalledWith(
+      "external_link_warning_dismissed",
+      true,
+      true,
+    );
+  });
+
+  it("still blocks an unsubscribe page during a lockdown", () => {
+    h.preferences.unsubscribe_confirm_dismissed = true;
+    h.lockdown_active = true;
+    render_provider();
+    const on_result = request_unsubscribe(FIRST_URL);
+
+    expect(warning()).not.toBeNull();
+    click_warning("confirm");
+
+    expect(h.open_external).not.toHaveBeenCalled();
+    expect(on_result).toHaveBeenCalledWith(false);
   });
 });

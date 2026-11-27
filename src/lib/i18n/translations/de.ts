@@ -1198,6 +1198,10 @@ export const de = {
     enter_label_name: "Label-Namen eingeben",
     leaving_aster_mail: "Aster Mail verlassen",
     link_dialog_title: "Diesen Link öffnen?",
+    unsubscribe_dialog_title: "Abmeldeseite öffnen?",
+    unsubscribe_dialog_body:
+      "Diese Seite wird vom Absender betrieben. Wenn Sie sie öffnen, erfährt der Absender, dass Ihre Adresse aktiv ist, und die Seite fragt eventuell nach einer Bestätigung, bevor Sie abgemeldet werden.",
+    unsubscribe_dialog_open: "Seite öffnen",
     link_dialog_body:
       "Dieser Link öffnet eine Webseite außerhalb von Aster Mail.",
     link_dialog_lockdown_title: "Links öffnen sich im Blockierungsmodus nicht",
@@ -4359,6 +4363,11 @@ export const de = {
       "Sie werden nach dieser Inaktivitätsdauer abgemeldet. Sie müssen sich erneut anmelden.",
     login_alerts: "Anmeldewarnungen",
     external_link_warnings: "Externe Link-Warnungen",
+    unsubscribe_confirm: "Abmeldebestätigung",
+    unsubscribe_confirm_enabled:
+      "Vor dem Öffnen der Abmeldeseite eines Absenders nachfragen",
+    unsubscribe_confirm_disabled:
+      "Abmeldeseiten öffnen sich ohne Bestätigung",
     external_link_warning_enabled:
       "Warnung anzeigen, bevor externe Links in E-Mails geöffnet werden",
     ipfs_attachment_storage: "IPFS-Anhangspeicher",

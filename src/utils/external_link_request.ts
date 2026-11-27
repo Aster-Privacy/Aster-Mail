@@ -20,8 +20,11 @@
 //
 export const EXTERNAL_LINK_EVENT = "aster-external-link";
 
+export type ExternalLinkKind = "link" | "unsubscribe";
+
 export interface ExternalLinkRequestDetail {
   url: string;
+  kind?: ExternalLinkKind;
   on_result?: (opened: boolean) => void;
   link_text?: string | null;
   trigger?: HTMLElement | null;
@@ -30,6 +33,7 @@ export interface ExternalLinkRequestDetail {
 export function request_external_link(
   url: string,
   link_text?: string | null,
+  kind: ExternalLinkKind = "link",
 ): Promise<boolean> {
   return new Promise((resolve) => {
     let settled = false;
@@ -40,7 +44,7 @@ export function request_external_link(
     };
     const unhandled = window.dispatchEvent(
       new CustomEvent<ExternalLinkRequestDetail>(EXTERNAL_LINK_EVENT, {
-        detail: { url, on_result, link_text },
+        detail: { url, on_result, link_text, kind },
         cancelable: true,
       }),
     );

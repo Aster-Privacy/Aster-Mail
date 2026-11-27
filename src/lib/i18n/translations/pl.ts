@@ -1373,6 +1373,10 @@ export const pl = {
     enter_label_name: "Wprowadź nazwę etykiety",
     leaving_aster_mail: "Opuszczanie Aster Mail",
     link_dialog_title: "Otworzyć ten link?",
+    unsubscribe_dialog_title: "Otworzyć stronę rezygnacji z subskrypcji?",
+    unsubscribe_dialog_body:
+      "Tę stronę prowadzi nadawca. Jej otwarcie informuje nadawcę, że Twój adres jest aktywny, a strona może poprosić o potwierdzenie przed wypisaniem.",
+    unsubscribe_dialog_open: "Otwórz stronę",
     link_dialog_body: "Ten link otwiera stronę internetową poza Aster Mail.",
     link_dialog_lockdown_title: "Linki nie otwierają się w trybie blokady",
     link_dialog_lockdown_body:
@@ -4509,6 +4513,11 @@ export const pl = {
     recent_sign_ins: "Ostatnie logowania",
     no_sign_in_history: "Brak historii logowania",
     external_link_warnings: "Ostrzeżenia o linkach zewnętrznych",
+    unsubscribe_confirm: "Potwierdzanie rezygnacji z subskrypcji",
+    unsubscribe_confirm_enabled:
+      "Pytaj przed otwarciem strony rezygnacji z subskrypcji nadawcy",
+    unsubscribe_confirm_disabled:
+      "Strony rezygnacji z subskrypcji otwierają się bez potwierdzenia",
     external_link_warning_enabled:
       "Pokaż ostrzeżenie przed otwarciem linków zewnętrznych w e-mailach",
     external_link_warning_disabled:

@@ -374,7 +374,7 @@ export function SubscriptionsContent({
       const link = get_manual_unsubscribe_url(sub);
 
       if (link) {
-        handle_external_link(link);
+        handle_external_link(link, undefined, null, null, "unsubscribe");
       }
     },
     [handle_external_link],

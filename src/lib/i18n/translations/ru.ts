@@ -1353,6 +1353,10 @@ export const ru = {
     enter_label_name: "Введите название метки",
     leaving_aster_mail: "Выход из Aster Mail",
     link_dialog_title: "Открыть ссылку?",
+    unsubscribe_dialog_title: "Открыть страницу отписки?",
+    unsubscribe_dialog_body:
+      "Эту страницу ведёт отправитель. Открыв её, вы сообщите отправителю, что ваш адрес активен, а страница может попросить подтверждение перед отпиской.",
+    unsubscribe_dialog_open: "Открыть страницу",
     link_dialog_body:
       "Эта ссылка открывает веб-страницу за пределами Aster Mail.",
     link_dialog_lockdown_title: "В режиме блокировки ссылки не открываются",
@@ -4468,6 +4472,11 @@ export const ru = {
     recent_sign_ins: "Последние входы",
     no_sign_in_history: "История входов пуста",
     external_link_warnings: "Предупреждения о внешних ссылках",
+    unsubscribe_confirm: "Подтверждение отписки",
+    unsubscribe_confirm_enabled:
+      "Спрашивать перед открытием страницы отписки отправителя",
+    unsubscribe_confirm_disabled:
+      "Страницы отписки открываются без подтверждения",
     external_link_warning_enabled:
       "Показывать предупреждение перед открытием внешних ссылок в письмах",
     external_link_warning_disabled:

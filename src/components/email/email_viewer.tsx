@@ -95,7 +95,7 @@ export function EmailViewer({
           return;
         }
         if (!is_any_lockdown_active()) {
-          request_external_link(raw_link);
+          request_external_link(raw_link, null, "unsubscribe");
         }
       } catch (error) {
         if (import.meta.env.DEV) console.error(error);
