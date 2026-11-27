@@ -135,7 +135,7 @@ dependencies = [
 
 [[package]]
 name = "aster-mail-desktop"
-version = "1.4.90"
+version = "1.4.91"
 dependencies = [
  "aes-gcm",
  "ashpd 0.13.13",
