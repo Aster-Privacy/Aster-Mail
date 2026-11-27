@@ -259,7 +259,7 @@ describe("composer and chrome source", () => {
     expect(
       line_with(
         source("src/components/email/attachment_chip.tsx"),
-        "inline-flex items-center gap-1 px-1.5",
+        "inline-flex h-5 min-w-0 max-w-[168px]",
       ),
     ).toContain("select-none");
     expect(
