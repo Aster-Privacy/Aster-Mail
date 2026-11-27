@@ -468,11 +468,9 @@ async function start_vault_background_jobs(
 
       if (!sync_key) return;
 
-      try {
-        await sync_all_ratchet_states(sync_key);
-      } catch {
-        /* best-effort */
-      }
+      await sync_all_ratchet_states(sync_key).catch((caught) =>
+        ignore_error("contexts/auth/vault_decryption:ratchet_sync", caught),
+      );
 
       start_prekey_seal_migration();
       await backfill_pq_secrets_to_server();
