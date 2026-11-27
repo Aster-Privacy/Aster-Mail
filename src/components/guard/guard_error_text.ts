@@ -33,6 +33,14 @@ export interface GuardErrorSource {
 export interface GuardErrorMessage {
   key: TranslationKey;
   params?: Record<string, string>;
+  extra?: { key: TranslationKey; params?: Record<string, string | number> };
+}
+
+export type StepUpField = "password" | "code" | "key" | "all";
+
+export interface StepUpRejection {
+  field: StepUpField;
+  message: GuardErrorMessage;
 }
 
 type Translate = (
@@ -121,12 +129,107 @@ function wait_message(
   return timed(with_time, without_time, guard_retry_at(retry_after_secs, now));
 }
 
+const ATTEMPTS_WARNING_AT = 5;
+
+function detail_number(details: unknown, field: string): number | null {
+  if (!details || typeof details !== "object") return null;
+  const value = (details as Record<string, unknown>)[field];
+
+  return typeof value === "number" && Number.isFinite(value) ? value : null;
+}
+
+function detail_flag(details: unknown, field: string): boolean {
+  if (!details || typeof details !== "object") return false;
+
+  return (details as Record<string, unknown>)[field] === true;
+}
+
+function with_attempts_left(
+  message: GuardErrorMessage,
+  details: unknown,
+): GuardErrorMessage {
+  const left = detail_number(details, "attempts_remaining");
+
+  if (left === null || left <= 0 || left > ATTEMPTS_WARNING_AT) return message;
+
+  return {
+    ...message,
+    extra: { key: "guard.step_up_attempts_left", params: { count: left } },
+  };
+}
+
+export function step_up_rejection(
+  source: GuardErrorSource | null | undefined,
+  now: number = server_now(),
+): StepUpRejection | null {
+  if (!source) return null;
+  const code = source.server_code ?? undefined;
+  const details = source.details;
+
+  if (code === "ACCOUNT_LOCKED") {
+    const secs =
+      detail_number(details, "retry_after_seconds") ?? source.retry_after_secs;
+
+    return {
+      field: "all",
+      message: wait_message(
+        "guard.step_up_locked",
+        "guard.step_up_locked_soon",
+        secs ?? undefined,
+        now,
+      ),
+    };
+  }
+  if (code === "INVALID_TWO_FACTOR_CODE") {
+    return {
+      field: "code",
+      message: with_attempts_left({ key: "guard.step_up_code_wrong" }, details),
+    };
+  }
+  if (code === "TOTP_REQUIRED") {
+    return { field: "code", message: { key: "guard.step_up_code_required" } };
+  }
+  if (code === "INVALID_CREDENTIALS") {
+    const failed = detail_text(details, "failed_factor");
+
+    if (failed === "security_key") {
+      return {
+        field: "key",
+        message: with_attempts_left(
+          { key: "guard.step_up_key_failed" },
+          details,
+        ),
+      };
+    }
+
+    return {
+      field: "password",
+      message: with_attempts_left(
+        {
+          key: detail_flag(details, "password_change_held")
+            ? "guard.step_up_password_wrong_held"
+            : "guard.step_up_password_wrong",
+        },
+        details,
+      ),
+    };
+  }
+  if (code === "STEP_UP_REQUIRED") {
+    return { field: "all", message: { key: "guard.error_step_up" } };
+  }
+
+  return null;
+}
+
 export function guard_error_message(
   source: GuardErrorSource | null | undefined,
   now: number = server_now(),
 ): GuardErrorMessage | null {
   if (!source) return null;
   const code = source.server_code ?? undefined;
+  const rejection = step_up_rejection(source, now);
+
+  if (rejection) return rejection.message;
 
   if (code === "GUARD_PAUSED") {
     return wait_message(
@@ -184,7 +287,18 @@ export function guard_error_text(
 ): string {
   const message = guard_error_message(source, now);
 
-  return message ? t(message.key, message.params) : t(fallback);
+  return message ? render_guard_message(t, message) : t(fallback);
+}
+
+export function render_guard_message(
+  t: Translate,
+  message: GuardErrorMessage,
+): string {
+  const text = t(message.key, message.params);
+
+  return message.extra
+    ? `${text} ${t(message.extra.key, message.extra.params)}`
+    : text;
 }
 
 export function guard_error_text_or_null(
@@ -195,5 +309,5 @@ export function guard_error_text_or_null(
   if (!source?.server_code?.startsWith("GUARD_")) return null;
   const message = guard_error_message(source, now);
 
-  return message ? t(message.key, message.params) : null;
+  return message ? render_guard_message(t, message) : null;
 }

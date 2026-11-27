@@ -59,16 +59,11 @@ export function GuardDevicesList({
     if (!device || busy_id) return;
     set_busy_id(device_id);
     try {
-      const proof = await step_up.request_proof();
-
-      if (!proof) return;
-      const response = await remove_approver_device(
-        device,
-        user_id,
-        device_id,
-        proof,
+      const response = await step_up.run((proof) =>
+        remove_approver_device(device, user_id, device_id, proof),
       );
 
+      if (!response) return;
       if (response.held) {
         show_toast(
           t("guard.devices_remove_held", {

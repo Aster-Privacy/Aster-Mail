@@ -3772,6 +3772,7 @@ export interface SettingsTranslations {
   password_change_fingerprint_mismatch: string;
   password_change_identity_continuity_required: string;
   password_change_vault_changed: string;
+  password_change_code_hint: string;
   password_change_vault_out_of_date: string;
   update_password: string;
   updating: string;
@@ -10792,6 +10793,17 @@ export interface GuardTranslations {
   error_upgrade: string;
   error_action_invalid: string;
   error_step_up: string;
+  step_up_password_wrong: string;
+  step_up_password_wrong_held: string;
+  step_up_code_wrong: string;
+  step_up_code_required: string;
+  step_up_key_failed: string;
+  step_up_attempts_left: string;
+  step_up_attempts_left_one: string;
+  step_up_attempts_left_other: string;
+  step_up_locked: string;
+  step_up_locked_soon: string;
+  step_up_description_password_held: string;
   error_device_keys: string;
   error_device_unknown: string;
   error_veto_invalid: string;

@@ -18,7 +18,8 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import type { GuardPanicResult, StepUpProof } from "@/services/api/guard";
+import type { GuardPanicResult } from "@/services/api/guard";
+import type { GuardStepUp } from "@/components/guard/use_guard_step_up";
 import type { GuardDevice } from "@/services/guard/guard_device";
 
 import type { ComponentType } from "react";
@@ -72,7 +73,9 @@ function PanicRow({
             {count}
           </span>
         )}
-        <span className={count !== undefined ? "text-txt-secondary" : undefined}>
+        <span
+          className={count !== undefined ? "text-txt-secondary" : undefined}
+        >
           {text}
         </span>
       </span>
@@ -92,24 +95,25 @@ type PanicPhase = "confirm" | "running" | "done" | "error";
 async function run_panic(
   device: GuardDevice,
   user_id: string,
-  request_proof: () => Promise<StepUpProof | null>,
+  run: GuardStepUp["run"],
 ): Promise<
   | { kind: "done"; result: GuardPanicResult }
   | { kind: "canceled" }
   | { kind: "error"; source: GuardErrorSource }
 > {
-  const proof = await request_proof();
-
-  if (!proof) return { kind: "canceled" };
-  const action = await sign_guard_action(
-    device,
-    user_id,
-    GUARD_ACTION.panic,
-    PANIC_SUBJECT,
-    proof,
+  const response = await run(async (proof) =>
+    guard_panic(
+      await sign_guard_action(
+        device,
+        user_id,
+        GUARD_ACTION.panic,
+        PANIC_SUBJECT,
+        proof,
+      ),
+    ),
   );
-  const response = await guard_panic(action);
 
+  if (!response) return { kind: "canceled" };
   if (response.data && !response.error) {
     return { kind: "done", result: response.data };
   }
@@ -146,7 +150,7 @@ export function GuardPanicDialog({
     if (!device || phase === "running") return;
     set_phase("running");
     try {
-      const outcome = await run_panic(device, user_id, step_up.request_proof);
+      const outcome = await run_panic(device, user_id, step_up.run);
 
       if (outcome.kind === "canceled") {
         set_phase("confirm");
@@ -199,7 +203,9 @@ export function GuardPanicDialog({
                   <Button
                     className="w-full"
                     size="lg"
-                    variant={result.can_reset_password_now ? "outline" : "depth"}
+                    variant={
+                      result.can_reset_password_now ? "outline" : "depth"
+                    }
                     onClick={on_close}
                   >
                     {t("common.done")}
@@ -267,9 +273,18 @@ export function GuardPanicDialog({
                   className="mb-4 flex flex-col gap-3"
                   data-testid="guard_panic_steps"
                 >
-                  <PanicRow icon={ArrowRightStartOnRectangleIcon} text={t("guard.panic_will_sign_out")} />
-                  <PanicRow icon={ComputerDesktopIcon} text={t("guard.panic_will_remove_devices")} />
-                  <PanicRow icon={NoSymbolIcon} text={t("guard.panic_will_cancel_changes")} />
+                  <PanicRow
+                    icon={ArrowRightStartOnRectangleIcon}
+                    text={t("guard.panic_will_sign_out")}
+                  />
+                  <PanicRow
+                    icon={ComputerDesktopIcon}
+                    text={t("guard.panic_will_remove_devices")}
+                  />
+                  <PanicRow
+                    icon={NoSymbolIcon}
+                    text={t("guard.panic_will_cancel_changes")}
+                  />
                 </ul>
                 {phase === "error" && (
                   <p

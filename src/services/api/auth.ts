@@ -239,6 +239,7 @@ interface ChangePasswordRequest {
   vault_kdf_iterations?: number;
   keep_device_lock_id?: string;
   expected_vault_sha256?: string;
+  totp_code?: string;
 }
 
 interface ChangePasswordResponse {
@@ -353,9 +354,7 @@ async function enhanced_sign_in_unavailable<T>(
   let message = "";
 
   try {
-    const { get_active_translations } = await import(
-      "@/lib/i18n/translations"
-    );
+    const { get_active_translations } = await import("@/lib/i18n/translations");
 
     message = get_active_translations().auth.sign_in_enhanced_unavailable;
   } catch (caught) {

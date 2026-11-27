@@ -4418,6 +4418,8 @@ export const ko = {
       "변경하면 이전 메시지에 필요한 암호화 키가 제거되므로 Aster Mail이 비밀번호를 변경하지 않았습니다. 다시 시도하려면 로그아웃한 후 다시 로그인하고 비밀번호를 변경해 주세요.",
     password_change_vault_changed:
       "비밀번호를 변경하는 동안 다른 기기에서 암호화 키가 변경되어 Aster Mail이 비밀번호를 변경하지 않았습니다. 다시 시도하세요.",
+    password_change_code_hint:
+      "선택 사항입니다. 승인된 Guard 기기에서 인증 앱 코드를 입력하면 변경 사항이 보류되지 않고 바로 적용됩니다.",
     password_change_vault_out_of_date:
       "다른 기기에서 비밀번호가 변경되어 이 세션은 최신 상태가 아닙니다. 비밀번호를 변경하려면 로그아웃한 후 현재 비밀번호로 다시 로그인해 주세요.",
     update_password: "비밀번호 업데이트",
@@ -12342,6 +12344,17 @@ export const ko = {
     error_upgrade: "이 버전의 Aster Mail은 오래되었습니다. 앱을 업데이트한 후 다시 시도하세요.",
     error_action_invalid: "Aster Guard가 이 기기의 서명을 확인하지 못했습니다. 페이지를 다시 불러오고 다시 시도하세요.",
     error_step_up: "계속하려면 본인 확인을 다시 하세요.",
+    step_up_password_wrong: "비밀번호가 올바르지 않습니다.",
+    step_up_password_wrong_held: "비밀번호가 올바르지 않습니다. 비밀번호 변경이 보류 중인 동안에는 새 비밀번호가 아닌 현재 비밀번호를 입력하세요.",
+    step_up_code_wrong: "인증 코드가 올바르지 않습니다. 인증 앱에 표시된 현재 코드를 입력하세요.",
+    step_up_code_required: "인증 앱에 표시된 6자리 코드를 입력하세요.",
+    step_up_key_failed: "보안 키를 확인하지 못했습니다. 다시 시도하세요.",
+    step_up_attempts_left: "계정이 15분 동안 잠기기 전까지 {{count}}번 더 시도할 수 있습니다.",
+    step_up_attempts_left_one: "계정이 15분 동안 잠기기 전까지 1번 더 시도할 수 있습니다.",
+    step_up_attempts_left_other: "계정이 15분 동안 잠기기 전까지 {{count}}번 더 시도할 수 있습니다.",
+    step_up_locked: "잘못된 시도가 너무 많아 계정이 잠겼습니다. {{time}}에 다시 시도할 수 있습니다.",
+    step_up_locked_soon: "잘못된 시도가 너무 많습니다. 잠시 기다린 후 다시 시도하세요.",
+    step_up_description_password_held: "비밀번호 변경이 보류 중입니다. 본인 확인을 위해 새 비밀번호가 아닌 현재 비밀번호를 입력하세요. 인증 앱을 사용한다면 그 코드도 입력하세요.",
     error_device_keys: "이 기기의 Aster Guard 키가 유효하지 않습니다. 이 기기를 Aster Guard에서 제거한 후 다시 추가하세요.",
     error_device_unknown: "Aster Guard가 이 기기를 인식하지 못합니다. Aster Guard 설정에서 다시 추가하세요.",
     error_veto_invalid: "이 복구는 이미 완료되었거나 중지되어 더 이상 중지할 수 없습니다.",

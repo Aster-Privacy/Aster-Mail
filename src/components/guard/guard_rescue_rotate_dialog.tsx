@@ -36,10 +36,7 @@ import {
   ModalHeader,
   ModalTitle,
 } from "@/components/ui/modal";
-import {
-  GUARD_ACTION,
-  rescue_rotate_subject,
-} from "@/lib/crypto/guard_action";
+import { GUARD_ACTION, rescue_rotate_subject } from "@/lib/crypto/guard_action";
 import {
   generate_rescue_code,
   normalize_rescue_code,
@@ -96,7 +93,9 @@ export function GuardRescueRotateDialog({
 
   const finished = result?.kind === "applied" || result?.kind === "held";
   const can_confirm =
-    !busy && !finished && rescue_code_confirmed(rescue_code, saved, typed_group);
+    !busy &&
+    !finished &&
+    rescue_code_confirmed(rescue_code, saved, typed_group);
 
   const confirm = async () => {
     const normalized = normalize_rescue_code(rescue_code);
@@ -105,21 +104,20 @@ export function GuardRescueRotateDialog({
     set_busy(true);
     set_result(null);
     try {
-      const proof = await step_up.request_proof();
-
-      if (!proof) return;
-      const action = await sign_guard_action(
-        device,
-        user_id,
-        GUARD_ACTION.rotate_rescue,
-        rescue_rotate_subject(normalized),
-        proof,
+      const response = await step_up.run(async (proof) =>
+        rotate_guard_rescue_code({
+          rescue_code: normalized,
+          action: await sign_guard_action(
+            device,
+            user_id,
+            GUARD_ACTION.rotate_rescue,
+            rescue_rotate_subject(normalized),
+            proof,
+          ),
+        }),
       );
-      const response = await rotate_guard_rescue_code({
-        rescue_code: normalized,
-        action,
-      });
 
+      if (!response) return;
       if (response.held) {
         set_result({ kind: "held", apply_after: response.held.apply_after });
       } else if (response.error || response.data?.status !== "applied") {

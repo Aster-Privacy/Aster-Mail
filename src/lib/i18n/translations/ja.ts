@@ -4353,6 +4353,8 @@ export const ja = {
       "変更すると以前のメッセージに必要な暗号鍵が削除されるため、Aster Mail はパスワードを変更しませんでした。もう一度試すには、サインアウトしてから再度サインインし、パスワードを変更してください。",
     password_change_vault_changed:
       "パスワードの変更中に別のデバイスで暗号鍵が変更されたため、Aster Mail はパスワードを変更しませんでした。もう一度お試しください。",
+    password_change_code_hint:
+      "任意。承認済みの Guard デバイスでは、認証アプリのコードを入力すると、保留せずにすぐ変更が適用されます。",
     password_change_vault_out_of_date:
       "パスワードが別のデバイスで変更されたため、このセッションは最新ではありません。パスワードを変更するには、サインアウトしてから現在のパスワードで再度サインインしてください。",
     update_password: "パスワードを更新",
@@ -12557,6 +12559,17 @@ export const ja = {
     error_upgrade: "このバージョンの Aster Mail は古くなっています。アプリをアップデートしてから、もう一度お試しください。",
     error_action_invalid: "Aster Guard はこのデバイスの署名を確認できませんでした。ページを再読み込みして、もう一度お試しください。",
     error_step_up: "続行するには、もう一度本人確認を行ってください。",
+    step_up_password_wrong: "パスワードが正しくありません。",
+    step_up_password_wrong_held: "パスワードが正しくありません。パスワードの変更が保留中の間は、新しいパスワードではなく現在のパスワードを入力してください。",
+    step_up_code_wrong: "認証コードが正しくありません。認証アプリに表示されている現在のコードを入力してください。",
+    step_up_code_required: "認証アプリに表示されている6桁のコードを入力してください。",
+    step_up_key_failed: "セキュリティキーを確認できませんでした。もう一度お試しください。",
+    step_up_attempts_left: "アカウントが15分間ロックされるまで、あと{{count}}回試せます。",
+    step_up_attempts_left_one: "アカウントが15分間ロックされるまで、あと1回試せます。",
+    step_up_attempts_left_other: "アカウントが15分間ロックされるまで、あと{{count}}回試せます。",
+    step_up_locked: "誤った試行が多すぎるため、アカウントはロックされています。{{time}}に再度お試しください。",
+    step_up_locked_soon: "誤った試行が多すぎます。しばらく待ってから、もう一度お試しください。",
+    step_up_description_password_held: "パスワードの変更が保留中です。本人確認のため、新しいパスワードではなく現在のパスワードを入力してください。認証アプリを使用している場合は、そのコードも入力してください。",
     error_device_keys: "このデバイスの Aster Guard キーが無効です。このデバイスを Aster Guard から削除してから、もう一度追加してください。",
     error_device_unknown: "Aster Guard はこのデバイスを認識できません。Aster Guard の設定で、もう一度追加してください。",
     error_veto_invalid: "このレスキューはすでに完了したか停止されたため、停止できません。",

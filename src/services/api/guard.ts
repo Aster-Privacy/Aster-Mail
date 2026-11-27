@@ -83,6 +83,21 @@ export interface GuardPendingChange {
   created_by_device?: string | null;
   skippable?: boolean;
   cancellable?: boolean;
+  skip_available?: boolean;
+  cancel_available?: boolean;
+}
+
+export interface GuardStepUpFactors {
+  totp: boolean;
+  security_key: boolean;
+  passkey: boolean;
+}
+
+export interface GuardChangesList {
+  changes: GuardPendingChange[];
+  approved_device?: boolean;
+  long_trusted?: boolean;
+  step_up_factors?: GuardStepUpFactors;
 }
 
 export type GuardSkipStatus = "applied" | "failed_stale";
@@ -246,8 +261,7 @@ export interface GuardPanicResult {
 }
 
 export type GuardVetoBody =
-  | { id: string; t: string }
-  | { id: string; action: SignedAction };
+  { id: string; t: string } | { id: string; action: SignedAction };
 
 function token_config(token: string): RequestConfig {
   return {
@@ -441,13 +455,8 @@ export function guard_join_complete(body: {
   );
 }
 
-export function list_guard_changes(): Promise<
-  ApiResponse<{ changes: GuardPendingChange[] }>
-> {
-  return api_client.get<{ changes: GuardPendingChange[] }>(
-    `${GUARD_BASE}/changes`,
-    fresh,
-  );
+export function list_guard_changes(): Promise<ApiResponse<GuardChangesList>> {
+  return api_client.get<GuardChangesList>(`${GUARD_BASE}/changes`, fresh);
 }
 
 export function cancel_guard_change(

@@ -54,6 +54,12 @@ import { clamp_password } from "@/services/sanitize";
 import { ignore_error } from "@/lib/ignore_error";
 import { user_facing_error } from "@/utils/user_facing_error";
 
+function rejected_field(err: unknown): string {
+  const field = (err as { field?: unknown } | null)?.field;
+
+  return typeof field === "string" ? field : "all";
+}
+
 interface StepUpModalProps {
   is_open: boolean;
   on_close: () => void;
@@ -89,6 +95,7 @@ export function StepUpModal({
   const [show_password, set_show_password] = useState(false);
   const [is_loading, set_is_loading] = useState(false);
   const [error, set_error] = useState("");
+  const [error_field, set_error_field] = useState<string>("all");
   const [keys_error, set_keys_error] = useState(false);
   const input_ref = useRef<HTMLInputElement>(null);
   const submitting_ref = useRef(false);
@@ -116,6 +123,7 @@ export function StepUpModal({
     set_password("");
     set_code("");
     set_error("");
+    set_error_field("all");
     set_show_password(false);
     set_has_hardware_keys(false);
     set_keys_error(false);
@@ -124,8 +132,12 @@ export function StepUpModal({
     void load_hardware_keys();
   }, [is_open, load_hardware_keys]);
 
+  const field_has_error = (field: string) =>
+    !!error && (error_field === "all" || error_field === field);
+
   const passkeys_work = !is_desktop() && is_passkey_supported();
-  const key_needs_browser = !totp_required && has_hardware_keys && !passkeys_work;
+  const key_needs_browser =
+    !totp_required && has_hardware_keys && !passkeys_work;
   const can_submit =
     !!password &&
     !totp_unknown &&
@@ -161,6 +173,7 @@ export function StepUpModal({
     } catch (err) {
       const safety_key = login_safety_error_key(err);
 
+      set_error_field(rejected_field(err));
       set_error(
         safety_key
           ? t(safety_key)
@@ -182,6 +195,7 @@ export function StepUpModal({
     try {
       await on_proof(await passkey_step_up_proof());
     } catch (err) {
+      set_error_field(rejected_field(err));
       set_error(user_facing_error(err, t("common.step_up_error")));
     } finally {
       submitting_ref.current = false;
@@ -221,7 +235,7 @@ export function StepUpModal({
                 maxLength={128}
                 name="password"
                 placeholder={t("settings.enter_your_password_placeholder")}
-                status={error ? "error" : "default"}
+                status={field_has_error("password") ? "error" : "default"}
                 type={show_password ? "text" : "password"}
                 value={password}
                 onChange={(e) => set_password(clamp_password(e.target.value))}
@@ -243,7 +257,9 @@ export function StepUpModal({
             </div>
           </div>
 
-          {(totp_required || totp_optional) && (
+          {(totp_required ||
+            totp_optional ||
+            (!!error && error_field === "code")) && (
             <div>
               <label
                 className="text-sm font-medium block mb-2 text-txt-primary"
@@ -259,7 +275,7 @@ export function StepUpModal({
                 inputMode="numeric"
                 maxLength={6}
                 placeholder="000000"
-                status={error ? "error" : "default"}
+                status={field_has_error("code") ? "error" : "default"}
                 type="text"
                 value={code}
                 onChange={(e) =>
@@ -319,7 +335,16 @@ export function StepUpModal({
             </Button>
           )}
 
-          {error && <p className="text-sm text-center text-red-500">{error}</p>}
+          {error && (
+            <p
+              aria-live="polite"
+              className="text-sm text-center text-red-500"
+              data-testid="step_up_error"
+              role="alert"
+            >
+              {error}
+            </p>
+          )}
         </div>
       </ModalBody>
       <ModalFooter>

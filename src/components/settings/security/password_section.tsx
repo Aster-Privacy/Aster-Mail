@@ -69,6 +69,9 @@ interface PasswordSectionProps {
   on_new_password_blur?: () => void;
   on_change_password: () => void;
   on_cancel: () => void;
+  totp_enabled?: boolean;
+  totp_code?: string;
+  set_totp_code?: (code: string) => void;
 }
 
 export function PasswordSection({
@@ -95,6 +98,9 @@ export function PasswordSection({
   on_new_password_blur,
   on_change_password,
   on_cancel,
+  totp_enabled = false,
+  totp_code = "",
+  set_totp_code,
 }: PasswordSectionProps) {
   const reduce_motion = use_should_reduce_motion();
   const { t } = use_i18n();
@@ -371,8 +377,37 @@ export function PasswordSection({
               />
             </div>
 
+            {totp_enabled && set_totp_code && (
+              <div>
+                <label
+                  className="text-sm font-medium block mb-2 text-txt-primary"
+                  htmlFor="password-change-code"
+                >
+                  {t("settings.authenticator_code")}
+                </label>
+                <Input
+                  autoComplete="one-time-code"
+                  disabled={password_loading}
+                  id="password-change-code"
+                  inputMode="numeric"
+                  maxLength={6}
+                  placeholder="000000"
+                  type="text"
+                  value={totp_code}
+                  onChange={(e) =>
+                    set_totp_code(e.target.value.replace(/\D/g, "").slice(0, 6))
+                  }
+                />
+                <p className="text-xs mt-1 text-txt-muted">
+                  {t("settings.password_change_code_hint")}
+                </p>
+              </div>
+            )}
+
             {password_error && (
               <div
+                aria-live="polite"
+                role="alert"
                 className="flex items-center gap-2 p-3 rounded-lg text-sm"
                 style={{
                   backgroundColor: "#dc2626",

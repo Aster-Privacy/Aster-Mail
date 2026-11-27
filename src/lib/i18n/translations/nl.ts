@@ -4396,6 +4396,8 @@ export const nl = {
       "Aster Mail heeft je wachtwoord niet gewijzigd, omdat de wijziging versleutelingssleutels zou verwijderen die je oudere berichten nodig hebben. Om het opnieuw te proberen, meld je je af, meld je je opnieuw aan en wijzig je je wachtwoord.",
     password_change_vault_changed:
       "Je versleutelingssleutels zijn op een ander apparaat gewijzigd terwijl je je wachtwoord wijzigde, dus Aster Mail heeft het niet gewijzigd. Probeer het opnieuw.",
+    password_change_code_hint:
+      "Optioneel. Op een goedgekeurd Guard-apparaat voert een code uit je authenticator-app de wijziging meteen door in plaats van deze vast te houden.",
     password_change_vault_out_of_date:
       "Je wachtwoord is op een ander apparaat gewijzigd, dus deze sessie is niet meer actueel. Om je wachtwoord te wijzigen, meld je je af en meld je je opnieuw aan met je huidige wachtwoord.",
     update_password: "Wachtwoord bijwerken",
@@ -12840,6 +12842,17 @@ export const nl = {
     error_upgrade: "Deze versie van Aster Mail is verouderd. Werk de app bij en probeer het opnieuw.",
     error_action_invalid: "Aster Guard kon de handtekening van dit apparaat niet controleren. Laad de pagina opnieuw en probeer het nog eens.",
     error_step_up: "Bevestig je identiteit opnieuw om door te gaan.",
+    step_up_password_wrong: "Het wachtwoord is onjuist.",
+    step_up_password_wrong_held: "Het wachtwoord is onjuist. Zolang een wachtwoordwijziging wordt vastgehouden, voer je je huidige wachtwoord in, niet het nieuwe.",
+    step_up_code_wrong: "De authenticatiecode is onjuist. Voer de huidige code uit je authenticatie-app in.",
+    step_up_code_required: "Voer de 6-cijferige code uit je authenticatie-app in.",
+    step_up_key_failed: "Je beveiligingssleutel kon niet worden geverifieerd. Probeer het opnieuw.",
+    step_up_attempts_left: "Je hebt nog {{count}} pogingen voordat je account 15 minuten wordt vergrendeld.",
+    step_up_attempts_left_one: "Je hebt nog 1 poging voordat je account 15 minuten wordt vergrendeld.",
+    step_up_attempts_left_other: "Je hebt nog {{count}} pogingen voordat je account 15 minuten wordt vergrendeld.",
+    step_up_locked: "Te veel onjuiste pogingen, dus je account is vergrendeld. Je kunt het om {{time}} opnieuw proberen.",
+    step_up_locked_soon: "Te veel onjuiste pogingen. Wacht even en probeer het dan opnieuw.",
+    step_up_description_password_held: "Er wordt een wachtwoordwijziging vastgehouden. Voer ter bevestiging je huidige wachtwoord in, niet het nieuwe. Gebruik je een authenticatie-app, voer dan ook de code daaruit in.",
     error_device_keys: "De Aster Guard-sleutels van dit apparaat zijn ongeldig. Verwijder dit apparaat uit Aster Guard en voeg het daarna opnieuw toe.",
     error_device_unknown: "Aster Guard herkent dit apparaat niet. Voeg het opnieuw toe in de instellingen van Aster Guard.",
     error_veto_invalid: "Je kunt dit herstel niet meer stoppen, omdat het al is voltooid of gestopt.",
