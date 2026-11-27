@@ -4453,6 +4453,8 @@ export const fr = {
       "Aster Mail n'a pas modifié votre mot de passe, car la modification supprimerait des clés de chiffrement dont vos anciens messages ont besoin. Pour réessayer, déconnectez-vous, reconnectez-vous, puis modifiez votre mot de passe.",
     password_change_vault_changed:
       "Vos clés de chiffrement ont changé sur un autre appareil pendant que vous changiez votre mot de passe, donc Aster Mail ne l'a pas changé. Réessayez.",
+    password_change_code_hint:
+      "Facultatif. Sur un appareil Guard approuvé, un code de votre app d'authentification applique la modification immédiatement au lieu de la mettre en attente.",
     password_change_vault_out_of_date:
       "Votre mot de passe a été modifié sur un autre appareil, donc cette session n'est plus à jour. Pour modifier votre mot de passe, déconnectez-vous et reconnectez-vous avec votre mot de passe actuel.",
     update_password: "Mettre à jour le mot de passe",
@@ -12981,6 +12983,17 @@ export const fr = {
     error_upgrade: "Cette version d'Aster Mail est obsolète. Mettez l'application à jour, puis réessayez.",
     error_action_invalid: "Aster Guard n'a pas pu vérifier la signature de cet appareil. Rechargez la page et réessayez.",
     error_step_up: "Pour continuer, confirmez de nouveau votre identité.",
+    step_up_password_wrong: "Le mot de passe est incorrect.",
+    step_up_password_wrong_held: "Le mot de passe est incorrect. Tant qu'un changement de mot de passe est en attente, saisissez votre mot de passe actuel, pas le nouveau.",
+    step_up_code_wrong: "Le code d'authentification est incorrect. Saisissez le code actuel de votre app d'authentification.",
+    step_up_code_required: "Saisissez le code à 6 chiffres de votre app d'authentification.",
+    step_up_key_failed: "Votre clé de sécurité n'a pas pu être vérifiée. Réessayez.",
+    step_up_attempts_left: "Il vous reste {{count}} tentatives avant que votre compte soit verrouillé pendant 15 minutes.",
+    step_up_attempts_left_one: "Il vous reste 1 tentative avant que votre compte soit verrouillé pendant 15 minutes.",
+    step_up_attempts_left_other: "Il vous reste {{count}} tentatives avant que votre compte soit verrouillé pendant 15 minutes.",
+    step_up_locked: "Trop de tentatives incorrectes, votre compte est donc verrouillé. Vous pouvez réessayer à {{time}}.",
+    step_up_locked_soon: "Trop de tentatives incorrectes. Patientez un instant, puis réessayez.",
+    step_up_description_password_held: "Un changement de mot de passe est en attente. Pour confirmer votre identité, saisissez votre mot de passe actuel, pas le nouveau. Si vous utilisez une app d'authentification, saisissez aussi son code.",
     error_device_keys: "Les clés Aster Guard de cet appareil ne sont pas valides. Retirez cet appareil d'Aster Guard, puis ajoutez-le de nouveau.",
     error_device_unknown: "Aster Guard ne reconnaît pas cet appareil. Ajoutez-le de nouveau dans les réglages d'Aster Guard.",
     error_veto_invalid: "Vous ne pouvez plus arrêter cette récupération, car elle est déjà terminée ou arrêtée.",

@@ -4462,6 +4462,8 @@ export const pt = {
       "O Aster Mail não alterou a sua palavra-passe porque a alteração removeria chaves de encriptação de que as suas mensagens mais antigas precisam. Para tentar novamente, termine sessão, inicie sessão novamente e altere a sua palavra-passe.",
     password_change_vault_changed:
       "As suas chaves de encriptação mudaram noutro dispositivo enquanto alterava a palavra-passe, por isso o Aster Mail não a alterou. Tente novamente.",
+    password_change_code_hint:
+      "Opcional. Num dispositivo Guard aprovado, um código da sua app de autenticação aplica a alteração de imediato em vez de a reter.",
     password_change_vault_out_of_date:
       "A sua palavra-passe foi alterada noutro dispositivo, pelo que esta sessão está desatualizada. Para alterar a sua palavra-passe, termine sessão e inicie sessão novamente com a sua palavra-passe atual.",
     update_password: "Atualizar palavra-passe",
@@ -12950,6 +12952,17 @@ export const pt = {
     error_upgrade: "Esta versão do Aster Mail está desatualizada. Atualize a aplicação e tente novamente.",
     error_action_invalid: "O Aster Guard não conseguiu verificar a assinatura deste dispositivo. Recarregue a página e tente novamente.",
     error_step_up: "Para continuar, confirme novamente a sua identidade.",
+    step_up_password_wrong: "A palavra-passe está incorreta.",
+    step_up_password_wrong_held: "A palavra-passe está incorreta. Enquanto uma alteração de palavra-passe estiver em espera, introduza a sua palavra-passe atual, não a nova.",
+    step_up_code_wrong: "O código de autenticação está incorreto. Introduza o código atual da sua app de autenticação.",
+    step_up_code_required: "Introduza o código de 6 dígitos da sua app de autenticação.",
+    step_up_key_failed: "Não foi possível verificar a sua chave de segurança. Tente novamente.",
+    step_up_attempts_left: "Tem mais {{count}} tentativas antes de a sua conta ser bloqueada durante 15 minutos.",
+    step_up_attempts_left_one: "Tem mais 1 tentativa antes de a sua conta ser bloqueada durante 15 minutos.",
+    step_up_attempts_left_other: "Tem mais {{count}} tentativas antes de a sua conta ser bloqueada durante 15 minutos.",
+    step_up_locked: "Demasiadas tentativas incorretas, por isso a sua conta está bloqueada. Pode tentar novamente às {{time}}.",
+    step_up_locked_soon: "Demasiadas tentativas incorretas. Aguarde um momento e tente novamente.",
+    step_up_description_password_held: "Há uma alteração de palavra-passe em espera. Para confirmar a sua identidade, introduza a sua palavra-passe atual, não a nova. Se utilizar uma app de autenticação, introduza também o respetivo código.",
     error_device_keys: "As chaves do Aster Guard deste dispositivo não são válidas. Remova este dispositivo do Aster Guard e adicione-o novamente.",
     error_device_unknown: "O Aster Guard não reconhece este dispositivo. Adicione-o novamente nas definições do Aster Guard.",
     error_veto_invalid: "Já não pode parar este resgate, porque já terminou ou já foi parado.",

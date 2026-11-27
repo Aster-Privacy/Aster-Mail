@@ -42,7 +42,12 @@ const h = vi.hoisted(() => ({
     created_at: string;
     skippable?: boolean;
     cancellable?: boolean;
+    skip_available?: boolean;
+    cancel_available?: boolean;
   }[],
+  context: {} as Record<string, unknown>,
+  desktop: false,
+  step_up_options: [] as unknown[],
   cancel_response: { data: { cancelled: true } } as unknown,
   skip_response: { data: { status: "applied" } } as unknown,
   cancelled: [] as string[],
@@ -107,6 +112,8 @@ vi.mock("@/components/ui/modal", () => {
 
 vi.mock("@/components/toast/simple_toast", () => ({ show_toast: vi.fn() }));
 
+vi.mock("@/native/invoke_bridge", () => ({ is_desktop: () => h.desktop }));
+
 vi.mock("@/lib/settings_links", () => ({
   SETTINGS_ANCHORS: { password: "sec-password", guard: "sec-guard" },
   open_settings_target: (target: unknown) => h.settings_targets.push(target),
@@ -119,12 +126,23 @@ vi.mock("@/components/guard/use_guard_step_up", () => ({
 
       return h.proof;
     },
+    run: async (
+      attempt: (proof: unknown) => Promise<unknown>,
+      options?: unknown,
+    ) => {
+      h.proof_requests++;
+      h.step_up_options.push(options);
+
+      return h.proof ? attempt(h.proof) : null;
+    },
     step_up_modal: null,
   }),
 }));
 
 vi.mock("@/services/api/guard", () => ({
-  list_guard_changes: async () => ({ data: { changes: h.changes } }),
+  list_guard_changes: async () => ({
+    data: { changes: h.changes, ...h.context },
+  }),
   guard_panic: async (action: { proof: unknown }) => {
     h.panic_calls.push({ subject: PANIC_SUBJECT, proof: action.proof });
 
@@ -246,6 +264,9 @@ beforeEach(() => {
   h.panic_calls = [];
   h.panic_responses = [];
   h.settings_targets = [];
+  h.context = {};
+  h.desktop = false;
+  h.step_up_options = [];
 });
 
 afterEach(() => {
@@ -346,7 +367,11 @@ describe("GuardHeldChanges", () => {
   it("says the change already ended when there was nothing to cancel", async () => {
     h.cancel_response = { data: { cancelled: false } };
     await render(
-      <GuardHeldChanges device={DEVICE} user_id={USER_ID} on_refresh={vi.fn()} />,
+      <GuardHeldChanges
+        device={DEVICE}
+        user_id={USER_ID}
+        on_refresh={vi.fn()}
+      />,
     );
     await click(`guard_held_cancel_${FORWARD_ID}`);
 
@@ -359,7 +384,11 @@ describe("GuardHeldChanges", () => {
   it("reports a stale change instead of saying it was applied", async () => {
     h.skip_response = { data: { status: "failed_stale" } };
     await render(
-      <GuardHeldChanges device={DEVICE} user_id={USER_ID} on_refresh={vi.fn()} />,
+      <GuardHeldChanges
+        device={DEVICE}
+        user_id={USER_ID}
+        on_refresh={vi.fn()}
+      />,
     );
     await click(`guard_held_skip_${FORWARD_ID}`);
 
@@ -389,7 +418,11 @@ describe("GuardHeldChanges", () => {
   it("cancels nothing when the step-up is dismissed", async () => {
     h.proof = null;
     await render(
-      <GuardHeldChanges device={DEVICE} user_id={USER_ID} on_refresh={vi.fn()} />,
+      <GuardHeldChanges
+        device={DEVICE}
+        user_id={USER_ID}
+        on_refresh={vi.fn()}
+      />,
     );
     await click(`guard_held_cancel_${FORWARD_ID}`);
 
@@ -577,5 +610,109 @@ describe("GuardPanicDialog", () => {
 
     expect(has("guard_panic_change_password")).toBe(false);
     expect(container.textContent).toContain("guard.panic_password_later");
+  });
+});
+
+describe("GuardHeldChanges availability", () => {
+  const NO_FACTORS = { totp: false, security_key: false, passkey: false };
+
+  function password_change(extra: Record<string, boolean>) {
+    return {
+      id: FORWARD_ID,
+      kind: "password_change",
+      apply_after: LATER,
+      created_at: CREATED,
+      ...extra,
+    };
+  }
+
+  async function show() {
+    await render(
+      <GuardHeldChanges
+        device={DEVICE}
+        user_id={USER_ID}
+        on_refresh={() => {}}
+      />,
+    );
+  }
+
+  it("hides Cancel when the server says this device cannot cancel", async () => {
+    h.changes = [
+      password_change({ cancel_available: false, skip_available: false }),
+    ];
+    await show();
+
+    expect(has(`guard_held_cancel_${FORWARD_ID}`)).toBe(false);
+    expect(has(`guard_held_skip_${FORWARD_ID}`)).toBe(false);
+    expect(has(`guard_held_not_me_${FORWARD_ID}`)).toBe(true);
+  });
+
+  it("shows Cancel on a device approved before the change", async () => {
+    h.changes = [
+      password_change({ cancel_available: true, skip_available: false }),
+    ];
+    await show();
+
+    expect(has(`guard_held_cancel_${FORWARD_ID}`)).toBe(true);
+    expect(has(`guard_held_skip_${FORWARD_ID}`)).toBe(false);
+  });
+
+  it("hides Apply now on desktop when only a passkey or key could confirm it", async () => {
+    h.desktop = true;
+    h.changes = [
+      password_change({ cancel_available: true, skip_available: true }),
+    ];
+    h.context = {
+      approved_device: true,
+      long_trusted: false,
+      step_up_factors: { ...NO_FACTORS, passkey: true, security_key: true },
+    };
+    await show();
+
+    expect(has(`guard_held_skip_${FORWARD_ID}`)).toBe(false);
+    expect(has(`guard_held_cancel_${FORWARD_ID}`)).toBe(true);
+  });
+
+  it("shows Apply now on desktop when the account has an authenticator app", async () => {
+    h.desktop = true;
+    h.changes = [
+      password_change({ cancel_available: true, skip_available: true }),
+    ];
+    h.context = {
+      approved_device: true,
+      long_trusted: false,
+      step_up_factors: { ...NO_FACTORS, totp: true },
+    };
+    await show();
+
+    expect(has(`guard_held_skip_${FORWARD_ID}`)).toBe(true);
+  });
+
+  it("shows Apply now on a long-trusted desktop without a second factor", async () => {
+    h.desktop = true;
+    h.changes = [
+      password_change({ cancel_available: true, skip_available: true }),
+    ];
+    h.context = {
+      approved_device: true,
+      long_trusted: true,
+      step_up_factors: NO_FACTORS,
+    };
+    await show();
+
+    expect(has(`guard_held_skip_${FORWARD_ID}`)).toBe(true);
+  });
+
+  it("asks for the current password while a password change is held", async () => {
+    h.changes = [
+      password_change({ cancel_available: true, skip_available: true }),
+    ];
+    await show();
+    await click(`guard_held_cancel_${FORWARD_ID}`);
+
+    expect(h.cancelled).toEqual([FORWARD_ID]);
+    expect(h.step_up_options).toEqual([
+      { description: "guard.step_up_description_password_held" },
+    ]);
   });
 });

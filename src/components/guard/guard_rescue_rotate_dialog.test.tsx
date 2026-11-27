@@ -25,10 +25,7 @@ import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import {
-  GUARD_ACTION,
-  rescue_rotate_subject,
-} from "@/lib/crypto/guard_action";
+import { GUARD_ACTION, rescue_rotate_subject } from "@/lib/crypto/guard_action";
 
 const h = vi.hoisted(() => ({
   proof: { type: "password", password_hash: "ph", totp_code: null } as Record<
@@ -120,6 +117,9 @@ vi.mock("@/utils/copy_text", () => ({ copy_text: vi.fn(async () => true) }));
 vi.mock("@/components/guard/use_guard_step_up", () => ({
   use_guard_step_up: () => ({
     request_proof: vi.fn(async () => h.proof),
+    run: vi.fn(async (attempt: (proof: unknown) => Promise<unknown>) =>
+      h.proof ? attempt(h.proof) : null,
+    ),
     step_up_modal: null,
   }),
 }));

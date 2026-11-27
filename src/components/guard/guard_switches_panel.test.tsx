@@ -175,6 +175,11 @@ vi.mock("@/components/guard/use_guard_step_up", () => ({
 
       return h.proof;
     }),
+    run: vi.fn(async (attempt: (proof: unknown) => Promise<unknown>) => {
+      h.proof_requests++;
+
+      return h.proof ? attempt(h.proof) : null;
+    }),
     step_up_modal: null,
   }),
 }));

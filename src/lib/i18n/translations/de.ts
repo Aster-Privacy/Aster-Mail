@@ -4422,6 +4422,8 @@ export const de = {
       "Aster Mail hat Ihr Passwort nicht geändert, weil die Änderung Verschlüsselungsschlüssel entfernen würde, die Ihre älteren Nachrichten benötigen. Um es erneut zu versuchen, melden Sie sich ab, melden Sie sich wieder an und ändern Sie Ihr Passwort.",
     password_change_vault_changed:
       "Deine Verschlüsselungsschlüssel wurden auf einem anderen Gerät geändert, während du dein Passwort geändert hast. Aster Mail hat dein Passwort deshalb nicht geändert. Versuche es erneut.",
+    password_change_code_hint:
+      "Optional. Auf einem bestätigten Guard-Gerät wird die Änderung mit einem Code aus deiner Authentifizierungs-App sofort übernommen, statt zurückgehalten zu werden.",
     password_change_vault_out_of_date:
       "Ihr Passwort wurde auf einem anderen Gerät geändert, daher ist diese Sitzung nicht mehr aktuell. Um Ihr Passwort zu ändern, melden Sie sich ab und mit Ihrem aktuellen Passwort wieder an.",
     update_password: "Passwort aktualisieren",
@@ -12998,6 +13000,17 @@ export const de = {
     error_upgrade: "Diese Version von Aster Mail ist veraltet. Aktualisiere die App und versuche es dann erneut.",
     error_action_invalid: "Aster Guard konnte die Signatur dieses Geräts nicht prüfen. Lade die Seite neu und versuche es erneut.",
     error_step_up: "Bestätige deine Identität erneut, um fortzufahren.",
+    step_up_password_wrong: "Das Passwort ist falsch.",
+    step_up_password_wrong_held: "Das Passwort ist falsch. Solange eine Passwortänderung zurückgehalten wird, gib dein aktuelles Passwort ein, nicht das neue.",
+    step_up_code_wrong: "Der Authentifizierungscode ist falsch. Gib den aktuellen Code aus deiner Authentifizierungs-App ein.",
+    step_up_code_required: "Gib den 6-stelligen Code aus deiner Authentifizierungs-App ein.",
+    step_up_key_failed: "Dein Sicherheitsschlüssel konnte nicht überprüft werden. Versuche es erneut.",
+    step_up_attempts_left: "Du hast noch {{count}} Versuche, bevor dein Konto für 15 Minuten gesperrt wird.",
+    step_up_attempts_left_one: "Du hast noch 1 Versuch, bevor dein Konto für 15 Minuten gesperrt wird.",
+    step_up_attempts_left_other: "Du hast noch {{count}} Versuche, bevor dein Konto für 15 Minuten gesperrt wird.",
+    step_up_locked: "Zu viele falsche Versuche, daher ist dein Konto gesperrt. Du kannst es um {{time}} erneut versuchen.",
+    step_up_locked_soon: "Zu viele falsche Versuche. Warte einen Moment und versuche es dann erneut.",
+    step_up_description_password_held: "Eine Passwortänderung wird zurückgehalten. Gib zur Bestätigung dein aktuelles Passwort ein, nicht das neue. Wenn du eine Authentifizierungs-App verwendest, gib auch deren Code ein.",
     error_device_keys: "Die Aster Guard-Schlüssel dieses Geräts sind ungültig. Entferne das Gerät aus Aster Guard und füge es dann erneut hinzu.",
     error_device_unknown: "Aster Guard erkennt dieses Gerät nicht. Füge es in den Aster Guard-Einstellungen erneut hinzu.",
     error_veto_invalid: "Du kannst diese Rettung nicht mehr stoppen, weil sie bereits abgeschlossen oder gestoppt wurde.",

@@ -98,16 +98,15 @@ export function GuardRescueBanner({ user_id }: { user_id: string | null }) {
     if (phase === "running" || !user_id || !rescue_id || !device) return;
     set_phase("running");
     try {
-      const proof = await step_up.request_proof();
+      const outcome = await step_up.run(async (proof) => {
+        const vetoed = await veto_rescue(device, user_id, rescue_id, proof);
 
-      if (!proof) {
+        return vetoed === true ? { status: 200, vetoed } : vetoed;
+      });
+
+      if (!outcome) {
         set_phase("idle");
-
-        return;
-      }
-      const outcome = await veto_rescue(device, user_id, rescue_id, proof);
-
-      if (outcome === true) {
+      } else if ("vetoed" in outcome) {
         set_phase("stopped");
       } else {
         set_failure(outcome);

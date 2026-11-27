@@ -3098,6 +3098,8 @@ export const en: Translations = {
       "Aster Mail didn't change your password because the change would remove encryption keys your older messages need. To try again, sign out, sign back in, and change your password.",
     password_change_vault_changed:
       "Your encryption keys changed on another device while you were changing your password, so Aster Mail didn't change it. Try again.",
+    password_change_code_hint:
+      "Optional. On an approved Guard device, a code from your authenticator app applies the change right away instead of holding it.",
     password_change_vault_out_of_date:
       "Your password was changed on another device, so this session is out of date. To change your password, sign out and sign back in with your current password.",
     update_password: "Update Password",
@@ -12546,6 +12548,17 @@ export const en: Translations = {
     error_upgrade: "This version of Aster Mail is out of date. Update the app, then try again.",
     error_action_invalid: "Aster Guard couldn't verify this device's signature. Reload the page and try again.",
     error_step_up: "To continue, confirm your identity again.",
+    step_up_password_wrong: "The password is incorrect.",
+    step_up_password_wrong_held: "The password is incorrect. While a password change is on hold, enter your current password, not the new one.",
+    step_up_code_wrong: "The authenticator code is incorrect. Enter the current code from your authenticator app.",
+    step_up_code_required: "Enter the 6-digit code from your authenticator app.",
+    step_up_key_failed: "Your security key couldn't be verified. Try again.",
+    step_up_attempts_left: "You have {{count}} attempts left before your account is locked for 15 minutes.",
+    step_up_attempts_left_one: "You have 1 attempt left before your account is locked for 15 minutes.",
+    step_up_attempts_left_other: "You have {{count}} attempts left before your account is locked for 15 minutes.",
+    step_up_locked: "Too many incorrect attempts, so your account is locked. You can try again at {{time}}.",
+    step_up_locked_soon: "Too many incorrect attempts. Wait a moment, then try again.",
+    step_up_description_password_held: "A password change is on hold. To confirm it's you, enter your current password, not the new one. If you use an authenticator app, also enter its code.",
     error_device_keys: "This device's Aster Guard keys aren't valid. Remove this device from Aster Guard, then add it again.",
     error_device_unknown: "Aster Guard doesn't recognize this device. Add it again in Aster Guard settings.",
     error_veto_invalid: "You can't stop this rescue anymore because it already finished or was stopped.",

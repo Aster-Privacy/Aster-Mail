@@ -4004,6 +4004,8 @@ export const zh_CN = {
       "此更改会移除您较早邮件所需的加密密钥，因此 Aster Mail 未更改您的密码。若要重试，请退出登录后重新登录，然后更改密码。",
     password_change_vault_changed:
       "你在更改密码时，加密密钥在另一台设备上发生了变化，因此 Aster Mail 未更改你的密码。请重试。",
+    password_change_code_hint:
+      "可选。在已批准的 Guard 设备上，输入身份验证器应用中的验证码即可立即应用更改，而不会被暂缓。",
     password_change_vault_out_of_date:
       "您的密码已在其他设备上更改，因此此会话已过期。若要更改密码，请退出登录，然后使用当前密码重新登录。",
     update_password: "更新密码",
@@ -11501,6 +11503,17 @@ export const zh_CN = {
     error_upgrade: "此版本的 Aster Mail 已过时。请更新应用，然后重试。",
     error_action_invalid: "Aster Guard 无法验证此设备的签名。请重新加载页面并重试。",
     error_step_up: "要继续，请再次确认您的身份。",
+    step_up_password_wrong: "密码不正确。",
+    step_up_password_wrong_held: "密码不正确。在密码更改处于暂缓状态期间，请输入您当前的密码，而不是新密码。",
+    step_up_code_wrong: "验证码不正确。请输入身份验证器应用中的当前验证码。",
+    step_up_code_required: "请输入身份验证器应用中的 6 位验证码。",
+    step_up_key_failed: "无法验证您的安全密钥。请重试。",
+    step_up_attempts_left: "您还可以尝试 {{count}} 次，之后账户将被锁定 15 分钟。",
+    step_up_attempts_left_one: "您还可以尝试 1 次，之后账户将被锁定 15 分钟。",
+    step_up_attempts_left_other: "您还可以尝试 {{count}} 次，之后账户将被锁定 15 分钟。",
+    step_up_locked: "错误尝试次数过多，因此您的账户已被锁定。您可以在 {{time}} 重试。",
+    step_up_locked_soon: "错误尝试次数过多。请稍等片刻，然后重试。",
+    step_up_description_password_held: "有一项密码更改处于暂缓状态。为确认是您本人，请输入您当前的密码，而不是新密码。如果您使用身份验证器应用，也请输入其验证码。",
     error_device_keys: "此设备的 Aster Guard 密钥无效。请将此设备从 Aster Guard 中移除，然后重新添加。",
     error_device_unknown: "Aster Guard 无法识别此设备。请在 Aster Guard 设置中重新添加。",
     error_veto_invalid: "此救援已完成或已被停止，因此您无法再停止它。",

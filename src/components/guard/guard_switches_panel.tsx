@@ -122,25 +122,30 @@ export function GuardSwitchesPanel({
     if (!device || !is_approver || busy) return;
     set_busy(true);
     try {
-      const proof = await step_up.request_proof();
-
-      if (!proof) return;
-      const action = await sign_guard_action(
-        device,
-        user_id,
-        GUARD_ACTION.switches,
-        switches_subject(next.switches, next.hold_scopes),
-        proof,
+      const response = await step_up.run(async (proof) =>
+        put_guard_switches({
+          ...next,
+          action: await sign_guard_action(
+            device,
+            user_id,
+            GUARD_ACTION.switches,
+            switches_subject(next.switches, next.hold_scopes),
+            proof,
+          ),
+        }),
       );
-      const response = await put_guard_switches({ ...next, action });
 
+      if (!response) return;
       if (response.held) {
         set_held_off({
           id: response.held.id,
           apply_after: response.held.apply_after,
         });
       } else if (response.error) {
-        show_toast(guard_error_text(t, response, "guard.switches_error"), "error");
+        show_toast(
+          guard_error_text(t, response, "guard.switches_error"),
+          "error",
+        );
       }
       on_refresh();
     } catch {
@@ -153,18 +158,16 @@ export function GuardSwitchesPanel({
   const cancel_held = async () => {
     if (!device || !shown_held) return;
     try {
-      const proof = await step_up.request_proof();
-
-      if (!proof) return;
-      const response = await cancel_held_change(
-        device,
-        user_id,
-        shown_held.id,
-        proof,
+      const response = await step_up.run((proof) =>
+        cancel_held_change(device, user_id, shown_held.id, proof),
       );
 
+      if (!response) return;
       if (response.error) {
-        show_toast(guard_error_text(t, response, "guard.switches_error"), "error");
+        show_toast(
+          guard_error_text(t, response, "guard.switches_error"),
+          "error",
+        );
 
         return;
       }

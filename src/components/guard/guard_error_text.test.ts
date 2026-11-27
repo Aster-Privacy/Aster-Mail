@@ -24,6 +24,7 @@ import {
   guard_error_text,
   guard_error_text_or_null,
   guard_retry_at,
+  step_up_rejection,
 } from "@/components/guard/guard_error_text";
 
 const NOW = Date.parse("2026-11-20T10:00:00Z");
@@ -69,9 +70,9 @@ describe("guard_error_message", () => {
     );
 
     expect(message?.key).toBe("guard.error_held");
-    expect(
-      guard_error_message({ server_code: "GUARD_HELD" }, NOW)?.key,
-    ).toBe("guard.error_held_soon");
+    expect(guard_error_message({ server_code: "GUARD_HELD" }, NOW)?.key).toBe(
+      "guard.error_held_soon",
+    );
   });
 
   it("explains a pending device with its activation time", () => {
@@ -121,9 +122,9 @@ describe("guard_error_message", () => {
 
 describe("guard_error_text", () => {
   it("falls back when nothing matches", () => {
-    expect(guard_error_text(t as never, { status: 500 }, "guard.held_error")).toBe(
-      "guard.held_error",
-    );
+    expect(
+      guard_error_text(t as never, { status: 500 }, "guard.held_error"),
+    ).toBe("guard.held_error");
     expect(guard_error_text_or_null(t as never, { status: 500 })).toBeNull();
   });
 
@@ -133,7 +134,9 @@ describe("guard_error_text", () => {
       guard_error_text_or_null(t as never, { code: "TIMEOUT_ERROR" }),
     ).toBeNull();
     expect(
-      guard_error_text_or_null(t as never, { server_code: "GUARD_LAST_DEVICE" }),
+      guard_error_text_or_null(t as never, {
+        server_code: "GUARD_LAST_DEVICE",
+      }),
     ).not.toBeNull();
   });
 
@@ -154,5 +157,114 @@ describe("guard_retry_at", () => {
     expect(guard_retry_at(60, NOW)).toBe("2026-11-20T10:01:00.000Z");
     expect(guard_retry_at(undefined, NOW)).toBeNull();
     expect(guard_retry_at(0, NOW)).toBeNull();
+  });
+});
+
+describe("step_up_rejection", () => {
+  it("points a wrong password at the password field", () => {
+    const rejection = step_up_rejection(
+      {
+        server_code: "INVALID_CREDENTIALS",
+        status: 401,
+        details: { failed_factor: "password", attempts_remaining: 8 },
+      },
+      NOW,
+    );
+
+    expect(rejection).toEqual({
+      field: "password",
+      message: { key: "guard.step_up_password_wrong" },
+    });
+  });
+
+  it("explains the current password while a password change is held", () => {
+    expect(
+      step_up_rejection(
+        {
+          server_code: "INVALID_CREDENTIALS",
+          details: { failed_factor: "password", password_change_held: true },
+        },
+        NOW,
+      )?.message.key,
+    ).toBe("guard.step_up_password_wrong_held");
+  });
+
+  it("points a wrong authenticator code at the code field", () => {
+    expect(
+      step_up_rejection(
+        {
+          server_code: "INVALID_TWO_FACTOR_CODE",
+          status: 400,
+          details: { failed_factor: "totp", attempts_remaining: 9 },
+        },
+        NOW,
+      ),
+    ).toEqual({ field: "code", message: { key: "guard.step_up_code_wrong" } });
+    expect(step_up_rejection({ server_code: "TOTP_REQUIRED" }, NOW)).toEqual({
+      field: "code",
+      message: { key: "guard.step_up_code_required" },
+    });
+  });
+
+  it("points a failed security key at the key", () => {
+    expect(
+      step_up_rejection(
+        {
+          server_code: "INVALID_CREDENTIALS",
+          details: { failed_factor: "security_key" },
+        },
+        NOW,
+      )?.field,
+    ).toBe("key");
+  });
+
+  it("warns when few attempts are left before the lock", () => {
+    const rejection = step_up_rejection(
+      {
+        server_code: "INVALID_TWO_FACTOR_CODE",
+        details: { failed_factor: "totp", attempts_remaining: 2 },
+      },
+      NOW,
+    );
+
+    expect(rejection?.message.extra).toEqual({
+      key: "guard.step_up_attempts_left",
+      params: { count: 2 },
+    });
+    expect(
+      guard_error_text(
+        t as never,
+        {
+          server_code: "INVALID_CREDENTIALS",
+          details: { failed_factor: "password", attempts_remaining: 1 },
+        },
+        "guard.held_error",
+        NOW,
+      ),
+    ).toBe("guard.step_up_password_wrong guard.step_up_attempts_left:1");
+  });
+
+  it("names the time a lock ends", () => {
+    const rejection = step_up_rejection(
+      {
+        server_code: "ACCOUNT_LOCKED",
+        status: 403,
+        details: { attempts_remaining: 0, retry_after_seconds: 900 },
+      },
+      NOW,
+    );
+
+    expect(rejection?.field).toBe("all");
+    expect(rejection?.message.key).toBe("guard.step_up_locked");
+    expect(rejection?.message.params?.time).toBeTruthy();
+    expect(
+      step_up_rejection({ server_code: "ACCOUNT_LOCKED" }, NOW)?.message.key,
+    ).toBe("guard.step_up_locked_soon");
+  });
+
+  it("leaves other failures to the caller", () => {
+    expect(step_up_rejection({ server_code: "GUARD_PAUSED" }, NOW)).toBeNull();
+    expect(step_up_rejection({ status: 500 }, NOW)).toBeNull();
+    expect(step_up_rejection(null, NOW)).toBeNull();
   });
 });

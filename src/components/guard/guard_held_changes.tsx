@@ -19,7 +19,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type { GuardHoldKind } from "@/services/api/client/helpers";
-import type { GuardPendingChange } from "@/services/api/guard";
+import type {
+  GuardChangesList,
+  GuardPendingChange,
+} from "@/services/api/guard";
 import type { GuardDevice } from "@/services/guard/guard_device";
 
 import type { ComponentType } from "react";
@@ -56,6 +59,7 @@ import {
   is_guard_hold_skippable,
 } from "@/services/api/client/helpers";
 import { list_guard_changes } from "@/services/api/guard";
+import { is_desktop } from "@/native/invoke_bridge";
 import {
   cancel_held_change,
   skip_held_change,
@@ -105,12 +109,27 @@ const HELD_KIND_ICONS: Record<
   unknown: QuestionMarkCircleIcon,
 };
 
+export type GuardChangesContext = Omit<GuardChangesList, "changes">;
+
 export function can_cancel_hold(change: GuardPendingChange): boolean {
+  if (change.cancel_available !== undefined) return change.cancel_available;
+
   return change.cancellable !== false;
 }
 
-export function can_skip_hold(change: GuardPendingChange): boolean {
-  return change.skippable !== false && is_guard_hold_skippable(change.kind);
+export function can_skip_hold(
+  change: GuardPendingChange,
+  context: GuardChangesContext = {},
+  desktop: boolean = is_desktop(),
+): boolean {
+  if (change.skippable === false || !is_guard_hold_skippable(change.kind)) {
+    return false;
+  }
+  if (change.skip_available === undefined) return true;
+  if (!change.skip_available) return false;
+  if (!desktop || !context.step_up_factors) return true;
+
+  return !!context.long_trusted || context.step_up_factors.totp;
 }
 
 export function hold_progress(change: GuardPendingChange, now: number): number {
@@ -139,16 +158,23 @@ export function format_time_left(apply_after: string, now: number): string {
 
 export function use_guard_changes(enabled: boolean) {
   const [changes, set_changes] = useState<GuardPendingChange[]>([]);
+  const [context, set_context] = useState<GuardChangesContext>({});
 
   const refresh = useCallback(async () => {
     if (!enabled) {
       set_changes([]);
+      set_context({});
 
       return;
     }
     const response = await list_guard_changes();
 
-    if (!response.error && response.data) set_changes(response.data.changes);
+    if (!response.error && response.data) {
+      const { changes: list, ...rest } = response.data;
+
+      set_changes(list);
+      set_context(rest);
+    }
   }, [enabled]);
 
   useEffect(() => {
@@ -173,7 +199,7 @@ export function use_guard_changes(enabled: boolean) {
     };
   }, [refresh]);
 
-  return { changes, refresh };
+  return { changes, context, refresh };
 }
 
 interface GuardHeldChangesProps {
@@ -189,10 +215,15 @@ export function GuardHeldChanges({
 }: GuardHeldChangesProps) {
   const { t } = use_i18n();
   const step_up = use_guard_step_up();
-  const { changes, refresh } = use_guard_changes(true);
+  const { changes, context, refresh } = use_guard_changes(true);
   const [busy_id, set_busy_id] = useState<string | null>(null);
   const now = use_guard_now(30_000);
   const shown = changes.filter((change) => !LISTED_ELSEWHERE.has(change.kind));
+  const step_up_options = changes.some(
+    (change) => change.kind === "password_change",
+  )
+    ? { description: t("guard.step_up_description_password_held") }
+    : undefined;
 
   const after = async () => {
     await refresh();
@@ -203,16 +234,12 @@ export function GuardHeldChanges({
     if (!device || busy_id) return;
     set_busy_id(change.id);
     try {
-      const proof = await step_up.request_proof();
-
-      if (!proof) return;
-      const response = await cancel_held_change(
-        device,
-        user_id,
-        change.id,
-        proof,
+      const response = await step_up.run(
+        (proof) => cancel_held_change(device, user_id, change.id, proof),
+        step_up_options,
       );
 
+      if (!response) return;
       if (response.error) {
         show_toast(guard_error_text(t, response, "guard.held_error"), "error");
       } else if (response.data?.cancelled === false) {
@@ -232,16 +259,12 @@ export function GuardHeldChanges({
     if (!device || busy_id) return;
     set_busy_id(change.id);
     try {
-      const proof = await step_up.request_proof();
-
-      if (!proof) return;
-      const response = await skip_held_change(
-        device,
-        user_id,
-        change.id,
-        proof,
+      const response = await step_up.run(
+        (proof) => skip_held_change(device, user_id, change.id, proof),
+        step_up_options,
       );
 
+      if (!response) return;
       if (response.error) {
         show_toast(guard_error_text(t, response, "guard.held_error"), "error");
       } else if (response.data?.status === "failed_stale") {
@@ -330,7 +353,7 @@ export function GuardHeldChanges({
                       {t("common.cancel")}
                     </Button>
                   )}
-                  {device && can_skip_hold(change) && (
+                  {device && can_skip_hold(change, context) && (
                     <Button
                       data-testid={`guard_held_skip_${change.id}`}
                       disabled={busy_id !== null}

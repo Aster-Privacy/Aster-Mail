@@ -4576,6 +4576,8 @@ export const pl = {
       "Aster Mail nie zmienił Twojego hasła, ponieważ zmiana usunęłaby klucze szyfrowania potrzebne Twoim starszym wiadomościom. Aby spróbować ponownie, wyloguj się, zaloguj ponownie i zmień hasło.",
     password_change_vault_changed:
       "Twoje klucze szyfrowania zmieniły się na innym urządzeniu podczas zmiany hasła, więc Aster Mail nie zmienił hasła. Spróbuj ponownie.",
+    password_change_code_hint:
+      "Opcjonalnie. Na zatwierdzonym urządzeniu Guard kod z aplikacji uwierzytelniającej od razu wprowadza zmianę zamiast ją wstrzymywać.",
     password_change_vault_out_of_date:
       "Twoje hasło zostało zmienione na innym urządzeniu, więc ta sesja jest nieaktualna. Aby zmienić hasło, wyloguj się i zaloguj ponownie, używając obecnego hasła.",
     update_password: "Zaktualizuj hasło",
@@ -13075,6 +13077,17 @@ export const pl = {
     error_upgrade: "Ta wersja Aster Mail jest nieaktualna. Zaktualizuj aplikację i spróbuj ponownie.",
     error_action_invalid: "Aster Guard nie mógł zweryfikować podpisu tego urządzenia. Odśwież stronę i spróbuj ponownie.",
     error_step_up: "Aby kontynuować, ponownie potwierdź swoją tożsamość.",
+    step_up_password_wrong: "Hasło jest nieprawidłowe.",
+    step_up_password_wrong_held: "Hasło jest nieprawidłowe. Dopóki zmiana hasła jest wstrzymana, wpisz obecne hasło, a nie nowe.",
+    step_up_code_wrong: "Kod uwierzytelniający jest nieprawidłowy. Wpisz aktualny kod z aplikacji uwierzytelniającej.",
+    step_up_code_required: "Wpisz 6-cyfrowy kod z aplikacji uwierzytelniającej.",
+    step_up_key_failed: "Nie udało się zweryfikować klucza bezpieczeństwa. Spróbuj ponownie.",
+    step_up_attempts_left: "Pozostałe próby przed zablokowaniem konta na 15 minut: {{count}}.",
+    step_up_attempts_left_one: "Pozostała 1 próba przed zablokowaniem konta na 15 minut.",
+    step_up_attempts_left_other: "Pozostałe próby przed zablokowaniem konta na 15 minut: {{count}}.",
+    step_up_locked: "Zbyt wiele nieprawidłowych prób, więc konto jest zablokowane. Możesz spróbować ponownie o {{time}}.",
+    step_up_locked_soon: "Zbyt wiele nieprawidłowych prób. Zaczekaj chwilę i spróbuj ponownie.",
+    step_up_description_password_held: "Zmiana hasła jest wstrzymana. Aby potwierdzić tożsamość, wpisz obecne hasło, a nie nowe. Jeśli używasz aplikacji uwierzytelniającej, wpisz też jej kod.",
     error_device_keys: "Klucze Aster Guard tego urządzenia są nieprawidłowe. Usuń to urządzenie z Aster Guard i dodaj je ponownie.",
     error_device_unknown: "Aster Guard nie rozpoznaje tego urządzenia. Dodaj je ponownie w ustawieniach Aster Guard.",
     error_veto_invalid: "Nie możesz już zatrzymać tego odzyskiwania, ponieważ zostało zakończone lub już zatrzymane.",

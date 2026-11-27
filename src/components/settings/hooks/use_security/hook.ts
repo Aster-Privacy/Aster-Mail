@@ -90,6 +90,7 @@ export function use_security() {
   const [current_password, set_current_password] = useState("");
   const [new_password, set_new_password] = useState("");
   const [confirm_password, set_confirm_password] = useState("");
+  const [password_totp_code, set_password_totp_code] = useState("");
   const [show_current_password, set_show_current_password] = useState(false);
   const [show_new_password, set_show_new_password] = useState(false);
   const [password_loading, set_password_loading] = useState(false);
@@ -281,6 +282,8 @@ export function use_security() {
         user_email: user.email,
         current_password,
         new_password,
+        totp_code:
+          password_totp_code.length === 6 ? password_totp_code : undefined,
         preferences,
         t,
         on_background_notice: (message) =>
@@ -295,6 +298,7 @@ export function use_security() {
           set_current_password("");
           set_new_password("");
           set_confirm_password("");
+          set_password_totp_code("");
 
           return;
         }
@@ -318,6 +322,7 @@ export function use_security() {
       set_current_password("");
       set_new_password("");
       set_confirm_password("");
+      set_password_totp_code("");
     } catch (err) {
       set_password_error(password_change_failure_message(err, t));
     } finally {
@@ -552,6 +557,7 @@ export function use_security() {
     set_current_password("");
     set_new_password("");
     set_confirm_password("");
+    set_password_totp_code("");
     set_password_error("");
     set_password_breach_warning(false);
   };
@@ -602,6 +608,8 @@ export function use_security() {
     handle_new_password_blur,
     confirm_password,
     set_confirm_password,
+    password_totp_code,
+    set_password_totp_code,
     show_current_password,
     set_show_current_password,
     show_new_password,

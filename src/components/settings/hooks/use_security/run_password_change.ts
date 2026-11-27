@@ -25,6 +25,11 @@ import type { UserPreferences } from "@/services/api/preferences";
 import { resolve_password_change_error } from "../password_change_error";
 
 import {
+  render_guard_message,
+  step_up_rejection,
+} from "@/components/guard/guard_error_text";
+
+import {
   load_password_change_vault,
   PASSWORD_CHANGE_VAULT_ERROR_KEYS,
 } from "./password_change_vault";
@@ -107,8 +112,9 @@ export interface PasswordChangeRequest {
   user_email: string;
   current_password: string;
   new_password: string;
+  totp_code?: string;
   preferences: UserPreferences;
-  t: (key: TranslationKey) => string;
+  t: (key: TranslationKey, params?: Record<string, string | number>) => string;
   on_background_notice: (message: string) => void;
 }
 
@@ -150,10 +156,12 @@ export async function run_password_change(
     user_email,
     current_password,
     new_password,
+    totp_code,
     preferences,
     t,
     on_background_notice,
   } = request;
+  const totp_field = totp_code ? { totp_code } : {};
 
   const user_hash = await hash_email(user_email);
   const salt_response = await get_user_salt({ user_hash });
@@ -309,6 +317,7 @@ export async function run_password_change(
           ...kept_app_lock_field(user_id),
           ...fingerprint_field,
           ...cas_field,
+          ...totp_field,
         }),
     );
 
@@ -316,6 +325,14 @@ export async function run_password_change(
 
     if (held_of(response)) {
       change_held = true;
+
+      return false;
+    }
+
+    const rejection = step_up_rejection(response);
+
+    if (rejection) {
+      failure = render_guard_message(t, rejection.message);
 
       return false;
     }

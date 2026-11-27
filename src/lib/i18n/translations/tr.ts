@@ -4347,6 +4347,8 @@ export const tr = {
       "Bu değişiklik eski iletilerinizin ihtiyaç duyduğu şifreleme anahtarlarını kaldıracağı için Aster Mail parolanızı değiştirmedi. Tekrar denemek için oturumu kapatın, yeniden oturum açın ve parolanızı değiştirin.",
     password_change_vault_changed:
       "Siz şifrenizi değiştirirken şifreleme anahtarlarınız başka bir cihazda değişti, bu yüzden Aster Mail şifrenizi değiştirmedi. Yeniden deneyin.",
+    password_change_code_hint:
+      "İsteğe bağlı. Onaylı bir Guard cihazında, kimlik doğrulama uygulamanızdan bir kod değişikliği bekletmeden hemen uygular.",
     password_change_vault_out_of_date:
       "Parolanız başka bir cihazda değiştirildi, bu nedenle bu oturum güncel değil. Parolanızı değiştirmek için oturumu kapatın ve mevcut parolanızla yeniden oturum açın.",
     update_password: "Parolayı Güncelle",
@@ -12691,6 +12693,17 @@ export const tr = {
     error_upgrade: "Aster Mail'in bu sürümü güncel değil. Uygulamayı güncelleyip tekrar deneyin.",
     error_action_invalid: "Aster Guard bu cihazın imzasını doğrulayamadı. Sayfayı yeniden yükleyip tekrar deneyin.",
     error_step_up: "Devam etmek için kimliğinizi tekrar doğrulayın.",
+    step_up_password_wrong: "Parola yanlış.",
+    step_up_password_wrong_held: "Parola yanlış. Bir parola değişikliği beklemedeyken yeni parolanızı değil, mevcut parolanızı girin.",
+    step_up_code_wrong: "Doğrulama kodu yanlış. Doğrulama uygulamanızdaki güncel kodu girin.",
+    step_up_code_required: "Doğrulama uygulamanızdaki 6 haneli kodu girin.",
+    step_up_key_failed: "Güvenlik anahtarınız doğrulanamadı. Tekrar deneyin.",
+    step_up_attempts_left: "Hesabınız 15 dakika kilitlenmeden önce {{count}} deneme hakkınız kaldı.",
+    step_up_attempts_left_one: "Hesabınız 15 dakika kilitlenmeden önce 1 deneme hakkınız kaldı.",
+    step_up_attempts_left_other: "Hesabınız 15 dakika kilitlenmeden önce {{count}} deneme hakkınız kaldı.",
+    step_up_locked: "Çok fazla yanlış deneme yapıldığı için hesabınız kilitlendi. {{time}} saatinde tekrar deneyebilirsiniz.",
+    step_up_locked_soon: "Çok fazla yanlış deneme. Biraz bekleyin, sonra tekrar deneyin.",
+    step_up_description_password_held: "Bir parola değişikliği beklemede. Siz olduğunuzu doğrulamak için yeni parolanızı değil, mevcut parolanızı girin. Bir doğrulama uygulaması kullanıyorsanız onun kodunu da girin.",
     error_device_keys: "Bu cihazın Aster Guard anahtarları geçerli değil. Bu cihazı Aster Guard'dan kaldırıp yeniden ekleyin.",
     error_device_unknown: "Aster Guard bu cihazı tanımıyor. Aster Guard ayarlarından cihazı yeniden ekleyin.",
     error_veto_invalid: "Bu kurtarma zaten tamamlandığı veya durdurulduğu için artık durdurulamaz.",
