@@ -137,6 +137,14 @@ describe("guard_error_text", () => {
     ).not.toBeNull();
   });
 
+  it("explains that setup needs a second device", () => {
+    expect(
+      guard_error_text_or_null(t as never, {
+        server_code: "GUARD_BACKUP_DEVICE_REQUIRED",
+      }),
+    ).toBe("guard.error_backup_device_required");
+  });
+
   it("fills the time parameter", () => {
     expect(
       guard_error_text(

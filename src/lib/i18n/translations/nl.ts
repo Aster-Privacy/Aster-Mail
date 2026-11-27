@@ -12818,6 +12818,8 @@ export const nl = {
     error_disabled: "Aster Guard staat uit voor dit account, dus er is niets om goed te keuren.",
     error_request_conflict: "Een ander apparaat heeft dit verzoek tegelijkertijd gewijzigd. Vernieuw de pagina en probeer het opnieuw.",
     error_last_device: "Dit is het enige apparaat dat voor Aster Guard is goedgekeurd, dus je kunt het niet verwijderen of afmelden. Keur eerst een ander apparaat goed of zet Aster Guard uit.",
+    error_backup_device_required: "Als je Aster Guard wilt inschakelen, log je eerst in bij Aster op een tweede apparaat, zoals je telefoon of een andere computer.",
+    setup_needs_backup_device: "Als je Aster Guard wilt instellen, log je eerst in bij Aster op een tweede apparaat, zoals je telefoon of een andere computer. Voeg dat apparaat na het instellen toe aan Aster Guard, zodat je aanmeldingen nog steeds kunt goedkeuren als je dit apparaat kwijtraakt.",
     error_device_pending: "Dit apparaat kan vanaf {{time}} verzoeken goedkeuren.",
     error_device_pending_soon: "Dit apparaat is nog niet goedgekeurd. Over een paar minuten kan het verzoeken goedkeuren.",
     error_held: "Aster Guard houdt deze wijziging tegen om je account te beschermen. Ze gaat om {{time}} in, tenzij je haar annuleert.",

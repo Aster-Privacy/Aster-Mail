@@ -12539,6 +12539,8 @@ export const en: Translations = {
     error_disabled: "Aster Guard is off for this account, so there's nothing to approve.",
     error_request_conflict: "Another device changed this request at the same time. Refresh the page and try again.",
     error_last_device: "This is the only device approved for Aster Guard, so you can't remove it or sign it out. Approve another device first, or turn off Aster Guard.",
+    error_backup_device_required: "To turn on Aster Guard, first sign in to Aster on a second device, such as your phone or another computer.",
+    setup_needs_backup_device: "To set up Aster Guard, first sign in to Aster on a second device, such as your phone or another computer. After setup, add that device to Aster Guard so you can still approve sign-ins if you lose this one.",
     error_device_pending: "This device can approve requests starting at {{time}}.",
     error_device_pending_soon: "This device isn't approved yet. It can approve requests in a few minutes.",
     error_held: "Aster Guard holds this change to protect your account. It takes effect at {{time}} unless you cancel it.",

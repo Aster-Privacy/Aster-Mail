@@ -12974,6 +12974,8 @@ export const fr = {
     error_disabled: "Aster Guard est désactivé pour ce compte, il n'y a donc rien à approuver.",
     error_request_conflict: "Un autre appareil a modifié cette demande au même moment. Actualisez la page et réessayez.",
     error_last_device: "C'est le seul appareil approuvé pour Aster Guard : vous ne pouvez donc ni le retirer ni le déconnecter. Approuvez d'abord un autre appareil ou désactivez Aster Guard.",
+    error_backup_device_required: "Pour activer Aster Guard, connectez-vous d'abord à Aster sur un deuxième appareil, comme votre téléphone ou un autre ordinateur.",
+    setup_needs_backup_device: "Pour configurer Aster Guard, connectez-vous d'abord à Aster sur un deuxième appareil, comme votre téléphone ou un autre ordinateur. Après la configuration, ajoutez cet appareil à Aster Guard afin de pouvoir approuver les connexions même si vous perdez celui-ci.",
     error_device_pending: "Cet appareil pourra approuver des demandes à partir de {{time}}.",
     error_device_pending_soon: "Cet appareil n'est pas encore approuvé. Il pourra approuver des demandes dans quelques minutes.",
     error_held: "Aster Guard retient cette modification pour protéger votre compte. Elle s'appliquera à {{time}}, sauf si vous l'annulez.",

@@ -11494,6 +11494,8 @@ export const zh_CN = {
     error_disabled: "此账户已关闭 Aster Guard，因此没有需要批准的内容。",
     error_request_conflict: "另一台设备同时更改了此请求。请刷新页面并重试。",
     error_last_device: "这是 Aster Guard 唯一已批准的设备，因此您无法移除它或将其退出登录。请先批准另一台设备，或关闭 Aster Guard。",
+    error_backup_device_required: "要开启 Aster Guard，请先在第二台设备（例如您的手机或另一台电脑）上登录 Aster。",
+    setup_needs_backup_device: "要设置 Aster Guard，请先在第二台设备（例如您的手机或另一台电脑）上登录 Aster。设置完成后，将该设备添加到 Aster Guard，这样即使丢失这台设备，您仍然可以批准登录。",
     error_device_pending: "此设备从 {{time}} 起可以批准请求。",
     error_device_pending_soon: "此设备尚未获得批准。几分钟后即可批准请求。",
     error_held: "为保护您的账户，Aster Guard 暂缓了此更改。除非您取消，否则它将于 {{time}} 生效。",

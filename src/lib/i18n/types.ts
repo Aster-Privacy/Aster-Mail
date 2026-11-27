@@ -10775,6 +10775,8 @@ export interface GuardTranslations {
   error_disabled: string;
   error_request_conflict: string;
   error_last_device: string;
+  error_backup_device_required: string;
+  setup_needs_backup_device: string;
   error_device_pending: string;
   error_device_pending_soon: string;
   error_held: string;

@@ -12324,6 +12324,8 @@ export const ko = {
     error_disabled: "이 계정에서 Aster Guard가 꺼져 있어 승인할 항목이 없습니다.",
     error_request_conflict: "다른 기기에서 같은 시간에 이 요청을 변경했습니다. 페이지를 새로 고치고 다시 시도하세요.",
     error_last_device: "Aster Guard에서 승인된 유일한 기기이므로 제거하거나 로그아웃할 수 없습니다. 먼저 다른 기기를 승인하거나 Aster Guard를 끄세요.",
+    error_backup_device_required: "Aster Guard를 켜려면 먼저 휴대폰이나 다른 컴퓨터 같은 두 번째 기기에서 Aster에 로그인하세요.",
+    setup_needs_backup_device: "Aster Guard를 설정하려면 먼저 휴대폰이나 다른 컴퓨터 같은 두 번째 기기에서 Aster에 로그인하세요. 설정 후 그 기기를 Aster Guard에 추가하면 이 기기를 잃어버려도 로그인을 승인할 수 있습니다.",
     error_device_pending: "이 기기는 {{time}}부터 요청을 승인할 수 있습니다.",
     error_device_pending_soon: "이 기기는 아직 승인되지 않았습니다. 몇 분 후에 요청을 승인할 수 있습니다.",
     error_held: "계정을 보호하기 위해 Aster Guard가 이 변경을 보류하고 있습니다. 취소하지 않으면 {{time}}에 적용됩니다.",
