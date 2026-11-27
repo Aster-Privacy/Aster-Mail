@@ -12900,6 +12900,7 @@ export const es = {
     settings_search_account_recovery: "Recuperación de cuenta, recuperar cuenta, olvidé la contraseña, métodos de recuperación",
     feature_recovery_codes: "Códigos de recuperación, regenerar códigos, códigos de respaldo, frase de recuperación, códigos de un solo uso",
     settings_search_active_sessions: "Sesiones activas, cerrar sesión en todos los dispositivos, cerrar sesión en todas partes, historial de inicios de sesión",
+    link_device: "añadir dispositivo, emparejar dispositivo, iniciar sesión en otro dispositivo, código del dispositivo",
     account_security_review_cta: "Revisar seguridad, revisión de seguridad, puntuación de protección, protección de la cuenta",
     export_public_key_label: "Exportar clave pública, descargar clave pública, compartir clave pública, algoritmo de clave, ECC, Curve25519, RSA",
     export_private_key_label: "Exportar clave privada, descargar clave privada, copia de seguridad de la clave privada, importar clave, subir clave, restaurar clave",

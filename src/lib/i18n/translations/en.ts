@@ -12603,6 +12603,7 @@ export const en: Translations = {
     settings_search_account_recovery: "restore account, forgot password, recovery methods",
     feature_recovery_codes: "regenerate codes, backup codes, recovery phrase, one-time codes",
     settings_search_active_sessions: "sign out all devices, logout everywhere, login history",
+    link_device: "add device, pair device, sign in on another device, device code",
     account_security_review_cta: "security checkup, protection score, account protection",
     export_public_key_label: "download public key, share public key, key algorithm, ecc, curve25519, rsa, algorithm",
     export_private_key_label: "download private key, backup private key, import key, upload key, restore key",

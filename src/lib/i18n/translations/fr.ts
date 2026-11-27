@@ -13041,6 +13041,7 @@ export const fr = {
     settings_search_account_recovery: "Récupération du compte, restaurer le compte, mot de passe oublié, méthodes de récupération",
     feature_recovery_codes: "Codes de récupération, régénérer les codes, codes de secours, phrase de récupération, codes à usage unique",
     settings_search_active_sessions: "Sessions actives, déconnecter tous les appareils, se déconnecter partout, historique de connexion",
+    link_device: "ajouter un appareil, associer un appareil, se connecter sur un autre appareil, code de l'appareil",
     account_security_review_cta: "Vérifier la sécurité, bilan de sécurité, score de protection, protection du compte",
     export_public_key_label: "Exporter la clé publique, télécharger la clé publique, partager la clé publique, algorithme de clé, ECC, Curve25519, RSA",
     export_private_key_label: "Exporter la clé privée, télécharger la clé privée, sauvegarder la clé privée, importer une clé, téléverser une clé, restaurer la clé",

@@ -12884,6 +12884,7 @@ export const nl = {
     settings_search_account_recovery: "account herstellen, wachtwoord vergeten, herstelmethoden, accountherstel",
     feature_recovery_codes: "codes opnieuw genereren, back-upcodes, herstelzin, eenmalige codes, herstelcodes",
     settings_search_active_sessions: "actieve sessies, overal afmelden, alle apparaten uitloggen, inloggeschiedenis",
+    link_device: "apparaat toevoegen, apparaat koppelen, inloggen op ander apparaat, apparaatcode",
     account_security_review_cta: "beveiligingscontrole, beveiligingsscore, accountbeveiliging, beveiliging controleren",
     export_public_key_label: "openbare sleutel downloaden, openbare sleutel delen, sleutelalgoritme, ecc, curve25519, rsa, algoritme",
     export_private_key_label: "privésleutel downloaden, privésleutel back-up, sleutel importeren, sleutel uploaden, sleutel herstellen",

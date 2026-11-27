@@ -12963,6 +12963,7 @@ export const it = {
     settings_search_account_recovery: "recupero account, ripristina account, password dimenticata, metodi di recupero",
     feature_recovery_codes: "codici di recupero, rigenera codici, codici di backup, frase di recupero, codici monouso",
     settings_search_active_sessions: "sessioni attive, esci da tutti i dispositivi, disconnetti ovunque, cronologia accessi",
+    link_device: "aggiungi dispositivo, associa dispositivo, accedi da un altro dispositivo, codice dispositivo",
     account_security_review_cta: "controllo sicurezza, verifica sicurezza, punteggio protezione, protezione account",
     export_public_key_label: "esporta chiave pubblica, scarica chiave pubblica, condividi chiave pubblica, algoritmo chiave, ECC, curve25519, RSA",
     export_private_key_label: "esporta chiave privata, scarica chiave privata, backup chiave privata, importa chiave, carica chiave, ripristina chiave",

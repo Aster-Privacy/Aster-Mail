@@ -13132,6 +13132,7 @@ export const pl = {
     settings_search_account_recovery: "przywróć konto, nie pamiętam hasła, metody odzyskiwania, odzyskiwanie konta",
     feature_recovery_codes: "wygeneruj kody ponownie, kody zapasowe, fraza odzyskiwania, kody jednorazowe, kody odzyskiwania",
     settings_search_active_sessions: "aktywne sesje, wyloguj wszystkie urządzenia, wyloguj wszędzie, historia logowań",
+    link_device: "dodaj urządzenie, sparuj urządzenie, zaloguj się na innym urządzeniu, kod urządzenia",
     account_security_review_cta: "kontrola bezpieczeństwa, wynik ochrony, ochrona konta, sprawdź bezpieczeństwo",
     export_public_key_label: "pobierz klucz publiczny, udostępnij klucz publiczny, algorytm klucza, ecc, curve25519, rsa, algorytm",
     export_private_key_label: "pobierz klucz prywatny, kopia klucza prywatnego, importuj klucz, prześlij klucz, przywróć klucz",

@@ -231,6 +231,12 @@ export const SETTINGS_SEARCH_REGISTRY: SearchEntry[] = [
     crumb_key: "settings_search.sessions",
   },
   {
+    id: "link_device",
+    label_key: "auth.link_device_title",
+    section: "security",
+    crumb_key: "settings_search.sessions",
+  },
+  {
     id: "account_security_review_cta",
     label_key: "settings.account_security_review_cta",
     section: "security",

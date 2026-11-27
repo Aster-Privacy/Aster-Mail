@@ -11558,6 +11558,7 @@ export const zh_CN = {
     settings_search_account_recovery: "账户恢复, 找回账户, 忘记密码, 恢复方式",
     feature_recovery_codes: "恢复码, 重新生成恢复码, 备用码, 恢复短语, 一次性验证码",
     settings_search_active_sessions: "活动会话, 退出所有设备, 全部登出, 登录记录",
+    link_device: "添加设备, 配对设备, 在其他设备上登录, 设备代码",
     account_security_review_cta: "安全检查, 安全体检, 保护评分, 账户保护",
     export_public_key_label: "导出公钥, 下载公钥, 分享公钥, 密钥算法, ecc, curve25519, rsa",
     export_private_key_label: "导出私钥, 下载私钥, 备份私钥, 导入密钥, 上传密钥, 恢复密钥",

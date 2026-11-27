@@ -12388,6 +12388,7 @@ export const ko = {
     settings_search_account_recovery: "계정 복구, 계정 되찾기, 비밀번호 찾기, 복구 방법",
     feature_recovery_codes: "복구 코드, 코드 재생성, 백업 코드, 복구 문구, 일회용 코드",
     settings_search_active_sessions: "활성 세션, 모든 기기에서 로그아웃, 전체 로그아웃, 로그인 기록",
+    link_device: "기기 추가, 기기 페어링, 다른 기기에서 로그인, 기기 코드",
     account_security_review_cta: "보안 점검, 보안 검토, 보호 점수, 계정 보호",
     export_public_key_label: "공개 키 내보내기, 공개 키 다운로드, 공개 키 공유, 키 알고리즘, ecc, curve25519, rsa",
     export_private_key_label: "개인 키 내보내기, 개인 키 다운로드, 개인 키 백업, 키 가져오기, 키 업로드, 키 복원",

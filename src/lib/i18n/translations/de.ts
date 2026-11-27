@@ -13055,6 +13055,7 @@ export const de = {
     settings_search_account_recovery: "Kontowiederherstellung, Konto wiederherstellen, Passwort vergessen, Wiederherstellungsmethoden",
     feature_recovery_codes: "Wiederherstellungscodes, Codes neu erzeugen, Backup-Codes, Wiederherstellungsphrase, Einmalcodes",
     settings_search_active_sessions: "Aktive Sitzungen, alle Geräte abmelden, überall abmelden, Anmeldeverlauf",
+    link_device: "Gerät hinzufügen, Gerät koppeln, auf anderem Gerät anmelden, Gerätecode",
     account_security_review_cta: "Sicherheit prüfen, Sicherheitscheck, Schutzbewertung, Kontoschutz",
     export_public_key_label: "Öffentlichen Schlüssel exportieren, öffentlichen Schlüssel herunterladen, öffentlichen Schlüssel teilen, Schlüsselalgorithmus, ECC, Curve25519, RSA",
     export_private_key_label: "Privaten Schlüssel exportieren, privaten Schlüssel herunterladen, privaten Schlüssel sichern, Schlüssel importieren, Schlüssel hochladen, Schlüssel wiederherstellen",

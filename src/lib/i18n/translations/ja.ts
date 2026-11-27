@@ -12603,6 +12603,7 @@ export const ja = {
     settings_search_account_recovery: "アカウント復旧, アカウントの回復, パスワードを忘れた, 復旧方法",
     feature_recovery_codes: "リカバリーコード, コードの再生成, バックアップコード, リカバリーフレーズ, ワンタイムコード",
     settings_search_active_sessions: "アクティブなセッション, すべてのデバイスからログアウト, 全端末サインアウト, ログイン履歴",
+    link_device: "デバイスを追加, デバイスをペアリング, 別のデバイスでサインイン, デバイスコード",
     account_security_review_cta: "セキュリティを確認, セキュリティ診断, 保護スコア, アカウント保護",
     export_public_key_label: "公開鍵のエクスポート, 公開鍵のダウンロード, 公開鍵の共有, 鍵のアルゴリズム, ecc, curve25519, rsa",
     export_private_key_label: "秘密鍵のエクスポート, 秘密鍵のダウンロード, 秘密鍵のバックアップ, 鍵のインポート, 鍵のアップロード, 鍵の復元",

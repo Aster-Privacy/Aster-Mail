@@ -12945,6 +12945,7 @@ export const pt_br = {
     settings_search_account_recovery: "recuperação de conta, restaurar conta, esqueci a senha, métodos de recuperação",
     feature_recovery_codes: "códigos de recuperação, gerar novos códigos, códigos de backup, frase de recuperação, códigos de uso único",
     settings_search_active_sessions: "sessões ativas, sair de todos os dispositivos, desconectar de tudo, histórico de login",
+    link_device: "adicionar dispositivo, parear dispositivo, entrar em outro dispositivo, código do dispositivo",
     account_security_review_cta: "verificação de segurança, revisar segurança, pontuação de proteção, proteção da conta",
     export_public_key_label: "exportar chave pública, baixar chave pública, compartilhar chave pública, algoritmo da chave, ECC, curve25519, RSA",
     export_private_key_label: "exportar chave privada, baixar chave privada, backup da chave privada, importar chave, enviar chave, restaurar chave",

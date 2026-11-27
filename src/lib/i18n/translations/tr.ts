@@ -12749,6 +12749,7 @@ export const tr = {
     settings_search_account_recovery: "hesap kurtarma, hesabı geri yükle, şifremi unuttum, kurtarma yöntemleri",
     feature_recovery_codes: "kurtarma kodları, kodları yeniden oluştur, yedek kodlar, kurtarma ifadesi",
     settings_search_active_sessions: "aktif oturumlar, tüm cihazlardan çıkış, her yerden çıkış yap, giriş geçmişi",
+    link_device: "cihaz ekle, cihaz eşle, başka cihazda oturum aç, cihaz kodu",
     account_security_review_cta: "güvenliği gözden geçir, güvenlik kontrolü, hesap koruması, koruma puanı",
     export_public_key_label: "genel anahtarı dışa aktar, açık anahtarı indir, genel anahtarı paylaş, anahtar algoritması, rsa, curve25519",
     export_private_key_label: "özel anahtarı dışa aktar, özel anahtarı indir, özel anahtar yedeği, anahtar içe aktar, anahtarı geri yükle",
