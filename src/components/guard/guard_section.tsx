@@ -42,7 +42,7 @@ import { use_auth } from "@/contexts/auth_context";
 import { use_guard_status } from "@/hooks/use_guard_status";
 import { use_i18n } from "@/lib/i18n/context";
 import { SETTINGS_ANCHORS } from "@/lib/settings_links";
-import { GUARD_SWITCH } from "@/services/api/guard";
+import { GUARD_SWITCH, type GuardStatus } from "@/services/api/guard";
 import {
   GUARD_SETUP_OPEN_EVENT,
   take_guard_setup_request,
@@ -56,6 +56,12 @@ export function count_guard_protections(switches: number) {
     on: GUARD_SWITCH_BITS.filter((bit) => (switches & bit) !== 0).length,
     total: GUARD_SWITCH_BITS.length,
   };
+}
+
+export function guard_setup_blocked(
+  status: Pick<GuardStatus, "switches" | "backup_device_available">,
+): boolean {
+  return status.switches === 0 && status.backup_device_available === false;
 }
 
 export function GuardSection() {
@@ -83,8 +89,20 @@ export function GuardSection() {
   useEffect(() => {
     if (!setup_wanted || !status) return;
     set_setup_wanted(false);
-    if (status.switches === 0) set_wizard_open(true);
+    if (status.switches === 0 && !guard_setup_blocked(status))
+      set_wizard_open(true);
   }, [setup_wanted, status]);
+
+  const waiting_for_backup = !!status && guard_setup_blocked(status);
+
+  useEffect(() => {
+    if (!waiting_for_backup) return;
+    const on_focus = () => void refresh();
+
+    window.addEventListener("focus", on_focus);
+
+    return () => window.removeEventListener("focus", on_focus);
+  }, [waiting_for_backup, refresh]);
 
   if (!user_id || !status) return null;
   const is_on = status.switches !== 0;
@@ -111,6 +129,7 @@ export function GuardSection() {
             is_on ? undefined : (
               <Button
                 data-testid="guard_set_up"
+                disabled={waiting_for_backup}
                 size="sm"
                 variant="outline"
                 onClick={() => set_wizard_open(true)}
@@ -125,6 +144,14 @@ export function GuardSection() {
               {is_on
                 ? t("guard.section_header_on_description")
                 : t("guard.section_description")}
+              {waiting_for_backup && (
+                <span
+                  className="mt-1.5 block text-[13px] text-txt-muted"
+                  data-testid="guard_setup_needs_backup"
+                >
+                  {t("guard.setup_needs_backup_device")}
+                </span>
+              )}
               {is_on && shown_devices.length > 0 && (
                 <span
                   className="mt-1.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-[13px] text-txt-muted"

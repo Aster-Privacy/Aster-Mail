@@ -102,6 +102,7 @@ export interface GuardStatus extends GuardSwitches {
   this_device: GuardThisDevice | null;
   devices: GuardDeviceSummary[];
   pending_changes: GuardPendingChange[];
+  backup_device_available?: boolean;
 }
 
 export interface GuardNewDevice {

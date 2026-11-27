@@ -12684,6 +12684,8 @@ export const tr = {
     error_disabled: "Bu hesapta Aster Guard kapalı, bu nedenle onaylanacak bir şey yok.",
     error_request_conflict: "Başka bir cihaz bu isteği aynı anda değiştirdi. Sayfayı yenileyip tekrar deneyin.",
     error_last_device: "Bu, Aster Guard için onaylı tek cihaz olduğundan onu kaldıramaz veya oturumunu kapatamazsınız. Önce başka bir cihazı onaylayın ya da Aster Guard'ı kapatın.",
+    error_backup_device_required: "Aster Guard'ı açmak için önce telefonunuz veya başka bir bilgisayar gibi ikinci bir cihazda Aster'da oturum açın.",
+    setup_needs_backup_device: "Aster Guard'ı kurmak için önce telefonunuz veya başka bir bilgisayar gibi ikinci bir cihazda Aster'da oturum açın. Kurulumdan sonra o cihazı Aster Guard'a ekleyin; böylece bu cihazı kaybetseniz bile oturum açma isteklerini onaylayabilirsiniz.",
     error_device_pending: "Bu cihaz {{time}} itibarıyla istekleri onaylayabilir.",
     error_device_pending_soon: "Bu cihaz henüz onaylanmadı. Birkaç dakika içinde istekleri onaylayabilir.",
     error_held: "Aster Guard, hesabınızı korumak için bu değişikliği bekletiyor. İptal etmezseniz {{time}} itibarıyla geçerli olur.",

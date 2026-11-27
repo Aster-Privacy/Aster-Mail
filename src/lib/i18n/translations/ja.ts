@@ -12540,6 +12540,8 @@ export const ja = {
     error_disabled: "このアカウントでは Aster Guard がオフになっているため、承認するものはありません。",
     error_request_conflict: "別のデバイスが同時にこのリクエストを変更しました。ページを更新して、もう一度お試しください。",
     error_last_device: "これは Aster Guard で唯一の承認済みデバイスのため、削除やサインアウトはできません。先に別のデバイスを承認するか、Aster Guard をオフにしてください。",
+    error_backup_device_required: "Aster Guard をオンにするには、まずスマートフォンや別のコンピュータなど、2 台目のデバイスで Aster にサインインしてください。",
+    setup_needs_backup_device: "Aster Guard を設定するには、まずスマートフォンや別のコンピュータなど、2 台目のデバイスで Aster にサインインしてください。設定後にそのデバイスを Aster Guard に追加すると、このデバイスをなくしてもサインインを承認できます。",
     error_device_pending: "このデバイスは {{time}} からリクエストを承認できます。",
     error_device_pending_soon: "このデバイスはまだ承認されていません。数分後にリクエストを承認できるようになります。",
     error_held: "アカウントを保護するため、Aster Guard はこの変更を保留しています。キャンセルしない限り、{{time}} に適用されます。",

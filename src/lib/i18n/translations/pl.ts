@@ -13068,6 +13068,8 @@ export const pl = {
     error_disabled: "Aster Guard jest wyłączony na tym koncie, więc nie ma nic do zatwierdzenia.",
     error_request_conflict: "Inne urządzenie zmieniło to żądanie w tym samym czasie. Odśwież stronę i spróbuj ponownie.",
     error_last_device: "To jedyne urządzenie zatwierdzone w Aster Guard, więc nie możesz go usunąć ani wylogować. Najpierw zatwierdź inne urządzenie lub wyłącz Aster Guard.",
+    error_backup_device_required: "Aby włączyć Aster Guard, najpierw zaloguj się do Aster na drugim urządzeniu, na przykład na telefonie lub innym komputerze.",
+    setup_needs_backup_device: "Aby skonfigurować Aster Guard, najpierw zaloguj się do Aster na drugim urządzeniu, na przykład na telefonie lub innym komputerze. Po konfiguracji dodaj to urządzenie do Aster Guard, aby móc zatwierdzać logowania nawet po utracie tego urządzenia.",
     error_device_pending: "To urządzenie będzie mogło zatwierdzać żądania od {{time}}.",
     error_device_pending_soon: "To urządzenie nie jest jeszcze zatwierdzone. Za kilka minut będzie mogło zatwierdzać żądania.",
     error_held: "Aster Guard wstrzymuje tę zmianę, aby chronić Twoje konto. Zacznie obowiązywać o {{time}}, chyba że ją anulujesz.",

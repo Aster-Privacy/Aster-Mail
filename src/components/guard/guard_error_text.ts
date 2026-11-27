@@ -65,6 +65,7 @@ const FIXED_KEYS: Record<string, TranslationKey> = {
   GUARD_RESCUE_CODE_INVALID: "guard.sign_in_rescue_invalid",
   GUARD_REQUEST_CONFLICT: "guard.error_request_conflict",
   GUARD_LAST_DEVICE: "guard.error_last_device",
+  GUARD_BACKUP_DEVICE_REQUIRED: "guard.error_backup_device_required",
   GUARD_ALREADY_ON: "guard.setup_already_on",
   CLIENT_UPGRADE_REQUIRED: "guard.error_upgrade",
   GUARD_ACTION_INVALID: "guard.error_action_invalid",

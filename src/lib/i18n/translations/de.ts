@@ -12991,6 +12991,8 @@ export const de = {
     error_disabled: "Aster Guard ist für dieses Konto deaktiviert, daher gibt es nichts zu bestätigen.",
     error_request_conflict: "Ein anderes Gerät hat diese Anfrage gleichzeitig geändert. Lade die Seite neu und versuche es erneut.",
     error_last_device: "Dies ist das einzige für Aster Guard bestätigte Gerät, daher kannst du es weder entfernen noch abmelden. Bestätige zuerst ein anderes Gerät oder deaktiviere Aster Guard.",
+    error_backup_device_required: "Um Aster Guard zu aktivieren, melde dich zuerst auf einem zweiten Gerät bei Aster an, zum Beispiel auf deinem Smartphone oder einem anderen Computer.",
+    setup_needs_backup_device: "Um Aster Guard einzurichten, melde dich zuerst auf einem zweiten Gerät bei Aster an, zum Beispiel auf deinem Smartphone oder einem anderen Computer. Füge dieses Gerät nach der Einrichtung zu Aster Guard hinzu, damit du Anmeldungen auch dann bestätigen kannst, wenn du dieses Gerät verlierst.",
     error_device_pending: "Dieses Gerät kann ab {{time}} Anfragen bestätigen.",
     error_device_pending_soon: "Dieses Gerät ist noch nicht bestätigt. In wenigen Minuten kann es Anfragen bestätigen.",
     error_held: "Aster Guard hält diese Änderung zum Schutz deines Kontos zurück. Sie gilt ab {{time}}, sofern du sie nicht abbrichst.",

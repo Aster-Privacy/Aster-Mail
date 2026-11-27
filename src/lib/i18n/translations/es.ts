@@ -12834,6 +12834,8 @@ export const es = {
     error_disabled: "Aster Guard está desactivado en esta cuenta, así que no hay nada que aprobar.",
     error_request_conflict: "Otro dispositivo ha cambiado esta solicitud al mismo tiempo. Actualiza la página y vuelve a intentarlo.",
     error_last_device: "Este es el único dispositivo aprobado para Aster Guard, así que no puedes quitarlo ni cerrar su sesión. Aprueba primero otro dispositivo o desactiva Aster Guard.",
+    error_backup_device_required: "Para activar Aster Guard, primero inicia sesión en Aster en un segundo dispositivo, como tu teléfono u otro ordenador.",
+    setup_needs_backup_device: "Para configurar Aster Guard, primero inicia sesión en Aster en un segundo dispositivo, como tu teléfono u otro ordenador. Después de la configuración, añade ese dispositivo a Aster Guard para poder aprobar inicios de sesión aunque pierdas este.",
     error_device_pending: "Este dispositivo podrá aprobar solicitudes a partir de las {{time}}.",
     error_device_pending_soon: "Este dispositivo aún no está aprobado. Podrá aprobar solicitudes en unos minutos.",
     error_held: "Aster Guard retiene este cambio para proteger tu cuenta. Se aplicará a las {{time}} salvo que lo canceles.",
