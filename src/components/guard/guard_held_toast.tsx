@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type { GuardHeldInfo } from "@/services/api/client/helpers";
+import type { GuardDevice } from "@/services/guard/guard_device";
 
 import { useEffect, useRef, useState } from "react";
 
@@ -38,6 +39,7 @@ import {
   is_guard_hold_skippable,
 } from "@/services/api/client/helpers";
 import { skip_held_change } from "@/services/guard/guard_changes";
+import { get_guard_device } from "@/services/guard/guard_device";
 
 export const GUARD_HELD_TOAST_MS = 8000;
 
@@ -48,14 +50,13 @@ export function open_guard_settings(): void {
 export function GuardHeldToast({ user_id }: { user_id: string | null }) {
   const { t } = use_i18n();
   const step_up = use_guard_step_up();
-  const { device } = use_guard_device(user_id, true);
   const busy_ref = useRef(false);
-  const confirm_ref = useRef<(info: GuardHeldInfo) => Promise<void>>(
-    async () => undefined,
-  );
+  const confirm_ref = useRef<
+    (info: GuardHeldInfo, device: GuardDevice) => Promise<void>
+  >(async () => undefined);
 
-  confirm_ref.current = async (info: GuardHeldInfo) => {
-    if (!device || !user_id || busy_ref.current) return;
+  confirm_ref.current = async (info: GuardHeldInfo, device: GuardDevice) => {
+    if (!user_id || busy_ref.current) return;
     busy_ref.current = true;
     try {
       const proof = await step_up.request_proof();
@@ -77,17 +78,21 @@ export function GuardHeldToast({ user_id }: { user_id: string | null }) {
     }
   };
 
-  const can_confirm = Boolean(device && user_id);
-
   useEffect(() => {
-    const on_held = (event: Event) => {
+    let alive = true;
+    const on_held = async (event: Event) => {
       const info = (event as CustomEvent<GuardHeldInfo>).detail;
 
       if (!info?.id) return;
-      const confirmable =
-        can_confirm &&
-        info.skippable !== false &&
-        is_guard_hold_skippable(info.kind);
+      const skippable =
+        info.skippable !== false && is_guard_hold_skippable(info.kind);
+      const device =
+        skippable && user_id
+          ? await get_guard_device(user_id).catch(() => null)
+          : null;
+
+      if (!alive) return;
+      const confirmable = device !== null;
 
       show_toast(
         t(confirmable ? "guard.held_toast_confirm" : "guard.held_toast", {
@@ -98,16 +103,21 @@ export function GuardHeldToast({ user_id }: { user_id: string | null }) {
         confirmable
           ? {
               label: t("guard.held_skip"),
-              on_click: () => void confirm_ref.current(info),
+              on_click: () => void confirm_ref.current(info, device),
             }
           : { label: t("guard.held_view"), on_click: open_guard_settings },
       );
     };
 
-    window.addEventListener(GUARD_HELD_EVENT, on_held);
+    const listener = (event: Event) => void on_held(event);
 
-    return () => window.removeEventListener(GUARD_HELD_EVENT, on_held);
-  }, [t, can_confirm]);
+    window.addEventListener(GUARD_HELD_EVENT, listener);
+
+    return () => {
+      alive = false;
+      window.removeEventListener(GUARD_HELD_EVENT, listener);
+    };
+  }, [t, user_id]);
 
   return <>{step_up.step_up_modal}</>;
 }
