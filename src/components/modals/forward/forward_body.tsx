@@ -23,7 +23,7 @@ import type { TranslationKey } from "@/lib/i18n";
 import type { UseEditorReturn } from "@/hooks/use_editor";
 import type { SenderOption } from "@/hooks/use_sender_aliases";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { sanitize_compose_paste } from "@/lib/html_sanitizer";
 import { proxy_compose_image_sources } from "@/lib/compose_image_sources";
@@ -32,6 +32,7 @@ import { use_compose_image_hydration } from "@/hooks/use_compose_image_hydration
 import { defer_compose_images } from "@/lib/compose_deferred_images";
 import { EditableQuotedHtml } from "@/components/compose/editable_quoted_html";
 import { CloseIcon } from "@/components/common/icons";
+import { ImageResizeOverlay } from "@/components/compose/image_resize_overlay";
 import { ExpirationPicker } from "@/components/compose/expiration_picker";
 import { SchedulePicker } from "@/components/compose/schedule_picker";
 import { TemplatePicker } from "@/components/compose/template_picker";
@@ -139,6 +140,7 @@ export function ForwardBody({
 }: ForwardBodyProps) {
   use_compose_readable_color(message_editor_ref);
   use_compose_image_hydration(message_editor_ref);
+  const editor_scroll_ref = useRef<HTMLDivElement>(null);
   const [has_shown_forward, set_has_shown_forward] = useState(false);
 
   useEffect(() => {
@@ -160,7 +162,10 @@ export function ForwardBody({
       {!is_minimized && (
         <div className="flex-1 flex flex-col min-h-0">
           <div className="flex-1 px-4 pt-2 pb-2 overflow-hidden flex flex-col min-h-0">
-            <div className="flex-1 overflow-auto">
+            <div
+              ref={editor_scroll_ref}
+              className="relative flex-1 overflow-auto"
+            >
               <div
                 ref={message_editor_ref}
                 contentEditable
@@ -229,12 +234,23 @@ export function ForwardBody({
                   />
                 )}
               </div>
+              <ImageResizeOverlay
+                container_ref={editor_scroll_ref}
+                editor={editor}
+              />
             </div>
             <style>{`
               [contenteditable=true]:empty:before {
                 content: attr(data-placeholder);
                 color: var(--text-muted);
                 pointer-events: none;
+              }
+              [data-compose-editor] img {
+                cursor: pointer;
+              }
+              [data-compose-editor] img:hover {
+                outline: 2px solid color-mix(in srgb, var(--accent-color, #3b82f6) 50%, transparent);
+                outline-offset: 2px;
               }
             `}</style>
           </div>

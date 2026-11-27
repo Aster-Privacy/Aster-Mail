@@ -18,6 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import type { ImageResizeHandle } from "@/lib/compose_image_size";
 
 export type HeadingLevel = "p" | "h1" | "h2" | "h3";
 export type TextAlignment = "left" | "center" | "right" | "justify";
@@ -566,9 +567,8 @@ export interface UseEditorReturn {
   selected_image: ImageResizeState;
   deselect_image: () => void;
   start_image_resize: (
-    e: React.MouseEvent,
-    handle: string,
-    container_ref: React.RefObject<HTMLElement>,
+    e: React.PointerEvent,
+    handle: ImageResizeHandle,
   ) => void;
   delete_selected_image: () => void;
   set_image_width: (width: number) => void;

@@ -20,7 +20,17 @@
 //
 import type { ImageResizeState } from "@/hooks/editor_utils";
 
+import type { ImageResizeHandle } from "@/lib/compose_image_size";
+
 import { useCallback, useState, useEffect, useRef } from "react";
+
+import {
+  apply_image_width,
+  clamp_image_width,
+  compute_drag_width,
+  get_editor_content_width,
+  read_image_width,
+} from "@/lib/compose_image_size";
 
 export function use_editor_image(
   editor_ref: React.RefObject<HTMLDivElement | null>,
@@ -64,11 +74,9 @@ export function use_editor_image(
   }, [deselect_image, handle_input]);
 
   const start_image_resize = useCallback(
-    (
-      e: React.MouseEvent,
-      handle: string,
-      container_ref: React.RefObject<HTMLElement>,
-    ) => {
+    (e: React.PointerEvent, handle: ImageResizeHandle) => {
+      if (e.pointerType === "mouse" && e.button !== 0) return;
+
       e.preventDefault();
       e.stopPropagation();
 
@@ -76,78 +84,55 @@ export function use_editor_image(
 
       if (!img) return;
 
+      const pointer_id = e.pointerId;
       const start_x = e.clientX;
       const start_y = e.clientY;
-      const start_width = img.offsetWidth;
-      const start_height = img.offsetHeight;
-      const aspect_ratio = start_width / start_height;
-      const container = container_ref.current;
-      const max_width = container
-        ? container.clientWidth - 32
-        : start_width * 3;
-      const min_width = 50;
+      const start_width = img.offsetWidth || read_image_width(img);
+      const start_height = img.offsetHeight || start_width;
+      const max_width = get_editor_content_width(editor_ref.current);
 
-      const on_mouse_move = (move_e: MouseEvent) => {
-        let dx = move_e.clientX - start_x;
-        let dy = move_e.clientY - start_y;
+      const on_pointer_move = (move_e: PointerEvent) => {
+        if (move_e.pointerId !== pointer_id) return;
 
-        let new_width = start_width;
+        move_e.preventDefault();
 
-        if (handle.includes("e")) {
-          new_width = Math.max(
-            min_width,
-            Math.min(max_width, start_width + dx),
-          );
-        } else if (handle.includes("w")) {
-          new_width = Math.max(
-            min_width,
-            Math.min(max_width, start_width - dx),
-          );
-        } else if (handle.includes("s")) {
-          const new_height = Math.max(
-            min_width / aspect_ratio,
-            start_height + dy,
-          );
+        const next_width = compute_drag_width({
+          handle,
+          start_width,
+          start_height,
+          dx: move_e.clientX - start_x,
+          dy: move_e.clientY - start_y,
+          max_width,
+        });
 
-          new_width = new_height * aspect_ratio;
-        } else if (handle.includes("n")) {
-          const new_height = Math.max(
-            min_width / aspect_ratio,
-            start_height - dy,
-          );
-
-          new_width = new_height * aspect_ratio;
-        }
-
-        new_width = Math.max(min_width, Math.min(max_width, new_width));
-
-        img.style.width = `${Math.round(new_width)}px`;
-        img.style.height = "auto";
-        img.style.maxWidth = `${Math.round(new_width)}px`;
-        img.removeAttribute("width");
-        img.removeAttribute("height");
-
+        apply_image_width(img, next_width);
         update_image_rect();
       };
 
       const detach = () => {
-        document.removeEventListener("mousemove", on_mouse_move);
-        document.removeEventListener("mouseup", on_mouse_up);
+        document.removeEventListener("pointermove", on_pointer_move);
+        document.removeEventListener("pointerup", on_pointer_end);
+        document.removeEventListener("pointercancel", on_pointer_end);
         resize_cleanup_ref.current = null;
       };
 
-      const on_mouse_up = () => {
+      const on_pointer_end = (end_e: PointerEvent) => {
+        if (end_e.pointerId !== pointer_id) return;
+
         detach();
         handle_input();
         update_image_rect();
       };
 
       resize_cleanup_ref.current?.();
-      document.addEventListener("mousemove", on_mouse_move);
-      document.addEventListener("mouseup", on_mouse_up);
+      document.addEventListener("pointermove", on_pointer_move, {
+        passive: false,
+      });
+      document.addEventListener("pointerup", on_pointer_end);
+      document.addEventListener("pointercancel", on_pointer_end);
       resize_cleanup_ref.current = detach;
     },
-    [update_image_rect, handle_input],
+    [editor_ref, update_image_rect, handle_input],
   );
 
   useEffect(
@@ -163,15 +148,10 @@ export function use_editor_image(
 
       if (!img) return;
 
-      const editor_width = editor_ref.current?.clientWidth ?? 0;
-      const max_width = editor_width > 64 ? editor_width - 32 : Infinity;
-      const clamped = Math.min(max_width, Math.max(20, Math.round(width)));
-
-      img.style.width = `${clamped}px`;
-      img.style.height = "auto";
-      img.style.maxWidth = `${clamped}px`;
-      img.removeAttribute("width");
-      img.removeAttribute("height");
+      apply_image_width(
+        img,
+        clamp_image_width(width, get_editor_content_width(editor_ref.current)),
+      );
       handle_input();
       update_image_rect();
     },
@@ -214,7 +194,11 @@ export function use_editor_image(
     const handle_global_mousedown = (e: MouseEvent) => {
       if (!selected_image_ref.current) return;
 
-      if (!editor.contains(e.target as Node)) {
+      const target = e.target as Element | null;
+
+      if (target?.closest?.("[data-image-resize-overlay]")) return;
+
+      if (!editor.contains(target)) {
         deselect_image();
       }
     };

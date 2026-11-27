@@ -23,7 +23,7 @@ import type { TranslationKey } from "@/lib/i18n";
 import type { UseEditorReturn } from "@/hooks/use_editor";
 import type { SenderOption } from "@/hooks/use_sender_aliases";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { Tooltip } from "@aster/ui";
 import { PencilIcon } from "@heroicons/react/24/outline";
 
@@ -34,6 +34,7 @@ import { use_compose_image_hydration } from "@/hooks/use_compose_image_hydration
 import { defer_compose_images } from "@/lib/compose_deferred_images";
 import { QuotedHtmlPreview } from "@/components/compose/quoted_html_preview";
 import { CloseIcon } from "@/components/common/icons";
+import { ImageResizeOverlay } from "@/components/compose/image_resize_overlay";
 import { ConfirmationModal } from "@/components/modals/confirmation_modal";
 import {
   ReplyFromMismatchModal,
@@ -163,6 +164,7 @@ export function ReplyBody({
 }: ReplyBodyProps) {
   use_compose_readable_color(message_editor_ref);
   use_compose_image_hydration(message_editor_ref);
+  const editor_scroll_ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const el = message_editor_ref.current;
@@ -191,7 +193,10 @@ export function ReplyBody({
             />
           )}
           <div className="flex-1 px-4 pt-2 pb-2 overflow-hidden flex flex-col min-h-0">
-            <div className="flex-1 overflow-auto">
+            <div
+              ref={editor_scroll_ref}
+              className="relative flex-1 overflow-auto"
+            >
               <div
                 ref={message_editor_ref}
                 contentEditable
@@ -224,12 +229,23 @@ export function ReplyBody({
                 }}
                 onPaste={editor.handle_paste}
               />
+              <ImageResizeOverlay
+                container_ref={editor_scroll_ref}
+                editor={editor}
+              />
             </div>
             <style>{`
               [contenteditable=true]:empty:before {
                 content: attr(data-placeholder);
                 color: var(--text-muted);
                 pointer-events: none;
+              }
+              [data-compose-editor] img {
+                cursor: pointer;
+              }
+              [data-compose-editor] img:hover {
+                outline: 2px solid color-mix(in srgb, var(--accent-color, #3b82f6) 50%, transparent);
+                outline-offset: 2px;
               }
             `}</style>
           </div>
