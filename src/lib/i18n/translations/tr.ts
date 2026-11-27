@@ -8971,22 +8971,22 @@ export const tr = {
     export_start_button: "Dışa aktarmayı başlat",
     export_step_reauth_title: "Parolanızı onaylayın",
     export_reauth_prompt:
-      "Bu dışa aktarmayı yetkilendirmek için hesap parolanızı yeniden girin.",
+      "Verilerinizi dışa aktarmak için hesap parolanızı girin.",
     export_reauth_submit: "Yetkilendir",
-    export_reauth_failed: "Parola eşleşmedi.",
+    export_reauth_failed: "Parola yanlış. Tekrar deneyin.",
     export_step_verify_title: "Kimliğinizi doğrulayın",
     export_verify_description:
-      "Bu dışa aktarmayı hazırlamadan önce hesap parolanızı onaylayın.",
+      "Dışa aktarmayı hazırlamak için hesap parolanızı onaylayın.",
     export_verify_submit: "Doğrula",
     export_security_section_title: "Doğrulama gerekli",
     export_security_password_row_title: "Hesap şifresi ve 2FA",
     export_security_password_row_body:
       "Her dışa aktarmadan önce şifrenizi ve 2FA açıksa kimlik doğrulayıcı kodunuzu onaylarsınız.",
-    export_security_vault_row_title: "Şifreleme kasası parolası",
+    export_security_vault_row_title: "Bu cihazda parola denetimi",
     export_security_vault_row_body:
-      "Yerel kasa parolanız, posta dışa aktarma için çözülmeden önce bu cihazı onaylar.",
+      "Aster Mail, postanızın şifresini dışa aktarma için çözmeden önce parolanızı bu cihazda denetler.",
     export_security_vault_row_help:
-      "Bu, bu cihazın yerel kasa parolasıdır, hesap parolanız değildir. Yalnızca bu cihazdaki şifreleme anahtarlarınızın kilidini açar.",
+      "Bu denetim yalnızca bu cihazda yapılır. Oturum açarken kullandığınız parolayı kullanır. Bu parola, buradaki şifreleme anahtarlarınızın kilidini de açar.",
     export_security_required_badge: "Gerekli",
     export_warning_title: "Dikkat",
     export_warning_body:

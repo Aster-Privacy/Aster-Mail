@@ -4722,7 +4722,7 @@ export const es = {
     vault: "Bóveda",
     loaded: "Cargado",
     not_loaded: "No cargado",
-    passphrase: "Frase de contraseña",
+    passphrase: "Contraseña",
     cached: "En caché",
     not_cached: "No en caché",
     key_age: "Antigüedad de la clave",
@@ -8661,23 +8661,24 @@ export const es = {
     export_progress_eta: "Aproximadamente {{duration}} restante",
     export_progress_messages: "{{processed}} de {{total}} mensajes",
     export_rate_limited_paused: "Exportación pausada - límite alcanzado",
-    export_reauth_failed: "Verificación fallida",
+    export_reauth_failed: "Contraseña incorrecta. Inténtalo de nuevo.",
     export_step_verify_title: "Confirma que eres tú",
     export_verify_description:
-      "Confirma la contraseña de tu cuenta antes de preparar esta exportación.",
+      "Para preparar la exportación, confirma la contraseña de tu cuenta.",
     export_verify_submit: "Verificar",
     export_security_section_title: "Verificación requerida",
     export_security_password_row_title: "Contraseña de la cuenta y 2FA",
     export_security_password_row_body:
       "Confirmarás tu contraseña, y tu código de autenticación si 2FA está activado, antes de cada exportación.",
     export_security_vault_row_title:
-      "Frase de contraseña de la bóveda de cifrado",
+      "Comprobación de la contraseña en este dispositivo",
     export_security_vault_row_body:
-      "Tu frase de contraseña local de la bóveda confirma este dispositivo antes de descifrar el correo para exportarlo.",
+      "Aster Mail comprueba tu contraseña en este dispositivo antes de descifrar tu correo para exportarlo.",
     export_security_vault_row_help:
-      "Esta es la frase de acceso de la bóveda local de este dispositivo, no tu contraseña de cuenta. Desbloquea tus claves de cifrado solo en este dispositivo.",
+      "Esta comprobación solo se hace en este dispositivo. Usa la misma contraseña con la que inicias sesión, que también desbloquea tus claves de cifrado aquí.",
     export_security_required_badge: "Obligatorio",
-    export_reauth_prompt: "Ingresa tu contraseña para continuar",
+    export_reauth_prompt:
+      "Para exportar tus datos, introduce la contraseña de tu cuenta.",
     export_reauth_submit: "Verificar",
     export_scope_contacts_body:
       "Libreta de direcciones exportada en vCard 4.0 (se puede importar en Apple, Google, Thunderbird, etc.) y en JSON completo.",
@@ -8716,7 +8717,7 @@ export const es = {
     export_step_destination_title: "Destino",
     export_step_format_title: "Formato de exportación",
     export_step_progress_title: "Exportación en curso",
-    export_step_reauth_title: "Verificación requerida",
+    export_step_reauth_title: "Confirma tu contraseña",
     export_step_scope_title: "¿Qué deseas exportar?",
     export_title: "Exportar tus datos",
     export_warning_body:

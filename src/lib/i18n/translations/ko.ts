@@ -4687,7 +4687,7 @@ export const ko = {
     vault: "금고",
     loaded: "로드됨",
     not_loaded: "로드되지 않음",
-    passphrase: "암호 문구",
+    passphrase: "비밀번호",
     cached: "캐시됨",
     not_cached: "캐시되지 않음",
     key_age: "키 경과 시간",
@@ -8712,23 +8712,22 @@ export const ko = {
     export_description:
       "이메일, 연락처, 설정을 포함한 모든 데이터의 사본을 다운로드하세요.",
     export_start_button: "내보내기 시작",
-    export_step_reauth_title: "신원 확인",
-    export_reauth_prompt: "내보내기를 시작하려면 비밀번호를 입력하세요",
+    export_step_reauth_title: "비밀번호 확인",
+    export_reauth_prompt: "데이터를 내보내려면 계정 비밀번호를 입력하세요.",
     export_reauth_submit: "확인",
-    export_reauth_failed: "비밀번호가 일치하지 않습니다. 다시 시도하면 됩니다.",
+    export_reauth_failed: "비밀번호가 올바르지 않습니다. 다시 시도하세요.",
     export_step_verify_title: "본인 확인",
-    export_verify_description:
-      "이 내보내기를 준비하기 전에 계정 비밀번호를 확인해 주세요.",
+    export_verify_description: "내보내기를 준비하려면 계정 비밀번호를 확인하세요.",
     export_verify_submit: "확인",
     export_security_section_title: "확인 필요",
     export_security_password_row_title: "계정 비밀번호 및 2FA",
     export_security_password_row_body:
       "내보내기 전마다 비밀번호를, 2FA가 켜져 있으면 인증 코드도 확인합니다.",
-    export_security_vault_row_title: "암호화 보관함 암호",
+    export_security_vault_row_title: "이 기기에서 비밀번호 확인",
     export_security_vault_row_body:
-      "로컬 보관함 암호는 내보내기를 위해 메일을 복호화하기 전에 이 기기를 확인합니다.",
+      "Aster Mail은 내보내기를 위해 메일을 복호화하기 전에 이 기기에서 비밀번호를 확인합니다.",
     export_security_vault_row_help:
-      "이는 이 기기의 로컬 보관함 암호이며 계정 비밀번호가 아닙니다. 이 기기에서만 암호화 키의 잠금을 해제합니다.",
+      "이 확인은 이 기기에서만 이루어집니다. 로그인할 때 사용하는 비밀번호와 같으며, 이 기기에서 암호화 키의 잠금도 해제합니다.",
     export_security_required_badge: "필수",
     export_warning_title: "내보내기 전 확인",
     export_warning_body:

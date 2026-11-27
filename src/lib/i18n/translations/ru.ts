@@ -4834,7 +4834,7 @@ export const ru = {
     vault: "Хранилище",
     loaded: "Загружено",
     not_loaded: "Не загружено",
-    passphrase: "Кодовая фраза",
+    passphrase: "Пароль",
     cached: "В кэше",
     not_cached: "Не в кэше",
     key_age: "Возраст ключа",
@@ -8774,22 +8774,23 @@ export const ru = {
     export_progress_messages: "{{ processed }} из {{ total }} сообщений",
     export_rate_limited_paused:
       "Кратковременная пауза из-за серверных ограничений.",
-    export_reauth_failed: "Пароль не совпал.",
+    export_reauth_failed: "Неверный пароль. Попробуйте ещё раз.",
     export_step_verify_title: "Подтвердите личность",
     export_verify_description:
-      "Подтвердите пароль своей учётной записи, прежде чем мы подготовим этот экспорт.",
+      "Чтобы подготовить экспорт, подтвердите пароль от аккаунта.",
     export_verify_submit: "Подтвердить",
     export_security_section_title: "Требуется подтверждение",
     export_security_password_row_title: "Пароль аккаунта и 2FA",
     export_security_password_row_body:
       "Перед каждым экспортом вам нужно будет подтвердить пароль и код аутентификатора, если включена 2FA.",
-    export_security_vault_row_title: "Пароль хранилища шифрования",
+    export_security_vault_row_title: "Проверка пароля на этом устройстве",
     export_security_vault_row_body:
-      "Локальный пароль хранилища подтверждает это устройство перед расшифровкой почты для экспорта.",
+      "Aster Mail проверяет ваш пароль на этом устройстве, прежде чем расшифровать почту для экспорта.",
     export_security_vault_row_help:
-      "Это пароль локального хранилища этого устройства, а не пароль вашей учётной записи. Он разблокирует ваши ключи шифрования только на этом устройстве.",
+      "Эта проверка выполняется только на этом устройстве. Используется тот же пароль, с которым вы входите в аккаунт. Он же разблокирует здесь ваши ключи шифрования.",
     export_security_required_badge: "Обязательно",
-    export_reauth_prompt: "Введите пароль аккаунта для авторизации экспорта.",
+    export_reauth_prompt:
+      "Чтобы экспортировать данные, введите пароль от аккаунта.",
     export_reauth_submit: "Авторизовать",
     export_scope_contacts_body:
       "Адресная книга в формате vCard 4.0 (импортируется в Apple, Google, Thunderbird и др.) плюс полный JSON.",
@@ -8829,7 +8830,7 @@ export const ru = {
     export_step_destination_title: "Выбрать место",
     export_step_format_title: "Выбрать формат",
     export_step_progress_title: "Экспорт",
-    export_step_reauth_title: "Подтвердить пароль",
+    export_step_reauth_title: "Подтвердите пароль",
     export_step_scope_title: "Что экспортировать",
     export_title: "Экспорт писем",
     export_warning_body:

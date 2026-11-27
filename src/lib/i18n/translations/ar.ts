@@ -4815,7 +4815,7 @@ export const ar = {
     vault: "الخزنة",
     loaded: "محمّل",
     not_loaded: "غير محمّل",
-    passphrase: "عبارة المرور",
+    passphrase: "كلمة المرور",
     cached: "مخزن مؤقتًا",
     not_cached: "غير مخزن مؤقتًا",
     key_age: "عمر المفتاح",
@@ -8850,23 +8850,22 @@ export const ar = {
     export_description:
       "نزّل صندوق بريدك كملف MBOX قياسي أو مجلد من رسائل .EML منفردة.",
     export_start_button: "بدء التصدير",
-    export_step_reauth_title: "تأكيد عبارة المرور",
-    export_reauth_prompt:
-      "أعد إدخال عبارة مرور حسابك للموافقة على هذا التصدير.",
+    export_step_reauth_title: "تأكيد كلمة المرور",
+    export_reauth_prompt: "لتصدير بياناتك، أدخل كلمة مرور حسابك.",
     export_reauth_submit: "تفويض",
-    export_reauth_failed: "عبارة المرور غير مطابقة.",
+    export_reauth_failed: "كلمة المرور غير صحيحة. حاول مرة أخرى.",
     export_step_verify_title: "تحقق من هويتك",
-    export_verify_description: "أكّد كلمة مرور حسابك قبل أن نجهز هذا التصدير.",
+    export_verify_description: "لتجهيز التصدير، أكّد كلمة مرور حسابك.",
     export_verify_submit: "تحقق",
     export_security_section_title: "التحقق مطلوب",
     export_security_password_row_title: "كلمة مرور الحساب والتحقق بخطوتين",
     export_security_password_row_body:
       "ستؤكد كلمة المرور، ورمز المصادقة إذا كانت خاصية التحقق بخطوتين مفعّلة، قبل كل عملية تصدير.",
-    export_security_vault_row_title: "عبارة مرور خزنة التشفير",
+    export_security_vault_row_title: "التحقق من كلمة المرور على هذا الجهاز",
     export_security_vault_row_body:
-      "تؤكد عبارة مرور الخزنة المحلية هذا الجهاز قبل فك تشفير البريد من أجل التصدير.",
+      "يتحقق Aster Mail من كلمة مرورك على هذا الجهاز قبل فك تشفير بريدك للتصدير.",
     export_security_vault_row_help:
-      "هذه هي عبارة مرور الخزنة المحلية لهذا الجهاز، وليست كلمة مرور حسابك. إنها تفتح مفاتيح التشفير الخاصة بك على هذا الجهاز فقط.",
+      "يتم هذا التحقق على هذا الجهاز فقط. ويستخدم كلمة المرور نفسها التي تسجّل الدخول بها، وهي التي تفتح مفاتيح التشفير هنا أيضًا.",
     export_security_required_badge: "مطلوب",
     export_warning_title: "تنبيه",
     export_warning_body:

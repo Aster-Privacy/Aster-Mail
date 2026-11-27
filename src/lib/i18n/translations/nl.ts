@@ -4624,7 +4624,7 @@ export const nl = {
     vault: "Kluis",
     loaded: "Geladen",
     not_loaded: "Niet geladen",
-    passphrase: "Wachtwoordzin",
+    passphrase: "Wachtwoord",
     cached: "In cache",
     not_cached: "Niet in cache",
     key_age: "Sleutelleeftijd",
@@ -8624,22 +8624,23 @@ export const nl = {
     export_progress_messages: "{{processed}} van {{total}} berichten",
     export_rate_limited_paused:
       "Exporteren gepauzeerd vanwege snelheidslimiet - wordt automatisch hervat",
-    export_reauth_failed: "Herverificatie mislukt",
+    export_reauth_failed: "Onjuist wachtwoord. Probeer het opnieuw.",
     export_step_verify_title: "Bevestig dat jij het bent",
     export_verify_description:
-      "Bevestig je accountwachtwoord voordat we deze export voorbereiden.",
+      "Bevestig je accountwachtwoord om de export voor te bereiden.",
     export_verify_submit: "Verifiëren",
     export_security_section_title: "Verificatie vereist",
     export_security_password_row_title: "Accountwachtwoord & 2FA",
     export_security_password_row_body:
       "Je bevestigt je wachtwoord, en je authenticatorcode als 2FA is ingeschakeld, vóór elke export.",
-    export_security_vault_row_title: "Wachtwoordzin voor versleutelingskluis",
+    export_security_vault_row_title: "Wachtwoordcontrole op dit apparaat",
     export_security_vault_row_body:
-      "Je lokale kluiswachtwoordzin bevestigt dit apparaat voordat e-mail wordt ontsleuteld voor export.",
+      "Aster Mail controleert je wachtwoord op dit apparaat voordat je e-mail voor de export wordt ontsleuteld.",
     export_security_vault_row_help:
-      "Dit is de wachtwoordzin van de lokale kluis van dit apparaat, niet je accountwachtwoord. Deze ontgrendelt je encryptiesleutels alleen op dit apparaat.",
+      "Deze controle gebeurt alleen op dit apparaat. Het is hetzelfde wachtwoord waarmee je inlogt, en het ontgrendelt hier ook je versleutelingssleutels.",
     export_security_required_badge: "Vereist",
-    export_reauth_prompt: "Voer je wachtwoord in om door te gaan",
+    export_reauth_prompt:
+      "Voer je accountwachtwoord in om je gegevens te exporteren.",
     export_reauth_submit: "Verifiëren",
     export_scope_contacts_body:
       "Adresboek geëxporteerd als vCard 4.0 (te importeren in Apple, Google, Thunderbird enzovoort) plus volledige JSON.",
@@ -8679,7 +8680,7 @@ export const nl = {
     export_step_destination_title: "Bestemming",
     export_step_format_title: "Formaat",
     export_step_progress_title: "Voortgang",
-    export_step_reauth_title: "Verificatie",
+    export_step_reauth_title: "Bevestig je wachtwoord",
     export_step_scope_title: "Bereik",
     export_title: "E-mail exporteren",
     export_warning_body:

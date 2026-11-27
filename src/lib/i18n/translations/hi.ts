@@ -3748,7 +3748,7 @@ export const hi = {
     vault: "वॉल्ट",
     loaded: "लोड हो गया",
     not_loaded: "लोड नहीं हुआ",
-    passphrase: "पासफ़्रेज़",
+    passphrase: "पासवर्ड",
     cached: "कैश में",
     not_cached: "कैश नहीं हुआ",
     key_age: "कुंजी की उम्र",
@@ -8904,24 +8904,24 @@ export const hi = {
     export_description:
       "अपना मेलबॉक्स मानक MBOX फ़ाइल के तौर पर, या अलग-अलग .EML संदेशों वाले फ़ोल्डर के तौर पर डाउनलोड करें।",
     export_start_button: "एक्सपोर्ट शुरू करें",
-    export_step_reauth_title: "अपने पासफ़्रेज़ की पुष्टि करें",
+    export_step_reauth_title: "अपने पासवर्ड की पुष्टि करें",
     export_reauth_prompt:
-      "इस एक्सपोर्ट की अनुमति देने के लिए अपने खाते का पासफ़्रेज़ दोबारा डालें।",
+      "अपना डेटा एक्सपोर्ट करने के लिए, अपने खाते का पासवर्ड डालें।",
     export_reauth_submit: "अनुमति दें",
-    export_reauth_failed: "पासफ़्रेज़ मेल नहीं खाया।",
+    export_reauth_failed: "गलत पासवर्ड। फिर से कोशिश करें।",
     export_step_verify_title: "पुष्टि करें कि यह आप ही हैं",
     export_verify_description:
-      "यह एक्सपोर्ट तैयार करने से पहले अपने खाते के पासवर्ड की पुष्टि करें।",
+      "एक्सपोर्ट तैयार करने के लिए, अपने खाते के पासवर्ड की पुष्टि करें।",
     export_verify_submit: "सत्यापित करें",
     export_security_section_title: "पुष्टि ज़रूरी है",
     export_security_password_row_title: "खाते का पासवर्ड और 2FA",
     export_security_password_row_body:
       "हर एक्सपोर्ट से पहले आप अपना पासवर्ड, और 2FA चालू होने पर अपना प्रमाणक कोड, पुष्ट करेंगे।",
-    export_security_vault_row_title: "एन्क्रिप्शन वॉल्ट का पासफ़्रेज़",
+    export_security_vault_row_title: "इस डिवाइस पर पासवर्ड की जांच",
     export_security_vault_row_body:
-      "एक्सपोर्ट के लिए मेल डिक्रिप्ट होने से पहले आपका लोकल वॉल्ट पासफ़्रेज़ इस डिवाइस की पुष्टि करता है।",
+      "एक्सपोर्ट के लिए आपका मेल डिक्रिप्ट करने से पहले Aster Mail इस डिवाइस पर आपके पासवर्ड की जांच करता है।",
     export_security_vault_row_help:
-      "यह आपके डिवाइस के वॉल्ट का पासफ़्रेज़ है, आपके खाते का पासवर्ड नहीं। यह सिर्फ़ इसी डिवाइस पर आपकी एन्क्रिप्शन कुंजियां अनलॉक करता है।",
+      "यह जांच सिर्फ़ इसी डिवाइस पर होती है। इसमें वही पासवर्ड इस्तेमाल होता है जिससे आप साइन इन करते हैं, और वही यहां आपकी एन्क्रिप्शन कुंजियां भी अनलॉक करता है।",
     export_security_required_badge: "ज़रूरी",
     export_warning_title: "ध्यान दें",
     export_warning_body:

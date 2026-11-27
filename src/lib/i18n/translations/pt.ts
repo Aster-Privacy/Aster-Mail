@@ -4761,7 +4761,7 @@ export const pt = {
     vault: "Cofre",
     loaded: "Carregado",
     not_loaded: "Não carregado",
-    passphrase: "Frase-passe",
+    passphrase: "Palavra-passe",
     cached: "Em cache",
     not_cached: "Não em cache",
     key_age: "Idade da chave",
@@ -9149,24 +9149,25 @@ export const pt = {
     export_description:
       "Transfira a sua caixa de correio como um ficheiro MBOX padrão ou uma pasta de mensagens .EML individuais.",
     export_start_button: "Iniciar exportação",
-    export_step_reauth_title: "Confirme a sua frase secreta",
+    export_step_reauth_title: "Confirme a sua palavra-passe",
     export_reauth_prompt:
-      "Volte a introduzir a frase secreta da sua conta para autorizar esta exportação.",
+      "Para exportar os seus dados, introduza a palavra-passe da sua conta.",
     export_reauth_submit: "Autorizar",
-    export_reauth_failed: "A frase secreta não corresponde.",
+    export_reauth_failed: "Palavra-passe incorreta. Tente novamente.",
     export_step_verify_title: "Confirme a sua identidade",
     export_verify_description:
-      "Confirme a palavra-passe da sua conta antes de prepararmos esta exportação.",
+      "Para preparar a exportação, confirme a palavra-passe da sua conta.",
     export_verify_submit: "Verificar",
     export_security_section_title: "Verificação necessária",
     export_security_password_row_title: "Palavra-passe da conta e 2FA",
     export_security_password_row_body:
       "Confirmará a sua palavra-passe, e o código do autenticador se o 2FA estiver ativado, antes de cada exportação.",
-    export_security_vault_row_title: "Frase secreta do cofre de encriptação",
+    export_security_vault_row_title:
+      "Verificação da palavra-passe neste dispositivo",
     export_security_vault_row_body:
-      "A sua frase secreta local do cofre confirma este dispositivo antes que o e-mail seja desencriptado para exportação.",
+      "O Aster Mail verifica a sua palavra-passe neste dispositivo antes de desencriptar o seu correio para exportação.",
     export_security_vault_row_help:
-      "Esta é a frase secreta do cofre local deste dispositivo, não a palavra-passe da sua conta. Desbloqueia as suas chaves de encriptação apenas neste dispositivo.",
+      "Esta verificação acontece apenas neste dispositivo. Utiliza a mesma palavra-passe com que inicia sessão, que também desbloqueia as suas chaves de encriptação aqui.",
     export_security_required_badge: "Obrigatório",
     export_warning_title: "Atenção",
     export_warning_body:

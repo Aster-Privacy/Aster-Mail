@@ -4758,7 +4758,7 @@ export const fr = {
     vault: "Coffre-fort",
     loaded: "Chargé",
     not_loaded: "Non chargé",
-    passphrase: "Phrase secrète",
+    passphrase: "Mot de passe",
     cached: "En cache",
     not_cached: "Pas en cache",
     key_age: "Ancienneté de la clé",
@@ -8738,22 +8738,24 @@ export const fr = {
     export_progress_eta: "Environ {{duration}} restant",
     export_progress_messages: "{{processed}} sur {{total}} messages",
     export_rate_limited_paused: "Exportation suspendue - limite atteinte",
-    export_reauth_failed: "Vérification échouée",
+    export_reauth_failed: "Mot de passe incorrect. Réessayez.",
     export_step_verify_title: "Vérifiez votre identité",
     export_verify_description:
-      "Confirmez le mot de passe de votre compte avant de préparer cet export.",
+      "Pour préparer l'export, confirmez le mot de passe de votre compte.",
     export_verify_submit: "Vérifier",
     export_security_section_title: "Vérification requise",
     export_security_password_row_title: "Mot de passe du compte et 2FA",
     export_security_password_row_body:
       "Vous confirmerez votre mot de passe, et votre code d'authentification si la 2FA est activée, avant chaque export.",
-    export_security_vault_row_title: "Phrase secrète du coffre de chiffrement",
+    export_security_vault_row_title:
+      "Vérification du mot de passe sur cet appareil",
     export_security_vault_row_body:
-      "Votre phrase secrète locale du coffre confirme cet appareil avant que le courrier ne soit déchiffré pour l'export.",
+      "Aster Mail vérifie votre mot de passe sur cet appareil avant de déchiffrer votre courrier pour l'export.",
     export_security_vault_row_help:
-      "Il s'agit de la phrase secrète du coffre local de cet appareil, pas de votre mot de passe de compte. Elle déverrouille vos clés de chiffrement uniquement sur cet appareil.",
+      "Cette vérification a lieu uniquement sur cet appareil. Elle utilise le mot de passe avec lequel vous vous connectez, qui déverrouille aussi vos clés de chiffrement ici.",
     export_security_required_badge: "Requis",
-    export_reauth_prompt: "Entrez votre mot de passe pour continuer",
+    export_reauth_prompt:
+      "Pour exporter vos données, saisissez le mot de passe de votre compte.",
     export_reauth_submit: "Vérifier",
     export_scope_contacts_body:
       "Carnet d'adresses exporté au format vCard 4.0 (importable dans Apple, Google, Thunderbird, etc.) et en JSON complet.",
@@ -8792,7 +8794,7 @@ export const fr = {
     export_step_destination_title: "Destination",
     export_step_format_title: "Format d'exportation",
     export_step_progress_title: "Exportation en cours",
-    export_step_reauth_title: "Vérification requise",
+    export_step_reauth_title: "Confirmez votre mot de passe",
     export_step_scope_title: "Que souhaitez-vous exporter ?",
     export_title: "Exporter vos données",
     export_warning_body:

@@ -4647,7 +4647,7 @@ export const de = {
     vault: "Tresor",
     loaded: "Geladen",
     not_loaded: "Nicht geladen",
-    passphrase: "Passphrase",
+    passphrase: "Passwort",
     cached: "Zwischengespeichert",
     not_cached: "Nicht zwischengespeichert",
     key_age: "Schlüsselalter",
@@ -8582,24 +8582,23 @@ export const de = {
     export_progress_eta: "Noch ca. {{ duration }}",
     export_progress_messages: "{{ processed }} von {{ total }} Nachrichten",
     export_rate_limited_paused: "Kurz pausiert, um Serverlimits einzuhalten.",
-    export_reauth_failed: "Passphrase stimmte nicht überein.",
+    export_reauth_failed: "Falsches Passwort. Versuchen Sie es erneut.",
     export_step_verify_title: "Bestätigen Sie, dass Sie es sind",
     export_verify_description:
-      "Bestätigen Sie Ihr Kontopasswort, bevor wir diesen Export vorbereiten.",
+      "Bestätigen Sie Ihr Kontopasswort, um den Export vorzubereiten.",
     export_verify_submit: "Bestätigen",
     export_security_section_title: "Verifizierung erforderlich",
     export_security_password_row_title: "Kontopasswort & 2FA",
     export_security_password_row_body:
       "Sie bestätigen vor jedem Export Ihr Passwort und, falls 2FA aktiviert ist, Ihren Authenticator-Code.",
-    export_security_vault_row_title:
-      "Passphrase für den Verschlüsselungstresor",
+    export_security_vault_row_title: "Passwortprüfung auf diesem Gerät",
     export_security_vault_row_body:
-      "Ihre lokale Tresor-Passphrase bestätigt dieses Gerät, bevor E-Mails für den Export entschlüsselt werden.",
+      "Aster Mail prüft Ihr Passwort auf diesem Gerät, bevor Ihre E-Mails für den Export entschlüsselt werden.",
     export_security_vault_row_help:
-      "Dies ist die Passphrase des lokalen Geräte-Tresors, nicht Ihr Kontopasswort. Sie schaltet Ihre Verschlüsselungsschlüssel nur auf diesem Gerät frei.",
+      "Diese Prüfung findet nur auf diesem Gerät statt. Sie verwendet dasselbe Passwort, mit dem Sie sich anmelden und das hier auch Ihre Verschlüsselungsschlüssel entsperrt.",
     export_security_required_badge: "Erforderlich",
     export_reauth_prompt:
-      "Geben Sie Ihre Konto-Passphrase erneut ein, um diesen Export zu autorisieren.",
+      "Geben Sie Ihr Kontopasswort ein, um Ihre Daten zu exportieren.",
     export_reauth_submit: "Autorisieren",
     export_scope_contacts_body:
       "Adressbuch als vCard 4.0 exportiert (importierbar in Apple, Google, Thunderbird usw.) plus vollständiges JSON.",
@@ -8640,7 +8639,7 @@ export const de = {
     export_step_destination_title: "Ziel wählen",
     export_step_format_title: "Format wählen",
     export_step_progress_title: "Wird exportiert",
-    export_step_reauth_title: "Passphrase bestätigen",
+    export_step_reauth_title: "Passwort bestätigen",
     export_step_scope_title: "Was exportieren",
     export_title: "E-Mails exportieren",
     export_warning_body:
