@@ -65,7 +65,7 @@ import {
   DEFAULT_ENABLED_CATEGORIES,
 } from "@/data/category_catalog";
 
-export const CLASSIFIER_VERSION = 10;
+export const CLASSIFIER_VERSION = 11;
 
 export const CATEGORY_TABS: readonly EmailCategory[] = [
   "primary",
@@ -175,6 +175,8 @@ function build_header_lookup(
 }
 
 const LIST_SUBJECT_TAG = /^\s*\[[^\]]{1,40}\]/;
+const REPLY_SUBJECT_PREFIX =
+  /^\s*(?:re|aw|sv|vs|ref|res|resp|fw|fwd|tr|enc|wg|follow[\s-]?up)\s*:/i;
 
 function matches_any(text: string, patterns: readonly RegExp[]): boolean {
   for (const pattern of patterns) {
@@ -238,7 +240,11 @@ function match_custom_category(
 }
 
 export type { LearnGateSource };
-export { has_failed_authentication, is_aster_domain_sender, is_learning_blocked };
+export {
+  has_failed_authentication,
+  is_aster_domain_sender,
+  is_learning_blocked,
+};
 
 export interface ClassifyOptions {
   custom_categories?: readonly CustomCategoryRule[] | null;
@@ -450,9 +456,24 @@ export function classify(
     DISCUSSION_LOCALPARTS_SET.has(localpart) ||
     (headers.has("list-id") && LIST_SUBJECT_TAG.test(subject));
 
-  if (in_any(NEWSLETTER_SET)) {
-    // A dedicated publishing platform is the sender. Even its promotional
-    // issues are still the publication the user signed up for.
+  const bulk_marked =
+    list_shaped ||
+    !!envelope.list_unsubscribe_post ||
+    precedence === "bulk" ||
+    precedence === "list" ||
+    headers.has("feedback-id") ||
+    headers.has("x-csa-complaints");
+  const personal_reply =
+    !bulk_marked &&
+    !machine_sent &&
+    !in_any(MARKETING_SET) &&
+    (headers.has("in-reply-to") ||
+      headers.has("references") ||
+      REPLY_SUBJECT_PREFIX.test(subject));
+
+  if (personal_reply) return "primary";
+
+  if (in_any(NEWSLETTER_SET) && bulk_marked) {
     return "newsletters";
   }
 

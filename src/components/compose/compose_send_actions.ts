@@ -343,7 +343,7 @@ function track_queued_reply(
   echo_reply_in_thread(ctx, reply_id, email_data);
 }
 
-function settle_queued_reply(reply_id: string) {
+function settle_queued_reply(reply_id: string, sent_id?: string) {
   settle_pending_thread_reply(reply_id);
 
   const echo = reply_echoes.get(reply_id);
@@ -354,6 +354,7 @@ function settle_queued_reply(reply_id: string) {
     thread_token: echo.thread_token,
     original_email_id: echo.original_email_id,
     optimistic_id: reply_id,
+    sent_id,
   });
 }
 
@@ -418,8 +419,8 @@ export async function execute_internal_send(
   let handed_off = false;
   let reply_id: string | null = null;
   let server_queue_id: string | null = null;
-  const settle_reply = () => {
-    if (reply_id) settle_queued_reply(reply_id);
+  const settle_reply = (sent_id?: string) => {
+    if (reply_id) settle_queued_reply(reply_id, sent_id);
   };
   const drop_reply = () => {
     if (reply_id) drop_queued_reply(reply_id);
@@ -432,8 +433,8 @@ export async function execute_internal_send(
       },
       delay_seconds,
       {
-        on_sent: () => {
-          settle_reply();
+        on_sent: (sent_id?: string) => {
+          settle_reply(sent_id);
           release_queued_draft(ctx, server_queue_id, true);
           ctx.set_queued_email_id(null);
           clear_stash(ctx);
@@ -492,8 +493,8 @@ export async function execute_internal_send(
     const email_id = queue_email(
       {
         ...email_data,
-        on_complete: () => {
-          settle_reply();
+        on_complete: (sent_id?: string) => {
+          settle_reply(sent_id);
           release_queued_draft(ctx, null, true);
           ctx.set_queued_email_id(null);
           clear_stash(ctx);
@@ -562,8 +563,8 @@ export async function execute_mixed_send(
   let handed_off = false;
   let reply_id: string | null = null;
   let server_queue_id: string | null = null;
-  const settle_reply = () => {
-    if (reply_id) settle_queued_reply(reply_id);
+  const settle_reply = (sent_id?: string) => {
+    if (reply_id) settle_queued_reply(reply_id, sent_id);
   };
   const drop_reply = () => {
     if (reply_id) drop_queued_reply(reply_id);
@@ -583,8 +584,8 @@ export async function execute_mixed_send(
     },
     queue_delay_seconds,
     {
-      on_sent: () => {
-        settle_reply();
+      on_sent: (sent_id?: string) => {
+        settle_reply(sent_id);
         release_queued_draft(ctx, server_queue_id, true);
         ctx.set_queued_email_id(null);
         clear_stash(ctx);
@@ -675,8 +676,8 @@ export async function execute_external_email_send(
   let handed_off = false;
   let reply_id: string | null = null;
   let server_queue_id: string | null = null;
-  const settle_reply = () => {
-    if (reply_id) settle_queued_reply(reply_id);
+  const settle_reply = (sent_id?: string) => {
+    if (reply_id) settle_queued_reply(reply_id, sent_id);
   };
   const drop_reply = () => {
     if (reply_id) drop_queued_reply(reply_id);
@@ -702,8 +703,8 @@ export async function execute_external_email_send(
       external_email_data,
       delay_seconds,
       {
-        on_sent: () => {
-          settle_reply();
+        on_sent: (sent_id?: string) => {
+          settle_reply(sent_id);
           release_queued_draft(ctx, server_queue_id, true);
           ctx.set_queued_email_id(null);
           clear_stash(ctx);
@@ -768,9 +769,9 @@ export async function execute_external_email_send(
     const timeout_id = window.setTimeout(async () => {
       if (!undo_send_manager.begin_tab_timer_send(email_id)) return;
       try {
-        await execute_external_send(external_email_data, true);
+        const sent_id = await execute_external_send(external_email_data, true);
 
-        settle_reply();
+        settle_reply(sent_id);
         await ctx.confirm_draft_deleted?.();
         undo_send_manager.remove(email_id);
         ctx.set_queued_email_id(null);
@@ -813,8 +814,12 @@ export async function execute_external_email_send(
       on_send_immediately: async () => {
         window.clearTimeout(timeout_id);
         try {
-          await execute_external_send(external_email_data, true);
-          settle_reply();
+          const sent_id = await execute_external_send(
+            external_email_data,
+            true,
+          );
+
+          settle_reply(sent_id);
           await ctx.confirm_draft_deleted?.();
           ctx.set_queued_email_id(null);
           clear_stash(ctx);
@@ -857,10 +862,10 @@ export async function execute_external_email_send(
     }
 
     try {
-      await execute_external_send(external_email_data, true);
+      const sent_id = await execute_external_send(external_email_data, true);
 
       dismiss_toast(sending_toast_id);
-      settle_reply();
+      settle_reply(sent_id);
       await ctx.confirm_draft_deleted?.();
       dispatch_email_sent();
       log_activities_for_sent(ctx, email_data);

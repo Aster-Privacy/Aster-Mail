@@ -32,7 +32,7 @@ import { use_i18n } from "@/lib/i18n/context";
 const CRITICAL_STORAGE_PERCENT = 90;
 
 const footer_row_class =
-  "flex items-center h-8 rounded-[10px] text-txt-secondary hover:text-txt-primary hover:bg-[var(--aster-hover,var(--bg-hover))] focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/60";
+  "flex items-center h-8 rounded-[10px] text-txt-secondary hover:text-txt-primary hover:bg-[var(--aster-hover,var(--bg-hover))]";
 
 interface SidebarAccountSwitcherProps {
   is_collapsed: boolean;
@@ -80,7 +80,7 @@ const SidebarStorage = memo(function SidebarStorage({
     <div className="px-2.5 pb-3 pt-1">
       <button
         aria-label={t("settings.storage")}
-        className="block w-full text-start rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/60"
+        className="block w-full text-start rounded-md"
         type="button"
         onClick={on_open}
       >
@@ -129,7 +129,7 @@ const SidebarStorage = memo(function SidebarStorage({
           {format_bytes(storage_total_bytes)}
         </p>
         <button
-          className="text-xs font-medium flex-shrink-0 text-txt-secondary hover:text-brand focus:outline-none focus-visible:underline"
+          className="text-xs font-medium flex-shrink-0 text-txt-secondary hover:text-brand"
           type="button"
           onClick={on_buy_more}
         >

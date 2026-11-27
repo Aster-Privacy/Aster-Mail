@@ -440,6 +440,24 @@ export function is_session_check_endpoint(endpoint: string): boolean {
   return SESSION_CHECK_ENDPOINTS.includes(endpoint.split("?")[0]);
 }
 
+const REFRESH_EXEMPT_ENDPOINT_PARTS = [
+  "/auth/refresh",
+  "/auth/login",
+  "/auth/register",
+  "/auth/logout",
+  "/auth/clear-session",
+];
+
+export function waits_for_session_refresh(
+  endpoint: string,
+  skip_session_refresh: boolean,
+): boolean {
+  if (skip_session_refresh) return false;
+  if (is_session_check_endpoint(endpoint)) return false;
+
+  return !REFRESH_EXEMPT_ENDPOINT_PARTS.some((part) => endpoint.includes(part));
+}
+
 export function is_auth_endpoint(endpoint: string): boolean {
   return endpoint.split("?")[0].startsWith("/core/v1/auth/");
 }

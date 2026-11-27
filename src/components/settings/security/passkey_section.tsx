@@ -20,8 +20,7 @@
 //
 import type { ApiResponse } from "@/services/api/client";
 
-import { useState, useEffect, useCallback } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useState, useCallback } from "react";
 import {
   FingerPrintIcon,
   KeyIcon,
@@ -53,7 +52,6 @@ import { use_settings_cache } from "@/contexts/settings_cache_context";
 import { get_session_passphrase } from "@/contexts/auth/session_passphrase";
 import {
   initiate_hardware_key_registration,
-  list_hardware_keys,
   remove_hardware_key,
   rename_hardware_key,
   type HardwareKeyInfo,
@@ -74,9 +72,13 @@ import {
 } from "@/services/api/passkeys";
 import { app_locale, get_display_time_zone } from "@/utils/date_format";
 import { is_composing } from "@/utils/ime";
-import { ButtonSpinner, Spinner } from "@/components/ui/spinner";
+import { ButtonSpinner } from "@/components/ui/spinner";
+import { use_settings_panel_data } from "@/components/settings/hooks/use_settings_prefetch";
+import { ignore_error } from "@/lib/ignore_error";
 
 const SECURITY_SETTINGS_PATH = "/settings/security";
+
+const EMPTY_KEYS: HardwareKeyInfo[] = [];
 
 function format_date(iso: string): string {
   try {
@@ -231,9 +233,19 @@ export function PasskeySection() {
   const { t } = use_i18n();
   const { current_account_id } = use_auth();
   const cache = use_settings_cache();
-  const [keys, set_keys] = useState<HardwareKeyInfo[]>([]);
-  const [loading, set_loading] = useState(true);
-  const [load_error, set_load_error] = useState(false);
+  const {
+    data: passkey_response,
+    error: passkey_error,
+    is_loading: passkey_loading,
+    revalidate: revalidate_keys,
+  } = use_settings_panel_data<ApiResponse<HardwareKeysListResponse>>(
+    "passkey_list",
+  );
+  const loaded_keys = passkey_response?.data?.keys ?? null;
+  const keys = loaded_keys ?? EMPTY_KEYS;
+  const load_error =
+    loaded_keys === null && (!!passkey_error || !!passkey_response?.error);
+  const loading = loaded_keys === null && !load_error && passkey_loading;
   const [removing_id, set_removing_id] = useState<string | null>(null);
   const [pending_delete, set_pending_delete] = useState<HardwareKeyInfo | null>(
     null,
@@ -249,35 +261,34 @@ export function PasskeySection() {
   const webauthn_supported = is_passkey_supported();
 
   const load_keys = useCallback(async () => {
-    set_load_error(false);
-    try {
-      const resp = await list_hardware_keys();
+    await revalidate_keys().catch((caught) =>
+      ignore_error(
+        "components/settings/security/passkey_section:load_keys",
+        caught,
+      ),
+    );
+  }, [revalidate_keys]);
 
-      if (resp.data) {
-        set_keys(resp.data.keys);
-        cache.set_entry("passkey_list", {
-          data: resp,
-          error: null,
-          fetched_at: Date.now(),
-          is_loading: false,
-        });
-      } else {
-        set_load_error(true);
-      }
-    } finally {
-      set_loading(false);
-    }
-  }, [cache]);
+  const update_cached_keys = useCallback(
+    (update: (prev: HardwareKeyInfo[]) => HardwareKeyInfo[]) => {
+      const cached =
+        cache.get_entry<ApiResponse<HardwareKeysListResponse>>("passkey_list");
 
-  useEffect(() => {
-    load_keys();
-  }, [load_keys]);
+      cache.set_entry<ApiResponse<HardwareKeysListResponse>>("passkey_list", {
+        data: {
+          ...cached?.data,
+          data: { keys: update(cached?.data?.data?.keys ?? []) },
+        },
+        error: null,
+        fetched_at: cached?.fetched_at || Date.now(),
+        is_loading: cached?.is_loading ?? false,
+      });
+    },
+    [cache],
+  );
 
   const handle_remove = useCallback(
-    async (
-      key_id: string,
-      credentials?: ReauthProof,
-    ) => {
+    async (key_id: string, credentials?: ReauthProof) => {
       set_pending_delete(null);
       set_removing_id(key_id);
       try {
@@ -290,25 +301,7 @@ export function PasskeySection() {
         }
 
         if (resp.data?.success) {
-          set_keys((prev) => prev.filter((k) => k.id !== key_id));
-          const cached =
-            cache.get_entry<ApiResponse<HardwareKeysListResponse>>(
-              "passkey_list",
-            );
-
-          cache.set_entry("passkey_list", {
-            data: {
-              ...cached?.data,
-              data: {
-                keys: (cached?.data?.data?.keys ?? keys).filter(
-                  (key) => key.id !== key_id,
-                ),
-              },
-            },
-            error: null,
-            fetched_at: Date.now(),
-            is_loading: false,
-          });
+          update_cached_keys((prev) => prev.filter((k) => k.id !== key_id));
           set_step_up_key_id(null);
           show_toast(t("passkeys.removed"), "success");
 
@@ -327,14 +320,17 @@ export function PasskeySection() {
         set_removing_id(null);
       }
     },
-    [cache, keys, t],
+    [t, update_cached_keys],
   );
 
-  const handle_rename = useCallback((key_id: string, name: string | null) => {
-    set_keys((prev) =>
-      prev.map((k) => (k.id === key_id ? { ...k, name_encrypted: name } : k)),
-    );
-  }, []);
+  const handle_rename = useCallback(
+    (key_id: string, name: string | null) => {
+      update_cached_keys((prev) =>
+        prev.map((k) => (k.id === key_id ? { ...k, name_encrypted: name } : k)),
+      );
+    },
+    [update_cached_keys],
+  );
 
   const run_add_passkey = useCallback(
     async (options?: HardwareKeyRegistrationOptions) => {
@@ -457,14 +453,11 @@ export function PasskeySection() {
               description={`${t("passkeys.passkey_hint")} ${t("passkeys.security_key_hint")}`}
               title={t("passkeys.section_title")}
             />
-            {webauthn_supported &&
-              !loading &&
-              !load_error &&
-              keys.length === 0 && (
-                <ActionRecommendedBadge
-                  tip={t("settings.no_passkeys_recommendation")}
-                />
-              )}
+            {webauthn_supported && loaded_keys?.length === 0 && (
+              <ActionRecommendedBadge
+                tip={t("settings.no_passkeys_recommendation")}
+              />
+            )}
           </span>
         }
       >
@@ -473,69 +466,58 @@ export function PasskeySection() {
         )}
 
         {loading ? (
-          <Island className="flex justify-center" padding="lg">
-            <Spinner className="text-txt-muted" size="md" />
+          <Island aria-busy="true" data-testid="passkey_list_placeholder">
+            <IslandRow
+              aria-hidden="true"
+              className="invisible"
+              description={t("passkeys.never_used")}
+              icon={<FingerPrintIcon />}
+              label={t("passkeys.unnamed_passkey")}
+              layout="stacked"
+              trailing={
+                <>
+                  <Button size="sm" tabIndex={-1} variant="outline">
+                    {t("passkeys.rename")}
+                  </Button>
+                  <Button size="sm" tabIndex={-1} variant="outline">
+                    {t("common.delete")}
+                  </Button>
+                </>
+              }
+            />
+          </Island>
+        ) : load_error ? (
+          <Island className="text-center" padding="lg">
+            <p className="text-sm text-txt-muted mb-3">
+              {t("settings.failed_load_security_status")}
+            </p>
+            <Button
+              size="sm"
+              variant="secondary"
+              onClick={() => void load_keys()}
+            >
+              {t("settings.try_again")}
+            </Button>
+          </Island>
+        ) : keys.length === 0 ? (
+          <Island className="text-center" padding="lg">
+            <FingerPrintIcon className="w-8 h-8 text-txt-muted mx-auto mb-2" />
+            <p className="text-sm text-txt-muted">
+              {t("passkeys.no_passkeys")}
+            </p>
           </Island>
         ) : (
-          <AnimatePresence mode="popLayout">
-            {load_error && keys.length === 0 ? (
-              <motion.div
-                key="error"
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                initial={{ opacity: 0 }}
-              >
-                <Island className="text-center" padding="lg">
-                  <p className="text-sm text-txt-muted mb-3">
-                    {t("settings.failed_load_security_status")}
-                  </p>
-                  <Button
-                    size="sm"
-                    variant="secondary"
-                    onClick={() => {
-                      set_loading(true);
-                      void load_keys();
-                    }}
-                  >
-                    {t("settings.try_again")}
-                  </Button>
-                </Island>
-              </motion.div>
-            ) : keys.length === 0 ? (
-              <motion.div
-                key="empty"
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                initial={{ opacity: 0 }}
-              >
-                <Island className="text-center" padding="lg">
-                  <FingerPrintIcon className="w-8 h-8 text-txt-muted mx-auto mb-2" />
-                  <p className="text-sm text-txt-muted">
-                    {t("passkeys.no_passkeys")}
-                  </p>
-                </Island>
-              </motion.div>
-            ) : (
-              <motion.div
-                key="list"
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                initial={{ opacity: 0 }}
-              >
-                <Island>
-                  {keys.map((key) => (
-                    <KeyRow
-                      key={key.id}
-                      key_info={key}
-                      on_delete_click={set_pending_delete}
-                      on_rename={handle_rename}
-                      removing={removing_id === key.id}
-                    />
-                  ))}
-                </Island>
-              </motion.div>
-            )}
-          </AnimatePresence>
+          <Island>
+            {keys.map((key) => (
+              <KeyRow
+                key={key.id}
+                key_info={key}
+                on_delete_click={set_pending_delete}
+                on_rename={handle_rename}
+                removing={removing_id === key.id}
+              />
+            ))}
+          </Island>
         )}
 
         {desktop_app && (

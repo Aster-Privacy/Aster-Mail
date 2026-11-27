@@ -22,6 +22,7 @@ import type { DecryptedThreadMessage } from "@/types/thread";
 import type { ExternalContentReport } from "@/lib/html_sanitizer";
 
 import { quotable_source } from "@/lib/html_text";
+import { clean_quoted_history_html } from "@/lib/quoted_history_clean";
 import {
   useState,
   useCallback,
@@ -888,7 +889,7 @@ export function use_mobile_mail_detail() {
       const include_quoted =
         mode === "forward" || reply_includes_quoted_by_default();
       const quoted = include_quoted
-        ? `<br><br><div class="aster_quote"><div class="aster_quote_attr">${quote_header}</div><blockquote class="aster_quote_body" style="margin:0 0 0 0.8ex;border-left:1px solid #ccc;padding-left:1ex">${sanitize_outgoing_html(inline_email_css(strip_aster_footers_html(body)))}</blockquote></div>`
+        ? `<br><br><div class="aster_quote"><div class="aster_quote_attr">${quote_header}</div><blockquote class="aster_quote_body" style="margin:0 0 0 0.8ex;border-left:1px solid #ccc;padding-left:1ex">${sanitize_outgoing_html(inline_email_css(strip_aster_footers_html(mode === "forward" ? body : clean_quoted_history_html(body))))}</blockquote></div>`
         : "";
       const rfc_message_id = resolve_reply_references(
         msg,
@@ -1183,12 +1184,7 @@ export function use_mobile_mail_detail() {
 
   const handle_load_external_content = useCallback(
     (message_id: string) => {
-      grant_remote_content(message_id, [
-        "image",
-        "font",
-        "css",
-        "tracking_pixel",
-      ]);
+      grant_remote_content(message_id, ["image", "font", "css"]);
     },
     [grant_remote_content],
   );

@@ -260,9 +260,14 @@ function sender_domain(normalized_email: string): string {
   return at >= 0 ? normalized_email.slice(at + 1) : "";
 }
 
+export interface SpamReportReceipt {
+  sender_entry_id?: string | null;
+  feedback_id?: string | null;
+}
+
 export async function report_spam_sender(
   sender_email: string,
-): Promise<ApiResponse<{ success: boolean }>> {
+): Promise<ApiResponse<{ success: boolean } & SpamReportReceipt>> {
   const normalized = sender_email.trim().toLowerCase();
   const sender_hash = await sha256_hex(normalized);
   const domain = sender_domain(normalized);
@@ -290,6 +295,15 @@ export async function remove_spam_sender(
   }
 
   return api_client.delete(`/mail/v1/spam_senders?${query}`);
+}
+
+export async function retract_spam_report(
+  receipt: SpamReportReceipt,
+): Promise<ApiResponse<{ success: boolean }>> {
+  return api_client.post("/mail/v1/spam_senders/retract", {
+    sender_entry_id: receipt.sender_entry_id ?? null,
+    feedback_id: receipt.feedback_id ?? null,
+  });
 }
 
 export interface SenderAliasBackfillItem {

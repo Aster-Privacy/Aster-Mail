@@ -25,6 +25,7 @@ import {
   ENVELOPE_FETCH_CHUNK,
   ENVELOPE_PAGE_LIMIT,
   INDEX_PAGE_LIMIT,
+  INDEX_DECRYPT_CONCURRENCY,
   INDEX_YIELD_MS,
   MAX_RAM_INDEX_ITEMS,
 } from "./constants";
@@ -33,6 +34,12 @@ import {
   reset_legacy_migration_state,
 } from "./envelope";
 import { build_generation } from "./index_cache";
+import {
+  create_index_pacer,
+  index_input_max_wait_ms,
+  pause_for_index_work,
+  wait_for_input_idle,
+} from "./index_pacing";
 import {
   build_search_haystack,
   envelope_attachments,
@@ -54,6 +61,7 @@ import { filter_locked_mail_items } from "@/services/locked_folders";
 import { html_to_preview_text } from "@/lib/html_text";
 import { yield_to_next_paint } from "@/lib/scheduling";
 import { create_work_slicer } from "@/lib/work_slicer";
+import { create_background_slicer } from "@/lib/background_yield";
 import {
   decrypt_body_text_with_bundle,
   is_ratchet_envelope,
@@ -74,6 +82,7 @@ import {
   type SnapshotWriter,
 } from "@/services/search_index_store";
 import { is_index_download_paused } from "@/services/search/index_download_control";
+import { wait_for_background_window } from "@/services/api/client/request_governor";
 import { add_vocabulary_entry } from "@/services/search/vocabulary";
 import { build_body_terms } from "@/services/search_body_terms";
 
@@ -116,13 +125,18 @@ export async function run_index_pipeline(
 ): Promise<PipelineResult> {
   const { user_email, include_body, prior, my_gen, hot, writer } = options;
   const incremental = !!prior && prior.size > 0;
-  const batch_size = include_body ? 8 : 250;
+  const batch_size = include_body ? 8 : INDEX_DECRYPT_CONCURRENCY;
   const page_limit = incremental ? INDEX_PAGE_LIMIT : ENVELOPE_PAGE_LIMIT;
   let cursor = options.start_cursor;
   let processed = 0;
   let fresh_count = 0;
   let reached_boundary = false;
-  const slicer = create_work_slicer(INDEX_YIELD_MS);
+  const slicer = create_work_slicer(INDEX_YIELD_MS, pause_for_index_work);
+  const pacer = create_index_pacer(INDEX_YIELD_MS);
+  const background = create_background_slicer(
+    INDEX_YIELD_MS,
+    index_input_max_wait_ms,
+  );
 
   if (!incremental) reset_legacy_migration_state();
 
@@ -183,6 +197,7 @@ export async function run_index_pipeline(
     let decrypted: MailItemMetadata | null = null;
 
     if (item.encrypted_metadata && item.metadata_nonce) {
+      await pacer.checkpoint();
       decrypted = await decrypt_mail_metadata(
         item.encrypted_metadata,
         item.metadata_nonce,
@@ -212,6 +227,8 @@ export async function run_index_pipeline(
     item: MailItem,
     envelope_by_id: Map<string, MailItem> | null,
   ): Promise<{ id: string; entry: DecryptedIndexEntry; fresh: boolean }> => {
+    await pacer.checkpoint();
+
     const meta_fp = metadata_fingerprint(item);
     const prior_entry = prior?.get(item.id);
     const immutable =
@@ -269,6 +286,8 @@ export async function run_index_pipeline(
         is_ratchet_envelope(envelope.body_text)
       ) {
         const sender_email = envelope.from?.email || "";
+
+        await pacer.checkpoint();
 
         const bundle = await decrypt_body_text_with_bundle(
           envelope.body_text,
@@ -343,10 +362,11 @@ export async function run_index_pipeline(
     });
   };
 
-  const pause_between_batches = (): Promise<void> =>
-    include_body
-      ? yield_to_next_paint()
-      : new Promise<void>((r) => setTimeout(r, 0));
+  const pause_between_batches = async (): Promise<void> => {
+    if (include_body) await yield_to_next_paint();
+    if (background.should_yield()) await background.yield();
+    await wait_for_input_idle();
+  };
 
   const decrypt_page = async (
     page_items: MailItem[],
@@ -386,6 +406,8 @@ export async function run_index_pipeline(
   };
 
   do {
+    await wait_for_background_window();
+
     if (pause_requested()) {
       return {
         processed,
@@ -456,6 +478,7 @@ export async function run_index_pipeline(
     }
 
     if (writer) {
+      await wait_for_input_idle();
       await writer.add_page(page_items, page_entries);
     }
 

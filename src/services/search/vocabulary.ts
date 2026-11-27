@@ -83,13 +83,18 @@ export function add_vocabulary_text(text: string, weight: number): void {
   if (tokens.length === 0) return;
 
   for (const token of tokens) {
-    term_counts.set(token, (term_counts.get(token) ?? 0) + weight);
-  }
+    const previous = term_counts.get(token);
 
-  deletion_index = null;
+    term_counts.set(token, (previous ?? 0) + weight);
+
+    if (previous === undefined && deletion_index) {
+      link_deletion_term(deletion_index, token);
+    }
+  }
 
   if (term_counts.size > VOCABULARY_PRUNE_TRIGGER) {
     prune_vocabulary();
+    deletion_index = null;
   }
 }
 
@@ -216,7 +221,7 @@ export function pending_vocabulary_entries(): number {
 
 export function reset_vocabulary(): void {
   term_counts.clear();
-  deletion_index = null;
+  release_deletion_index();
   pending_entries = [];
   pending_start = 0;
 }
@@ -249,31 +254,40 @@ export function single_deletions(term: string): string[] {
   return variants;
 }
 
+function link_deletion_key(
+  index: Map<string, string[]>,
+  key: string,
+  term: string,
+): void {
+  const existing = index.get(key);
+
+  if (existing) {
+    existing.push(term);
+
+    return;
+  }
+
+  index.set(key, [term]);
+}
+
+function link_deletion_term(index: Map<string, string[]>, term: string): void {
+  link_deletion_key(index, term, term);
+
+  for (const variant of single_deletions(term)) {
+    link_deletion_key(index, variant, term);
+  }
+}
+
 function ensure_deletion_index(): Map<string, string[]> {
+  cancel_deletion_index_release();
   flush_pending_vocabulary();
 
   if (deletion_index) return deletion_index;
 
   const index = new Map<string, string[]>();
 
-  const link = (key: string, term: string): void => {
-    const existing = index.get(key);
-
-    if (existing) {
-      existing.push(term);
-
-      return;
-    }
-
-    index.set(key, [term]);
-  };
-
   for (const term of term_counts.keys()) {
-    link(term, term);
-
-    for (const variant of single_deletions(term)) {
-      link(variant, term);
-    }
+    link_deletion_term(index, term);
   }
 
   deletion_index = index;
@@ -281,8 +295,31 @@ function ensure_deletion_index(): Map<string, string[]> {
   return index;
 }
 
+export const DELETION_INDEX_IDLE_RELEASE_MS = 60_000;
+
+let release_timer: ReturnType<typeof setTimeout> | null = null;
+
+function cancel_deletion_index_release(): void {
+  if (release_timer === null) return;
+
+  clearTimeout(release_timer);
+  release_timer = null;
+}
+
 export function release_deletion_index(): void {
+  cancel_deletion_index_release();
   deletion_index = null;
+}
+
+export function schedule_deletion_index_release(): void {
+  cancel_deletion_index_release();
+
+  if (!deletion_index) return;
+
+  release_timer = setTimeout(() => {
+    release_timer = null;
+    deletion_index = null;
+  }, DELETION_INDEX_IDLE_RELEASE_MS);
 }
 
 export function deletion_index_size(): number {

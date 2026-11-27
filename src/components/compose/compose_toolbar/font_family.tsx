@@ -34,7 +34,7 @@ import {
   font_family_option_from_css,
 } from "@/hooks/editor_utils";
 
-const FONT_MENU_WIDTH = 200;
+const FONT_MENU_MAX_WIDTH = 256;
 
 export function FontFamilySelect({
   on_change,
@@ -138,7 +138,7 @@ export function FontFamilySelect({
         open && (
           <div
             ref={dropdown_ref}
-            className="aster_floating aster_floating_anim fixed p-1.5 min-w-[180px]"
+            className="aster_floating aster_floating_anim fixed p-1.5 flex flex-col w-max min-w-[10rem] max-w-[min(16rem,calc(100vw-16px))]"
             role="listbox"
             data-state="open"
             id={list_id}
@@ -146,7 +146,7 @@ export function FontFamilySelect({
               zIndex: 9999,
               left: Math.max(
                 8,
-                Math.min(pos.left, window.innerWidth - FONT_MENU_WIDTH - 8),
+                Math.min(pos.left, window.innerWidth - FONT_MENU_MAX_WIDTH - 8),
               ),
               maxHeight: Math.max(
                 160,
@@ -160,7 +160,7 @@ export function FontFamilySelect({
           >
             <button
               aria-selected={!current_option}
-              className="w-full text-start px-2.5 py-1.5 text-[13px] text-txt-primary rounded-[var(--aster-radius-item)] transition-colors hover:bg-[var(--aster-floating-hover)]"
+              className="block w-full flex-shrink-0 truncate text-start px-2.5 py-1.5 text-[13px] text-txt-primary rounded-[var(--aster-radius-item)] transition-colors hover:bg-[var(--aster-floating-hover)]"
               role="option"
               style={{
                 fontWeight: current_option ? 400 : 600,
@@ -176,7 +176,7 @@ export function FontFamilySelect({
                 key={option.stack}
                 aria-selected={current_family === option.stack}
                 role="option"
-                className="w-full text-start px-2.5 py-1.5 text-[13px] text-txt-primary rounded-[var(--aster-radius-item)] transition-colors hover:bg-[var(--aster-floating-hover)]"
+                className="block w-full flex-shrink-0 truncate text-start px-2.5 py-1.5 text-[13px] text-txt-primary rounded-[var(--aster-radius-item)] transition-colors hover:bg-[var(--aster-floating-hover)]"
                 style={{
                   fontFamily: option.stack,
                   fontWeight: current_family === option.stack ? 600 : 400,

@@ -25,7 +25,7 @@ import type {
 } from "@/services/crypto/memory_key_store";
 
 export interface Level2StorageDeps {
-  request_admission: () => Promise<Level2Admission>;
+  request_admission: (user_id: string) => Promise<Level2Admission>;
   reset_admission_state: () => void;
   is_admitted: () => boolean;
   start_rekey: (user_id: string) => void;
@@ -84,7 +84,7 @@ export function create_level2_storage(
     remember_kek_tag(user_id, run_id);
 
     deps
-      .request_admission()
+      .request_admission(user_id)
       .then((admission) => {
         if (!is_current(user_id, run_id)) return;
         if (admission === "unknown") {

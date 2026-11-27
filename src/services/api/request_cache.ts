@@ -23,6 +23,26 @@ const DEFAULT_CACHE_TTL = 15_000;
 const MAX_CACHE_ENTRIES = 200;
 const SWEEP_GRACE_MS = 500;
 const FRESH_JOIN_WINDOW_MS = 250;
+export const COALESCED_JOIN_WINDOW_MS = 10_000;
+
+const COALESCED_GET_PATHS = [
+  "/core/v1/auth/me",
+  "/core/v1/auth/me/storage-rekey/status",
+  "/core/v1/connection-info",
+  "/crypto/v1/keys/account-key",
+  "/crypto/v1/keys/account-key/capabilities",
+  "/crypto/v1/encryption/pgp-key",
+  "/settings/v1/preferences",
+  "/settings/v1/preferences/default-sender",
+];
+
+export function fresh_join_window_ms(cache_key: string): number {
+  const path = cache_key.replace(/^GET:/, "").split("?")[0];
+
+  return COALESCED_GET_PATHS.includes(path)
+    ? COALESCED_JOIN_WINDOW_MS
+    : FRESH_JOIN_WINDOW_MS;
+}
 
 interface CacheEntry {
   response: unknown;
@@ -84,7 +104,10 @@ export class RequestCache {
     if (skip_cache) {
       const fresh = this.fresh_in_flight.get(cache_key);
 
-      if (fresh && Date.now() - fresh.started_at < FRESH_JOIN_WINDOW_MS) {
+      if (
+        fresh &&
+        Date.now() - fresh.started_at < fresh_join_window_ms(cache_key)
+      ) {
         return (fresh.promise as Promise<T>).then(private_copy);
       }
 

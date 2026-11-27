@@ -37,6 +37,7 @@ import { MODAL_SIZES } from "@/constants/modal";
 import { build_reply_recipients } from "@/services/mail_actions";
 import { strip_aster_footers_html } from "@/lib/aster_footer_strip";
 import { as_quotable_html } from "@/lib/html_text";
+import { clean_quoted_history_html } from "@/lib/quoted_history_clean";
 import { build_reply_subject } from "@/lib/reply_subject";
 import { safe_sender_name } from "@/lib/sender_trust_store";
 import {
@@ -610,7 +611,9 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
         resolved_quote.source_id === original_email_id
           ? resolved_quote.html
           : cap_quoted_images(original_body);
-      const quotable_body = as_quotable_html(quote_source);
+      const quotable_body = clean_quoted_history_html(
+        as_quotable_html(quote_source),
+      );
       const attribution_name = quote_sender_name || recipient_name;
       const attribution_email = quote_sender_email || recipient_email;
       const safe_name = safe_sender_name(attribution_name, attribution_email)

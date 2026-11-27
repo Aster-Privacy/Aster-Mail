@@ -32,8 +32,19 @@ const h = vi.hoisted(() => ({
     format_state: {
       active_formats: new Set<string>(),
       is_in_blockquote: false,
+      current_alignment: "left",
     },
     is_mac: false,
+    exec_format: vi.fn(),
+    focus: vi.fn(),
+    get_link_at_selection: vi.fn(() => null),
+    set_alignment: vi.fn(),
+    remove_formatting: vi.fn(),
+    set_font_family: vi.fn(),
+    set_font_size: vi.fn(),
+    set_font_color: vi.fn(),
+    set_background_color: vi.fn(),
+    remove_background_color: vi.fn(),
     insert_link: vi.fn(),
     insert_html: vi.fn(),
     insert_blockquote: vi.fn(),
@@ -185,8 +196,8 @@ vi.mock("@/hooks/use_editor", () => ({
   use_editor: () => h.editor,
 }));
 
-vi.mock("@/components/compose/link_dialog", () => ({
-  LinkDialog: ({
+vi.mock("@/components/compose/compose_toolbar/link_popover", () => ({
+  LinkPopover: ({
     open,
     on_insert,
   }: {
@@ -237,6 +248,7 @@ beforeEach(() => {
   h.editor.format_state = {
     active_formats: new Set<string>(),
     is_in_blockquote: false,
+    current_alignment: "left",
   };
   h.api.list_signatures.mockResolvedValue({ data: { signatures: [] } });
 });
@@ -276,9 +288,19 @@ async function open_editor() {
 }
 
 describe("SignatureSection toolbar (compose parity)", () => {
-  it("renders the full compose formatting toolbar in the signature editor", async () => {
+  it("renders the shared compose format bar in a single row", async () => {
     await render();
     await open_editor();
+
+    const toolbars = container.querySelectorAll('[role="toolbar"]');
+
+    expect(toolbars.length).toBe(1);
+
+    const toolbar = toolbars[0] as HTMLElement;
+
+    expect(toolbar.getAttribute("aria-label")).toBe("mail.text_formatting");
+    expect(toolbar.className).toContain("overflow-x-auto");
+    expect(toolbar.className).not.toContain("flex-wrap");
 
     const titles = [
       "mail.bold",
@@ -287,29 +309,41 @@ describe("SignatureSection toolbar (compose parity)", () => {
       "mail.strikethrough",
       "mail.bullet_list",
       "mail.numbered_list",
-      "mail.blockquote",
+      "mail.align_left",
+      "mail.remove_formatting",
       "mail.insert_link",
       "mail.horizontal_rule",
+      "common.table_insert",
       "mail.insert_image",
     ];
 
     for (const title of titles) {
-      expect(
-        button_by_title_prefix(title),
-        `toolbar button "${title}" should be present`,
-      ).toBeTruthy();
+      const button = button_by_title_prefix(title);
+
+      expect(button, `toolbar button "${title}" should be present`).toBeTruthy();
+      expect(toolbar.contains(button!)).toBe(true);
+      expect(button!.className).toContain("w-9 h-9");
+      expect(button!.className).toContain("rounded-full");
     }
+
+    expect(button_by_title_prefix("mail.attach_file")).toBeUndefined();
+    expect(button_by_title_prefix("common.emoji")).toBeUndefined();
+    expect(
+      Array.from(container.querySelectorAll("button")).some(
+        (b) => (b.textContent ?? "").trim() === "mail.send",
+      ),
+    ).toBe(false);
   });
 
-  it("wires the formatting buttons to the editor instance", async () => {
+  it("wires the formatting buttons to the signature editor instance", async () => {
     await render();
     await open_editor();
 
     act(() => button_by_title_prefix("mail.bold")!.click());
-    expect(h.editor.toggle_bold).toHaveBeenCalled();
+    expect(h.editor.exec_format).toHaveBeenCalledWith("bold");
 
     act(() => button_by_title_prefix("mail.strikethrough")!.click());
-    expect(h.editor.toggle_strikethrough).toHaveBeenCalled();
+    expect(h.editor.exec_format).toHaveBeenCalledWith("strikeThrough");
 
     act(() => button_by_title_prefix("mail.bullet_list")!.click());
     expect(h.editor.toggle_unordered_list).toHaveBeenCalled();
@@ -317,14 +351,17 @@ describe("SignatureSection toolbar (compose parity)", () => {
     act(() => button_by_title_prefix("mail.numbered_list")!.click());
     expect(h.editor.toggle_ordered_list).toHaveBeenCalled();
 
-    act(() => button_by_title_prefix("mail.blockquote")!.click());
-    expect(h.editor.insert_blockquote).toHaveBeenCalled();
+    act(() => button_by_title_prefix("mail.align_left")!.click());
+    expect(h.editor.set_alignment).toHaveBeenCalledWith("left");
+
+    act(() => button_by_title_prefix("mail.remove_formatting")!.click());
+    expect(h.editor.remove_formatting).toHaveBeenCalled();
 
     act(() => button_by_title_prefix("mail.horizontal_rule")!.click());
     expect(h.editor.insert_horizontal_rule).toHaveBeenCalled();
   });
 
-  it("inserts a link through the dialog into the editor", async () => {
+  it("inserts a link through the compose link popover into the editor", async () => {
     await render();
     await open_editor();
 

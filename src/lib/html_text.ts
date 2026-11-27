@@ -22,6 +22,7 @@ import { split_autolinks } from "./autolink";
 import { is_transparent_color_value } from "./html_sanitizer_css";
 import { looks_format_flowed, unflow_format_flowed } from "./format_flowed";
 import { repair_comment_markup } from "./html_sanitizer_utils";
+import { with_inert_html } from "./inert_html";
 import { is_js_whitespace, trim_start_index } from "./linear_trim";
 import {
   LITERAL_TEXT_CLASS,
@@ -790,34 +791,34 @@ export function strip_html_tags(html: string): string {
 
   if (typeof DOMParser === "undefined") return "";
 
-  let doc: Document;
+  let text: string;
 
   try {
-    doc = new DOMParser().parseFromString(
+    text = with_inert_html(
       repair_comment_markup(strip_cdata_sections(html)),
-      "text/html",
+      (doc) => {
+        doc
+          .querySelectorAll(
+            "script, style, head, title, noscript, template, iframe, object, embed, xml",
+          )
+          .forEach((el) => el.remove());
+
+        doc.querySelectorAll("br").forEach((el) => {
+          el.replaceWith(doc.createTextNode(" "));
+        });
+
+        doc
+          .querySelectorAll("p, div, li, td, tr, h1, h2, h3, h4, h5, h6")
+          .forEach((el) => {
+            el.append(doc.createTextNode(" "));
+          });
+
+        return doc.body?.textContent || "";
+      },
     );
   } catch {
     return "";
   }
-
-  doc
-    .querySelectorAll(
-      "script, style, head, title, noscript, template, iframe, object, embed, xml",
-    )
-    .forEach((el) => el.remove());
-
-  doc.querySelectorAll("br").forEach((el) => {
-    el.replaceWith(doc.createTextNode(" "));
-  });
-
-  doc
-    .querySelectorAll("p, div, li, td, tr, h1, h2, h3, h4, h5, h6")
-    .forEach((el) => {
-      el.append(doc.createTextNode(" "));
-    });
-
-  const text = doc.body?.textContent || "";
 
   return unwrap_markdown_links(text).replace(/\s+/g, " ").trim();
 }

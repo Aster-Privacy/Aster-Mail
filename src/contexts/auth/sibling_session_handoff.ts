@@ -29,6 +29,12 @@ import {
   request_sibling_session,
 } from "@/lib/session_handoff/session_handoff_client";
 import {
+  answer_renewal_ask,
+  broadcast_renewal_port,
+} from "@/lib/session_handoff/handoff_renewal";
+import {
+  HANDOFF_GRANT_KEY_PREFIX,
+  attach_grant_token,
   generate_grant_id,
   local_grant_storage,
   write_grant,
@@ -175,7 +181,14 @@ function is_shared_account(user_id: string): boolean {
   }
 }
 
-export function mint_panel_handoff_grant(audience: string): string | null {
+export function active_panel_account_id(): string | null {
+  return api_client.get_cached_user_info()?.user_id ?? null;
+}
+
+export function mint_panel_handoff_grant(
+  audience: string,
+  attach_token: boolean = true,
+): string | null {
   if (typeof window === "undefined" || has_tauri_runtime()) return null;
   if (get_handoff_sibling_origin(window.location.origin) !== audience) {
     return null;
@@ -201,7 +214,72 @@ export function mint_panel_handoff_grant(audience: string): string | null {
     now,
   );
 
-  return written ? grant : null;
+  if (!written) return null;
+
+  if (attach_token) void attach_panel_grant_token(grant, user_id);
+
+  return grant;
+}
+
+export async function mint_renewal_grant(
+  audience: string,
+  user_id: string,
+): Promise<string | null> {
+  if (api_client.get_cached_user_info()?.user_id !== user_id) return null;
+
+  const grant = mint_panel_handoff_grant(audience, false);
+
+  if (!grant) return null;
+  if (await attach_panel_grant_token(grant, user_id)) return grant;
+
+  local_grant_storage.remove(HANDOFF_GRANT_KEY_PREFIX + grant);
+
+  return null;
+}
+
+export function install_handoff_renewal_responder(): () => void {
+  if (typeof window === "undefined" || has_tauri_runtime()) return () => {};
+
+  const port = broadcast_renewal_port();
+
+  if (!port) return () => {};
+
+  port.listen((data) => {
+    void answer_renewal_ask(data, mint_renewal_grant).then((answer) => {
+      if (answer) port.post(answer);
+    });
+  });
+
+  return () => port.close();
+}
+
+export const SIBLING_ACCOUNT_PARAM = "account";
+const RELAY_TOKEN_ENDPOINT = "/core/v1/auth/relay-token";
+
+export async function attach_panel_grant_token(
+  grant: string,
+  user_id: string,
+): Promise<boolean> {
+  try {
+    const response = await api_client.get<{ token?: unknown }>(
+      RELAY_TOKEN_ENDPOINT,
+      { skip_cache: true, skip_dedup: true },
+    );
+    const token = response.data?.token;
+
+    if (typeof token !== "string") return false;
+    if (api_client.get_cached_user_info()?.user_id !== user_id) return false;
+
+    return attach_grant_token(
+      local_grant_storage,
+      grant,
+      user_id,
+      token,
+      Date.now(),
+    );
+  } catch {
+    return false;
+  }
 }
 
 export function sibling_app_launch_url(target: string): string {
@@ -219,6 +297,9 @@ export function sibling_app_launch_url(target: string): string {
 
   if (!grant) return target;
 
+  const account_id = active_panel_account_id();
+
+  if (account_id) url.searchParams.set(SIBLING_ACCOUNT_PARAM, account_id);
   url.hash = HANDOFF_GRANT_HASH_PREFIX + grant;
 
   return url.href;

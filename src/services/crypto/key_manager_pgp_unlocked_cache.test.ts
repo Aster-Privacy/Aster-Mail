@@ -67,3 +67,14 @@ describe("unlocked private key cache", () => {
     expect(await unlock_private_key(secret, PASS)).not.toBe(first);
   });
 });
+
+describe("concurrent unlocks", () => {
+  it("shares one in-flight unlock between callers", async () => {
+    const secret = await make_secret_key();
+    const first = unlock_private_key(secret, PASS);
+    const second = unlock_private_key(secret, PASS);
+
+    expect(second).toBe(first);
+    expect(await second).toBe(await first);
+  });
+});

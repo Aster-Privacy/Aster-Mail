@@ -35,6 +35,9 @@ const RIPPLE_PROPERTIES = [
   "--aster-ripple-to-x",
   "--aster-ripple-to-y",
   "--aster-ripple-to-r",
+  "--aster-ripple-dx",
+  "--aster-ripple-dy",
+  "--aster-ripple-scale",
 ] as const;
 
 const OVERLAY_CLASS = "aster_press_overlay";
@@ -259,18 +262,40 @@ export function ripple_geometry(
   };
 }
 
+export interface RippleMotion {
+  dx: number;
+  dy: number;
+  scale: number;
+}
+
+export function ripple_motion(geometry: RippleGeometry): RippleMotion {
+  return {
+    dx: geometry.from_x - geometry.to_x,
+    dy: geometry.from_y - geometry.to_y,
+    scale: geometry.to_r > 0 ? geometry.from_r / geometry.to_r : 1,
+  };
+}
+
+function round_tenth(value: number): number {
+  return Math.round(value * 10) / 10;
+}
+
 function apply_ripple(el: HTMLElement, geometry: RippleGeometry): void {
+  const motion = ripple_motion(geometry);
   const values = [
-    geometry.from_x,
-    geometry.from_y,
-    geometry.from_r,
-    geometry.to_x,
-    geometry.to_y,
-    geometry.to_r,
+    `${round_tenth(geometry.from_x)}px`,
+    `${round_tenth(geometry.from_y)}px`,
+    `${round_tenth(geometry.from_r)}px`,
+    `${round_tenth(geometry.to_x)}px`,
+    `${round_tenth(geometry.to_y)}px`,
+    `${round_tenth(geometry.to_r)}px`,
+    `${round_tenth(motion.dx)}px`,
+    `${round_tenth(motion.dy)}px`,
+    `${Math.round(motion.scale * 1000) / 1000}`,
   ];
 
   RIPPLE_PROPERTIES.forEach((name, index) => {
-    el.style.setProperty(name, `${Math.round(values[index] * 10) / 10}px`);
+    el.style.setProperty(name, values[index]);
   });
 }
 
@@ -298,6 +323,9 @@ export function start_press_feedback(): () => void {
   let overlay_rect: DOMRect | null = null;
   let overlay_opacity = 1;
   let watch_frame: number | null = null;
+  let size_frame: number | null = null;
+  let ripple_size: { width: number; height: number } | null = null;
+  let press_share: { x: number; y: number } | null = null;
 
   const get_overlay = (): HTMLElement => {
     if (overlay && overlay.isConnected) return overlay;
@@ -387,7 +415,48 @@ export function start_press_feedback(): () => void {
     watch_frame = requestAnimationFrame(watch_overlay);
   };
 
+  const stop_size_watch = () => {
+    if (size_frame !== null) cancelAnimationFrame(size_frame);
+    size_frame = null;
+  };
+
+  const refit_ripple = (el: HTMLElement) => {
+    if (!ripple_size) return;
+    const rect = el.getBoundingClientRect();
+
+    if (rect.width === 0 || rect.height === 0) return;
+    if (
+      Math.abs(rect.width - ripple_size.width) < 0.5 &&
+      Math.abs(rect.height - ripple_size.height) < 0.5
+    ) {
+      return;
+    }
+    ripple_size = { width: rect.width, height: rect.height };
+    const geometry = ripple_geometry(
+      rect.width,
+      rect.height,
+      press_share ? press_share.x * rect.width : null,
+      press_share ? press_share.y * rect.height : null,
+    );
+
+    apply_ripple(overlay_owner === el && overlay ? overlay : el, geometry);
+  };
+
+  const watch_size = () => {
+    size_frame = null;
+    const el = current;
+
+    if (!el || !el.hasAttribute(PRESS_ATTRIBUTE)) return;
+    refit_ripple(el);
+    size_frame = requestAnimationFrame(watch_size);
+  };
+
   const clear_element = (el: HTMLElement) => {
+    if (el === current) {
+      stop_size_watch();
+      ripple_size = null;
+      press_share = null;
+    }
     el.removeAttribute(PRESS_ATTRIBUTE);
     el.removeAttribute(PRESS_MODE_ATTRIBUTE);
     el.removeAttribute(PRESS_WAVE_ATTRIBUTE);
@@ -444,6 +513,16 @@ export function start_press_feedback(): () => void {
     el.setAttribute(PRESS_WAVE_ATTRIBUTE, wave_name);
     set_state(el, "down");
     current = el;
+    ripple_size = { width: rect.width, height: rect.height };
+    press_share =
+      point && rect.width > 0 && rect.height > 0
+        ? {
+            x: (point.x - rect.left) / rect.width,
+            y: (point.y - rect.top) / rect.height,
+          }
+        : null;
+    stop_size_watch();
+    size_frame = requestAnimationFrame(watch_size);
     down_at = performance.now();
     is_down = true;
   };

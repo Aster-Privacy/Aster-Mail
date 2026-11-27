@@ -109,6 +109,40 @@ export function build_view_list_params(view: string): ListMailItemsParams {
   return params;
 }
 
+export function build_list_page_params(
+  view: string,
+  view_params: ListMailItemsParams,
+  page: ListPageShape,
+): ListMailItemsParams {
+  const { limit, cursor, offset, is_read } = page;
+  const should_group =
+    page.conversation_grouping && view !== "scheduled" && view !== "snoozed";
+  const order = page.sort_order === "oldest_first" ? "asc" : "desc";
+
+  return {
+    ...view_params,
+    limit,
+    order,
+    pinned_first: true,
+    ...(offset !== undefined ? { offset } : cursor ? { cursor } : {}),
+    ...(offset !== undefined ? { group_by_thread: should_group } : {}),
+    ...(should_group ? { thread_pages: true } : {}),
+    ...((offset !== undefined && offset > 0) || cursor
+      ? { skip_total: true }
+      : {}),
+    ...(is_read !== undefined ? { is_read } : {}),
+  };
+}
+
+export interface ListPageShape {
+  limit: number;
+  cursor?: string;
+  offset?: number;
+  conversation_grouping: boolean;
+  sort_order: "newest_first" | "oldest_first";
+  is_read?: boolean;
+}
+
 export const ALIAS_RESOLVE_TIMEOUT_MS = 10_000;
 
 export function is_unresolved_alias_view(

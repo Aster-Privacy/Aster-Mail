@@ -25,7 +25,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 const { mailbox, strip } = vi.hoisted(() => ({
   mailbox: [] as MailItem[],
-  strip: { calls: 0, cost_ms: 3 },
+  strip: { calls: 0, cost_ms: 3, decrypts: 0 },
 }));
 
 vi.mock("@/services/api/mail", () => ({
@@ -60,16 +60,20 @@ vi.mock("@/hooks/use_search/envelope", () => ({
     _envelope: string,
     _nonce: string,
     id: string,
-  ) => ({
-    subject: `Subject ${id}`,
-    body_text: "",
-    body_html: `<p>Body of ${id}</p>`,
-    from: { name: "Sender", email: "sender@example.com" },
-    to: [],
-    cc: [],
-    bcc: [],
-    sent_at: "2026-01-01T00:00:00Z",
-  }),
+  ) => {
+    strip.decrypts++;
+
+    return {
+      subject: `Subject ${id}`,
+      body_text: "",
+      body_html: `<p>Body of ${id}</p>`,
+      from: { name: "Sender", email: "sender@example.com" },
+      to: [],
+      cc: [],
+      bcc: [],
+      sent_at: "2026-01-01T00:00:00Z",
+    };
+  },
   reset_legacy_migration_state: () => {},
 }));
 vi.mock("@/services/locked_folders", () => ({
@@ -121,6 +125,7 @@ function fill_mailbox(count: number): void {
   mailbox.length = 0;
   for (let i = 0; i < count; i++) mailbox.push(make_item(i));
   strip.calls = 0;
+  strip.decrypts = 0;
 }
 
 function set_visibility(state: DocumentVisibilityState): void {
@@ -279,6 +284,34 @@ describe("run_index_pipeline main thread use", () => {
       mailbox.map((item) => item.id),
     );
     expect(frame).not.toHaveBeenCalled();
+  });
+
+  it("lets a click run after every 25 envelope decrypts", async () => {
+    fill_mailbox(300);
+
+    const per_task: number[] = [];
+    let running = true;
+    let counted = 0;
+
+    const click = () => {
+      setTimeout(() => {
+        per_task.push(strip.decrypts - counted);
+        counted = strip.decrypts;
+        if (running) click();
+      }, 0);
+    };
+
+    click();
+
+    const { result } = await build_index(300, { include_body: false });
+
+    running = false;
+    per_task.push(strip.decrypts - counted);
+
+    expect(result.processed).toBe(300);
+    expect(strip.decrypts).toBe(300);
+    expect(per_task.length).toBeGreaterThan(5);
+    expect(Math.max(...per_task)).toBeLessThanOrEqual(25);
   });
 
   it("stops within one batch when the build is cancelled", async () => {

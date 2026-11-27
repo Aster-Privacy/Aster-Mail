@@ -286,6 +286,59 @@ describe("search indexing state", () => {
     expect(pause_mock).toHaveBeenCalled();
   });
 
+  it("keeps the lens loop mounted and composited while progress changes", () => {
+    Object.assign(progress_state, {
+      building: true,
+      current: 96,
+      total: 27972,
+    });
+    render(true);
+
+    const state = by_testid("search-indexing-state")!;
+    const loop = state.querySelector("[data-lens-loop]");
+    const sweep = state.querySelector(".aster_search_lens_sweep");
+    const glint = state.querySelector(".aster_search_glint_b");
+
+    for (const current of [400, 1200, 5000, 9000]) {
+      progress_state.current = current;
+      render(true);
+    }
+
+    const fill = state.querySelector<HTMLElement>(".aster_search_bar_fill")!;
+
+    expect(state.querySelector("[data-lens-loop]")).toBe(loop);
+    expect(state.querySelector(".aster_search_lens_sweep")).toBe(sweep);
+    expect(state.querySelector(".aster_search_glint_b")).toBe(glint);
+    expect(sweep?.closest("svg")).toBeNull();
+    expect(fill.style.transform).toBe("scaleX(0.32)");
+    expect(fill.style.width).toBe("");
+    expect(
+      state
+        .querySelector("[data-dial-percent]")
+        ?.getAttribute("data-dial-percent"),
+    ).toBe("32");
+  });
+
+  it("splits the status line into wrapping segments with tabular digits", () => {
+    Object.assign(progress_state, {
+      building: true,
+      current: 96,
+      total: 27972,
+    });
+    render(true);
+
+    const detail = by_testid("search-indexing-state-detail")!;
+
+    expect(detail.className).toContain("flex-wrap");
+    expect(detail.className).toContain("tabular-nums");
+    expect(detail.className).not.toContain("truncate");
+    expect(detail.textContent).toContain(
+      'mail.search_index_progress {"done":"96","total":"27,972"}',
+    );
+    expect(detail.textContent).not.toContain("estimated_time_remaining");
+    expect(detail.textContent).not.toContain("search_index_eta");
+  });
+
   it("slides the progress line while the mailbox size is unknown", () => {
     Object.assign(progress_state, { building: true, current: 120, total: 0 });
     render(true);

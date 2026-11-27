@@ -50,10 +50,23 @@ export function external_content_action(
   return { kind: "load", types: visible };
 }
 
+export function blocked_tracker_count(
+  blocked_items: readonly BlockedItem[] | undefined,
+): number {
+  if (!blocked_items) return 0;
+
+  return new Set(
+    blocked_items
+      .filter((item) => item.type === "tracking_pixel")
+      .map((item) => item.url),
+  ).size;
+}
+
 export type UnsubscribeNoticeState = "idle" | "loading" | "manual";
 
 interface MessageNoticeRowProps {
   external_action: ExternalContentAction | null;
+  tracker_count?: number;
   on_load_external_content: (types: BlockedItem["type"][]) => void;
   on_open_image_settings: () => void;
   unsubscribe_state: UnsubscribeNoticeState | null;
@@ -66,6 +79,7 @@ const LINK_CLASS =
 
 export function MessageNoticeRow({
   external_action,
+  tracker_count = 0,
   on_load_external_content,
   on_open_image_settings,
   unsubscribe_state,
@@ -74,7 +88,7 @@ export function MessageNoticeRow({
 }: MessageNoticeRowProps): React.ReactElement | null {
   const { t } = use_i18n();
 
-  if (!external_action && !unsubscribe_state) return null;
+  if (!external_action && !unsubscribe_state && tracker_count <= 0) return null;
 
   const external_parts: React.ReactNode[] = [];
 
@@ -113,6 +127,19 @@ export function MessageNoticeRow({
           {t("mail.image_loading_settings")}
         </button>
       ),
+    );
+  }
+
+  if (tracker_count > 0) {
+    external_parts.push(
+      <span
+        key="trackers"
+        className="text-txt-muted"
+        data-testid="trackers-blocked"
+        title={t("mail.trackers_stay_blocked")}
+      >
+        {t("mail.trackers_blocked_count", { count: tracker_count })}
+      </span>,
     );
   }
 

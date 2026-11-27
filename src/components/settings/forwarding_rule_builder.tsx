@@ -27,16 +27,15 @@ import type {
 
 import { useState } from "react";
 import { PlusIcon, TrashIcon, XMarkIcon } from "@heroicons/react/24/outline";
+import { Button, Checkbox } from "@aster/ui";
+
 import {
-  Button,
-  Checkbox,
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@aster/ui";
-
+} from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { ButtonSpinner } from "@/components/ui/spinner";
 import { use_i18n } from "@/lib/i18n/context";

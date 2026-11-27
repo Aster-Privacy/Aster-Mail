@@ -1161,6 +1161,8 @@ export interface MailRulesTranslations {
 }
 
 export interface CommonTranslations {
+  couldnt_load: string;
+  try_again_action: string;
   post_quantum_unavailable_title: string;
   post_quantum_unavailable_message: string;
   post_quantum_send_anyway: string;
@@ -1530,6 +1532,8 @@ export interface CommonTranslations {
   birthday_year_optional: string;
   notes: string;
   hide_notes: string;
+  sender_note_load_failed: string;
+  sender_note_save_failed: string;
   favorite: string;
   favorited: string;
   added_to_favorites: string;
@@ -3048,6 +3052,7 @@ export interface CommonTranslations {
 }
 
 export interface SettingsTranslations {
+  referral_load_failed: string;
   sandbox_off_by_setting_notice: string;
   sandbox_off_notice: string;
   bill_action_required: string;
@@ -8868,6 +8873,9 @@ export interface MailTranslations {
   reply_from_mismatch_message: string;
   reply_from_mismatch_use_received: string;
   sending_disabled_badge: string;
+  shake_feedback_prompt: string;
+  shake_feedback_send: string;
+  shake_feedback_dismiss: string;
   reply_from_mismatch_banner: string;
   reply_from_mismatch_banner_switch: string;
   reply_from_mismatch_send_anyway: string;
@@ -9029,6 +9037,8 @@ export interface MailTranslations {
   load_external_content: string;
   external_content_hidden: string;
   show_external_content: string;
+  trackers_blocked_count: string;
+  trackers_stay_blocked: string;
   image_loading_settings: string;
   image: string;
   images: string;
@@ -9433,6 +9443,11 @@ export interface MailTranslations {
   search_searching_title: string;
   search_index_preparing: string;
   search_index_live_hint: string;
+  search_index_eta_under_minute: string;
+  search_index_eta_minutes: string;
+  search_index_eta_minutes_one?: string;
+  search_index_eta_hours: string;
+  search_index_eta_hours_one?: string;
   search_searching_more: string;
   search_index_why_label: string;
   searching_message_content: string;

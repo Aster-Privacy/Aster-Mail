@@ -35,6 +35,10 @@ import {
 
 import { use_i18n } from "@/lib/i18n/context";
 import { use_delayed_flag } from "@/hooks/use_delayed_flag";
+import {
+  use_loading_deadline,
+  use_retry_on_recovery,
+} from "@/hooks/use_load_recovery";
 import { CountBadge } from "@/components/common/count_badge";
 import { NavSectionSkeleton } from "@/components/common/nav_section_skeleton";
 import { LoadFailedNotice } from "@/components/settings/load_failed_notice";
@@ -92,6 +96,10 @@ export const SidebarAliases = memo(function SidebarAliases({
 }: SidebarAliasesProps) {
   const { t } = use_i18n();
   const skeleton_visible = use_delayed_flag(is_loading);
+  const load_stalled = use_loading_deadline(is_loading);
+  const show_failure = (load_failed || load_stalled) && Boolean(on_retry);
+
+  use_retry_on_recovery(show_failure, on_retry);
 
   const max_visible = is_collapsed ? 3 : 5;
   const has_more = aliases.length > max_visible;
@@ -205,14 +213,15 @@ export const SidebarAliases = memo(function SidebarAliases({
         )}
         {aliases.length === 0 &&
           skeleton_visible &&
+          !load_stalled &&
           !is_collapsed &&
           !section_collapsed && <NavSectionSkeleton rows={2} />}
         {aliases.length === 0 &&
-          !is_loading &&
+          (!is_loading || load_stalled) &&
           !is_collapsed &&
           !section_collapsed &&
-          (load_failed && on_retry ? (
-            <LoadFailedNotice on_retry={on_retry} />
+          (show_failure && on_retry ? (
+            <LoadFailedNotice compact on_retry={on_retry} />
           ) : (
             <SidebarEmptyText>
               {hidden_alias_count > 0

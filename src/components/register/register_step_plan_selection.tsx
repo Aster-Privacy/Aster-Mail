@@ -23,16 +23,7 @@ import type { AvailablePlan } from "@/services/api/billing";
 
 import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { motion } from "framer-motion";
-import {
-  Badge,
-  Button,
-  Input,
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@aster/ui";
+import { Badge, Button, Input } from "@aster/ui";
 import {
   AcademicCapIcon,
   ArrowTopRightOnSquareIcon,
@@ -41,6 +32,13 @@ import {
   UserGroupIcon,
 } from "@heroicons/react/24/outline";
 
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { safe_local_set } from "@/lib/safe_storage";
 import { Spinner } from "@/components/ui/spinner";
 import { pricing_comparison_url } from "@/lib/canonical_urls";
@@ -190,10 +188,7 @@ function feature_list_for_tier(
       { on: true, text: t("settings.plan_f_catch_all") },
       {
         on: true,
-        text: with_bold(
-          "2",
-          t("settings.ext_v2_plan_synced_accounts_suffix"),
-        ),
+        text: with_bold("2", t("settings.ext_v2_plan_synced_accounts_suffix")),
       },
       { on: true, text: t("settings.ext_v2_plan_f_custom_domain_primary") },
       { on: true, text: t("settings.f_auto_forward") },
@@ -225,10 +220,7 @@ function feature_list_for_tier(
       { on: true, text: t("settings.plan_f_catch_all") },
       {
         on: true,
-        text: with_bold(
-          "5",
-          t("settings.ext_v2_plan_synced_accounts_suffix"),
-        ),
+        text: with_bold("5", t("settings.ext_v2_plan_synced_accounts_suffix")),
       },
       { on: true, text: t("settings.ext_v2_plan_f_custom_domain_primary") },
       { on: true, text: t("settings.mta_sts_plan_feature") },
@@ -263,10 +255,7 @@ function feature_list_for_tier(
     { on: true, text: t("settings.plan_f_catch_all") },
     {
       on: true,
-      text: with_bold(
-        "20",
-        t("settings.ext_v2_plan_synced_accounts_suffix"),
-      ),
+      text: with_bold("20", t("settings.ext_v2_plan_synced_accounts_suffix")),
     },
     { on: true, text: t("settings.ext_v2_plan_f_custom_domain_primary") },
     { on: true, text: t("settings.mta_sts_plan_feature") },

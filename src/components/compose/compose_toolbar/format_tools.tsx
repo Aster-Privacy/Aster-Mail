@@ -29,7 +29,12 @@ import { Divider, ToolbarButton, use_frozen_selection } from "./shared";
 
 import { use_i18n } from "@/lib/i18n/context";
 
-export function FormatTools({ compose }: { compose: ComposeToolbarState }) {
+export type FormatToolsState = Pick<
+  ComposeToolbarState,
+  "editor" | "is_mac" | "active_formats" | "exec_format_command"
+>;
+
+export function FormatTools({ compose }: { compose: FormatToolsState }) {
   const { t } = use_i18n();
   const editor = compose.editor;
   const mod = compose.is_mac ? "⌘" : "Ctrl";

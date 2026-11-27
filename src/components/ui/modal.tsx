@@ -31,7 +31,9 @@ import { cn } from "@/lib/utils";
 
 type ModalProps = Omit<MotionModalProps, "reduce_motion" | "close_label">;
 
-export function Modal({ children, ...props }: ModalProps) {
+const PLAIN_OVERLAY_CLASS = "backdrop-blur-none sm:backdrop-blur-none";
+
+export function Modal({ children, overlay_class_name, ...props }: ModalProps) {
   const reduce_motion = use_should_reduce_motion();
   const { t } = use_i18n();
   const register_dismissable_surface = useDismissableLayerSurface();
@@ -39,6 +41,7 @@ export function Modal({ children, ...props }: ModalProps) {
   return (
     <MotionModal
       close_label={t("common.close")}
+      overlay_class_name={cn(PLAIN_OVERLAY_CLASS, overlay_class_name)}
       reduce_motion={reduce_motion}
       {...props}
     >

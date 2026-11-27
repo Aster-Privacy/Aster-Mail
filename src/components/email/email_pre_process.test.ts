@@ -128,21 +128,46 @@ describe("pre_process_email_html forwarded gmail_quote", () => {
     expect(out).toContain("aster-quoted-content");
   });
 
-  it("keeps the quoted original message inside the collapsed protonmail_quote section instead of hoisting it to the visible reply", () => {
+  it("collapses the protonmail_quote history as quoted text and keeps the signature visible", () => {
     const html = `<div>Hello!</div><div class="protonmail_quote">Sent with <a href="https://proton.me">Proton Mail</a> secure email.<br><br>On Wednesday, July 22nd, 2026 at 1:14 PM, findley@aster.cx &lt;findley@aster.cx&gt; wrote:<br><br><blockquote class="protonmail_quote">Hello from Aster!<br><br>Thanks,<br>Findley</blockquote></div>`;
 
     const out = pre_process_email_html(html, options);
-    const details_match = out.match(
-      /<details class="aster-forwarded-collapse">([\s\S]*)<\/details>/,
-    );
+    const details_start = out.indexOf("<details");
+    const quoted_section = out.slice(details_start);
+    const visible_before_details = out.slice(0, details_start);
 
-    expect(out).toContain("Hello!");
-    expect(details_match).not.toBeNull();
-    expect(details_match?.[1]).toContain("Hello from Aster!");
-    expect(details_match?.[1]).toContain("Sent with");
-
-    const visible_before_details = out.slice(0, out.indexOf("<details"));
-
+    expect(out).not.toContain("aster-forwarded-collapse");
+    expect(details_start).toBeGreaterThan(-1);
+    expect(quoted_section).toContain("aster-quoted-wrapper");
+    expect(quoted_section).toContain("Hello from Aster!");
+    expect(quoted_section).not.toContain("Sent with");
+    expect(visible_before_details).toContain("Hello!");
+    expect(visible_before_details).toContain("Sent with");
     expect(visible_before_details).not.toContain("Hello from Aster!");
+  });
+});
+
+describe("pre_process_email_html sending reply", () => {
+  it("drops blank lines between the signature and the quote toggle", () => {
+    const html = `<div>Thanks,</div><div data-aster-signature="1">Best,<br>Me</div><div><br></div><div><br></div><div class="aster_quote"><div>On Monday, you wrote:</div><blockquote>Original text</blockquote></div>`;
+
+    const out = pre_process_email_html(html, {
+      ...options,
+      preserve_formatting: true,
+    });
+
+    expect(out).toContain("Original text");
+    expect(out).not.toContain("<div><br></div>");
+  });
+
+  it("keeps blank lines in a sent message without Aster markup", () => {
+    const html = `<div>Thanks,</div><div><br></div><div><br></div>`;
+
+    const out = pre_process_email_html(html, {
+      ...options,
+      preserve_formatting: true,
+    });
+
+    expect(out).toContain("<div><br></div>");
   });
 });

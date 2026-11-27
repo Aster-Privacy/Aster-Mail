@@ -28,6 +28,7 @@ import { StarIcon as StarIconSolid } from "@heroicons/react/24/solid";
 import { Tooltip } from "@aster/ui";
 
 import { is_system_email, trust_source_for_display } from "@/lib/utils";
+import { has_text_selection_within } from "@/lib/text_selection";
 import { EmailTag } from "@/components/ui/email_tag";
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
 import { MessageDetailsModal } from "@/components/email/message_details_modal";
@@ -64,6 +65,7 @@ export function render_collapsed_thread_message(
       tabIndex={0}
       onClick={(e) => {
         e.stopPropagation();
+        if (has_text_selection_within(e.currentTarget)) return;
         on_toggle();
       }}
       onKeyDown={(e) => {
@@ -88,7 +90,10 @@ export function render_collapsed_thread_message(
       />
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
-          <span className="min-w-0 truncate text-sm font-semibold text-txt-primary">
+          <span
+            data-selectable
+            className="min-w-0 truncate text-sm font-semibold text-txt-primary"
+          >
             {name}
           </span>
           {is_ghost_sender && (

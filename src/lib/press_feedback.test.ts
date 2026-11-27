@@ -27,6 +27,7 @@ import {
   PRESS_SLOP_PX,
   find_press_target,
   ripple_geometry,
+  ripple_motion,
   start_press_feedback,
 } from "./press_feedback";
 
@@ -328,11 +329,62 @@ describe("press_feedback", () => {
     expect(g.to_r * 0.65).toBeGreaterThanOrEqual(Math.hypot(100, 20) - 0.001);
   });
 
+  it("refits the ripple when the pressed control resizes", () => {
+    set_rect(button, 0, 0, 200, 40);
+    pointer("pointerdown", button, "mouse", 20, 10);
+
+    expect(button.style.getPropertyValue("--aster-ripple-to-x")).toBe("100px");
+    set_rect(button, 0, 0, 400, 120);
+    vi.advanceTimersByTime(32);
+    const expected = ripple_geometry(400, 120, 40, 30);
+
+    expect(button.style.getPropertyValue("--aster-ripple-to-x")).toBe("200px");
+    expect(button.style.getPropertyValue("--aster-ripple-to-y")).toBe("60px");
+    expect(button.style.getPropertyValue("--aster-ripple-from-x")).toBe("40px");
+    expect(
+      parseFloat(button.style.getPropertyValue("--aster-ripple-to-r")),
+    ).toBeCloseTo(expected.to_r, 0);
+    pointer("pointerup", button, "mouse", 20, 10);
+    vi.advanceTimersByTime(PRESS_MIN_HOLD_MS + PRESS_RELEASE_MS + 32);
+    expect(button.hasAttribute(PRESS_ATTRIBUTE)).toBe(false);
+    expect(button.style.getPropertyValue("--aster-ripple-to-r")).toBe("");
+  });
+
+  it("refits the gradient overlay ripple when its owner grows", () => {
+    const grad = document.getElementById("grad")!;
+    const overlay_r = () =>
+      parseFloat(
+        (
+          document.querySelector(".aster_press_overlay") as HTMLElement
+        ).style.getPropertyValue("--aster-ripple-to-r"),
+      );
+
+    grad.style.backgroundImage = "url(a.png)";
+    set_rect(grad, 0, 0, 100, 40);
+    pointer("pointerdown", grad, "mouse", 10, 10);
+    const before = overlay_r();
+
+    set_rect(grad, 0, -10, 100, 60);
+    vi.advanceTimersByTime(32);
+    expect(overlay_r()).toBeGreaterThan(before);
+    expect(overlay_r() * 0.65).toBeGreaterThanOrEqual(Math.hypot(50, 30) - 0.1);
+  });
+
   it("starts keyboard ripples at the center and clamps stray points", () => {
     const centered = ripple_geometry(40, 40, null, null);
     const clamped = ripple_geometry(40, 40, -5, 90);
 
     expect([centered.from_x, centered.from_y]).toEqual([20, 20]);
     expect([clamped.from_x, clamped.from_y]).toEqual([0, 40]);
+  });
+
+  it("maps the ripple to a translate and scale from the press point", () => {
+    const g = ripple_geometry(200, 40, 30, 10);
+    const motion = ripple_motion(g);
+
+    expect([motion.dx, motion.dy]).toEqual([-70, -10]);
+    expect(motion.scale).toBeCloseTo(g.from_r / g.to_r);
+    expect(motion.scale).toBeGreaterThan(0);
+    expect(motion.scale).toBeLessThan(1);
   });
 });

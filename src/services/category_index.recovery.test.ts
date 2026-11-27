@@ -252,7 +252,7 @@ describe("category_index build recovery", () => {
     // The user returns. The next attempt now succeeds.
     list_mail_items.mockReturnValue(Promise.resolve(one_page()));
     set_visible_and_dispatch();
-    await flush();
+    await flush(400);
 
     // The wedged latch was superseded and the index rebuilt to completion -
     // no manual page refresh required.

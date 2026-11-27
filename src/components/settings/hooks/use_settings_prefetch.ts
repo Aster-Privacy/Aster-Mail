@@ -78,6 +78,10 @@ const PANEL_FETCHERS: Record<SettingsPanelName, Fetcher> = {
 };
 
 const PREFETCH_PANELS: SettingsPanelName[] = [
+  "totp_status",
+  "login_alerts_status",
+  "recovery_email_status",
+  "passkey_list",
   "auto_forward",
   "blocked",
   "allowlist",
@@ -89,10 +93,6 @@ const PREFETCH_PANELS: SettingsPanelName[] = [
   "ghost_aliases",
   "sessions",
   "trusted_devices",
-  "totp_status",
-  "login_alerts_status",
-  "recovery_email_status",
-  "passkey_list",
 ];
 
 const PREFETCH_CONCURRENCY = 4;

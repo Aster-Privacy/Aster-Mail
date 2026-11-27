@@ -69,7 +69,7 @@ export function AddActionChip({ options, on_pick }: AddActionChipProps) {
       </DropdownMenuTrigger>
       <DropdownMenuContent
         align="start"
-        className="z-[200] w-56 data-[state=closed]:!animate-none data-[state=closed]:!duration-0"
+        className="z-[200] min-w-56 data-[state=closed]:!animate-none data-[state=closed]:!duration-0"
         sideOffset={6}
       >
         {options.map((opt) => (

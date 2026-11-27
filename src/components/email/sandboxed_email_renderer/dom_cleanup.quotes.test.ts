@@ -80,20 +80,23 @@ describe("collapse_forwarded_content protonmail_quote", () => {
       `<div>Acknowledged.</div><div class="protonmail_signature_block">Sent from Proton Mail for iOS.</div><div class="protonmail_quote">-------- Original Message --------<br>On Tuesday, 08/11/26 at 15:12, mrx@astermail.org wrote:<br><br><blockquote class="protonmail_quote">Hello<br><br>Testing for reference.<br><br>Regards.</blockquote></div>`,
     );
 
-    expect(visible_text(doc)).toBe("Acknowledged.");
+    expect(visible_text(doc)).toBe(
+      "Acknowledged.Sent from Proton Mail for iOS.",
+    );
     expect(visible_text(doc)).not.toContain("Testing for reference.");
     expect(collapsed_text(doc)).toContain("Testing for reference.");
     expect(collapsed_text(doc)).toContain("Regards.");
   });
 
-  it("keeps the quoted message inside the collapse instead of hoisting it to the visible reply", () => {
+  it("keeps the quoted message collapsed and the signature with the reply", () => {
     const { html, doc } = render(
       `<div>Hello!</div><div class="protonmail_quote">Sent with <a href="https://proton.me">Proton Mail</a> secure email.<br><br>On Wednesday, July 22nd, 2026 at 1:14 PM, findley@aster.cx &lt;findley@aster.cx&gt; wrote:<br><br><blockquote class="protonmail_quote">Hello from Aster!<br><br>Thanks,<br>Findley</blockquote></div>`,
     );
 
-    expect(html).toContain("aster-forwarded-collapse");
-    expect(visible_text(doc)).toBe("Hello!");
-    expect(collapsed_text(doc)).toContain("Sent with");
+    expect(html).not.toContain("aster-forwarded-collapse");
+    expect(html).toContain("aster-quoted-wrapper");
+    expect(visible_text(doc)).toBe("Hello!Sent with Proton Mail secure email.");
+    expect(collapsed_text(doc)).not.toContain("Sent with");
     expect(collapsed_text(doc)).toContain("Hello from Aster!");
   });
 
@@ -121,7 +124,8 @@ describe("collapse_forwarded_content protonmail_quote", () => {
       `<div>Here you go.</div><div class="protonmail_quote">-------- Original Message --------<div>Nested original body.</div></div>`,
     );
 
-    expect(html).toContain("aster-forwarded-collapse");
+    expect(html).toContain("aster-quoted-wrapper");
+    expect(html).not.toContain("aster-forwarded-collapse");
     expect(visible_text(doc)).toBe("Here you go.");
     expect(collapsed_text(doc)).toContain("Nested original body.");
   });

@@ -325,6 +325,10 @@ function admit_content(thread_token: string): ThreadState | null {
   return threads.get(thread_token) === state ? state : null;
 }
 
+export function ciphertext_fingerprint(value: string | undefined): string {
+  return fingerprint(value);
+}
+
 function fingerprint(value: string | undefined): string {
   const text = value ?? "";
   let h1 = 0xdeadbeef;
@@ -479,12 +483,60 @@ export async function decrypt_thread_metadata_cached(
   return flags;
 }
 
+export interface CachedReaction {
+  emoji: string;
+  reactor_email: string;
+}
+
+const REACTION_CACHE_LIMIT = 256;
+const reaction_cache = new Map<string, CachedReaction>();
+
+export function reaction_cache_key(
+  mail_item_id: string,
+  user_email: string,
+  encrypted_envelope: string | undefined,
+  envelope_nonce: string | undefined,
+): string {
+  return [
+    mail_item_id,
+    user_email.toLowerCase(),
+    fingerprint(encrypted_envelope),
+    fingerprint(envelope_nonce),
+  ].join("|");
+}
+
+export function get_cached_reaction(key: string): CachedReaction | null {
+  const hit = reaction_cache.get(key);
+
+  if (!hit) return null;
+  reaction_cache.delete(key);
+  reaction_cache.set(key, hit);
+
+  return { ...hit };
+}
+
+export function remember_reaction(key: string, value: CachedReaction): void {
+  register_listeners();
+  if (content_suspended || page_hidden()) return;
+
+  reaction_cache.delete(key);
+  reaction_cache.set(key, { ...value });
+
+  while (reaction_cache.size > REACTION_CACHE_LIMIT) {
+    const oldest = reaction_cache.keys().next();
+
+    if (oldest.done) return;
+    reaction_cache.delete(oldest.value);
+  }
+}
+
 export function thread_decrypt_cache_size(): number {
   return content_cache.size;
 }
 
 export function clear_thread_decrypt_cache(): void {
   content_cache.clear();
+  reaction_cache.clear();
   metadata_cache.clear();
   generation += 1;
   closed_threads.clear();

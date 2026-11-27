@@ -623,7 +623,7 @@ export function DeliveryPanel({
                   <EllipsisVerticalIcon />
                 </IslandIconButton>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-60">
+              <DropdownMenuContent align="end" className="min-w-60">
                 {run_active ? (
                   <DropdownMenuItem
                     data-testid="alias_apply_existing_stop"

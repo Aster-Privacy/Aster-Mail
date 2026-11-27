@@ -24,19 +24,17 @@ import type { TranslationKey } from "@/lib/i18n/types";
 import { useState } from "react";
 import { ShieldCheckIcon } from "@heroicons/react/24/outline";
 import { CheckCircleIcon } from "@heroicons/react/24/solid";
+import { Badge, Button, IslandSection } from "@aster/ui";
+
+import { checkout_error_text } from "./checkout_error_text";
+
 import {
-  Badge,
-  Button,
-  IslandSection,
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@aster/ui";
-
-import { checkout_error_text } from "./checkout_error_text";
-
+} from "@/components/ui/select";
 import { CrownIcon } from "@/components/ui/crown_icon";
 import {
   format_price,

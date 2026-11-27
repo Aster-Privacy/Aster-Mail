@@ -219,7 +219,7 @@ describe("internal ratchet mail rendering", () => {
     h.continuity = "known";
   });
 
-  it("shows a first message from an unseen sender key as unverified", async () => {
+  it("shows a first message from an unseen sender key as end to end encrypted with an unconfirmed sender", async () => {
     const secret = "A first message from a key this device has not seen.";
     const { envelope_json, receiver_vault } =
       await build_real_internal_envelope(secret, false);
@@ -234,7 +234,28 @@ describe("internal ratchet mail rendering", () => {
     );
 
     expect(result.body_text).toBe(secret);
-    expect(result.e2e_verified).toBe(false);
+    expect(result.e2e_verified).toBe(true);
+    expect(result.e2e_sender_bound).toBe(false);
+    expect(result.e2e_details_sealed).toBeFalsy();
+  });
+
+  it("keeps a message from a changed sender key end to end encrypted without binding the sender", async () => {
+    const secret = "A message after the sender key changed.";
+    const { envelope_json, receiver_vault } =
+      await build_real_internal_envelope(secret, false);
+
+    h.vault = receiver_vault;
+    h.continuity = "changed";
+
+    const result = await process_envelope_body(
+      envelope_with(envelope_json),
+      RECIPIENT,
+      "msg-changed",
+    );
+
+    expect(result.body_text).toBe(secret);
+    expect(result.e2e_verified).toBe(true);
+    expect(result.e2e_sender_bound).toBe(false);
   });
 
   it("renders the decrypted plaintext, never the raw double_ratchet_v2 envelope (success path)", async () => {
@@ -261,6 +282,7 @@ describe("internal ratchet mail rendering", () => {
     // Nothing anywhere in the rendered output may leak the envelope JSON.
     expect(JSON.stringify(result)).not.toContain("double_ratchet_v2");
     expect(result.e2e_verified).toBe(true);
+    expect(result.e2e_sender_bound).toBe(true);
   });
 
   it("does not mark a plain server delivered body as end to end verified", async () => {

@@ -46,6 +46,10 @@ import { has_passphrase_in_memory } from "@/services/crypto/memory_key_store";
 import { request_cache } from "@/services/api/request_cache";
 import { forget_removed_ids } from "@/services/removed_items";
 import { sync_client } from "@/services/sync_client";
+import {
+  is_resume_settling,
+  subscribe_page_resume,
+} from "@/lib/page_resume";
 import { filter_locked_folder_emails } from "@/services/locked_folders";
 import {
   CATCH_UP_WHILE_LIVE_MS,
@@ -291,19 +295,13 @@ export function use_email_list_events({
       silent_fetch_ref.current?.();
     };
 
-    const handle_visibility_change = () => {
-      maybe_revalidate();
-    };
-
-    const handle_focus = () => {
-      maybe_revalidate();
-    };
-
     let last_poll_at = Date.now();
 
     const poll_interval = window.setInterval(() => {
       const now = Date.now();
       const page_hidden = document.visibilityState !== "visible";
+
+      if (!page_hidden && is_resume_settling()) return;
       const gap_ms = poll_gap_ms(page_hidden, sync_client.is_connected());
 
       if (gap_ms > 0) {
@@ -336,15 +334,14 @@ export function use_email_list_events({
     );
     window.addEventListener(MAIL_EVENTS.REFRESH_REQUESTED, force_fetch_handler);
     window.addEventListener("astermail:folder-locked", folder_locked_handler);
-    document.addEventListener("visibilitychange", handle_visibility_change);
-    window.addEventListener("focus", handle_focus);
+    const unsubscribe_resume = subscribe_page_resume(maybe_revalidate);
 
     return () => {
+      unsubscribe_resume();
       if (debounce_timer) {
         clearTimeout(debounce_timer);
       }
       window.clearInterval(poll_interval);
-      window.removeEventListener("focus", handle_focus);
       window.removeEventListener(MAIL_EVENTS.MAIL_CHANGED, silent_handler);
       window.removeEventListener(
         MAIL_EVENTS.MAIL_SOFT_REFRESH,
@@ -369,10 +366,6 @@ export function use_email_list_events({
       window.removeEventListener(
         "astermail:folder-locked",
         folder_locked_handler,
-      );
-      document.removeEventListener(
-        "visibilitychange",
-        handle_visibility_change,
       );
     };
   }, [

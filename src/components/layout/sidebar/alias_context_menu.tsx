@@ -157,7 +157,7 @@ export function AliasContextMenu({
   return (
     <ContextMenu>
       <ContextMenuTrigger asChild>{children}</ContextMenuTrigger>
-      <ContextMenuContent className="w-48">
+      <ContextMenuContent className="min-w-48">
         <ContextMenuItem onClick={copy_address}>
           <ClipboardDocumentIcon className="me-2 h-4 w-4" />
           {t("common.copy_address")}

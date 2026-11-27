@@ -32,13 +32,17 @@ const mocks = vi.hoisted(() => ({
   cached_user: null as { user_id: string } | null,
   locked: new Set<string>(),
   tauri: false,
+  relay_token: null as string | null,
 }));
 
 vi.mock("./vault_decryption", () => ({
   decrypt_vault_with_lock: vi.fn(async () => null),
 }));
 vi.mock("@/services/api/client", () => ({
-  api_client: { get_cached_user_info: () => mocks.cached_user },
+  api_client: {
+    get_cached_user_info: () => mocks.cached_user,
+    get: async () => ({ data: { token: mocks.relay_token } }),
+  },
 }));
 vi.mock("@/services/api/csrf", () => ({
   get_csrf_token_from_cookie: () => "token",
@@ -56,6 +60,9 @@ vi.mock("@/lib/tauri_runtime", () => ({
 
 import {
   HANDOFF_GRANT_HASH_PREFIX,
+  SIBLING_ACCOUNT_PARAM,
+  attach_panel_grant_token,
+  mint_renewal_grant,
   should_attempt_boot_handoff,
   sibling_app_launch_url,
 } from "./sibling_session_handoff";
@@ -65,8 +72,10 @@ import {
   type HandoffChannel,
 } from "@/lib/session_handoff/session_handoff_client";
 import {
+  HANDOFF_GRANT_KEY_PREFIX,
   check_grant,
   local_grant_storage,
+  take_grant,
 } from "@/lib/session_handoff/session_handoff_grant";
 import {
   CALENDAR_WEB_ORIGIN,
@@ -365,5 +374,96 @@ describe("launch handoff end to end", () => {
     );
 
     expect(await request()).toBeNull();
+  });
+});
+
+describe("launch link with two accounts on this device", () => {
+  const RELAY_TOKEN = "aGVhZGVy.YWN0aXZl.c2ln";
+
+  afterEach(() => {
+    mocks.relay_token = null;
+  });
+
+  it("names the active account in the link", () => {
+    const url = new URL(sibling_app_launch_url(CALENDAR_WEB_ORIGIN));
+
+    expect(url.searchParams.get(SIBLING_ACCOUNT_PARAM)).toBe(ACTIVE_ACCOUNT_ID);
+
+    mocks.cached_user = { user_id: DEFAULT_ACCOUNT_ID };
+
+    const switched = new URL(sibling_app_launch_url(CALENDAR_WEB_ORIGIN));
+
+    expect(switched.searchParams.get(SIBLING_ACCOUNT_PARAM)).toBe(
+      DEFAULT_ACCOUNT_ID,
+    );
+  });
+
+  it("attaches the active account's short-lived token to its grant", async () => {
+    mocks.relay_token = RELAY_TOKEN;
+    const grant = grant_from(sibling_app_launch_url(CALENDAR_WEB_ORIGIN));
+
+    await attach_panel_grant_token(grant, ACTIVE_ACCOUNT_ID);
+
+    expect(
+      take_grant(
+        local_grant_storage,
+        grant,
+        CALENDAR_WEB_ORIGIN,
+        ACTIVE_ACCOUNT_ID,
+        Date.now(),
+      ),
+    ).toEqual({ access_token: RELAY_TOKEN });
+    expect(window.localStorage.getItem(HANDOFF_GRANT_KEY_PREFIX + grant)).toBe(
+      null,
+    );
+  });
+
+  it("drops the token when the account switched while it was fetched", async () => {
+    mocks.relay_token = RELAY_TOKEN;
+    const grant = grant_from(sibling_app_launch_url(CALENDAR_WEB_ORIGIN));
+
+    mocks.cached_user = { user_id: DEFAULT_ACCOUNT_ID };
+
+    expect(await attach_panel_grant_token(grant, ACTIVE_ACCOUNT_ID)).toBe(false);
+  });
+
+  it("mints a renewal grant with a fresh token for the active account", async () => {
+    mocks.relay_token = RELAY_TOKEN;
+    const grant = await mint_renewal_grant(
+      CALENDAR_WEB_ORIGIN,
+      ACTIVE_ACCOUNT_ID,
+    );
+
+    expect(grant).not.toBeNull();
+    expect(
+      take_grant(
+        local_grant_storage,
+        grant as string,
+        CALENDAR_WEB_ORIGIN,
+        ACTIVE_ACCOUNT_ID,
+        Date.now(),
+      ),
+    ).toEqual({ access_token: RELAY_TOKEN });
+  });
+
+  it("refuses a renewal once Mail switched to another account", async () => {
+    mocks.relay_token = RELAY_TOKEN;
+    mocks.cached_user = { user_id: DEFAULT_ACCOUNT_ID };
+    const before = window.localStorage.length;
+
+    expect(
+      await mint_renewal_grant(CALENDAR_WEB_ORIGIN, ACTIVE_ACCOUNT_ID),
+    ).toBeNull();
+    expect(window.localStorage.length).toBe(before);
+  });
+
+  it("removes the renewal grant when no token could be fetched", async () => {
+    mocks.relay_token = null;
+    const before = window.localStorage.length;
+
+    expect(
+      await mint_renewal_grant(CALENDAR_WEB_ORIGIN, ACTIVE_ACCOUNT_ID),
+    ).toBeNull();
+    expect(window.localStorage.length).toBe(before);
   });
 });

@@ -20,6 +20,8 @@
 //
 export const ko = {
   common: {
+    couldnt_load: "불러오지 못했습니다.",
+    try_again_action: "다시 시도",
     merge_primary_label: "기본",
     merge_make_primary: "기본으로 설정",
     merge_primary_description:
@@ -486,6 +488,8 @@ export const ko = {
     birthday_year_optional: "연도(선택 사항)",
     notes: "메모",
     hide_notes: "메모 숨기기",
+    sender_note_load_failed: "메모를 불러오지 못했습니다.",
+    sender_note_save_failed: "메모를 저장하지 못했습니다.",
     favorite: "즐겨찾기",
     favorited: "즐겨찾기에 추가됨",
     added_to_favorites: "즐겨찾기에 추가했습니다",
@@ -1978,8 +1982,8 @@ export const ko = {
     alias_note_too_long: "이 메모는 길이 제한을 넘습니다. 더 짧게 하면 됩니다.",
     add_alias_note_placeholder: "메모 추가",
     edit_alias_note: "메모 편집",
-    change_alias_avatar: "아바타 변경",
-    remove_alias_avatar: "아바타 제거",
+    change_alias_avatar: "프로필 사진 변경",
+    remove_alias_avatar: "프로필 사진 제거",
     alias_avatars_locked:
       "맞춤 아바타는 유료 플랜에 포함됩니다. 업그레이드하면 이용할 수 있습니다.",
     not_now: "나중에",
@@ -2244,6 +2248,7 @@ export const ko = {
     zip_archive: "ZIP 압축 파일",
   },
   settings: {
+    referral_load_failed: "초대 정보를 불러오지 못했습니다.",
     sandbox_off_by_setting_notice:
       "환경 변수가 샌드박스를 껐기 때문에 이 창은 샌드박스 없이 실행 중입니다.",
     sandbox_off_notice:
@@ -9939,6 +9944,9 @@ export const ko = {
       "이 이메일은 {{ received }}에서 수신했지만 답장은 {{ selected }}에서 전송됩니다. 다른 주소로 답장하면 해당 주소가 발신자에게 노출되거나 답장이 거부될 수 있습니다.",
     reply_from_mismatch_use_received: "수신 주소 사용",
     sending_disabled_badge: "보내기 비활성화됨",
+    shake_feedback_prompt: "제대로 작동하지 않는 부분이 있나요? 알려 주세요.",
+    shake_feedback_send: "의견 보내기",
+    shake_feedback_dismiss: "괜찮습니다",
     reply_from_mismatch_banner: "이 이메일은 {{ received }}(으)로 받았지만 답장은 {{ selected }}에서 보내집니다.",
     reply_from_mismatch_banner_switch: "{{ received }}에서 보내기",
     reply_from_mismatch_send_anyway: "그대로 보내기",
@@ -9966,6 +9974,8 @@ export const ko = {
     load_external_content: "외부 콘텐츠 불러오기",
     external_content_hidden: "외부 콘텐츠가 숨겨져 있습니다",
     show_external_content: "콘텐츠 표시",
+    trackers_blocked_count: "차단된 추적기: {{count}}",
+    trackers_stay_blocked: "콘텐츠를 표시해도 추적기는 계속 차단됩니다.",
     image_loading_settings: "이미지 설정",
     image: "이미지",
     images: "이미지",
@@ -10040,6 +10050,9 @@ export const ko = {
     search_index_resume: "재개",
     search_searching_title: "메일 검색 중",
     search_index_preparing: "비공개 색인을 준비하는 중",
+    search_index_eta_under_minute: "1분 미만 남음",
+    search_index_eta_minutes: "약 {{value}}분 남음",
+    search_index_eta_hours: "약 {{value}}시간 남음",
     search_index_live_hint: "일치하는 메일은 찾는 즉시 표시됩니다.",
     search_searching_more: "더 많은 메일 검색 중",
     search_index_why_label: "검색에 색인이 필요한 이유",

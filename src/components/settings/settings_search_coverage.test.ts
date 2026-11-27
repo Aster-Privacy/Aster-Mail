@@ -87,6 +87,7 @@ const NOT_SETTINGS = new Set([
   "settings.sync_frequency",
   "settings.sync_settings",
   "settings.tls_method",
+  "passkeys.unnamed_passkey",
 ]);
 
 const DIRECT_KEY = /^\{\s*t\(\s*"([^"]+)"\s*(?:,[\s\S]*)?\)\s*\}$/;

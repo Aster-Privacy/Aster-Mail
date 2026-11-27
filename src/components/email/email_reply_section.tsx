@@ -292,7 +292,7 @@ export function EmailReplySection({
   return (
     <motion.div
       animate={{ y: 0, opacity: 1 }}
-      className="px-6 py-3 border-t border-edge-secondary bg-surf-card"
+      className="px-6 py-3 border-t border-edge-secondary bg-surf-card select-none"
       initial={reduce_motion ? false : { y: 10, opacity: 0 }}
       transition={{ duration: reduce_motion ? 0 : 0.3, delay: 0.3 }}
     >

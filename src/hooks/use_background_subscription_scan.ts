@@ -48,6 +48,11 @@ import { has_protected_folder_label } from "@/hooks/use_folders";
 import { ignore_error } from "@/lib/ignore_error";
 import { safe_local_get, safe_local_set } from "@/lib/safe_storage";
 import { get_vault_from_memory } from "@/services/crypto/memory_key_store";
+import {
+  pace_walk_page,
+  run_in_single_tab,
+  wait_until_visible,
+} from "@/services/background_walk";
 
 interface ScanEnvelope {
   from?: { name?: string; email?: string };
@@ -124,6 +129,7 @@ const DECRYPT_CONCURRENCY = 8;
 const SCAN_IDLE_TIMEOUT_MS = 10000;
 const SCAN_PAGE_SIZE = 200;
 const SCAN_PAGE_PAUSE_MS = 250;
+const SUBSCRIPTION_SCAN_LOCK = "subscription_scan";
 const SCAN_CHECKPOINT_PAGES = 5;
 const SCAN_CURSOR_MAX_LENGTH = 512;
 const SCAN_REJECTED_CURSOR_STATUSES = [400, 422];
@@ -541,7 +547,12 @@ export async function run_background_scan(
 
   while (has_next) {
     if (cursor) {
-      await new Promise((resolve) => setTimeout(resolve, SCAN_PAGE_PAUSE_MS));
+      if (is_full_scan) {
+        await pace_walk_page();
+      } else {
+        await new Promise((resolve) => setTimeout(resolve, SCAN_PAGE_PAUSE_MS));
+        await wait_until_visible();
+      }
     }
 
     const { data, error, status } = await list_mail_items({
@@ -804,12 +815,16 @@ export function use_background_subscription_scan(): void {
       is_scanning_ref.current = true;
       set_scan_in_flight(true);
 
-      run_background_scan(vault, {
-        defer_upgrade,
-        is_cancelled: () =>
-          get_vault_from_memory()?.identity_key !== vault.identity_key,
-      })
-        .then((delay) => {
+      run_in_single_tab(SUBSCRIPTION_SCAN_LOCK, () =>
+        run_background_scan(vault, {
+          defer_upgrade,
+          is_cancelled: () =>
+            get_vault_from_memory()?.identity_key !== vault.identity_key,
+        }),
+      )
+        .then(({ value }) => {
+          const delay = value ?? 0;
+
           if (delay <= 0 || deferred_scan_ref.current !== null) return;
           if (active_identity_ref.current !== vault.identity_key) return;
 

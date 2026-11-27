@@ -46,6 +46,7 @@ export interface PreloadedEmail {
   mail_item: MailItem;
   email: DecryptedEmail;
   thread_messages: DecryptedThreadMessage[];
+  thread_signature?: string;
   thread_draft: DraftWithContent | null;
   current_user_email: string;
   current_user_name: string;

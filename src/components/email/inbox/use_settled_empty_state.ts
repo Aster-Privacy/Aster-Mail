@@ -26,12 +26,14 @@ interface SettledEmptyStateParams {
   view_key: string;
   is_empty: boolean;
   is_settled: boolean;
+  immediate?: boolean;
 }
 
 export function use_settled_empty_state({
   view_key,
   is_empty,
   is_settled,
+  immediate = false,
 }: SettledEmptyStateParams): boolean {
   const [committed_key, set_committed_key] = useState<string | null>(null);
   const rows_seen_key_ref = useRef<string | null>(null);
@@ -50,7 +52,7 @@ export function use_settled_empty_state({
       return;
     }
     if (!is_settled || committed_key === view_key) return;
-    if (settled_without_rows) {
+    if (immediate || settled_without_rows) {
       set_committed_key(view_key);
 
       return;
@@ -61,7 +63,14 @@ export function use_settled_empty_state({
     }, EMPTY_COMMIT_GRACE_MS);
 
     return () => clearTimeout(timer);
-  }, [view_key, is_empty, is_settled, committed_key, settled_without_rows]);
+  }, [
+    view_key,
+    is_empty,
+    is_settled,
+    immediate,
+    committed_key,
+    settled_without_rows,
+  ]);
 
   return is_empty && (committed_key === view_key || settled_without_rows);
 }

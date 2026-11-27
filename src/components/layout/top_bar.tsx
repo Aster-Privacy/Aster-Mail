@@ -44,6 +44,7 @@ import { ProfileAvatar } from "@/components/ui/profile_avatar";
 import { SearchBar } from "@/components/search/search_bar";
 import { WorkspaceSwitcher } from "@/components/layout/workspace_switcher";
 import { AppSwitcher } from "@/components/layout/app_switcher";
+import { TopBarLogo } from "@/components/layout/top_bar_logo";
 import { use_auth } from "@/contexts/auth_context";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
@@ -287,7 +288,7 @@ function top_bar_base({
         className={
           is_rail_header
             ? "flex items-center justify-center flex-shrink-0"
-            : "flex items-center gap-2 flex-shrink-0 px-2 sm:ps-[22px] sm:pe-3"
+            : "flex items-center justify-between gap-2 flex-shrink-0 px-2 sm:ps-[22px] sm:pe-2.5"
         }
         style={is_mobile ? undefined : { width: left_cluster_width }}
       >
@@ -302,40 +303,15 @@ function top_bar_base({
         <Tooltip delay={1200} tip={t("common.aster_mail")}>
           <button
             aria-label={t("common.aster_mail")}
-            className="hidden sm:flex items-center select-none overflow-hidden px-2 py-2 -mx-2 outline-none focus:outline-none"
+            className="hidden sm:flex min-w-0 items-center select-none overflow-hidden px-2 py-2 -mx-2 rounded-[var(--aster-radius-item,8px)] outline-none focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-color)]"
             type="button"
             onClick={go_home}
           >
-            {is_rail_header ? (
-              <img
-                alt={t("common.aster_mail")}
-                className="h-9 w-9 object-contain"
-                decoding="async"
-                draggable={false}
-                src="/mail_logo.png"
-              />
-            ) : (
-              <>
-                <img
-                  alt={t("common.aster_mail")}
-                  className="h-6 w-auto max-w-full object-contain object-left dark:hidden"
-                  decoding="async"
-                  draggable={false}
-                  src="/aster_mail_logo_light.png"
-                />
-                <img
-                  alt={t("common.aster_mail")}
-                  className="h-6 w-auto max-w-full object-contain object-left hidden dark:block"
-                  decoding="async"
-                  draggable={false}
-                  src="/aster_mail_logo_dark.png"
-                />
-              </>
-            )}
+            <TopBarLogo is_rail_header={is_rail_header} />
           </button>
         </Tooltip>
         {!is_rail_header && (
-          <div className="hidden sm:block">
+          <div className="hidden sm:flex flex-shrink-0 items-center">
             <AppSwitcher on_open_current={go_home} />
           </div>
         )}
@@ -370,7 +346,7 @@ function top_bar_base({
               </button>
             </DropdownMenuTrigger>
           </Tooltip>
-          <DropdownMenuContent align="end" className="w-56">
+          <DropdownMenuContent align="end" className="min-w-56">
             <DropdownMenuItem onClick={() => open_external(HELP_CENTER_URL)}>
               <LifebuoyIcon className="w-4 h-4 me-2" />
               {t("settings.bridge_support_help")}
@@ -458,7 +434,7 @@ function top_bar_base({
             trigger={
               <button
                 aria-label={t("auth.your_accounts")}
-                className="account_avatar_button flex flex-shrink-0 items-center justify-center w-9 h-9 rounded-full p-0 leading-none outline-none focus:outline-none focus-visible:outline-none focus-visible:ring-0"
+                className="account_avatar_button flex flex-shrink-0 items-center justify-center w-9 h-9 rounded-full p-0 leading-none outline-none focus:outline-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-color)]"
                 type="button"
                 onClick={close_account_tip}
               >

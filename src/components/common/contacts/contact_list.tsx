@@ -60,7 +60,7 @@ import { Button, Checkbox, PillButton, Switch, Tooltip } from "@aster/ui";
 import { useCallback, useEffect, useId, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 
-import { Skeleton } from "@/components/ui/skeleton";
+import { ContactListSkeleton } from "@/components/common/contacts/contact_list_skeleton";
 import {
   ContactGroupsPane,
   type ContactsLoadStatus,
@@ -91,6 +91,11 @@ import { use_preferences } from "@/contexts/preferences_context";
 import { EncryptionInfoDropdown } from "@/components/common/encryption_info_dropdown";
 import { ContactAvatar } from "@/components/common/contacts/contact_avatar";
 import { cn, format_number } from "@/lib/utils";
+import {
+  BLANK_LIST_SKELETON_DELAY_MS,
+  SKELETON_MIN_VISIBLE_MS,
+  use_delayed_flag,
+} from "@/hooks/use_delayed_flag";
 
 interface ContactListProps {
   t: (key: TranslationKey, params?: Record<string, string | number>) => string;
@@ -291,6 +296,11 @@ export function ContactList({
   );
   const is_compact = view_mode === "compact";
   const avatar_px = is_compact ? 32 : 40;
+  const show_loading_skeleton = use_delayed_flag(
+    is_loading && contacts.length === 0,
+    BLANK_LIST_SKELETON_DELAY_MS,
+    SKELETON_MIN_VISIBLE_MS,
+  );
   const [search_params, set_search_params] = useSearchParams();
   const group_view_id = search_params.get(GROUP_VIEW_PARAM);
   const [tab, set_tab] = useState<ContactTab>(() =>
@@ -423,7 +433,10 @@ export function ContactList({
 
   return (
     <div className="@container/contact-list w-full min-w-0 md:w-1/2 md:flex-shrink-0 md:border-e md:border-edge-primary min-h-0 flex flex-col">
-      <div className="contact_list_title_row" data-testid="contact_list_title_row">
+      <div
+        className="contact_list_title_row"
+        data-testid="contact_list_title_row"
+      >
         <div className="md:hidden">
           <MobileMenuButton on_click={on_mobile_menu_toggle} />
         </div>
@@ -463,7 +476,7 @@ export function ContactList({
                 </button>
               </DropdownMenuTrigger>
             </Tooltip>
-            <DropdownMenuContent align="end" className="w-52">
+            <DropdownMenuContent align="end" className="min-w-52">
               {sort_options.map((option) => (
                 <DropdownMenuItem
                   key={option.key}
@@ -512,7 +525,7 @@ export function ContactList({
                 </button>
               </DropdownMenuTrigger>
             </Tooltip>
-            <DropdownMenuContent align="end" className="w-56">
+            <DropdownMenuContent align="end" className="min-w-56">
               <DropdownMenuItem
                 disabled={duplicate_count === 0}
                 onClick={open_merge_review}
@@ -578,7 +591,7 @@ export function ContactList({
                 </Button>
               </DropdownMenuTrigger>
             </Tooltip>
-            <DropdownMenuContent align="end" className="w-56">
+            <DropdownMenuContent align="end" className="min-w-56">
               <DropdownMenuItem
                 onClick={() => {
                   select_tab("contacts");
@@ -856,7 +869,7 @@ export function ContactList({
                       </button>
                     </DropdownMenuTrigger>
                   </Tooltip>
-                  <DropdownMenuContent align="end" className="w-48">
+                  <DropdownMenuContent align="end" className="min-w-48">
                     <DropdownMenuItem
                       onClick={() => on_export_contacts(true, "vcard")}
                     >
@@ -900,24 +913,17 @@ export function ContactList({
 
         <div
           ref={list_container_ref}
-          className="flex-1 overflow-y-auto px-2 pt-1 pb-2"
+          className="flex-1 overflow-y-auto pt-1 pb-2"
         >
-          {is_loading ? (
-            <div>
-              {Array.from({ length: 8 }).map((_, i) => (
-                <div
-                  key={i}
-                  className="flex items-center gap-3 px-3 py-1.5 my-px"
-                >
-                  <span className="contact_select_slot" />
-                  <Skeleton className="w-10 h-10 flex-shrink-0 rounded-full" />
-                  <div className="flex-1 min-w-0">
-                    <Skeleton className="h-[14px] w-32 mb-1.5 rounded-[6px]" />
-                    <Skeleton className="h-3 w-44 rounded-[6px]" />
-                  </div>
-                </div>
-              ))}
-            </div>
+          {is_loading && contacts.length === 0 ? (
+            show_loading_skeleton ? (
+              <ContactListSkeleton
+                avatar_px={avatar_px}
+                is_compact={is_compact}
+              />
+            ) : (
+              <div aria-busy="true" />
+            )
           ) : tab === "contacts" && contacts.length === 0 ? (
             <div className="contact_empty_state">
               <span className="contact_empty_state_glyph">
@@ -965,10 +971,10 @@ export function ContactList({
                   : filter_by !== "all"
                     ? t("mail.search_filters_active")
                     : tab === "frequent"
-                    ? t("common.frequent_contacts_hint")
-                    : tab === "other"
-                      ? t("common.other_contacts_hint")
-                      : t("settings.try_different_search")}
+                      ? t("common.frequent_contacts_hint")
+                      : tab === "other"
+                        ? t("common.other_contacts_hint")
+                        : t("settings.try_different_search")}
               </p>
               {filter_by !== "all" && (
                 <PillButton
@@ -1003,7 +1009,7 @@ export function ContactList({
                   }}
                   aria-current={is_active ? "true" : undefined}
                   className={cn(
-                    "contact_row group/contact w-full flex items-center gap-3 px-3 my-px rounded-[var(--aster-radius-control)] text-start cursor-pointer",
+                    "contact_row group/contact w-full flex items-center gap-3 px-5 text-start cursor-pointer",
                     is_compact ? "py-1" : "py-1.5",
                   )}
                   data-active={is_active}

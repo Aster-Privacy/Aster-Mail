@@ -45,7 +45,8 @@ import {
 } from "@/components/email/viewer_shared/trash_placement";
 import { adjust_stats_unread } from "@/hooks/use_mail_stats";
 import { conversation_has_unread_sibling } from "@/hooks/unread_read_delta";
-import { report_spam_sender, remove_spam_sender } from "@/services/api/mail";
+import { remove_spam_sender } from "@/services/api/mail";
+import { report_phishing_with_undo } from "@/components/email/viewer_shared/report_phishing";
 import { reindex_ids } from "@/services/category_index";
 import { set_forward_mail_id } from "@/services/forward_store";
 import { remember_forward_from_message } from "@/components/email/delivery_reply_address";
@@ -231,31 +232,9 @@ export function use_message_actions(
 
   const handle_per_message_report_phishing = useCallback(
     async (msg: DecryptedThreadMessage) => {
-      const result = await update_item_metadata(
-        msg.id,
-        {
-          encrypted_metadata: msg.encrypted_metadata,
-          metadata_nonce: msg.metadata_nonce,
-        },
-        { is_spam: true, is_trashed: false },
-      );
+      const reported = await report_phishing_with_undo(msg, deps.t);
 
-      if (result.success) {
-        emit_mail_items_removed({ ids: [msg.id] });
-        if (msg.sender_email) {
-          report_spam_sender(msg.sender_email).catch((caught) =>
-            ignore_error(
-              "components/email/email_viewer_message_actions:use_message_actions",
-              caught,
-            ),
-          );
-        }
-        emit_mail_changed();
-        show_toast(deps.t("common.reported_as_phishing"), "success");
-        if (msg.id === deps.email_id) deps.on_dismiss();
-      } else {
-        show_toast(deps.t("common.failed_to_mark_as_spam"), "error");
-      }
+      if (reported && msg.id === deps.email_id) deps.on_dismiss();
     },
     [deps.on_dismiss, deps.email_id, deps.t],
   );

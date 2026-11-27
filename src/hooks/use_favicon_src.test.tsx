@@ -71,12 +71,15 @@ vi.mock("@/lib/icon_cache", () => ({
   }),
 }));
 
-const { use_favicon_src, store_favicon_if_api_url } =
-  await import("./use_favicon_src");
+const {
+  use_favicon_src,
+  store_favicon_if_api_url,
+  MAX_CONCURRENT_FAVICON_LOADS,
+  DEFAULT_FAVICON_RATE_LIMIT_MS,
+} = await import("./use_favicon_src");
 const { routed_fetch } = await import("@/services/routing/routing_provider");
-const { set_sender_logos_enabled } = await import(
-  "@/services/sender_logos_state"
-);
+const { set_sender_logos_enabled } =
+  await import("@/services/sender_logos_state");
 
 set_sender_logos_enabled(true);
 const { mark_icon_failed } = await import("@/lib/icon_cache");
@@ -320,6 +323,90 @@ describe("use_favicon_src", () => {
     render("warm.example");
 
     expect(observed[observed.length - 1]).toBe("blob:warm");
+  });
+});
+
+describe("favicon load limits", () => {
+  function many_roots(domains: string[]): Root[] {
+    return domains.map((domain) => {
+      const host = document.createElement("div");
+
+      document.body.appendChild(host);
+      const extra = createRoot(host);
+
+      act(() => {
+        extra.render(createElement(Probe, { domain }));
+      });
+
+      return extra;
+    });
+  }
+
+  it("keeps only a few favicon requests in flight", async () => {
+    const fetch_mock = vi.mocked(routed_fetch);
+    const releases: Array<() => void> = [];
+
+    fetch_mock.mockReset();
+    fetch_mock.mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          releases.push(() => resolve(new Response(null, { status: 404 })));
+        }),
+    );
+    observed = [];
+    const domains = Array.from({ length: 10 }, (_, i) => `queue${i}.example`);
+    const roots = many_roots(domains);
+
+    await settle();
+
+    expect(fetch_mock).toHaveBeenCalledTimes(MAX_CONCURRENT_FAVICON_LOADS);
+
+    while (releases.length > 0) {
+      releases.shift()!();
+      await settle();
+    }
+
+    expect(fetch_mock).toHaveBeenCalledTimes(domains.length);
+    act(() => roots.forEach((extra) => extra.unmount()));
+  });
+
+  it("waits out a rate limited favicon before asking again", async () => {
+    const fetch_mock = vi.mocked(routed_fetch);
+
+    fetch_mock.mockReset();
+    fetch_mock.mockResolvedValue(
+      new Response(null, { status: 429, headers: { "retry-after": "20" } }),
+    );
+    mount("limited.example");
+    await settle();
+    act(() => root!.unmount());
+    container?.remove();
+    mount("limited.example");
+    await settle();
+
+    expect(fetch_mock).toHaveBeenCalledTimes(1);
+  });
+
+  it("asks again once the rate limit window has passed", async () => {
+    const fetch_mock = vi.mocked(routed_fetch);
+    const now = Date.now();
+    const spy = vi.spyOn(Date, "now").mockReturnValue(now);
+
+    try {
+      fetch_mock.mockReset();
+      fetch_mock.mockResolvedValue(new Response(null, { status: 429 }));
+      mount("window.example");
+      await settle();
+      act(() => root!.unmount());
+      container?.remove();
+      spy.mockReturnValue(now + DEFAULT_FAVICON_RATE_LIMIT_MS + 1);
+      mount("window.example");
+      await settle();
+    } finally {
+      spy.mockRestore();
+    }
+
+    expect(fetch_mock).toHaveBeenCalledTimes(2);
   });
 });
 

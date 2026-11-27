@@ -64,6 +64,11 @@ export function plain_signature_to_html(content: string): string {
     .join("<br>");
 }
 
+const LEADING_BLANK_HTML =
+  /^(?:\s|&nbsp;|<br\s*\/?>|<(div|p)(?:\s[^>]*)?>(?:\s|&nbsp;|<br\s*\/?>)*<\/\1>)+/i;
+
+const LEADING_BLANK_TEXT_LINES = /^(?:[ \t]*(?:\r\n?|\n))+/;
+
 const SOURCE_LINE_BREAK = /[\r\n]/;
 
 const SOURCE_LINE_BREAK_RUN = /[ \t\f]*(?:\r\n?|\n)[ \t\r\n\f]*/g;
@@ -178,8 +183,13 @@ export function format_signature_html(
   if (!signature) return "";
 
   const content = signature.is_html
-    ? collapse_source_whitespace(signature.content)
-    : plain_signature_to_html(signature.content);
+    ? collapse_source_whitespace(signature.content).replace(
+        LEADING_BLANK_HTML,
+        "",
+      )
+    : plain_signature_to_html(
+        signature.content.replace(LEADING_BLANK_TEXT_LINES, ""),
+      );
   const separator = show_separator ? "--<br>" : "";
 
   return `<div data-aster-signature="1" data-aster-signature-id="${signature.id}">${separator}${content}</div>`;

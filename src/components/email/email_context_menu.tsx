@@ -322,7 +322,7 @@ function EmailContextMenuContentInner({
   };
 
   return (
-    <ContextMenuContent className="w-56">
+    <ContextMenuContent className="min-w-56">
       {selection && (
         <>
           <ContextMenuLabel className="text-xs font-medium text-txt-muted">
@@ -487,7 +487,7 @@ function EmailContextMenuContentInner({
               <ClockIcon className="me-2 h-4 w-4" />
               {t("mail.snooze")}
             </ContextMenuSubTrigger>
-            <ContextMenuSubContent className="w-48">
+            <ContextMenuSubContent className="min-w-48">
               <ContextMenuItem
                 onClick={() => {
                   handle_action("snooze", async () => {

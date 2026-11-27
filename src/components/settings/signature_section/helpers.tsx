@@ -18,8 +18,6 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { type ReactNode } from "react";
-
 import { type SignaturePlacement } from "@/services/api/signatures";
 
 export const IMAGE_MAGIC_BYTES: Record<string, number[]> = {
@@ -50,37 +48,6 @@ export function has_editor_content(html: string): boolean {
   if (temp.querySelector("img, hr, table")) return true;
 
   return (temp.textContent || "").replace(/​/g, "").trim().length > 0;
-}
-
-export interface FmtButtonProps {
-  active?: boolean;
-  onClick: () => void;
-  children: ReactNode;
-  title?: string;
-}
-
-export function FmtButton({
-  active,
-  onClick,
-  children,
-  title,
-}: FmtButtonProps) {
-  return (
-    <button
-      aria-label={title}
-      className={`p-1.5 rounded-[14px] transition-all duration-150 ${active ? "bg-brand/15 text-brand" : "hover:bg-[var(--aster-hover)] text-txt-muted"}`}
-      title={title}
-      type="button"
-      onClick={onClick}
-      onMouseDown={(e) => e.preventDefault()}
-    >
-      {children}
-    </button>
-  );
-}
-
-export function FmtDivider() {
-  return <div className="w-px h-5 mx-1 bg-edge-secondary" />;
 }
 
 export type SignatureMode = "disabled" | "auto" | "manual";

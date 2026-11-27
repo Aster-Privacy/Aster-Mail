@@ -86,7 +86,7 @@ export function SendToast({
           style={layout.style}
           transition={{ duration: reduce_motion ? 0 : 0.2 }}
         >
-          <div className="rounded-[var(--aster-radius-floating,16px)] overflow-hidden min-w-[320px]">
+          <div className="rounded-[var(--aster-radius-floating,16px)] overflow-hidden min-w-[min(320px,var(--aster-toast-max-width))]">
             <div className="px-4 py-3 flex items-center justify-between gap-4">
               <div className="flex items-center gap-3">
                 <div>

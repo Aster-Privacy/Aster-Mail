@@ -20,6 +20,8 @@
 //
 export const zh_CN = {
   common: {
+    couldnt_load: "无法加载。",
+    try_again_action: "重试",
     merge_primary_label: "主要",
     merge_make_primary: "设为主要",
     merge_primary_description:
@@ -1434,6 +1436,8 @@ export const zh_CN = {
     saved_on_date: "保存于 {{ date }}",
     now: "刚刚",
     hide_notes: "隐藏备注",
+    sender_note_load_failed: "备注未能加载。",
+    sender_note_save_failed: "备注未能保存。",
     try_again: "再试一次应该可以。",
     view_status: "查看状态",
     error_details: "错误详情",
@@ -1678,8 +1682,8 @@ export const zh_CN = {
     alias_note_too_long: "这条备注超过了长度限制，缩短一些就可以。",
     add_alias_note_placeholder: "添加备注",
     edit_alias_note: "编辑备注",
-    change_alias_avatar: "更改头像",
-    remove_alias_avatar: "移除头像",
+    change_alias_avatar: "更改个人资料照片",
+    remove_alias_avatar: "移除个人资料照片",
     alias_avatars_locked: "自定义头像是付费套餐的功能，升级后即可开启。",
     remove_recovery_email: "移除恢复邮箱",
     step_up_description: "为了您的安全，请确认密码以继续。",
@@ -2075,6 +2079,7 @@ export const zh_CN = {
     zip_archive: "ZIP 压缩文件",
   },
   settings: {
+    referral_load_failed: "无法加载你的邀请详情。",
     sandbox_off_by_setting_notice:
       "由于环境变量关闭了沙盒，此窗口正在没有沙盒的情况下运行。",
     sandbox_off_notice:
@@ -9231,6 +9236,9 @@ export const zh_CN = {
       "这封邮件是在 {{ received }} 收到的，但您的回复将从 {{ selected }} 发送。使用其他地址回复可能会向发件人泄露该地址，回复也可能被拒收。",
     reply_from_mismatch_use_received: "使用接收地址",
     sending_disabled_badge: "已禁用发送",
+    shake_feedback_prompt: "有功能无法正常使用？请告诉我们。",
+    shake_feedback_send: "发送反馈",
+    shake_feedback_dismiss: "不用了",
     reply_from_mismatch_banner: "此邮件发送至 {{ received }}，但你的回复将从 {{ selected }} 发出。",
     reply_from_mismatch_banner_switch: "从 {{ received }} 发送",
     reply_from_mismatch_send_anyway: "仍然发送",
@@ -9263,6 +9271,8 @@ export const zh_CN = {
     load_external_content: "加载外部内容",
     external_content_hidden: "外部内容已隐藏",
     show_external_content: "显示内容",
+    trackers_blocked_count: "已拦截跟踪器：{{count}}",
+    trackers_stay_blocked: "显示内容后，跟踪器仍保持拦截。",
     image_loading_settings: "图片设置",
     image: "图片",
     images: "图片",
@@ -9403,6 +9413,9 @@ export const zh_CN = {
     search_index_resume: "继续",
     search_searching_title: "正在搜索你的邮件",
     search_index_preparing: "正在准备你的私有索引",
+    search_index_eta_under_minute: "剩余不到 1 分钟",
+    search_index_eta_minutes: "大约还剩 {{value}} 分钟",
+    search_index_eta_hours: "大约还剩 {{value}} 小时",
     search_index_live_hint: "找到匹配项后会立即显示。",
     search_searching_more: "正在搜索更多邮件",
     search_index_why_label: "为什么搜索需要索引",

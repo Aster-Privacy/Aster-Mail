@@ -285,7 +285,7 @@ export function PopupEmailActions({
             <EllipsisHorizontalIcon className="w-[18px] h-[18px]" />
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-48">
+        <DropdownMenuContent align="end" className="min-w-48">
           <DropdownMenuItem onClick={on_read_toggle}>
             {is_read ? (
               <>

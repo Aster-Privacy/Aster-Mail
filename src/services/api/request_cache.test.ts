@@ -20,7 +20,11 @@
 //
 import { describe, it, expect, vi, afterEach } from "vitest";
 
-import { RequestCache } from "./request_cache";
+import {
+  COALESCED_JOIN_WINDOW_MS,
+  RequestCache,
+  fresh_join_window_ms,
+} from "./request_cache";
 
 const LIST_KEY = "GET:/mail/v1/messages";
 
@@ -352,5 +356,88 @@ describe("RequestCache skip_cache sharing", () => {
     await Promise.resolve();
 
     expect(calls).toBe(2);
+  });
+});
+
+describe("RequestCache boot read coalescing", () => {
+  const ME_KEY = "GET:/core/v1/auth/me";
+  const KEY_KEY = "GET:/crypto/v1/keys/account-key";
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it("uses the long join window only for identity and key reads", () => {
+    expect(fresh_join_window_ms(ME_KEY)).toBe(COALESCED_JOIN_WINDOW_MS);
+    expect(fresh_join_window_ms(KEY_KEY)).toBe(COALESCED_JOIN_WINDOW_MS);
+    expect(fresh_join_window_ms("GET:/mail/v1/labels/counts")).toBeLessThan(
+      COALESCED_JOIN_WINDOW_MS,
+    );
+  });
+
+  it("coalesces fresh identity reads that start seconds apart", async () => {
+    vi.useFakeTimers();
+
+    const cache = new RequestCache();
+    const pending = deferred<{ user_id: string }>();
+    let calls = 0;
+    const fetcher = () => {
+      calls++;
+
+      return pending.promise;
+    };
+
+    const first = cache.get_or_fetch(ME_KEY, fetcher, 15_000, true);
+
+    vi.advanceTimersByTime(3000);
+
+    const second = cache.get_or_fetch(ME_KEY, fetcher, 15_000, true);
+
+    pending.resolve({ user_id: "u1" });
+
+    expect((await first).user_id).toBe("u1");
+    expect((await second).user_id).toBe("u1");
+    expect(calls).toBe(1);
+  });
+
+  it("dedupes identical cached reads while one is in flight", async () => {
+    const cache = new RequestCache();
+    const pending = deferred<{ token: string }>();
+    let calls = 0;
+    const fetcher = () => {
+      calls++;
+
+      return pending.promise;
+    };
+
+    const callers = [1, 2, 3, 4].map(() =>
+      cache.get_or_fetch(KEY_KEY, fetcher),
+    );
+
+    pending.resolve({ token: "t" });
+    await Promise.all(callers);
+
+    expect(calls).toBe(1);
+  });
+
+  it("still splits identity reads across a mutation", async () => {
+    const cache = new RequestCache();
+    const stale = deferred<{ user_id: string }>();
+
+    const first = cache.get_or_fetch(ME_KEY, () => stale.promise, 15_000, true);
+
+    cache.invalidate_for_mutation("/core/v1/auth/me/password");
+
+    const second = cache.get_or_fetch(
+      ME_KEY,
+      async () => ({ user_id: "fresh" }),
+      15_000,
+      true,
+    );
+
+    stale.resolve({ user_id: "stale" });
+
+    expect((await second).user_id).toBe("fresh");
+    expect((await first).user_id).toBe("stale");
   });
 });

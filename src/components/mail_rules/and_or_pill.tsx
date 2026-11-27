@@ -72,7 +72,7 @@ export function AndOrPill({ mode, on_change, read_only }: AndOrPillProps) {
       )}
       <DropdownMenuContent
         align="center"
-        className="z-[200] w-32"
+        className="z-[200] min-w-32"
         sideOffset={6}
       >
         <DropdownMenuItem

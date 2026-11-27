@@ -154,6 +154,10 @@ export function is_official_address(email?: string | null): boolean {
 
   if (!parts) return false;
 
+  if (OFFICIAL_SENDER_ADDRESSES.has(`${parts.local_part}@${parts.domain}`)) {
+    return true;
+  }
+
   return OFFICIAL_SENDER_ROLES.has(parts.local_part);
 }
 
@@ -188,6 +192,8 @@ const OFFICIAL_SENDER_ROLES = new Set([
   "no-reply",
   "updates",
 ]);
+
+const OFFICIAL_SENDER_ADDRESSES = new Set(["findley@aster.cx"]);
 
 export function trust_source_for_display(
   source: SenderTrustSource,

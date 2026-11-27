@@ -150,7 +150,7 @@ export function SecuritySection({
     "passkey_list",
   );
   const passkey_registered = (passkey_data?.data?.keys?.length ?? 0) > 0;
-  const passkey_loaded = !passkey_is_loading;
+  const passkey_loaded = !passkey_is_loading || !!passkey_data?.data?.keys;
 
   const confirm_disable_copy = {
     forward_secrecy: {

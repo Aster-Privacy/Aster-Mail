@@ -64,6 +64,32 @@ describe("rate limit error messages", () => {
       rate_limited({ error: SERVER_MESSAGE, code: "RATE_LIMIT_EXCEEDED" }),
     );
 
+    vi.useFakeTimers();
+
+    try {
+      const pending = new ApiClient().get("/feedback/v1");
+
+      await vi.runAllTimersAsync();
+
+      const response = await pending;
+
+      expect(response.code).toBe("RATE_LIMIT_EXCEEDED");
+      expect(response.error).toBe(get_translations("de").errors.rate_limited);
+      expect(response.error).not.toBe(SERVER_MESSAGE);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("returns the translated message without waiting in real time", async () => {
+    localStorage.setItem("astermail_language", "de");
+    routed_fetch.mockResolvedValue(
+      rate_limited(
+        { error: SERVER_MESSAGE, code: "RATE_LIMIT_EXCEEDED" },
+        { "retry-after": "60" },
+      ),
+    );
+
     const response = await new ApiClient().get("/feedback/v1");
 
     expect(response.code).toBe("RATE_LIMIT_EXCEEDED");
@@ -109,26 +135,40 @@ describe("rate limit error messages", () => {
   });
 
   it("ignores a missing or unreadable Retry-After header", async () => {
-    routed_fetch.mockResolvedValueOnce(
-      rate_limited(
-        { code: "DOMAIN_SEARCH_RATE_LIMITED" },
-        { "Retry-After": "soon" },
-      ),
-    );
-    routed_fetch.mockResolvedValueOnce(
-      rate_limited({ code: "DOMAIN_SEARCH_RATE_LIMITED" }),
-    );
+    vi.useFakeTimers();
 
-    const garbage = await new ApiClient().get(
-      "/addresses/v1/domains/purchase/search",
-    );
-    const missing = await new ApiClient().get(
-      "/addresses/v1/domains/purchase/search",
-    );
+    const settle = async <T>(pending: Promise<T>): Promise<T> => {
+      await vi.runAllTimersAsync();
 
-    expect(garbage.server_code).toBe("DOMAIN_SEARCH_RATE_LIMITED");
-    expect(garbage.retry_after_secs).toBeUndefined();
-    expect(missing.retry_after_secs).toBeUndefined();
+      return pending;
+    };
+
+    try {
+      routed_fetch.mockImplementation(async () =>
+        rate_limited(
+          { code: "DOMAIN_SEARCH_RATE_LIMITED" },
+          { "Retry-After": "soon" },
+        ),
+      );
+
+      const garbage = await settle(
+        new ApiClient().get("/addresses/v1/domains/purchase/search"),
+      );
+
+      routed_fetch.mockImplementation(async () =>
+        rate_limited({ code: "DOMAIN_SEARCH_RATE_LIMITED" }),
+      );
+
+      const missing = await settle(
+        new ApiClient().get("/addresses/v1/domains/purchase/search"),
+      );
+
+      expect(garbage.server_code).toBe("DOMAIN_SEARCH_RATE_LIMITED");
+      expect(garbage.retry_after_secs).toBeUndefined();
+      expect(missing.retry_after_secs).toBeUndefined();
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });
 

@@ -377,9 +377,9 @@ export function use_compose({
     DecryptedRecentRecipient[]
   >([]);
 
-  const [typed_sender_email, set_typed_sender_email] = useState<
-    string | null
-  >(null);
+  const [typed_sender_email, set_typed_sender_email] = useState<string | null>(
+    null,
+  );
   const thread_addresses = edit_draft?.thread_addresses;
   const { sender_options, loading: aliases_loading } = use_sender_aliases([
     edit_draft?.from_email,
@@ -493,6 +493,37 @@ export function use_compose({
     ? escape_html(message).replace(/\n/g, "<br>")
     : message;
 
+  const auto_inserted_bodies_ref = useRef<string[]>([]);
+  const auto_body_session_ref = useRef(false);
+  const current_auto_body_ref = useRef<() => string>(() => "");
+
+  current_auto_body_ref.current = () => {
+    const sender_signature = signature_for_sender(
+      selected_sender,
+      resolve_signature,
+      default_signature,
+    );
+    const signature_html =
+      preferences.signature_mode === "auto" && sender_signature
+        ? get_formatted_signature(sender_signature)
+        : "";
+    const badge_html = active_badge ? build_badge_html([active_badge]) : "";
+
+    return (
+      signature_html +
+      badge_html +
+      get_aster_footer(t, preferences.show_aster_branding)
+    );
+  };
+
+  const get_auto_inserted_bodies = useCallback(
+    (): string[] =>
+      auto_body_session_ref.current
+        ? [...auto_inserted_bodies_ref.current, current_auto_body_ref.current()]
+        : [],
+    [],
+  );
+
   const draft_hook = use_compose_drafts({
     recipients,
     subject,
@@ -511,6 +542,7 @@ export function use_compose({
     has_pending_attachment_reads: attachment_hook.has_pending_attachment_reads,
     flush_input: flush_editor_input_now,
     take_pending_message,
+    get_auto_inserted_bodies,
   });
 
   const classified_recipients = useMemo(
@@ -930,6 +962,8 @@ export function use_compose({
 
     is_sending_ref.current = false;
     draft_hook.user_modified_ref.current = false;
+    auto_inserted_bodies_ref.current = [];
+    auto_body_session_ref.current = false;
     reset_form();
     draft_hook.set_draft_status("idle");
     set_inputs(INITIAL_INPUTS);
@@ -1214,6 +1248,8 @@ export function use_compose({
           : footer_html;
 
       content = caret_block + signature_block + spaced_footer;
+      auto_inserted_bodies_ref.current = [content];
+      auto_body_session_ref.current = true;
     }
 
     const sanitized_result = sanitize_html(

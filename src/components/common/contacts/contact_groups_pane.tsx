@@ -555,7 +555,7 @@ export function ContactGroupsPane({
                 </button>
               </DropdownMenuTrigger>
             </Tooltip>
-            <DropdownMenuContent align="end" className="w-52">
+            <DropdownMenuContent align="end" className="min-w-52">
               {member_emails && (
                 <DropdownMenuItem
                   data-testid="contact_group_email"

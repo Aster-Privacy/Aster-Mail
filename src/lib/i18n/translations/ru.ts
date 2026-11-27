@@ -20,6 +20,8 @@
 //
 export const ru = {
   common: {
+    couldnt_load: "Не удалось загрузить.",
+    try_again_action: "Повторить",
     merge_primary_label: "Основной",
     merge_make_primary: "Сделать основным",
     merge_primary_description:
@@ -440,6 +442,8 @@ export const ru = {
     birthday_year_optional: "Год (необязательно)",
     notes: "Заметки",
     hide_notes: "Скрыть заметки",
+    sender_note_load_failed: "Не удалось загрузить заметку.",
+    sender_note_save_failed: "Не удалось сохранить заметку.",
     favorite: "Избранное",
     favorited: "В избранном",
     added_to_favorites: "Добавлено в избранное",
@@ -1786,7 +1790,7 @@ export const ru = {
       "Сервер, отправивший это сообщение, не является авторизованным отправителем для домена в строке «От».",
     back_to_inbox: "Назад к входящим",
     blocked_items_count: "{{count}} элементов",
-    change_alias_avatar: "Изменить аватар",
+    change_alias_avatar: "Изменить фото профиля",
     click_to_add_value: "Нажмите для добавления значения...",
     contacts_deleted: "{{ count }} контакт(а/ов) удалено",
     contacts_starred: "{{ count }} контакт(а/ов) отмечено звёздочкой",
@@ -1977,7 +1981,7 @@ export const ru = {
     recovery_text_unrecoverable:
       "Без этих кодов никто не сможет восстановить доступ к вашему аккаунту, если вы забудете пароль.",
     recovery_text_your_codes: "ВАШИ КОДЫ ВОССТАНОВЛЕНИЯ:",
-    remove_alias_avatar: "Удалить аватар",
+    remove_alias_avatar: "Удалить фото профиля",
     remove_recovery_email: "Удалить резервный адрес",
     step_up_description:
       "В целях безопасности подтвердите пароль, чтобы продолжить.",
@@ -2425,6 +2429,7 @@ export const ru = {
     zip_archive: "ZIP-архив",
   },
   settings: {
+    referral_load_failed: "Не удалось загрузить сведения о приглашении.",
     sandbox_off_by_setting_notice:
       "Это окно работает без песочницы, потому что её отключила переменная окружения.",
     sandbox_off_notice:
@@ -10644,6 +10649,13 @@ export const ru = {
     search_index_resume: "Продолжить",
     search_searching_title: "Поиск в вашей почте",
     search_index_preparing: "Подготовка вашего приватного индекса",
+    search_index_eta_under_minute: "Осталось меньше минуты",
+    search_index_eta_minutes: "Осталось около {{value}} минут",
+    search_index_eta_minutes_one: "Осталось около {{value}} минуты",
+    search_index_eta_minutes_few: "Осталось около {{value}} минут",
+    search_index_eta_hours: "Осталось около {{value}} часов",
+    search_index_eta_hours_one: "Осталось около {{value}} часа",
+    search_index_eta_hours_few: "Осталось около {{value}} часов",
     search_index_live_hint: "Совпадения появляются сразу после обнаружения.",
     search_searching_more: "Поиск в остальной почте",
     search_index_why_label: "Зачем поиску нужен индекс",
@@ -10654,6 +10666,9 @@ export const ru = {
     load_external_content: "Загрузить внешний контент",
     external_content_hidden: "Внешний контент скрыт",
     show_external_content: "Показать контент",
+    trackers_blocked_count: "Заблокировано трекеров: {{count}}",
+    trackers_stay_blocked:
+      "Трекеры остаются заблокированными, даже если показать контент.",
     image_loading_settings: "Настройки изображений",
     location_label: "Место:",
     message_details: "Детали сообщения",
@@ -10740,6 +10755,9 @@ export const ru = {
       "Это письмо получено на {{ received }}, но ответ будет отправлен с {{ selected }}. Ответ с другого адреса может раскрыть его отправителю и быть отклонён.",
     reply_from_mismatch_use_received: "Использовать адрес получения",
     sending_disabled_badge: "Отправка отключена",
+    shake_feedback_prompt: "Что-то не работает? Расскажите нам.",
+    shake_feedback_send: "Отправить отзыв",
+    shake_feedback_dismiss: "Нет, спасибо",
     reply_from_mismatch_banner: "Это письмо получено на {{ received }}, но ответ будет отправлен с {{ selected }}.",
     reply_from_mismatch_banner_switch: "Отправить с {{ received }}",
     reply_from_mismatch_send_anyway: "Всё равно отправить",

@@ -21,20 +21,47 @@
 import { useMemo } from "react";
 
 import { Skeleton } from "@/components/ui/skeleton";
+import { SkeletonLine } from "@/components/email/inbox_email_list_item/row_skeleton";
 import { use_i18n } from "@/lib/i18n/context";
+
+export const SEARCH_RESULT_ROW_LAYOUT =
+  "flex items-center gap-3 w-full px-3 py-2.5";
+export const SEARCH_PREVIEW_ROW_LAYOUT =
+  "flex items-center gap-3 w-full px-2.5 py-2";
+
+const SEARCH_AVATAR_SKELETON_CLASS = "size-8 rounded-full flex-shrink-0";
 
 export function SearchResultSkeleton() {
   return (
-    <div className="flex items-center gap-3 px-3 py-2.5">
-      <Skeleton className="w-8 h-8 rounded-full flex-shrink-0" />
-      <div className="flex-1 space-y-2">
-        <div className="flex items-center gap-2">
-          <Skeleton className="h-3.5 w-24" />
-          <Skeleton className="h-3 w-32" />
-        </div>
-        <Skeleton className="h-3 w-full" />
+    <div
+      aria-hidden="true"
+      className={SEARCH_RESULT_ROW_LAYOUT}
+      data-testid="search-result-skeleton"
+    >
+      <Skeleton className={SEARCH_AVATAR_SKELETON_CLASS} />
+      <div className="flex-1 min-w-0 flex items-center gap-1.5">
+        <SkeletonLine className="text-[13px] w-20 max-w-[30%] flex-shrink-0" />
+        <SkeletonLine className="text-[12px] w-28 max-w-[40%] flex-shrink-0" />
+        <SkeletonLine className="text-[11px] flex-1" />
       </div>
-      <Skeleton className="h-3 w-12 flex-shrink-0" />
+      <SkeletonLine className="text-[10px] w-10 flex-shrink-0" />
+    </div>
+  );
+}
+
+export function SearchPreviewSkeleton() {
+  return (
+    <div
+      aria-hidden="true"
+      className={SEARCH_PREVIEW_ROW_LAYOUT}
+      data-testid="search-preview-skeleton"
+    >
+      <Skeleton className={SEARCH_AVATAR_SKELETON_CLASS} />
+      <div className="flex-1 min-w-0">
+        <SkeletonLine className="text-[13px] w-3/5" />
+        <SkeletonLine className="text-[12px] w-2/5" />
+      </div>
+      <SkeletonLine className="text-[12px] w-10 flex-shrink-0" />
     </div>
   );
 }
@@ -85,9 +112,7 @@ export function EmptySearchState({ query }: { query: string }) {
               key={op.operator}
               className="flex items-center justify-between gap-3 text-[11.5px]"
             >
-              <code className="search_operator_code">
-                {op.example}
-              </code>
+              <code className="search_operator_code">{op.example}</code>
               <span className="truncate text-txt-muted">{op.desc}</span>
             </div>
           ))}

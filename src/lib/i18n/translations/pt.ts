@@ -20,6 +20,8 @@
 //
 export const pt = {
   common: {
+    couldnt_load: "Não foi possível carregar.",
+    try_again_action: "Tentar novamente",
     merge_primary_label: "Principal",
     merge_make_primary: "Tornar principal",
     merge_primary_description:
@@ -1549,6 +1551,8 @@ export const pt = {
     saved_on_date: "Guardado em {{ date }}",
     now: "Agora",
     hide_notes: "Ocultar notas",
+    sender_note_load_failed: "A nota não foi carregada.",
+    sender_note_save_failed: "A nota não foi guardada.",
     try_again: "Tentar novamente",
     view_status: "Ver estado",
     error_details: "Detalhes do erro",
@@ -1653,7 +1657,7 @@ export const pt = {
     blocked_items_count: "{{count}} itens",
     call: "Ligar",
     cc_bcc_label: "CC/BCC",
-    change_alias_avatar: "Alterar avatar",
+    change_alias_avatar: "Alterar fotografia de perfil",
     change_icon: "Alterar ícone",
     change_label_color: "Alterar cor da etiqueta",
     change_label_icon: "Alterar ícone da etiqueta",
@@ -1938,7 +1942,7 @@ export const pt = {
     recovery_text_unrecoverable:
       "Sem estes códigos, ninguém consegue devolver-lhe o acesso à sua conta se se esquecer da palavra-passe.",
     recovery_text_your_codes: "OS SEUS CÓDIGOS DE RECUPERAÇÃO:",
-    remove_alias_avatar: "Remover avatar",
+    remove_alias_avatar: "Remover fotografia de perfil",
     remove_recovery_email: "Remover e-mail de recuperação",
     step_up_description:
       "Para sua segurança, confirme a sua palavra-passe para continuar.",
@@ -2328,6 +2332,8 @@ export const pt = {
     zip_archive: "Arquivo ZIP",
   },
   settings: {
+    referral_load_failed:
+      "Não foi possível carregar os detalhes do seu convite.",
     sandbox_off_by_setting_notice:
       "Esta janela está a ser executada sem a sandbox porque uma variável de ambiente a desativou.",
     sandbox_off_notice:
@@ -10445,6 +10451,9 @@ export const pt = {
       "Este e-mail foi recebido em {{ received }}, mas a sua resposta será enviada de {{ selected }}. Responder de outro endereço pode revelá-lo ao remetente e a resposta pode ser rejeitada.",
     reply_from_mismatch_use_received: "Utilizar o endereço de receção",
     sending_disabled_badge: "Envio desativado",
+    shake_feedback_prompt: "Algo não está a funcionar? Diga-nos.",
+    shake_feedback_send: "Enviar comentários",
+    shake_feedback_dismiss: "Não, obrigado",
     reply_from_mismatch_banner: "Este email foi recebido em {{ received }}, mas a sua resposta será enviada a partir de {{ selected }}.",
     reply_from_mismatch_banner_switch: "Enviar a partir de {{ received }}",
     reply_from_mismatch_send_anyway: "Enviar mesmo assim",
@@ -10472,6 +10481,9 @@ export const pt = {
     load_external_content: "Carregar conteúdo externo",
     external_content_hidden: "O conteúdo externo está oculto",
     show_external_content: "Mostrar conteúdo",
+    trackers_blocked_count: "Rastreadores bloqueados: {{count}}",
+    trackers_stay_blocked:
+      "Os rastreadores continuam bloqueados mesmo ao mostrar o conteúdo.",
     image_loading_settings: "Definições de imagens",
     image: "imagem",
     images: "imagens",
@@ -10549,6 +10561,11 @@ export const pt = {
     search_index_resume: "Retomar",
     search_searching_title: "A pesquisar o seu correio",
     search_index_preparing: "A preparar o seu índice privado",
+    search_index_eta_under_minute: "Falta menos de um minuto",
+    search_index_eta_minutes: "Faltam cerca de {{value}} minutos",
+    search_index_eta_minutes_one: "Falta cerca de {{value}} minuto",
+    search_index_eta_hours: "Faltam cerca de {{value}} horas",
+    search_index_eta_hours_one: "Falta cerca de {{value}} hora",
     search_index_live_hint:
       "As correspondências aparecem assim que são encontradas.",
     search_searching_more: "A pesquisar mais correio",

@@ -24,10 +24,76 @@ export interface HostAppearance {
   theme: "light" | "dark";
   palette: string;
   accent: string;
+  surface?: Record<string, string>;
 }
 
 const PALETTE_PREFIX = "theme-";
 const HEX_ACCENT = /^#[0-9a-f]{6}$/i;
+const HEX_SURFACE = /^#[0-9a-f]{6}([0-9a-f]{2})?$/i;
+
+export const HOST_SURFACE_KEYS: readonly string[] = [
+  "--bg-primary",
+  "--bg-secondary",
+  "--bg-tertiary",
+  "--bg-hover",
+  "--bg-selected",
+  "--bg-card",
+  "--border-primary",
+  "--border-secondary",
+  "--text-primary",
+  "--text-secondary",
+  "--text-tertiary",
+  "--text-muted",
+  "--sidebar-bg",
+  "--sidebar-hover",
+  "--modal-bg",
+  "--dropdown-bg",
+  "--dropdown-hover",
+  "--input-bg",
+  "--avatar-bg",
+  "--avatar-text",
+  "--indicator-bg",
+  "--background",
+  "--foreground",
+  "--card",
+  "--card-foreground",
+  "--popover",
+  "--popover-foreground",
+  "--secondary",
+  "--secondary-foreground",
+  "--muted",
+  "--muted-foreground",
+  "--accent",
+  "--accent-foreground",
+];
+
+export function read_host_surface(
+  root: HTMLElement,
+): Record<string, string> | undefined {
+  const surface: Record<string, string> = {};
+
+  for (const key of HOST_SURFACE_KEYS) {
+    const value = root.style.getPropertyValue(key).trim().toLowerCase();
+
+    if (HEX_SURFACE.test(value)) surface[key] = value;
+  }
+
+  return Object.keys(surface).length > 0 ? surface : undefined;
+}
+
+function same_surface(
+  a: Record<string, string> | undefined,
+  b: Record<string, string> | undefined,
+): boolean {
+  if (a === b) return true;
+  if (!a || !b) return false;
+
+  const keys = Object.keys(a);
+
+  if (keys.length !== Object.keys(b).length) return false;
+
+  return keys.every((key) => a[key] === b[key]);
+}
 
 export function read_host_appearance(root: HTMLElement): HostAppearance {
   const palette_class = Array.from(root.classList).find((name) =>
@@ -38,17 +104,27 @@ export function read_host_appearance(root: HTMLElement): HostAppearance {
     .trim()
     .toLowerCase();
 
-  return {
+  const appearance: HostAppearance = {
     theme: root.classList.contains("dark") ? "dark" : "light",
     palette: palette_class
       ? palette_class.slice(PALETTE_PREFIX.length)
       : "default",
     accent: HEX_ACCENT.test(accent) ? accent : "",
   };
+  const surface = read_host_surface(root);
+
+  if (surface) appearance.surface = surface;
+
+  return appearance;
 }
 
 function same_appearance(a: HostAppearance, b: HostAppearance): boolean {
-  return a.theme === b.theme && a.palette === b.palette && a.accent === b.accent;
+  return (
+    a.theme === b.theme &&
+    a.palette === b.palette &&
+    a.accent === b.accent &&
+    same_surface(a.surface, b.surface)
+  );
 }
 
 export function use_host_appearance(): HostAppearance {

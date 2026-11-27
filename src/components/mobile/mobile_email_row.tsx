@@ -68,6 +68,7 @@ import {
   use_press_prefetch,
 } from "@/components/email/hooks/use_press_prefetch";
 import { is_system_email, trust_source_for_display } from "@/lib/utils";
+import { use_should_reduce_motion } from "@/provider";
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
 import {
   trusted_sender_name,
@@ -141,6 +142,7 @@ export const MobileEmailRow = memo(function MobileEmailRow(
   const long_press_fired = useRef(false);
 
   const touch_start_pos = useRef<{ x: number; y: number } | null>(null);
+  const reduce_motion = use_should_reduce_motion();
   const [is_subject_sheet_open, set_is_subject_sheet_open] = useState(false);
   const [has_subject_sheet, set_has_subject_sheet] = useState(false);
 
@@ -507,8 +509,12 @@ export const MobileEmailRow = memo(function MobileEmailRow(
             <motion.div
               animate={{ scale: 1, opacity: 1 }}
               className="absolute inset-0 flex items-center justify-center rounded-full bg-[var(--accent-color,#3b82f6)]"
-              initial={{ scale: 0, opacity: 0 }}
-              transition={{ type: "spring", stiffness: 500, damping: 25 }}
+              initial={reduce_motion ? false : { scale: 0, opacity: 0 }}
+              transition={
+                reduce_motion
+                  ? { duration: 0 }
+                  : { type: "spring", stiffness: 500, damping: 25 }
+              }
             >
               <CheckIcon className="h-5 w-5 text-white" strokeWidth={2.5} />
             </motion.div>
@@ -520,8 +526,12 @@ export const MobileEmailRow = memo(function MobileEmailRow(
             <motion.div
               animate={{ scale: 1, opacity: 1 }}
               className="absolute inset-0 flex items-center justify-center rounded-full bg-[var(--accent-color,#3b82f6)]"
-              initial={{ scale: 0, opacity: 0 }}
-              transition={{ type: "spring", stiffness: 500, damping: 25 }}
+              initial={reduce_motion ? false : { scale: 0, opacity: 0 }}
+              transition={
+                reduce_motion
+                  ? { duration: 0 }
+                  : { type: "spring", stiffness: 500, damping: 25 }
+              }
             >
               <CheckIcon className="h-3 w-3 text-white" strokeWidth={2.5} />
             </motion.div>

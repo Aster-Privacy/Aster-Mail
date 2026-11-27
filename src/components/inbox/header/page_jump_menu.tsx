@@ -153,7 +153,7 @@ export function PageJumpMenu({
       </DropdownMenuTrigger>
       <DropdownMenuContent
         align="center"
-        className="w-56"
+        className="min-w-56"
         data-testid="page-jump-menu"
       >
         <DropdownMenuLabel className="px-2.5 pt-1 pb-1.5 text-xs font-medium text-[var(--text-muted)] tabular-nums">

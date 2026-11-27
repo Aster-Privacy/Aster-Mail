@@ -26,6 +26,16 @@ import {
 export const HANDOFF_GRANT_KEY_PREFIX = "aster:session_handoff_grant:";
 export const HANDOFF_GRANT_MAX_TTL_MS = 2 * 60 * 1000;
 export const HANDOFF_GRANT_WAIT_MS = HANDOFF_GRANT_MAX_TTL_MS;
+const GRANT_TOKEN_MAX_LENGTH = 4096;
+const GRANT_TOKEN_PATTERN = /^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/;
+
+export function is_grant_access_token(value: unknown): value is string {
+  return (
+    typeof value === "string" &&
+    value.length <= GRANT_TOKEN_MAX_LENGTH &&
+    GRANT_TOKEN_PATTERN.test(value)
+  );
+}
 
 export interface GrantStorage {
   get(key: string): string | null;
@@ -41,6 +51,7 @@ export interface HandoffGrant {
   audience: string;
   expires_at: number;
   state: HandoffGrantState;
+  access_token?: string;
 }
 
 export type HandoffGrantStatus =
@@ -101,12 +112,18 @@ function parse_grant(raw: string | null): HandoffGrant | null {
 
     if (value.state === "approved" && user_id === null) return null;
 
-    return {
+    const grant: HandoffGrant = {
       user_id,
       audience: value.audience,
       expires_at: value.expires_at,
       state: value.state,
     };
+
+    if (is_grant_access_token(value.access_token)) {
+      grant.access_token = value.access_token;
+    }
+
+    return grant;
   } catch {
     return null;
   }
@@ -175,6 +192,62 @@ export function check_grant(
   return { state: "approved", user_id: grant.user_id };
 }
 
+export function attach_grant_token(
+  storage: GrantStorage,
+  grant_id: string,
+  user_id: string,
+  access_token: string,
+  now: number,
+): boolean {
+  if (!is_handoff_grant_id(grant_id)) return false;
+  if (!is_grant_access_token(access_token)) return false;
+
+  const grant = parse_grant(storage.get(HANDOFF_GRANT_KEY_PREFIX + grant_id));
+
+  if (!grant || !is_live(grant, now)) return false;
+  if (grant.state !== "approved" || grant.user_id !== user_id) return false;
+
+  try {
+    storage.set(
+      HANDOFF_GRANT_KEY_PREFIX + grant_id,
+      JSON.stringify({ ...grant, access_token }),
+    );
+
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export interface ConsumedGrant {
+  access_token: string | null;
+}
+
+export function take_grant(
+  storage: GrantStorage,
+  grant_id: string,
+  audience: string,
+  user_id: string,
+  now: number,
+): ConsumedGrant | null {
+  const status = check_grant(storage, grant_id, audience, now);
+  const grant = is_handoff_grant_id(grant_id)
+    ? parse_grant(storage.get(HANDOFF_GRANT_KEY_PREFIX + grant_id))
+    : null;
+
+  if (is_handoff_grant_id(grant_id)) {
+    try {
+      storage.remove(HANDOFF_GRANT_KEY_PREFIX + grant_id);
+    } catch {
+      return null;
+    }
+  }
+
+  if (status.state !== "approved" || status.user_id !== user_id) return null;
+
+  return { access_token: grant?.access_token ?? null };
+}
+
 export function consume_grant(
   storage: GrantStorage,
   grant_id: string,
@@ -182,15 +255,5 @@ export function consume_grant(
   user_id: string,
   now: number,
 ): boolean {
-  const status = check_grant(storage, grant_id, audience, now);
-
-  if (is_handoff_grant_id(grant_id)) {
-    try {
-      storage.remove(HANDOFF_GRANT_KEY_PREFIX + grant_id);
-    } catch {
-      return false;
-    }
-  }
-
-  return status.state === "approved" && status.user_id === user_id;
+  return take_grant(storage, grant_id, audience, user_id, now) !== null;
 }

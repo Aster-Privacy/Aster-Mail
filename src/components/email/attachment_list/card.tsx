@@ -58,7 +58,7 @@ export function AttachmentCard({
 
   return (
     <div
-      className="message_attachment_card relative w-[200px] rounded-[14px] overflow-hidden cursor-pointer"
+      className="message_attachment_card relative w-[200px] rounded-[14px] overflow-hidden cursor-pointer select-none"
       style={{ opacity: is_downloading ? 0.5 : 1 }}
       onClick={on_click}
     >

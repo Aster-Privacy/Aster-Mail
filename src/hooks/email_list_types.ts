@@ -24,6 +24,15 @@ import type { RestoredEmailEntry } from "@/hooks/email_list_helpers";
 
 export const MIN_SKELETON_MS = 0;
 
+export function is_settled_empty_list(state: EmailListState): boolean {
+  return (
+    state.has_initial_load &&
+    !state.is_loading &&
+    !state.has_load_error &&
+    state.emails.length === 0
+  );
+}
+
 export type ListReadFilter = "all" | "unread" | "read";
 
 export interface FetchPageOptions {

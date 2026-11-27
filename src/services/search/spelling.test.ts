@@ -18,10 +18,11 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
   add_vocabulary_text,
+  DELETION_INDEX_IDLE_RELEASE_MS,
   deletion_index_size,
   reset_vocabulary,
 } from "./vocabulary";
@@ -193,16 +194,42 @@ describe("suggest_query_correction", () => {
     expect(suggest_query_correction("recieve", ["recieve"])).toBeNull();
   });
 
-  it("releases the deletion index after a successful correction", () => {
-    expect(
-      suggest_query_correction("recieve", ["recieve"])?.corrected_term,
-    ).toBe("receive");
-    expect(deletion_index_size()).toBe(0);
-  });
+  describe("deletion index lifetime", () => {
+    beforeEach(() => {
+      vi.useFakeTimers();
+    });
 
-  it("releases the deletion index when nothing is corrected", () => {
-    expect(suggest_query_correction("zzzzqqq", ["zzzzqqq"])).toBeNull();
-    expect(deletion_index_size()).toBe(0);
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    it("keeps the index between searches and releases it when idle", () => {
+      expect(
+        suggest_query_correction("recieve", ["recieve"])?.corrected_term,
+      ).toBe("receive");
+
+      const size_after_first = deletion_index_size();
+
+      expect(size_after_first).toBeGreaterThan(0);
+
+      vi.advanceTimersByTime(DELETION_INDEX_IDLE_RELEASE_MS / 2);
+      expect(suggest_query_correction("zzzzqqq", ["zzzzqqq"])).toBeNull();
+      expect(deletion_index_size()).toBe(size_after_first);
+
+      vi.advanceTimersByTime(DELETION_INDEX_IDLE_RELEASE_MS);
+      expect(deletion_index_size()).toBe(0);
+    });
+
+    it("adds new vocabulary terms to a live index without a rebuild", () => {
+      suggest_query_correction("recieve", ["recieve"]);
+
+      const size_before = deletion_index_size();
+
+      add_vocabulary_text("quixotic", 20);
+
+      expect(deletion_index_size()).toBeGreaterThan(size_before);
+      expect(suggest_term_correction("quixotec")).toBe("quixotic");
+    });
   });
 
   it("forgets every remembered term when local data is cleared", () => {

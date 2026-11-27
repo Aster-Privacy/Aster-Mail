@@ -409,7 +409,7 @@ export function ActionTargetDropdown(props: ActionTargetDropdownProps) {
         <DropdownMenuContent
           align="start"
           alignOffset={align_offset}
-          className="z-[200] w-40"
+          className="z-[200] min-w-40"
           sideOffset={6}
         >
           <DropdownMenuItem
@@ -440,7 +440,7 @@ export function ActionTargetDropdown(props: ActionTargetDropdownProps) {
         <DropdownMenuContent
           align="start"
           alignOffset={align_offset}
-          className="z-[200] w-48"
+          className="z-[200] min-w-48"
           sideOffset={6}
         >
           {RULE_CATEGORY_OPTIONS.map((c) => (
@@ -470,7 +470,7 @@ export function ActionTargetDropdown(props: ActionTargetDropdownProps) {
         <DropdownMenuContent
           align="start"
           alignOffset={align_offset}
-          className="z-[200] w-40"
+          className="z-[200] min-w-40"
           sideOffset={6}
         >
           <DropdownMenuItem

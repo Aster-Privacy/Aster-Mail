@@ -70,12 +70,14 @@ When you bump the `openpgp` version, apply the same change to the new `dist/open
 
 ## `@aster+ui+0.2.2.patch`
 
-The patch adds one optional prop, `show_cipher`, to `EncryptionInfoDropdownView` in `@aster/ui`. It changes `dist/index.js`, `dist/index.cjs`, and the two type declaration files. Nothing else in the package differs from the published `@aster-privacy/ui@0.2.2`.
+The patch adds two optional props: `show_cipher` on `EncryptionInfoDropdownView` and `address_row` on `SenderProfileCardView`, both in `@aster/ui`. It changes `dist/index.js`, `dist/index.cjs`, and the two type declaration files. Nothing else in the package differs from the published `@aster-privacy/ui@0.2.2`.
 
 ### What it changes
 
 The dropdown always printed the cipher line (`AES-256-GCM` with `KEM-768` or `ML-KEM-768`) under its description. With the patch, the line renders only when `show_cipher` is `true`, which stays the default, and it carries `data-testid="encryption_cipher_line"`. The app passes `show_cipher` as `true` only for content that is end-to-end encrypted, so the dropdown for files that are not in the encrypted message no longer names those ciphers.
 
+The sender card always drew its own button for copying an outside sender's address. With the patch, when `address_row` is set, the card renders that node in the button's place, and without it the card keeps the original button. The app passes `SenderAddressCopyRow` from `src/components/profile/sender_address_copy_row.tsx`, a menu row that uses the same radius, hover color, and icon size as the other items in the card.
+
 ### Updating `@aster/ui`
 
-When a published `@aster/ui` release includes the `show_cipher` prop, delete this patch file and this section. Until then, apply the same change to the new `dist` files, run `npx patch-package @aster/ui`, delete the old patch file, and update the file name in this document.
+When a published `@aster/ui` release includes the `show_cipher` and `address_row` props, delete this patch file and this section. Until then, apply the same change to the new `dist` files, run `npx patch-package @aster/ui`, delete the old patch file, and update the file name in this document.

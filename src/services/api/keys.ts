@@ -203,15 +203,93 @@ function set_cached_key(email: string, key: ExternalKeyInfo): void {
   }
 }
 
+export const RECIPIENT_KEY_MISS_TTL_MS = 10 * 60 * 1000;
+const MAX_RECIPIENT_KEY_MISSES = 500;
+
+const recipient_key_misses = new Map<
+  string,
+  { response: ApiResponse<PublicKeyResponse>; timestamp: number }
+>();
+const recipient_key_in_flight = new Map<
+  string,
+  Promise<ApiResponse<PublicKeyResponse>>
+>();
+
+function is_outside_address(email?: string): email is string {
+  return !!email && email.includes("@") && !is_internal_email(email);
+}
+
+function recipient_key_miss(): ApiResponse<PublicKeyResponse> {
+  return { error: "User not found", code: "NOT_FOUND", status: 404 };
+}
+
+function is_recipient_key_miss(
+  response: ApiResponse<PublicKeyResponse>,
+): boolean {
+  return response.code === "NOT_FOUND" || response.status === 404;
+}
+
+async function fetch_recipient_public_key(
+  username: string,
+  email: string | undefined,
+  outside: boolean,
+): Promise<ApiResponse<PublicKeyResponse>> {
+  const query = new URLSearchParams();
+
+  if (email) query.set("email", email);
+  if (outside) query.set("missing", "empty");
+
+  const params = query.toString() ? `?${query.toString()}` : "";
+  const response = await api_client.get<PublicKeyResponse>(
+    `/crypto/v1/keys/public/${encodeURIComponent(username)}${params}`,
+  );
+
+  if (response.data && !response.error && !response.data.public_key) {
+    return recipient_key_miss();
+  }
+
+  return response;
+}
+
 export async function get_recipient_public_key(
   username: string,
   email?: string,
 ): Promise<ApiResponse<PublicKeyResponse>> {
-  const params = email ? `?email=${encodeURIComponent(email)}` : "";
+  const outside = is_outside_address(email);
+  const key = `${username.toLowerCase()}|${(email ?? "").toLowerCase()}`;
 
-  return api_client.get<PublicKeyResponse>(
-    `/crypto/v1/keys/public/${encodeURIComponent(username)}${params}`,
-  );
+  if (outside) {
+    const miss = recipient_key_misses.get(key);
+
+    if (miss && Date.now() - miss.timestamp <= RECIPIENT_KEY_MISS_TTL_MS) {
+      return miss.response;
+    }
+  }
+
+  const pending = recipient_key_in_flight.get(key);
+
+  if (pending) return pending;
+
+  const request = fetch_recipient_public_key(username, email, outside)
+    .then((response) => {
+      if (outside && is_recipient_key_miss(response)) {
+        recipient_key_misses.set(key, { response, timestamp: Date.now() });
+
+        if (recipient_key_misses.size > MAX_RECIPIENT_KEY_MISSES) {
+          drop_expired_entries(recipient_key_misses, RECIPIENT_KEY_MISS_TTL_MS);
+          trim_map_to_size(recipient_key_misses, MAX_RECIPIENT_KEY_MISSES);
+        }
+      }
+
+      return response;
+    })
+    .finally(() => {
+      recipient_key_in_flight.delete(key);
+    });
+
+  recipient_key_in_flight.set(key, request);
+
+  return request;
 }
 
 export async function discover_external_key(
@@ -528,6 +606,7 @@ export function get_key_source_label_key(
 export function clear_external_key_cache(): void {
   external_key_cache.clear();
   aster_key_cache.clear();
+  recipient_key_misses.clear();
 }
 
 export async function acknowledge_external_key_fingerprint_change(

@@ -43,16 +43,18 @@ export const MobileHeader = memo(function MobileHeader({
   const { t } = use_i18n();
 
   return (
-    <MobileHeaderView
-      back_label={t("common.back")}
-      menu_label={t("common.open_menu_label")}
-      right_actions={right_actions}
-      safe_area_top={safe_area_insets.top}
-      search_label={t("common.search")}
-      title={title}
-      on_back={on_back}
-      on_menu={on_menu}
-      on_search={on_search}
-    />
+    <div className="contents select-none" data-mobile-header-chrome="">
+      <MobileHeaderView
+        back_label={t("common.back")}
+        menu_label={t("common.open_menu_label")}
+        right_actions={right_actions}
+        safe_area_top={safe_area_insets.top}
+        search_label={t("common.search")}
+        title={title}
+        on_back={on_back}
+        on_menu={on_menu}
+        on_search={on_search}
+      />
+    </div>
   );
 });

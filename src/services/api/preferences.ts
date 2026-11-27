@@ -1042,11 +1042,21 @@ type GetPreferencesViaHttpResult =
   | UserPreferences
   | "not_found"
   | "decrypt_failed"
+  | "unchanged"
   | null;
+
+export function preferences_blob_marker(
+  encrypted: string,
+  nonce: string,
+): string {
+  return `${nonce}:${encrypted.length}:${encrypted}`;
+}
 
 async function get_preferences_via_http(
   vault: EncryptedVault,
   skip_cache = false,
+  unchanged_marker?: string | null,
+  on_marker?: (marker: string) => void,
 ): Promise<GetPreferencesViaHttpResult> {
   let response;
 
@@ -1069,6 +1079,17 @@ async function get_preferences_via_http(
     return "not_found";
   }
 
+  const marker = preferences_blob_marker(
+    encrypted_preferences,
+    preferences_nonce,
+  );
+
+  if (unchanged_marker && unchanged_marker === marker) {
+    return "unchanged";
+  }
+
+  on_marker?.(marker);
+
   try {
     return await decrypt_preferences(
       encrypted_preferences,
@@ -1083,7 +1104,7 @@ async function get_preferences_via_http(
 async function save_preferences_via_http(
   preferences: UserPreferences,
   vault: EncryptedVault,
-): Promise<boolean> {
+): Promise<string | null> {
   const { encrypted, nonce } = await encrypt_preferences(preferences, vault);
 
   const response = await api_client.put<SavePreferencesApiResponse>(
@@ -1094,7 +1115,9 @@ async function save_preferences_via_http(
     },
   );
 
-  return !response.error && response.data?.success === true;
+  if (response.error || response.data?.success !== true) return null;
+
+  return preferences_blob_marker(encrypted, nonce);
 }
 
 const LEGACY_OLDEST_FIRST = "oldest";
@@ -1286,26 +1309,54 @@ export function build_merged_preferences(
   return merged;
 }
 
-export async function get_preferences(
-  vault: EncryptedVault | null,
-  skip_cache = false,
-): Promise<{
+export interface GetPreferencesResult {
   data: UserPreferences;
   loaded_from_server: boolean;
   server_blob_unusable?: boolean;
   preferences_locked?: boolean;
-}> {
+  unchanged?: boolean;
+  blob_marker?: string | null;
+}
+
+export async function get_preferences(
+  vault: EncryptedVault | null,
+  skip_cache = false,
+  unchanged_marker?: string | null,
+): Promise<GetPreferencesResult> {
   if (!vault) {
     return { data: DEFAULT_PREFERENCES, loaded_from_server: false };
   }
 
   try {
-    let result = await get_preferences_via_http(vault, skip_cache);
+    let blob_marker: string | null = null;
+    const record_marker = (marker: string) => {
+      blob_marker = marker;
+    };
+    let result = await get_preferences_via_http(
+      vault,
+      skip_cache,
+      unchanged_marker,
+      record_marker,
+    );
+
+    if (result === "unchanged") {
+      return {
+        data: DEFAULT_PREFERENCES,
+        loaded_from_server: true,
+        unchanged: true,
+        blob_marker: unchanged_marker ?? null,
+      };
+    }
 
     if (result === "not_found") {
-      const confirmation = await get_preferences_via_http(vault, true);
+      const confirmation = await get_preferences_via_http(
+        vault,
+        true,
+        null,
+        record_marker,
+      );
 
-      if (confirmation === null) {
+      if (confirmation === null || confirmation === "unchanged") {
         return { data: DEFAULT_PREFERENCES, loaded_from_server: false };
       }
 
@@ -1463,20 +1514,23 @@ export async function get_preferences(
     }
 
     if (needs_migration_save) {
-      const ok = await save_preferences_via_http(merged, vault).catch(
-        () => false,
-      );
+      const saved_marker = await save_preferences_via_http(
+        merged,
+        vault,
+      ).catch(() => null);
 
-      if (ok && legacy_skin_tone) clear_legacy_skin_tone();
+      if (saved_marker && legacy_skin_tone) clear_legacy_skin_tone();
 
-      if (!ok) {
+      blob_marker = saved_marker;
+
+      if (!saved_marker) {
         save_preferences_via_http(merged, vault).catch((caught) =>
           ignore_error("services/api/preferences:get_preferences", caught),
         );
       }
     }
 
-    return { data: merged, loaded_from_server: true };
+    return { data: merged, loaded_from_server: true, blob_marker };
   } catch {
     return { data: DEFAULT_PREFERENCES, loaded_from_server: false };
   }
@@ -1485,11 +1539,11 @@ export async function get_preferences(
 export async function save_preferences(
   preferences: UserPreferences,
   vault: EncryptedVault,
-): Promise<{ data: { success: boolean } }> {
+): Promise<{ data: { success: boolean; blob_marker?: string | null } }> {
   try {
-    const success = await save_preferences_via_http(preferences, vault);
+    const blob_marker = await save_preferences_via_http(preferences, vault);
 
-    return { data: { success } };
+    return { data: { success: blob_marker !== null, blob_marker } };
   } catch {
     return { data: { success: false } };
   }

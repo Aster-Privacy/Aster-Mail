@@ -186,3 +186,59 @@ describe("duplicate send guard", () => {
     expect(is_duplicate_send("", 1100)).toBe(false);
   });
 });
+
+describe("one send per submit gesture", () => {
+  beforeEach(() => {
+    reset_recent_sends();
+  });
+
+  function make_sender() {
+    const lock = { held: false, started_at: 0 };
+    let last_send_at = 0;
+    let sends = 0;
+
+    return {
+      submit(now: number) {
+        if (!can_acquire_send_lock(lock, now)) return;
+        if (is_repeat_send(last_send_at, now)) return;
+        const fingerprint = build_send_fingerprint(
+          ["a@example.com"],
+          "Re: hi",
+          "Body",
+        );
+
+        if (is_duplicate_send(fingerprint, now)) return;
+        lock.held = true;
+        lock.started_at = now;
+        last_send_at = now;
+        record_send(fingerprint, now);
+        sends += 1;
+      },
+      release() {
+        lock.held = false;
+      },
+      get sends() {
+        return sends;
+      },
+    };
+  }
+
+  it("sends once when Enter and a click land together", () => {
+    const sender = make_sender();
+
+    sender.submit(1000);
+    sender.submit(1000);
+
+    expect(sender.sends).toBe(1);
+  });
+
+  it("sends once when a double click lands after the first send returned", () => {
+    const sender = make_sender();
+
+    sender.submit(1000);
+    sender.release();
+    sender.submit(1150);
+
+    expect(sender.sends).toBe(1);
+  });
+});

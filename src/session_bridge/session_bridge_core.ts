@@ -21,7 +21,7 @@
 import {
   HANDOFF_GRANT_WAIT_MS,
   check_grant,
-  consume_grant,
+  take_grant,
   type GrantStorage,
 } from "@/lib/session_handoff/session_handoff_grant";
 import {
@@ -46,6 +46,91 @@ const SHARED_ACCOUNT_MARKER_PREFIX = "astermail_shared_grant_epoch_";
 const MIN_TIMEOUT_MINUTES = 5;
 const DEFAULT_TIMEOUT_MINUTES = 30;
 const GRANT_POLL_MS = 500;
+const EXPECTED_USER_HEADER = "X-Aster-Expected-User";
+const ISSUED_TOKEN_KEY_PREFIX = "aster:session_handoff_issued:";
+export const ISSUED_TOKEN_MAX_AGE_MS = 12 * 60 * 60 * 1000;
+
+async function token_digest(access_token: string): Promise<string> {
+  const digest = await crypto.subtle.digest(
+    "SHA-256",
+    new TextEncoder().encode(access_token),
+  );
+
+  return Array.from(new Uint8Array(digest), (byte) =>
+    byte.toString(16).padStart(2, "0"),
+  ).join("");
+}
+
+interface IssuedTokenRecord {
+  digest: string;
+  audience: string;
+  issued_at: number;
+}
+
+const MAX_ISSUED_TOKENS = 4;
+
+function read_issued_tokens(
+  deps: BridgeDeps,
+  user_id: string,
+): IssuedTokenRecord[] {
+  const raw = deps.storage.get(ISSUED_TOKEN_KEY_PREFIX + user_id);
+
+  if (!raw) return [];
+
+  try {
+    const parsed: unknown = JSON.parse(raw);
+
+    if (!Array.isArray(parsed)) return [];
+
+    return parsed.filter(
+      (record): record is IssuedTokenRecord =>
+        typeof record === "object" &&
+        record !== null &&
+        typeof record.digest === "string" &&
+        typeof record.audience === "string" &&
+        typeof record.issued_at === "number" &&
+        deps.now() - record.issued_at <= ISSUED_TOKEN_MAX_AGE_MS,
+    );
+  } catch {
+    return [];
+  }
+}
+
+async function record_issued_token(
+  deps: BridgeDeps,
+  audience: string,
+  user_id: string,
+  access_token: string,
+  replaced_token?: string,
+): Promise<void> {
+  const replaced = replaced_token ? await token_digest(replaced_token) : null;
+  const kept = read_issued_tokens(deps, user_id).filter(
+    (record) => record.digest !== replaced,
+  );
+
+  kept.push({
+    digest: await token_digest(access_token),
+    audience,
+    issued_at: deps.now(),
+  });
+  deps.storage.set(
+    ISSUED_TOKEN_KEY_PREFIX + user_id,
+    JSON.stringify(kept.slice(-MAX_ISSUED_TOKENS)),
+  );
+}
+
+export async function holds_issued_token(
+  deps: BridgeDeps,
+  audience: string,
+  user_id: string,
+  access_token: string,
+): Promise<boolean> {
+  const digest = await token_digest(access_token);
+
+  return read_issued_tokens(deps, user_id).some(
+    (record) => record.audience === audience && record.digest === digest,
+  );
+}
 
 export type BridgeStorage = GrantStorage;
 
@@ -54,12 +139,16 @@ export interface BridgeDeps {
   now(): number;
   sleep(ms: number): Promise<void>;
   load_session_key(): Promise<CryptoKey | null>;
-  fetch_current_user(): Promise<unknown>;
+  fetch_current_user(
+    expected_user_id: string,
+    access_token: string | null,
+  ): Promise<unknown>;
   decrypt(
     key: CryptoKey,
     ciphertext: Uint8Array,
     iv: Uint8Array,
   ): Promise<ArrayBuffer>;
+  request_renewal?(user_id: string, audience: string): Promise<string | null>;
 }
 
 function decode_base64(value: string): Uint8Array | null {
@@ -158,6 +247,30 @@ export function read_local_session(
   return { encrypted_passphrase, passphrase_iv, encrypted_vault, vault_nonce };
 }
 
+export function me_request_init(
+  expected_user_id: string | null,
+  access_token: string | null,
+  signal?: AbortSignal,
+): RequestInit {
+  const headers: Record<string, string> = {
+    Accept: "application/json",
+    "X-Aster-Client": "web",
+    "X-Aster-Vault-Level": "2",
+  };
+
+  if (expected_user_id) headers[EXPECTED_USER_HEADER] = expected_user_id;
+  if (access_token) headers.Authorization = `Bearer ${access_token}`;
+
+  return {
+    method: "GET",
+    credentials: access_token ? "omit" : "same-origin",
+    cache: "no-store",
+    redirect: "error",
+    headers,
+    signal,
+  };
+}
+
 export function user_from_me_response(value: unknown): HandoffUser | null {
   if (typeof value !== "object" || value === null) return null;
 
@@ -233,10 +346,11 @@ export async function handle_request(
   grant_id: string,
   audience: string,
   user_id: string,
+  replaced_token?: string,
 ): Promise<HandoffSession | null> {
-  if (!consume_grant(deps.storage, grant_id, audience, user_id, deps.now())) {
-    return null;
-  }
+  const grant = take_grant(deps.storage, grant_id, audience, user_id, deps.now());
+
+  if (!grant) return null;
 
   const local = read_local_session(deps.storage, user_id, deps.now());
 
@@ -245,7 +359,7 @@ export async function handle_request(
   let me: unknown;
 
   try {
-    me = await deps.fetch_current_user();
+    me = await deps.fetch_current_user(user_id, grant.access_token);
   } catch {
     return null;
   }
@@ -264,12 +378,25 @@ export async function handle_request(
 
   if (!passphrase) return null;
 
-  return {
+  const session: HandoffSession = {
     user,
     passphrase,
     encrypted_vault: local.encrypted_vault,
     vault_nonce: local.vault_nonce,
   };
+
+  if (grant.access_token) {
+    session.access_token = grant.access_token;
+    await record_issued_token(
+      deps,
+      audience,
+      user_id,
+      grant.access_token,
+      replaced_token,
+    );
+  }
+
+  return session;
 }
 
 export async function answer_port_message(
@@ -290,6 +417,41 @@ export async function answer_port_message(
     );
 
     return { type: "probe_result", available };
+  }
+
+  if (request.type === "renew") {
+    if (
+      !(await holds_issued_token(
+        deps,
+        audience,
+        request.user_id,
+        request.access_token,
+      ))
+    ) {
+      return { type: "unavailable" };
+    }
+
+    let grant: string | null = null;
+
+    try {
+      grant = (await deps.request_renewal?.(request.user_id, audience)) ?? null;
+    } catch {
+      grant = null;
+    }
+
+    if (!grant) return { type: "unavailable" };
+
+    const renewed = await handle_request(
+      deps,
+      grant,
+      audience,
+      request.user_id,
+      request.access_token,
+    );
+
+    return renewed && renewed.access_token
+      ? { type: "session", session: renewed }
+      : { type: "unavailable" };
   }
 
   const session = await handle_request(

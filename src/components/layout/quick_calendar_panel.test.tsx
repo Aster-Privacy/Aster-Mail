@@ -33,10 +33,12 @@ import {
 const mocks = vi.hoisted(() => ({
   open_external: vi.fn(),
   mint_grant: vi.fn((): string | null => null),
+  account_id: vi.fn((): string | null => null),
 }));
 
 vi.mock("@/contexts/auth/sibling_session_handoff", () => ({
   HANDOFF_GRANT_HASH_PREFIX: "#handoff=",
+  active_panel_account_id: mocks.account_id,
   mint_panel_handoff_grant: mocks.mint_grant,
   sibling_app_launch_url: (target: string) => target,
 }));
@@ -244,6 +246,8 @@ describe("quick calendar panel", () => {
     mocks.open_external.mockReset();
     mocks.mint_grant.mockReset();
     mocks.mint_grant.mockReturnValue(null);
+    mocks.account_id.mockReset();
+    mocks.account_id.mockReturnValue(null);
     container = document.createElement("div");
     document.body.appendChild(container);
     root = createRoot(container);
@@ -257,6 +261,74 @@ describe("quick calendar panel", () => {
     document.documentElement.className = "";
     document.documentElement.removeAttribute("style");
     vi.useRealTimers();
+  });
+
+  describe("with two accounts on this device", () => {
+    const findley = "0b6f1c2e-4a3d-4c8e-9f10-2a3b4c5d6e7f";
+    const hello = "7e6d5c4b-3a2b-4c1d-8e0f-9a8b7c6d5e4f";
+
+    it("names the active account in the panel address", async () => {
+      mocks.account_id.mockReturnValue(findley);
+      mocks.mint_grant.mockReturnValue("grant1");
+      await render_panel(true);
+
+      const src = new URL(frame()?.getAttribute("src") ?? "");
+
+      expect(src.searchParams.get("account")).toBe(findley);
+      expect(src.hash).toBe("#handoff=grant1");
+    });
+
+    it("names the new account after switching accounts", async () => {
+      mocks.account_id.mockReturnValue(findley);
+      await render_panel(true);
+
+      expect(
+        new URL(frame()?.getAttribute("src") ?? "").searchParams.get(
+          "account",
+        ),
+      ).toBe(findley);
+
+      await act(async () => {
+        root.unmount();
+      });
+      root = createRoot(container);
+      mocks.account_id.mockReturnValue(hello);
+      await render_panel(true);
+
+      expect(
+        new URL(frame()?.getAttribute("src") ?? "").searchParams.get(
+          "account",
+        ),
+      ).toBe(hello);
+    });
+
+    it("names the active account even when no grant can be minted", async () => {
+      mocks.account_id.mockReturnValue(findley);
+      mocks.mint_grant.mockReturnValue(null);
+      await render_panel(true);
+
+      const src = new URL(frame()?.getAttribute("src") ?? "");
+
+      expect(src.searchParams.get("account")).toBe(findley);
+      expect(src.hash).toBe("");
+    });
+
+    it("names the active account again on a retried frame", async () => {
+      mocks.account_id.mockReturnValue(findley);
+      mocks.mint_grant.mockReturnValue("grant1");
+      await render_panel(true);
+      await send({ source: "aster-calendar-panel", type: "ready" });
+      await send({
+        source: "aster-calendar-panel",
+        type: "status",
+        status: "signed_out",
+      });
+
+      const src = new URL(frame()?.getAttribute("src") ?? "");
+
+      expect(src.searchParams.get("account")).toBe(findley);
+      expect(src.searchParams.get("attempt")).toBe("1");
+    });
   });
 
   describe("when the panel reports it is signed out", () => {

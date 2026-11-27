@@ -124,6 +124,7 @@ export interface ThreadReplySentEventDetail {
   thread_token: string;
   original_email_id?: string;
   optimistic_id?: string;
+  sent_id?: string;
 }
 
 export interface ThreadReplyOptimisticEventDetail {

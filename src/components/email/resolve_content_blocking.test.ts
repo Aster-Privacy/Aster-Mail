@@ -40,7 +40,7 @@ describe("resolve_content_blocking", () => {
     ).toEqual(ALL_BLOCKED);
   });
 
-  it("unblocks every category when the reader loads all external content", () => {
+  it("unblocks content but keeps trackers blocked when the reader loads all external content", () => {
     expect(
       resolve_content_blocking({
         lockdown_active: false,
@@ -51,8 +51,19 @@ describe("resolve_content_blocking", () => {
       block_remote_images: false,
       block_remote_fonts: false,
       block_remote_css: false,
-      block_tracking_pixels: false,
+      block_tracking_pixels: true,
     });
+  });
+
+  it("keeps trackers blocked even when a tracking pixel grant is present", () => {
+    expect(
+      resolve_content_blocking({
+        lockdown_active: false,
+        load_remote_content: false,
+        loaded_content_types: new Set(["image", "tracking_pixel"]),
+        preferences: ALL_BLOCKED,
+      }).block_tracking_pixels,
+    ).toBe(true);
   });
 
   it("unblocks only the categories the reader picked", () => {

@@ -33,6 +33,7 @@ import {
   unwrap_bundle_html,
   is_ratchet_envelope,
   is_password_protected_body,
+  is_ratchet_end_to_end_body,
   is_ratchet_verified_body,
 } from "@/utils/email_crypto";
 import { is_pending_decrypt_body } from "@/utils/undecryptable_body";
@@ -165,6 +166,12 @@ async function resolve_envelope_body(
     message_id,
   );
 
+  const ratchet_end_to_end = is_ratchet_end_to_end_body(
+    resolved_text,
+    body_text,
+    message_id,
+  );
+
   resolved_html = sealed_html_source(resolved_html, ratchet_verified);
   const pre_pgp_text = body_text;
 
@@ -185,14 +192,14 @@ async function resolve_envelope_body(
       body_text,
       safe_html: undefined,
       unsubscribe_info: undefined,
-      e2e_verified: ratchet_verified,
+      e2e_verified: ratchet_end_to_end,
       e2e_sender_bound: ratchet_verified,
     };
   }
 
   const verification = sent_scope_fields(
     envelope,
-    ratchet_verified || pgp.verified === true,
+    ratchet_end_to_end || pgp.verified === true,
     ratchet_verified || pgp.verified === true,
   );
 

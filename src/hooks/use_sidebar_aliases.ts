@@ -63,6 +63,7 @@ import {
 import { emit_aliases_changed, MAIL_EVENTS } from "@/hooks/mail_events";
 import { use_auth_safe } from "@/contexts/auth_context";
 import { ignore_error } from "@/lib/ignore_error";
+import { subscribe_page_resume } from "@/lib/page_resume";
 
 let repair_attempted = false;
 
@@ -328,6 +329,7 @@ const ALIAS_RETRY_DELAYS_MS = [400, 1_200, 3_000];
 const ALIAS_BACKGROUND_RETRY_DELAYS_MS = [8_000, 20_000, 45_000];
 const ALIAS_FAILED_FETCH_RETRY_MS = 60_000;
 const ALIAS_RECOVERY_MIN_INTERVAL_MS = 5_000;
+const RESUME_UNREAD_MIN_MS = 30_000;
 
 const alias_recovery = { in_flight: false, last_ms: -Infinity };
 
@@ -774,11 +776,12 @@ export function use_sidebar_aliases(): UseSidebarAliasesReturn {
       }, 500);
     };
 
-    const handle_visibility = () => {
-      if (document.visibilityState === "visible") {
-        fetch_unread_ref.current?.();
-      }
-    };
+    const unsubscribe_resume = subscribe_page_resume(
+      () => {
+        handle_mail_changed();
+      },
+      { min_interval_ms: RESUME_UNREAD_MIN_MS },
+    );
 
     window.addEventListener(MAIL_EVENTS.AUTH_READY, handle_auth_ready);
     window.addEventListener(
@@ -791,9 +794,9 @@ export function use_sidebar_aliases(): UseSidebarAliasesReturn {
     window.addEventListener(MAIL_EVENTS.MAIL_CHANGED, handle_mail_changed);
     window.addEventListener(MAIL_EVENTS.MAIL_ACTION, handle_mail_changed);
     window.addEventListener(MAIL_EVENTS.MAIL_STATS_STALE, handle_mail_changed);
-    document.addEventListener("visibilitychange", handle_visibility);
 
     return () => {
+      unsubscribe_resume();
       if (unread_debounce) clearTimeout(unread_debounce);
       window.removeEventListener(MAIL_EVENTS.AUTH_READY, handle_auth_ready);
       window.removeEventListener(
@@ -818,7 +821,6 @@ export function use_sidebar_aliases(): UseSidebarAliasesReturn {
         MAIL_EVENTS.MAIL_STATS_STALE,
         handle_mail_changed,
       );
-      document.removeEventListener("visibilitychange", handle_visibility);
     };
   }, []);
 

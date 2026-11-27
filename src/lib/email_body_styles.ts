@@ -22,6 +22,7 @@ import type { PlaceholderPaint } from "@/lib/blocked_image_placeholder";
 
 import { accent_foreground_for } from "@/lib/resolved_accent";
 import { derive_link_ink, derive_visited_ink } from "@/lib/email_ink";
+import { build_text_symbol_font_face_css } from "@/lib/text_symbol_font";
 import {
   LINK_BUTTON_ATTRIBUTE,
   LINK_VISITED_VAR,
@@ -86,7 +87,9 @@ export function build_email_font_face_css(
   font-weight: ${weight};
   font-display: ${display};
   src: url('${src}') format('woff2');
-}`;
+}
+
+${build_text_symbol_font_face_css("Google Sans Flex", weight)}`;
   }).join("\n\n");
 }
 
@@ -300,7 +303,7 @@ details[open] > .aster-quote-toggle {
 
 .aster-quoted-content .aster_quote,
 .aster-quoted-content .gmail_quote,
-.aster-quoted-content .protonmail_quote,
+.aster-quoted-content .protonmail_quote:not(blockquote),
 .aster-quoted-content .yahoo_quoted,
 .aster-quoted-content .moz-cite-prefix,
 .aster-forwarded-content .aster_quote,
@@ -309,6 +312,10 @@ details[open] > .aster-quote-toggle {
   display: block;
   margin: 0;
   padding: 0;
+}
+
+.aster-quoted-content blockquote.protonmail_quote {
+  display: block;
 }
 
 .aster-quoted-content .aster_quote_attr,

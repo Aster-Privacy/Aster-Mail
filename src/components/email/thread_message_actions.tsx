@@ -232,7 +232,7 @@ export function ThreadMessageActions({
   return (
     <>
       {reaction_groups.length > 0 && (
-        <div className="flex flex-wrap items-center gap-1.5 px-4 pt-3 pb-1">
+        <div className="flex flex-wrap items-center gap-1.5 px-4 pt-3 pb-1 select-none">
           <AnimatePresence initial={false}>
             {reaction_groups.map((group) => {
               const tooltip = group.includes_self
@@ -299,7 +299,7 @@ export function ThreadMessageActions({
           </AnimatePresence>
         </div>
       )}
-      <div className="thread_message_actions flex items-center gap-2 px-4 pb-4">
+      <div className="thread_message_actions flex items-center gap-2 px-4 pb-4 select-none">
         {on_reply && (
           <PillButton
             className={`flex-1 min-w-0 max-w-[200px] !rounded-full ${is_system_email(message) ? "opacity-50 pointer-events-none" : ""}`}

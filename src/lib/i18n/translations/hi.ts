@@ -20,6 +20,8 @@
 //
 export const hi = {
   common: {
+    couldnt_load: "लोड नहीं हो सका।",
+    try_again_action: "फिर से कोशिश करें",
     merge_primary_label: "प्राथमिक",
     merge_make_primary: "प्राथमिक बनाएं",
     merge_primary_description:
@@ -280,8 +282,8 @@ export const hi = {
     add_alias_note_placeholder: "नोट जोड़ें",
     edit_alias_note: "नोट संपादित करें",
     toggle_alias: "यह एलियास चालू या बंद करें",
-    change_alias_avatar: "अवतार बदलें",
-    remove_alias_avatar: "अवतार निकालें",
+    change_alias_avatar: "प्रोफ़ाइल फ़ोटो बदलें",
+    remove_alias_avatar: "प्रोफ़ाइल फ़ोटो निकालें",
     alias_avatars_locked:
       "कस्टम अवतार सशुल्क प्लान का हिस्सा हैं। अपग्रेड करने पर ये चालू हो जाएंगे।",
     recovery_conflict:
@@ -437,6 +439,8 @@ export const hi = {
     birthday_year_optional: "वर्ष (वैकल्पिक)",
     notes: "नोट",
     hide_notes: "नोट छिपाएं",
+    sender_note_load_failed: "नोट लोड नहीं हुआ।",
+    sender_note_save_failed: "नोट सहेजा नहीं गया।",
     favorite: "पसंदीदा",
     favorited: "पसंदीदा में जोड़ा गया",
     added_to_favorites: "पसंदीदा में जुड़ गया",
@@ -2272,6 +2276,7 @@ export const hi = {
     zip_archive: "ZIP आर्काइव",
   },
   settings: {
+    referral_load_failed: "आपके आमंत्रण का विवरण लोड नहीं हो सका।",
     sandbox_off_by_setting_notice:
       "यह विंडो अपने सैंडबॉक्स के बिना चल रही है, क्योंकि एक एनवायरनमेंट वेरिएबल ने उसे बंद कर दिया है।",
     sandbox_off_notice:
@@ -9500,6 +9505,9 @@ export const hi = {
       "यह ईमेल {{ received }} पर मिला था, लेकिन आपका जवाब {{ selected }} से भेजने के लिए तय है। किसी दूसरे पते से जवाब देने पर वह पता प्रेषक को दिख सकता है, और जवाब अस्वीकार भी हो सकता है।",
     reply_from_mismatch_use_received: "जिस पते पर मिला वही इस्तेमाल करें",
     sending_disabled_badge: "भेजना बंद है",
+    shake_feedback_prompt: "कुछ ठीक से काम नहीं कर रहा? हमें बताएं।",
+    shake_feedback_send: "फ़ीडबैक भेजें",
+    shake_feedback_dismiss: "नहीं, धन्यवाद",
     reply_from_mismatch_banner: "यह ईमेल {{ received }} पर मिला था, लेकिन आपका जवाब {{ selected }} से भेजा जाएगा।",
     reply_from_mismatch_banner_switch: "{{ received }} से भेजें",
     reply_from_mismatch_send_anyway: "फिर भी भेजें",
@@ -9675,6 +9683,8 @@ export const hi = {
     load_external_content: "बाहरी सामग्री लोड करें",
     external_content_hidden: "बाहरी सामग्री छिपी हुई है",
     show_external_content: "सामग्री दिखाएं",
+    trackers_blocked_count: "ब्लॉक किए गए ट्रैकर: {{count}}",
+    trackers_stay_blocked: "सामग्री दिखाने पर भी ट्रैकर ब्लॉक रहते हैं।",
     image_loading_settings: "तस्वीर सेटिंग",
     image: "छवि",
     images: "छवियां",
@@ -10081,6 +10091,11 @@ export const hi = {
     search_index_resume: "फिर से शुरू करें",
     search_searching_title: "आपके मेल में खोज रहे हैं",
     search_index_preparing: "आपका निजी इंडेक्स तैयार हो रहा है",
+    search_index_eta_under_minute: "एक मिनट से कम बचा है",
+    search_index_eta_minutes: "लगभग {{value}} मिनट बचे हैं",
+    search_index_eta_minutes_one: "लगभग {{value}} मिनट बचा है",
+    search_index_eta_hours: "लगभग {{value}} घंटे बचे हैं",
+    search_index_eta_hours_one: "लगभग {{value}} घंटा बचा है",
     search_index_live_hint: "मिलान मिलते ही दिखाई देते हैं।",
     search_searching_more: "और मेल में खोज रहे हैं",
     search_index_why_label: "खोज को इंडेक्स की ज़रूरत क्यों है",

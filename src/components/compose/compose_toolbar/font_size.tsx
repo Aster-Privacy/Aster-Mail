@@ -33,6 +33,8 @@ import { font_size_label_from_px } from "@/hooks/editor_utils";
 import { use_preferences } from "@/contexts/preferences_context";
 import { normalize_compose_font_size } from "@/lib/compose_defaults";
 
+const FONT_SIZE_MENU_MAX_WIDTH = 192;
+
 export function FontSizeSelect({
   on_change,
   on_before_open,
@@ -131,19 +133,25 @@ export function FontSizeSelect({
         open && (
           <div
             ref={dropdown_ref}
-            className="aster_floating aster_floating_anim fixed p-1.5 min-w-[120px]"
+            className="aster_floating aster_floating_anim fixed p-1.5 flex flex-col w-max min-w-[8rem] max-w-[min(12rem,calc(100vw-16px))]"
             data-state="open"
             id={list_id}
             style={{
               zIndex: 9999,
-              left: pos.left,
+              left: Math.max(
+                8,
+                Math.min(
+                  pos.left,
+                  window.innerWidth - FONT_SIZE_MENU_MAX_WIDTH - 8,
+                ),
+              ),
               bottom: window.innerHeight - pos.top + 6,
             }}
           >
             {FONT_SIZE_OPTIONS.map((option) => (
               <button
                 key={option.value}
-                className="w-full text-start px-2.5 py-1.5 text-[13px] text-txt-primary rounded-[var(--aster-radius-item)] transition-colors hover:bg-[var(--aster-floating-hover)]"
+                className="block w-full flex-shrink-0 truncate text-start px-2.5 py-1.5 text-[13px] text-txt-primary rounded-[var(--aster-radius-item)] transition-colors hover:bg-[var(--aster-floating-hover)]"
                 style={{
                   fontWeight: current_size === option.value ? 600 : 400,
                 }}

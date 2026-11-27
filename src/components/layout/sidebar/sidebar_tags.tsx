@@ -55,6 +55,10 @@ import { tag_icon_map } from "@/components/ui/email_tag";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_delayed_flag } from "@/hooks/use_delayed_flag";
 import {
+  use_loading_deadline,
+  use_retry_on_recovery,
+} from "@/hooks/use_load_recovery";
+import {
   build_tag_tree,
   flatten_visible_tag_tree,
   get_sibling_tags,
@@ -140,6 +144,10 @@ export const SidebarTags = memo(function SidebarTags({
 }: SidebarTagsProps) {
   const { t } = use_i18n();
   const skeleton_visible = use_delayed_flag(is_loading);
+  const load_stalled = use_loading_deadline(is_loading);
+  const show_failure = (load_failed || load_stalled) && Boolean(on_retry);
+
+  use_retry_on_recovery(show_failure, on_retry);
 
   const [drag_over_token, set_drag_over_token] = useState<string | null>(null);
 
@@ -330,7 +338,7 @@ export const SidebarTags = memo(function SidebarTags({
                                 ? t("common.collapse")
                                 : t("common.expand")
                             }
-                            className="absolute start-0 top-1/2 -translate-y-1/2 p-0.5 rounded hover:bg-black/[0.06] dark:hover:bg-white/[0.08]"
+                            className="absolute start-0 top-1/2 -translate-y-1/2 p-0.5"
                             role="button"
                             tabIndex={0}
                             onClick={(e) => {
@@ -430,14 +438,15 @@ export const SidebarTags = memo(function SidebarTags({
         )}
         {all_tags.length === 0 &&
           skeleton_visible &&
+          !load_stalled &&
           !is_collapsed &&
           !section_collapsed && <NavSectionSkeleton rows={2} />}
         {all_tags.length === 0 &&
-          !is_loading &&
+          (!is_loading || load_stalled) &&
           !is_collapsed &&
           !section_collapsed &&
-          (load_failed && on_retry ? (
-            <LoadFailedNotice on_retry={on_retry} />
+          (show_failure && on_retry ? (
+            <LoadFailedNotice compact on_retry={on_retry} />
           ) : (
             <SidebarEmptyText>{t("common.no_labels_yet")}</SidebarEmptyText>
           ))}

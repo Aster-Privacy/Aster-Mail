@@ -20,6 +20,8 @@
 //
 export const tr = {
   common: {
+    couldnt_load: "Yüklenemedi.",
+    try_again_action: "Tekrar dene",
     merge_primary_label: "Birincil",
     merge_make_primary: "Birincil yap",
     merge_primary_description:
@@ -441,6 +443,8 @@ export const tr = {
     birthday_year_optional: "Yıl (isteğe bağlı)",
     notes: "Notlar",
     hide_notes: "Notları gizle",
+    sender_note_load_failed: "Not yüklenemedi.",
+    sender_note_save_failed: "Not kaydedilemedi.",
     favorite: "Favori",
     favorited: "Favorilere eklendi",
     added_to_favorites: "Favorilere eklendi",
@@ -1808,8 +1812,8 @@ export const tr = {
       "Bu not uzunluk sınırını aşıyor. Daha kısa bir not kullanın.",
     add_alias_note_placeholder: "Not ekle",
     edit_alias_note: "Notu düzenle",
-    change_alias_avatar: "Avatarı değiştir",
-    remove_alias_avatar: "Avatarı kaldır",
+    change_alias_avatar: "Profil resmini değiştir",
+    remove_alias_avatar: "Profil resmini kaldır",
     alias_avatars_locked:
       "Özel avatarlar ücretli planlarda mevcuttur. Yükseltme yaparak etkinleştirebilirsiniz.",
     not_now: "Şimdi değil",
@@ -2271,6 +2275,7 @@ export const tr = {
     zip_archive: "ZIP arşivi",
   },
   settings: {
+    referral_load_failed: "Davet ayrıntıların yüklenemedi.",
     sandbox_off_by_setting_notice:
       "Bir ortam değişkeni kapattığı için bu pencere korumalı alan olmadan çalışıyor.",
     sandbox_off_notice:
@@ -10263,6 +10268,9 @@ export const tr = {
       "Bu e-posta {{ received }} adresinde alındı, ancak yanıtınız {{ selected }} adresinden gönderilecek. Farklı bir adresten yanıtlamak bu adresi gönderene açığa çıkarabilir ve yanıt reddedilebilir.",
     reply_from_mismatch_use_received: "Alınan adresi kullan",
     sending_disabled_badge: "Gönderim devre dışı",
+    shake_feedback_prompt: "Bir şey çalışmıyor mu? Bize bildirin.",
+    shake_feedback_send: "Geri bildirim gönder",
+    shake_feedback_dismiss: "Hayır, teşekkürler",
     reply_from_mismatch_banner: "Bu e-posta {{ received }} adresine geldi, ancak yanıtınız {{ selected }} adresinden gönderilecek.",
     reply_from_mismatch_banner_switch: "{{ received }} adresinden gönder",
     reply_from_mismatch_send_anyway: "Yine de gönder",
@@ -10290,6 +10298,8 @@ export const tr = {
     load_external_content: "Harici içerik yükle",
     external_content_hidden: "Harici içerik gizlendi",
     show_external_content: "İçeriği göster",
+    trackers_blocked_count: "Engellenen izleyiciler: {{count}}",
+    trackers_stay_blocked: "İçerik gösterildiğinde izleyiciler engelli kalır.",
     image_loading_settings: "Görsel ayarları",
     image: "görsel",
     images: "görseller",
@@ -10367,6 +10377,11 @@ export const tr = {
     search_index_resume: "Devam et",
     search_searching_title: "E-postalarınızda aranıyor",
     search_index_preparing: "Özel dizininiz hazırlanıyor",
+    search_index_eta_under_minute: "Bir dakikadan az kaldı",
+    search_index_eta_minutes: "Yaklaşık {{value}} dakika kaldı",
+    search_index_eta_minutes_one: "Yaklaşık {{value}} dakika kaldı",
+    search_index_eta_hours: "Yaklaşık {{value}} saat kaldı",
+    search_index_eta_hours_one: "Yaklaşık {{value}} saat kaldı",
     search_index_live_hint: "Eşleşmeler bulunur bulunmaz görünür.",
     search_searching_more: "Daha fazla e-postada aranıyor",
     search_index_why_label: "Aramanın neden bir dizine ihtiyacı var",

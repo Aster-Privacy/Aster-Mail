@@ -25,17 +25,21 @@ import type {
   ReplyData,
 } from "@/components/email/inbox/inbox_types";
 
-import { Skeleton } from "@/components/ui/skeleton";
 import { strip_html_tags, strip_leading_css_rules } from "@/lib/html_text";
 import { strip_preview_filler } from "@/utils/preview_text";
 
 export const MIN_LIST_WIDTH = 280;
 export const SNIPPET_WINDOW = 120;
 export const SLOW_SEARCH_MS = 6000;
+export const SEARCH_LOADING_DELAY_MS = 180;
+export const SEARCH_ROW_DIVIDER_CLASS =
+  "border-b border-[var(--aster-island-divider,var(--aster-floating-divider,var(--border-secondary)))]";
 
 export function extract_snippet(preview: string, terms: string[]): string {
   if (!preview || terms.length === 0) return "";
-  const plain = strip_preview_filler(strip_leading_css_rules(strip_html_tags(preview)));
+  const plain = strip_preview_filler(
+    strip_leading_css_rules(strip_html_tags(preview)),
+  );
   const lower = plain.toLowerCase();
 
   let earliest_index = -1;
@@ -84,21 +88,4 @@ export interface SearchResultsPageProps {
     snooze_info?: Record<string, string | undefined>,
     grouped_ids_map?: Record<string, string[] | undefined>,
   ) => void;
-}
-
-export function SearchResultSkeleton() {
-  return (
-    <div
-      className="flex items-center gap-3 px-4 py-3 border-b overflow-hidden"
-      style={{ borderColor: "var(--border-secondary)" }}
-    >
-      <Skeleton className="w-5 h-5 rounded flex-shrink-0" />
-      <Skeleton className="w-8 h-8 rounded-full flex-shrink-0 hidden sm:block" />
-      <div className="flex-1 min-w-0 flex flex-col sm:flex-row sm:items-center gap-1 overflow-hidden">
-        <Skeleton className="h-4 w-full max-w-[100px] flex-shrink-0" />
-        <Skeleton className="h-4 flex-1 min-w-0 max-w-[200px]" />
-      </div>
-      <Skeleton className="h-3 w-12 flex-shrink-0 hidden sm:block" />
-    </div>
-  );
 }

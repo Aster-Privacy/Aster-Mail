@@ -20,6 +20,8 @@
 //
 export const es = {
   common: {
+    couldnt_load: "No se pudo cargar.",
+    try_again_action: "Reintentar",
     merge_primary_label: "Principal",
     merge_make_primary: "Hacer principal",
     merge_primary_description:
@@ -456,6 +458,8 @@ export const es = {
     birthday_year_optional: "Año (opcional)",
     notes: "Notas",
     hide_notes: "Ocultar notas",
+    sender_note_load_failed: "Tu nota no se cargó.",
+    sender_note_save_failed: "Tu nota no se guardó.",
     favorite: "Favorito",
     favorited: "Marcado como favorito",
     added_to_favorites: "Añadido a favoritos",
@@ -1793,7 +1797,7 @@ export const es = {
     auth_fail_tooltip_spf: "El servidor de envío no está autorizado por SPF.",
     back_to_inbox: "Volver a la bandeja de entrada",
     blocked_items_count: "{{count}} elemento(s) bloqueado(s)",
-    change_alias_avatar: "Cambiar avatar del alias",
+    change_alias_avatar: "Cambiar foto de perfil",
     click_to_add_value: "Clic para agregar un valor",
     contacts_deleted: "{{ count }} contacto(s) eliminado(s)",
     contacts_starred: "{{ count }} contacto(s) marcado(s) con estrella",
@@ -1977,7 +1981,7 @@ export const es = {
     recovery_text_unrecoverable:
       "Sin estos códigos, tu cuenta no puede recuperarse.",
     recovery_text_your_codes: "Tus códigos",
-    remove_alias_avatar: "Eliminar avatar del alias",
+    remove_alias_avatar: "Eliminar foto de perfil",
     remove_recovery_email: "Eliminar correo de recuperación",
     step_up_description:
       "Por tu seguridad, confirma tu contraseña para continuar.",
@@ -2293,6 +2297,8 @@ export const es = {
     zip_archive: "Archivo ZIP",
   },
   settings: {
+    referral_load_failed:
+      "No se pudieron cargar los detalles de tu invitación.",
     sandbox_off_by_setting_notice:
       "Esta ventana se ejecuta sin su entorno aislado porque una variable de entorno lo desactivó.",
     sandbox_off_notice:
@@ -10457,6 +10463,11 @@ export const es = {
     search_index_resume: "Reanudar",
     search_searching_title: "Buscando en tu correo",
     search_index_preparing: "Preparando tu índice privado",
+    search_index_eta_under_minute: "Queda menos de un minuto",
+    search_index_eta_minutes: "Quedan unos {{value}} minutos",
+    search_index_eta_minutes_one: "Queda alrededor de {{value}} minuto",
+    search_index_eta_hours: "Quedan unas {{value}} horas",
+    search_index_eta_hours_one: "Queda alrededor de {{value}} hora",
     search_index_live_hint:
       "Las coincidencias aparecen en cuanto se encuentran.",
     search_searching_more: "Buscando en más correo",
@@ -10468,6 +10479,9 @@ export const es = {
     load_external_content: "Cargar contenido externo",
     external_content_hidden: "El contenido externo está oculto",
     show_external_content: "Mostrar contenido",
+    trackers_blocked_count: "Rastreadores bloqueados: {{count}}",
+    trackers_stay_blocked:
+      "Los rastreadores siguen bloqueados al mostrar el contenido.",
     image_loading_settings: "Configuración de imágenes",
     location_label: "Ubicación",
     message_details: "Detalles del mensaje",
@@ -10554,6 +10568,9 @@ export const es = {
       "Este correo se recibió en {{ received }}, pero tu respuesta se enviará desde {{ selected }}. Responder desde otra dirección puede revelarla al remitente y la respuesta podría ser rechazada.",
     reply_from_mismatch_use_received: "Usar dirección de recepción",
     sending_disabled_badge: "Envío desactivado",
+    shake_feedback_prompt: "¿Algo no funciona? Cuéntanoslo.",
+    shake_feedback_send: "Enviar comentarios",
+    shake_feedback_dismiss: "No, gracias",
     reply_from_mismatch_banner: "Este correo se recibió en {{ received }}, pero tu respuesta se enviará desde {{ selected }}.",
     reply_from_mismatch_banner_switch: "Enviar desde {{ received }}",
     reply_from_mismatch_send_anyway: "Enviar de todos modos",

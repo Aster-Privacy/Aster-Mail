@@ -93,6 +93,18 @@ describe("restored undo sends after a reload", () => {
     });
   });
 
+  it("passes the server id when a restored reply finishes sending", async () => {
+    const mod = await load_module([stored_send("q1", "thread_1")]);
+
+    mod.handle_restored_send_settled("q1", "sent", "server_mail_1");
+
+    expect(mocks.emit_thread_reply_sent).toHaveBeenCalledWith({
+      thread_token: "thread_1",
+      optimistic_id: "opt_q1",
+      sent_id: "server_mail_1",
+    });
+  });
+
   it("clears the kept draft when a restored send settles", async () => {
     const mod = await load_module([stored_send("q1")]);
 

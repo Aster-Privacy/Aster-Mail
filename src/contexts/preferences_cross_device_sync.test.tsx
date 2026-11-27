@@ -204,7 +204,7 @@ describe("preferences pick up changes made on another device", () => {
     await act(async () => {
       await vi.advanceTimersByTimeAsync(11000);
       window.dispatchEvent(new Event("focus"));
-      await vi.advanceTimersByTimeAsync(0);
+      await vi.advanceTimersByTimeAsync(300);
     });
 
     expect(captured.preferences.muted_folder_tokens).toEqual([
@@ -303,7 +303,7 @@ describe("preferences pick up changes made on another device", () => {
       window.dispatchEvent(new Event("focus"));
       window.dispatchEvent(new Event("focus"));
       document.dispatchEvent(new Event("visibilitychange"));
-      await vi.advanceTimersByTimeAsync(0);
+      await vi.advanceTimersByTimeAsync(300);
     });
 
     expect(vi.mocked(get_preferences).mock.calls.length).toBe(1);

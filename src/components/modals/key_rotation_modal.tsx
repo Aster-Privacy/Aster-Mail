@@ -19,24 +19,26 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { useState, useEffect, useRef } from "react";
-import { AnimatePresence, motion } from "framer-motion";
 import {
   EyeIcon,
   EyeSlashIcon,
-  ShieldCheckIcon,
-  XMarkIcon,
   CheckCircleIcon,
-  ExclamationCircleIcon,
   ExclamationTriangleIcon,
 } from "@heroicons/react/24/outline";
 import { Button } from "@aster/ui";
 
+import {
+  Modal,
+  ModalHeader,
+  ModalTitle,
+  ModalDescription,
+  ModalBody,
+  ModalFooter,
+} from "@/components/ui/modal";
 import { ButtonSpinner } from "@/components/ui/spinner";
 import { Input } from "@/components/ui/input";
-import { use_should_reduce_motion } from "@/provider";
 import { use_i18n } from "@/lib/i18n/context";
 import { clamp_password } from "@/services/sanitize";
-import { use_dialog_shell } from "@/lib/use_dialog_shell";
 import { user_facing_error } from "@/utils/user_facing_error";
 
 interface KeyRotationModalProps {
@@ -61,7 +63,6 @@ export function KeyRotationModal({
   is_manual = false,
 }: KeyRotationModalProps) {
   const { t } = use_i18n();
-  const reduce_motion = use_should_reduce_motion();
   const [password, set_password] = useState("");
   const [show_password, set_show_password] = useState(false);
   const [state, set_state] = useState<RotationState>("idle");
@@ -144,262 +145,157 @@ export function KeyRotationModal({
     on_close();
   };
 
-  const { dialog_ref, handle_backdrop_pointer_down } =
-    use_dialog_shell<HTMLDivElement>(
-      is_open,
-      handle_close,
-      "key_rotation_modal",
-    );
+  const is_rotating = state === "rotating";
 
   return (
-    <AnimatePresence>
-      {is_open && (
-        <motion.div
-          animate={{ opacity: 1 }}
-          className="fixed inset-0 z-[60] flex items-center justify-center p-4"
-          exit={{ opacity: 0 }}
-          initial={reduce_motion ? false : { opacity: 0 }}
-          transition={{ duration: reduce_motion ? 0 : 0.15 }}
-        >
-          <div
-            className="absolute inset-0"
-            style={{ backgroundColor: "var(--modal-overlay)" }}
-            onPointerDown={handle_backdrop_pointer_down}
-          />
-          <motion.div
-            ref={dialog_ref}
-            animate={{ opacity: 1 }}
-            className="relative w-full max-w-[420px] overflow-hidden rounded-[var(--aster-radius-floating,16px)] bg-[var(--aster-floating-bg,var(--modal-bg))] shadow-[var(--aster-floating-shadow)]"
-            exit={{ opacity: 0 }}
-            initial={reduce_motion ? false : { opacity: 0 }}
-            tabIndex={-1}
-            transition={{ duration: reduce_motion ? 0 : 0.15 }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="px-6 pt-6 pb-4">
-              <div className="flex items-start justify-between mb-4">
-                <div className="flex items-center gap-3">
-                  <div
-                    className="w-10 h-10 rounded-lg flex items-center justify-center"
-                    style={{ backgroundColor: "var(--bg-tertiary)" }}
-                  >
-                    <ShieldCheckIcon
-                      className="w-5 h-5"
-                      style={{ color: "var(--color-info)" }}
-                    />
-                  </div>
-                  <div>
-                    <h2
-                      className="text-base font-semibold"
-                      style={{ color: "var(--text-primary)" }}
-                    >
-                      {is_manual
-                        ? t("settings.rotate_encryption_keys")
-                        : t("settings.key_rotation_required")}
-                    </h2>
-                    <p
-                      className="text-[13px]"
-                      style={{ color: "var(--text-muted)" }}
-                    >
-                      {t("settings.forward_secrecy_protection")}
-                    </p>
-                  </div>
-                </div>
-                {state !== "rotating" && (
-                  <button
-                    aria-label={t("common.close")}
-                    className="p-1.5 rounded-[14px] hover:bg-[var(--aster-hover)] transition-colors"
-                    style={{ color: "var(--text-muted)" }}
-                    type="button"
-                    onClick={handle_close}
-                  >
-                    <XMarkIcon className="w-4 h-4" />
-                  </button>
-                )}
+    <Modal
+      close_on_escape={!is_rotating}
+      close_on_overlay={!is_rotating}
+      is_open={is_open}
+      on_close={handle_close}
+      show_close_button={!is_rotating}
+      size="md"
+    >
+      <ModalHeader>
+        <ModalTitle>
+          {is_manual
+            ? t("settings.rotate_encryption_keys")
+            : t("settings.key_rotation_required")}
+        </ModalTitle>
+        <ModalDescription>
+          {t("settings.forward_secrecy_protection")}
+        </ModalDescription>
+      </ModalHeader>
+      <ModalBody>
+        {state === "success" ? (
+          <div className="flex flex-col items-center py-6 text-center">
+            <CheckCircleIcon
+              className="w-10 h-10 mb-3"
+              style={{ color: "var(--color-success)" }}
+            />
+            <p className="text-sm font-medium text-txt-primary">
+              {t("settings.keys_rotated_successfully")}
+            </p>
+            <p className="text-sm mt-1 text-txt-muted">
+              {t("settings.encryption_keys_updated")}
+            </p>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            <div className="px-3 py-2.5 space-y-2 rounded-[var(--aster-radius-control)] bg-[var(--aster-field-bg)]">
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-sm text-txt-muted">
+                  {t("settings.current_key_age")}
+                </span>
+                <span className="text-sm font-medium text-txt-primary">
+                  {format_key_age(key_age_hours)}
+                </span>
               </div>
-
-              {state === "success" ? (
-                <motion.div
-                  animate={{ opacity: 1 }}
-                  className="py-8 flex flex-col items-center"
-                  initial={reduce_motion ? false : { opacity: 0 }}
-                >
-                  <div
-                    className="w-16 h-16 rounded-full flex items-center justify-center mb-4"
-                    style={{ backgroundColor: "rgba(34, 197, 94, 0.1)" }}
-                  >
-                    <CheckCircleIcon className="w-8 h-8 text-green-500" />
-                  </div>
-                  <p
-                    className="text-sm font-medium"
-                    style={{ color: "var(--text-primary)" }}
-                  >
-                    {t("settings.keys_rotated_successfully")}
-                  </p>
-                  <p
-                    className="text-[13px] mt-1"
-                    style={{ color: "var(--text-muted)" }}
-                  >
-                    {t("settings.encryption_keys_updated")}
-                  </p>
-                </motion.div>
-              ) : (
-                <>
-                  <div
-                    className="p-3 rounded-lg mb-4"
-                    style={{ backgroundColor: "var(--bg-tertiary)" }}
-                  >
-                    <div className="flex justify-between items-center mb-2">
-                      <span
-                        className="text-[12px] font-medium"
-                        style={{ color: "var(--text-muted)" }}
-                      >
-                        {t("settings.current_key_age")}
-                      </span>
-                      <span
-                        className="text-[12px] font-medium"
-                        style={{ color: "var(--text-primary)" }}
-                      >
-                        {format_key_age(key_age_hours)}
-                      </span>
-                    </div>
-                    {key_fingerprint && (
-                      <div className="flex justify-between items-center">
-                        <span
-                          className="text-[12px] font-medium"
-                          style={{ color: "var(--text-muted)" }}
-                        >
-                          {t("settings.key_fingerprint")}
-                        </span>
-                        <span
-                          className="text-[11px] font-mono"
-                          style={{ color: "var(--text-secondary)" }}
-                        >
-                          {key_fingerprint}
-                        </span>
-                      </div>
-                    )}
-                  </div>
-
-                  <p
-                    className="text-[13px] mb-4"
-                    style={{ color: "var(--text-secondary)" }}
-                  >
-                    {is_manual
-                      ? t("settings.rotate_keys_description_manual")
-                      : t("settings.rotate_keys_description_required")}
-                  </p>
-
-                  {removed_key_count > 0 ? (
-                    <div
-                      className="flex items-start gap-2 mb-4 p-3 rounded-lg"
-                      style={{ backgroundColor: "rgba(234, 179, 8, 0.1)" }}
-                    >
-                      <ExclamationTriangleIcon className="w-4 h-4 text-yellow-500 flex-shrink-0 mt-0.5" />
-                      <p className="text-[13px] text-yellow-600 dark:text-yellow-400">
-                        {t("settings.key_rotation_prune_warning", {
-                          count: removed_key_count,
-                        })}
-                      </p>
-                    </div>
-                  ) : (
-                    <div
-                      className="flex items-start gap-2 mb-4 p-3 rounded-lg"
-                      style={{ backgroundColor: "var(--bg-tertiary)" }}
-                    >
-                      <CheckCircleIcon
-                        className="w-4 h-4 flex-shrink-0 mt-0.5"
-                        style={{ color: "var(--text-muted)" }}
-                      />
-                      <p
-                        className="text-[13px]"
-                        style={{ color: "var(--text-secondary)" }}
-                      >
-                        {t("settings.key_rotation_history_kept")}
-                      </p>
-                    </div>
-                  )}
-
-                  <div>
-                    <label
-                      className="block text-sm font-medium mb-2"
-                      htmlFor="rotation-password"
-                      style={{ color: "var(--text-primary)" }}
-                    >
-                      {t("auth.password")}
-                    </label>
-                    <div className="relative">
-                      <Input
-                        // eslint-disable-next-line jsx-a11y/no-autofocus
-                        autoFocus
-                        className="pe-11"
-                        disabled={state === "rotating"}
-                        id="rotation-password"
-                        maxLength={128}
-                        placeholder={t(
-                          "settings.enter_your_password_placeholder",
-                        )}
-                        status={error ? "error" : "default"}
-                        type={show_password ? "text" : "password"}
-                        value={password}
-                        onChange={(e) =>
-                          set_password(clamp_password(e.target.value))
-                        }
-                        onKeyDown={handle_key_down}
-                      />
-                      <button
-                        className="absolute end-3 top-1/2 -translate-y-1/2 flex items-center justify-center focus:outline-none text-txt-muted"
-                        type="button"
-                        onClick={() => set_show_password(!show_password)}
-                      >
-                        {show_password ? (
-                          <EyeSlashIcon className="w-5 h-5" />
-                        ) : (
-                          <EyeIcon className="w-5 h-5" />
-                        )}
-                      </button>
-                    </div>
-                  </div>
-
-                  {error && (
-                    <div
-                      className="flex items-center gap-2 mt-4 p-3 rounded-lg"
-                      style={{
-                        backgroundColor: "rgba(239, 68, 68, 0.1)",
-                      }}
-                    >
-                      <ExclamationCircleIcon className="w-4 h-4 text-red-500 flex-shrink-0" />
-                      <p className="text-[13px] text-red-500">{error}</p>
-                    </div>
-                  )}
-                </>
+              {key_fingerprint && (
+                <div className="flex items-center justify-between gap-3">
+                  <span className="text-sm text-txt-muted">
+                    {t("settings.key_fingerprint")}
+                  </span>
+                  <span className="text-xs font-mono text-txt-secondary break-all text-end">
+                    {key_fingerprint}
+                  </span>
+                </div>
               )}
             </div>
 
-            {state !== "success" && (
-              <div className="flex justify-end gap-3 px-6 pb-6">
-                <Button
-                  disabled={state === "rotating"}
-                  variant="outline"
-                  onClick={handle_close}
+            <p className="text-sm text-txt-secondary">
+              {is_manual
+                ? t("settings.rotate_keys_description_manual")
+                : t("settings.rotate_keys_description_required")}
+            </p>
+
+            <div className="flex items-start gap-2 px-3 py-2 rounded-[var(--aster-radius-control)] bg-[var(--aster-field-bg)]">
+              {removed_key_count > 0 ? (
+                <ExclamationTriangleIcon
+                  className="w-4 h-4 mt-0.5 flex-shrink-0"
+                  style={{ color: "var(--color-warning)" }}
+                />
+              ) : (
+                <CheckCircleIcon className="w-4 h-4 mt-0.5 flex-shrink-0 text-txt-muted" />
+              )}
+              <p className="text-xs leading-relaxed text-txt-secondary">
+                {removed_key_count > 0
+                  ? t("settings.key_rotation_prune_warning", {
+                      count: removed_key_count,
+                    })
+                  : t("settings.key_rotation_history_kept")}
+              </p>
+            </div>
+
+            <div>
+              <label
+                className="text-sm font-medium block mb-2 text-txt-primary"
+                htmlFor="rotation-password"
+              >
+                {t("auth.password")}
+              </label>
+              <div className="relative">
+                <Input
+                  // eslint-disable-next-line jsx-a11y/no-autofocus
+                  autoFocus
+                  autoComplete="current-password"
+                  className="w-full pe-10"
+                  disabled={is_rotating}
+                  id="rotation-password"
+                  maxLength={128}
+                  placeholder={t("settings.enter_your_password_placeholder")}
+                  status={error ? "error" : "default"}
+                  type={show_password ? "text" : "password"}
+                  value={password}
+                  onChange={(e) => set_password(clamp_password(e.target.value))}
+                  onKeyDown={handle_key_down}
+                />
+                <button
+                  aria-label={
+                    show_password
+                      ? t("settings.hide_password_toggle")
+                      : t("settings.show_password_toggle")
+                  }
+                  className="absolute end-3 top-1/2 -translate-y-1/2 text-txt-muted"
+                  type="button"
+                  onClick={() => set_show_password(!show_password)}
                 >
-                  {is_manual ? t("common.cancel") : t("common.later")}
-                </Button>
-                <Button
-                  disabled={state === "rotating" || !password}
-                  variant="depth"
-                  onClick={handle_submit}
-                >
-                  {state === "rotating" && <ButtonSpinner />}
-                  {state === "rotating"
-                    ? t("settings.rotating")
-                    : t("settings.rotate_keys")}
-                </Button>
+                  {show_password ? (
+                    <EyeSlashIcon className="w-4 h-4" />
+                  ) : (
+                    <EyeIcon className="w-4 h-4" />
+                  )}
+                </button>
               </div>
+            </div>
+
+            {error && (
+              <p className="text-sm text-center text-red-500" role="alert">
+                {error}
+              </p>
             )}
-          </motion.div>
-        </motion.div>
+          </div>
+        )}
+      </ModalBody>
+      {state !== "success" && (
+        <ModalFooter>
+          <Button
+            disabled={is_rotating}
+            variant="outline"
+            onClick={handle_close}
+          >
+            {is_manual ? t("common.cancel") : t("common.later")}
+          </Button>
+          <Button
+            disabled={is_rotating || !password}
+            variant="depth"
+            onClick={handle_submit}
+          >
+            {is_rotating ? t("settings.rotating") : t("settings.rotate_keys")}
+            {is_rotating && <ButtonSpinner />}
+          </Button>
+        </ModalFooter>
       )}
-    </AnimatePresence>
+    </Modal>
   );
 }

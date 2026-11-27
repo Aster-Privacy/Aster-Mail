@@ -323,6 +323,17 @@ export function is_unconfirmed_sender_plaintext(
   return marked_for(unconfirmed_sender_plaintexts, plaintext, message_key);
 }
 
+export function is_end_to_end_ratchet_plaintext(
+  plaintext: string | null | undefined,
+  message_key?: string,
+): boolean {
+  return (
+    !!plaintext &&
+    !is_unauthenticated_plaintext(plaintext, message_key) &&
+    !was_evicted_untrusted(plaintext)
+  );
+}
+
 export function is_trusted_ratchet_plaintext(
   plaintext: string | null | undefined,
   message_key?: string,

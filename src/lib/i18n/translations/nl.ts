@@ -20,6 +20,8 @@
 //
 export const nl = {
   common: {
+    couldnt_load: "Laden mislukt.",
+    try_again_action: "Opnieuw proberen",
     merge_primary_label: "Primair",
     merge_make_primary: "Primair maken",
     merge_primary_description:
@@ -437,6 +439,8 @@ export const nl = {
     birthday_year_optional: "Jaar (optioneel)",
     notes: "Notities",
     hide_notes: "Notities verbergen",
+    sender_note_load_failed: "Je notitie is niet geladen.",
+    sender_note_save_failed: "Je notitie is niet opgeslagen.",
     favorite: "Favoriet",
     favorited: "Favoriet",
     added_to_favorites: "Toegevoegd aan favorieten",
@@ -1779,7 +1783,7 @@ export const nl = {
     auth_fail_tooltip_spf:
       "De server die dit heeft verzonden, is geen goedgekeurde afzender voor het domein in de Van-regel.",
     blocked_items_count: "{{count}} geblokkeerde items",
-    change_alias_avatar: "Alias-avatar wijzigen",
+    change_alias_avatar: "Profielfoto wijzigen",
     change_icon: "Pictogram wijzigen",
     click_to_add_value: "Klik om waarde toe te voegen",
     contacts_deleted: "{{count}} contacten verwijderd",
@@ -1960,7 +1964,7 @@ export const nl = {
     recovery_text_title: "Herstelcodes voor Aster Mail",
     recovery_text_unrecoverable: "Verloren codes kunnen niet worden hersteld",
     recovery_text_your_codes: "Je herstelcodes:",
-    remove_alias_avatar: "Alias-avatar verwijderen",
+    remove_alias_avatar: "Profielfoto verwijderen",
     remove_recovery_email: "Herstele-mailadres verwijderen",
     step_up_description:
       "Bevestig voor je veiligheid je wachtwoord om door te gaan.",
@@ -2293,6 +2297,7 @@ export const nl = {
     zip_archive: "ZIP-archief",
   },
   settings: {
+    referral_load_failed: "Je uitnodigingsgegevens konden niet worden geladen.",
     sandbox_off_by_setting_notice:
       "Dit venster draait zonder sandbox omdat een omgevingsvariabele die heeft uitgeschakeld.",
     sandbox_off_notice:
@@ -10354,6 +10359,9 @@ export const nl = {
       "Deze e-mail is ontvangen op {{ received }}, maar je antwoord wordt verzonden vanaf {{ selected }}. Antwoorden vanaf een ander adres kan dit adres onthullen aan de afzender en het antwoord kan worden geweigerd.",
     reply_from_mismatch_use_received: "Ontvangstadres gebruiken",
     sending_disabled_badge: "Verzenden uitgeschakeld",
+    shake_feedback_prompt: "Werkt er iets niet? Laat het ons weten.",
+    shake_feedback_send: "Feedback sturen",
+    shake_feedback_dismiss: "Nee, bedankt",
     reply_from_mismatch_banner: "Deze e-mail is ontvangen op {{ received }}, maar je antwoord wordt verzonden vanaf {{ selected }}.",
     reply_from_mismatch_banner_switch: "Verzenden vanaf {{ received }}",
     reply_from_mismatch_send_anyway: "Toch verzenden",
@@ -10394,6 +10402,9 @@ export const nl = {
     load_external_content: "Externe inhoud laden",
     external_content_hidden: "Externe inhoud is verborgen",
     show_external_content: "Inhoud weergeven",
+    trackers_blocked_count: "Geblokkeerde trackers: {{count}}",
+    trackers_stay_blocked:
+      "Trackers blijven geblokkeerd, ook als de inhoud wordt weergegeven.",
     image_loading_settings: "Afbeeldingsinstellingen",
     image: "afbeelding",
     images: "afbeeldingen",
@@ -10525,6 +10536,11 @@ export const nl = {
     search_index_resume: "Hervatten",
     search_searching_title: "Je e-mail wordt doorzocht",
     search_index_preparing: "Je privé-index wordt voorbereid",
+    search_index_eta_under_minute: "Minder dan een minuut te gaan",
+    search_index_eta_minutes: "Nog ongeveer {{value}} minuten",
+    search_index_eta_minutes_one: "Nog ongeveer {{value}} minuut",
+    search_index_eta_hours: "Nog ongeveer {{value}} uur",
+    search_index_eta_hours_one: "Nog ongeveer {{value}} uur",
     search_index_live_hint:
       "Overeenkomsten verschijnen zodra ze gevonden zijn.",
     search_searching_more: "Meer e-mail wordt doorzocht",

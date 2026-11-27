@@ -27,7 +27,9 @@ import {
   get_csrf_token_from_cookie,
   set_csrf_token,
   clear_csrf_cache,
+  csrf_cookie_went_missing,
   is_state_changing_method,
+  wait_for_csrf_token,
 } from "../csrf";
 import { request_cache } from "../request_cache";
 import { token_subject } from "./token_subject";
@@ -76,6 +78,7 @@ import {
   is_auth_endpoint,
   is_identity_establishing_endpoint,
   is_session_check_endpoint,
+  waits_for_session_refresh,
   is_offline_tombstoned,
   is_pending_deletion_error,
   is_tauri_env,
@@ -97,6 +100,14 @@ import {
   wait_for_foreground_idle,
   type BackgroundRequest,
 } from "./request_priority";
+import {
+  rate_limit_retry_jitter_ms,
+  should_retry_rate_limited,
+} from "./rate_limit_policy";
+import {
+  pause_background_requests,
+  wait_for_background_window,
+} from "./request_governor";
 
 import { get_active_translations } from "@/lib/i18n/translations";
 import { extend_passphrase_timeout } from "@/services/crypto/memory_key_store";
@@ -122,8 +133,8 @@ const ALIAS_SENDING_DISABLED_SERVER_CODE = "ALIAS_SENDING_DISABLED";
 
 const RATE_LIMIT_DEFAULT_HOLD_MS = 2000;
 const RATE_LIMIT_MAX_HOLD_MS = 15_000;
-const RATE_LIMIT_RETRY_MAX_HOLD_MS = 5000;
 const REFRESH_MIN_GAP_MS = 5000;
+const CSRF_WAIT_MAX_MS = 3000;
 const REFRESH_LOCK_WAIT_MS = 20_000;
 const OUTGOING_CHECKPOINT_TIMEOUT_MS = 6000;
 const REQUEST_HOLD_MAX_WAIT_MS = 20_000;
@@ -181,6 +192,7 @@ export class ApiClient {
   private _cached_user_info: CachedUserInfo | null = null;
   private last_refresh_timestamp: number = 0;
   private last_refresh_attempt_at: number = 0;
+  private last_completed_refresh_at: number = 0;
   private refresh_failures: number = 0;
   private refresh_retry_at: number = 0;
   private session_expired_dispatched: boolean = false;
@@ -458,6 +470,7 @@ export class ApiClient {
       clear_csrf_cache();
       this.set_csrf(response.data.csrf_token);
       this.last_refresh_timestamp = Date.now();
+      this.last_completed_refresh_at = this.last_refresh_timestamp;
 
       if (response.data.access_token) {
         this.set_dev_token(
@@ -918,8 +931,9 @@ export class ApiClient {
       await this.refresh_promise.catch(() => undefined);
     }
 
-    const refreshed_at = this.last_refresh_timestamp;
-    let is_fresh = Date.now() - refreshed_at < REFRESH_MIN_GAP_MS;
+    const refreshed_at = this.last_completed_refresh_at;
+    let is_fresh =
+      refreshed_at > 0 && Date.now() - refreshed_at < REFRESH_MIN_GAP_MS;
 
     if (!is_fresh) {
       const gap_left_ms =
@@ -935,7 +949,7 @@ export class ApiClient {
         ignore_error("services/api/client/api_client:recover_session", caught);
       }
 
-      is_fresh = this.last_refresh_timestamp !== refreshed_at;
+      is_fresh = this.last_completed_refresh_at !== refreshed_at;
     }
 
     return (
@@ -1006,6 +1020,7 @@ export class ApiClient {
   ): Promise<void> {
     this.is_authenticated_flag = true;
     this.last_refresh_timestamp = Date.now();
+    this.last_completed_refresh_at = this.last_refresh_timestamp;
     this.reset_refresh_backoff();
     clear_csrf_cache();
     this.set_csrf(data.csrf_token);
@@ -1670,6 +1685,7 @@ export class ApiClient {
 
       this.has_ever_authenticated = true;
       this.last_refresh_timestamp = Date.now();
+      this.last_completed_refresh_at = this.last_refresh_timestamp;
 
       if (!cookies_reissued) {
         cookies_reissued = await reissue_cookies();
@@ -1757,7 +1773,6 @@ export class ApiClient {
       try {
         const response = await this.get<CachedUserInfo>("/core/v1/auth/me", {
           skip_cache: true,
-          skip_dedup: true,
         });
 
         if (response.data?.user_id) {
@@ -1924,6 +1939,18 @@ export class ApiClient {
     }
   }
 
+  private csrf_cookie_needs_renewal(
+    endpoint: string,
+    skip_session_refresh: boolean,
+  ): boolean {
+    if (skip_session_refresh || !this.is_authenticated_flag) return false;
+    if (this.dev_access_token) return false;
+    if (Capacitor.isNativePlatform() || is_tauri_env()) return false;
+    if (is_auth_endpoint(endpoint)) return false;
+
+    return csrf_cookie_went_missing();
+  }
+
   private async ensure_csrf_token(
     endpoint: string,
     skip_session_refresh: boolean,
@@ -2055,31 +2082,45 @@ export class ApiClient {
 
     const request_credentials: RequestCredentials =
       tab_shares_session_cookies() ? "include" : "omit";
+    let renewed_before_send = false;
 
     const method = options.method || "GET";
 
     options.body = with_declared_platform(endpoint, options.body);
 
-    if (is_state_changing_method(method)) {
-      if (
-        this.refresh_promise &&
-        !skip_session_refresh &&
-        !endpoint.includes("/auth/refresh") &&
-        !endpoint.includes("/auth/login") &&
-        !endpoint.includes("/auth/register") &&
-        !endpoint.includes("/auth/logout") &&
-        !endpoint.includes("/auth/clear-session")
-      ) {
-        await this.refresh_promise.catch(() => undefined);
-      }
+    if (
+      this.refresh_promise &&
+      waits_for_session_refresh(endpoint, skip_session_refresh)
+    ) {
+      await this.refresh_promise.catch(() => undefined);
+    }
 
+    if (is_state_changing_method(method)) {
       let csrf_token = get_csrf_token_from_cookie();
+
+      if (
+        csrf_token &&
+        this.csrf_cookie_needs_renewal(endpoint, skip_session_refresh)
+      ) {
+        renewed_before_send = true;
+        await this.recover_session();
+        csrf_token = get_csrf_token_from_cookie();
+      }
 
       if (!csrf_token) {
         csrf_token = await this.ensure_csrf_token(
           endpoint,
           skip_session_refresh,
         );
+      }
+
+      if (
+        !csrf_token &&
+        this.is_authenticated_flag &&
+        !this.dev_access_token &&
+        waits_for_session_refresh(endpoint, skip_session_refresh)
+      ) {
+        csrf_token = await wait_for_csrf_token(CSRF_WAIT_MAX_MS);
       }
 
       if (csrf_token) {
@@ -2092,10 +2133,10 @@ export class ApiClient {
       error: this.get_generic_error_message("UNKNOWN_ERROR"),
       code: "UNKNOWN_ERROR",
     };
-    let has_attempted_refresh = false;
+    let has_attempted_refresh = renewed_before_send;
     let has_attempted_cookie_resync = false;
 
-    let rate_limit_retried = false;
+    let rate_limit_retries = 0;
     let preemptions = 0;
 
     const replay_safe = !is_state_changing_method(method);
@@ -2117,6 +2158,7 @@ export class ApiClient {
         await this.wait_for_rate_limit_window();
 
         if (request_priority === "background") {
+          await wait_for_background_window();
           await wait_for_foreground_idle();
           background = track_background_request();
         }
@@ -2196,11 +2238,7 @@ export class ApiClient {
             if (!has_attempted_refresh) {
               has_attempted_refresh = true;
               clear_csrf_cache();
-              try {
-                await this.refresh_session({ after_unauthorized: true });
-              } catch (e) {
-                if (import.meta.env.DEV) console.error(e);
-              }
+              await this.recover_session();
               if (this.is_authenticated_flag) {
                 if (this.dev_access_token) {
                   headers["Authorization"] = `Bearer ${this.dev_access_token}`;
@@ -2495,12 +2533,17 @@ export class ApiClient {
               error_data.resets_at,
             );
 
+            pause_background_requests(hold_ms);
+
             if (
-              !rate_limit_retried &&
-              !is_state_changing_method(method) &&
-              hold_ms <= RATE_LIMIT_RETRY_MAX_HOLD_MS
+              should_retry_rate_limited({
+                method,
+                retries_so_far: rate_limit_retries,
+                hold_ms,
+              })
             ) {
-              rate_limit_retried = true;
+              rate_limit_retries += 1;
+              await this.delay(rate_limit_retry_jitter_ms());
               attempt--;
               continue;
             }
@@ -2548,6 +2591,7 @@ export class ApiClient {
 
           if (
             response.status === 403 &&
+            error_data.code !== "CSRF_INVALID" &&
             error_data.code !== "ACCOUNT_LOCKED" &&
             error_data.code !== "SENDER_NOT_AUTHORIZED" &&
             error_data.code !== ALIAS_SENDING_DISABLED_SERVER_CODE &&
@@ -2689,7 +2733,11 @@ export class ApiClient {
 
         const timed_out = last_error.code === "TIMEOUT_ERROR";
 
-        if (attempt < retry && replay_safe && (retry_on_timeout || !timed_out)) {
+        if (
+          attempt < retry &&
+          replay_safe &&
+          (retry_on_timeout || !timed_out)
+        ) {
           await this.delay(retry_delay * (attempt + 1));
           continue;
         }

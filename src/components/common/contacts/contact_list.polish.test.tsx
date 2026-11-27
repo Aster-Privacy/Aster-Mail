@@ -83,7 +83,10 @@ describe("contact list page polish", () => {
   let container: HTMLDivElement;
   let root: Root;
 
-  const render_list = async (contacts: DecryptedContact[]) => {
+  const render_list = async (
+    contacts: DecryptedContact[],
+    is_loading = false,
+  ) => {
     await act(async () => {
       root.render(
         <MemoryRouter>
@@ -99,7 +102,7 @@ describe("contact list page polish", () => {
             focused_index={-1}
             group_filter={null}
             has_selection={false}
-            is_loading={false}
+            is_loading={is_loading}
             list_container_ref={createRef<HTMLDivElement>() as never}
             on_add_click={noop}
             on_add_selected_to_group={noop}
@@ -210,6 +213,29 @@ describe("contact list page polish", () => {
     expect(header.querySelector(".contact_list_header_label")!.textContent).toBe(
       "common.contact_count",
     );
+  });
+
+  it("drops the loading skeleton once contacts are on screen", async () => {
+    await render_list(base_contacts, true);
+
+    const header = container.querySelector(".contact_list_header")!;
+
+    expect(header.querySelector(".contact_list_header_label")!.textContent).toBe(
+      "common.contact_count",
+    );
+    expect(container.querySelector(".aster_skeleton.w-32")).toBeNull();
+    expect(container.querySelectorAll(".contact_row").length).toBe(
+      base_contacts.length,
+    );
+  });
+
+  it("draws contact rows full width without inset rounding", async () => {
+    await render_list(base_contacts);
+
+    for (const row of Array.from(container.querySelectorAll(".contact_row"))) {
+      expect(row.className).not.toMatch(/rounded|my-px/);
+      expect(row.className).toContain("w-full");
+    }
   });
 
   it("keeps the encryption badge next to the page title", async () => {

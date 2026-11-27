@@ -222,6 +222,91 @@ describe("quick contacts panel detail view", () => {
     expect(container.textContent).toContain("settings.pgp_key_discovered_via");
   });
 
+  it("shows a skeleton instead of placeholder text while keys load", async () => {
+    vi.spyOn(keys_api, "discover_contact_keys_batch").mockReturnValue(
+      new Promise(() => {}) as never,
+    );
+
+    await render_panel();
+    await click(container.querySelector(".quick_contacts_row_open")!);
+
+    expect(container.querySelector(".contact_key_line_loading")).not.toBeNull();
+    expect(container.textContent).not.toContain("...");
+    expect(container.textContent).toContain("person@example.com");
+  });
+
+  it("shows a cached key at once when the contact opens again", async () => {
+    const discover = vi
+      .spyOn(keys_api, "discover_contact_keys_batch")
+      .mockResolvedValueOnce({
+        data: [
+          {
+            email: "person@example.com",
+            found: true,
+            public_key: "key",
+            fingerprint: "AAAABBBBCCCCDDDDEEEEFFFF00001111",
+            source: "wkd",
+            expires_at: null,
+            will_encrypt: true,
+          },
+        ],
+      } as never)
+      .mockReturnValue(new Promise(() => {}) as never);
+
+    await render_panel();
+    await click(container.querySelector(".quick_contacts_row_open")!);
+    await act(async () => {});
+    await click(container.querySelector('[aria-label="common.back"]')!);
+    await click(container.querySelector(".quick_contacts_row_open")!);
+
+    expect(discover).toHaveBeenCalledTimes(2);
+    expect(container.querySelector(".contact_key_line_loading")).toBeNull();
+    expect(container.textContent).toContain("AAAA BBBB CCCC");
+  });
+
+  it("does not draw a status icon before the fingerprint", async () => {
+    vi.spyOn(keys_api, "discover_contact_keys_batch").mockResolvedValue({
+      data: [
+        {
+          email: "person@example.com",
+          found: true,
+          public_key: "key",
+          fingerprint: "AAAABBBBCCCCDDDDEEEEFFFF00001111",
+          source: "wkd",
+          expires_at: null,
+          will_encrypt: true,
+        },
+      ],
+    } as never);
+
+    await render_panel();
+    await click(container.querySelector(".quick_contacts_row_open")!);
+    await act(async () => {});
+
+    const fingerprint = container.querySelector(
+      '[title="AAAA BBBB CCCC DDDD EEEE FFFF 0000 1111"]',
+    );
+
+    expect(fingerprint).not.toBeNull();
+    expect(fingerprint!.parentElement!.querySelector("svg")).toBeNull();
+  });
+
+  it("truncates a long name and keeps the full value in a tooltip", async () => {
+    await render_panel();
+    await click(container.querySelector(".quick_contacts_row_open")!);
+
+    const titled = Array.from(
+      container.querySelectorAll(
+        '[title="Test Person"], [title="person@example.com"]',
+      ),
+    );
+
+    expect(titled.length).toBe(3);
+    for (const element of titled) {
+      expect(element.className).toContain("truncate");
+    }
+  });
+
   it("opens the editor from the detail view edit action", async () => {
     await render_panel();
 

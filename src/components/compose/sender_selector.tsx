@@ -42,8 +42,11 @@ import {
   MagnifyingGlassIcon,
 } from "@heroicons/react/24/outline";
 
+import { Badge } from "@aster/ui";
+
 import { PinIcon } from "@/components/common/icons";
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
+import { COMPOSE_PICKER_TRIGGER_CLASS } from "@/components/compose/compose_toolbar/shared";
 import { use_should_reduce_motion } from "@/provider";
 import { get_gradient_background } from "@/constants/profile";
 import { get_alias_color } from "@/lib/avatar_color";
@@ -145,15 +148,13 @@ function SendingDisabledBadge() {
   const { t } = use_i18n();
 
   return (
-    <span
+    <Badge
       data-sending-disabled-badge
-      className="inline-flex flex-shrink-0 items-center rounded-[14px] border px-1.5 py-px text-[11px] font-medium leading-4 text-[var(--color-danger)]"
-      style={{
-        borderColor: "color-mix(in srgb, var(--color-danger) 30%, transparent)",
-      }}
+      className="flex-shrink-0 whitespace-nowrap"
+      color="amber"
     >
       {t("mail.sending_disabled_badge")}
-    </span>
+    </Badge>
   );
 }
 
@@ -243,14 +244,16 @@ function render_option(
     >
       <button
         aria-disabled={option.sending_disabled || undefined}
-        className={`flex items-center gap-2 text-start flex-1 min-w-0 ${option.sending_disabled ? "opacity-60" : ""}`}
+        className={`flex items-center gap-2.5 text-start flex-1 min-w-0 ${option.sending_disabled ? "opacity-60" : ""}`}
         type="button"
         onClick={on_click}
       >
         <SenderOptionIcon option={option} size="xs" />
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-1.5 min-w-0">
-            <p className="text-sm truncate text-txt-primary">{option.email}</p>
+        <div className="flex flex-1 min-w-0 flex-col justify-center">
+          <div className="flex items-center gap-2 min-w-0">
+            <p className="min-w-0 text-sm leading-5 truncate text-txt-primary">
+              {option.email}
+            </p>
             {option.is_catch_all && <CatchAllBadge />}
             {option.sending_disabled && <SendingDisabledBadge />}
           </div>
@@ -592,7 +595,7 @@ export function SenderSelector({
         aria-controls={is_open ? panel_id : undefined}
         aria-expanded={is_open}
         aria-haspopup="listbox"
-        className="flex items-center gap-1.5 py-1 px-1.5 -ms-1.5 rounded-[var(--aster-radius-item)] transition-colors hover:bg-[var(--aster-hover)] disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-transparent"
+        className={COMPOSE_PICKER_TRIGGER_CLASS}
         disabled={disabled}
         type="button"
         onClick={() => set_is_open(!is_open)}
@@ -601,7 +604,10 @@ export function SenderSelector({
         <span className="text-sm text-txt-primary">{display_option.email}</span>
         {display_option.is_catch_all && <CatchAllBadge />}
         {display_option.sending_disabled && <SendingDisabledBadge />}
-        <ChevronDownIcon className="w-3.5 h-3.5 text-txt-muted" />
+        <ChevronDownIcon
+          aria-hidden="true"
+          className="w-3.5 h-3.5 flex-shrink-0 text-txt-muted"
+        />
       </button>
 
       {createPortal(

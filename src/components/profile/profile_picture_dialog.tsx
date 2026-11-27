@@ -40,6 +40,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { Button, Spinner } from "@aster/ui";
 
+import { GalleryThumb } from "@/components/profile/gallery_thumb";
 import {
   Modal,
   ModalBody,
@@ -618,13 +619,8 @@ export function ProfilePictureDialogView({
                                     choose_gallery_image(item.slug)
                                   }
                                 >
-                                  <img
-                                    alt=""
+                                  <GalleryThumb
                                     className="h-full w-full object-cover"
-                                    decoding="async"
-                                    draggable={false}
-                                    loading="lazy"
-                                    referrerPolicy="no-referrer"
                                     src={gallery_thumb_url(item.slug)}
                                   />
                                   {pending_slug === item.slug && (

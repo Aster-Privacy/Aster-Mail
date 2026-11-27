@@ -581,7 +581,7 @@ export function ViewerToolbarActions({
             <EllipsisHorizontalIcon className={icon_size} />
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align={dropdown_align} className="w-48">
+        <DropdownMenuContent align={dropdown_align} className="min-w-48">
           <DropdownMenuItem onClick={on_read_toggle}>
             {is_read ? (
               <>

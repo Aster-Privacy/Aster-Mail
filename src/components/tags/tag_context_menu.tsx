@@ -77,7 +77,7 @@ export function TagContextMenu({
   return (
     <ContextMenu>
       <ContextMenuTrigger asChild>{children}</ContextMenuTrigger>
-      <ContextMenuContent className="w-48">
+      <ContextMenuContent className="min-w-48">
         {on_add_sublabel && (
           <ContextMenuItem onClick={on_add_sublabel}>
             <PlusIcon className="me-2 h-4 w-4" />

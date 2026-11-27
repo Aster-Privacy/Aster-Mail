@@ -25,6 +25,8 @@ import {
   replace_matched_ranges,
 } from "@/lib/html_text";
 import { repair_comment_markup } from "@/lib/html_sanitizer_utils";
+import { with_inert_html } from "@/lib/inert_html";
+import { strip_plain_quote_markers } from "@/lib/quoted_history_clean";
 
 export const PREVIEW_SOURCE_CHAR_CAP = 600;
 
@@ -351,26 +353,19 @@ export function extract_preheader_text(html: string): string {
     strip_hidden_elements,
   );
 
-  let doc: Document;
+  const parts: string[] = [];
 
   try {
-    doc = new DOMParser().parseFromString(
-      repair_comment_markup(cleaned),
-      "text/html",
-    );
+    with_inert_html(repair_comment_markup(cleaned), (doc) => {
+      doc
+        .querySelectorAll("script, style, head, noscript, template")
+        .forEach((element) => element.remove());
+
+      if (doc.body) collect_leading_hidden_text(doc.body, selectors, parts);
+    });
   } catch {
     return "";
   }
-
-  doc
-    .querySelectorAll("script, style, head, noscript, template")
-    .forEach((element) => element.remove());
-
-  if (!doc.body) return "";
-
-  const parts: string[] = [];
-
-  collect_leading_hidden_text(doc.body, selectors, parts);
 
   const text = strip_preview_filler(parts.join(" "));
 
@@ -390,7 +385,7 @@ export function build_body_preview(
 
   return build_list_preview(
     html_to_preview_text(
-      preview_body_source(body_text, body_html),
+      preview_body_source(strip_plain_quote_markers(body_text), body_html),
       PREVIEW_SOURCE_CHAR_CAP,
     ),
   );

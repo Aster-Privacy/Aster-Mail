@@ -21,6 +21,10 @@
 import type { TranslationKey } from "@/lib/i18n/types";
 import type { UndoSendCancelOutcome } from "@/hooks/use_undo_send";
 
+export function undo_send_toast_key(id: string): string {
+  return `undo_send:${id}`;
+}
+
 export interface PlannedUndoSendResult {
   message_key: TranslationKey;
   tone: "error";

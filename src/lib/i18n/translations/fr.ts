@@ -20,6 +20,8 @@
 //
 export const fr = {
   common: {
+    couldnt_load: "Échec du chargement.",
+    try_again_action: "Réessayer",
     merge_primary_label: "Principal",
     merge_make_primary: "Définir comme principal",
     merge_primary_description:
@@ -455,6 +457,8 @@ export const fr = {
     birthday_year_optional: "Année (facultatif)",
     notes: "Notes",
     hide_notes: "Masquer les notes",
+    sender_note_load_failed: "Votre note ne s'est pas chargée.",
+    sender_note_save_failed: "Votre note n'a pas été enregistrée.",
     favorite: "Favori",
     favorited: "Favori",
     added_to_favorites: "Ajouté aux favoris",
@@ -1806,7 +1810,7 @@ export const fr = {
     auth_fail_tooltip_spf: "Le serveur d'envoi n'est pas autorisé par SPF.",
     back_to_inbox: "Retour à la boîte de réception",
     blocked_items_count: "{{count}} élément(s) bloqué(s)",
-    change_alias_avatar: "Modifier l'avatar de l'alias",
+    change_alias_avatar: "Modifier la photo de profil",
     click_to_add_value: "Cliquer pour ajouter une valeur",
     contacts_deleted: "{{ count }} contact(s) supprimé(s)",
     contacts_starred: "{{ count }} contact(s) marqué(s) d'une étoile",
@@ -1990,7 +1994,7 @@ export const fr = {
     recovery_text_unrecoverable:
       "Sans ces codes, votre compte ne peut pas être récupéré.",
     recovery_text_your_codes: "Vos codes",
-    remove_alias_avatar: "Supprimer l'avatar de l'alias",
+    remove_alias_avatar: "Supprimer la photo de profil",
     remove_recovery_email: "Supprimer l'e-mail de récupération",
     step_up_description:
       "Pour votre sécurité, confirmez votre mot de passe pour continuer.",
@@ -2306,6 +2310,8 @@ export const fr = {
     zip_archive: "Archive ZIP",
   },
   settings: {
+    referral_load_failed:
+      "Impossible de charger les détails de votre invitation.",
     sandbox_off_by_setting_notice:
       "Cette fenêtre s'exécute sans son bac à sable, car une variable d'environnement l'a désactivé.",
     sandbox_off_notice:
@@ -10567,6 +10573,11 @@ export const fr = {
     search_index_resume: "Reprendre",
     search_searching_title: "Recherche dans vos e-mails",
     search_index_preparing: "Préparation de votre index privé",
+    search_index_eta_under_minute: "Moins d'une minute restante",
+    search_index_eta_minutes: "Environ {{value}} minutes restantes",
+    search_index_eta_minutes_one: "Environ {{value}} minute restante",
+    search_index_eta_hours: "Environ {{value}} heures restantes",
+    search_index_eta_hours_one: "Environ {{value}} heure restante",
     search_index_live_hint:
       "Les résultats apparaissent dès qu'ils sont trouvés.",
     search_searching_more: "Recherche dans d'autres e-mails",
@@ -10578,6 +10589,9 @@ export const fr = {
     load_external_content: "Charger le contenu externe",
     external_content_hidden: "Le contenu externe est masqué",
     show_external_content: "Afficher le contenu",
+    trackers_blocked_count: "Traqueurs bloqués : {{count}}",
+    trackers_stay_blocked:
+      "Les traqueurs restent bloqués lorsque le contenu est affiché.",
     image_loading_settings: "Paramètres des images",
     location_label: "Emplacement",
     message_details: "Détails du message",
@@ -10664,6 +10678,9 @@ export const fr = {
       "Cet e-mail a été reçu sur {{ received }}, mais votre réponse sera envoyée depuis {{ selected }}. Répondre depuis une autre adresse peut la révéler à l'expéditeur et la réponse peut être rejetée.",
     reply_from_mismatch_use_received: "Utiliser l'adresse de réception",
     sending_disabled_badge: "Envoi désactivé",
+    shake_feedback_prompt: "Quelque chose ne fonctionne pas ? Dites-le-nous.",
+    shake_feedback_send: "Envoyer un avis",
+    shake_feedback_dismiss: "Non merci",
     reply_from_mismatch_banner: "Cet e-mail a été reçu sur {{ received }}, mais votre réponse partira de {{ selected }}.",
     reply_from_mismatch_banner_switch: "Envoyer depuis {{ received }}",
     reply_from_mismatch_send_anyway: "Envoyer quand même",

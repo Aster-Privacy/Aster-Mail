@@ -23,6 +23,7 @@ import { useEffect, useRef, useState } from "react";
 export const SKELETON_DELAY_MS = 250;
 export const SKELETON_MIN_VISIBLE_MS = 400;
 export const QUIET_REFRESH_DELAY_MS = 400;
+export const BLANK_LIST_SKELETON_DELAY_MS = 180;
 
 export function use_delayed_flag(
   active: boolean,

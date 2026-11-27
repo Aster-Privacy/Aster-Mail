@@ -121,6 +121,7 @@ import {
 } from "@/hooks/editor_utils";
 import { ignore_error } from "@/lib/ignore_error";
 import { outgoing_html_to_plain_text } from "@/lib/outgoing_plain_text";
+import { trim_outgoing_trailing_blanks } from "@/lib/outgoing_trailing_blanks";
 import { read_file_bytes } from "@/lib/read_file_bytes";
 import { app_locale, get_display_time_zone } from "@/utils/date_format";
 import { user_facing_error } from "@/utils/user_facing_error";
@@ -566,7 +567,7 @@ export function use_reply_modal(props: UseReplyModalProps) {
     const trimmed_reply = reply_message.trim();
     const reply_body = is_plain_text_mode
       ? escape_plain_text(trimmed_reply).replace(/\n/g, "<br>")
-      : normalize_html_newlines(trimmed_reply);
+      : trim_outgoing_trailing_blanks(normalize_html_newlines(trimmed_reply));
     const message_with_signature = assemble_reply_with_placement(
       reply_body,
       quoted_content,
@@ -778,7 +779,7 @@ export function use_reply_modal(props: UseReplyModalProps) {
         show_reply_in_thread(reply_thread_token);
         detach_composer();
       },
-      on_complete: () => {
+      on_complete: (sent_id?: string) => {
         if (!detached) release_send_lock();
         emit_email_sent();
         show_email_sent_toast(t("common.email_sent"), delay_seconds > 0);
@@ -788,6 +789,7 @@ export function use_reply_modal(props: UseReplyModalProps) {
             thread_token: bubble_token,
             original_email_id,
             optimistic_id: reply_id,
+            sent_id,
           });
         }
         forget_reply_refs();
@@ -1190,7 +1192,7 @@ export function use_reply_modal(props: UseReplyModalProps) {
     const sched_trimmed = reply_message.trim();
     const sched_reply_body = is_plain_text_mode
       ? escape_plain_text(sched_trimmed).replace(/\n/g, "<br>")
-      : normalize_html_newlines(sched_trimmed);
+      : trim_outgoing_trailing_blanks(normalize_html_newlines(sched_trimmed));
     const message_with_signature = assemble_reply_with_placement(
       sched_reply_body,
       quoted_content,

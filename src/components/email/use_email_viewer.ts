@@ -546,6 +546,9 @@ export function use_email_viewer({
           {
             is_trashed: !!preloaded.mail_item.is_trashed,
             is_spam: !!preloaded.mail_item.is_spam,
+            ...(preloaded.thread_signature
+              ? { unchanged_signature: preloaded.thread_signature }
+              : {}),
           },
         );
 

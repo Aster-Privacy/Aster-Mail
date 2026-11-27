@@ -125,6 +125,7 @@ describe("profile picture gallery on a routed connection", () => {
         ),
     );
     vi.stubGlobal("fetch", fetch_mock);
+    vi.stubGlobal("IntersectionObserver", undefined);
     container = document.createElement("div");
     document.body.appendChild(container);
     root = createRoot(container);

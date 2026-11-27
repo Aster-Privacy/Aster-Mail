@@ -70,6 +70,10 @@ import {
   use_unlocked_folder_count,
 } from "@/hooks/use_folder_unlock_state";
 import { use_delayed_flag } from "@/hooks/use_delayed_flag";
+import {
+  use_loading_deadline,
+  use_retry_on_recovery,
+} from "@/hooks/use_load_recovery";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_preferences } from "@/contexts/preferences_context";
 import { show_toast } from "@/components/toast/simple_toast";
@@ -166,6 +170,10 @@ export const SidebarFolders = memo(function SidebarFolders({
 }: SidebarFoldersProps) {
   const { t } = use_i18n();
   const skeleton_visible = use_delayed_flag(is_loading);
+  const load_stalled = use_loading_deadline(is_loading);
+  const show_failure = (load_failed || load_stalled) && Boolean(on_retry);
+
+  use_retry_on_recovery(show_failure, on_retry);
   const is_pinned = variant === "pinned";
 
   const [drag_over_token, set_drag_over_token] = useState<string | null>(null);
@@ -280,7 +288,7 @@ export const SidebarFolders = memo(function SidebarFolders({
               {handle_sort_a_to_z && can_sort_a_to_z && (
                 <button
                   aria-label={t("common.sort_a_to_z")}
-                  className="p-1 rounded-[var(--aster-radius-item)] hover:bg-[var(--aster-hover)] text-icon-muted"
+                  className="p-1 text-icon-muted"
                   data-rail-tip={t("common.sort_a_to_z")}
                   data-testid="folders-sort-a-to-z"
                   type="button"
@@ -292,7 +300,7 @@ export const SidebarFolders = memo(function SidebarFolders({
               {unlocked_folder_count > 0 && (
                 <button
                   aria-label={t("common.lock_all_folders")}
-                  className="p-1 rounded-[var(--aster-radius-item)] hover:bg-[var(--aster-hover)] text-icon-muted"
+                  className="p-1 text-icon-muted"
                   data-rail-tip={t("common.lock_all_folders")}
                   data-testid="folders-lock-all"
                   type="button"
@@ -574,10 +582,10 @@ export const SidebarFolders = memo(function SidebarFolders({
           !is_collapsed &&
           !section_collapsed &&
           !is_pinned &&
-          (skeleton_visible ? (
+          (skeleton_visible && !load_stalled ? (
             <NavSectionSkeleton rows={3} />
-          ) : load_failed && on_retry ? (
-            <LoadFailedNotice on_retry={on_retry} />
+          ) : show_failure && on_retry ? (
+            <LoadFailedNotice compact on_retry={on_retry} />
           ) : (
             <SidebarEmptyText>{t("common.no_folders_yet")}</SidebarEmptyText>
           ))}

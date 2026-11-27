@@ -46,6 +46,7 @@ import {
 
 import { Skeleton } from "@/components/ui/skeleton";
 import { use_settled_empty_state } from "@/components/email/inbox/use_settled_empty_state";
+import { use_removal_emptied } from "@/components/email/inbox/use_removal_emptied";
 import { use_delayed_flag } from "@/hooks/use_delayed_flag";
 import { Spinner } from "@/components/ui/spinner";
 import { MobileEmailRow } from "@/components/mobile/mobile_email_row";
@@ -284,14 +285,23 @@ export const MobileEmailList = memo(function MobileEmailList({
 
   const all_emails_empty =
     emails.length === 0 && (!pinned_emails || pinned_emails.length === 0);
+  const emptied_by_removal = use_removal_emptied({
+    view_key: current_view,
+    row_count: all_emails_empty ? 0 : 1,
+  });
   const empty_state_visible = use_settled_empty_state({
     view_key: current_view,
     is_empty: all_emails_empty,
     is_settled:
-      has_initial_load && !is_loading && !is_loading_more && !is_refreshing,
+      has_initial_load &&
+      !is_loading &&
+      !is_loading_more &&
+      !is_refreshing &&
+      !(emptied_by_removal && has_more),
+    immediate: emptied_by_removal,
   });
   const skeleton_visible = use_delayed_flag(
-    all_emails_empty && !empty_state_visible,
+    all_emails_empty && !empty_state_visible && !emptied_by_removal,
   );
 
   useEffect(() => {

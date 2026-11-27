@@ -78,7 +78,9 @@ import {
   MAX_PREVIEW_SUBJECT_CHARS,
   type CategoryPreview,
 } from "@/lib/category_preview_text";
-import { yield_to_browser } from "@/lib/scheduling";
+import { create_time_slicer, yield_to_browser } from "@/lib/scheduling";
+import { create_background_slicer } from "@/lib/background_yield";
+import { subscribe_page_resume } from "@/lib/page_resume";
 import { release_on_version_change } from "@/lib/idb_release";
 import { device_traces_erased } from "@/lib/device_erase_latch";
 import {
@@ -98,6 +100,7 @@ const DB_NAME = "astermail_category_index";
 const STORE_NAME = "indexes";
 const BUILD_FETCH_SIZE = 150;
 const BUILD_DECRYPT_CHUNK = 25;
+export const BUILD_DECRYPT_BATCH = 8;
 const BUILD_CAP = 50000;
 const MAX_ENTRIES = 60000;
 const CAP_TARGET = 50000;
@@ -105,6 +108,10 @@ const PERSIST_DEBOUNCE_MS = 1500;
 const BUILD_PERSIST_INTERVAL_MS = 10_000;
 const NOTIFY_THROTTLE_MS = 350;
 const BUILD_NOTIFY_THROTTLE_MS = 2500;
+export const ASYNC_DERIVE_MIN_ENTRIES = 1_500;
+const DERIVE_STEP_MASK = 511;
+const SORT_RUN = 4_096;
+const MAX_DERIVE_RESTARTS = 3;
 const RESYNC_DEBOUNCE_MS = 4000;
 const RESYNC_MIN_INTERVAL_MS = 20000;
 const LEGACY_DELETE_SYNC_TOKEN_PREFIX = "aster_delete_sync_token_";
@@ -552,14 +559,12 @@ function notify(): void {
 
     return;
   }
-  listeners.forEach((listener) => {
-    try {
-      listener();
-    } catch {
-      return;
-    }
-  });
-  publish_inbox_unread();
+  if (should_derive_async()) {
+    schedule_async_derive();
+
+    return;
+  }
+  emit_index_change();
 }
 
 function notify_soon(immediate = false): void {
@@ -642,11 +647,19 @@ async function persist_now(): Promise<void> {
         slot_by_chunk.set(chunk_index, slot),
       );
 
+      const slicer = create_time_slicer();
+      let step = 0;
+
       for (const entry of entries_map.values()) {
+        if ((++step & DERIVE_STEP_MASK) === 0 && slicer.should_yield()) {
+          await slicer.yield();
+        }
         const slot = slot_by_chunk.get(chunk_of(entry.id));
 
         if (slot !== undefined) chunk_entries[slot].push(entry);
       }
+
+      if (loaded_for_account !== account_key) return;
     }
 
     const meta: PersistedMeta = {
@@ -1046,19 +1059,130 @@ function apply_upsert(
 
 // Bounds memory over a long session: keep only the most recent CAP_TARGET
 // entries once the map grows past MAX_ENTRIES (tabs care about recent mail).
+function nth_largest(values: Float64Array, rank: number): number {
+  const scratch = values.slice();
+  const target = scratch.length - rank;
+  let low = 0;
+  let high = scratch.length - 1;
+
+  while (low < high) {
+    const pivot = scratch[(low + high) >>> 1];
+    let left = low;
+    let right = high;
+
+    while (left <= right) {
+      while (scratch[left] < pivot) left += 1;
+      while (scratch[right] > pivot) right -= 1;
+      if (left <= right) {
+        const swap = scratch[left];
+
+        scratch[left] = scratch[right];
+        scratch[right] = swap;
+        left += 1;
+        right -= 1;
+      }
+    }
+    if (target <= right) {
+      high = right;
+    } else if (target >= left) {
+      low = left;
+    } else {
+      break;
+    }
+  }
+
+  return scratch[target];
+}
+
+let cap_task: Promise<void> | null = null;
+
 function enforce_cap(): void {
-  // Never reshape entries_map while a full build is iterating/pruning against it.
   if (build_in_progress) return;
   if (entries_map.size <= MAX_ENTRIES) return;
+  if (cap_task) return;
 
-  const newest = Array.from(entries_map.values())
-    .sort((a, b) => safe_ts(b.message_ts) - safe_ts(a.message_ts))
-    .slice(0, CAP_TARGET);
+  cap_task = run_enforce_cap()
+    .catch(() => undefined)
+    .finally(() => {
+      cap_task = null;
+    });
+}
 
-  entries_map = new Map(newest.map((e) => [e.id, e]));
+async function run_enforce_cap(): Promise<void> {
+  const source = entries_map;
+  const generation = index_generation;
+  const slicer = create_time_slicer();
+  const is_stale = () =>
+    entries_map !== source ||
+    index_generation !== generation ||
+    build_in_progress;
+
+  await yield_to_browser();
+  if (is_stale() || source.size <= MAX_ENTRIES) return;
+
+  const stamps = new Float64Array(source.size);
+  let fill = 0;
+
+  for (const entry of source.values()) {
+    if (fill >= stamps.length) break;
+    stamps[fill++] = safe_ts(entry.message_ts);
+    if ((fill & DERIVE_STEP_MASK) === 0 && slicer.should_yield()) {
+      await slicer.yield();
+      if (is_stale()) return;
+    }
+  }
+
+  if (fill <= CAP_TARGET) return;
+
+  const filled = fill === stamps.length ? stamps : stamps.slice(0, fill);
+  const cutoff = nth_largest(filled, CAP_TARGET);
+  let above = 0;
+
+  for (let i = 0; i < filled.length; i += 1) {
+    if (filled[i] > cutoff) above += 1;
+  }
+
+  if (slicer.should_yield()) {
+    await slicer.yield();
+    if (is_stale()) return;
+  }
+
+  let ties_left = CAP_TARGET - above;
+  let step = 0;
+  let removed = 0;
+
+  for (const [id, entry] of source) {
+    const ts = safe_ts(entry.message_ts);
+
+    if (ts < cutoff) {
+      source.delete(id);
+      removed += 1;
+    } else if (ts === cutoff) {
+      if (ties_left > 0) {
+        ties_left -= 1;
+      } else {
+        source.delete(id);
+        removed += 1;
+      }
+    }
+    step += 1;
+    if ((step & DERIVE_STEP_MASK) === 0 && slicer.should_yield()) {
+      await slicer.yield();
+      if (is_stale()) {
+        if (entries_map === source && removed > 0) notify_soon();
+
+        return;
+      }
+    }
+  }
+
+  if (removed === 0 || entries_map !== source) return;
+
   build_capped = true;
   fully_built = false;
   mark_all_dirty();
+  schedule_persist();
+  notify_soon();
 }
 
 export function get_index_generation(): number {
@@ -1425,7 +1549,53 @@ function arm_wake_timer(deadline_ms: number): void {
   }, delay);
 }
 
-function compute_derived(): DerivedData {
+function* sliced_sort<T>(
+  list: T[],
+  compare: (a: T, b: T) => number,
+): Generator<void, T[], void> {
+  if (list.length <= SORT_RUN) return list.sort(compare);
+
+  let runs: T[][] = [];
+
+  for (let start = 0; start < list.length; start += SORT_RUN) {
+    runs.push(list.slice(start, start + SORT_RUN).sort(compare));
+    yield;
+  }
+
+  while (runs.length > 1) {
+    const merged: T[][] = [];
+
+    for (let pair = 0; pair < runs.length; pair += 2) {
+      const left = runs[pair];
+      const right = runs[pair + 1];
+
+      if (!right) {
+        merged.push(left);
+        continue;
+      }
+
+      const out: T[] = new Array(left.length + right.length);
+      let x = 0;
+      let y = 0;
+      let k = 0;
+
+      while (x < left.length && y < right.length) {
+        out[k++] = compare(right[y], left[x]) < 0 ? right[y++] : left[x++];
+        if ((k & DERIVE_STEP_MASK) === 0) yield;
+      }
+      while (x < left.length) out[k++] = left[x++];
+      while (y < right.length) out[k++] = right[y++];
+      merged.push(out);
+    }
+    runs = merged;
+  }
+
+  return runs[0];
+}
+
+function* derive_steps(): Generator<void, DerivedData, void> {
+  const derive_version = version;
+  let step = 0;
   const best = new Map<
     string,
     {
@@ -1441,6 +1611,7 @@ function compute_derived(): DerivedData {
   let earliest_wake = 0;
 
   for (const entry of entries_map.values()) {
+    if ((++step & DERIVE_STEP_MASK) === 0) yield;
     if (suppressed_ids.has(entry.id)) continue;
     if (entry.snoozed_until) {
       const wake = safe_ts(entry.snoozed_until);
@@ -1501,6 +1672,7 @@ function compute_derived(): DerivedData {
   }
 
   for (const [key, rep] of best) {
+    if ((++step & DERIVE_STEP_MASK) === 0) yield;
     const tab = rep.system_locked
       ? "primary"
       : fold_category(rep.pinned_category ?? rep.entry.category);
@@ -1537,15 +1709,22 @@ function compute_derived(): DerivedData {
 
   const pages = new Map<EmailCategory, string[]>();
 
-  for (const [tab, list] of grouped) {
-    list.sort((a, b) => {
-      if (a.pinned !== b.pinned) return a.pinned ? -1 : 1;
+  const page_order = (
+    a: { ts: number; pinned: boolean },
+    b: { ts: number; pinned: boolean },
+  ) => {
+    if (a.pinned !== b.pinned) return a.pinned ? -1 : 1;
 
-      return sort_order === "asc" ? a.ts - b.ts : b.ts - a.ts;
-    });
+    return sort_order === "asc" ? a.ts - b.ts : b.ts - a.ts;
+  };
+
+  for (const [tab, list] of grouped) {
+    const sorted = yield* sliced_sort(list, page_order);
+
+    yield;
     pages.set(
       tab,
-      list.map((item) => item.id),
+      sorted.map((item) => item.id),
     );
   }
 
@@ -1559,15 +1738,16 @@ function compute_derived(): DerivedData {
   const new_head_ids = new Map<EmailCategory, string[]>();
 
   for (const [tab, list] of new_items) {
-    list.sort((a, b) => b.ts - a.ts);
+    const sorted = yield* sliced_sort(list, (a, b) => b.ts - a.ts);
+
     new_head_ids.set(
       tab,
-      list.slice(0, MAX_NEW_HEADS).map((item) => item.id),
+      sorted.slice(0, MAX_NEW_HEADS).map((item) => item.id),
     );
   }
 
   return {
-    version,
+    version: derive_version,
     counts,
     pages,
     unread_reps,
@@ -1577,12 +1757,112 @@ function compute_derived(): DerivedData {
   };
 }
 
+function compute_derived(): DerivedData {
+  const steps = derive_steps();
+
+  for (;;) {
+    const next = steps.next();
+
+    if (next.done) return next.value;
+  }
+}
+
+async function compute_derived_sliced(): Promise<DerivedData> {
+  const slicer = create_time_slicer();
+  const steps = derive_steps();
+
+  for (;;) {
+    const next = steps.next();
+
+    if (next.done) return next.value;
+    if (slicer.should_yield()) await slicer.yield();
+  }
+}
+
+let derive_task: Promise<void> | null = null;
+let derive_rerun = false;
+
+function should_derive_async(): boolean {
+  return entries_map.size >= ASYNC_DERIVE_MIN_ENTRIES;
+}
+
+function emit_index_change(): void {
+  listeners.forEach((listener) => {
+    try {
+      listener();
+    } catch {
+      return;
+    }
+  });
+  publish_inbox_unread();
+}
+
+async function run_async_derive(): Promise<void> {
+  await yield_to_browser();
+
+  for (let attempt = 0; ; attempt += 1) {
+    if (derived && derived.version === version) break;
+
+    const target = version;
+    const source = entries_map;
+    const result = await compute_derived_sliced();
+
+    if (entries_map !== source) continue;
+    if (version !== target) {
+      if (attempt < MAX_DERIVE_RESTARTS) continue;
+      derived = { ...result, version: target };
+      derive_rerun = true;
+      break;
+    }
+
+    version += 1;
+    derived = { ...result, version };
+    break;
+  }
+
+  emit_index_change();
+}
+
+function schedule_async_derive(): void {
+  if (derive_task) {
+    derive_rerun = true;
+
+    return;
+  }
+
+  derive_task = run_async_derive()
+    .catch(() => undefined)
+    .finally(() => {
+      derive_task = null;
+      if (!derive_rerun) return;
+      derive_rerun = false;
+      if (derived && derived.version !== version) schedule_async_derive();
+    });
+}
+
 function ensure_derived(): DerivedData {
+  if (!derived || derived.version !== version) {
+    if (derived && should_derive_async()) {
+      schedule_async_derive();
+
+      return derived;
+    }
+    derived = compute_derived();
+  }
+
+  return derived;
+}
+
+function ensure_fresh_derived(): DerivedData {
   if (!derived || derived.version !== version) {
     derived = compute_derived();
   }
 
   return derived;
+}
+
+export async function wait_for_derived(): Promise<void> {
+  while (derive_task || cap_task) await (derive_task ?? cap_task);
 }
 
 export function get_counts(): CategoryCounts {
@@ -1593,17 +1873,27 @@ export function is_index_reconciled(): boolean {
   return loaded_for_account !== null && session_reconciled;
 }
 
-export function get_inbox_unread_total(): number | null {
+function inbox_unread_total(current: () => DerivedData): number | null {
   if (!is_index_reconciled()) return null;
   if (!fully_built || build_in_progress || build_capped) return null;
 
   let total = 0;
 
-  for (const bucket of Object.values(ensure_derived().counts)) {
+  for (const bucket of Object.values(current().counts)) {
     total += bucket?.unread ?? 0;
   }
 
   return total;
+}
+
+export function get_inbox_unread_total(): number | null {
+  return inbox_unread_total(ensure_derived);
+}
+
+async function settled_inbox_unread_total(): Promise<number | null> {
+  await wait_for_derived();
+
+  return inbox_unread_total(ensure_fresh_derived);
 }
 
 let published_unread_total: number | null = null;
@@ -1639,6 +1929,11 @@ function should_hold_published_unread(total: number | null): boolean {
 }
 
 function publish_inbox_unread(): void {
+  if (derived && derived.version !== version && should_derive_async()) {
+    schedule_async_derive();
+
+    return;
+  }
   const indexed_total = get_inbox_unread_total();
   const total =
     indexed_total === null
@@ -1697,7 +1992,7 @@ export function mark_category_seen(category: EmailCategory): void {
 
   if ((seen_ts[category] ?? 0) >= stamp) return;
   seen_ts[category] = stamp;
-  derived = null;
+  version += 1;
   schedule_persist();
   notify_soon();
 }
@@ -1749,7 +2044,7 @@ export function mark_categories_seen(
   }
 
   if (!changed) return;
-  derived = null;
+  version += 1;
   schedule_persist();
   notify_soon();
 }
@@ -1814,7 +2109,7 @@ export function get_category_action_ids(
   rep_ids: string[];
   all_ids: string[];
 } {
-  const page_ids = ensure_derived().pages.get(category) ?? [];
+  const page_ids = ensure_fresh_derived().pages.get(category) ?? [];
   const excluded = new Set(excluded_ids);
   const rep_ids =
     excluded.size === 0 ? page_ids : page_ids.filter((id) => !excluded.has(id));
@@ -2597,6 +2892,8 @@ export async function build_index(options?: {
     fetch_change_sync_token(),
   ]).catch(() => [null, null] as const);
 
+  const build_slicer = create_background_slicer();
+
   try {
     let cursor: string | undefined = resume?.cursor ?? disk_resume?.cursor;
     let processed = resume?.processed ?? disk_resume?.processed ?? 0;
@@ -2637,8 +2934,13 @@ export async function build_index(options?: {
         seen.add(it.id);
       }
 
-      for (let start = 0; start < items.length; start += BUILD_DECRYPT_CHUNK) {
-        const chunk = items.slice(start, start + BUILD_DECRYPT_CHUNK);
+      for (let start = 0; start < items.length; start += BUILD_DECRYPT_BATCH) {
+        if (start > 0 && build_slicer.should_yield()) {
+          await build_slicer.yield();
+          if (options?.signal?.aborted || token !== build_token) return;
+        }
+
+        const chunk = items.slice(start, start + BUILD_DECRYPT_BATCH);
         const { upserts, removals } = await entries_from_items(
           chunk,
           "indexed",
@@ -2660,11 +2962,7 @@ export async function build_index(options?: {
 
         build_progress_ms = now_ms();
         build_processed =
-          processed + Math.min(start + BUILD_DECRYPT_CHUNK, items.length);
-
-        if (start + BUILD_DECRYPT_CHUNK < items.length) {
-          await yield_to_browser();
-        }
+          processed + Math.min(start + BUILD_DECRYPT_BATCH, items.length);
       }
 
       processed += items.length;
@@ -2684,7 +2982,7 @@ export async function build_index(options?: {
 
       if (processed >= BUILD_CAP) break;
 
-      await yield_to_browser();
+      await build_slicer.yield();
     }
 
     if (token !== build_token) return;
@@ -2828,12 +3126,19 @@ async function run_sync_recent(
     const items = response.data.items;
 
     let index_newest_ts = 0;
+    const slicer = create_time_slicer();
+    let step = 0;
 
     for (const entry of entries_map.values()) {
+      if ((++step & DERIVE_STEP_MASK) === 0 && slicer.should_yield()) {
+        await slicer.yield();
+      }
       const ts = safe_ts(entry.message_ts);
 
       if (ts > index_newest_ts) index_newest_ts = ts;
     }
+
+    if (token !== build_token) return;
 
     const index_had_entries = entries_map.size > 0;
     const page_was_full = items.length >= BUILD_DECRYPT_CHUNK;
@@ -2916,6 +3221,10 @@ async function run_sync_recent(
         const prune_wall = now_ms();
 
         for (const [id, entry] of entries_map) {
+          if ((++step & DERIVE_STEP_MASK) === 0 && slicer.should_yield()) {
+            await slicer.yield();
+            if (token !== build_token) break;
+          }
           const ts = safe_ts(entry.message_ts);
           const in_page_window = ts > window_start && ts <= window_end;
           const left_inbox_before_fetch =
@@ -2998,10 +3307,15 @@ async function run_sync_recent(
   }
 }
 
-function indexed_thread_count(): number {
+async function indexed_thread_count(): Promise<number> {
   const tokens = new Set<string>();
+  const slicer = create_time_slicer();
+  let step = 0;
 
   for (const entry of entries_map.values()) {
+    if ((++step & DERIVE_STEP_MASK) === 0 && slicer.should_yield()) {
+      await slicer.yield();
+    }
     tokens.add(entry.thread_token || entry.id);
   }
 
@@ -3025,7 +3339,9 @@ async function rebuild_if_index_lags_server(): Promise<void> {
 
   if (server_inbox <= 0) return;
 
-  const missing = server_inbox - indexed_thread_count();
+  const missing = server_inbox - (await indexed_thread_count());
+
+  if (!fully_built || build_capped || build_in_progress) return;
 
   if (missing < DRIFT_MIN_MISSING_THREADS) return;
   if (missing < server_inbox * DRIFT_MIN_MISSING_FRACTION) return;
@@ -3514,7 +3830,9 @@ export async function verify_unread_against_server(): Promise<void> {
 
     if (generation !== index_generation || server_unread === null) return;
 
-    const indexed = get_inbox_unread_total();
+    const indexed = await settled_inbox_unread_total();
+
+    if (generation !== index_generation) return;
 
     if (indexed === null) return;
     if (indexed === server_unread) {
@@ -3548,7 +3866,7 @@ export async function verify_unread_against_server(): Promise<void> {
     if (generation !== index_generation) return;
     flush_pending_notify();
 
-    const rechecked = get_inbox_unread_total();
+    const rechecked = await settled_inbox_unread_total();
 
     if (rechecked !== null && rechecked < server_unread) {
       await pull_server_unread_items(generation);
@@ -3556,7 +3874,9 @@ export async function verify_unread_against_server(): Promise<void> {
       flush_pending_notify();
     }
 
-    const settled = get_inbox_unread_total();
+    const settled = await settled_inbox_unread_total();
+
+    if (generation !== index_generation) return;
 
     if (settled === null || settled === server_unread) {
       settled_unread_drift = null;
@@ -3580,8 +3900,8 @@ export async function verify_unread_against_server(): Promise<void> {
   }
 }
 
-function note_server_unread(server_unread: number): void {
-  const indexed = get_inbox_unread_total();
+async function note_server_unread(server_unread: number): Promise<void> {
+  const indexed = await settled_inbox_unread_total();
 
   if (indexed === null) return;
   if (indexed === server_unread) {
@@ -3742,11 +4062,11 @@ export function start_event_listeners(): void {
   });
 
   on_mail_event(MAIL_EVENTS.INBOX_UNREAD_DRIFT, (detail) => {
-    note_server_unread(detail.server_unread);
+    void note_server_unread(detail.server_unread);
   });
 
-  document.addEventListener("visibilitychange", () => {
-    if (document.visibilityState !== "visible") return;
+  subscribe_page_resume((info) => {
+    if (!info.reasons.has("visible") && !info.reasons.has("pageshow")) return;
 
     resync_skip_throttle = true;
 

@@ -95,7 +95,18 @@ export function resolve_pq_identity_secret(
   return derive_pq_identity_from_seed(seed_base64)?.pq_identity_secret ?? null;
 }
 
-export function derive_pq_identity_from_seed(seed_base64: string): {
+const PQ_SEED_IDENTITY_CACHE_LIMIT = 64;
+
+const pq_seed_identity_cache = new Map<
+  string,
+  { pq_identity_secret: string; pq_identity_public: string } | null
+>();
+
+export function clear_pq_seed_identity_cache(): void {
+  pq_seed_identity_cache.clear();
+}
+
+function keygen_pq_identity_from_seed(seed_base64: string): {
   pq_identity_secret: string;
   pq_identity_public: string;
 } | null {
@@ -113,6 +124,32 @@ export function derive_pq_identity_from_seed(seed_base64: string): {
   } catch {
     return null;
   }
+}
+
+export function derive_pq_identity_from_seed(seed_base64: string): {
+  pq_identity_secret: string;
+  pq_identity_public: string;
+} | null {
+  if (pq_seed_identity_cache.has(seed_base64)) {
+    const hit = pq_seed_identity_cache.get(seed_base64) ?? null;
+
+    pq_seed_identity_cache.delete(seed_base64);
+    pq_seed_identity_cache.set(seed_base64, hit);
+
+    return hit ? { ...hit } : null;
+  }
+
+  const derived = keygen_pq_identity_from_seed(seed_base64);
+
+  pq_seed_identity_cache.set(seed_base64, derived);
+  while (pq_seed_identity_cache.size > PQ_SEED_IDENTITY_CACHE_LIMIT) {
+    const oldest = pq_seed_identity_cache.keys().next();
+
+    if (oldest.done) break;
+    pq_seed_identity_cache.delete(oldest.value);
+  }
+
+  return derived ? { ...derived } : null;
 }
 
 async function generate_exportable_ke_keypair(): Promise<{

@@ -254,6 +254,7 @@ function MobileMailDetail() {
       key={detail.email_id}
       animate={{ opacity: 1, x: 0 }}
       className="flex h-full flex-col"
+      data-reading-pane=""
       initial={reduce_motion ? false : { opacity: 0, x: entrance_x }}
       transition={
         reduce_motion

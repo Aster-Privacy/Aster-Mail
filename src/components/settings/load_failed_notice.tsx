@@ -22,19 +22,50 @@ import { Button, Island } from "@aster/ui";
 
 import { use_i18n } from "@/lib/i18n/context";
 
-export function LoadFailedNotice({ on_retry }: { on_retry: () => void }) {
+interface LoadFailedNoticeProps {
+  on_retry: () => void;
+  message?: string;
+  compact?: boolean;
+}
+
+export function LoadFailedNotice({
+  on_retry,
+  message,
+  compact = false,
+}: LoadFailedNoticeProps) {
   const { t } = use_i18n();
+
+  if (compact) {
+    return (
+      <div
+        className="flex items-center justify-between gap-2 px-3 py-1.5"
+        role="status"
+      >
+        <span className="truncate text-[12px] text-txt-muted">
+          {message ?? t("common.couldnt_load")}
+        </span>
+        <button
+          className="shrink-0 text-[12px] font-medium text-txt-primary hover:underline"
+          type="button"
+          onClick={on_retry}
+        >
+          {t("common.try_again_action")}
+        </button>
+      </div>
+    );
+  }
 
   return (
     <Island
       className="flex flex-wrap items-center justify-between gap-2"
       padding="sm"
+      role="status"
     >
       <p className="text-[13px] text-txt-muted">
-        {t("common.something_went_wrong_try_again")}
+        {message ?? t("common.something_went_wrong_try_again")}
       </p>
       <Button size="sm" variant="outline" onClick={on_retry}>
-        {t("common.retry")}
+        {message ? t("common.try_again_action") : t("common.retry")}
       </Button>
     </Island>
   );

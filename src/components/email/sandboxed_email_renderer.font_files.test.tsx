@@ -81,6 +81,7 @@ vi.mock("@/components/email/reveal_on_fonts_ready", () => ({
 const { SandboxedEmailRenderer } =
   await import("@/components/email/sandboxed_email_renderer");
 const { preload_email_fonts } = await import("@/lib/email_font_sources");
+const { TEXT_SYMBOL_FONT_SRC } = await import("@/lib/text_symbol_font");
 
 const NOTE = "<p>Lunch on Friday works for me.</p>";
 const WEIGHTS = [400, 500, 600, 700];
@@ -111,7 +112,9 @@ function font_sources(srcdoc: string): string[] {
     ...srcdoc.matchAll(
       /@font-face\s*\{[^}]*font-family:\s*'Google Sans Flex'[^}]*src:\s*url\('([^']*)'\)/g,
     ),
-  ].map((match) => match[1]);
+  ]
+    .map((match) => match[1])
+    .filter((source) => source !== TEXT_SYMBOL_FONT_SRC);
 }
 
 function font_bytes(weight: number): Buffer {

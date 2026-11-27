@@ -289,13 +289,9 @@ export function ScheduledPopupViewer({
   const recipient_name =
     get_email_username(primary_recipient) || t("common.recipient");
 
-  const popup_left = is_fullscreen
-    ? FULLSCREEN_MARGIN
-    : position.x;
+  const popup_left = is_fullscreen ? FULLSCREEN_MARGIN : position.x;
 
-  const popup_top = is_fullscreen
-    ? FULLSCREEN_MARGIN
-    : position.y;
+  const popup_top = is_fullscreen ? FULLSCREEN_MARGIN : position.y;
 
   const popup_content = (
     <motion.div
@@ -446,7 +442,7 @@ export function ScheduledPopupViewer({
               <EllipsisHorizontalIcon aria-hidden="true" className="w-4 h-4" />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-48">
+          <DropdownMenuContent align="end" className="min-w-48">
             {!is_unreadable && (
               <>
                 <DropdownMenuItem

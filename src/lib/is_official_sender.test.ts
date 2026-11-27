@@ -180,3 +180,68 @@ describe("trust_source_for_display", () => {
     ).toBe(false);
   });
 });
+
+describe("official owner address", () => {
+  it("badges only the exact owner address", () => {
+    expect(is_official_address("findley@aster.cx")).toBe(true);
+    expect(is_official_address("FINDLEY@ASTER.CX")).toBe(true);
+    expect(is_official_address("  Findley@Aster.cx  ")).toBe(true);
+  });
+
+  it("never badges the same local part on another domain", () => {
+    expect(is_official_address("findley@astermail.org")).toBe(false);
+    expect(is_official_address("findley@aster.cx.evil.com")).toBe(false);
+    expect(is_official_address("findley@sub.aster.cx")).toBe(false);
+    expect(is_official_address("findley@aster.cx.")).toBe(false);
+    expect(is_official_address("findley@evil.com")).toBe(false);
+    expect(is_official_address("findley@aster.cx@evil.com")).toBe(false);
+    expect(is_official_address("findley.x@aster.cx")).toBe(false);
+    expect(is_official_address("xfindley@aster.cx")).toBe(false);
+  });
+
+  it("requires the same proof as every other official sender", () => {
+    expect(is_official_sender({ sender_email: "findley@aster.cx" })).toBe(
+      false,
+    );
+    expect(
+      is_official_sender({
+        sender_email: "findley@aster.cx",
+        is_external: true,
+        sender_verification: "verified",
+      }),
+    ).toBe(false);
+    expect(
+      is_official_sender({ sender_email: "findley@aster.cx", ...proven_human }),
+    ).toBe(true);
+    expect(
+      is_official_sender({
+        sender_email: "findley@astermail.org",
+        ...proven_human,
+      }),
+    ).toBe(false);
+  });
+
+  it("drops the proof when the owner address is only the display name", () => {
+    const source = { sender_email: "someone@astermail.org", ...proven_human };
+
+    expect(
+      is_official_sender(trust_source_for_display(source, "findley@aster.cx")),
+    ).toBe(false);
+    expect(
+      is_official_sender(
+        trust_source_for_display(
+          { sender: { email: "attacker@evil.com" }, ...proven_human },
+          " FINDLEY@aster.cx ",
+        ),
+      ),
+    ).toBe(false);
+  });
+
+  it("keeps the proof when the displayed address is the owner address", () => {
+    const source = { sender_email: "findley@aster.cx", ...proven_human };
+
+    expect(
+      is_official_sender(trust_source_for_display(source, " Findley@Aster.CX ")),
+    ).toBe(true);
+  });
+});

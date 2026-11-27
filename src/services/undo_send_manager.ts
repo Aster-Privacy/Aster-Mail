@@ -55,6 +55,7 @@ export type TerminalSendStatus = "sent" | "cancelled" | "failed";
 export type RestoredSendListener = (
   queue_id: string,
   status: TerminalSendStatus,
+  sent_id?: string,
 ) => void;
 
 const FINALIZE_RETRY_DELAYS_MS = [1000, 2000, 4000, 8000, 15000];
@@ -390,10 +391,14 @@ class UndoSendManager {
     };
   }
 
-  private notify_restored(queue_id: string, status: TerminalSendStatus): void {
+  private notify_restored(
+    queue_id: string,
+    status: TerminalSendStatus,
+    sent_id?: string,
+  ): void {
     this.restored_listeners.forEach((listener) => {
       try {
-        listener(queue_id, status);
+        listener(queue_id, status, sent_id);
       } catch {
         return;
       }
@@ -465,7 +470,8 @@ class UndoSendManager {
       can_cancel_until: new Date(status.can_cancel_until),
       timeout_id: 0,
       status: "pending",
-      on_sent: () => this.notify_restored(queue_id, "sent"),
+      on_sent: (sent_id?: string) =>
+        this.notify_restored(queue_id, "sent", sent_id),
       on_cancelled: () => this.notify_restored(queue_id, "cancelled"),
       on_error: () => this.notify_restored(queue_id, "failed"),
     };

@@ -261,7 +261,7 @@ export function ModalContactList({
                     <ArrowDownTrayIcon className="h-3.5 w-3.5 text-txt-secondary" />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-44">
+                <DropdownMenuContent align="end" className="min-w-44">
                   <DropdownMenuItem
                     onClick={() => on_export_contacts(true, "vcard")}
                   >
@@ -327,7 +327,7 @@ export function ModalContactList({
                       </span>
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-40">
+                  <DropdownMenuContent align="end" className="min-w-40">
                     <DropdownMenuItem
                       className={filter_by === "all" ? "text-txt-primary" : ""}
                       onClick={() => set_filter_by("all")}
@@ -335,7 +335,9 @@ export function ModalContactList({
                       {t("mail.all")}
                     </DropdownMenuItem>
                     <DropdownMenuItem
-                      className={filter_by === "favorites" ? "text-txt-primary" : ""}
+                      className={
+                        filter_by === "favorites" ? "text-txt-primary" : ""
+                      }
                       onClick={() => set_filter_by("favorites")}
                     >
                       <StarIconSolid className="h-3.5 w-3.5 me-2 text-amber-400" />
@@ -343,14 +345,18 @@ export function ModalContactList({
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem
-                      className={filter_by === "has_email" ? "text-txt-primary" : ""}
+                      className={
+                        filter_by === "has_email" ? "text-txt-primary" : ""
+                      }
                       onClick={() => set_filter_by("has_email")}
                     >
                       <EnvelopeIcon className="h-3.5 w-3.5 me-2" />
                       {t("common.has_email")}
                     </DropdownMenuItem>
                     <DropdownMenuItem
-                      className={filter_by === "has_phone" ? "text-txt-primary" : ""}
+                      className={
+                        filter_by === "has_phone" ? "text-txt-primary" : ""
+                      }
                       onClick={() => set_filter_by("has_phone")}
                     >
                       <PhoneIcon className="h-3.5 w-3.5 me-2" />
@@ -385,21 +391,27 @@ export function ModalContactList({
                       </span>
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-40">
+                  <DropdownMenuContent align="end" className="min-w-40">
                     <DropdownMenuItem
-                      className={sort_by === "name_asc" ? "text-txt-primary" : ""}
+                      className={
+                        sort_by === "name_asc" ? "text-txt-primary" : ""
+                      }
                       onClick={() => set_sort_by("name_asc")}
                     >
                       {t("common.name")} A-Z
                     </DropdownMenuItem>
                     <DropdownMenuItem
-                      className={sort_by === "name_desc" ? "text-txt-primary" : ""}
+                      className={
+                        sort_by === "name_desc" ? "text-txt-primary" : ""
+                      }
                       onClick={() => set_sort_by("name_desc")}
                     >
                       {t("common.name")} Z-A
                     </DropdownMenuItem>
                     <DropdownMenuItem
-                      className={sort_by === "company" ? "text-txt-primary" : ""}
+                      className={
+                        sort_by === "company" ? "text-txt-primary" : ""
+                      }
                       onClick={() => set_sort_by("company")}
                     >
                       {t("common.company")}
@@ -419,7 +431,7 @@ export function ModalContactList({
                       <ArrowDownTrayIcon className="h-3.5 w-3.5 text-txt-muted" />
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-44">
+                  <DropdownMenuContent align="end" className="min-w-44">
                     <DropdownMenuSub>
                       <DropdownMenuSubTrigger>
                         {t("common.export_all_contacts")}

@@ -213,6 +213,46 @@ export async function derive_public_keys_from_private(
   return derived;
 }
 
+const PARSED_VERIFICATION_KEY_CAP = 256;
+const verification_key_cache = new Map<string, Promise<Key | null>>();
+
+function read_verification_key(
+  openpgp: Awaited<ReturnType<typeof load_openpgp>>,
+  armored: string,
+): Promise<Key | null> {
+  const cached = verification_key_cache.get(armored);
+
+  if (cached) {
+    verification_key_cache.delete(armored);
+    verification_key_cache.set(armored, cached);
+
+    return cached;
+  }
+
+  const pending = openpgp
+    .readKey({ armoredKey: armored })
+    .then((key): Key | null => key)
+    .catch((): Key | null => {
+      verification_key_cache.delete(armored);
+
+      return null;
+    });
+
+  verification_key_cache.set(armored, pending);
+
+  if (verification_key_cache.size > PARSED_VERIFICATION_KEY_CAP) {
+    const oldest = verification_key_cache.keys().next().value;
+
+    if (oldest !== undefined) verification_key_cache.delete(oldest);
+  }
+
+  return pending;
+}
+
+export function clear_parsed_verification_keys(): void {
+  verification_key_cache.clear();
+}
+
 async function parse_verification_keys(
   verification_keys: string[] | undefined,
 ): Promise<Key[]> {
@@ -222,11 +262,9 @@ async function parse_verification_keys(
   const openpgp = await load_openpgp();
 
   for (const armored of verification_keys) {
-    try {
-      parsed.push(await openpgp.readKey({ armoredKey: armored }));
-    } catch {
-      continue;
-    }
+    const key = await read_verification_key(openpgp, armored);
+
+    if (key) parsed.push(key);
   }
 
   return parsed;

@@ -38,11 +38,13 @@ import {
 } from "@/lib/session_handoff/session_handoff_protocol";
 import {
   HANDOFF_GRANT_HASH_PREFIX,
+  active_panel_account_id,
   mint_panel_handoff_grant,
   sibling_app_launch_url,
 } from "@/contexts/auth/sibling_session_handoff";
 
 export const CALENDAR_PANEL_PATH = "/mail-panel";
+export const CALENDAR_PANEL_ACCOUNT_PARAM = "account";
 export const CALENDAR_PANEL_SOURCE = "aster-calendar-panel";
 export const MAIL_HOST_SOURCE = "aster-mail";
 
@@ -340,8 +342,21 @@ export function QuickCalendarPanel({
         src.searchParams.set("accent", appearance_ref.current.accent);
       }
 
+      if (appearance_ref.current.surface) {
+        src.searchParams.set(
+          "surface",
+          JSON.stringify(appearance_ref.current.surface),
+        );
+      }
+
       if (frame_key > 0) {
         src.searchParams.set("attempt", String(frame_key));
+      }
+
+      const account_id = active_panel_account_id();
+
+      if (account_id) {
+        src.searchParams.set(CALENDAR_PANEL_ACCOUNT_PARAM, account_id);
       }
 
       const grant = mint_panel_handoff_grant(src.origin);
@@ -376,6 +391,7 @@ export function QuickCalendarPanel({
           theme: next.theme,
           palette: next.palette,
           accent: next.accent,
+          ...(next.surface ? { surface: next.surface } : {}),
         },
         origin,
       );

@@ -32,13 +32,12 @@ import {
 import { use_auth } from "@/contexts/auth_context";
 
 interface UseProfileNoteOptions {
-  missing_note_is_failure?: boolean;
   focus_ref?: RefObject<HTMLTextAreaElement>;
 }
 
 export function use_profile_note(
   email: string,
-  { missing_note_is_failure = false, focus_ref }: UseProfileNoteOptions = {},
+  { focus_ref }: UseProfileNoteOptions = {},
 ) {
   const { has_keys } = use_auth();
   const [note, set_note] = useState("");
@@ -47,6 +46,7 @@ export function use_profile_note(
     useState<ProfileNoteSaveStatus>("idle");
   const [original_note, set_original_note] = useState("");
   const [load_failed, set_load_failed] = useState(false);
+  const [load_attempt, set_load_attempt] = useState(0);
 
   const debounce_timeout_ref = useRef<NodeJS.Timeout | null>(null);
   const saved_timeout_ref = useRef<NodeJS.Timeout | null>(null);
@@ -217,6 +217,7 @@ export function use_profile_note(
       clear_timeouts();
       save_version_ref.current++;
       set_is_loading(true);
+      set_load_failed(false);
       set_note("");
       set_original_note("");
       set_save_status("idle");
@@ -226,27 +227,24 @@ export function use_profile_note(
 
         if (cancelled) return;
 
-        if (missing_note_is_failure) {
-          if (response.data) {
-            set_note(response.data.content);
-            set_original_note(response.data.content);
-            set_load_failed(false);
-          } else {
-            set_load_failed(true);
-          }
-        } else if (response.error) {
+        if (response.error) {
           set_load_failed(true);
-        } else {
-          if (response.data) {
-            set_note(response.data.content);
-            set_original_note(response.data.content);
-          }
-          set_load_failed(false);
+          set_is_loading(false);
+
+          return;
         }
+
+        const content = response.data?.content ?? "";
+
+        set_note(content);
+        set_original_note(content);
       } catch (error) {
         if (import.meta.env.DEV) console.error(error);
         if (cancelled) return;
         set_load_failed(true);
+        set_is_loading(false);
+
+        return;
       }
 
       set_is_loading(false);
@@ -272,9 +270,19 @@ export function use_profile_note(
     has_keys,
     clear_timeouts,
     flush_pending_save,
-    missing_note_is_failure,
     focus_ref,
+    load_attempt,
   ]);
+
+  const retry_load = useCallback(() => {
+    set_load_attempt((attempt) => attempt + 1);
+  }, []);
+
+  const retry_save = useCallback(() => {
+    clear_timeouts();
+    pending_save_ref.current = null;
+    save_note(note, current_email_ref.current);
+  }, [clear_timeouts, note, save_note]);
 
   const is_available = has_keys && !!email && email.trim().length > 0;
 
@@ -286,5 +294,7 @@ export function use_profile_note(
     save_status,
     handle_change,
     handle_blur,
+    retry_load,
+    retry_save,
   };
 }

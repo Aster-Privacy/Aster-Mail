@@ -33,7 +33,6 @@ import {
   TrashIcon,
 } from "@heroicons/react/24/outline";
 import {
-  CheckIcon,
   FaceSmileIcon,
   StarIcon as StarIconSolid,
 } from "@heroicons/react/24/solid";
@@ -41,6 +40,7 @@ import { Checkbox } from "@aster/ui";
 
 import {
   InboxEmailListItemProps,
+  MAIL_ROW_LAYOUT,
   RowActionButton,
   StarToggleButton,
   format_email_size,
@@ -82,6 +82,7 @@ import {
   type TagIconName,
 } from "@/components/ui/email_tag";
 import { SnoozeBadge } from "@/components/ui/snooze_badge";
+import { CheckGlyph } from "@/components/ui/check_glyph";
 import { ExpirationCountdown } from "@/components/email/expiration_countdown";
 import { AttachmentChip } from "@/components/email/attachment_chip";
 import { fetch_priority_attr } from "@/lib/fetch_priority";
@@ -428,7 +429,8 @@ export const InboxEmailListItem = memo(
           ref={ref}
           draggable
           className={cn(
-            "group relative flex items-center gap-2 sm:gap-3 px-3 sm:px-4 cursor-pointer w-full border-t border-edge-secondary",
+            "mail_row group relative cursor-pointer",
+            MAIL_ROW_LAYOUT.row,
             get_density_classes(density, preferences.compact_mode ?? false),
             email.is_selected === true
               ? "mail_row_selected"
@@ -485,7 +487,8 @@ export const InboxEmailListItem = memo(
           <div
             aria-label={t("mail.select")}
             className={cn(
-              "group/avatar aster_select_focus relative flex-shrink-0 flex items-center justify-center cursor-pointer",
+              "group/avatar aster_select_focus cursor-pointer",
+              MAIL_ROW_LAYOUT.select_slot,
               select_slot_class,
             )}
             role="button"
@@ -518,7 +521,7 @@ export const InboxEmailListItem = memo(
                     : "border-edge-primary group-hover/avatar:border-[var(--accent-color,#3b82f6)]",
                 )}
               >
-                <CheckIcon
+                <CheckGlyph
                   className={cn(
                     "w-4 h-4 transition-opacity duration-150",
                     email.is_selected
@@ -577,14 +580,14 @@ export const InboxEmailListItem = memo(
                       : "opacity-0 group-hover/avatar:opacity-100 bg-[color-mix(in_srgb,var(--accent-color,#3b82f6)_75%,transparent)]",
                   )}
                 >
-                  <CheckIcon className="w-4 h-4 text-[var(--accent-fg,#ffffff)]" />
+                  <CheckGlyph className="w-4 h-4 text-[var(--accent-fg,#ffffff)]" />
                 </div>
               </>
             )}
           </div>
 
-          <div className="flex-1 min-w-0 flex items-center gap-3 sm:gap-6 overflow-hidden">
-            <div className="flex items-center gap-1.5 min-w-0 sm:w-44 sm:shrink-0 sm:max-w-[45%] overflow-hidden pe-px">
+          <div className={MAIL_ROW_LAYOUT.content}>
+            <div className={MAIL_ROW_LAYOUT.sender}>
               {email.is_pinned && (
                 <PinIcon
                   filled
@@ -673,7 +676,7 @@ export const InboxEmailListItem = memo(
               )}
             </div>
 
-            <div className="flex-1 min-w-0 overflow-hidden flex items-center gap-1.5">
+            <div className={MAIL_ROW_LAYOUT.subject}>
               {is_system_email(email) && (
                 <EmailTag
                   className="flex-shrink-0 hidden sm:inline-flex text-xs"
@@ -937,7 +940,7 @@ export const InboxEmailListItem = memo(
                 )}
             </div>
 
-            <span className="text-xs text-txt-muted tabular-nums whitespace-nowrap sm:hidden shrink-0">
+            <span className={cn(MAIL_ROW_LAYOUT.mobile_date, "text-txt-muted")}>
               {format_mobile_timestamp(email.timestamp)}
               {show_message_size &&
                 email.size_bytes != null &&
@@ -974,7 +977,7 @@ export const InboxEmailListItem = memo(
             />
           )}
 
-          <div className="hidden sm:flex items-center gap-2 flex-shrink-0 ms-auto">
+          <div className={MAIL_ROW_LAYOUT.meta}>
             {has_new_reaction && (
               <span
                 aria-label={t("mail.new_reaction")}

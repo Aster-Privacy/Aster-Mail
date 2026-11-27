@@ -29,16 +29,15 @@ import {
   MagnifyingGlassIcon,
   PaperClipIcon,
 } from "@heroicons/react/24/outline";
+import { Checkbox, Input } from "@aster/ui";
+
 import {
-  Checkbox,
-  Input,
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@aster/ui";
-
+} from "@/components/ui/select";
 import { use_i18n } from "@/lib/i18n/context";
 import { DateInput } from "@/components/ui/date_input";
 import { use_should_reduce_motion } from "@/provider";

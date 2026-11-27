@@ -722,6 +722,7 @@ ${preferences.hide_scrollbars === true ? `<style>html, body { scrollbar-width: n
 
     collapse_forwarded_content(iframe.contentDocument);
     collapse_quoted_replies(iframe.contentDocument);
+    dom_cleanup.convert_plain_quotes(iframe.contentDocument);
     dom_cleanup.reveal_orphaned_hidden_quotes(iframe.contentDocument);
     dom_cleanup.reveal_fully_hidden_content(iframe.contentDocument);
     if (!preserve_formatting) {
@@ -733,6 +734,8 @@ ${preferences.hide_scrollbars === true ? `<style>html, body { scrollbar-width: n
       ) {
         trim_trailing_empty_blocks(iframe.contentDocument);
       }
+    } else if (dom_cleanup.has_aster_compose_markup(iframe.contentDocument)) {
+      trim_trailing_empty_blocks(iframe.contentDocument);
     }
 
     try {
@@ -1062,6 +1065,7 @@ ${preferences.hide_scrollbars === true ? `<style>html, body { scrollbar-width: n
           ref={(el) => {
             iframe_ref.current = el;
           }}
+          data-message-frame=""
           referrerPolicy="no-referrer"
           sandbox="allow-same-origin allow-popups"
           srcDoc={srcdoc_html}

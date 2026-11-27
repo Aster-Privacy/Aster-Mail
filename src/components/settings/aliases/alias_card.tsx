@@ -124,7 +124,7 @@ function AliasAvatar({
         </div>
       )}
       {uploading && (
-        <div className="absolute inset-0 flex items-center justify-center rounded-full bg-[var(--aster-field-hover)] text-txt-primary">
+        <div className="absolute inset-0 flex items-center justify-center rounded-full bg-black/55 text-white">
           <Spinner size="xs" />
         </div>
       )}
@@ -134,7 +134,7 @@ function AliasAvatar({
             ? t("common.alias_avatars_locked" as TranslationKey)
             : t("common.change_alias_avatar" as TranslationKey)
         }
-        className="absolute inset-0 flex items-center justify-center rounded-full bg-[var(--aster-field-hover)] text-txt-primary opacity-0 transition-opacity group-hover/avatar:opacity-100 focus-visible:opacity-100 disabled:invisible disabled:cursor-not-allowed"
+        className="absolute inset-0 flex items-center justify-center rounded-full border-0 bg-black/55 text-white opacity-0 transition-opacity duration-200 group-hover/avatar:opacity-100 focus-visible:opacity-100 disabled:invisible disabled:cursor-not-allowed"
         disabled={uploading}
         title={
           is_locked
@@ -164,7 +164,7 @@ function AliasAvatar({
       {!is_locked && has_picture && (
         <button
           aria-label={t("common.remove_alias_avatar" as TranslationKey)}
-          className="absolute -top-1 -end-1 flex h-5 w-5 items-center justify-center rounded-full bg-[var(--aster-field-bg)] text-txt-muted opacity-0 ring-2 ring-[var(--aster-island-fill,var(--bg-primary))] transition hover:bg-[var(--aster-field-hover)] hover:text-[var(--color-danger)] group-hover/avatar:opacity-100 focus-visible:opacity-100 disabled:cursor-not-allowed disabled:opacity-50 [@media(hover:none)]:opacity-100"
+          className="absolute -top-1 -end-1 flex h-5 w-5 items-center justify-center rounded-full border-0 bg-black/70 text-white opacity-0 transition hover:bg-black/85 hover:text-[var(--color-danger)] group-hover/avatar:opacity-100 focus-visible:opacity-100 disabled:cursor-not-allowed disabled:opacity-50 [@media(hover:none)]:opacity-100"
           disabled={uploading}
           title={t("common.remove_alias_avatar" as TranslationKey)}
           type="button"

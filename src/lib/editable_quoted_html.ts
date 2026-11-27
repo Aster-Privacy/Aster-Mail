@@ -55,6 +55,7 @@ import {
   type RemoteImageMode,
 } from "@/lib/remote_content_policy";
 import { find_own_signature } from "@/lib/signature_html";
+import { convert_plain_quote_markup } from "@/lib/quoted_history_clean";
 import { is_any_lockdown_active } from "@/services/lockdown_store";
 import { resolve_content_blocking } from "@/components/email/resolve_content_blocking";
 import {
@@ -292,6 +293,7 @@ export function build_editable_quoted_fragment(
     sanitize_html(html, get_compose_sanitize_options()).html,
   );
 
+  convert_plain_quote_markup(template.content);
   template.content.querySelectorAll("img").forEach((image) => {
     image.removeAttribute("srcset");
 

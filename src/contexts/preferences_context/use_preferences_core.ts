@@ -186,6 +186,7 @@ export function use_preferences_core() {
   const has_loaded_ref = useRef(false);
   const fallback_base_ref = useRef<UserPreferences | null>(null);
   const server_base_ref = useRef<UserPreferences | null>(null);
+  const applied_blob_marker_ref = useRef<string | null>(null);
 
   const debounce_timer = useRef<number | null>(null);
   const saved_indicator_timer = useRef<number | null>(null);
@@ -261,6 +262,7 @@ export function use_preferences_core() {
         }
 
         server_base_ref.current = to_save;
+        applied_blob_marker_ref.current = result.data.blob_marker ?? null;
         push_muted_folders(to_save);
 
         if (!latest_prefs_ref.current || latest_prefs_ref.current === prefs) {
@@ -725,6 +727,7 @@ export function use_preferences_core() {
     has_loaded_ref,
     fallback_base_ref,
     server_base_ref,
+    applied_blob_marker_ref,
     debounce_timer,
     saved_indicator_timer,
     save_retry_timer,

@@ -20,6 +20,7 @@
 //
 import type { ActionToastConfig } from "@/components/toast/action_toast";
 import type { TranslationKey } from "@/lib/i18n/types";
+import type { ListRemoval } from "@/hooks/list_removal";
 
 import { show_action_toast } from "@/components/toast/action_toast";
 import { show_toast } from "@/components/toast/simple_toast";
@@ -27,6 +28,7 @@ import { show_toast } from "@/components/toast/simple_toast";
 export interface BulkActionResult {
   attempted_ids: string[];
   failed_ids: string[];
+  removal?: ListRemoval;
 }
 
 export type BulkActionOutcome = "success" | "partial" | "failure";

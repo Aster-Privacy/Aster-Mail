@@ -793,4 +793,66 @@ describe("deals precision", () => {
 
     expect(classify(envelope, metadata)).toBe("newsletters");
   });
+
+  it("keeps a personal reply signed by a publishing host in Primary", () => {
+    const envelope = make_envelope({
+      from: { name: "Geral", email: "geral@schools.example" },
+      subject: "Follow-up: Article 28 DPA on Aster Star plan",
+      raw_headers: [
+        {
+          name: "DKIM-Signature",
+          value: "v=1; a=rsa-sha256; d=wordpress.com; s=k1",
+        },
+        { name: "In-Reply-To", value: "<abc@astermail.org>" },
+      ],
+    });
+
+    expect(classify(envelope)).toBe("primary");
+  });
+
+  it("keeps an unthreaded message from a publishing host without bulk markers out of Newsletters", () => {
+    const envelope = make_envelope({
+      from: { name: "Geral", email: "geral@schools.example" },
+      subject: "Question about your plan",
+      raw_headers: [
+        {
+          name: "DKIM-Signature",
+          value: "v=1; a=rsa-sha256; d=wordpress.com; s=k1",
+        },
+      ],
+    });
+
+    expect(classify(envelope)).toBe("primary");
+  });
+
+  it("still files a list issue from a publishing host under Newsletters", () => {
+    const envelope = make_envelope({
+      from: { name: "Weekly Blog", email: "blog@weekly.example" },
+      subject: "This week on the blog",
+      list_unsubscribe: "<https://weekly.example/unsub>",
+      raw_headers: [
+        {
+          name: "DKIM-Signature",
+          value: "v=1; a=rsa-sha256; d=wordpress.com; s=k1",
+        },
+      ],
+    });
+
+    expect(classify(envelope)).toBe("newsletters");
+  });
+
+  it("does not treat a marketing send with a reply prefix as personal", () => {
+    const envelope = make_envelope({
+      from: { name: "Cool Brand", email: "hello@coolbrand.com" },
+      subject: "Re: your cart",
+      raw_headers: [
+        {
+          name: "DKIM-Signature",
+          value: "v=1; a=rsa-sha256; d=mcsv.net; s=k1",
+        },
+      ],
+    });
+
+    expect(classify(envelope)).not.toBe("primary");
+  });
 });

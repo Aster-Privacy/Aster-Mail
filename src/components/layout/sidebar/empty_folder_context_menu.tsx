@@ -45,7 +45,7 @@ export function EmptyFolderContextMenu({
       <ContextMenuTrigger asChild>
         <div>{children}</div>
       </ContextMenuTrigger>
-      <ContextMenuContent className="w-48">
+      <ContextMenuContent className="min-w-48">
         <ContextMenuItem
           className="text-red-600 dark:text-red-400 focus:text-red-600 dark:focus:text-red-400"
           data-testid="sidebar-empty-folder"

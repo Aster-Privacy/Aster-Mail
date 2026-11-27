@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 
+import { wait_for_background_window } from "@/services/api/client/request_governor";
 import {
   DEEP_SEGMENT_ITEMS,
   DEEP_SEGMENT_PAUSE_MS,
@@ -26,6 +27,7 @@ import {
   MAX_INDEX_ITEMS,
   MAX_RAM_INDEX_ITEMS,
   INDEX_PAGE_LIMIT,
+  INDEX_YIELD_MS,
   RECONCILE_INTERVAL_MS,
   RECONCILE_RETRY_MS,
   RECONCILE_REQUEST_MIN_MS,
@@ -45,6 +47,7 @@ import { CachedIndex, ChunkSpan, DecryptedIndexEntry } from "./types";
 import { list_encrypted_mail_items, type MailItem } from "@/services/api/mail";
 
 import { ignore_error } from "@/lib/ignore_error";
+import { yield_to_visible_page } from "@/lib/scheduling";
 import { drop_sender_verification } from "@/services/crypto/sender_verification";
 import {
   queue_vocabulary_entry,
@@ -749,6 +752,8 @@ export async function run_deep_index(
         new Promise<void>((r) => setTimeout(r, DEEP_SEGMENT_PAUSE_MS)),
         settle_within(total_request, DEEP_SEGMENT_PAUSE_MS),
       ]);
+
+      await wait_for_background_window();
 
       if (my_gen !== build_generation) return;
       if (is_index_download_paused()) return;
@@ -1471,6 +1476,8 @@ export async function hydrate_snapshot_index(
       entries.set(entry.id, entry);
     }
 
+    let slice_started_at = performance.now();
+
     for (const item of chunk.items) {
       const entry = entries.get(item.id);
 
@@ -1479,6 +1486,14 @@ export async function hydrate_snapshot_index(
       index.items.push(item);
       index.decrypted.set(item.id, entry_from_persisted(entry));
       queue_vocabulary_entry(entry.envelope, entry.search_body_text);
+
+      if (performance.now() - slice_started_at >= INDEX_YIELD_MS) {
+        await yield_to_visible_page();
+
+        if (my_gen !== build_generation) return null;
+
+        slice_started_at = performance.now();
+      }
     }
 
     const count = index.items.length - start;

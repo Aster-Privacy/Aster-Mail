@@ -20,6 +20,8 @@
 //
 export const pt_br = {
   common: {
+    couldnt_load: "Não foi possível carregar.",
+    try_again_action: "Tentar novamente",
     merge_primary_label: "Principal",
     merge_make_primary: "Tornar principal",
     merge_primary_description:
@@ -1533,6 +1535,8 @@ export const pt_br = {
     saved_on_date: "Salvo em {{ date }}",
     now: "Agora",
     hide_notes: "Ocultar notas",
+    sender_note_load_failed: "A nota não foi carregada.",
+    sender_note_save_failed: "A nota não foi salva.",
     try_again: "Tentar novamente",
     view_status: "Ver status",
     error_details: "Detalhes do erro",
@@ -1636,7 +1640,7 @@ export const pt_br = {
     blocked_items_count: "{{count}} itens",
     call: "Ligar",
     cc_bcc_label: "CC/CCO",
-    change_alias_avatar: "Alterar avatar",
+    change_alias_avatar: "Alterar foto do perfil",
     change_icon: "Alterar ícone",
     change_label_color: "Alterar cor da etiqueta",
     change_label_icon: "Alterar ícone da etiqueta",
@@ -1903,7 +1907,7 @@ export const pt_br = {
     recovery_text_unrecoverable:
       "Sem esses códigos, ninguém pode acessar sua conta se você esquecer a senha.",
     recovery_text_your_codes: "SEUS CÓDIGOS DE RECUPERAÇÃO:",
-    remove_alias_avatar: "Remover avatar",
+    remove_alias_avatar: "Remover foto do perfil",
     remove_recovery_email: "Remover e-mail de recuperação",
     step_up_description:
       "Para sua segurança, confirme sua senha para continuar.",
@@ -2312,6 +2316,8 @@ export const pt_br = {
     recovery_phrase_migrate_action: "Obter códigos",
   },
   settings: {
+    referral_load_failed:
+      "Não foi possível carregar os detalhes do seu convite.",
     sandbox_off_by_setting_notice:
       "Esta janela está sendo executada sem a sandbox porque uma variável de ambiente a desativou.",
     sandbox_off_notice:
@@ -10385,6 +10391,9 @@ export const pt_br = {
       "Este e-mail foi recebido em {{ received }}, mas sua resposta será enviada de {{ selected }}. Responder de outro endereço pode revelá-lo ao remetente e a resposta pode ser rejeitada.",
     reply_from_mismatch_use_received: "Usar endereço de recebimento",
     sending_disabled_badge: "Envio desativado",
+    shake_feedback_prompt: "Algo não está funcionando? Conte para nós.",
+    shake_feedback_send: "Enviar feedback",
+    shake_feedback_dismiss: "Não, obrigado",
     reply_from_mismatch_banner: "Este e-mail foi recebido em {{ received }}, mas sua resposta será enviada de {{ selected }}.",
     reply_from_mismatch_banner_switch: "Enviar de {{ received }}",
     reply_from_mismatch_send_anyway: "Enviar mesmo assim",
@@ -10412,6 +10421,9 @@ export const pt_br = {
     load_external_content: "Carregar conteúdo externo",
     external_content_hidden: "O conteúdo externo está oculto",
     show_external_content: "Mostrar conteúdo",
+    trackers_blocked_count: "Rastreadores bloqueados: {{count}}",
+    trackers_stay_blocked:
+      "Os rastreadores continuam bloqueados mesmo ao mostrar o conteúdo.",
     image_loading_settings: "Configurações de imagens",
     image: "imagem",
     images: "imagens",
@@ -10488,6 +10500,11 @@ export const pt_br = {
     search_index_resume: "Retomar",
     search_searching_title: "Pesquisando seus e-mails",
     search_index_preparing: "Preparando seu índice privado",
+    search_index_eta_under_minute: "Falta menos de um minuto",
+    search_index_eta_minutes: "Faltam cerca de {{value}} minutos",
+    search_index_eta_minutes_one: "Falta cerca de {{value}} minuto",
+    search_index_eta_hours: "Faltam cerca de {{value}} horas",
+    search_index_eta_hours_one: "Falta cerca de {{value}} hora",
     search_index_live_hint:
       "As correspondências aparecem assim que são encontradas.",
     search_searching_more: "Pesquisando mais e-mails",

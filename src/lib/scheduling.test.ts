@@ -22,6 +22,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
+  create_time_slicer,
   is_page_hidden,
   yield_to_next_paint,
   yield_to_visible_page,
@@ -128,5 +129,28 @@ describe("yield_to_next_paint", () => {
     await yield_to_next_paint();
 
     expect(timer).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("create_time_slicer", () => {
+  it("asks to yield once the budget is spent and resets after yielding", async () => {
+    let clock = 1_000;
+
+    vi.spyOn(performance, "now").mockImplementation(() => clock);
+    const slicer = create_time_slicer(8);
+
+    expect(slicer.should_yield()).toBe(false);
+
+    clock += 7;
+
+    expect(slicer.should_yield()).toBe(false);
+
+    clock += 2;
+
+    expect(slicer.should_yield()).toBe(true);
+
+    await slicer.yield();
+
+    expect(slicer.should_yield()).toBe(false);
   });
 });
