@@ -30,8 +30,6 @@ import {
   encrypt_envelope_with_bytes,
 } from "./crypto/envelope";
 import { seal_attachment_meta_v2 } from "./crypto/attachment_meta_v2";
-import { decrypt_attachment_meta } from "./crypto/attachment_crypto";
-import { get_vault_from_memory } from "./crypto/memory_key_store";
 
 export type ImportedResealOutcome =
   | "rewritten"
@@ -165,9 +163,14 @@ export async function reseal_imported_attachments(
 async function opens_with_current_keys(
   row: Pick<AttachmentMetaItem, "encrypted_meta" | "meta_nonce">,
 ): Promise<boolean> {
-  if (!get_vault_from_memory()) return true;
-
   try {
+    const { get_vault_from_memory } = await import("./crypto/memory_key_store");
+
+    if (!get_vault_from_memory()) return true;
+
+    const { decrypt_attachment_meta } =
+      await import("./crypto/attachment_crypto");
+
     await decrypt_attachment_meta(row.encrypted_meta, row.meta_nonce);
 
     return true;
