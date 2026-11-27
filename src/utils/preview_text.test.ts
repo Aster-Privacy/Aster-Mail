@@ -139,6 +139,28 @@ describe("strip_preview_filler", () => {
     expect(strip_preview_filler("Apple Event")).toBe("Apple Event");
   });
 
+  it("keeps the joiner inside an emoji sequence", () => {
+    expect(strip_preview_filler("\u{1f468}‍\u{1f4bb} Dev update")).toBe(
+      "\u{1f468}‍\u{1f4bb} Dev update",
+    );
+    expect(strip_preview_filler("\u{1f3f3}️‍\u{1f308}")).toBe(
+      "\u{1f3f3}️‍\u{1f308}",
+    );
+  });
+
+  it("keeps a non-joiner between two letters", () => {
+    expect(strip_preview_filler("می‌خوام")).toBe(
+      "می‌خوام",
+    );
+  });
+
+  it("drops joiners that pad the edges of a word", () => {
+    expect(strip_preview_filler("Sale‌ ‌ ‍")).toBe(
+      "Sale",
+    );
+    expect(strip_preview_filler("‌".repeat(40))).toBe("");
+  });
+
   it("removes interlinear annotation markers", () => {
     expect(strip_preview_filler("a￹b￺c￻d")).toBe("abcd");
   });
