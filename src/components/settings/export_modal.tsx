@@ -443,7 +443,7 @@ export function ExportModal({ is_open, on_close }: ExportModalProps) {
           autoFocus
           className="w-full"
           maxLength={256}
-          placeholder="••••••••"
+          placeholder={t("settings.password")}
           status={reauth_error ? "error" : "default"}
           type="password"
           value={passphrase}

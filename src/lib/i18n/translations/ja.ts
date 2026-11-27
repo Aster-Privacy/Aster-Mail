@@ -4632,7 +4632,7 @@ export const ja = {
     vault: "保管庫",
     loaded: "読み込み済み",
     not_loaded: "未読み込み",
-    passphrase: "パスフレーズ",
+    passphrase: "パスワード",
     cached: "キャッシュ済み",
     not_cached: "未キャッシュ",
     key_age: "キーの経過時間",
@@ -8861,24 +8861,22 @@ export const ja = {
     export_description:
       "メールボックスを標準MBOXファイルまたは個別の.EMLメッセージのフォルダとしてダウンロードします。",
     export_start_button: "エクスポートを開始",
-    export_step_reauth_title: "パスフレーズを確認",
-    export_reauth_prompt:
-      "このエクスポートを承認するためにアカウントのパスフレーズを再入力してください。",
+    export_step_reauth_title: "パスワードを確認",
+    export_reauth_prompt: "データをエクスポートするには、アカウントのパスワードを入力してください。",
     export_reauth_submit: "承認",
-    export_reauth_failed: "パスフレーズが一致しませんでした。",
+    export_reauth_failed: "パスワードが正しくありません。もう一度お試しください。",
     export_step_verify_title: "本人確認",
-    export_verify_description:
-      "このエクスポートを準備する前に、アカウントのパスワードを確認してください。",
+    export_verify_description: "エクスポートを準備するには、アカウントのパスワードを確認してください。",
     export_verify_submit: "確認",
     export_security_section_title: "確認が必要です",
     export_security_password_row_title: "アカウントのパスワードと2FA",
     export_security_password_row_body:
       "エクスポートのたびにパスワードを確認し、2FAが有効な場合は認証コードも確認します。",
-    export_security_vault_row_title: "暗号化保管庫のパスフレーズ",
+    export_security_vault_row_title: "このデバイスでのパスワード確認",
     export_security_vault_row_body:
-      "ローカルの保管庫パスフレーズは、メールをエクスポート用に復号する前にこのデバイスを確認します。",
+      "Aster Mail は、エクスポート用にメールを復号する前に、このデバイス上でパスワードを確認します。",
     export_security_vault_row_help:
-      "これはこの端末のローカルボールトのパスフレーズであり、アカウントのパスワードではありません。この端末上でのみ暗号化キーのロックを解除します。",
+      "この確認はこのデバイス上でのみ行われます。サインインに使うパスワードと同じもので、このデバイスの暗号化キーのロック解除にも使われます。",
     export_security_required_badge: "必須",
     export_warning_title: "ご注意ください",
     export_warning_body:

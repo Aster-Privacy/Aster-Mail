@@ -3662,7 +3662,7 @@ export const en: Translations = {
     vault: "Vault",
     loaded: "Loaded",
     not_loaded: "Not loaded",
-    passphrase: "Passphrase",
+    passphrase: "Password",
     cached: "Cached",
     not_cached: "Not cached",
     key_age: "Key Age",
@@ -8816,24 +8816,23 @@ export const en: Translations = {
     export_description:
       "Download your mailbox as a standard MBOX file or a folder of individual .EML messages.",
     export_start_button: "Start export",
-    export_step_reauth_title: "Confirm your passphrase",
-    export_reauth_prompt:
-      "Re-enter your account passphrase to authorize this export.",
+    export_step_reauth_title: "Confirm your password",
+    export_reauth_prompt: "To export your data, enter your account password.",
     export_reauth_submit: "Authorize",
-    export_reauth_failed: "Passphrase did not match.",
+    export_reauth_failed: "Incorrect password. Try again.",
     export_step_verify_title: "Verify it's you",
     export_verify_description:
-      "Confirm your account password before we prepare this export.",
+      "To prepare your export, confirm your account password.",
     export_verify_submit: "Verify",
     export_security_section_title: "Verification required",
     export_security_password_row_title: "Account password & 2FA",
     export_security_password_row_body:
       "You'll confirm your password, and your authenticator code if 2FA is on, before every export.",
-    export_security_vault_row_title: "Encryption vault passphrase",
+    export_security_vault_row_title: "Password check on this device",
     export_security_vault_row_body:
-      "Your local vault passphrase confirms this device before mail is decrypted for export.",
+      "Aster Mail checks your password on this device before it decrypts your mail for export.",
     export_security_vault_row_help:
-      "This is your local device vault passphrase, not your account password. It unlocks your encryption keys on this device only.",
+      "This check happens on this device only. It uses the same password you sign in with, which also unlocks your encryption keys here.",
     export_security_required_badge: "Required",
     export_warning_title: "Heads up",
     export_warning_body:

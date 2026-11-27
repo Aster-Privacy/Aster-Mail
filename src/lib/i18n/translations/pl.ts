@@ -4875,7 +4875,7 @@ export const pl = {
     vault: "Sejf",
     loaded: "Załadowany",
     not_loaded: "Nie załadowany",
-    passphrase: "Hasło główne",
+    passphrase: "Hasło",
     cached: "W pamięci podręcznej",
     not_cached: "Nie w pamięci podręcznej",
     key_age: "Wiek klucza",
@@ -9232,23 +9232,22 @@ export const pl = {
       "Pobierz skrzynkę pocztową jako standardowy plik MBOX lub folder z pojedynczymi wiadomościami .EML.",
     export_start_button: "Rozpocznij eksport",
     export_step_reauth_title: "Potwierdź hasło",
-    export_reauth_prompt:
-      "Wprowadź ponownie hasło do konta, aby autoryzować ten eksport.",
+    export_reauth_prompt: "Aby wyeksportować dane, wpisz hasło do konta.",
     export_reauth_submit: "Autoryzuj",
-    export_reauth_failed: "Hasło nie pasuje.",
+    export_reauth_failed: "Nieprawidłowe hasło. Spróbuj ponownie.",
     export_step_verify_title: "Potwierdź tożsamość",
     export_verify_description:
-      "Potwierdź hasło swojego konta, zanim przygotujemy ten eksport.",
+      "Aby przygotować eksport, potwierdź hasło do konta.",
     export_verify_submit: "Zweryfikuj",
     export_security_section_title: "Wymagana weryfikacja",
     export_security_password_row_title: "Hasło konta i 2FA",
     export_security_password_row_body:
       "Przed każdym eksportem potwierdzisz swoje hasło oraz kod uwierzytelniający, jeśli 2FA jest włączone.",
-    export_security_vault_row_title: "Hasło skarbca szyfrowania",
+    export_security_vault_row_title: "Sprawdzanie hasła na tym urządzeniu",
     export_security_vault_row_body:
-      "Twoje lokalne hasło skarbca potwierdza to urządzenie przed odszyfrowaniem poczty do eksportu.",
+      "Aster Mail sprawdza Twoje hasło na tym urządzeniu przed odszyfrowaniem poczty do eksportu.",
     export_security_vault_row_help:
-      "To jest hasło lokalnego sejfu tego urządzenia, a nie hasło konta. Odblokowuje ono klucze szyfrowania tylko na tym urządzeniu.",
+      "To sprawdzenie odbywa się tylko na tym urządzeniu. Używa tego samego hasła, którym się logujesz i które odblokowuje tu również Twoje klucze szyfrowania.",
     export_security_required_badge: "Wymagane",
     export_warning_title: "Uwaga",
     export_warning_body:

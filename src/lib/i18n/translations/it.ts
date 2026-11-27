@@ -4808,7 +4808,7 @@ export const it = {
     vault: "Cassaforte",
     loaded: "Caricato",
     not_loaded: "Non caricato",
-    passphrase: "Passphrase",
+    passphrase: "Password",
     cached: "In cache",
     not_cached: "Non in cache",
     key_age: "Età della chiave",
@@ -9104,24 +9104,25 @@ export const it = {
     export_description:
       "Scarica la tua casella di posta come file MBOX standard o una cartella di messaggi .EML individuali.",
     export_start_button: "Avvia esportazione",
-    export_step_reauth_title: "Conferma la tua passphrase",
+    export_step_reauth_title: "Conferma la tua password",
     export_reauth_prompt:
-      "Reinserisci la passphrase del tuo account per autorizzare questa esportazione.",
+      "Per esportare i tuoi dati, inserisci la password del tuo account.",
     export_reauth_submit: "Autorizza",
-    export_reauth_failed: "La passphrase non corrispondeva.",
+    export_reauth_failed: "Password errata. Riprova.",
     export_step_verify_title: "Verifica che sei tu",
     export_verify_description:
-      "Conferma la password del tuo account prima di preparare questa esportazione.",
+      "Per preparare l'esportazione, conferma la password del tuo account.",
     export_verify_submit: "Verifica",
     export_security_section_title: "Verifica richiesta",
     export_security_password_row_title: "Password dell'account e 2FA",
     export_security_password_row_body:
       "Confermerai la password, e il codice dell'autenticatore se la 2FA è attiva, prima di ogni esportazione.",
-    export_security_vault_row_title: "Passphrase del vault di cifratura",
+    export_security_vault_row_title:
+      "Verifica della password su questo dispositivo",
     export_security_vault_row_body:
-      "La passphrase locale del vault conferma questo dispositivo prima che la posta venga decifrata per l'esportazione.",
+      "Aster Mail verifica la tua password su questo dispositivo prima di decifrare la tua posta per l'esportazione.",
     export_security_vault_row_help:
-      "Questa è la passphrase del vault locale di questo dispositivo, non la password dell'account. Sblocca le tue chiavi di crittografia solo su questo dispositivo.",
+      "Questa verifica avviene solo su questo dispositivo. Usa la stessa password con cui accedi, che sblocca anche le tue chiavi di crittografia qui.",
     export_security_required_badge: "Richiesto",
     export_warning_title: "Attenzione",
     export_warning_body:

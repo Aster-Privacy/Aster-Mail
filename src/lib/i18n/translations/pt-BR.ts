@@ -4725,7 +4725,7 @@ export const pt_br = {
     vault: "Cofre",
     loaded: "Carregado",
     not_loaded: "Não carregado",
-    passphrase: "Frase-senha",
+    passphrase: "Senha",
     cached: "Em cache",
     not_cached: "Não em cache",
     key_age: "Idade da chave",
@@ -9008,24 +9008,24 @@ export const pt_br = {
     export_description:
       "Baixe sua caixa de correio como um arquivo MBOX padrão ou uma pasta de mensagens .EML individuais.",
     export_start_button: "Iniciar exportação",
-    export_step_reauth_title: "Confirme sua frase-senha",
+    export_step_reauth_title: "Confirme sua senha",
     export_reauth_prompt:
-      "Reinsira a frase-senha da sua conta para autorizar esta exportação.",
+      "Para exportar seus dados, digite a senha da sua conta.",
     export_reauth_submit: "Autorizar",
-    export_reauth_failed: "A frase-senha não correspondeu.",
+    export_reauth_failed: "Senha incorreta. Tente novamente.",
     export_step_verify_title: "Confirme que é você",
     export_verify_description:
-      "Confirme a senha da sua conta antes de prepararmos esta exportação.",
+      "Para preparar a exportação, confirme a senha da sua conta.",
     export_verify_submit: "Verificar",
     export_security_section_title: "Verificação necessária",
     export_security_password_row_title: "Senha da conta e 2FA",
     export_security_password_row_body:
       "Você confirmará sua senha, e o código do autenticador se o 2FA estiver ativado, antes de cada exportação.",
-    export_security_vault_row_title: "Frase secreta do cofre de criptografia",
+    export_security_vault_row_title: "Verificação da senha neste dispositivo",
     export_security_vault_row_body:
-      "Sua frase secreta local do cofre confirma este dispositivo antes que o e-mail seja descriptografado para exportação.",
+      "O Aster Mail verifica sua senha neste dispositivo antes de descriptografar seus e-mails para exportação.",
     export_security_vault_row_help:
-      "Esta é a frase-senha do cofre local deste dispositivo, não a senha da sua conta. Ela desbloqueia suas chaves de criptografia apenas neste dispositivo.",
+      "Essa verificação acontece somente neste dispositivo. Ela usa a mesma senha com que você entra na conta, que também desbloqueia suas chaves de criptografia aqui.",
     export_security_required_badge: "Obrigatório",
     export_warning_title: "Atenção",
     export_warning_body:
