@@ -8970,6 +8970,9 @@ export interface MailTranslations {
   expand_compose: string;
   minimize_compose: string;
   resize_compose: string;
+  resize_image: string;
+  image_width_pixels: string;
+  delete_image: string;
   close_compose: string;
   enter_fullscreen: string;
   exit_fullscreen: string;

@@ -21,7 +21,7 @@
 import type { SenderOption } from "@/hooks/use_sender_aliases";
 import type { MobileComposePageProps } from "./mobile_compose_helpers";
 
-import { useState, useCallback, useMemo, useEffect } from "react";
+import { useState, useCallback, useMemo, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import {
   XMarkIcon,
@@ -51,6 +51,7 @@ import { use_mobile_compose_images } from "./use_mobile_compose_images";
 
 import { is_valid_email } from "@/components/compose/compose_shared";
 import { ComposeTotalSizeRow } from "@/components/compose/compose_attachments";
+import { ImageResizeOverlay } from "@/components/compose/image_resize_overlay";
 import { split_recipient_list } from "@/utils/recipient_list";
 import { format_datetime_hint } from "@/utils/date_format";
 import { use_compose } from "@/components/compose/use_compose";
@@ -119,6 +120,7 @@ function MobileComposePage({
 
   use_compose_readable_color(compose.message_textarea_ref);
   use_compose_image_hydration(compose.message_textarea_ref);
+  const editor_container_ref = useRef<HTMLDivElement>(null);
 
   const cc_bcc_visible =
     show_cc_bcc ||
@@ -559,7 +561,7 @@ function MobileComposePage({
           </div>
         )}
 
-        <div className="flex-1 px-4 py-3">
+        <div ref={editor_container_ref} className="relative flex-1 px-4 py-3">
           <div
             ref={compose.message_textarea_ref}
             contentEditable
@@ -569,6 +571,10 @@ function MobileComposePage({
             role="textbox"
             onInput={compose.handle_editor_input}
             onPaste={handle_paste_with_images}
+          />
+          <ImageResizeOverlay
+            container_ref={editor_container_ref}
+            editor={compose.editor}
           />
         </div>
 

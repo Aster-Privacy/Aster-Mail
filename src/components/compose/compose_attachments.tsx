@@ -21,9 +21,8 @@
 import type { UseComposeReturn } from "@/components/compose/use_compose";
 import type { Attachment } from "@/components/compose/compose_shared";
 
-import { useRef, useState, useCallback, useEffect, useMemo } from "react";
+import { useRef, useEffect, useMemo } from "react";
 
-import { apply_input_transform } from "@/utils/input_transform";
 import { CloseIcon } from "@/components/common/icons";
 import { sanitize_html } from "@/lib/html_sanitizer";
 import {
@@ -35,11 +34,11 @@ import { use_compose_image_hydration } from "@/hooks/use_compose_image_hydration
 import { plain_text_to_editor_html } from "@/hooks/editor_utils";
 import { use_i18n } from "@/lib/i18n/context";
 import { get_file_icon_color } from "@/components/compose/compose_shared";
-import { is_composing } from "@/utils/ime";
 import { format_bytes } from "@/lib/utils";
 import { use_compose_readable_color } from "@/hooks/use_compose_readable_color";
 import { inline_image_bytes } from "@/lib/inline_image_bytes";
 import { get_max_total_attachments_size } from "@/services/attachment_limits";
+import { ImageResizeOverlay } from "@/components/compose/image_resize_overlay";
 
 function get_file_type_icon(mime_type: string): React.ReactNode {
   const cls = "w-3.5 h-3.5";
@@ -386,298 +385,6 @@ interface ComposeEditorProps {
   placeholder?: string;
 }
 
-const HANDLE_SIZE = 10;
-const HANDLE_POSITIONS: Record<
-  string,
-  {
-    top?: string;
-    bottom?: string;
-    left?: string;
-    right?: string;
-    cursor: string;
-  }
-> = {
-  nw: {
-    top: `-${HANDLE_SIZE / 2}px`,
-    left: `-${HANDLE_SIZE / 2}px`,
-    cursor: "nw-resize",
-  },
-  ne: {
-    top: `-${HANDLE_SIZE / 2}px`,
-    right: `-${HANDLE_SIZE / 2}px`,
-    cursor: "ne-resize",
-  },
-  sw: {
-    bottom: `-${HANDLE_SIZE / 2}px`,
-    left: `-${HANDLE_SIZE / 2}px`,
-    cursor: "sw-resize",
-  },
-  se: {
-    bottom: `-${HANDLE_SIZE / 2}px`,
-    right: `-${HANDLE_SIZE / 2}px`,
-    cursor: "se-resize",
-  },
-};
-
-const TOOLBAR_HEIGHT = 24;
-const TOOLBAR_GAP = 6;
-
-function compute_toolbar_vertical(
-  img_top: number,
-  img_height: number,
-  container_height: number,
-  scroll_top: number,
-): { top?: string; bottom?: string } {
-  const space_bottom = container_height + scroll_top - (img_top + img_height);
-  const space_top = img_top - scroll_top;
-
-  if (space_bottom >= TOOLBAR_HEIGHT + TOOLBAR_GAP) {
-    return { top: `${img_height + TOOLBAR_GAP}px` };
-  }
-
-  if (space_top >= TOOLBAR_HEIGHT + TOOLBAR_GAP) {
-    return { top: `${-TOOLBAR_HEIGHT - TOOLBAR_GAP}px` };
-  }
-
-  return { top: `${img_height - TOOLBAR_HEIGHT - 4}px` };
-}
-
-function SizeInput({
-  width,
-  height,
-  on_change,
-}: {
-  width: number;
-  height: number;
-  on_change: (w: number) => void;
-}) {
-  const [editing, set_editing] = useState(false);
-  const [value, set_value] = useState("");
-  const input_ref = useRef<HTMLInputElement>(null);
-  const aspect = height / width;
-
-  const start_edit = useCallback(() => {
-    set_value(String(Math.round(width)));
-    set_editing(true);
-    requestAnimationFrame(() => input_ref.current?.select());
-  }, [width]);
-
-  const commit = useCallback(() => {
-    const parsed = parseInt(value, 10);
-
-    if (parsed > 0 && parsed !== Math.round(width)) {
-      on_change(parsed);
-    }
-    set_editing(false);
-  }, [value, width, on_change]);
-
-  const handle_key = useCallback(
-    (e: React.KeyboardEvent) => {
-      if (is_composing(e)) return;
-
-      if (e.key === "Enter") {
-        e.preventDefault();
-        commit();
-      } else if (e.key === "Escape") {
-        set_editing(false);
-      }
-    },
-    [commit],
-  );
-
-  if (editing) {
-    const new_h =
-      parseInt(value, 10) > 0
-        ? Math.round(parseInt(value, 10) * aspect)
-        : Math.round(height);
-
-    return (
-      <span
-        style={{
-          display: "inline-flex",
-          alignItems: "center",
-          gap: "1px",
-          padding: "0 6px",
-          height: "20px",
-          fontSize: "10px",
-          backgroundColor: "rgba(0, 0, 0, 0.75)",
-          color: "#fff",
-          borderRadius: "3px",
-          whiteSpace: "nowrap",
-        }}
-        onMouseDown={(e) => e.stopPropagation()}
-      >
-        <input
-          ref={input_ref}
-          style={{
-            width: "36px",
-            background: "transparent",
-            border: "none",
-            outline: "none",
-            color: "#fff",
-            fontSize: "10px",
-            textAlign: "right",
-            padding: 0,
-          }}
-          type="text"
-          value={value}
-          onBlur={commit}
-          onChange={(e) =>
-            set_value(
-              apply_input_transform(e.target, (v) => v.replace(/\D/g, "")),
-            )
-          }
-          onKeyDown={handle_key}
-        />
-        <span style={{ opacity: 0.5 }}>×</span>
-        <span style={{ width: "30px" }}>{new_h}</span>
-      </span>
-    );
-  }
-
-  return (
-    <button
-      style={{
-        padding: "0 6px",
-        height: "20px",
-        fontSize: "10px",
-        backgroundColor: "rgba(0, 0, 0, 0.6)",
-        color: "#fff",
-        border: "none",
-        borderRadius: "3px",
-        whiteSpace: "nowrap",
-        cursor: "pointer",
-      }}
-      type="button"
-      onMouseDown={(e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        start_edit();
-      }}
-    >
-      {Math.round(width)} × {Math.round(height)}
-    </button>
-  );
-}
-
-function ImageResizeOverlay({
-  compose,
-  container_ref,
-}: {
-  compose: UseComposeReturn;
-  container_ref: React.RefObject<HTMLElement>;
-}) {
-  const {
-    selected_image,
-    start_image_resize,
-    delete_selected_image,
-    set_image_width,
-  } = compose.editor;
-
-  if (!selected_image.image || !selected_image.rect || !container_ref.current)
-    return null;
-
-  const container_rect = container_ref.current.getBoundingClientRect();
-  const img_rect = selected_image.rect;
-
-  const top =
-    img_rect.top - container_rect.top + container_ref.current.scrollTop;
-  const left =
-    img_rect.left - container_rect.left + container_ref.current.scrollLeft;
-
-  const toolbar_vertical = compute_toolbar_vertical(
-    top,
-    img_rect.height,
-    container_ref.current.clientHeight,
-    container_ref.current.scrollTop,
-  );
-
-  return (
-    <div
-      style={{
-        position: "absolute",
-        top: `${top}px`,
-        left: `${left}px`,
-        width: `${img_rect.width}px`,
-        height: `${img_rect.height}px`,
-        pointerEvents: "none",
-        zIndex: 10,
-      }}
-    >
-      <div
-        style={{
-          position: "absolute",
-          inset: "0",
-          border: "2px solid var(--accent-color, #3b82f6)",
-          pointerEvents: "none",
-        }}
-      />
-      {Object.entries(HANDLE_POSITIONS).map(([key, pos]) => (
-        <div
-          key={key}
-          style={{
-            position: "absolute",
-            width: `${HANDLE_SIZE}px`,
-            height: `${HANDLE_SIZE}px`,
-            backgroundColor: "var(--accent-color, #3b82f6)",
-            border: "1px solid white",
-            borderRadius: "2px",
-            cursor: pos.cursor,
-            pointerEvents: "auto",
-            top: pos.top,
-            bottom: pos.bottom,
-            left: pos.left,
-            right: pos.right,
-          }}
-          onMouseDown={(e) => start_image_resize(e, key, container_ref)}
-        />
-      ))}
-      <div
-        style={{
-          position: "absolute",
-          ...toolbar_vertical,
-          left: "50%",
-          transform: "translateX(-50%)",
-          display: "flex",
-          gap: "4px",
-          alignItems: "center",
-          pointerEvents: "auto",
-        }}
-      >
-        <SizeInput
-          height={img_rect.height}
-          on_change={set_image_width}
-          width={img_rect.width}
-        />
-        <button
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            width: "20px",
-            height: "20px",
-            fontSize: "11px",
-            backgroundColor: "rgba(239, 68, 68, 0.85)",
-            color: "#fff",
-            border: "none",
-            borderRadius: "3px",
-            cursor: "pointer",
-            lineHeight: 1,
-          }}
-          type="button"
-          onMouseDown={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            delete_selected_image();
-          }}
-        >
-          ✕
-        </button>
-      </div>
-    </div>
-  );
-}
-
 export function ComposeEditor({ compose, placeholder }: ComposeEditorProps) {
   const { t } = use_i18n();
   const resolved_placeholder = placeholder || t("common.write_your_message");
@@ -761,8 +468,8 @@ export function ComposeEditor({ compose, placeholder }: ComposeEditorProps) {
           onPaste={compose.handle_editor_paste}
         />
         <ImageResizeOverlay
-          compose={compose}
-          container_ref={scroll_container_ref as React.RefObject<HTMLElement>}
+          container_ref={scroll_container_ref}
+          editor={compose.editor}
         />
       </div>
       <style>{`
