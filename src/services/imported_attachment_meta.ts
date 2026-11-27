@@ -160,6 +160,25 @@ export async function reseal_imported_attachments(
   }
 }
 
+async function opens_with_current_keys(
+  row: Pick<AttachmentMetaItem, "encrypted_meta" | "meta_nonce">,
+): Promise<boolean> {
+  try {
+    const { get_vault_from_memory } = await import("./crypto/memory_key_store");
+
+    if (!get_vault_from_memory()) return true;
+
+    const { decrypt_attachment_meta } =
+      await import("./crypto/attachment_crypto");
+
+    await decrypt_attachment_meta(row.encrypted_meta, row.meta_nonce);
+
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 export async function imported_attachments_locked(
   passphrase_bytes: Uint8Array,
 ): Promise<boolean> {
@@ -170,9 +189,10 @@ export async function imported_attachments_locked(
 
   for (const row of page.attachments ?? []) {
     if (!row.encrypted_meta) continue;
-    if (!(await open_meta_with(row.encrypted_meta, passphrase_bytes))) {
-      return true;
-    }
+    if (await open_meta_with(row.encrypted_meta, passphrase_bytes)) continue;
+    if (await opens_with_current_keys(row)) continue;
+
+    return true;
   }
 
   return false;

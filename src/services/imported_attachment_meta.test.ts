@@ -49,6 +49,21 @@ vi.mock("./crypto/attachment_meta_v2", () => ({
   }),
 }));
 
+const vault_in_memory = vi.fn(() => ({ identity_key: "k" }) as unknown);
+
+vi.mock("./crypto/memory_key_store", () => ({
+  get_vault_from_memory: () => vault_in_memory(),
+}));
+
+vi.mock("./crypto/attachment_crypto", () => ({
+  decrypt_attachment_meta: async (encrypted_meta: string) => {
+    if (encrypted_meta.startsWith("key-sealed:")) {
+      return { filename: "file.pdf", content_type: "application/pdf" };
+    }
+    throw new Error("unreadable");
+  },
+}));
+
 import {
   imported_attachments_locked,
   reseal_imported_attachment_row,
@@ -228,6 +243,26 @@ describe("imported attachment details", () => {
   it("reports nothing locked when the current password opens every row", async () => {
     list_imported_password_meta.mockResolvedValue({
       data: { attachments: [row("a1", "sealed:pw")], next_cursor: null },
+    });
+
+    expect(await imported_attachments_locked(encode("pw"))).toBe(false);
+  });
+
+  it("reports nothing locked when the account keys open the other rows", async () => {
+    list_imported_password_meta.mockResolvedValue({
+      data: {
+        attachments: [row("a1", "sealed:pw"), row("a2", "key-sealed:identity")],
+        next_cursor: null,
+      },
+    });
+
+    expect(await imported_attachments_locked(encode("pw"))).toBe(false);
+  });
+
+  it("reports nothing locked while the account keys are not loaded", async () => {
+    vault_in_memory.mockReturnValueOnce(null);
+    list_imported_password_meta.mockResolvedValue({
+      data: { attachments: [row("a1", "sealed:old-pw")], next_cursor: null },
     });
 
     expect(await imported_attachments_locked(encode("pw"))).toBe(false);
