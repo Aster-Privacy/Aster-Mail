@@ -187,7 +187,13 @@ function MobileLoader() {
   );
 }
 
-function MobileProtectedRoute({ children }: { children: React.ReactNode }) {
+function MobileProtectedRoute({
+  children,
+  returns_after_sign_in = false,
+}: {
+  children: React.ReactNode;
+  returns_after_sign_in?: boolean;
+}) {
   const { is_authenticated, is_loading, is_completing_registration } =
     use_auth();
   const location = useLocation();
@@ -198,6 +204,12 @@ function MobileProtectedRoute({ children }: { children: React.ReactNode }) {
   }
 
   if (!is_authenticated && !is_completing_registration) {
+    if (returns_after_sign_in) {
+      const next = encodeURIComponent(`${location.pathname}${location.search}`);
+
+      return <Navigate replace to={`/sign-in?next=${next}`} />;
+    }
+
     return <Navigate replace state={{ from: location }} to="/welcome" />;
   }
 
@@ -868,7 +880,7 @@ function MobileApp() {
               />
               <Route
                 element={
-                  <MobileProtectedRoute>
+                  <MobileProtectedRoute returns_after_sign_in>
                     <LinkDevicePage />
                   </MobileProtectedRoute>
                 }

@@ -750,7 +750,11 @@ function LinkDeviceFlow({
           className="w-full mt-8"
           size="xl"
           variant="depth"
-          onClick={() => navigate("/sign-in")}
+          onClick={() =>
+            navigate(
+              `/sign-in?next=${encodeURIComponent(app_pathname() + window.location.search)}`,
+            )
+          }
         >
           {t("auth.sign_in")}
         </Button>
