@@ -37,7 +37,10 @@ import { emit_auth_ready } from "@/hooks/mail_events";
 import { get_current_account_id } from "@/services/account_manager";
 import { ignore_error } from "@/lib/ignore_error";
 import { set_post_switch_path } from "@/lib/post_switch_path";
-import { get_safe_next_path } from "@/pages/sign_in_helpers";
+import {
+  consume_safe_next_path,
+  get_safe_next_path,
+} from "@/pages/sign_in_helpers";
 import { user_facing_error } from "@/utils/user_facing_error";
 import { is_crypto_module_load_error } from "@/services/crypto/openpgp_loader";
 import { login_safety_error_key } from "@/services/crypto/auth_salt_guard";
@@ -421,11 +424,11 @@ export function build_mobile_sign_in_handlers(
         check_and_replenish_prekeys();
       }
 
-      navigate("/");
+      navigate(consume_safe_next_path());
       setTimeout(() => emit_auth_ready(), 50);
     } catch (err) {
       if (err instanceof Error && err.message === "login_timeout") {
-        navigate("/");
+        navigate(consume_safe_next_path());
         setTimeout(() => emit_auth_ready(), 50);
 
         return;

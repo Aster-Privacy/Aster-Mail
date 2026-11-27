@@ -124,6 +124,15 @@ describe("account_index_url", () => {
     }
   });
 
+  it("treats the device link page as a public page that keeps the signed-in account", () => {
+    for (const path of ["/link-device", "/link-device/"]) {
+      expect(is_public_entry_path(path)).toBe(true);
+      expect(is_signed_in_entry_path(path)).toBe(true);
+    }
+
+    expect(is_signed_in_entry_path("/link-devices")).toBe(false);
+  });
+
   it("keeps an out-of-range index so the chooser can explain it", () => {
     set_location("/u/99/all");
 

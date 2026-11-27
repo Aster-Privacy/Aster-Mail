@@ -87,6 +87,18 @@ describe("account for a fresh tab on an entry page", () => {
     expect((await manager.get_current_account())?.id).toBe(SECOND);
   });
 
+  it("signs a fresh device link tab in with the account for its index", async () => {
+    const manager = await open_fresh_tab("/link-device?source=bridge");
+
+    expect((await manager.get_current_account())?.id).toBe(FIRST);
+  });
+
+  it("signs a fresh device link tab in with the account in its prefix", async () => {
+    const manager = await open_fresh_tab("/u/1/link-device");
+
+    expect((await manager.get_current_account())?.id).toBe(SECOND);
+  });
+
   it("keeps a fresh sign-in tab signed out", async () => {
     const manager = await open_fresh_tab("/sign-in");
 
