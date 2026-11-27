@@ -43,7 +43,11 @@ function at(generation: number): EncryptedVault {
 }
 
 const thrown: unknown[] = [];
-const auth_state = { is_adding_account: false };
+const auth_state = {
+  is_adding_account: false,
+  is_authenticated: false,
+  current_account_id: null as string | null,
+};
 
 function adopt(user: { id: string }, vault: EncryptedVault, marker: unknown) {
   try {
@@ -97,9 +101,9 @@ vi.mock("@/contexts/auth_context", () => ({
     switch_to_account: vi.fn(),
     is_adding_account: auth_state.is_adding_account,
     set_is_adding_account: vi.fn(),
-    is_authenticated: false,
+    is_authenticated: auth_state.is_authenticated,
     is_loading: false,
-    current_account_id: null,
+    current_account_id: auth_state.current_account_id,
     accounts: [],
   }),
 }));
@@ -186,6 +190,19 @@ function totp_response(marker: number | undefined): TotpVerifyResponse {
   };
 }
 
+async function render_page(): Promise<void> {
+  container = document.createElement("div");
+  document.body.appendChild(container);
+  root = createRoot(container);
+  await act(async () => {
+    root!.render(
+      <MemoryRouter initialEntries={["/sign-in"]}>
+        <Probe />
+      </MemoryRouter>,
+    );
+  });
+}
+
 async function finish_totp(marker: number | undefined): Promise<void> {
   container = document.createElement("div");
   document.body.appendChild(container);
@@ -212,6 +229,9 @@ describe("mobile two-step sign-in after a recovery on another app", () => {
     add_account_mock.mockClear();
     emit_auth_ready_mock.mockClear();
     auth_state.is_adding_account = false;
+    auth_state.is_authenticated = false;
+    auth_state.current_account_id = null;
+    window.history.replaceState({}, "", "/");
     pin_vault_generation(USER_ID, {
       ...at(40),
       vault_generation_ready: true,
@@ -226,6 +246,7 @@ describe("mobile two-step sign-in after a recovery on another app", () => {
     root = null;
     container = null;
     localStorage.clear();
+    window.history.replaceState({}, "", "/");
   });
 
   it("signs in with the recovered vault through login", async () => {
@@ -262,5 +283,36 @@ describe("mobile two-step sign-in after a recovery on another app", () => {
     expect(read_vault_generation_pin(USER_ID)).toBe(40);
     expect(navigate_mock).not.toHaveBeenCalledWith("/");
     expect(emit_auth_ready_mock).not.toHaveBeenCalled();
+  });
+
+  it("returns to the requested page with its query after sign-in", async () => {
+    const next = "/link-device?source=bridge";
+
+    window.history.replaceState(
+      {},
+      "",
+      `/sign-in?next=${encodeURIComponent(next)}`,
+    );
+
+    await finish_totp(41);
+
+    expect(navigate_mock).toHaveBeenCalledWith(next);
+    expect(navigate_mock).not.toHaveBeenCalledWith("/");
+  });
+
+  it("sends a tab that is already signed in to the requested page", async () => {
+    const next = "/link-device?source=bridge";
+
+    auth_state.is_authenticated = true;
+    auth_state.current_account_id = USER_ID;
+    window.history.replaceState(
+      {},
+      "",
+      `/sign-in?next=${encodeURIComponent(next)}`,
+    );
+
+    await render_page();
+
+    expect(navigate_mock).toHaveBeenCalledWith(next, { replace: true });
   });
 });

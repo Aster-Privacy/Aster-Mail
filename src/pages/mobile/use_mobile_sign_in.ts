@@ -45,6 +45,7 @@ import { use_guard_sign_in_gate } from "@/components/guard/guard_sign_in_gate";
 import { show_toast } from "@/components/toast/simple_toast";
 import { emit_auth_ready } from "@/hooks/mail_events";
 import { get_app_query_param } from "@/lib/hard_redirect";
+import { consume_safe_next_path } from "@/pages/sign_in_helpers";
 import { ignore_error } from "@/lib/ignore_error";
 import { user_facing_error } from "@/utils/user_facing_error";
 import { is_crypto_module_load_error } from "@/services/crypto/openpgp_loader";
@@ -110,7 +111,7 @@ export function use_mobile_sign_in() {
 
   useEffect(() => {
     if (has_existing_session) {
-      navigate("/", { replace: true });
+      navigate(consume_safe_next_path(), { replace: true });
     } else if (!auth_loading && !current_account_id && !is_adding_account) {
       api_client.clear_session_cookies();
     }
@@ -282,7 +283,7 @@ export function use_mobile_sign_in() {
         set_pending_login_token("");
         set_available_2fa_methods([]);
         set_active_2fa_method("totp");
-        navigate("/");
+        navigate(consume_safe_next_path());
         setTimeout(() => emit_auth_ready(), 50);
       } catch (err) {
         if (err instanceof Error && err.message === "login_timeout") {
@@ -290,7 +291,7 @@ export function use_mobile_sign_in() {
           set_pending_login_token("");
           set_available_2fa_methods([]);
           set_active_2fa_method("totp");
-          navigate("/");
+          navigate(consume_safe_next_path());
           setTimeout(() => emit_auth_ready(), 50);
 
           return;

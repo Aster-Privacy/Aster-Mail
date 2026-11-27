@@ -42,7 +42,7 @@ const PUBLIC_ENTRY_PATHS = [
   "/crypto-invoice",
 ];
 
-const SIGNED_IN_ENTRY_PATHS = ["/join", "/family"];
+const SIGNED_IN_ENTRY_PATHS = ["/join", "/family", "/link-device"];
 
 let active_account_index: number | null = null;
 
