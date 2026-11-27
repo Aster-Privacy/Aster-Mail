@@ -35,6 +35,7 @@ const h = vi.hoisted(() => ({
   pages: [] as { items: unknown[]; next_cursor?: string; has_more: boolean }[],
   attachments: {} as Record<string, unknown[]>,
   imported_rows: [] as unknown[],
+  envelope_keys: {} as Record<string, string>,
   sent_writes: [] as { id: string; sealed: string; expected: string }[],
   meta_writes: [] as { id: string; sealed: string; expected: string }[],
   write_result: "converted" as string,
@@ -108,6 +109,15 @@ vi.mock("./api/mail", () => ({
 
     return { data: h.pages[index] ?? { items: [], has_more: false } };
   },
+  get_mail_item: async () => ({ data: null }),
+}));
+
+vi.mock("./crypto/inbound_attachment_keys", async (import_original) => ({
+  ...(await import_original<
+    typeof import("./crypto/inbound_attachment_keys")
+  >()),
+  get_attachment_key: (mail_item_id: string, seq: number) =>
+    h.envelope_keys[`${mail_item_id}:${seq}`] ?? "",
 }));
 
 vi.mock("./api/attachments", () => ({
@@ -269,6 +279,7 @@ beforeEach(() => {
   h.pages = [];
   h.attachments = {};
   h.imported_rows = [];
+  h.envelope_keys = {};
   h.sent_writes = [];
   h.meta_writes = [];
   h.write_result = "converted";
@@ -415,6 +426,41 @@ describe("background sent mail conversion", () => {
     expect(JSON.parse(await open_sealed(h.meta_writes[0].sealed))).toEqual(
       meta,
     );
+  });
+
+  it("skips imported attachment details sealed by the server", async () => {
+    const server_sealed = (length: number) =>
+      btoa(
+        String.fromCharCode(...crypto.getRandomValues(new Uint8Array(length))),
+      );
+
+    h.status = status({ remaining_sent: 0, remaining_attachments: 2 });
+    h.pages = one_page([]);
+    h.envelope_keys = { "m_short:0": "key-a", "m_long:0": "key-b" };
+    h.imported_rows = [
+      {
+        id: "a_short",
+        mail_item_id: "m_short",
+        encrypted_meta: server_sealed(88),
+        meta_nonce: LEGACY_META_NONCE,
+        size_bytes: 10,
+        seq_num: 0,
+      },
+      {
+        id: "a_long",
+        mail_item_id: "m_long",
+        encrypted_meta: server_sealed(240),
+        meta_nonce: LEGACY_META_NONCE,
+        size_bytes: 10,
+        seq_num: 0,
+      },
+    ];
+
+    const summary = await run();
+
+    expect(summary?.unreadable).toBe(0);
+    expect(summary?.skipped).toBe(2);
+    expect(h.meta_writes).toEqual([]);
   });
 
   it("converts every legacy attachment metadata form and skips sealed rows", async () => {
@@ -973,7 +1019,7 @@ describe("recovering sent mail with a previous password", () => {
   });
 
   it("clears the locked count when nothing remains", async () => {
-    localStorage.setItem("aster_locked_sent_mail_account-1", "4");
+    localStorage.setItem("aster_locked_sent_mail_v2_account-1", "4");
     h.status = done();
 
     const summary = await recover_sent_mail_with_password(
@@ -990,7 +1036,7 @@ describe("recovering sent mail with a previous password", () => {
     const envelope = { subject: "Sent before the reset", body_text: "héllo" };
 
     h.pages = one_page([await old_password_item("m1", envelope)]);
-    localStorage.setItem("aster_locked_sent_mail_account-1", "1");
+    localStorage.setItem("aster_locked_sent_mail_v2_account-1", "1");
 
     const summary = await recover_sent_mail_with_password(
       "account-1",

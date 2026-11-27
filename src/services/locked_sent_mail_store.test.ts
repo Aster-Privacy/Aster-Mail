@@ -46,7 +46,9 @@ describe("locked sent mail store", () => {
     write_locked_sent_mail("account-1", 3);
     write_locked_sent_mail("account-1", 0);
 
-    expect(localStorage.getItem("aster_locked_sent_mail_account-1")).toBeNull();
+    expect(
+      localStorage.getItem("aster_locked_sent_mail_v2_account-1"),
+    ).toBeNull();
   });
 
   it("treats negative, fractional, and invalid counts safely", () => {
@@ -59,8 +61,15 @@ describe("locked sent mail store", () => {
     write_locked_sent_mail("account-1", Number.NaN);
     expect(read_locked_sent_mail("account-1")).toBe(0);
 
-    localStorage.setItem("aster_locked_sent_mail_account-1", "garbage");
+    localStorage.setItem("aster_locked_sent_mail_v2_account-1", "garbage");
     expect(read_locked_sent_mail("account-1")).toBe(0);
+  });
+
+  it("drops a count stored by an earlier release", () => {
+    localStorage.setItem("aster_locked_sent_mail_account-1", "891");
+
+    expect(read_locked_sent_mail("account-1")).toBe(0);
+    expect(localStorage.getItem("aster_locked_sent_mail_account-1")).toBeNull();
   });
 
   it("ignores an empty account id", () => {

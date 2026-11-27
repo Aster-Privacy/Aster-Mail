@@ -30,6 +30,8 @@ import {
   encrypt_envelope_with_bytes,
 } from "./crypto/envelope";
 import { seal_attachment_meta_v2 } from "./crypto/attachment_meta_v2";
+import { get_attachment_key } from "./crypto/inbound_attachment_keys";
+import { get_mail_item } from "./api/mail";
 
 export type ImportedResealOutcome =
   | "rewritten"
@@ -118,19 +120,23 @@ async function sealed_body(
 }
 
 export async function reseal_imported_attachment_row(
-  row: Pick<AttachmentMetaItem, "id" | "encrypted_meta">,
+  row: Pick<
+    AttachmentMetaItem,
+    "id" | "encrypted_meta" | "mail_item_id" | "seq_num"
+  >,
   old_bytes: Uint8Array,
   new_bytes: Uint8Array,
   kek: Uint8Array | null,
+  envelope_has_key: EnvelopeKeyCheck = envelope_carries_attachment_key,
 ): Promise<ImportedResealOutcome> {
   if (!row.encrypted_meta) return "skipped";
 
   const meta = await open_meta_with(row.encrypted_meta, old_bytes);
 
   if (!meta) {
-    const current = await open_meta_with(row.encrypted_meta, new_bytes);
+    if (await open_meta_with(row.encrypted_meta, new_bytes)) return "skipped";
 
-    return current ? "skipped" : "unreadable";
+    return (await envelope_has_key(row)) ? "skipped" : "unreadable";
   }
 
   try {
@@ -148,11 +154,18 @@ export async function reseal_imported_attachments(
   new_bytes: Uint8Array,
   kek: Uint8Array | null,
   on_outcome: (outcome: ImportedResealOutcome) => void,
+  envelope_has_key: EnvelopeKeyCheck = envelope_carries_attachment_key,
 ): Promise<void> {
   try {
     for await (const row of imported_password_meta_rows()) {
       on_outcome(
-        await reseal_imported_attachment_row(row, old_bytes, new_bytes, kek),
+        await reseal_imported_attachment_row(
+          row,
+          old_bytes,
+          new_bytes,
+          kek,
+          envelope_has_key,
+        ),
       );
     }
   } catch {
@@ -179,8 +192,41 @@ async function opens_with_current_keys(
   }
 }
 
+export type EnvelopeKeyCheck = (
+  row: Pick<AttachmentMetaItem, "mail_item_id" | "seq_num">,
+) => Promise<boolean>;
+
+export async function envelope_carries_attachment_key(
+  row: Pick<AttachmentMetaItem, "mail_item_id" | "seq_num">,
+): Promise<boolean> {
+  if (!row.mail_item_id) return false;
+  if (get_attachment_key(row.mail_item_id, row.seq_num)) return true;
+
+  try {
+    const response = await get_mail_item(row.mail_item_id);
+    const item = response.data;
+
+    if (!item?.encrypted_envelope) return false;
+
+    const { decrypt_mail_envelope } =
+      await import("@/components/email/shared/decrypt_envelope");
+    const envelope = await decrypt_mail_envelope(
+      item.encrypted_envelope,
+      item.envelope_nonce,
+      row.mail_item_id,
+    );
+
+    if (!envelope) return false;
+
+    return !!get_attachment_key(row.mail_item_id, row.seq_num);
+  } catch {
+    return false;
+  }
+}
+
 export async function imported_attachments_locked(
   passphrase_bytes: Uint8Array,
+  envelope_has_key: EnvelopeKeyCheck = envelope_carries_attachment_key,
 ): Promise<boolean> {
   const page = await list_imported_password_meta_page(
     undefined,
@@ -191,6 +237,7 @@ export async function imported_attachments_locked(
     if (!row.encrypted_meta) continue;
     if (await open_meta_with(row.encrypted_meta, passphrase_bytes)) continue;
     if (await opens_with_current_keys(row)) continue;
+    if (await envelope_has_key(row)) continue;
 
     return true;
   }

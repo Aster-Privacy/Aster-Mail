@@ -20,7 +20,7 @@
 //
 import type { AccountDataConversionStatus } from "./api/account_key";
 
-import { list_attachments } from "./api/attachments";
+import { list_attachments, type AttachmentMetaItem } from "./api/attachments";
 import { list_encrypted_mail_items } from "./api/mail";
 import {
   convert_attachment_meta,
@@ -31,7 +31,10 @@ import {
   type ConversionWriteResult,
 } from "./api/account_key";
 import { convert_preferences_to_account_key } from "./api/preferences";
-import { imported_password_meta_rows } from "./imported_attachment_meta";
+import {
+  envelope_carries_attachment_key,
+  imported_password_meta_rows,
+} from "./imported_attachment_meta";
 import {
   base64_to_array,
   decrypt_envelope_plaintext_with_bytes,
@@ -536,6 +539,17 @@ async function convert_sent_mail(
   return { summary, complete: true };
 }
 
+async function convert_imported_row(
+  row: AttachmentMetaItem,
+  keys: ConversionKeys,
+): Promise<ItemOutcome> {
+  const outcome = await convert_attachment_row(row, keys);
+
+  if (outcome !== "unreadable") return outcome;
+
+  return (await envelope_carries_attachment_key(row)) ? "skipped" : outcome;
+}
+
 async function convert_imported_attachments(
   keys: ConversionKeys,
   summary: ConversionSummary,
@@ -550,7 +564,7 @@ async function convert_imported_attachments(
         return false;
       }
 
-      tally(summary, await convert_attachment_row(row, keys));
+      tally(summary, await convert_imported_row(row, keys));
 
       await yield_to_ui();
     }
