@@ -679,7 +679,7 @@ export function GuardApprovalHost({
 
   return (
     <>
-      <GuardHeldToast />
+      <GuardHeldToast user_id={user_id} />
       <GuardPanicHost user_id={user_id} />
       {show_rescue_banner && (
         <div className="fixed inset-x-0 top-0 z-[60]">

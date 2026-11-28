@@ -45,6 +45,13 @@ vi.mock("@/lib/account_index_url", async (import_original) => ({
   get_active_account_index: () => active_account_index,
 }));
 
+const list_mail_items_mock = vi.fn();
+
+vi.mock("@/services/api/mail", async (import_original) => ({
+  ...(await import_original<typeof import("@/services/api/mail")>()),
+  list_mail_items: (...args: unknown[]) => list_mail_items_mock(...args),
+}));
+
 const {
   PENDING_REQUEST_TTL_MS,
   hard_navigation_target,
@@ -58,6 +65,7 @@ const {
   restore_undone_send_draft,
 } = await import("./toast_action_router");
 const { show_email_sent_toast } = await import("./email_sent_toast");
+const { get_active_translations } = await import("@/lib/i18n/translations");
 const { get_pending_send_attachments } =
   await import("@/services/pending_send_attachments");
 const { UNDO_SEND_PREVIEW_ID } =
@@ -297,20 +305,80 @@ describe("hard_navigation_target", () => {
 });
 
 describe("sent toast", () => {
-  it("shows the sent message with no extra action", () => {
-    mount("/contacts");
-    act(() => show_email_sent_toast("sent"));
+  it("offers view message once a send without an undo window finishes", () => {
+    mount("/archive");
+    act(() => show_email_sent_toast("sent", false, "msg_sent"));
 
     expect(latest_toast?.message).toBe("sent");
     expect(latest_toast?.on_undo).toBeUndefined();
-    expect(Object.keys(latest_toast ?? {})).not.toContain("on_view_message");
+    expect(latest_toast?.actions).toHaveLength(1);
+    expect(latest_toast?.actions?.[0].label).toBe(
+      get_active_translations().mail.view_message,
+    );
   });
 
-  it("stays quiet when the undo toast already covered the send", () => {
-    mount("/contacts");
+  it("offers view message after the undo window closes", () => {
+    mount("/archive");
+    act(() => show_email_sent_toast("sent", true, "msg_sent"));
+
+    expect(latest_toast?.message).toBe("sent");
+    expect(latest_toast?.actions).toHaveLength(1);
+  });
+
+  it("opens the sent copy from the view message action", async () => {
+    mount("/archive");
+    act(() => show_email_sent_toast("sent", true, "msg_sent"));
+
+    await act(async () => {
+      latest_toast?.actions?.[0].on_press();
+      await Promise.resolve();
+    });
+
+    expect(shown_messages).toEqual(["msg_sent"]);
+  });
+
+  it("opens the sent copy as a full page in the mobile app", async () => {
+    mount("/", { is_mobile_app: true });
+    act(() => show_email_sent_toast("sent", false, "msg_sent"));
+
+    await act(async () => {
+      latest_toast?.actions?.[0].on_press();
+      await Promise.resolve();
+    });
+
+    expect(current_href).toBe("/u/2/email/msg_sent");
+    expect(current_state).toEqual({ from_view: "sent" });
+  });
+
+  it("opens the newest sent message when the send returned no id", async () => {
+    list_mail_items_mock.mockResolvedValueOnce({
+      data: { items: [{ id: "msg_newest" }] },
+    });
+    mount("/archive");
     act(() => show_email_sent_toast("sent", true));
 
-    expect(latest_toast).toBeNull();
+    await act(async () => {
+      latest_toast?.actions?.[0].on_press();
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+
+    expect(list_mail_items_mock).toHaveBeenCalledWith(
+      expect.objectContaining({ item_type: "sent", limit: 1 }),
+    );
+    expect(shown_messages).toEqual(["msg_newest"]);
+  });
+
+  it("falls back to the sent folder when no sent message is found", async () => {
+    list_mail_items_mock.mockRejectedValueOnce(new Error("offline"));
+    mount("/contacts");
+    act(() => show_email_sent_toast("sent", false));
+
+    await act(async () => {
+      latest_toast?.actions?.[0].on_press();
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+
+    expect(current_href).toBe("/u/2/sent");
   });
 });
 

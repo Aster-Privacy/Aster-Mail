@@ -26,10 +26,7 @@ import { useMemo } from "react";
 
 import { EncryptionInfoDropdown } from "@/components/common/encryption_info_dropdown";
 import { TrackingProtectionShield } from "@/components/email/tracking_protection_shield";
-import {
-  get_cached_iframe_height,
-  CONTENT_READY_FALLBACK_MS,
-} from "@/components/email/sandboxed_email_renderer";
+import { CONTENT_READY_FALLBACK_MS } from "@/components/email/sandboxed_email_renderer";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmailOpenSkeleton } from "@/components/email/viewer_shared/email_open_skeleton";
 import { use_i18n } from "@/lib/i18n/context";
@@ -56,6 +53,11 @@ import {
   get_external_content_mode,
 } from "@/components/email/viewer_shared";
 import { use_spam_confirm } from "@/components/email/use_spam_confirm";
+import { use_block_sender_confirm } from "@/components/email/use_block_sender_confirm";
+import {
+  reportable_message,
+  use_phishing_reported,
+} from "@/components/email/viewer_shared/report_phishing";
 import { execute_unsubscribe } from "@/utils/unsubscribe_detector";
 import { show_unsubscribe_toast } from "@/utils/unsubscribe_toast";
 import { build_unsubscribe_delivery } from "@/utils/unsubscribe_delivery";
@@ -130,6 +132,8 @@ export function FullEmailViewer({
   const { is_unsubscribed, mark_unsubscribed } = use_unsubscribed_senders();
   const { get_tag_by_token } = use_tags();
   const { request_spam, spam_confirm_dialog } = use_spam_confirm();
+  const { request_block_sender, block_sender_dialog } =
+    use_block_sender_confirm();
   const viewer = use_email_viewer({
     email_id,
     local_email,
@@ -141,6 +145,13 @@ export function FullEmailViewer({
     use_refresh_listener: !local_email,
     grouped_email_ids,
   });
+  const phishing_target = reportable_message(
+    viewer.thread_messages,
+    email_id,
+    viewer.current_user_email,
+  );
+  const phishing_target_reported = use_phishing_reported(phishing_target?.id);
+
   use_viewer_keyboard_actions({
     enabled: handles_keyboard_actions,
     handles_unlisted: handles_unlisted_keyboard_actions,
@@ -233,24 +244,15 @@ export function FullEmailViewer({
     t,
   ]);
 
-  const [content_ready, set_content_ready] = useState(
-    () => !!get_cached_iframe_height(email_id),
-  );
+  const [content_ready, set_content_ready] = useState(false);
   const content_ready_email_ref = useRef(email_id);
 
   if (content_ready_email_ref.current !== email_id) {
     content_ready_email_ref.current = email_id;
-    const cached_now = !!get_cached_iframe_height(email_id);
-
-    if (cached_now !== content_ready) set_content_ready(cached_now);
+    if (content_ready) set_content_ready(false);
   }
 
   useEffect(() => {
-    const already_cached = !!get_cached_iframe_height(email_id);
-
-    set_content_ready(already_cached);
-    if (already_cached) return;
-
     const mark_ready = () => set_content_ready(true);
     const handler = (event: Event) => {
       const detail = (event as CustomEvent<string>).detail;
@@ -476,6 +478,19 @@ export function FullEmailViewer({
               on_navigate_next={on_navigate_next}
               on_navigate_prev={on_navigate_prev}
               on_not_spam={viewer.handle_not_spam}
+              on_report_phishing={
+                phishing_target
+                  ? () =>
+                      request_spam(
+                        () =>
+                          viewer.handle_per_message_report_phishing(
+                            phishing_target,
+                          ),
+                        phishing_target.is_spam === true,
+                      )
+                  : undefined
+              }
+              is_phishing_reported={phishing_target_reported}
               on_pin_toggle={viewer.handle_pin_toggle}
               on_print={viewer.handle_print}
               on_read_toggle={viewer.handle_read_toggle}
@@ -512,7 +527,7 @@ export function FullEmailViewer({
           style={{ scrollbarGutter: "stable" }}
         >
           {email && (
-            <div className="w-full py-4 sm:py-5">
+            <div className="w-full max-w-[760px] mx-auto py-4 sm:py-5">
               <div className="px-4 sm:px-5 flex flex-wrap items-center gap-x-2 gap-y-1.5 mb-3">
                 <h1 className="text-[22px] sm:text-2xl font-bold leading-[1.3] text-txt-primary break-words">
                   <span
@@ -590,9 +605,11 @@ export function FullEmailViewer({
                 on_print={viewer.handle_per_message_print}
                 on_reply={viewer.handle_per_message_reply}
                 on_reply_all={viewer.handle_per_message_reply_all}
+                on_block_sender={request_block_sender}
                 on_report_phishing={(msg) =>
-                  request_spam(() =>
-                    viewer.handle_per_message_report_phishing(msg),
+                  request_spam(
+                    () => viewer.handle_per_message_report_phishing(msg),
+                    msg.is_spam === true,
                   )
                 }
                 on_thread_draft_deleted={viewer.handle_thread_draft_deleted}
@@ -623,6 +640,7 @@ export function FullEmailViewer({
         </div>
       </div>
       {spam_confirm_dialog}
+      {block_sender_dialog}
       {viewer.permanent_delete_dialog}
     </div>
   );

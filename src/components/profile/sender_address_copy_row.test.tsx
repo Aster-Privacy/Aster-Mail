@@ -107,19 +107,18 @@ function icon_markup(row: HTMLElement): string {
 }
 
 describe("SenderAddressCopyRow", () => {
-  it("renders as a menu row with the address and one trailing icon", () => {
+  it("renders a labeled copy action with one leading icon", () => {
     const row = render_row(() => Promise.resolve(true));
-    const value = row.querySelector(
-      '[data-testid="sender_address_copy_value"]',
-    )!;
 
     expect(row.getAttribute("role")).toBe("menuitem");
-    expect(row.getAttribute("aria-label")).toBe("common.copy_address");
     expect(row.getAttribute("data-copied")).toBe("false");
-    expect(value.textContent).toBe(ADDRESS);
-    expect(value.getAttribute("dir")).toBe("ltr");
-    expect(value.className).toContain("truncate");
+    expect(
+      row.querySelector('[data-testid="sender_address_copy_label"]')!
+        .textContent,
+    ).toBe("common.copy_address");
+    expect(row.firstElementChild!.tagName.toLowerCase()).toBe("svg");
     expect(row.querySelectorAll("svg")).toHaveLength(1);
+    expect(row.textContent).not.toContain(ADDRESS);
     expect(row.querySelector("button")).toBeNull();
   });
 
@@ -127,13 +126,12 @@ describe("SenderAddressCopyRow", () => {
     const row = render_row(() => Promise.resolve(true));
     const classes = `${row.className} ${icon_markup(row)}`;
 
-    expect(row.className).toContain("text-txt-secondary");
     expect(classes).not.toMatch(/\bbg-(black|surf-|\[#)/);
     expect(classes).not.toMatch(/\bborder\b|\bborder-edge/);
     expect(classes).not.toMatch(/#[0-9a-f]{3,6}\b/i);
   });
 
-  it("copies on select and shows copied feedback that resets", async () => {
+  it("copies on select, shows Copied, and resets", async () => {
     vi.useFakeTimers();
     const on_copy = vi.fn(() => Promise.resolve(true));
     const row = render_row(on_copy);
@@ -143,10 +141,14 @@ describe("SenderAddressCopyRow", () => {
 
     expect(on_copy).toHaveBeenCalledTimes(1);
     expect(row.getAttribute("data-copied")).toBe("true");
+    expect(
+      row.querySelector('[data-testid="sender_address_copy_label"]')!
+        .textContent,
+    ).toBe("common.copied");
     expect(row.querySelector('[role="status"]')!.textContent).toBe(
       "common.copied",
     );
-    expect(icon_markup(row)).not.toBe(idle_icon);
+    expect(icon_markup(row)).toBe(idle_icon);
 
     act(() => {
       vi.advanceTimersByTime(SENDER_ADDRESS_COPIED_RESET_MS);
@@ -154,7 +156,6 @@ describe("SenderAddressCopyRow", () => {
 
     expect(row.getAttribute("data-copied")).toBe("false");
     expect(row.querySelector('[role="status"]')!.textContent).toBe("");
-    expect(icon_markup(row)).toBe(idle_icon);
   });
 
   it("keeps the idle state when the copy fails", async () => {

@@ -114,7 +114,9 @@ export default function MobileSignInPage() {
   }
 
   const returns_to_link_device =
-    get_safe_next_path().replace(/^\/u\/\d+/, "") === "/link-device";
+    get_safe_next_path()
+      .replace(/^\/u\/\d+/, "")
+      .split(/[?#]/)[0] === "/link-device";
 
   const { handle_cancel_add_account, handle_totp_cancel, handle_login } =
     build_mobile_sign_in_handlers({

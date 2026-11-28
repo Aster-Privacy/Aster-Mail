@@ -22,6 +22,11 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import React, { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 
+const reveal_gate = vi.hoisted(() => ({
+  hold: false,
+  held: [] as Array<() => void>,
+}));
+
 vi.mock("@/lib/i18n/context", () => ({
   use_i18n: () => ({ t: (key: string) => key }),
 }));
@@ -72,6 +77,11 @@ vi.mock("@/lib/cid_resolver", () => ({
 
 vi.mock("@/components/email/reveal_on_fonts_ready", () => ({
   reveal_on_fonts_ready: (_fonts: unknown, reveal: () => void) => {
+    if (reveal_gate.hold) {
+      reveal_gate.held.push(reveal);
+
+      return () => {};
+    }
     reveal();
 
     return () => {};
@@ -242,6 +252,8 @@ describe.each(VIEWERS)("$name viewer loading skeleton", ({ render }) => {
   beforeEach(() => {
     vi.useFakeTimers();
     clear_iframe_height_cache();
+    reveal_gate.hold = false;
+    reveal_gate.held = [];
     viewer.is_loading = true;
     ready_events = [];
     window.addEventListener("astermail:iframe-ready", on_ready);
@@ -290,6 +302,56 @@ describe.each(VIEWERS)("$name viewer loading skeleton", ({ render }) => {
 
     expect(body_frame()?.style.opacity).toBe("1");
     expect(ready_events).toEqual([EMAIL_ID]);
+    expect(skeleton()).toBeNull();
+  });
+
+  const release_reveals = () => {
+    act(() => {
+      reveal_gate.hold = false;
+      reveal_gate.held.splice(0).forEach((reveal) => reveal());
+    });
+  };
+
+  const reopen = () => {
+    act(() => root.unmount());
+    viewer.is_loading = true;
+    root = createRoot(container);
+    act(() => {
+      root.render(render());
+    });
+  };
+
+  it("keeps the skeleton over a cached body until the body shows", () => {
+    set_cached_iframe_height(EMAIL_ID, BODY_HEIGHT);
+    reopen();
+    reveal_gate.hold = true;
+    show_body();
+
+    expect(body_frame()?.style.opacity).toBe("0");
+    expect(skeleton()).not.toBeNull();
+    expect(ready_events).toEqual([]);
+
+    release_reveals();
+
+    expect(body_frame()?.style.opacity).toBe("1");
+    expect(ready_events).toEqual([EMAIL_ID]);
+    expect(skeleton()).toBeNull();
+  });
+
+  it("keeps the skeleton while a measured body is still hidden", () => {
+    reveal_gate.hold = true;
+    show_body();
+
+    act(() => {
+      vi.advanceTimersByTime(CONTENT_READY_FALLBACK_MS / 3);
+    });
+
+    expect(body_frame()?.style.opacity).toBe("0");
+    expect(skeleton()).not.toBeNull();
+
+    release_reveals();
+
+    expect(body_frame()?.style.opacity).toBe("1");
     expect(skeleton()).toBeNull();
   });
 

@@ -103,18 +103,25 @@ describe("press_feedback", () => {
       ],
     });
     document.body.innerHTML = `
-      <button id="menu"><span id="icon">i</span></button>
-      <button id="other">o</button>
-      <button id="off" disabled>x</button>
+      <button id="menu" data-ripple><span id="icon">i</span></button>
+      <button id="other" data-ripple>o</button>
+      <button id="off" data-ripple disabled>x</button>
       <div id="body"><p id="text">hello world</p></div>
       <div contenteditable="true"><button id="inside_editor">b</button></div>
       <textarea id="area"></textarea>
       <div role="switch" id="toggle" tabindex="0"></div>
+      <button id="icon_button" aria-haspopup="menu">q</button>
+      <div role="menu"><div role="menuitem" id="menu_item" tabindex="-1">m</div></div>
+      <div role="tab" id="tab" tabindex="0">t</div>
+      <a href="/inbox" id="nav_link" style="display: block">n</a>
+      <button id="send" class="aster_btn aster_btn_depth">s</button>
+      <button id="confirm" class="aster_btn aster_btn_primary">c</button>
+      <div role="button" id="row" data-ripple tabindex="0"><span id="row_subject">r</span><div role="button" id="row_select" tabindex="0">x</div></div>
       <button id="code_button"><span id="code" class="select-text">123456</span></button>
-      <div role="button" id="strip" data-press-skip tabindex="0"><span id="strip_gap">g</span><button id="strip_action">a</button></div>
-      <div style="opacity: 0"><button id="hidden_action">h</button></div>
+      <div role="button" id="strip" data-ripple data-press-skip tabindex="0"><span id="strip_gap">g</span><button id="strip_action" data-ripple>a</button></div>
+      <div style="opacity: 0"><button id="hidden_action" data-ripple>h</button></div>
       <div id="sender" style="cursor: pointer">sender@example.com</div>
-      <button id="grad">g</button>
+      <button id="grad" data-ripple>g</button>
     `;
     button = document.getElementById("menu") as HTMLButtonElement;
     clicks = 0;
@@ -128,6 +135,31 @@ describe("press_feedback", () => {
     stop();
     vi.useRealTimers();
     document.body.innerHTML = "";
+  });
+
+  it("clears the ripple when its element stops being a ripple target", () => {
+    const row = document.getElementById("row") as HTMLElement;
+
+    pointer("pointerdown", row);
+    expect(row.hasAttribute(PRESS_ATTRIBUTE)).toBe(true);
+    row.removeAttribute("data-ripple");
+    vi.advanceTimersByTime(16);
+
+    expect(row.hasAttribute(PRESS_ATTRIBUTE)).toBe(false);
+    expect(row.style.getPropertyValue("--aster-ripple-to-r")).toBe("");
+    pointer("pointerup", row);
+    vi.advanceTimersByTime(PRESS_MIN_HOLD_MS + PRESS_RELEASE_MS);
+    expect(row.hasAttribute(PRESS_ATTRIBUTE)).toBe(false);
+  });
+
+  it("clears the ripple when its element leaves the document", () => {
+    const row = document.getElementById("row") as HTMLElement;
+
+    pointer("pointerdown", row);
+    row.remove();
+    vi.advanceTimersByTime(16);
+
+    expect(row.hasAttribute(PRESS_ATTRIBUTE)).toBe(false);
   });
 
   it("marks the innermost control on pointer down", () => {
@@ -200,6 +232,9 @@ describe("press_feedback", () => {
     expect(mouse_down(button, 1).defaultPrevented).toBe(false);
     expect(mouse_down(button, 2).defaultPrevented).toBe(true);
     expect(mouse_down(button, 3).defaultPrevented).toBe(true);
+    expect(
+      mouse_down(document.getElementById("icon_button")!, 2).defaultPrevented,
+    ).toBe(true);
     expect(
       mouse_down(document.getElementById("text")!, 2).defaultPrevented,
     ).toBe(false);
@@ -298,17 +333,48 @@ describe("press_feedback", () => {
     expect(button.hasAttribute(PRESS_ATTRIBUTE)).toBe(false);
   });
 
-  it("presses switches and keeps marked text selectable", () => {
-    pointer("pointerdown", document.getElementById("toggle")!);
-    expect(
-      document.getElementById("toggle")!.getAttribute(PRESS_ATTRIBUTE),
-    ).toBe("down");
+  it("keeps marked text selectable inside controls", () => {
     expect(
       mouse_down(document.getElementById("code")!, 2).defaultPrevented,
     ).toBe(false);
     expect(
       mouse_down(document.getElementById("code_button")!, 2).defaultPrevented,
     ).toBe(true);
+  });
+
+  it("skips icon buttons, menu items, tabs, switches and nav links", () => {
+    for (const id of [
+      "icon_button",
+      "menu_item",
+      "tab",
+      "toggle",
+      "nav_link",
+      "sender",
+    ]) {
+      const el = document.getElementById(id)!;
+
+      expect(find_press_target(el)).toBeNull();
+      pointer("pointerdown", el);
+      expect(el.hasAttribute(PRESS_ATTRIBUTE)).toBe(false);
+      pointer("pointerup", el);
+    }
+  });
+
+  it("presses filled primary buttons without an opt-in attribute", () => {
+    const send = document.getElementById("send")!;
+    const confirm = document.getElementById("confirm")!;
+
+    expect(find_press_target(send)).toBe(send);
+    expect(find_press_target(confirm)).toBe(confirm);
+    pointer("pointerdown", send);
+    expect(send.getAttribute(PRESS_ATTRIBUTE)).toBe("down");
+  });
+
+  it("presses an opted-in message row but not the controls inside it", () => {
+    const row = document.getElementById("row")!;
+
+    expect(find_press_target(document.getElementById("row_subject"))).toBe(row);
+    expect(find_press_target(document.getElementById("row_select"))).toBeNull();
   });
 
   it("presses row actions but not their strip or hidden actions", () => {

@@ -60,6 +60,16 @@ const INTERACTIVE_SELECTOR = [
   "[data-pressable]",
 ].join(",");
 
+export const RIPPLE_ATTRIBUTE = "data-ripple";
+
+const RIPPLE_SELECTOR = [
+  `[${RIPPLE_ATTRIBUTE}]`,
+  ".aster_btn_primary",
+  ".aster_btn_destructive",
+  ".aster_btn_depth",
+  ".aster_btn_depth_destructive",
+].join(",");
+
 const EDITABLE_SELECTOR =
   'input, textarea, select, [contenteditable=""], [contenteditable="true"], [contenteditable="plaintext-only"]';
 
@@ -165,12 +175,12 @@ function find_pointer_cursor_host(start: Element): HTMLElement | null {
   return null;
 }
 
-export function find_press_target(
+export function find_interactive_target(
   start: EventTarget | null,
 ): HTMLElement | null {
   if (!(start instanceof Element)) return null;
   if (start.closest(EDITABLE_SELECTOR)) return null;
-  const matched = start.closest(INTERACTIVE_SELECTOR);
+  const matched = start.closest(`${INTERACTIVE_SELECTOR},${RIPPLE_SELECTOR}`);
   const target =
     matched instanceof HTMLElement ? matched : find_pointer_cursor_host(start);
 
@@ -181,6 +191,19 @@ export function find_press_target(
   if (target.matches('a[href], [role="link"]') && is_inline_text(target)) {
     return null;
   }
+
+  return target;
+}
+
+export function find_press_target(
+  start: EventTarget | null,
+): HTMLElement | null {
+  const target = find_interactive_target(start);
+
+  if (!target || !target.matches(RIPPLE_SELECTOR)) return null;
+  const skip = start instanceof Element ? start.closest(SKIP_SELECTOR) : null;
+
+  if (skip && target.contains(skip)) return null;
 
   return target;
 }
@@ -447,6 +470,14 @@ export function start_press_feedback(): () => void {
     const el = current;
 
     if (!el || !el.hasAttribute(PRESS_ATTRIBUTE)) return;
+    if (!el.isConnected || !el.matches(RIPPLE_SELECTOR)) {
+      clear_timers();
+      is_down = false;
+      clear_element(el);
+      current = null;
+
+      return;
+    }
     refit_ripple(el);
     size_frame = requestAnimationFrame(watch_size);
   };
@@ -630,7 +661,7 @@ export function start_press_feedback(): () => void {
     if (e.target instanceof Element && e.target.closest(SELECTABLE_SELECTOR)) {
       return;
     }
-    const target = find_press_target(e.target);
+    const target = find_interactive_target(e.target);
 
     if (!target || !target.matches(INTERACTIVE_SELECTOR)) return;
     e.preventDefault();

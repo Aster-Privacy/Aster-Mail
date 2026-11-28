@@ -85,6 +85,8 @@ export function external_account_error_message(
       return settings.external_server_unreachable;
     case "EXTERNAL_ACCOUNT_RECONNECT_REQUIRED":
       return settings.external_reconnect_required;
+    case "EXTERNAL_ACCOUNT_PROVIDER_NOT_READY":
+      return settings.external_provider_not_ready;
     case "EXTERNAL_ACCOUNT_MESSAGE_REJECTED":
       return settings.external_message_rejected;
     case "EXTERNAL_ACCOUNT_SEND_RECONNECT_REQUIRED":

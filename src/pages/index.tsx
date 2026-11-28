@@ -153,6 +153,7 @@ import { ExternalAccountHealthBanner } from "@/components/common/external_accoun
 import { PaymentPastDueBanner } from "@/components/common/payment_past_due_banner";
 import { use_payment_past_due } from "@/hooks/use_payment_past_due";
 import { SurveyBanner } from "@/components/survey/survey_banner";
+import { FoundUsPrompt } from "@/components/survey/found_us_prompt";
 import { GuardRescueTopBanner } from "@/components/guard/guard_rescue_banner";
 import { ReviewPromptBanner } from "@/components/review/review_prompt_banner";
 import { OnboardingChecklist } from "@/components/onboarding/onboarding_checklist";
@@ -200,6 +201,7 @@ export default function IndexPage() {
   const navigate = useNavigate();
   const { section } = useParams<{ section?: string }>();
   const [is_survey_visible, set_is_survey_visible] = useState(false);
+  const [is_found_us_visible, set_is_found_us_visible] = useState(false);
   const [checklist_complete, set_checklist_complete] = useState(false);
   const [checklist_visible, set_checklist_visible] = useState<boolean | null>(
     null,
@@ -464,9 +466,13 @@ export default function IndexPage() {
         {!state.is_settings_route && <ExternalAccountHealthBanner />}
         <GuardRescueTopBanner />
         <SurveyBanner on_visibility_change={set_is_survey_visible} />
-        {!is_survey_visible && !payment_past_due.is_past_due && (
-          <ReviewPromptBanner />
-        )}
+        <FoundUsPrompt
+          is_suppressed={is_survey_visible || payment_past_due.is_past_due}
+          on_visibility_change={set_is_found_us_visible}
+        />
+        {!is_survey_visible &&
+          !is_found_us_visible &&
+          !payment_past_due.is_past_due && <ReviewPromptBanner />}
         <TopBar
           is_settings_view={state.is_settings_route && !settings_popup_mode}
           on_mobile_menu_toggle={handle_mobile_menu_toggle}

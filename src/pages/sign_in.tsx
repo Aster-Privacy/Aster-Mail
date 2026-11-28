@@ -226,7 +226,8 @@ export default function SignInPage() {
 
   const cancel_return_path = get_safe_next_path();
   const returns_to_link_device =
-    cancel_return_path.replace(/^\/u\/\d+/, "") === "/link-device";
+    cancel_return_path.replace(/^\/u\/\d+/, "").split(/[?#]/)[0] ===
+    "/link-device";
 
   const handle_cancel_add_account = async () => {
     set_is_adding_account(false);

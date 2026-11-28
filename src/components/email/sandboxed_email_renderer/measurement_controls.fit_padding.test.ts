@@ -124,7 +124,6 @@ const fit = (
     email_id: undefined,
     base_zoom_ref: { current: options.base_zoom ?? 1 },
     document_ready_cleanup_ref: { current: null },
-    has_fired_ready_ref: { current: false },
     mutation_observer_ref: { current: null },
     observer_ref: { current: null },
     raf_ref: { current: 0 },

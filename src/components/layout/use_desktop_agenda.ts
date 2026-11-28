@@ -172,7 +172,9 @@ export function use_desktop_agenda({
 
     try {
       const loaded = await with_timeout(
-        calendar_sync_engine.ensure_loaded().then(() => true),
+        calendar_sync_engine
+          .ensure_loaded({ wait_for_pull: false })
+          .then(() => true),
         false,
       );
 

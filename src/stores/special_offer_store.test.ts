@@ -79,8 +79,21 @@ describe("special_offer_store timed campaign", () => {
     expect(can_auto_show_special_offer()).toBe(false);
   });
 
-  it("skips the quiet period when ends_at is set", () => {
+  it("waits ten minutes after sign-up when ends_at is set", () => {
     offer_status.state.status = { ends_at: "2026-12-02T07:59:59Z" };
+
+    expect(can_auto_show_special_offer()).toBe(false);
+
+    first_run.age = 10 * 60 * 1000 - 1;
+    expect(can_auto_show_special_offer()).toBe(false);
+
+    first_run.age = 10 * 60 * 1000;
+    expect(can_auto_show_special_offer()).toBe(true);
+  });
+
+  it("shows a timed offer when the device has no sign-up record", () => {
+    offer_status.state.status = { ends_at: "2026-12-02T07:59:59Z" };
+    first_run.age = null;
 
     expect(can_auto_show_special_offer()).toBe(true);
   });

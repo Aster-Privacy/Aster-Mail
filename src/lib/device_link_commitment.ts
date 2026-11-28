@@ -116,6 +116,14 @@ export function capture_link_commitment(is_document_load = false): void {
   safe_session_set(COMMITMENT_KEY, JSON.stringify(value));
 }
 
+export function link_commitment_fragment(): string {
+  const fingerprint = read_link_commitment();
+
+  if (!fingerprint) return "";
+
+  return `#${COMMITMENT_PARAM}=${fingerprint.replace(/ /g, "")}`;
+}
+
 export function read_link_commitment(): string | null {
   const raw = safe_session_get(COMMITMENT_KEY);
 

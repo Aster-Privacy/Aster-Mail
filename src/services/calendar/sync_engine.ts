@@ -251,6 +251,7 @@ export class CalendarSyncEngine {
   private generation = 0;
   private loaded = false;
   private load_promise: Promise<void> | null = null;
+  private cache_promise: Promise<boolean> | null = null;
   private pull_promise: Promise<boolean> | null = null;
   private pull_again = false;
   private failure_status: number | null = null;
@@ -418,7 +419,9 @@ export class CalendarSyncEngine {
     return this.decrypt_failure_count();
   }
 
-  async ensure_loaded(): Promise<void> {
+  async ensure_loaded(
+    options: { wait_for_pull?: boolean } = {},
+  ): Promise<void> {
     const account_id = await resolve_sync_account_id();
 
     if (account_id !== this.account_id) {
@@ -428,9 +431,24 @@ export class CalendarSyncEngine {
 
     if (this.loaded) return;
     if (!this.load_promise) {
-      this.load_promise = this.initial_load_inner().finally(() => {
-        this.load_promise = null;
-      });
+      const cache_promise = this.load_cache_inner();
+
+      this.cache_promise = cache_promise;
+      this.load_promise = cache_promise
+        .then(async (cached) => {
+          if (cached) await this.pull_delta();
+        })
+        .finally(() => {
+          this.load_promise = null;
+          this.cache_promise = null;
+        });
+      this.load_promise.catch(() => undefined);
+    }
+
+    if (options.wait_for_pull === false && this.cache_promise) {
+      await this.cache_promise;
+
+      return;
     }
 
     await this.load_promise;
@@ -902,11 +920,11 @@ export class CalendarSyncEngine {
     reset_revisions();
   }
 
-  private async initial_load_inner(): Promise<void> {
+  private async load_cache_inner(): Promise<boolean> {
     const account_id = this.account_id;
     const generation = this.generation;
 
-    if (!account_id) return;
+    if (!account_id) return false;
 
     const [event_rows, calendar_rows, meta] = await Promise.all([
       read_cached_events(account_id),
@@ -914,7 +932,7 @@ export class CalendarSyncEngine {
       read_sync_meta(account_id),
     ]);
 
-    if (!this.is_current(account_id, generation)) return;
+    if (!this.is_current(account_id, generation)) return false;
 
     for (const id of meta.bound_event_ids ?? []) this.bound_event_ids.add(id);
     for (const id of meta.bound_calendar_ids ?? []) {
@@ -925,26 +943,26 @@ export class CalendarSyncEngine {
     load_revisions(meta);
 
     await wait_for_account_key_load(ACCOUNT_KEY_WAIT_MS);
-    if (!this.is_current(account_id, generation)) return;
+    if (!this.is_current(account_id, generation)) return false;
 
     for (const row of calendar_rows) {
       this.calendar_rows.set(row.id, row);
       await this.decode_calendar(row);
-      if (!this.is_current(account_id, generation)) return;
+      if (!this.is_current(account_id, generation)) return false;
     }
     for (const row of event_rows) {
       this.event_rows.set(row.id, row);
       await this.decode_event(row);
-      if (!this.is_current(account_id, generation)) return;
+      if (!this.is_current(account_id, generation)) return false;
     }
 
     await this.persist_bound_ledger();
-    if (!this.is_current(account_id, generation)) return;
+    if (!this.is_current(account_id, generation)) return false;
     this.loaded = true;
     this.attach_listeners();
     this.notify();
 
-    await this.pull_delta();
+    return true;
   }
 
   private async pull_with_retries(): Promise<boolean> {

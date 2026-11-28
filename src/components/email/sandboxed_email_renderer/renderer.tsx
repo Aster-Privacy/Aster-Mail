@@ -20,7 +20,14 @@
 //
 import type { ImageViewerRequest } from "@/lib/email_image_viewer";
 
-import { useRef, useEffect, useState, useCallback, useMemo } from "react";
+import {
+  useRef,
+  useEffect,
+  useLayoutEffect,
+  useState,
+  useCallback,
+  useMemo,
+} from "react";
 import { AnimatePresence } from "framer-motion";
 
 import * as dom_cleanup from "./dom_cleanup";
@@ -39,6 +46,7 @@ import {
   SKELETON_DELAY_MEASURED_MS,
   SKELETON_DELAY_MS,
   UNMEASURED_PLACEHOLDER_HEIGHT,
+  dispatch_iframe_ready,
   get_cached_iframe_height,
   link_hover_ink_for,
   link_ink_for,
@@ -487,26 +495,26 @@ a:focus-visible {
 }`;
 
   const quote_toggle_dark = force_dark_mode || auto_dark_active;
-  const quote_toggle_ink = quote_toggle_dark
-    ? "rgba(255, 255, 255, 0.78)"
-    : "rgba(60, 64, 67, 0.92)";
-  const quote_toggle_bg = quote_toggle_dark
-    ? "rgba(255, 255, 255, 0.08)"
-    : "rgba(60, 64, 67, 0.07)";
-  const quote_toggle_hover_bg = quote_toggle_dark
-    ? "rgba(255, 255, 255, 0.14)"
-    : "rgba(60, 64, 67, 0.12)";
-  const quote_toggle_active_bg = quote_toggle_dark
-    ? "rgba(255, 255, 255, 0.2)"
-    : "rgba(60, 64, 67, 0.18)";
-  const quote_toggle_css = `.aster-quote-toggle { display: flex !important; align-items: center !important; justify-content: center !important; position: relative !important; box-sizing: border-box !important; width: 24px !important; height: 12px !important; margin: 10px 0 8px !important; padding: 0 !important; list-style: none !important; font-size: 0 !important; line-height: 0 !important; background: ${quote_toggle_bg} !important; border: 0 !important; border-radius: 6px !important; color: ${quote_toggle_ink} !important; cursor: pointer !important; transition: background-color 0.12s ease, transform 0.08s ease !important; }
-.aster-quote-toggle::after { content: "" !important; position: absolute !important; inset: -8px -6px !important; }
+  const quote_toggle_surface = quote_toggle_dark
+    ? body_ink_surface
+    : (normalize_hex(body_background) ?? body_ink_surface);
+  const quote_toggle_tone =
+    relative_luminance(quote_toggle_surface) < 0.2
+      ? "255, 255, 255"
+      : "32, 33, 36";
+  const quote_toggle_ink = `rgba(${quote_toggle_tone}, 0.86)`;
+  const quote_toggle_bg = `rgba(${quote_toggle_tone}, 0.12)`;
+  const quote_toggle_hover_bg = `rgba(${quote_toggle_tone}, 0.22)`;
+  const quote_toggle_active_bg = `rgba(${quote_toggle_tone}, 0.3)`;
+  const quote_toggle_css = `.aster-quote-toggle { display: flex !important; align-items: center !important; justify-content: center !important; position: relative !important; box-sizing: border-box !important; width: 28px !important; height: 16px !important; margin: 8px 0 6px !important; padding: 0 !important; list-style: none !important; font-size: 0 !important; line-height: 0 !important; background: ${quote_toggle_bg} !important; border: 0 !important; border-radius: 8px !important; color: ${quote_toggle_ink} !important; cursor: pointer !important; transition: background-color 0.12s ease, transform 0.08s ease !important; }
+.aster-quote-toggle::after { content: "" !important; position: absolute !important; inset: -6px -4px !important; }
 .aster-quote-toggle:active { background: ${quote_toggle_active_bg} !important; transform: scale(0.94) !important; }
 .aster-quote-toggle::-webkit-details-marker { display: none !important; }
 .aster-quote-toggle::marker { content: "" !important; }
 .aster-quote-toggle:hover, .aster-quote-toggle.aster-quote-expanded, details[open] > .aster-quote-toggle { background: ${quote_toggle_hover_bg} !important; }
-.aster-quote-toggle:focus-visible { outline: 2px solid ${link_ink} !important; outline-offset: 2px !important; }
-.aster-quote-toggle-dots { display: block !important; flex: none !important; margin: 0 !important; width: 3px !important; height: 3px !important; border-radius: 50% !important; background: currentColor !important; box-shadow: -5px 0 0 currentColor, 5px 0 0 currentColor !important; }
+.aster-quote-toggle:focus { outline: none !important; }
+.aster-quote-toggle:focus-visible { outline: 2px solid ${link_ink} !important; outline-offset: 1px !important; }
+.aster-quote-toggle-dots { position: absolute !important; inset: 0 !important; width: auto !important; height: auto !important; margin: 0 !important; border-radius: 0 !important; background: radial-gradient(circle, currentColor 1.4px, transparent 1.9px) calc(50% - 6px) 50% / 6px 6px no-repeat, radial-gradient(circle, currentColor 1.4px, transparent 1.9px) 50% 50% / 6px 6px no-repeat, radial-gradient(circle, currentColor 1.4px, transparent 1.9px) calc(50% + 6px) 50% / 6px 6px no-repeat !important; box-shadow: none !important; transform: none !important; }
 .aster-quoted-content { border-left-color: ${quote_rail_ink} !important; }`;
 
   const plain_dark_css = auto_dark_active
@@ -778,7 +786,6 @@ ${preferences.hide_scrollbars === true ? `<style>html, body { scrollbar-width: n
       email_id,
       base_zoom_ref,
       document_ready_cleanup_ref,
-      has_fired_ready_ref,
       mutation_observer_ref,
       observer_ref,
       raf_ref,
@@ -963,6 +970,12 @@ ${preferences.hide_scrollbars === true ? `<style>html, body { scrollbar-width: n
   }, [contrast_ready, srcdoc_html]);
 
   const is_settling = !height_ready || !contrast_ready || !content_revealed;
+
+  useLayoutEffect(() => {
+    if (is_settling || !email_id || has_fired_ready_ref.current) return;
+    has_fired_ready_ref.current = true;
+    dispatch_iframe_ready(email_id);
+  }, [is_settling, email_id, srcdoc_html]);
 
   useEffect(() => {
     if (content_revealed) return;

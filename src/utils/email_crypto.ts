@@ -736,13 +736,19 @@ export interface DecryptedAttachmentSummary {
   content_id?: string;
 }
 
+function is_attached_public_key(part: { content_type: string }): boolean {
+  return part.content_type.trim().toLowerCase() === "application/pgp-keys";
+}
+
 function keep_decrypted_attachments(
   plaintext: string,
   mail_item_id: string | undefined,
   content_tag: string,
 ): DecryptedAttachmentSummary[] {
   const parts = /^content-type\s*:/im.test(plaintext)
-    ? extract_mime_attachments(plaintext)
+    ? extract_mime_attachments(plaintext).filter(
+        (part) => !is_attached_public_key(part),
+      )
     : [];
 
   if (mail_item_id) {

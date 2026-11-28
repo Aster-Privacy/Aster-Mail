@@ -56,9 +56,11 @@ import {
   TagNotFoundState,
   LockedFolderState,
 } from "@/components/email/inbox/inbox_email_list";
+import { BottomPagination } from "@/components/email/inbox/inbox_bottom_pagination";
 import { reveal_list_row } from "@/components/email/inbox/use_inbox_list_scroll";
 import { use_empty_folder_request } from "@/components/email/inbox/empty_folder_request";
 import { StorageBanner } from "@/components/email/inbox/inbox_storage_banner";
+import { InboxListFooter } from "@/components/email/inbox/inbox_list_footer";
 import { TrashBanner } from "@/components/email/inbox/inbox_trash_banner";
 import { is_outgoing_view } from "@/hooks/email_list_helpers";
 import { use_primary_identity } from "@/lib/primary_identity";
@@ -258,10 +260,17 @@ export function EmailInbox(props: EmailInboxProps): React.ReactElement {
               />
             )}
           </div>
+          {active_filter !== "all" && total_pages > 1 && (
+            <BottomPagination
+              current_page={current_page}
+              on_page_change={handle_page_change}
+              total_pages={total_pages}
+            />
+          )}
         </div>
       ) : (
-        <div className="relative min-h-full -mt-px border-t border-edge-secondary">
-          <div>
+        <div className="relative flex flex-col min-h-full -mt-px border-t border-edge-secondary">
+          <div className="flex flex-1 flex-col">
             {filtered_emails.length > 0 && (
               <EmailList
                 categories_enabled={
@@ -312,7 +321,22 @@ export function EmailInbox(props: EmailInboxProps): React.ReactElement {
                 tags={list_tags}
               />
             )}
+            {!skeleton_visible &&
+              filtered_emails.length > 0 &&
+              total_pages > 1 && (
+                <BottomPagination
+                  current_page={current_page}
+                  on_page_change={handle_page_change}
+                  total_pages={total_pages}
+                />
+              )}
             {show_indexing_notice && <AliasIndexingNotice />}
+            {filtered_emails.length > 0 && !skeleton_visible && (
+              <InboxListFooter
+                storage_total_bytes={mail_stats.storage_total_bytes}
+                storage_used_bytes={mail_stats.storage_used_bytes}
+              />
+            )}
           </div>
           {(skeleton_visible ||
             ((manual_refresh_active || email_state.is_loading_more) &&
@@ -354,6 +378,12 @@ export function EmailInbox(props: EmailInboxProps): React.ReactElement {
           is_scheduled_view={is_scheduled_view}
           is_spam_view={current_view === "spam"}
           is_trash_view={current_view === "trash"}
+          list_empty={
+            empty_state_visible &&
+            !folder_not_found &&
+            !tag_not_found &&
+            !locked_folder
+          }
           on_activate_select_all_mode={
             scope_for_view && active_filter === "all"
               ? selection.activate_select_all_mode

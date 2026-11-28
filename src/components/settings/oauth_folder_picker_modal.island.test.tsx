@@ -202,4 +202,21 @@ describe("OAuthFolderPickerModal", () => {
     expect(list_oauth_folders).toHaveBeenCalledTimes(2);
     expect(container.querySelectorAll('[id^="oauth-folder-"]')).toHaveLength(3);
   });
+
+  it("explains a mailbox the provider has not opened yet", async () => {
+    list_oauth_folders.mockResolvedValueOnce({
+      error: "provider_not_ready_message",
+      server_code: "EXTERNAL_ACCOUNT_PROVIDER_NOT_READY",
+    });
+    await render_picker();
+
+    expect(container.textContent).toContain("provider_not_ready_message");
+  });
+
+  it("keeps raw errors out of the folder picker", async () => {
+    list_oauth_folders.mockResolvedValueOnce({ error: "raw upstream text" });
+    await render_picker();
+
+    expect(container.textContent).not.toContain("raw upstream text");
+  });
 });

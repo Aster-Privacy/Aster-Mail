@@ -24,6 +24,7 @@ import {
   capture_link_commitment,
   clear_link_commitment,
   format_fingerprint_input,
+  link_commitment_fragment,
   link_device_url,
   normalize_fingerprint,
   read_link_commitment,
@@ -74,6 +75,27 @@ describe("device link commitment", () => {
     clear_link_commitment();
 
     expect(read_link_commitment()).toBeNull();
+  });
+
+  it("keeps the code across the sign-in round trip", () => {
+    expect(link_commitment_fragment()).toBe("");
+
+    window.history.replaceState(
+      null,
+      "",
+      "/link-device#v=9B16AF790A6AE2F255D3",
+    );
+    capture_link_commitment(true);
+
+    const fragment = link_commitment_fragment();
+
+    expect(fragment).toBe("#v=9B16AF790A6AE2F255D3");
+
+    window.sessionStorage.clear();
+    window.history.replaceState(null, "", `/u/0/link-device${fragment}`);
+    capture_link_commitment(true);
+
+    expect(read_link_commitment()).toBe(FINGERPRINT);
   });
 
   it("ignores a malformed code and other pages", () => {

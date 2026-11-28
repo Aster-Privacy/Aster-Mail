@@ -36,8 +36,10 @@ import { get_alias_hash_by_address } from "@/hooks/use_sidebar_aliases";
 import { alias_address_of } from "@/hooks/email_list_helpers/alias_view";
 import {
   is_fully_built as is_category_index_built,
+  is_index_capped,
   is_index_reconciled,
   is_index_settled,
+  is_serving_previous_build,
 } from "@/services/category_index";
 import { use_category_drop } from "@/components/email/inbox/use_category_drop";
 import { use_settled_empty_state } from "@/components/email/inbox/use_settled_empty_state";
@@ -61,6 +63,10 @@ import {
 import { count_left_read_filter } from "@/hooks/use_email_list";
 import { use_split_email_view } from "@/components/email/inbox/use_split_email_view";
 import { use_split_pane } from "@/components/email/inbox/use_split_pane";
+import {
+  use_min_width,
+  WIDE_LAYOUT_MIN_WIDTH,
+} from "@/hooks/use_min_width";
 import { use_inbox_list_scroll } from "@/components/email/inbox/use_inbox_list_scroll";
 import { use_inbox_keyboard } from "@/components/email/inbox/use_inbox_keyboard";
 import { use_inbox_navigation } from "@/components/email/inbox/use_inbox_navigation";
@@ -402,8 +408,12 @@ export function use_email_inbox_state(props: EmailInboxProps) {
   const alias_scoped_by_server =
     is_alias_view &&
     get_alias_hash_by_address(alias_address_of(current_view) ?? "") !== null;
+  const index_backs_pages =
+    is_category_index_built() ||
+    is_index_capped() ||
+    is_serving_previous_build();
   const unfiltered_total_for_pages = categories.enabled
-    ? is_category_index_built()
+    ? index_backs_pages
       ? (categories.counts[categories.active_category]?.total ?? 0)
       : stats_total_for_view || 0
     : is_alias_view && !alias_scoped_by_server
@@ -466,7 +476,7 @@ export function use_email_inbox_state(props: EmailInboxProps) {
   });
 
   const totals_authoritative = categories.enabled
-    ? is_category_index_built()
+    ? index_backs_pages
     : email_state.has_initial_load && !email_state.is_loading;
 
   const live_header_count =
@@ -790,6 +800,7 @@ export function use_email_inbox_state(props: EmailInboxProps) {
     effective_total_for_pages,
     handle_category_drop,
     set_show_toolbar_custom_snooze,
+    current_view,
   });
 
   const nav = use_inbox_navigation({
@@ -1032,7 +1043,10 @@ export function use_email_inbox_state(props: EmailInboxProps) {
   );
 
   const is_split_view = !!split_email_id || !!split_scheduled_data;
-  const is_full_view_mode = preferences.email_view_mode === "fullpage";
+  const is_wide_layout = use_min_width(WIDE_LAYOUT_MIN_WIDTH);
+  const is_full_view_mode =
+    preferences.email_view_mode === "fullpage" ||
+    (preferences.email_view_mode === "split" && !is_wide_layout);
   const [expanded_email_id, set_expanded_email_id] = useState<string | null>(
     null,
   );

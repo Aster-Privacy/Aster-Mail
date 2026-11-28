@@ -43,6 +43,11 @@ import {
 import { PopupEmailActions } from "@/components/email/popup/popup_email_actions";
 import { PopupEmailBody } from "@/components/email/popup/popup_email_body";
 import { use_spam_confirm } from "@/components/email/use_spam_confirm";
+import { use_block_sender_confirm } from "@/components/email/use_block_sender_confirm";
+import {
+  reportable_message,
+  use_phishing_reported,
+} from "@/components/email/viewer_shared/report_phishing";
 import { use_popup_outside_close } from "@/components/email/hooks/use_popup_outside_close";
 import { SenderLogoBoundary } from "@/contexts/sender_logo_context";
 
@@ -61,6 +66,8 @@ export function EmailPopupViewer({
   const reduce_motion = use_should_reduce_motion();
   const { preferences } = use_preferences();
   const { request_spam, spam_confirm_dialog } = use_spam_confirm();
+  const { request_block_sender, block_sender_dialog } =
+    use_block_sender_confirm();
 
   const viewer = use_popup_viewer({
     email_id,
@@ -72,6 +79,12 @@ export function EmailPopupViewer({
     snoozed_until,
     grouped_email_ids,
   });
+  const phishing_target = reportable_message(
+    viewer.thread_messages,
+    email_id,
+    viewer.user?.email,
+  );
+  const phishing_target_reported = use_phishing_reported(phishing_target?.id);
 
   use_popup_outside_close({
     enabled:
@@ -361,6 +374,17 @@ export function EmailPopupViewer({
         on_fullscreen={viewer.handle_fullscreen}
         on_move_out_of_bin={bin_flag ? () => move_out_of_bin(null) : undefined}
         on_not_spam={viewer.handle_not_spam}
+        on_report_phishing={
+          phishing_target
+            ? () =>
+                request_spam(
+                  () =>
+                    viewer.handle_per_message_report_phishing(phishing_target),
+                  phishing_target.is_spam === true,
+                )
+            : undefined
+        }
+        is_phishing_reported={phishing_target_reported}
         on_pin_toggle={viewer.handle_pin_toggle}
         on_print={viewer.handle_print}
         on_read_toggle={viewer.handle_read_toggle}
@@ -413,8 +437,12 @@ export function EmailPopupViewer({
         on_per_message_print={viewer.handle_per_message_print}
         on_per_message_reply={viewer.handle_per_message_reply}
         on_per_message_reply_all={viewer.handle_per_message_reply_all}
+        on_per_message_block_sender={request_block_sender}
         on_per_message_report_phishing={(msg) =>
-          request_spam(() => viewer.handle_per_message_report_phishing(msg))
+          request_spam(
+            () => viewer.handle_per_message_report_phishing(msg),
+            msg.is_spam === true,
+          )
         }
         on_per_message_trash={viewer.handle_per_message_trash}
         on_retry={viewer.retry_load}
@@ -428,6 +456,7 @@ export function EmailPopupViewer({
         timestamp_date={viewer.timestamp_date}
       />
       {spam_confirm_dialog}
+      {block_sender_dialog}
       {viewer.permanent_delete_dialog}
     </motion.div>
   );

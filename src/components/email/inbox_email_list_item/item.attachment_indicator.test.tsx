@@ -200,16 +200,14 @@ describe("InboxEmailListItem attachment indicator", () => {
     }
   });
 
-  it("keeps the paperclip by the subject when the chips show", () => {
+  it("shows the paperclip only where the chips are hidden", () => {
     const row = render_row({}, loaded);
 
     expect(
       row.querySelector('[data-testid="attachment-chips-container"]'),
     ).not.toBeNull();
     expect(indicators(row)).toHaveLength(1);
-    expect(indicators(row)[0].className).not.toMatch(
-      /\b(hidden|md:hidden|sm:hidden)\b/,
-    );
+    expect(indicators(row)[0].classList.contains("md:hidden")).toBe(true);
   });
 
   it("dims with the rest of a read row", () => {

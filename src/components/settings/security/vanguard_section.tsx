@@ -377,7 +377,7 @@ export function VanguardSection() {
           show_toast(t("settings.vanguard_enabled_toast"), "success");
         }
       });
-    } else if (server_eligible !== false && is_lockdown_enabled(account_id)) {
+    } else if (is_lockdown_enabled(account_id)) {
       show_toast(t("settings.lockdown_must_disable_first"), "error");
     } else {
       set_show_disable_confirm(true);
@@ -385,7 +385,7 @@ export function VanguardSection() {
   };
 
   const confirm_disable = async () => {
-    if (server_eligible !== false && is_lockdown_enabled(account_id)) {
+    if (is_lockdown_enabled(account_id)) {
       set_show_disable_confirm(false);
       show_toast(t("settings.lockdown_must_disable_first"), "error");
 
