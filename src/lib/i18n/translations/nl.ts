@@ -5203,7 +5203,7 @@ export const nl = {
     reduce_motion_description: "Minimaliseer animaties en overgangen",
     compact_mode: "Compacte modus",
     compact_mode_description: "Toon meer inhoud met minder ruimte",
-    enable_shortcuts_description: "Schakel sneltoetsen in door de hele app",
+    enable_shortcuts_description: "Gebruik sneltoetsen in de hele app",
     font_size_small: "Klein",
     font_size_default: "Standaard",
     font_size_large: "Groot",

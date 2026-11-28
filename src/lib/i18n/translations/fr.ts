@@ -5350,7 +5350,7 @@ export const fr = {
     compact_mode_description:
       "Afficher plus de contenu avec moins d'espacement",
     enable_shortcuts_description:
-      "Activer les raccourcis clavier dans toute l'application",
+      "Utiliser les raccourcis clavier dans toute l'application",
     font_size_small: "Petit",
     font_size_default: "Par défaut",
     font_size_large: "Grand",

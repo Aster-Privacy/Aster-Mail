@@ -5309,7 +5309,7 @@ export const es = {
     compact_mode: "Modo compacto",
     compact_mode_description: "Mostrar más contenido con menos espaciado",
     enable_shortcuts_description:
-      "Habilitar atajos de teclado en toda la aplicación",
+      "Usar atajos de teclado en toda la aplicación",
     font_size_small: "Pequeño",
     font_size_default: "Predeterminado",
     font_size_large: "Grande",

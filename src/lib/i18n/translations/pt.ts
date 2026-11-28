@@ -5348,7 +5348,7 @@ export const pt = {
     compact_mode: "Modo compacto",
     compact_mode_description: "Mostrar mais conteúdo com menos espaçamento",
     enable_shortcuts_description:
-      "Ativar atalhos de teclado em toda a aplicação",
+      "Utilizar atalhos de teclado em toda a aplicação",
     font_size_small: "Pequeno",
     font_size_default: "Predefinição",
     font_size_large: "Grande",

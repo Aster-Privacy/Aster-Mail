@@ -5213,7 +5213,7 @@ export const de = {
     reduce_motion_description: "Animationen und Übergänge minimieren",
     compact_mode: "Kompaktmodus",
     compact_mode_description: "Mehr Inhalte mit weniger Abstand anzeigen",
-    enable_shortcuts_description: "Tastenkürzel in der gesamten App aktivieren",
+    enable_shortcuts_description: "Tastenkürzel in der gesamten App verwenden",
     font_size_small: "Klein",
     font_size_default: "Standard",
     font_size_large: "Groß",

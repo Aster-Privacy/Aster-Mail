@@ -6344,7 +6344,7 @@ export const hi = {
     minimize_sidebar: "साइडबार छोटा करें",
     minimize_sidebar_description:
       "जगह बचाने के लिए साइडबार को चिह्नों तक समेटें",
-    enable_shortcuts_description: "पूरे ऐप में कीबोर्ड शॉर्टकट चालू करें",
+    enable_shortcuts_description: "पूरे ऐप में कीबोर्ड शॉर्टकट इस्तेमाल करें",
     font_size_small: "छोटा",
     font_size_default: "डिफ़ॉल्ट",
     font_size_large: "बड़ा",

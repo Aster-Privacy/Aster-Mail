@@ -5376,7 +5376,7 @@ export const ar = {
     compact_mode: "الوضع المضغوط",
     compact_mode_description: "عرض محتوى أكثر مع مسافات أقل",
     enable_shortcuts_description:
-      "تفعيل اختصارات لوحة المفاتيح في جميع أنحاء التطبيق",
+      "استخدام اختصارات لوحة المفاتيح في جميع أنحاء التطبيق",
     font_size_small: "صغير",
     font_size_default: "افتراضي",
     font_size_large: "كبير",

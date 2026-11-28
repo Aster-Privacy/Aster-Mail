@@ -4784,7 +4784,7 @@ export const zh_CN = {
     reduce_motion_description: "最小化动画和过渡效果",
     compact_mode: "紧凑模式",
     compact_mode_description: "以更小的间距显示更多内容",
-    enable_shortcuts_description: "在整个应用中启用键盘快捷键",
+    enable_shortcuts_description: "在整个应用中使用键盘快捷键",
     font_size_small: "小",
     font_size_default: "默认",
     font_size_large: "大",

@@ -5242,7 +5242,7 @@ export const ko = {
     reduce_motion_description: "애니메이션과 전환 효과를 최소화합니다",
     compact_mode: "컴팩트 모드",
     compact_mode_description: "더 적은 간격으로 더 많은 콘텐츠를 표시합니다",
-    enable_shortcuts_description: "앱 전체에서 키보드 단축키를 활성화합니다",
+    enable_shortcuts_description: "앱 전체에서 키보드 단축키를 사용합니다",
     font_size_small: "작게",
     font_size_default: "기본",
     font_size_large: "크게",

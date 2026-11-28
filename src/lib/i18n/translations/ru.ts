@@ -5413,7 +5413,7 @@ export const ru = {
     compact_mode_description:
       "Показывать больше содержимого с меньшими интервалами",
     enable_shortcuts_description:
-      "Включить сочетания клавиш во всём приложении",
+      "Использовать сочетания клавиш во всём приложении",
     font_size_small: "Маленький",
     font_size_default: "По умолчанию",
     font_size_large: "Большой",

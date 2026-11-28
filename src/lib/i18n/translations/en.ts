@@ -6258,7 +6258,7 @@ export const en: Translations = {
     minimize_sidebar: "Minimize sidebar",
     minimize_sidebar_description: "Collapse the sidebar to icons to save space",
     enable_shortcuts_description:
-      "Enable keyboard shortcuts throughout the app",
+      "Use keyboard shortcuts throughout the app",
     font_size_small: "Small",
     font_size_default: "Default",
     font_size_large: "Large",
@@ -9096,13 +9096,13 @@ export const en: Translations = {
     low_network_mode_label: "Low network mode",
     low_network_mode_description:
       "Skips profile pictures, favicons, external images, and email preloading, and shows all emails as plain text. Useful on slow or metered connections.",
-    low_network_mode_active_banner: "Low Network Mode active",
+    low_network_mode_active_banner: "Low network mode active",
     info_saved_images_title: "What are saved images?",
     info_saved_images_description:
       "When you open a message, Aster keeps a copy of its images, encrypted on this device, so opening the message again doesn't contact the sender. Clearing them frees up space on this device and doesn't delete any mail. The images download again the next time you open a message that contains them.",
-    info_low_network_mode_title: "What does Low Network Mode do?",
+    info_low_network_mode_title: "What does low network mode do?",
     info_low_network_mode_description:
-      "Blocks all nonessential network requests to keep Aster usable on slow or metered connections. Turns off profile pictures, sender logos, domain favicons, external images in emails, email preloading, custom fonts, attachment previews, and notification sounds. All emails are shown as plain text, and email threads are capped at 4 messages. Low Network Mode turns on automatically on 2G or Save-Data connections. You can also turn it on by adding ?low_bandwidth=1 to the URL.",
+      "Blocks all nonessential network requests to keep Aster usable on slow or metered connections. Turns off profile pictures, sender logos, domain favicons, external images in emails, email preloading, custom fonts, attachment previews, and notification sounds. All emails are shown as plain text, and email threads are capped at 4 messages. Low network mode turns on automatically on 2G or Save-Data connections. You can also turn it on by adding ?low_bandwidth=1 to the URL.",
     sign_out_everywhere_success_one: "Signed out of {{count}} other session",
     sign_out_everywhere_success_other: "Signed out of {{count}} other sessions",
     deleted_emails_count_one: "Deleted {{count}} email",

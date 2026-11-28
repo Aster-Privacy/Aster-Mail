@@ -5205,7 +5205,7 @@ export const ja = {
     compact_mode: "コンパクトモード",
     compact_mode_description: "間隔を狭くしてより多くのコンテンツを表示します",
     enable_shortcuts_description:
-      "アプリ全体でキーボードショートカットを有効にします",
+      "アプリ全体でキーボードショートカットを使用します",
     font_size_small: "小",
     font_size_default: "デフォルト",
     font_size_large: "大",

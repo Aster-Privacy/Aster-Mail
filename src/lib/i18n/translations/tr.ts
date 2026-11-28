@@ -5221,7 +5221,7 @@ export const tr = {
     compact_mode: "Sıkışık Mod",
     compact_mode_description: "Daha az boşlukla daha fazla içerik göster",
     enable_shortcuts_description:
-      "Uygulama genelinde klavye kısayollarını etkinleştir",
+      "Uygulama genelinde klavye kısayollarını kullan",
     font_size_small: "Küçük",
     font_size_default: "Varsayılan",
     font_size_large: "Büyük",

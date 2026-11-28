@@ -6674,7 +6674,7 @@ export const it = {
     compact_mode: "Modalità compatta",
     compact_mode_description: "Mostra più contenuti con meno spaziatura",
     enable_shortcuts_description:
-      "Attiva le scorciatoie da tastiera in tutta l'app",
+      "Usa le scorciatoie da tastiera in tutta l'app",
     font_size_small: "Piccolo",
     font_size_default: "Predefinito",
     font_size_large: "Grande",

@@ -5455,7 +5455,7 @@ export const pl = {
     reduce_motion_description: "Minimalizuj animacje i przejścia",
     compact_mode: "Tryb kompaktowy",
     compact_mode_description: "Wyświetlaj więcej treści z mniejszymi odstępami",
-    enable_shortcuts_description: "Włącz skróty klawiszowe w całej aplikacji",
+    enable_shortcuts_description: "Używaj skrótów klawiszowych w całej aplikacji",
     font_size_small: "Mały",
     font_size_default: "Domyślny",
     font_size_large: "Duży",
