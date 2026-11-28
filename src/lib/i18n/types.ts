@@ -58,6 +58,7 @@ export interface TranslationNamespace {
   compose: ComposeTranslations;
   passkeys: PasskeysTranslations;
   shared_mailboxes: SharedMailboxesTranslations;
+  found_us: FoundUsTranslations;
   review_prompt: ReviewPromptTranslations;
   survey: SurveyTranslations;
   calendar: CalendarTranslations;
@@ -10471,6 +10472,41 @@ export interface BadgesTranslations {
   claim_failed: string;
 }
 
+export interface FoundUsTranslations {
+  banner_message: string;
+  banner_answer: string;
+  banner_dismiss: string;
+  remind_later: string;
+  dont_ask: string;
+  modal_title: string;
+  modal_subtitle: string;
+  source_reddit: string;
+  source_youtube: string;
+  source_friend: string;
+  source_invite_link: string;
+  source_search_engine: string;
+  source_comparison_site: string;
+  source_privacy_directory: string;
+  source_article: string;
+  source_app_store: string;
+  source_github: string;
+  source_social_media: string;
+  source_short_video: string;
+  source_forum: string;
+  source_ai_assistant: string;
+  source_other: string;
+  other_label: string;
+  other_placeholder: string;
+  char_count: string;
+  pick_one_error: string;
+  other_required_error: string;
+  privacy_note: string;
+  skip: string;
+  send: string;
+  thanks: string;
+  send_failed: string;
+}
+
 export interface ReviewPromptTranslations {
   banner_message: string;
   banner_open: string;
@@ -10848,6 +10884,7 @@ export type TranslationKey =
   | `compose.${keyof ComposeTranslations}`
   | `passkeys.${keyof PasskeysTranslations}`
   | `shared_mailboxes.${keyof SharedMailboxesTranslations}`
+  | `found_us.${keyof FoundUsTranslations}`
   | `review_prompt.${keyof ReviewPromptTranslations}`
   | `survey.${keyof SurveyTranslations}`
   | `calendar.${keyof CalendarTranslations}`
