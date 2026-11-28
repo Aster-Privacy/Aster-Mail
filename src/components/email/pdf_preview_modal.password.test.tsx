@@ -91,7 +91,6 @@ vi.mock("@/lib/pdf_utils", () => ({
       },
     };
   }),
-  render_pdf_page: vi.fn(async () => {}),
   get_pdf_page_sizes: vi.fn(async (doc: { numPages: number }) =>
     Array.from({ length: doc.numPages }, () => ({ width: 600, height: 800 })),
   ),
@@ -186,9 +185,31 @@ describe("PdfPreviewModal password flow", () => {
     HTMLCanvasElement.prototype.toBlob = function (cb: BlobCallback) {
       cb(new Blob(["png"]));
     };
+    vi.stubGlobal(
+      "IntersectionObserver",
+      class {
+        private readonly callback: IntersectionObserverCallback;
+
+        constructor(callback: IntersectionObserverCallback) {
+          this.callback = callback;
+        }
+
+        observe(target: Element) {
+          this.callback(
+            [{ isIntersecting: true, target } as IntersectionObserverEntry],
+            this as unknown as IntersectionObserver,
+          );
+        }
+
+        unobserve() {}
+
+        disconnect() {}
+      },
+    );
   });
 
   afterEach(() => {
+    vi.unstubAllGlobals();
     act(() => {
       root?.unmount();
     });

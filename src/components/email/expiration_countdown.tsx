@@ -19,7 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type { TranslationKey } from "@/lib/i18n/types";
-import type { CSSProperties, ReactNode } from "react";
+import type { CSSProperties } from "react";
 
 import { useEffect, useRef, useState } from "react";
 import { ClockIcon } from "@heroicons/react/16/solid";
@@ -197,24 +197,20 @@ export function ExpiryPillIcon({ size }: { size: ExpiryPillSize }) {
 
 interface ExpirationCountdownProps {
   expires_at: Date | string;
-  show_icon?: boolean;
   show_label?: boolean;
   size?: ExpiryPillSize;
   on_expired?: () => void;
   show_tooltip?: boolean;
   title?: string;
-  trailing?: ReactNode;
 }
 
 export function ExpirationCountdown({
   expires_at,
-  show_icon = true,
   show_label = true,
   size = "md",
   on_expired,
   show_tooltip = true,
   title,
-  trailing,
 }: ExpirationCountdownProps) {
   const { t } = use_i18n();
   const { urgency, remaining } = use_expiry_state(expires_at, on_expired);
@@ -237,10 +233,9 @@ export function ExpirationCountdown({
       style={expiry_pill_style(urgency)}
       title={title}
     >
-      {show_icon && <ExpiryPillIcon size={size} />}
+      <ExpiryPillIcon size={size} />
       {hidden_prefix && <span className="sr-only">{hidden_prefix} </span>}
       <span>{label}</span>
-      {trailing}
     </span>
   );
 

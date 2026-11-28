@@ -68,10 +68,9 @@ interface PreparedAttachment {
 }
 
 type OpenPreview =
-  | { kind: "image"; index: number; url: string }
+  | { kind: "image" | "audio" | "video"; index: number; url: string }
   | { kind: "pdf"; index: number; buffer: ArrayBuffer }
-  | { kind: "text"; index: number; text: string; truncated: boolean }
-  | { kind: "audio" | "video"; index: number; url: string; mime: string };
+  | { kind: "text"; index: number; text: string; truncated: boolean };
 
 const DOWNLOAD_URL_LIFETIME_MS = 60_000;
 const FOCUS_RING =
@@ -92,14 +91,6 @@ function kind_icon(preview: SecurePreview | null) {
     default:
       return DocumentIcon;
   }
-}
-
-function copy_buffer(data: Uint8Array): ArrayBuffer {
-  const copy = new Uint8Array(data.byteLength);
-
-  copy.set(data);
-
-  return copy.buffer;
 }
 
 function SecureFileModal({
@@ -261,7 +252,7 @@ export function SecureViewAttachments({
         set_open_preview({
           kind: "pdf",
           index: item.index,
-          buffer: copy_buffer(item.data),
+          buffer: item.data.slice().buffer,
         });
 
         return;
@@ -278,19 +269,7 @@ export function SecureViewAttachments({
       const url = create_preview_url(item.data, preview.mime);
 
       preview_url_ref.current = url;
-
-      if (preview.kind === "image") {
-        set_open_preview({ kind: "image", index: item.index, url });
-
-        return;
-      }
-
-      set_open_preview({
-        kind: preview.kind,
-        index: item.index,
-        url,
-        mime: preview.mime,
-      });
+      set_open_preview({ kind: preview.kind, index: item.index, url });
     },
     [release_preview_url],
   );
@@ -425,6 +404,7 @@ export function SecureViewAttachments({
                 preload="metadata"
                 src={open_preview.url}
               >
+                <track kind="captions" />
                 {t("secure_view.media_unsupported")}
               </audio>
             </div>
@@ -450,6 +430,7 @@ export function SecureViewAttachments({
               preload="metadata"
               src={open_preview.url}
             >
+              <track kind="captions" />
               {t("secure_view.media_unsupported")}
             </video>
           </SecureFileModal>

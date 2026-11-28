@@ -35,6 +35,7 @@ import { cn } from "@/lib/utils";
 import { SecureViewAttachments } from "@/components/email/secure_view_attachments";
 import { ExpirationCountdown } from "@/components/email/expiration_countdown";
 import { use_i18n } from "@/lib/i18n/context";
+import { use_should_reduce_motion } from "@/provider";
 import { sanitize_html } from "@/lib/html_sanitizer";
 import { SECURE_VIEW_SANITIZE_OPTIONS } from "@/lib/secure_view_sanitize_options";
 import { inline_secure_view_images } from "@/lib/secure_view_inline_images";
@@ -127,34 +128,6 @@ function use_document_scheme(): BodyScheme {
   }, []);
 
   return scheme;
-}
-
-function use_prefers_reduced_motion(): boolean {
-  const [reduced, set_reduced] = useState(() => {
-    try {
-      return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    } catch {
-      return false;
-    }
-  });
-
-  useEffect(() => {
-    let query: MediaQueryList;
-
-    try {
-      query = window.matchMedia("(prefers-reduced-motion: reduce)");
-    } catch {
-      return;
-    }
-
-    const handler = (event: MediaQueryListEvent) => set_reduced(event.matches);
-
-    query.addEventListener?.("change", handler);
-
-    return () => query.removeEventListener?.("change", handler);
-  }, []);
-
-  return reduced;
 }
 
 const HEIGHT_REPORT_SCRIPT = `(function(){function m(){var h=document.body?Math.min(document.body.scrollHeight+8,20000):0;parent.postMessage({type:"aster_sv_height",value:h},"*");}if(document.readyState==="loading"){document.addEventListener("DOMContentLoaded",m);}else{m();}if(document.fonts&&document.fonts.ready){document.fonts.ready.then(m);}try{new ResizeObserver(m).observe(document.body);}catch(_){}document.querySelectorAll("img").forEach(function(img){if(!img.complete){img.addEventListener("load",m,{once:true});}});})();`;
@@ -276,7 +249,7 @@ export default function SecureViewPage() {
   const [is_deleting, set_is_deleting] = useState(false);
   const [show_delete_confirm, set_show_delete_confirm] = useState(false);
   const [delete_error, set_delete_error] = useState("");
-  const reduce_motion = use_prefers_reduced_motion();
+  const reduce_motion = use_should_reduce_motion();
 
   useEffect(() => {
     let cancelled = false;

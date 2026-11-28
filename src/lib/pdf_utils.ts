@@ -168,20 +168,6 @@ export async function load_pdf_document(
   return open_document_promise(data, password);
 }
 
-export async function render_pdf_page(
-  doc: PDFDocumentProxy,
-  page_number: number,
-  canvas: HTMLCanvasElement,
-  max_width: number,
-): Promise<void> {
-  const page = await doc.getPage(page_number);
-  const viewport = page.getViewport({ scale: 1 });
-  const scale = max_width / viewport.width;
-  const scaled_viewport = page.getViewport({ scale });
-
-  await render_to_canvas(page, canvas, scaled_viewport);
-}
-
 const MAX_CANVAS_PIXELS = 16_777_216;
 
 export interface PdfPageSize {

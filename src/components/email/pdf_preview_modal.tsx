@@ -791,7 +791,7 @@ export function PdfPreviewModal({
     return () => {
       window.setTimeout(() => {
         import("@/lib/pdf_utils")
-          .then(({ cleanup_pdf_text_layers }) => cleanup_pdf_text_layers?.())
+          .then(({ cleanup_pdf_text_layers }) => cleanup_pdf_text_layers())
           .catch(() => {});
       }, 0);
     };
