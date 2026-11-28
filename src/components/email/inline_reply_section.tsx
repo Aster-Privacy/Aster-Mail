@@ -520,7 +520,11 @@ export const InlineReplySection = forwardRef<
           set_send_state("sent");
           on_sending_end?.();
           settle_pending_thread_reply(pending_reply_id);
-          show_email_sent_toast(t("common.email_sent"), undo_seconds > 0);
+          show_email_sent_toast(
+            t("common.email_sent"),
+            undo_seconds > 0,
+            sent_id,
+          );
 
           if (thread_token) {
             emit_thread_reply_sent({

@@ -443,7 +443,11 @@ export async function execute_internal_send(
           log_activities_for_sent(ctx, email_data);
           ctx.on_close();
           record_review_prompt_action();
-          show_email_sent_toast(ctx.t("common.email_sent"), delay_seconds > 0);
+          show_email_sent_toast(
+            ctx.t("common.email_sent"),
+            delay_seconds > 0,
+            sent_id,
+          );
         },
         on_cancelled: () => {
           drop_reply();
@@ -501,7 +505,7 @@ export async function execute_internal_send(
           dispatch_email_sent();
           log_activities_for_sent(ctx, email_data);
           record_review_prompt_action();
-          show_email_sent_toast(ctx.t("common.email_sent"), false);
+          show_email_sent_toast(ctx.t("common.email_sent"), false, sent_id);
         },
         on_cancel: () => {
           drop_reply();
@@ -594,7 +598,11 @@ export async function execute_mixed_send(
         log_activities_for_sent(ctx, email_data);
         ctx.on_close();
         record_review_prompt_action();
-        show_email_sent_toast(ctx.t("common.email_sent"), delay_seconds > 0);
+        show_email_sent_toast(
+          ctx.t("common.email_sent"),
+          delay_seconds > 0,
+          sent_id,
+        );
       },
       on_cancelled: () => {
         drop_reply();
@@ -712,6 +720,8 @@ export async function execute_external_email_send(
           dispatch_email_sent();
           log_activities_for_sent(ctx, email_data);
           ctx.on_close();
+          record_review_prompt_action();
+          show_email_sent_toast(ctx.t("common.email_sent"), true, sent_id);
         },
         on_cancelled: () => {
           drop_reply();
@@ -780,7 +790,7 @@ export async function execute_external_email_send(
         log_activities_for_sent(ctx, email_data);
         ctx.on_close();
         record_review_prompt_action();
-        show_email_sent_toast(ctx.t("common.email_sent"), true);
+        show_email_sent_toast(ctx.t("common.email_sent"), true, sent_id);
       } catch (err) {
         drop_reply();
         undo_send_manager.remove(email_id);
@@ -826,6 +836,8 @@ export async function execute_external_email_send(
           dispatch_email_sent();
           log_activities_for_sent(ctx, email_data);
           ctx.on_close();
+          record_review_prompt_action();
+          show_email_sent_toast(ctx.t("common.email_sent"), true, sent_id);
         } catch (err) {
           drop_reply();
           ctx.set_queued_email_id(null);
@@ -870,7 +882,7 @@ export async function execute_external_email_send(
       dispatch_email_sent();
       log_activities_for_sent(ctx, email_data);
       record_review_prompt_action();
-      show_email_sent_toast(ctx.t("common.email_sent"), false);
+      show_email_sent_toast(ctx.t("common.email_sent"), false, sent_id);
     } catch (err) {
       drop_reply();
       dismiss_toast(sending_toast_id);

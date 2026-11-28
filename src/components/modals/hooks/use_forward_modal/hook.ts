@@ -1093,7 +1093,7 @@ export function use_forward_modal({
         lock_scope,
       },
       {
-        on_complete: () => {
+        on_complete: (sent_id?: string) => {
           is_sending_ref.current = false;
           send_lock_started_at_ref.current = 0;
           set_is_sending(false);
@@ -1105,7 +1105,11 @@ export function use_forward_modal({
             emit_email_sent();
           }, 100);
           record_review_prompt_action();
-          show_email_sent_toast(t("common.email_sent"), delay_seconds > 0);
+          show_email_sent_toast(
+            t("common.email_sent"),
+            delay_seconds > 0,
+            sent_id,
+          );
         },
         on_cancel: () => {
           is_sending_ref.current = false;
