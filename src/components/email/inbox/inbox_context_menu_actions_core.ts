@@ -66,8 +66,6 @@ import {
 import {
   permanent_delete_mail_item,
   batched_bulk_permanent_delete,
-  report_spam_sender,
-  remove_spam_sender,
 } from "@/services/api/mail";
 import { set_thread_trashed, sync_thread_spam } from "@/services/trash_state";
 import { is_list_email_in_trash } from "@/components/email/viewer_shared/trash_placement";
@@ -84,6 +82,7 @@ import {
   note_flag_intents,
 } from "@/services/read_intent";
 import { ignore_error } from "@/lib/ignore_error";
+import { report_spam_with_retract } from "@/components/email/viewer_shared/report_phishing";
 
 export function build_core_context_menu_actions(
   params: UseContextMenuActionsParams,
@@ -420,14 +419,8 @@ export function build_core_context_menu_actions(
       for (const id of combined_ids) {
         emit_mail_item_updated({ id, is_spam: true });
       }
-      if (sender && !is_outgoing) {
-        report_spam_sender(sender).catch((caught) =>
-          ignore_error(
-            "components/email/inbox/inbox_context_menu_actions_core:handle_spam",
-            caught,
-          ),
-        );
-      }
+      const retract_report =
+        sender && !is_outgoing ? report_spam_with_retract(sender) : null;
       show_action_toast({
         message:
           same_sender_emails.length > 0
@@ -453,14 +446,7 @@ export function build_core_context_menu_actions(
           for (const id of combined_ids) {
             emit_mail_item_updated({ id, is_spam: false });
           }
-          if (sender) {
-            remove_spam_sender(sender).catch((caught) =>
-              ignore_error(
-                "components/email/inbox/inbox_context_menu_actions_core:handle_spam",
-                caught,
-              ),
-            );
-          }
+          void retract_report?.();
           window.dispatchEvent(new CustomEvent(MAIL_EVENTS.MAIL_SOFT_REFRESH));
         },
       });

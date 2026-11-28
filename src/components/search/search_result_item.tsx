@@ -26,7 +26,7 @@ import { FolderIcon } from "@heroicons/react/24/outline";
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
 import { SEARCH_RESULT_ROW_LAYOUT } from "@/components/search/search_results_list";
 import { use_search_sender_trust } from "@/hooks/use_sender_trust";
-import { cn, is_system_email } from "@/lib/utils";
+import { cn, is_aster_trusted_sender } from "@/lib/utils";
 import { strip_html_tags, strip_leading_css_rules } from "@/lib/html_text";
 import { strip_preview_filler } from "@/utils/preview_text";
 import { format_relative_time } from "@/utils/date_utils";
@@ -169,7 +169,7 @@ const SearchResultRowBase = forwardRef<
         image_url={marks_hidden ? undefined : result.avatar_url}
         name={shown_sender_name}
         plain={marks_hidden}
-        sender_authenticated={!marks_hidden && is_system_email(result)}
+        sender_authenticated={!marks_hidden && is_aster_trusted_sender(result)}
         size="sm"
         use_domain_logo={
           preferences.show_profile_pictures !== false && !result.is_spam

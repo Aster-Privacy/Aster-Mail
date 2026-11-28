@@ -110,7 +110,7 @@ export function get_view_title(
   t?: (key: TranslationKey) => string,
 ): string {
   const static_titles: Record<string, string> = {
-    all: t ? t("mail.all_mail") : "All Mail",
+    all: t ? t("mail.all_mail") : "All mail",
     starred: t ? t("mail.starred") : "Starred",
     sent: t ? t("mail.sent") : "Sent",
     drafts: t ? t("mail.drafts") : "Drafts",

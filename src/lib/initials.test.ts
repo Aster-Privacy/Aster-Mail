@@ -51,7 +51,9 @@ describe("get_initials", () => {
 
   it("keeps CJK characters intact", () => {
     expect(get_initials("李雷", undefined, "zh-CN")).toBe("李");
-    expect(get_initials("李 雷", undefined, "zh-CN")).toBe("李雷");
+    expect(get_initials("李 雷", undefined, "zh-CN")).toBe("李");
+    expect(get_initials("김 민준", undefined, "ko")).toBe("김");
+    expect(get_initials("山田 太郎", undefined, "ja")).toBe("山");
   });
 
   it("treats an emoji as a single grapheme, not a broken half", () => {

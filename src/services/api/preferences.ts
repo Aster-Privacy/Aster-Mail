@@ -813,7 +813,10 @@ export function get_cached_preferences(): UserPreferences | null {
 
 const SIDEBAR_CACHE_KEY = "aster_sidebar_state";
 
-export function get_cached_sidebar_state(key: string): boolean {
+export function get_cached_sidebar_state(
+  key: string,
+  fallback = false,
+): boolean {
   try {
     const cached = localStorage.getItem(SIDEBAR_CACHE_KEY);
 
@@ -826,7 +829,7 @@ export function get_cached_sidebar_state(key: string): boolean {
     ignore_error("services/api/preferences:get_cached_sidebar_state", caught);
   }
 
-  return false;
+  return fallback;
 }
 
 export function cache_sidebar_state(key: string, value: boolean): void {
@@ -986,7 +989,7 @@ export const DEFAULT_PREFERENCES: UserPreferences = {
   sidebar_more_collapsed: false,
   sidebar_folders_collapsed: false,
   sidebar_labels_collapsed: false,
-  sidebar_aliases_collapsed: false,
+  sidebar_aliases_collapsed: true,
   sidebar_folders_show_all: false,
   sidebar_labels_show_all: false,
   sidebar_aliases_show_all: false,
@@ -1024,7 +1027,7 @@ export const DEFAULT_PREFERENCES: UserPreferences = {
   show_side_panel: true,
   strip_exif_on_compose: true,
   send_error_reports: true,
-  thread_count_position: "left",
+  thread_count_position: "right",
   compose_window_mode: "default",
   reactions_enabled: true,
   purge_locked_folder_on_delete: false,

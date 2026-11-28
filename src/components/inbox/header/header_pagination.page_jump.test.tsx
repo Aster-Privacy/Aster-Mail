@@ -301,3 +301,49 @@ describe("parse_page_input", () => {
     expect(parse_page_input("2.5", 17)).toBeNull();
   });
 });
+
+describe("header pagination with an empty list", () => {
+  function render_empty(list_empty: boolean): void {
+    act(() => {
+      root.render(
+        <HeaderPagination
+          can_go_next={false}
+          can_go_prev={false}
+          current_page={0}
+          filtered_count={0}
+          list_empty={list_empty}
+          page_row_count={0}
+          page_size={PAGE_SIZE}
+          total_email_count={0}
+          total_pages={1}
+          on_page_change={vi.fn()}
+        />,
+      );
+    });
+  }
+
+  it("keeps a zero range with disabled arrows when nothing matches", () => {
+    render_empty(true);
+
+    const pager = host.querySelector<HTMLElement>(
+      '[data-testid="header-pagination-empty"]',
+    );
+
+    expect(pager).not.toBeNull();
+    expect(pager!.textContent).toContain("0 common.of 0");
+    const arrows = pager!.querySelectorAll("button");
+
+    expect(arrows).toHaveLength(2);
+    arrows.forEach((arrow) => {
+      expect(arrow.getAttribute("aria-disabled")).toBe("true");
+      expect(arrow.tabIndex).toBe(-1);
+    });
+    expect(trigger()).toBeNull();
+  });
+
+  it("stays hidden while the first page is still loading", () => {
+    render_empty(false);
+
+    expect(host.innerHTML).toBe("");
+  });
+});

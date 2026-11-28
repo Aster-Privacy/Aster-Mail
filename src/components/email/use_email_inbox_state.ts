@@ -63,6 +63,10 @@ import {
 import { count_left_read_filter } from "@/hooks/use_email_list";
 import { use_split_email_view } from "@/components/email/inbox/use_split_email_view";
 import { use_split_pane } from "@/components/email/inbox/use_split_pane";
+import {
+  use_min_width,
+  WIDE_LAYOUT_MIN_WIDTH,
+} from "@/hooks/use_min_width";
 import { use_inbox_list_scroll } from "@/components/email/inbox/use_inbox_list_scroll";
 import { use_inbox_keyboard } from "@/components/email/inbox/use_inbox_keyboard";
 import { use_inbox_navigation } from "@/components/email/inbox/use_inbox_navigation";
@@ -796,6 +800,7 @@ export function use_email_inbox_state(props: EmailInboxProps) {
     effective_total_for_pages,
     handle_category_drop,
     set_show_toolbar_custom_snooze,
+    current_view,
   });
 
   const nav = use_inbox_navigation({
@@ -1038,7 +1043,10 @@ export function use_email_inbox_state(props: EmailInboxProps) {
   );
 
   const is_split_view = !!split_email_id || !!split_scheduled_data;
-  const is_full_view_mode = preferences.email_view_mode === "fullpage";
+  const is_wide_layout = use_min_width(WIDE_LAYOUT_MIN_WIDTH);
+  const is_full_view_mode =
+    preferences.email_view_mode === "fullpage" ||
+    (preferences.email_view_mode === "split" && !is_wide_layout);
   const [expanded_email_id, set_expanded_email_id] = useState<string | null>(
     null,
   );

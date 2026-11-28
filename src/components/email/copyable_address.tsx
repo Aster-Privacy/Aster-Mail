@@ -52,6 +52,7 @@ export function CopyableAddress({
   return (
     <span className={`min-w-0 ${className}`}>
       <span
+        data-selectable
         className="cursor-pointer select-text hover:underline"
         data-copy-address={address}
         dir="auto"

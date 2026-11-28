@@ -75,7 +75,7 @@ export const MAIL_ROW_LAYOUT = {
   select_slot: "relative flex-shrink-0 flex items-center justify-center",
   content: "flex-1 min-w-0 flex items-center gap-3 sm:gap-6 overflow-hidden",
   sender:
-    "flex items-center gap-1.5 min-w-0 sm:w-44 sm:shrink-0 sm:max-w-[45%] overflow-hidden pe-px",
+    "flex items-center gap-1.5 min-w-0 sm:w-[200px] sm:shrink-0 sm:max-w-[45%] overflow-hidden pe-px",
   subject: "flex-1 min-w-0 overflow-hidden flex items-center gap-1.5",
   mobile_date: "text-xs tabular-nums whitespace-nowrap sm:hidden shrink-0",
   meta: "hidden sm:flex items-center gap-2 flex-shrink-0 ms-auto",

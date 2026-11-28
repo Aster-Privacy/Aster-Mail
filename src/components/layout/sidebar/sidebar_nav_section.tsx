@@ -112,6 +112,7 @@ interface NavItem {
   path: string;
   button_ref: RefObject<HTMLButtonElement>;
   count?: number;
+  hide_count?: boolean;
   on_after_navigate?: () => void;
   after?: ReactNode;
   empty_action?: { folder: EmptyableFolder; label: string };
@@ -295,6 +296,7 @@ export const SidebarNavSection = memo(function SidebarNavSection({
       path: "/spam",
       button_ref: spam_ref,
       count: stats.spam,
+      hide_count: true,
       empty_action: { folder: "spam", label: t("mail.empty_spam_button") },
     },
     {
@@ -304,6 +306,7 @@ export const SidebarNavSection = memo(function SidebarNavSection({
       path: "/trash",
       button_ref: trash_ref,
       count: stats.trash,
+      hide_count: true,
       empty_action: { folder: "trash", label: t("mail.empty_trash_button") },
     },
     {
@@ -343,7 +346,7 @@ export const SidebarNavSection = memo(function SidebarNavSection({
         on_click={go_to_item}
         selected={selected}
         trailing={
-          item.count !== undefined ? (
+          item.count !== undefined && !item.hide_count ? (
             <CountBadge
               count={item.count}
               is_active={selected}

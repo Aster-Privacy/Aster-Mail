@@ -146,6 +146,8 @@ export function MobileActionMenuSheet({
   on_message_details,
   on_block,
   on_report_phishing,
+  can_report = true,
+  is_phishing_reported = false,
   on_customize_toolbar,
   is_starred,
   is_pinned,
@@ -181,6 +183,8 @@ export function MobileActionMenuSheet({
   on_message_details: () => void;
   on_block: () => void;
   on_report_phishing: () => void;
+  can_report?: boolean;
+  is_phishing_reported?: boolean;
   on_customize_toolbar: () => void;
   is_starred: boolean;
   is_pinned: boolean;
@@ -475,31 +479,38 @@ export function MobileActionMenuSheet({
             </span>
           </button>
 
-          <button
-            className="flex w-full items-center gap-3 rounded-[14px] px-3 py-2.5 text-start active:bg-[var(--bg-tertiary)]"
-            type="button"
-            onClick={on_block}
-          >
-            <HandRaisedIcon className="h-5 w-5 text-[var(--color-danger,#ef4444)]" />
-            <span className="text-[14px] text-[var(--color-danger,#ef4444)]">
-              {t("mail.block_sender")}
-            </span>
-          </button>
+          {can_report && (
+            <>
+              <button
+                className="flex w-full items-center gap-3 rounded-[14px] px-3 py-2.5 text-start active:bg-[var(--bg-tertiary)]"
+                type="button"
+                onClick={on_block}
+              >
+                <HandRaisedIcon className="h-5 w-5 text-[var(--color-danger,#ef4444)]" />
+                <span className="text-[14px] text-[var(--color-danger,#ef4444)]">
+                  {t("mail.block_sender")}
+                </span>
+              </button>
 
-          <div className="my-1 h-px bg-[var(--border-primary)]" />
+              <div className="my-1 h-px bg-[var(--border-primary)]" />
 
-          <button
-            className="flex w-full items-center gap-3 rounded-[14px] px-3 py-2.5 text-start active:bg-[var(--bg-tertiary)]"
-            type="button"
-            onClick={on_report_phishing}
-          >
-            <ReportSpamIcon className="h-5 w-5 text-amber-500" />
-            <span className="text-[14px] text-amber-500">
-              {t("common.report_phishing")}
-            </span>
-          </button>
+              <button
+                className="flex w-full items-center gap-3 rounded-[14px] px-3 py-2.5 text-start active:bg-[var(--bg-tertiary)] disabled:opacity-50"
+                disabled={is_phishing_reported}
+                type="button"
+                onClick={on_report_phishing}
+              >
+                <ReportSpamIcon className="h-5 w-5 text-amber-500" />
+                <span className="text-[14px] text-amber-500">
+                  {is_phishing_reported
+                    ? t("common.reported_as_phishing")
+                    : t("common.report_phishing")}
+                </span>
+              </button>
 
-          <div className="my-1 h-px bg-[var(--border-primary)]" />
+              <div className="my-1 h-px bg-[var(--border-primary)]" />
+            </>
+          )}
 
           <button
             className="flex w-full items-center gap-3 rounded-[14px] px-3 py-2.5 text-start active:bg-[var(--bg-tertiary)]"

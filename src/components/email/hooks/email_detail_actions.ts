@@ -42,8 +42,10 @@ import {
   get_cached_alias_for_routing_token,
   get_cached_ghost_for_routing_token,
 } from "@/hooks/use_sender_aliases";
-import { remove_spam_sender } from "@/services/api/mail";
-import { report_phishing_with_undo } from "@/components/email/viewer_shared/report_phishing";
+import {
+  mark_message_not_spam,
+  report_phishing_with_undo,
+} from "@/components/email/viewer_shared/report_phishing";
 import {
   update_item_metadata,
   bulk_update_metadata_by_ids,
@@ -78,7 +80,6 @@ import {
 import { reindex_ids } from "@/services/category_index";
 import { set_forward_mail_id } from "@/services/forward_store";
 import { remember_forward_from_message } from "@/components/email/delivery_reply_address";
-import { ignore_error } from "@/lib/ignore_error";
 import { app_locale, get_display_time_zone } from "@/utils/date_format";
 import { resolve_reply_references } from "@/lib/reply_references";
 import {
@@ -550,41 +551,24 @@ export function use_email_detail_actions(deps: EmailDetailActionsDeps) {
 
   const handle_per_message_report_phishing = useCallback(
     async (msg: DecryptedThreadMessage) => {
-      if (await report_phishing_with_undo(msg, deps.t)) {
+      const outcome = await report_phishing_with_undo(msg, deps.t);
+
+      if (outcome === "moved" && msg.id === deps.email_id) {
         deps.navigate(deps.get_next_email_destination());
       }
     },
-    [deps.navigate, deps.get_next_email_destination, deps.t],
+    [deps.navigate, deps.get_next_email_destination, deps.email_id, deps.t],
   );
 
   const handle_per_message_not_spam = useCallback(
     async (msg: DecryptedThreadMessage) => {
-      const result = await update_item_metadata(
-        msg.id,
-        {
-          encrypted_metadata: msg.encrypted_metadata,
-          metadata_nonce: msg.metadata_nonce,
-        },
-        { is_spam: false },
-      );
+      const moved = await mark_message_not_spam(msg, deps.t);
 
-      if (result.success) {
-        if (msg.sender_email) {
-          remove_spam_sender(msg.sender_email).catch((caught) =>
-            ignore_error(
-              "components/email/hooks/email_detail_actions:use_email_detail_actions",
-              caught,
-            ),
-          );
-        }
-        emit_mail_items_removed({ ids: [msg.id] });
-        show_toast(deps.t("common.marked_as_not_spam"), "success");
+      if (moved && msg.id === deps.email_id) {
         deps.navigate(deps.get_next_email_destination());
-      } else {
-        show_toast(deps.t("common.failed_to_update"), "error");
       }
     },
-    [deps.navigate, deps.get_next_email_destination, deps.t],
+    [deps.navigate, deps.get_next_email_destination, deps.email_id, deps.t],
   );
 
   const handle_toggle_message_read = useCallback(

@@ -19,12 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 export type ShortcutModifier =
-  | "cmd"
-  | "ctrl"
-  | "shift"
-  | "alt"
-  | "cmd+shift"
-  | "ctrl+shift";
+  "cmd" | "ctrl" | "shift" | "alt" | "cmd+shift" | "ctrl+shift";
 export type ShortcutCategory = "navigation" | "actions" | "compose" | "global";
 
 export type ShortcutActionId =
@@ -294,4 +289,16 @@ export function create_shortcut_signature(
 export interface ShortcutConflict {
   signature: string;
   shortcuts: ShortcutDefinition[];
+}
+
+export function with_shortcut_hint(label: string, action_id: string): string {
+  const shortcut = get_shortcut_for_action(action_id);
+
+  if (!shortcut) return label;
+
+  const keys = shortcut.modifier
+    ? `${shortcut.modifier}+${shortcut.key}`
+    : shortcut.key;
+
+  return `${label} (${keys.toUpperCase()})`;
 }

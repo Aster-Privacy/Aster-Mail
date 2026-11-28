@@ -102,6 +102,43 @@ function press(test_id: string): void {
   });
 }
 
+function zoom_label(): string | null {
+  return by_id("image_preview_zoom_reset")!.textContent;
+}
+
+function pointer(
+  type: string,
+  test_id: string,
+  client_x: number,
+  client_y: number,
+): void {
+  const event = new MouseEvent(type, {
+    bubbles: true,
+    cancelable: true,
+    button: 0,
+    clientX: client_x,
+    clientY: client_y,
+  });
+
+  Object.defineProperty(event, "pointerId", { value: 1 });
+  Object.defineProperty(event, "pointerType", { value: "mouse" });
+  act(() => {
+    by_id(test_id)!.dispatchEvent(event);
+  });
+}
+
+function image_key(value: string): void {
+  act(() => {
+    by_id("image_preview_image")!.dispatchEvent(
+      new KeyboardEvent("keydown", {
+        key: value,
+        bubbles: true,
+        cancelable: true,
+      }),
+    );
+  });
+}
+
 function key(value: string): void {
   act(() => {
     window.dispatchEvent(
@@ -206,22 +243,70 @@ describe("email image viewer", () => {
     expect(reset.textContent).toBe("100%");
   });
 
-  it("toggles zoom on double-click", () => {
+  it("zooms in on the first click and back to fit on the second", () => {
     render(gallery);
-
-    const image = by_id("image_preview_image")!;
+    act(() => {
+      by_id("image_preview_image")!.click();
+    });
+    expect(zoom_label()).toBe("250%");
+    expect(by_id("image_preview_image")!.style.cursor).toBe("zoom-out");
 
     act(() => {
-      image.dispatchEvent(
-        new MouseEvent("dblclick", { bubbles: true, clientX: 0, clientY: 0 }),
-      );
+      by_id("image_preview_image")!.click();
     });
-    expect(by_id("image_preview_zoom_reset")!.textContent).toBe("250%");
+    expect(zoom_label()).toBe("100%");
+    expect(by_id("image_preview_image")!.style.cursor).toBe("zoom-in");
+    expect(changes).toEqual([]);
+  });
 
-    act(() => {
-      image.dispatchEvent(new MouseEvent("dblclick", { bubbles: true }));
-    });
-    expect(by_id("image_preview_zoom_reset")!.textContent).toBe("100%");
+  it("keeps the viewer open when the click lands on the captured stage", () => {
+    render(gallery);
+    pointer("pointerdown", "image_preview_image", 10, 10);
+    pointer("pointerup", "image_preview_stage", 10, 10);
+    press("image_preview_stage");
+
+    expect(changes).toEqual([]);
+    expect(zoom_label()).toBe("250%");
+  });
+
+  it("closes when the press starts on the backdrop", () => {
+    render(gallery);
+    pointer("pointerdown", "image_preview_stage", 10, 10);
+    pointer("pointerup", "image_preview_stage", 10, 10);
+    press("image_preview_stage");
+
+    expect(changes).toEqual([null]);
+  });
+
+  it("does not toggle zoom after a drag", () => {
+    render(gallery);
+    press("image_preview_image");
+    pointer("pointerdown", "image_preview_image", 10, 10);
+    pointer("pointermove", "image_preview_stage", 60, 40);
+    pointer("pointerup", "image_preview_stage", 60, 40);
+    press("image_preview_stage");
+
+    expect(zoom_label()).toBe("250%");
+    expect(changes).toEqual([]);
+  });
+
+  it("returns to fit on click after a step zoom", () => {
+    render(gallery);
+    key("+");
+    expect(zoom_label()).toBe("150%");
+
+    press("image_preview_image");
+    expect(zoom_label()).toBe("100%");
+  });
+
+  it("toggles zoom with Enter and Space on the focused image", () => {
+    render(gallery);
+    image_key("Enter");
+    expect(zoom_label()).toBe("250%");
+
+    image_key(" ");
+    expect(zoom_label()).toBe("100%");
+    expect(by_id("image_preview_image")!.tabIndex).toBe(0);
   });
 
   it("closes the viewer and then follows the link from Open link", () => {
@@ -275,6 +360,8 @@ describe("email image viewer", () => {
 
   it("stays open when the image itself is clicked", () => {
     render(gallery);
+    press("image_preview_image");
+    press("image_preview_image");
     press("image_preview_image");
 
     expect(changes).toEqual([]);
