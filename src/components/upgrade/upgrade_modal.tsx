@@ -18,11 +18,33 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import type { ChangeEvent } from "react";
+import type { ChangeEvent, ComponentType, SVGProps } from "react";
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { CheckIcon } from "@heroicons/react/24/outline";
+import {
+  ArrowTopRightOnSquareIcon,
+  ArrowUpTrayIcon,
+  AtSymbolIcon,
+  BeakerIcon,
+  BoltIcon,
+  ChatBubbleBottomCenterTextIcon,
+  CheckIcon,
+  CircleStackIcon,
+  DocumentDuplicateIcon,
+  EnvelopeOpenIcon,
+  FolderIcon,
+  GlobeAltIcon,
+  KeyIcon,
+  LockClosedIcon,
+  MoonIcon,
+  PaperAirplaneIcon,
+  PencilSquareIcon,
+  ServerStackIcon,
+  Squares2X2Icon,
+  TrashIcon,
+  UsersIcon,
+} from "@heroicons/react/24/outline";
 import { Button } from "@aster/ui";
 
 import {
@@ -67,7 +89,7 @@ import { PlanPaymentMethodModal } from "@/components/settings/billing/plan_payme
 import { CryptoTermModal } from "@/components/settings/billing/crypto_term_modal";
 import { PlanChangeConfirmModal } from "@/components/settings/billing/plan_change_confirm_modal";
 import { is_payment_navigation } from "@/lib/payment_navigation";
-import { format_bytes } from "@/lib/utils";
+import { cn, format_bytes } from "@/lib/utils";
 import { scroll_to_storage_addons } from "@/components/layout/storage_meter";
 import {
   close_upgrade_modal,
@@ -93,12 +115,165 @@ const LIMIT_LABEL_KEY: Record<UpgradeLimitKey, string> = {
   generic: "settings.upgrade_generic_resource",
 };
 
-type HighlightKind = "storage" | "aliases" | "domains" | "extra";
+type HighlightKind = "storage" | "aliases" | "domains" | "accounts" | "extra";
+
+interface RequiredFor {
+  label_key: string;
+  icon: ComponentType<SVGProps<SVGSVGElement>>;
+}
+
+const REQUIRED_FOR_LIMIT: Partial<Record<UpgradeLimitKey, RequiredFor>> = {
+  max_email_aliases: {
+    label_key: "settings.plan_required_for_aliases",
+    icon: AtSymbolIcon,
+  },
+  max_custom_domains: {
+    label_key: "settings.plan_required_for_domains",
+    icon: GlobeAltIcon,
+  },
+  max_email_templates: {
+    label_key: "settings.plan_required_for_templates",
+    icon: DocumentDuplicateIcon,
+  },
+  max_html_signatures: {
+    label_key: "settings.plan_required_for_signatures",
+    icon: PencilSquareIcon,
+  },
+  max_custom_filters: {
+    label_key: "settings.plan_required_for_filters",
+    icon: BoltIcon,
+  },
+  max_custom_categories: {
+    label_key: "settings.plan_required_for_categories",
+    icon: Squares2X2Icon,
+  },
+  max_linked_accounts: {
+    label_key: "settings.plan_required_for_linked_accounts",
+    icon: UsersIcon,
+  },
+  max_external_accounts: {
+    label_key: "settings.plan_required_for_synced_accounts",
+    icon: ServerStackIcon,
+  },
+  max_send_only_accounts: {
+    label_key: "settings.plan_required_for_send_only_accounts",
+    icon: ServerStackIcon,
+  },
+  max_labels: {
+    label_key: "settings.plan_required_for_folders",
+    icon: FolderIcon,
+  },
+};
+
+const REQUIRED_FOR_FEATURE: Record<string, RequiredFor> = {
+  has_advanced_aliases: {
+    label_key: "settings.plan_required_for_advanced_aliases",
+    icon: AtSymbolIcon,
+  },
+  has_alias_avatars: {
+    label_key: "settings.plan_required_for_alias_photos",
+    icon: AtSymbolIcon,
+  },
+  has_alias_rules: {
+    label_key: "settings.plan_required_for_alias_rules",
+    icon: AtSymbolIcon,
+  },
+  has_alias_external_relay: {
+    label_key: "settings.plan_required_for_external_relay",
+    icon: AtSymbolIcon,
+  },
+  has_auto_delete_spam_trash: {
+    label_key: "settings.plan_required_for_auto_delete",
+    icon: TrashIcon,
+  },
+  has_auto_forwarding: {
+    label_key: "settings.plan_required_for_auto_forwarding",
+    icon: ArrowTopRightOnSquareIcon,
+  },
+  has_catch_all: {
+    label_key: "settings.plan_required_for_catch_all",
+    icon: GlobeAltIcon,
+  },
+  has_priority_support: {
+    label_key: "settings.plan_required_for_priority_support",
+    icon: ChatBubbleBottomCenterTextIcon,
+  },
+  has_quiet_hours: {
+    label_key: "settings.plan_required_for_quiet_hours",
+    icon: MoonIcon,
+  },
+  has_remove_branding: {
+    label_key: "settings.plan_required_for_remove_branding",
+    icon: PencilSquareIcon,
+  },
+  has_vacation_reply: {
+    label_key: "settings.plan_required_for_vacation_reply",
+    icon: PaperAirplaneIcon,
+  },
+  max_alias_directories: {
+    label_key: "settings.plan_required_for_directories",
+    icon: FolderIcon,
+  },
+  max_custom_categories: {
+    label_key: "settings.plan_required_for_categories",
+    icon: Squares2X2Icon,
+  },
+  has_contact_merge_wizard: {
+    label_key: "settings.plan_required_for_contact_merge",
+    icon: UsersIcon,
+  },
+  has_custom_key_rotation: {
+    label_key: "settings.plan_required_for_key_rotation",
+    icon: KeyIcon,
+  },
+  has_encrypted_export: {
+    label_key: "settings.plan_required_for_encrypted_export",
+    icon: ArrowUpTrayIcon,
+  },
+  has_mta_sts_hosting: {
+    label_key: "settings.plan_required_for_mta_sts",
+    icon: GlobeAltIcon,
+  },
+  has_password_protected_folders: {
+    label_key: "settings.plan_required_for_locked_folders",
+    icon: LockClosedIcon,
+  },
+  has_dedicated_support: {
+    label_key: "settings.plan_required_for_dedicated_support",
+    icon: ChatBubbleBottomCenterTextIcon,
+  },
+  has_early_access: {
+    label_key: "settings.plan_required_for_early_access",
+    icon: BeakerIcon,
+  },
+  has_receipt_tracking: {
+    label_key: "settings.plan_required_for_receipt_tracking",
+    icon: EnvelopeOpenIcon,
+  },
+  max_primary_renames: {
+    label_key: "settings.plan_required_for_primary_renames",
+    icon: AtSymbolIcon,
+  },
+  has_sender_pinning: {
+    label_key: "settings.plan_required_for_sender_pinning",
+    icon: AtSymbolIcon,
+  },
+  max_reverse_contacts_per_alias: {
+    label_key: "settings.plan_required_for_reverse_contacts",
+    icon: AtSymbolIcon,
+  },
+};
+
+const REQUIRED_FOR_STORAGE: RequiredFor = {
+  label_key: "settings.plan_required_for_storage",
+  icon: CircleStackIcon,
+};
 
 interface PlanHighlight {
   kind: HighlightKind;
   label_key: string;
   params?: Record<string, string>;
+  lead_only?: boolean;
 }
 
 type PlanAudience = "individual" | "family";
@@ -118,7 +293,7 @@ const PLAN_HIGHLIGHTS: Record<string, PlanHighlight[]> = {
     { kind: "aliases", label_key: "settings.plan_feat_aliases_unlimited" },
     { kind: "domains", label_key: "settings.plan_feat_domains_30" },
     {
-      kind: "extra",
+      kind: "accounts",
       label_key: "settings.plan_f_multi_accounts",
       params: { value: "5" },
     },
@@ -131,7 +306,12 @@ const PLAN_HIGHLIGHTS: Record<string, PlanHighlight[]> = {
     { kind: "storage", label_key: "settings.plan_feat_storage_5tb" },
     { kind: "domains", label_key: "settings.plan_feat_domains_unlimited" },
     {
-      kind: "extra",
+      kind: "aliases",
+      label_key: "settings.plan_feat_aliases_unlimited",
+      lead_only: true,
+    },
+    {
+      kind: "accounts",
       label_key: "settings.plan_f_multi_accounts",
       params: { value: "20" },
     },
@@ -149,17 +329,18 @@ const PLAN_HIGHLIGHTS: Record<string, PlanHighlight[]> = {
 const LIMIT_HIGHLIGHT_KIND: Partial<Record<UpgradeLimitKey, HighlightKind>> = {
   max_email_aliases: "aliases",
   max_custom_domains: "domains",
+  max_linked_accounts: "accounts",
 };
 
 function order_highlights(
   highlights: PlanHighlight[],
   lead: HighlightKind | null,
 ): PlanHighlight[] {
-  if (!lead) return highlights;
+  if (!lead) return highlights.filter((entry) => !entry.lead_only);
 
   return [
     ...highlights.filter((entry) => entry.kind === lead),
-    ...highlights.filter((entry) => entry.kind !== lead),
+    ...highlights.filter((entry) => entry.kind !== lead && !entry.lead_only),
   ];
 }
 
@@ -308,8 +489,26 @@ export function UpgradeModal() {
     [is_storage, state.feature_key],
   );
 
+  const lead_kind: HighlightKind | null = is_storage
+    ? "storage"
+    : (LIMIT_HIGHLIGHT_KIND[state.limit_key] ?? null);
+
   const default_tier = useMemo(() => {
     if (tiers.length === 0) return null;
+
+    const by_price = [...tiers].sort(
+      (left, right) => left.monthly_cents - right.monthly_cents,
+    );
+    const raises_limit = lead_kind
+      ? by_price.find((tier) =>
+          (PLAN_HIGHLIGHTS[tier.id] ?? []).some(
+            (entry) => entry.kind === lead_kind,
+          ),
+        )
+      : null;
+    const limit_pick =
+      raises_limit ??
+      (state.limit_key !== "generic" && !lead_kind ? by_price[0] : null);
 
     const preselected = state.preselect_plan_code
       ? tiers.find((tier) => tier.id === state.preselect_plan_code)
@@ -321,10 +520,17 @@ export function UpgradeModal() {
     return (
       preselected ??
       required ??
+      limit_pick ??
       tiers.find((tier) => tier.is_recommended) ??
       tiers[0]
     );
-  }, [tiers, required_tier, state.preselect_plan_code]);
+  }, [
+    tiers,
+    required_tier,
+    state.preselect_plan_code,
+    state.limit_key,
+    lead_kind,
+  ]);
 
   const resume_target = useMemo(() => {
     if (state.reason !== "checkout_cancelled") return null;
@@ -397,15 +603,45 @@ export function UpgradeModal() {
     }
   };
 
+  const scroll_probe_ref = useRef<HTMLSpanElement | null>(null);
+  const [has_more_below, set_has_more_below] = useState(false);
+
+  const measure_scroll_edge = () => {
+    const body = scroll_probe_ref.current?.parentElement;
+
+    if (!body) return;
+
+    set_has_more_below(
+      body.scrollHeight - body.scrollTop - body.clientHeight > 1,
+    );
+  };
+
+  useEffect(() => {
+    if (!state.is_open) return;
+
+    const body = scroll_probe_ref.current?.parentElement;
+    const frame = requestAnimationFrame(measure_scroll_edge);
+
+    if (!body || typeof ResizeObserver === "undefined") {
+      return () => cancelAnimationFrame(frame);
+    }
+
+    const observer = new ResizeObserver(measure_scroll_edge);
+
+    observer.observe(body);
+    Array.from(body.children).forEach((child) => observer.observe(child));
+
+    return () => {
+      cancelAnimationFrame(frame);
+      observer.disconnect();
+    };
+  });
+
   useEffect(() => {
     if (state.is_open && state.preselect_interval) {
       set_interval(state.preselect_interval === "month" ? "month" : "year");
     }
   }, [state.is_open, state.preselect_interval]);
-
-  const lead_kind: HighlightKind | null = is_storage
-    ? "storage"
-    : (LIMIT_HIGHLIGHT_KIND[state.limit_key] ?? null);
 
   const tier_features = (tier: PlanTier) => {
     const family_features =
@@ -419,6 +655,7 @@ export function UpgradeModal() {
       return family_features.map((entry) => ({
         label: t(entry.label_key as never),
         on: entry.on,
+        is_lead: false,
       }));
     }
 
@@ -426,6 +663,7 @@ export function UpgradeModal() {
       (highlight) => ({
         label: t(highlight.label_key as never, highlight.params),
         on: true,
+        is_lead: lead_kind !== null && highlight.kind === lead_kind,
       }),
     );
   };
@@ -453,7 +691,7 @@ export function UpgradeModal() {
         : is_manual
           ? t("settings.upgrade_for_more")
           : required_tier
-            ? t("settings.available_on_plan", { plan: required_tier.name })
+            ? null
             : limit_info && resource_label && plan_name
               ? t("settings.plan_picker_limit_subtitle", {
                   resource: String(resource_label).toLowerCase(),
@@ -462,6 +700,26 @@ export function UpgradeModal() {
               : state.server_message && state.server_message.trim().length > 0
                 ? state.server_message
                 : t("settings.plan_picker_generic_subtitle");
+
+  const required_for =
+    is_manual || is_resume || is_offer
+      ? null
+      : is_storage
+        ? REQUIRED_FOR_STORAGE
+        : ((state.feature_key
+            ? REQUIRED_FOR_FEATURE[state.feature_key]
+            : null) ??
+          REQUIRED_FOR_LIMIT[state.limit_key] ??
+          null);
+
+  const required_plan_name = required_tier?.name ?? default_tier?.name ?? null;
+
+  const required_for_text =
+    required_for && required_plan_name
+      ? t(required_for.label_key as never, { plan: required_plan_name })
+      : null;
+
+  const RequiredForIcon = required_for?.icon ?? null;
 
   const limit_note =
     state.limit_key === "max_linked_accounts"
@@ -665,11 +923,31 @@ export function UpgradeModal() {
         size="2xl"
       >
         <ModalHeader>
+          {required_for_text && RequiredForIcon ? (
+            <p
+              className="mb-1.5 flex items-start gap-1.5 text-[13px] font-medium leading-4 text-amber-700 dark:text-[var(--color-warning)]"
+              data-testid="plan_required_for"
+            >
+              <RequiredForIcon
+                aria-hidden="true"
+                className="h-4 w-4 shrink-0"
+                strokeWidth={1.75}
+              />
+              <span>{required_for_text}</span>
+            </p>
+          ) : null}
           <ModalTitle>{title}</ModalTitle>
-          <ModalDescription>{description}</ModalDescription>
+          {description ? (
+            <ModalDescription>{description}</ModalDescription>
+          ) : (
+            <ModalDescription className="sr-only">
+              {required_for_text ?? title}
+            </ModalDescription>
+          )}
         </ModalHeader>
 
-        <ModalBody className="space-y-4">
+        <ModalBody className="space-y-4" onScroll={measure_scroll_edge}>
+          <span ref={scroll_probe_ref} hidden />
           {limit_note ? (
             <p className="text-[13px] leading-5 text-txt-muted">
               {limit_note}
@@ -848,9 +1126,19 @@ export function UpgradeModal() {
                           .map((feature) => (
                             <li
                               key={feature.label}
-                              className="flex items-start gap-2 text-[13px] leading-5 text-txt-secondary"
+                              className={
+                                feature.is_lead
+                                  ? "flex items-start gap-2 text-[13px] font-medium leading-5 text-amber-700 dark:text-[var(--color-warning)]"
+                                  : "flex items-start gap-2 text-[13px] leading-5 text-txt-secondary"
+                              }
                             >
-                              <CheckIcon className="mt-0.5 h-4 w-4 flex-shrink-0 text-txt-muted" />
+                              <CheckIcon
+                                className={
+                                  feature.is_lead
+                                    ? "mt-0.5 h-4 w-4 flex-shrink-0"
+                                    : "mt-0.5 h-4 w-4 flex-shrink-0 text-txt-muted"
+                                }
+                              />
                               <span>{feature.label}</span>
                             </li>
                           ))}
@@ -906,7 +1194,12 @@ export function UpgradeModal() {
           </p>
         </ModalBody>
 
-        <ModalFooter className="flex items-center justify-between gap-3">
+        <ModalFooter
+          className={cn(
+            "flex items-center justify-between gap-3 border-t transition-colors",
+            has_more_below ? "border-edge-secondary" : "border-transparent",
+          )}
+        >
           {is_storage ? (
             <Button
               disabled={is_starting}

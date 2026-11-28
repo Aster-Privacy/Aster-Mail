@@ -94,6 +94,8 @@ import {
 import {
   close_upgrade_modal,
   show_plan_limit_upgrade,
+  show_storage_full_upgrade,
+  show_upgrade_plans,
 } from "@/stores/upgrade_store";
 
 let container: HTMLDivElement;
@@ -131,7 +133,7 @@ describe("upgrade modal plan picker", () => {
     close_upgrade_modal();
   });
 
-  it("names the plan that unlocks a feature in one subtitle", async () => {
+  it("names the plan that unlocks a feature only in the label", async () => {
     show_plan_limit_upgrade({
       feature: "has_quiet_hours",
       message: "settings.feature_requires_upgrade",
@@ -140,7 +142,10 @@ describe("upgrade modal plan picker", () => {
 
     const text = document.body.textContent ?? "";
 
-    expect(text).toContain('settings.available_on_plan:{"plan":"Star"}');
+    expect(text).toContain(
+      'settings.plan_required_for_quiet_hours:{"plan":"Star"}',
+    );
+    expect(text).not.toContain("settings.available_on_plan");
     expect(text).not.toContain("settings.feature_requires_upgrade");
   });
 
@@ -197,5 +202,70 @@ describe("upgrade modal plan picker", () => {
     expect(document.body.textContent).toContain(
       "settings.plan_picker_individual_link",
     );
+  });
+
+  it("labels the feature that needs an upgrade above the title", async () => {
+    show_plan_limit_upgrade({ feature: "has_quiet_hours" });
+    await mount();
+
+    const label = document.querySelector('[data-testid="plan_required_for"]');
+    const icon = label?.querySelector("svg");
+
+    expect(label?.textContent).toBe(
+      'settings.plan_required_for_quiet_hours:{"plan":"Star"}',
+    );
+    expect(label?.className).toContain("text-amber-700");
+    expect(icon).not.toBeNull();
+    expect(icon?.getAttribute("aria-hidden")).toBe("true");
+    expect(label?.firstElementChild).toBe(icon);
+  });
+
+  it("names the plan and icon for a storage upgrade", async () => {
+    show_storage_full_upgrade();
+    await mount();
+
+    const label = document.querySelector('[data-testid="plan_required_for"]');
+
+    expect(label?.textContent).toBe(
+      'settings.plan_required_for_storage:{"plan":"Star"}',
+    );
+    expect(label?.querySelector("svg")).not.toBeNull();
+  });
+
+  it("shows no required label when opened from the Upgrade button", async () => {
+    show_upgrade_plans();
+    await mount();
+
+    expect(document.body.textContent).not.toContain("plan_required_for");
+    expect(
+      document.querySelector('[data-testid="plan_required_for"]'),
+    ).toBeNull();
+  });
+
+  it("recommends the cheapest plan that raises the alias limit", async () => {
+    show_plan_limit_upgrade({ resource: "aliases" });
+    await mount();
+
+    expect(document.body.textContent).toContain(
+      'settings.plan_required_for_aliases:{"plan":"Star"}',
+    );
+
+    const star = document.querySelector('[data-plan-card="star"]');
+    const nova = document.querySelector('[data-plan-card="nova"]');
+
+    expect(star?.textContent).toContain("settings.plan_recommended");
+    expect(nova?.textContent).not.toContain("settings.plan_recommended");
+  });
+
+  it("puts the matching feature line first in every card", async () => {
+    show_plan_limit_upgrade({ resource: "domains" });
+    await mount();
+
+    for (const id of ["star", "nova", "supernova"]) {
+      const first = document.querySelector(`[data-plan-card="${id}"] li`);
+
+      expect(first?.textContent).toContain("settings.plan_feat_domains_");
+      expect(first?.className).toContain("text-amber-700");
+    }
   });
 });
