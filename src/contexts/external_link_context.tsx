@@ -43,6 +43,7 @@ import { in_app_route_for } from "@/lib/in_app_link";
 import { PUBLIC_WEB_APP_ORIGIN } from "@/lib/public_origin";
 import {
   EXTERNAL_LINK_EVENT,
+  type ExternalLinkKind,
   type ExternalLinkRequestDetail,
 } from "@/utils/external_link_request";
 
@@ -52,6 +53,7 @@ interface ExternalLinkContextType {
     on_result?: (opened: boolean) => void,
     link_text?: string | null,
     trigger?: HTMLElement | null,
+    kind?: ExternalLinkKind,
   ) => void;
 }
 
@@ -69,6 +71,7 @@ export function ExternalLinkProvider({ children }: { children: ReactNode }) {
   const [is_modal_open, set_is_modal_open] = useState(false);
   const [pending_url, set_pending_url] = useState<string>("");
   const [pending_text, set_pending_text] = useState<string>("");
+  const [pending_kind, set_pending_kind] = useState<ExternalLinkKind>("link");
   const [pending_trigger, set_pending_trigger] = useState<HTMLElement | null>(
     null,
   );
@@ -131,6 +134,7 @@ export function ExternalLinkProvider({ children }: { children: ReactNode }) {
       on_result?: (opened: boolean) => void,
       link_text?: string | null,
       trigger?: HTMLElement | null,
+      kind: ExternalLinkKind = "link",
     ) => {
       const in_app_route = in_app_route_for(url, [
         window.location.origin,
@@ -145,13 +149,15 @@ export function ExternalLinkProvider({ children }: { children: ReactNode }) {
       }
 
       const currently_locked = lockdown_active || is_any_lockdown_active();
-      const is_blocked = describe_link(url).kind === "blocked";
+      const destination = describe_link(url, link_text);
+      const is_blocked = destination.kind === "blocked";
+      const skip_prompt =
+        kind === "unsubscribe"
+          ? preferences.unsubscribe_confirm_dismissed &&
+            destination.signals.length === 0
+          : preferences.external_link_warning_dismissed || is_trusted_link(url);
 
-      if (
-        !currently_locked &&
-        !is_blocked &&
-        (preferences.external_link_warning_dismissed || is_trusted_link(url))
-      ) {
+      if (!currently_locked && !is_blocked && skip_prompt) {
         open_url(url);
         on_result?.(true);
 
@@ -162,12 +168,14 @@ export function ExternalLinkProvider({ children }: { children: ReactNode }) {
       pending_result_ref.current = on_result ?? null;
       set_pending_url(url);
       set_pending_text(link_text ?? "");
+      set_pending_kind(kind);
       set_pending_trigger(trigger ?? null);
       set_is_modal_open(true);
     },
     [
       lockdown_active,
       preferences.external_link_warning_dismissed,
+      preferences.unsubscribe_confirm_dismissed,
       open_url,
       settle_pending_result,
       navigate,
@@ -198,8 +206,14 @@ export function ExternalLinkProvider({ children }: { children: ReactNode }) {
   }, [settle_pending_result]);
 
   const handle_dismiss_permanently = useCallback(() => {
-    update_preference("external_link_warning_dismissed", true, true);
-  }, [update_preference]);
+    update_preference(
+      pending_kind === "unsubscribe"
+        ? "unsubscribe_confirm_dismissed"
+        : "external_link_warning_dismissed",
+      true,
+      true,
+    );
+  }, [pending_kind, update_preference]);
 
   useEffect(() => {
     const handle_event = (e: Event) => {
@@ -213,6 +227,7 @@ export function ExternalLinkProvider({ children }: { children: ReactNode }) {
           custom_event.detail?.on_result,
           custom_event.detail?.link_text,
           custom_event.detail?.trigger,
+          custom_event.detail?.kind,
         );
       }
     };
@@ -234,6 +249,7 @@ export function ExternalLinkProvider({ children }: { children: ReactNode }) {
       {children}
       <ExternalLinkWarningModal
         is_open={is_modal_open}
+        kind={pending_kind}
         link_text={pending_text}
         lockdown_active={lockdown_active}
         on_close={handle_cancel}

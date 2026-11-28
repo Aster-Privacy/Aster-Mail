@@ -170,6 +170,8 @@ describe("UnsubscribeBanner external link", () => {
 
     expect(h.request_external_link).toHaveBeenCalledWith(
       "https://example.com/unsub",
+      null,
+      "unsubscribe",
     );
     expect(h.open_external).not.toHaveBeenCalled();
     expect(h.persist_unsubscribe).toHaveBeenCalledTimes(1);
@@ -187,6 +189,8 @@ describe("UnsubscribeBanner external link", () => {
 
     expect(h.request_external_link).toHaveBeenCalledWith(
       "https://example.com/unsub",
+      null,
+      "unsubscribe",
     );
     expect(h.persist_unsubscribe).not.toHaveBeenCalled();
   });

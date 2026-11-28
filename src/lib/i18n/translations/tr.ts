@@ -1343,6 +1343,10 @@ export const tr = {
     enter_label_name: "Etiket adını girin",
     leaving_aster_mail: "Aster Mail'den Ayrılıyorsunuz",
     link_dialog_title: "Bu bağlantı açılsın mı?",
+    unsubscribe_dialog_title: "Abonelikten çıkma sayfası açılsın mı?",
+    unsubscribe_dialog_body:
+      "Bu sayfa gönderene aittir. Sayfayı açtığınızda gönderen adresinizin etkin olduğunu öğrenir ve sayfa sizi abonelikten çıkarmadan önce onay isteyebilir.",
+    unsubscribe_dialog_open: "Sayfayı aç",
     link_dialog_body: "Bu bağlantı, Aster Mail dışında bir web sayfası açar.",
     link_dialog_lockdown_title: "Kilitleme modunda bağlantılar açılmaz",
     link_dialog_lockdown_body:
@@ -4283,6 +4287,11 @@ export const tr = {
     recent_sign_ins: "Son Girişler",
     no_sign_in_history: "Henüz giriş geçmişi yok",
     external_link_warnings: "Harici Bağlantı Uyarıları",
+    unsubscribe_confirm: "Abonelikten çıkma onayı",
+    unsubscribe_confirm_enabled:
+      "Bir gönderenin abonelikten çıkma sayfasını açmadan önce onay iste",
+    unsubscribe_confirm_disabled:
+      "Abonelikten çıkma sayfaları onay olmadan açılır",
     external_link_warning_enabled:
       "E-postalardaki harici bağlantıları açmadan önce uyarı göster",
     external_link_warning_disabled: "Bağlantılar onay olmadan doğrudan açılır",
@@ -12901,6 +12910,7 @@ export const tr = {
     plan_feat_vanguard: "Aster Vanguard, Vanguard, gelişmiş koruma, kilitleme, kilitleme modu",
     info_login_alerts_title: "giriş uyarıları, yeni giriş bildirimi, oturum açma uyarıları",
     external_link_warnings: "harici bağlantı uyarıları, bağlantı uyarısı, şüpheli bağlantılar, bağlantıları onayla",
+    unsubscribe_confirm: "abonelikten çık, abonelikten çıkmayı onayla, e-posta listeleri",
     settings_search_vacation_reply: "tatil yanıtı, otomatik yanıt, ofis dışında, ofis dışı mesajı, otomatik yanıtlayıcı",
     auto_forward_tab_label: "otomatik yönlendirme, yönlendirme, e-posta yönlendirme, tüm postaları yönlendir, postayı yönlendir",
     settings_search_external_accounts: "harici hesaplar, bağlı hesaplar, Gmail senkronizasyonu, posta getir, diğer posta kutusu",

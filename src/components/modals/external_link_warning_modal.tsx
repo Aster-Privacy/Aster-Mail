@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type { TranslationKey } from "@/lib/i18n";
+import type { ExternalLinkKind } from "@/utils/external_link_request";
 
 import { Fragment, useEffect, useId, useMemo, useRef, useState } from "react";
 import { ExclamationTriangleIcon } from "@heroicons/react/24/outline";
@@ -46,6 +47,7 @@ import {
 interface ExternalLinkWarningModalProps {
   is_open: boolean;
   url: string;
+  kind?: ExternalLinkKind;
   link_text?: string | null;
   on_close: () => void;
   on_confirm: () => void;
@@ -144,6 +146,7 @@ function signal_values(
 export function ExternalLinkWarningModal({
   is_open,
   url,
+  kind = "link",
   link_text,
   on_close,
   on_confirm,
@@ -173,6 +176,7 @@ export function ExternalLinkWarningModal({
   );
   const is_blocked = destination.kind === "blocked";
   const is_mail = destination.kind === "mailto";
+  const is_unsubscribe = kind === "unsubscribe" && destination.kind === "web";
   const has_signal = destination.signals.length > 0;
   const can_open = !lockdown_active && !is_blocked;
   const is_long = destination.href.length > LONG_ADDRESS_LENGTH;
@@ -254,16 +258,20 @@ export function ExternalLinkWarningModal({
     ? t("common.link_dialog_blocked_title")
     : lockdown_active
       ? t("common.link_dialog_lockdown_title")
-      : is_mail
-        ? t("common.link_dialog_mail_title")
-        : t("common.link_dialog_title");
+      : is_unsubscribe
+        ? t("common.unsubscribe_dialog_title")
+        : is_mail
+          ? t("common.link_dialog_mail_title")
+          : t("common.link_dialog_title");
   const body = is_blocked
     ? t("common.link_dialog_blocked_body")
     : lockdown_active
       ? t("common.link_dialog_lockdown_body")
-      : is_mail
-        ? t("common.link_dialog_mail_body")
-        : t("common.link_dialog_body");
+      : is_unsubscribe
+        ? t("common.unsubscribe_dialog_body")
+        : is_mail
+          ? t("common.link_dialog_mail_body")
+          : t("common.link_dialog_body");
   const hero = is_mail
     ? destination.mail_address
     : is_blocked
@@ -289,6 +297,7 @@ export function ExternalLinkWarningModal({
         aria-modal="true"
         className="gap-0 p-0 overflow-hidden w-[calc(100%-2rem)] max-w-[420px] motion-reduce:data-[state=open]:zoom-in-100 motion-reduce:data-[state=closed]:zoom-out-100"
         data-link-kind={destination.kind}
+        data-request-kind={kind}
         on_overlay_click={handle_cancel}
         onCloseAutoFocus={(event) => {
           if (!return_focus_to?.isConnected) return;
@@ -477,7 +486,9 @@ export function ExternalLinkWarningModal({
                 variant="primary"
                 onClick={handle_confirm}
               >
-                {t("common.open_link")}
+                {is_unsubscribe
+                  ? t("common.unsubscribe_dialog_open")
+                  : t("common.open_link")}
               </Button>
             )}
           </AlertDialogFooter>

@@ -1376,6 +1376,10 @@ export const ko = {
     enter_label_name: "라벨 이름 입력",
     leaving_aster_mail: "Aster Mail을 떠납니다",
     link_dialog_title: "이 링크를 열까요?",
+    unsubscribe_dialog_title: "수신 거부 페이지를 열까요?",
+    unsubscribe_dialog_body:
+      "이 페이지는 발신자가 운영합니다. 페이지를 열면 주소가 사용 중이라는 사실이 발신자에게 전달되며, 수신 거부 전에 확인을 요청할 수 있습니다.",
+    unsubscribe_dialog_open: "페이지 열기",
     link_dialog_body: "이 링크는 Aster Mail 외부의 웹 페이지를 엽니다.",
     link_dialog_lockdown_title: "차단 모드에서는 링크가 열리지 않습니다",
     link_dialog_lockdown_body:
@@ -4347,6 +4351,11 @@ export const ko = {
     recent_sign_ins: "최근 로그인",
     no_sign_in_history: "아직 로그인 기록이 없습니다",
     external_link_warnings: "외부 링크 경고",
+    unsubscribe_confirm: "수신 거부 확인",
+    unsubscribe_confirm_enabled:
+      "발신자의 수신 거부 페이지를 열기 전에 확인",
+    unsubscribe_confirm_disabled:
+      "수신 거부 페이지가 확인 없이 열립니다",
     external_link_warning_enabled:
       "이메일의 외부 링크를 열기 전에 경고를 표시합니다",
     external_link_warning_disabled: "확인 없이 링크가 바로 열립니다",
@@ -12539,6 +12548,7 @@ export const ko = {
     plan_feat_vanguard: "Aster Vanguard, Vanguard, 고급 보호, 잠금 모드, 락다운",
     info_login_alerts_title: "로그인 알림, 새 로그인 알림, 로그인 경고",
     external_link_warnings: "외부 링크 경고, 링크 경고, 의심스러운 링크, 링크 확인",
+    unsubscribe_confirm: "구독 취소, 구독 취소 확인, 메일링 리스트",
     settings_search_vacation_reply: "부재중 자동 응답, 자동 응답, 부재중, 휴가, 자리 비움 메시지",
     auto_forward_tab_label: "자동 전달, 전달, 메일 전달, 이메일 전달, 모든 메일 전달, 메일 리디렉션",
     settings_search_external_accounts: "외부 계정, 연결된 계정, Gmail 동기화, 메일 가져오기, 다른 메일함",

@@ -1380,6 +1380,10 @@ export const fr = {
     enter_label_name: "Saisir le nom du libellé",
     leaving_aster_mail: "Quitter Aster Mail",
     link_dialog_title: "Ouvrir ce lien ?",
+    unsubscribe_dialog_title: "Ouvrir la page de désabonnement ?",
+    unsubscribe_dialog_body:
+      "Cette page est gérée par l’expéditeur. En l’ouvrant, vous lui indiquez que votre adresse est active, et la page peut vous demander de confirmer avant de vous désabonner.",
+    unsubscribe_dialog_open: "Ouvrir la page",
     link_dialog_body: "Ce lien ouvre une page web en dehors d'Aster Mail.",
     link_dialog_lockdown_title: "Les liens ne s'ouvrent pas en mode isolement",
     link_dialog_lockdown_body:
@@ -4384,6 +4388,11 @@ export const fr = {
     recent_sign_ins: "Connexions recentes",
     no_sign_in_history: "Aucun historique de connexion",
     external_link_warnings: "Avertissements de liens externes",
+    unsubscribe_confirm: "Confirmation de désabonnement",
+    unsubscribe_confirm_enabled:
+      "Confirmer avant d’ouvrir la page de désabonnement d’un expéditeur",
+    unsubscribe_confirm_disabled:
+      "Les pages de désabonnement s’ouvrent sans confirmation",
     external_link_warning_enabled:
       "Afficher un avertissement avant d'ouvrir des liens externes dans les e-mails",
     external_link_warning_disabled:
@@ -13193,6 +13202,7 @@ export const fr = {
     plan_feat_vanguard: "Aster Vanguard, Vanguard, protection avancée, verrouillage, mode isolement",
     info_login_alerts_title: "Alertes de connexion, notification de nouvelle connexion, alertes de connexion suspecte",
     external_link_warnings: "Avertissements pour les liens externes, avertissement de lien, liens suspects, confirmer les liens",
+    unsubscribe_confirm: "se désabonner, confirmer le désabonnement, listes de diffusion",
     settings_search_vacation_reply: "Réponse d'absence, réponse automatique, absent du bureau, message d'absence, répondeur automatique",
     auto_forward_tab_label: "Transfert automatique, transfert, transférer automatiquement, transfert d'e-mails, transférer un e-mail, transférer tout le courrier, rediriger le courrier",
     settings_search_external_accounts: "Comptes externes, comptes connectés, synchronisation Gmail, relever le courrier, autre boîte aux lettres",

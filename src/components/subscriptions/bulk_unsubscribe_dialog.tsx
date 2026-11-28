@@ -221,6 +221,7 @@ export function BulkUnsubscribeDialog({
       },
       null,
       open_button_ref.current,
+      "unsubscribe",
     );
   }, [current_url, handle_external_link]);
 

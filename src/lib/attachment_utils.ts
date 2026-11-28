@@ -133,6 +133,12 @@ export function get_type_glyph(content_type: string): AttachmentGlyph {
     content_type.includes("powerpoint")
   )
     return "presentation";
+  if (
+    content_type.includes("wordprocessingml") ||
+    content_type.includes("msword") ||
+    content_type.includes("opendocument.text")
+  )
+    return "document";
   if (is_code_type(content_type)) return "code";
   if (
     content_type === "application/pdf" ||
@@ -144,6 +150,83 @@ export function get_type_glyph(content_type: string): AttachmentGlyph {
 
   return "file";
 }
+
+export type AttachmentChipKind =
+  | "pdf"
+  | "image"
+  | "document"
+  | "sheet"
+  | "presentation"
+  | "archive"
+  | "audio"
+  | "video"
+  | "code"
+  | "file";
+
+const GLYPH_CHIP_KINDS: Record<AttachmentGlyph, AttachmentChipKind> = {
+  photo: "image",
+  video: "video",
+  music: "audio",
+  table: "sheet",
+  presentation: "presentation",
+  code: "code",
+  archive: "archive",
+  document: "document",
+  file: "file",
+};
+
+const EXTENSION_GROUPS: [AttachmentChipKind, string][] = [
+  ["pdf", "pdf"],
+  ["image", "jpg jpeg png gif webp bmp tif tiff svg heic heif avif ico"],
+  ["document", "doc docx odt rtf txt md pages"],
+  ["sheet", "xls xlsx ods csv tsv numbers"],
+  ["presentation", "ppt pptx odp key"],
+  ["archive", "zip rar 7z gz tgz tar bz2 xz"],
+  ["audio", "mp3 wav m4a aac flac ogg opus"],
+  ["video", "mp4 mov m4v mkv webm avi"],
+  ["code", "html htm xml json js ts css py sh yml yaml"],
+];
+
+const EXTENSION_CHIP_KINDS = new Map(
+  EXTENSION_GROUPS.flatMap(([kind, extensions]) =>
+    extensions.split(" ").map((ext): [string, AttachmentChipKind] => [ext, kind]),
+  ),
+);
+
+export function get_chip_kind(
+  content_type: string,
+  filename: string,
+): AttachmentChipKind {
+  const lowered = content_type.toLowerCase();
+
+  if (lowered === "application/pdf") return "pdf";
+
+  const from_type = GLYPH_CHIP_KINDS[get_type_glyph(lowered)];
+
+  if (from_type !== "file") return from_type;
+
+  const dot_index = filename.lastIndexOf(".");
+
+  if (dot_index <= 0) return "file";
+
+  return (
+    EXTENSION_CHIP_KINDS.get(filename.slice(dot_index + 1).toLowerCase()) ??
+    "file"
+  );
+}
+
+export const CHIP_KIND_COLORS: Record<AttachmentChipKind, string> = {
+  pdf: "#e24942",
+  image: "#0eb09b",
+  document: "#3981f6",
+  sheet: "#0ca844",
+  presentation: "#e38f0c",
+  archive: "#9964e5",
+  audio: "#0fb1cb",
+  video: "#d64992",
+  code: "#6d89a7",
+  file: "#83868c",
+};
 
 const PREVIEWABLE_IMAGE_TYPES = new Set([
   "image/jpeg",

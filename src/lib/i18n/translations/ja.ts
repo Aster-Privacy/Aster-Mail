@@ -1377,6 +1377,10 @@ export const ja = {
     enter_label_name: "ラベル名を入力",
     leaving_aster_mail: "Aster Mailを離れます",
     link_dialog_title: "このリンクを開きますか？",
+    unsubscribe_dialog_title: "配信停止ページを開きますか？",
+    unsubscribe_dialog_body:
+      "このページは送信者が運営しています。開くと、あなたのアドレスが有効であることが送信者に伝わります。配信停止の前に確認を求められる場合があります。",
+    unsubscribe_dialog_open: "ページを開く",
     link_dialog_body: "このリンクは Aster Mail の外部にある Web ページを開きます。",
     link_dialog_lockdown_title: "ロックダウンモードではリンクは開きません",
     link_dialog_lockdown_body:
@@ -4280,6 +4284,11 @@ export const ja = {
     recent_sign_ins: "最近のサインイン",
     no_sign_in_history: "サインイン履歴はまだありません",
     external_link_warnings: "外部リンクの警告",
+    unsubscribe_confirm: "配信停止の確認",
+    unsubscribe_confirm_enabled:
+      "送信者の配信停止ページを開く前に確認する",
+    unsubscribe_confirm_disabled:
+      "配信停止ページを確認なしで開きます",
     external_link_warning_enabled:
       "メール内の外部リンクを開く前に警告を表示します",
     external_link_warning_disabled: "リンクは確認なしで直接開きます",
@@ -12754,6 +12763,7 @@ export const ja = {
     plan_feat_vanguard: "Aster Vanguard, Vanguard, 高度な保護, ロックダウン, ロックダウンモード",
     info_login_alerts_title: "ログイン通知, 新しいログインの通知, サインイン通知",
     external_link_warnings: "外部リンクの警告, リンクの警告, 不審なリンク, リンクの確認",
+    unsubscribe_confirm: "配信停止, 配信停止の確認, メーリングリスト",
     settings_search_vacation_reply: "不在時の自動返信, 自動返信, 不在通知, 休暇, 留守",
     auto_forward_tab_label: "自動転送, 転送, メール転送, メールを転送, すべてのメールを転送, リダイレクト",
     settings_search_external_accounts: "外部アカウント, 連携アカウント, Gmail同期, メールの取得, 他のメールボックス",

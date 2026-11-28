@@ -25,6 +25,7 @@ import {
   DevicePhoneMobileIcon,
   BellIcon,
   LinkIcon,
+  EnvelopeOpenIcon,
   KeyIcon,
   LockClosedIcon,
   EyeIcon,
@@ -452,6 +453,22 @@ export function SecuritySection({
                   update_preference(
                     "external_link_warning_dismissed",
                     !preferences.external_link_warning_dismissed,
+                    true,
+                  )
+                }
+              />
+            }
+          />
+          <SettingsRow
+            icon={<EnvelopeOpenIcon className="h-4 w-4" />}
+            label={t("settings.unsubscribe_confirm")}
+            trailing={
+              <Switch
+                checked={!preferences.unsubscribe_confirm_dismissed}
+                onCheckedChange={() =>
+                  update_preference(
+                    "unsubscribe_confirm_dismissed",
+                    !preferences.unsubscribe_confirm_dismissed,
                     true,
                   )
                 }

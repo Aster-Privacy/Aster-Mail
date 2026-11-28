@@ -228,6 +228,7 @@ export interface UserPreferences {
     | "tritanopia"
     | "achromatopsia";
   external_link_warning_dismissed: boolean;
+  unsubscribe_confirm_dismissed: boolean;
   notification_banner_dismissed: boolean;
   account_security_banner_dismissed: boolean;
   special_offer_seen: boolean;
@@ -965,6 +966,7 @@ export const DEFAULT_PREFERENCES: UserPreferences = {
   text_spacing: false,
   color_vision_mode: "none",
   external_link_warning_dismissed: false,
+  unsubscribe_confirm_dismissed: false,
   notification_banner_dismissed: false,
   account_security_banner_dismissed: false,
   special_offer_seen: false,

@@ -1353,6 +1353,10 @@ export const ru = {
     enter_label_name: "Введите название метки",
     leaving_aster_mail: "Выход из Aster Mail",
     link_dialog_title: "Открыть ссылку?",
+    unsubscribe_dialog_title: "Открыть страницу отписки?",
+    unsubscribe_dialog_body:
+      "Эту страницу ведёт отправитель. Открыв её, вы сообщите отправителю, что ваш адрес активен, а страница может попросить подтверждение перед отпиской.",
+    unsubscribe_dialog_open: "Открыть страницу",
     link_dialog_body:
       "Эта ссылка открывает веб-страницу за пределами Aster Mail.",
     link_dialog_lockdown_title: "В режиме блокировки ссылки не открываются",
@@ -4468,6 +4472,11 @@ export const ru = {
     recent_sign_ins: "Последние входы",
     no_sign_in_history: "История входов пуста",
     external_link_warnings: "Предупреждения о внешних ссылках",
+    unsubscribe_confirm: "Подтверждение отписки",
+    unsubscribe_confirm_enabled:
+      "Спрашивать перед открытием страницы отписки отправителя",
+    unsubscribe_confirm_disabled:
+      "Страницы отписки открываются без подтверждения",
     external_link_warning_enabled:
       "Показывать предупреждение перед открытием внешних ссылок в письмах",
     external_link_warning_disabled:
@@ -13255,6 +13264,7 @@ export const ru = {
     plan_feat_vanguard: "Vanguard, расширенная защита, блокировка, режим блокировки",
     info_login_alerts_title: "уведомление о новом входе, оповещения о входе, предупреждение о входе",
     external_link_warnings: "предупреждение о ссылке, подозрительные ссылки, подтверждать ссылки, внешние ссылки",
+    unsubscribe_confirm: "отписаться, подтверждать отписку, рассылки",
     settings_search_vacation_reply: "автоответ, вне офиса, отсутствие, сообщение об отсутствии, автоответчик, отпуск",
     auto_forward_tab_label: "пересылка, автоматическая пересылка, пересылка почты, переслать письмо, пересылать всю почту, перенаправление почты",
     settings_search_external_accounts: "подключенные аккаунты, синхронизация gmail, сбор почты, другой почтовый ящик",

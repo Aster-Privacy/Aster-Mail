@@ -1244,6 +1244,10 @@ export const pt = {
     enter_label_name: "Introduza o nome da etiqueta",
     leaving_aster_mail: "A sair do Aster Mail",
     link_dialog_title: "Abrir esta ligação?",
+    unsubscribe_dialog_title: "Abrir a página de cancelamento da subscrição?",
+    unsubscribe_dialog_body:
+      "O remetente gere esta página. Ao abri-la, o remetente fica a saber que o seu endereço está ativo, e a página pode pedir uma confirmação antes de cancelar a subscrição.",
+    unsubscribe_dialog_open: "Abrir página",
     link_dialog_body: "Esta ligação abre uma página web fora do Aster Mail.",
     link_dialog_lockdown_title: "As ligações não abrem no modo de bloqueio",
     link_dialog_lockdown_body:
@@ -4395,6 +4399,11 @@ export const pt = {
     recent_sign_ins: "Inícios de sessão recentes",
     no_sign_in_history: "Ainda sem histórico de início de sessão",
     external_link_warnings: "Avisos de links externos",
+    unsubscribe_confirm: "Confirmação de cancelamento da subscrição",
+    unsubscribe_confirm_enabled:
+      "Confirmar antes de abrir a página de cancelamento da subscrição de um remetente",
+    unsubscribe_confirm_disabled:
+      "As páginas de cancelamento da subscrição abrem sem confirmação",
     external_link_warning_enabled:
       "Mostrar aviso antes de abrir links externos em e-mails",
     external_link_warning_disabled:
@@ -13161,6 +13170,7 @@ export const pt = {
     plan_feat_vanguard: "Aster Vanguard, Vanguard, proteção avançada, bloqueio total, modo de bloqueio",
     info_login_alerts_title: "alertas de início de sessão, notificação de novo início de sessão, alertas de acesso",
     external_link_warnings: "avisos de links externos, aviso de link, links suspeitos, confirmar links",
+    unsubscribe_confirm: "cancelar subscrição, confirmar cancelamento de subscrição, listas de correio",
     settings_search_vacation_reply: "resposta automática, ausência do escritório, fora do escritório, mensagem de ausência, férias",
     auto_forward_tab_label: "reencaminhamento automático, reencaminhar, reencaminhar email, reencaminhar todo o correio, redirecionar correio",
     settings_search_external_accounts: "contas externas, contas ligadas, sincronização do Gmail, obter correio, outra caixa de correio",

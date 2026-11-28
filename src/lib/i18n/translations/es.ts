@@ -1370,6 +1370,10 @@ export const es = {
     enter_label_name: "Ingresa el nombre de la etiqueta",
     leaving_aster_mail: "Saliendo de Aster Mail",
     link_dialog_title: "¿Abrir este enlace?",
+    unsubscribe_dialog_title: "¿Abrir la página para cancelar la suscripción?",
+    unsubscribe_dialog_body:
+      "El remitente gestiona esta página. Al abrirla, el remitente sabrá que tu dirección está activa, y es posible que la página te pida una confirmación antes de cancelar la suscripción.",
+    unsubscribe_dialog_open: "Abrir página",
     link_dialog_body: "Este enlace abre una página web fuera de Aster Mail.",
     link_dialog_lockdown_title: "Los enlaces no se abren en el modo de bloqueo",
     link_dialog_lockdown_body:
@@ -4357,6 +4361,11 @@ export const es = {
     recent_sign_ins: "Inicios de sesion recientes",
     no_sign_in_history: "Aun no hay historial de inicio de sesion",
     external_link_warnings: "Advertencias de enlaces externos",
+    unsubscribe_confirm: "Confirmación para cancelar suscripciones",
+    unsubscribe_confirm_enabled:
+      "Confirmar antes de abrir la página para cancelar la suscripción de un remitente",
+    unsubscribe_confirm_disabled:
+      "Las páginas para cancelar suscripciones se abren sin confirmación",
     external_link_warning_enabled:
       "Mostrar advertencia antes de abrir enlaces externos en correos",
     external_link_warning_disabled:
@@ -13052,6 +13061,7 @@ export const es = {
     plan_feat_vanguard: "Aster Vanguard, Vanguard, protección avanzada, bloqueo, modo de bloqueo",
     info_login_alerts_title: "Alertas de inicio de sesión, aviso de nuevo inicio de sesión, alertas de acceso",
     external_link_warnings: "Avisos de enlaces externos, aviso de enlace, enlaces sospechosos, confirmar enlaces",
+    unsubscribe_confirm: "cancelar suscripción, confirmar cancelación de suscripción, listas de correo",
     settings_search_vacation_reply: "Respuesta de vacaciones, respuesta automática, fuera de la oficina, mensaje de ausencia, autorrespuesta",
     auto_forward_tab_label: "Reenvío automático, reenvío, reenviar automáticamente, reenviar correo, reenviar todo el correo, redirigir correo",
     settings_search_external_accounts: "Cuentas externas, cuentas conectadas, sincronizar Gmail, obtener correo, otro buzón",

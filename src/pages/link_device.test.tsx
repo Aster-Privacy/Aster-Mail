@@ -37,6 +37,8 @@ const h = vi.hoisted(() => ({
   } | null,
   request_proof: vi.fn(),
   accounts: [] as { id: string; kind?: string; user: { email: string } }[],
+  navigate: vi.fn(),
+  session: { is_authenticated: true, is_loading: false, has_keys: true },
 }));
 
 function encode(length: number, value: number): string {
@@ -46,7 +48,7 @@ function encode(length: number, value: number): string {
     .replace(/=+$/, "");
 }
 
-vi.mock("react-router-dom", () => ({ useNavigate: () => () => undefined }));
+vi.mock("react-router-dom", () => ({ useNavigate: () => h.navigate }));
 
 vi.mock("@/lib/i18n/context", () => ({
   use_i18n: () => ({ t: (key: string) => key }),
@@ -54,9 +56,7 @@ vi.mock("@/lib/i18n/context", () => ({
 
 vi.mock("@/contexts/auth_context", () => ({
   use_auth: () => ({
-    is_authenticated: true,
-    is_loading: false,
-    has_keys: true,
+    ...h.session,
     accounts: h.accounts,
     current_account_id: "a1",
     switch_to_account: vi.fn(),
@@ -245,6 +245,8 @@ describe("link device approval", () => {
     window.sessionStorage.clear();
     window.history.replaceState(null, "", "/link-device");
     h.accounts = [];
+    h.navigate.mockReset();
+    h.session = { is_authenticated: true, is_loading: false, has_keys: true };
     h.verify.mockReset();
     h.confirm.mockReset();
     h.seal.mockReset();
@@ -483,7 +485,10 @@ describe("link device approval", () => {
   });
 
   it("returns to the linking code when the code expired", async () => {
-    h.confirm.mockResolvedValueOnce({ error: "Code expired", code: "NOT_FOUND" });
+    h.confirm.mockResolvedValueOnce({
+      error: "Code expired",
+      code: "NOT_FOUND",
+    });
     await render_page();
     await enter_code();
     await enter_fingerprint(FINGERPRINT);
@@ -640,7 +645,10 @@ describe("link device approval", () => {
 
         if (!proof) return { kind: "canceled" };
 
-        return { kind: "signed", action: { nonce: "n", signature: "s", proof } };
+        return {
+          kind: "signed",
+          action: { nonce: "n", signature: "s", proof },
+        };
       },
     );
     h.confirm.mockImplementation(async () => {
@@ -693,5 +701,60 @@ describe("link device approval", () => {
 
     expect(container.textContent).toContain("guard.link_device_step_up_failed");
     expect(container.textContent).not.toContain("auth.link_device_success");
+  });
+});
+
+describe("link device while signed in", () => {
+  beforeEach(() => {
+    window.sessionStorage.clear();
+    window.history.replaceState(null, "", "/link-device?source=bridge");
+    h.accounts = [];
+    h.navigate.mockReset();
+    h.session = { is_authenticated: true, is_loading: false, has_keys: true };
+  });
+
+  afterEach(async () => {
+    await act(async () => root.unmount());
+    container.remove();
+    window.history.replaceState(null, "", "/");
+  });
+
+  it("shows code entry and never sends you to sign in", async () => {
+    await render_page();
+
+    expect(container.querySelector("input")).not.toBeNull();
+    expect(button("auth.link_device_verify_button")).toBeDefined();
+    expect(h.navigate).not.toHaveBeenCalled();
+  });
+
+  it("waits for the session to load before deciding", async () => {
+    h.session = { is_authenticated: false, is_loading: true, has_keys: false };
+    await render_page();
+
+    expect(h.navigate).not.toHaveBeenCalled();
+    expect(button("auth.sign_in")).toBeUndefined();
+  });
+
+  it("keeps the page as the next stop when you are signed out", async () => {
+    h.session = { is_authenticated: false, is_loading: false, has_keys: false };
+    await render_page();
+
+    expect(h.navigate).toHaveBeenCalledWith(
+      `/sign-in?next=${encodeURIComponent("/link-device?source=bridge")}`,
+      { replace: true },
+    );
+  });
+
+  it("returns to the page after you unlock your keys", async () => {
+    h.session = { is_authenticated: true, is_loading: false, has_keys: false };
+    await render_page();
+
+    await act(async () => {
+      button("auth.sign_in")?.click();
+    });
+
+    expect(h.navigate).toHaveBeenCalledWith(
+      `/sign-in?next=${encodeURIComponent("/link-device?source=bridge")}`,
+    );
   });
 });

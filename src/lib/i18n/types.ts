@@ -228,6 +228,7 @@ export interface SettingsKeywordsTranslations {
   plan_feat_vanguard: string;
   info_login_alerts_title: string;
   external_link_warnings: string;
+  unsubscribe_confirm: string;
   settings_search_vacation_reply: string;
   auto_forward_tab_label: string;
   settings_search_external_accounts: string;
@@ -2450,6 +2451,9 @@ export interface CommonTranslations {
   enter_label_name: string;
   leaving_aster_mail: string;
   link_dialog_title: string;
+  unsubscribe_dialog_title: string;
+  unsubscribe_dialog_body: string;
+  unsubscribe_dialog_open: string;
   link_dialog_body: string;
   link_dialog_lockdown_title: string;
   link_dialog_lockdown_body: string;
@@ -3711,6 +3715,9 @@ export interface SettingsTranslations {
   recent_sign_ins: string;
   no_sign_in_history: string;
   external_link_warnings: string;
+  unsubscribe_confirm: string;
+  unsubscribe_confirm_enabled: string;
+  unsubscribe_confirm_disabled: string;
   external_link_warning_enabled: string;
   external_link_warning_disabled: string;
   ipfs_attachment_storage: string;

@@ -1449,6 +1449,10 @@ export const hi = {
     enter_label_name: "लेबल का नाम डालें",
     leaving_aster_mail: "Aster Mail छोड़ रहे हैं",
     link_dialog_title: "यह लिंक खोलें?",
+    unsubscribe_dialog_title: "सदस्यता रद्द करने का पेज खोलें?",
+    unsubscribe_dialog_body:
+      "यह पेज भेजने वाला चलाता है। इसे खोलने पर भेजने वाले को पता चलता है कि आपका पता सक्रिय है, और सदस्यता रद्द करने से पहले पेज आपसे पुष्टि मांग सकता है।",
+    unsubscribe_dialog_open: "पेज खोलें",
     link_dialog_body: "यह लिंक Aster Mail के बाहर एक वेबपेज खोलता है।",
     link_dialog_lockdown_title: "लॉकडाउन मोड में लिंक नहीं खुलते",
     link_dialog_lockdown_body:
@@ -3115,6 +3119,11 @@ export const hi = {
     recent_sign_ins: "हाल के साइन इन",
     no_sign_in_history: "अभी कोई साइन इन इतिहास नहीं",
     external_link_warnings: "बाहरी लिंक की चेतावनियां",
+    unsubscribe_confirm: "सदस्यता रद्द करने की पुष्टि",
+    unsubscribe_confirm_enabled:
+      "भेजने वाले का सदस्यता रद्द करने का पेज खोलने से पहले पुष्टि करें",
+    unsubscribe_confirm_disabled:
+      "सदस्यता रद्द करने के पेज बिना पुष्टि के खुलते हैं",
     external_link_warning_enabled:
       "ईमेल में बाहरी लिंक खोलने से पहले चेतावनी दिखाएं",
     external_link_warning_disabled: "लिंक बिना पुष्टि के सीधे खुलते हैं",
@@ -12809,6 +12818,7 @@ export const hi = {
     plan_feat_vanguard: "Aster Vanguard, Vanguard, उन्नत सुरक्षा, लॉकडाउन, लॉकडाउन मोड",
     info_login_alerts_title: "लॉगिन अलर्ट, नए लॉगिन की सूचना, साइन-इन अलर्ट",
     external_link_warnings: "बाहरी लिंक चेतावनी, लिंक चेतावनी, संदिग्ध लिंक, लिंक की पुष्टि",
+    unsubscribe_confirm: "सदस्यता रद्द करें, सदस्यता रद्द करने की पुष्टि, मेलिंग सूचियां",
     settings_search_vacation_reply: "छुट्टी का जवाब, ऑटो रिप्लाई, ऑफ़िस से बाहर, अनुपस्थिति संदेश, स्वचालित जवाब",
     auto_forward_tab_label: "ऑटो फ़ॉरवर्ड, फ़ॉरवर्डिंग, ईमेल फ़ॉरवर्ड, सारे मेल फ़ॉरवर्ड, मेल रीडायरेक्ट",
     settings_search_external_accounts: "बाहरी खाते, जुड़े हुए खाते, Gmail सिंक, मेल लाएं, दूसरा मेलबॉक्स",

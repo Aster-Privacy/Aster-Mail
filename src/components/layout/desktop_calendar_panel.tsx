@@ -24,10 +24,18 @@ import type {
 } from "@/types/calendar";
 import type { KeyboardEvent as ReactKeyboardEvent, ReactNode } from "react";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  Fragment,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import {
   ArrowLeftIcon,
   ArrowTopRightOnSquareIcon,
+  CalendarDaysIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
   MapPinIcon,
@@ -67,6 +75,14 @@ import {
   type UpNextPick,
 } from "@/components/layout/desktop_calendar_days";
 import { use_desktop_agenda } from "@/components/layout/use_desktop_agenda";
+import {
+  EventKindIcon,
+  NowDivider,
+  compact_time_range,
+  event_segment_for_day,
+  now_divider_index,
+  relative_day_label,
+} from "@/components/layout/desktop_calendar_agenda_parts";
 
 const NOW_TICK_MS = 30_000;
 const KEY_STEPS: Record<string, number> = {
@@ -76,7 +92,8 @@ const KEY_STEPS: Record<string, number> = {
   ArrowDown: 7,
 };
 
-export type DesktopCalendarGate = "loading" | "signed_out" | "locked" | "keys" | "ready";
+export type DesktopCalendarGate =
+  "loading" | "signed_out" | "locked" | "keys" | "ready";
 
 export function resolve_desktop_calendar_gate(input: {
   is_loading: boolean;
@@ -240,7 +257,7 @@ function use_formatters(language: string, time_format: "12h" | "24h") {
       }),
       month: safe({ month: "long", year: "numeric" }),
       weekday_short: safe({ weekday: "narrow" }),
-      day_label: safe({ weekday: "long", month: "short", day: "numeric" }),
+      short_date: safe({ month: "short", day: "numeric" }),
       full_day: safe({
         weekday: "long",
         month: "long",
@@ -300,7 +317,8 @@ function MiniMonth({
     [anchor, week_start],
   );
   const rows = useMemo(
-    () => Array.from({ length: 6 }, (_, row) => days.slice(row * 7, row * 7 + 7)),
+    () =>
+      Array.from({ length: 6 }, (_, row) => days.slice(row * 7, row * 7 + 7)),
     [days],
   );
 
@@ -320,8 +338,7 @@ function MiniMonth({
 
     const is_rtl =
       grid_ref.current?.closest("[dir]")?.getAttribute("dir") === "rtl";
-    const signed =
-      is_rtl && Math.abs(step) === 1 ? -step : step;
+    const signed = is_rtl && Math.abs(step) === 1 ? -step : step;
     const next = add_days(selected, signed);
 
     focus_pending_ref.current = true;
@@ -386,32 +403,42 @@ function MiniMonth({
                 <span
                   key={day_key(day)}
                   aria-selected={is_selected}
-                  className="flex justify-center"
+                  className="flex"
                   role="gridcell"
                 >
                   <button
                     aria-current={is_today ? "date" : undefined}
                     aria-label={formatters.full_day.format(day)}
-                    className={`relative flex h-7 w-7 items-center justify-center rounded-full text-[12px] ${
-                      is_selected
-                        ? "bg-[var(--accent-color)] text-white"
-                        : is_today
-                          ? "font-semibold text-[var(--accent-color)] hover:bg-surf-hover"
-                          : in_month
-                            ? "text-txt-primary hover:bg-surf-hover"
-                            : "text-txt-tertiary hover:bg-surf-hover"
-                    }`}
+                    className="group/day relative flex h-7 w-full items-center justify-center focus:outline-none focus-visible:[&>span]:shadow-[0_0_0_2px_var(--accent-color)]"
+                    data-mini-day={day_key(day)}
                     tabIndex={is_selected ? 0 : -1}
                     type="button"
                     onClick={() => on_select(day)}
                   >
-                    {day.getDate()}
-                    {event_days.has(day_key(day)) && !is_selected && (
-                      <span
-                        aria-hidden="true"
-                        className="absolute bottom-0.5 h-1 w-1 rounded-full bg-[var(--accent-color)]"
-                      />
-                    )}
+                    <span
+                      className={`relative flex h-7 w-7 items-center justify-center rounded-[8px] text-[12px] leading-none tabular-nums transition-colors duration-150 ease-out motion-reduce:transition-none ${
+                        is_today
+                          ? "bg-[var(--accent-color)] font-semibold text-[var(--accent-color-foreground,#ffffff)]"
+                          : is_selected
+                            ? "bg-[var(--aster-selected)] font-medium text-txt-primary"
+                            : in_month
+                              ? "text-txt-primary group-hover/day:bg-[var(--aster-hover)]"
+                              : "text-txt-muted group-hover/day:bg-[var(--aster-hover)]"
+                      }`}
+                    >
+                      {day.getDate()}
+                      {event_days.has(day_key(day)) && (
+                        <span
+                          aria-hidden="true"
+                          className={`pointer-events-none absolute bottom-[3px] start-1/2 h-[3px] w-[3px] -translate-x-1/2 rounded-full rtl:translate-x-1/2 ${
+                            is_today
+                              ? "bg-[var(--accent-color-foreground,#ffffff)]"
+                              : "bg-[var(--accent-color)]"
+                          } ${in_month ? "" : "opacity-50"}`}
+                          data-testid="mini_day_dot"
+                        />
+                      )}
+                    </span>
                   </button>
                 </span>
               );
@@ -423,33 +450,138 @@ function MiniMonth({
   );
 }
 
+function segment_time_label(
+  event: DecryptedCalendarEvent,
+  day: Date,
+  formatters: Formatters,
+  all_day_label: string,
+): string {
+  const segment = event_segment_for_day(event, day);
+
+  if (segment.is_all_day) return all_day_label;
+  if (Number.isNaN(segment.start.getTime())) return "";
+  if (
+    Number.isNaN(segment.end.getTime()) ||
+    segment.end.getTime() <= segment.start.getTime()
+  ) {
+    return formatters.time.format(segment.start);
+  }
+
+  return compact_time_range(
+    formatters.time.format(segment.start),
+    formatters.time.format(segment.end),
+  );
+}
+
+function month_key(day: Date): string {
+  return `${day.getFullYear()}-${day.getMonth()}`;
+}
+
+interface AgendaEventRowProps {
+  event: DecryptedCalendarEvent;
+  day: Date;
+  now: Date;
+  color: string;
+  formatters: Formatters;
+  on_open: (event: DecryptedCalendarEvent) => void;
+}
+
+function AgendaEventRow({
+  event,
+  day,
+  now,
+  color,
+  formatters,
+  on_open,
+}: AgendaEventRowProps) {
+  const { t } = use_i18n();
+  const is_past = new Date(event.ends_at).getTime() < now.getTime();
+  const location = (event.location ?? "").trim();
+  const time = segment_time_label(
+    event,
+    day,
+    formatters,
+    t("calendar.all_day"),
+  );
+
+  return (
+    <button
+      className="flex w-full items-center gap-2.5 rounded-[var(--aster-radius-control,8px)] px-2 py-1.5 text-start transition-colors duration-150 ease-out hover:bg-[var(--aster-hover)] focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2"
+      style={{
+        opacity: is_past ? 0.6 : undefined,
+        outlineColor: "var(--accent-color)",
+      }}
+      title={event.title}
+      type="button"
+      onClick={() => on_open(event)}
+    >
+      <span
+        aria-hidden="true"
+        className="h-2.5 w-2.5 flex-shrink-0 rounded-full"
+        style={{ backgroundColor: color }}
+      />
+      <span className="flex min-w-0 flex-1 flex-col">
+        <span className="flex min-w-0 items-center gap-1.5 text-[13px] font-medium text-txt-primary">
+          <EventKindIcon kind={event.event_kind} />
+          <span
+            className={`truncate${
+              event.event_kind === "task" && event.is_completed
+                ? " line-through opacity-70"
+                : ""
+            }`}
+          >
+            {event.title.trim() || t("calendar.untitled_event")}
+          </span>
+        </span>
+        <span className="flex min-w-0 items-center gap-1.5 text-[12px] tabular-nums text-txt-muted">
+          <span className="flex-shrink-0 truncate" dir="ltr">
+            {time}
+          </span>
+          {location && (
+            <>
+              <span aria-hidden="true">·</span>
+              <MapPinIcon
+                aria-hidden="true"
+                className="h-3 w-3 flex-shrink-0"
+              />
+              <span className="min-w-0 truncate">{location}</span>
+            </>
+          )}
+        </span>
+      </span>
+    </button>
+  );
+}
+
 interface UpNextProps {
   pick: UpNextPick | null;
   now: Date;
   color_of: (event: DecryptedCalendarEvent) => string;
   formatters: Formatters;
-  day_label: (day: Date) => string;
   on_open: (event: DecryptedCalendarEvent) => void;
 }
 
-function UpNext({
-  pick,
-  now,
-  color_of,
-  formatters,
-  day_label,
-  on_open,
-}: UpNextProps) {
-  const { t } = use_i18n();
+function UpNext({ pick, now, color_of, formatters, on_open }: UpNextProps) {
+  const { t, language } = use_i18n();
+  const heading = (
+    <span className="text-[11px] font-semibold uppercase tracking-wider text-txt-muted">
+      {t("calendar.panel_up_next")}
+    </span>
+  );
 
   if (!pick) {
     return (
-      <div className="mx-3 mt-3 rounded-xl border border-edge-secondary px-3 py-2.5">
-        <p className="text-[11px] font-medium uppercase text-txt-tertiary">
-          {t("calendar.panel_up_next")}
-        </p>
-        <p className="mt-1 text-[13px] text-txt-secondary">
-          {t("calendar.panel_up_next_empty")}
+      <div
+        className="mx-3 mt-3 rounded-xl border border-edge-secondary px-3 py-2.5"
+        data-testid="desktop_calendar_up_next"
+      >
+        {heading}
+        <p className="mt-1 flex items-center gap-2 text-[13px] text-txt-muted">
+          <CalendarDaysIcon
+            aria-hidden="true"
+            className="h-4 w-4 flex-shrink-0"
+          />
+          <span>{t("calendar.panel_up_next_empty")}</span>
         </p>
       </div>
     );
@@ -468,118 +600,180 @@ function UpNext({
   }
 
   const start = new Date(pick.start_ms);
-  const when = is_same_day(start, now)
-    ? event_time_label(event, formatters, t("calendar.all_day"))
-    : `${day_label(start)}, ${event_time_label(event, formatters, t("calendar.all_day"))}`;
+  const is_later_day = !is_same_day(start, now) && pick.start_ms > now_ms;
+  const day_text = is_later_day
+    ? `${relative_day_label(start, now, language)}, ${formatters.short_date.format(start)}`
+    : relative_day_label(now, now, language);
 
   return (
     <button
-      className="mx-3 mt-3 flex w-[calc(100%-1.5rem)] flex-col rounded-xl border border-edge-secondary px-3 py-2.5 text-start hover:bg-surf-hover"
+      className="mx-3 mt-3 flex w-[calc(100%-1.5rem)] flex-col rounded-xl border border-edge-secondary px-3 py-2.5 text-start transition-colors duration-150 ease-out hover:bg-[var(--aster-hover)] focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2"
+      data-testid="desktop_calendar_up_next"
+      style={{ outlineColor: "var(--accent-color)" }}
       type="button"
       onClick={() => on_open(event)}
     >
       <span className="flex w-full items-center gap-2">
-        <span className="text-[11px] font-medium uppercase text-txt-tertiary">
-          {t("calendar.panel_up_next")}
-        </span>
+        {heading}
         {badge && (
-          <span className="ms-auto rounded-full bg-[var(--accent-color)] px-2 py-0.5 text-[11px] text-white">
+          <span className="ms-auto rounded-full bg-[var(--accent-color)] px-2 py-0.5 text-[11px] font-medium text-[var(--accent-color-foreground,#ffffff)]">
             {badge}
           </span>
         )}
       </span>
-      <span className="mt-1 flex w-full items-center gap-2">
+      <span className="mt-1.5 flex w-full items-center gap-2.5">
         <span
           aria-hidden="true"
-          className="h-3 w-1 flex-shrink-0 rounded-full"
+          className="h-2.5 w-2.5 flex-shrink-0 rounded-full"
           style={{ backgroundColor: color_of(event) }}
         />
-        <span className="min-w-0 truncate text-[14px] font-medium text-txt-primary">
-          {event.title.trim() || t("calendar.untitled_event")}
+        <span className="flex min-w-0 flex-1 items-center gap-1.5 text-[14px] font-medium text-txt-primary">
+          <EventKindIcon kind={event.event_kind} />
+          <span className="truncate">
+            {event.title.trim() || t("calendar.untitled_event")}
+          </span>
         </span>
       </span>
-      <span className="mt-0.5 text-[12px] text-txt-secondary">{when}</span>
+      <span className="mt-0.5 flex w-full min-w-0 items-center gap-1.5 ps-5 text-[12px] tabular-nums text-txt-muted">
+        <span
+          className="flex-shrink-0 font-medium"
+          style={{ color: is_later_day ? undefined : "var(--accent-color)" }}
+        >
+          {day_text}
+        </span>
+        <span aria-hidden="true">·</span>
+        <span className="min-w-0 truncate" dir="ltr">
+          {event_time_label(event, formatters, t("calendar.all_day"))}
+        </span>
+      </span>
     </button>
   );
 }
 
 interface AgendaListProps {
   days: Date[];
+  selected: Date;
   buckets: Map<string, DecryptedCalendarEvent[]>;
   now: Date;
+  today: Date;
   color_of: (event: DecryptedCalendarEvent) => string;
   formatters: Formatters;
-  day_label: (day: Date) => string;
   on_open: (event: DecryptedCalendarEvent) => void;
 }
 
 function AgendaList({
   days,
+  selected,
   buckets,
   now,
+  today,
   color_of,
   formatters,
-  day_label,
   on_open,
 }: AgendaListProps) {
-  const { t } = use_i18n();
-  const now_ms = now.getTime();
+  const { t, language } = use_i18n();
+  const groups = days
+    .map((day) => ({ day, events: buckets.get(day_key(day)) ?? [] }))
+    .filter(
+      ({ day, events }) =>
+        events.length > 0 ||
+        is_same_day(day, selected) ||
+        is_same_day(day, today),
+    );
+  let rendered_month = groups.length > 0 ? month_key(groups[0].day) : "";
 
   return (
-    <div className="mt-3 flex flex-col gap-3 px-3 pb-4">
-      {days.map((day) => {
-        const events = buckets.get(day_key(day)) ?? [];
+    <div
+      className="mt-2 flex flex-col pb-4"
+      data-testid="desktop_calendar_agenda_list"
+    >
+      {groups.map(({ day, events }, index) => {
+        const is_today = is_same_day(day, today);
+        const is_past_day = day.getTime() < today.getTime();
+        const current_month = month_key(day);
+        const show_month_header = current_month !== rendered_month;
+        const divider_at = is_today ? now_divider_index(events, now) : -1;
+
+        rendered_month = current_month;
 
         return (
-          <section key={day_key(day)} aria-label={formatters.full_day.format(day)}>
-            <h3 className="px-1 text-[12px] font-medium text-txt-secondary">
-              {day_label(day)}
-            </h3>
-            {events.length === 0 ? (
-              <p className="px-1 pt-1 text-[12px] text-txt-tertiary">
-                {t("calendar.panel_no_events")}
-              </p>
-            ) : (
-              <ul className="mt-1 flex flex-col gap-1">
-                {events.map((event) => {
-                  const is_past =
-                    !event.is_all_day && new Date(event.ends_at).getTime() <= now_ms;
-
-                  return (
-                    <li key={`${event.id}-${event.starts_at}`}>
-                      <button
-                        className={`flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-start hover:bg-surf-hover ${
-                          is_past ? "opacity-60" : ""
-                        }`}
-                        type="button"
-                        onClick={() => on_open(event)}
-                      >
-                        <span
-                          aria-hidden="true"
-                          className="h-8 w-1 flex-shrink-0 rounded-full"
-                          style={{ backgroundColor: color_of(event) }}
-                        />
-                        <span className="flex min-w-0 flex-col">
-                          <span
-                            className={`truncate text-[13px] text-txt-primary ${
-                              event.event_kind === "task" && event.is_completed
-                                ? "line-through opacity-70"
-                                : ""
-                            }`}
-                          >
-                            {event.title.trim() || t("calendar.untitled_event")}
-                          </span>
-                          <span className="truncate text-[12px] text-txt-secondary">
-                            {event_time_label(event, formatters, t("calendar.all_day"))}
-                          </span>
-                        </span>
-                      </button>
-                    </li>
-                  );
-                })}
-              </ul>
+          <div key={day_key(day)}>
+            {show_month_header && (
+              <div
+                className="sticky top-0 z-10 flex h-7 items-center border-b border-edge-secondary bg-surf-primary px-4 text-[11px] font-semibold uppercase tracking-wider text-txt-muted"
+                data-testid="agenda_month_header"
+              >
+                {formatters.month.format(day)}
+              </div>
             )}
-          </section>
+            <section
+              aria-current={is_today ? "date" : undefined}
+              aria-label={formatters.full_day.format(day)}
+              className={`flex gap-1 px-2 py-2 ${
+                index === 0 || show_month_header
+                  ? ""
+                  : "border-t border-edge-secondary"
+              }`}
+            >
+              <div className="flex w-16 flex-shrink-0 flex-col items-center pt-0.5">
+                <span
+                  className="max-w-full truncate whitespace-nowrap text-[10px] font-semibold uppercase tracking-wide"
+                  style={{
+                    color: is_today
+                      ? "var(--accent-color)"
+                      : "var(--text-muted)",
+                  }}
+                >
+                  {relative_day_label(day, today, language)}
+                </span>
+                <span
+                  className="mt-0.5 inline-flex h-8 min-w-8 items-center justify-center rounded-full px-1 text-[16px] font-medium tabular-nums"
+                  style={{
+                    backgroundColor: is_today
+                      ? "var(--accent-color)"
+                      : undefined,
+                    color: is_today
+                      ? "var(--accent-color-foreground, #ffffff)"
+                      : is_past_day
+                        ? "var(--text-muted)"
+                        : "var(--text-primary)",
+                  }}
+                >
+                  {day.getDate()}
+                </span>
+              </div>
+              {events.length === 0 ? (
+                <p className="flex h-10 min-w-0 flex-1 items-center gap-2 px-2 text-[13px] text-txt-muted">
+                  <CalendarDaysIcon
+                    aria-hidden="true"
+                    className="h-4 w-4 flex-shrink-0"
+                  />
+                  <span className="truncate">
+                    {t("calendar.panel_no_events")}
+                  </span>
+                </p>
+              ) : (
+                <ul className="flex min-w-0 flex-1 flex-col gap-0.5">
+                  {events.map((event, event_index) => (
+                    <Fragment key={`${event.id}-${event.starts_at}`}>
+                      {event_index === divider_at && <NowDivider />}
+                      <li>
+                        <AgendaEventRow
+                          color={color_of(event)}
+                          day={day}
+                          event={event}
+                          formatters={formatters}
+                          now={now}
+                          on_open={on_open}
+                        />
+                      </li>
+                    </Fragment>
+                  ))}
+                  {divider_at === events.length && <NowDivider />}
+                </ul>
+              )}
+            </section>
+          </div>
         );
       })}
     </div>
@@ -594,7 +788,13 @@ interface EventViewProps {
   on_back: () => void;
 }
 
-function EventView({ event, calendar, color, formatters, on_back }: EventViewProps) {
+function EventView({
+  event,
+  calendar,
+  color,
+  formatters,
+  on_back,
+}: EventViewProps) {
   const { t } = use_i18n();
   const back_ref = useRef<HTMLButtonElement | null>(null);
   const start = new Date(event.starts_at);
@@ -645,7 +845,9 @@ function EventView({ event, calendar, color, formatters, on_back }: EventViewPro
         </p>
       )}
       {calendar && (
-        <p className="mt-2 px-1 text-[12px] text-txt-tertiary">{calendar.name}</p>
+        <p className="mt-2 px-1 text-[12px] text-txt-tertiary">
+          {calendar.name}
+        </p>
       )}
       {description && (
         <p className="mt-3 whitespace-pre-wrap break-words px-1 text-[13px] text-txt-primary">
@@ -689,9 +891,15 @@ function AgendaBody({
   const week_start = week_start_day_index(preferences.calendar_week_starts_on);
   const formatters = use_formatters(language, preferences.time_format);
 
-  const grid = useMemo(() => build_month_grid(anchor, week_start), [anchor, week_start]);
+  const grid = useMemo(
+    () => build_month_grid(anchor, week_start),
+    [anchor, week_start],
+  );
   const agenda_days = useMemo(
-    () => Array.from({ length: AGENDA_DAY_COUNT }, (_, index) => add_days(selected, index)),
+    () =>
+      Array.from({ length: AGENDA_DAY_COUNT }, (_, index) =>
+        add_days(selected, index),
+      ),
     [selected],
   );
   const range_start = useMemo(
@@ -748,34 +956,10 @@ function AgendaBody({
     [agenda.up_next_events, agenda.calendars, now, self_email],
   );
   const color_of = useCallback(
-    (event: DecryptedCalendarEvent) => resolve_event_color(event, calendars_by_id),
+    (event: DecryptedCalendarEvent) =>
+      resolve_event_color(event, calendars_by_id),
     [calendars_by_id],
   );
-  const day_label = useCallback(
-    (day: Date) => {
-      const offset = Math.round(
-        (start_of_day(day).getTime() - today.getTime()) / 86_400_000,
-      );
-
-      if (offset === 0 || offset === 1) {
-        try {
-          const relative = new Intl.RelativeTimeFormat(language || undefined, {
-            numeric: "auto",
-          }).format(offset, "day");
-
-          if (!/\d/.test(relative)) {
-            return `${relative.charAt(0).toLocaleUpperCase()}${relative.slice(1)}, ${formatters.day_label.format(day)}`;
-          }
-        } catch {
-          return formatters.day_label.format(day);
-        }
-      }
-
-      return formatters.day_label.format(day);
-    },
-    [language, today, formatters],
-  );
-
   const select_day = useCallback((day: Date) => {
     const next = start_of_day(day);
 
@@ -823,7 +1007,10 @@ function AgendaBody({
   }
 
   return (
-    <div className="flex flex-1 flex-col overflow-y-auto" data-testid="desktop_calendar_agenda">
+    <div
+      className="flex flex-1 flex-col overflow-y-auto"
+      data-testid="desktop_calendar_agenda"
+    >
       {agenda.refresh_failed && (
         <div
           className="mx-3 mb-2 flex items-center gap-2 rounded-lg bg-surf-secondary px-3 py-2"
@@ -849,7 +1036,6 @@ function AgendaBody({
       />
       <UpNext
         color_of={color_of}
-        day_label={day_label}
         formatters={formatters}
         now={now}
         pick={pick}
@@ -858,10 +1044,11 @@ function AgendaBody({
       <AgendaList
         buckets={agenda_buckets}
         color_of={color_of}
-        day_label={day_label}
         days={agenda_days}
         formatters={formatters}
         now={now}
+        selected={selected}
+        today={today}
         on_open={on_select_event}
       />
     </div>
@@ -942,7 +1129,13 @@ export function DesktopCalendarPanel({
     if (gate === "loading") {
       body = <AgendaSkeleton />;
     } else if (gate === "signed_out") {
-      body = <Notice body={t("calendar.panel_signed_out")} role="status" show_open={false} />;
+      body = (
+        <Notice
+          body={t("calendar.panel_signed_out")}
+          role="status"
+          show_open={false}
+        />
+      );
     } else if (gate === "locked") {
       body = (
         <Notice

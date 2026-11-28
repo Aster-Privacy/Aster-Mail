@@ -1304,6 +1304,10 @@ export const ar = {
     enter_label_name: "أدخل اسم التصنيف",
     leaving_aster_mail: "مغادرة Aster Mail",
     link_dialog_title: "هل تريد فتح هذا الرابط؟",
+    unsubscribe_dialog_title: "هل تريد فتح صفحة إلغاء الاشتراك؟",
+    unsubscribe_dialog_body:
+      "يدير المرسل هذه الصفحة. عند فتحها، يعرف المرسل أن عنوانك نشط، وقد تطلب منك الصفحة التأكيد قبل إلغاء اشتراكك.",
+    unsubscribe_dialog_open: "فتح الصفحة",
     link_dialog_body: "يفتح هذا الرابط صفحة ويب خارج Aster Mail.",
     link_dialog_lockdown_title: "لا تُفتح الروابط في وضع الإغلاق",
     link_dialog_lockdown_body:
@@ -4477,6 +4481,11 @@ export const ar = {
     recent_sign_ins: "عمليات تسجيل الدخول الأخيرة",
     no_sign_in_history: "لا يوجد سجل تسجيل دخول بعد",
     external_link_warnings: "تحذيرات الروابط الخارجية",
+    unsubscribe_confirm: "تأكيد إلغاء الاشتراك",
+    unsubscribe_confirm_enabled:
+      "التأكيد قبل فتح صفحة إلغاء الاشتراك الخاصة بالمرسل",
+    unsubscribe_confirm_disabled:
+      "تُفتح صفحات إلغاء الاشتراك دون تأكيد",
     external_link_warning_enabled:
       "إظهار تحذير قبل فتح الروابط الخارجية في الرسائل",
     external_link_warning_disabled: "تُفتح الروابط مباشرة بدون تأكيد",
@@ -12796,6 +12805,7 @@ export const ar = {
     plan_feat_vanguard: "Aster Vanguard, Vanguard, حماية متقدمة, وضع الإغلاق, إغلاق",
     info_login_alerts_title: "تنبيهات تسجيل الدخول, إشعار تسجيل دخول جديد, تنبيه دخول",
     external_link_warnings: "تحذيرات الروابط الخارجية, تحذير الرابط, روابط مشبوهة, تأكيد الروابط",
+    unsubscribe_confirm: "إلغاء الاشتراك, تأكيد إلغاء الاشتراك, القوائم البريدية",
     settings_search_vacation_reply: "الرد أثناء الإجازة, الرد التلقائي, خارج المكتب, رسالة الغياب, مجيب تلقائي",
     auto_forward_tab_label: "إعادة التوجيه التلقائي, إعادة توجيه البريد, توجيه كل البريد, تحويل البريد",
     settings_search_external_accounts: "الحسابات الخارجية, الحسابات المتصلة, مزامنة Gmail, جلب البريد, صندوق بريد آخر",

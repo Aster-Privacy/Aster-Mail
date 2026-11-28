@@ -1371,6 +1371,10 @@ export const it = {
     enter_label_name: "Inserisci nome etichetta",
     leaving_aster_mail: "Stai lasciando Aster Mail",
     link_dialog_title: "Aprire questo link?",
+    unsubscribe_dialog_title: "Aprire la pagina di annullamento dell’iscrizione?",
+    unsubscribe_dialog_body:
+      "Questa pagina è gestita dal mittente. Aprendola, il mittente saprà che il tuo indirizzo è attivo e la pagina potrebbe chiederti una conferma prima di annullare l’iscrizione.",
+    unsubscribe_dialog_open: "Apri pagina",
     link_dialog_body: "Questo link apre una pagina web esterna ad Aster Mail.",
     link_dialog_lockdown_title: "I link non si aprono in modalità isolamento",
     link_dialog_lockdown_body:
@@ -4377,6 +4381,11 @@ export const it = {
     recent_sign_ins: "Accessi recenti",
     no_sign_in_history: "Nessuna cronologia di accesso",
     external_link_warnings: "Avvisi link esterni",
+    unsubscribe_confirm: "Conferma annullamento iscrizione",
+    unsubscribe_confirm_enabled:
+      "Chiedi conferma prima di aprire la pagina di annullamento dell’iscrizione di un mittente",
+    unsubscribe_confirm_disabled:
+      "Le pagine di annullamento dell’iscrizione si aprono senza conferma",
     external_link_warning_enabled:
       "Mostra avviso prima di aprire link esterni nelle email",
     external_link_warning_disabled:
@@ -13115,6 +13124,7 @@ export const it = {
     plan_feat_vanguard: "Aster Vanguard, Vanguard, protezione avanzata, blocco totale, modalità isolamento",
     info_login_alerts_title: "avvisi di accesso, notifica nuovo accesso, avvisi login",
     external_link_warnings: "avvisi link esterni, avviso link, link sospetti, conferma link",
+    unsubscribe_confirm: "annulla iscrizione, conferma annullamento iscrizione, mailing list",
     settings_search_vacation_reply: "risposta automatica, fuori ufficio, assenza, messaggio di assenza, risponditore automatico, ferie",
     auto_forward_tab_label: "inoltro automatico, inoltro, inoltra email, inoltra tutta la posta, reindirizza posta",
     settings_search_external_accounts: "account esterni, account collegati, sincronizzazione Gmail, recupera posta, altra casella",

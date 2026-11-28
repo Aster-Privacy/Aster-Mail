@@ -1088,6 +1088,12 @@ export const SETTINGS_SEARCH_REGISTRY: SearchEntry[] = [
     crumb_key: "settings_search.links",
   },
   {
+    id: "unsubscribe_confirm",
+    label_key: "settings.unsubscribe_confirm",
+    section: "security",
+    crumb_key: "settings_search.links",
+  },
+  {
     id: "settings_search_vacation_reply",
     label_key: "settings_search.vacation_reply",
     section: "vacation_reply",

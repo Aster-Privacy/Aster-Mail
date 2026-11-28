@@ -1320,6 +1320,10 @@ export const nl = {
     enter_label_name: "Voer labelnaam in",
     leaving_aster_mail: "Aster Mail verlaten",
     link_dialog_title: "Deze link openen?",
+    unsubscribe_dialog_title: "Afmeldpagina openen?",
+    unsubscribe_dialog_body:
+      "Deze pagina is van de afzender. Als je hem opent, weet de afzender dat je adres actief is, en de pagina vraagt je mogelijk om te bevestigen voordat je wordt afgemeld.",
+    unsubscribe_dialog_open: "Pagina openen",
     link_dialog_body: "Deze link opent een webpagina buiten Aster Mail.",
     link_dialog_lockdown_title:
       "Links worden niet geopend in de blokkeringsmodus",
@@ -4325,6 +4329,11 @@ export const nl = {
       "Je wordt uitgelogd na deze periode van inactiviteit. Je moet opnieuw inloggen.",
     login_alerts: "Inlogwaarschuwingen",
     external_link_warnings: "Waarschuwingen voor externe links",
+    unsubscribe_confirm: "Afmeldbevestiging",
+    unsubscribe_confirm_enabled:
+      "Bevestigen voordat de afmeldpagina van een afzender wordt geopend",
+    unsubscribe_confirm_disabled:
+      "Afmeldpagina's openen zonder bevestiging",
     external_link_warning_enabled:
       "Toon waarschuwing voordat externe links in e-mails worden geopend",
     ipfs_attachment_storage: "IPFS-bijlageopslag",
@@ -13037,6 +13046,7 @@ export const nl = {
     plan_feat_vanguard: "Vanguard, geavanceerde bescherming, vergrendeling, lockdown-modus",
     info_login_alerts_title: "melding nieuwe login, inlogmeldingen, aanmeldwaarschuwing",
     external_link_warnings: "linkwaarschuwing, verdachte links, links bevestigen, externe links",
+    unsubscribe_confirm: "afmelden, afmelden bevestigen, mailinglijsten",
     settings_search_vacation_reply: "automatisch antwoord, afwezigheidsbericht, buiten kantoor, afwezig, autoreply, vakantie",
     auto_forward_tab_label: "doorsturen, automatisch doorsturen, e-mail doorsturen, alle mail doorsturen, mail omleiden",
     settings_search_external_accounts: "gekoppelde accounts, gmail synchroniseren, mail ophalen, andere mailbox",
