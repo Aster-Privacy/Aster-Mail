@@ -138,7 +138,7 @@ export function DnsRecordCard({
           </code>
           {!host_is_blank && (
             <Button
-              className="h-7 w-7 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
+              className="row_icon_action h-7 w-7 flex-shrink-0 opacity-0 group-hover:opacity-100 focus-visible:opacity-100"
               size="icon"
               variant="ghost"
               onClick={(e) => {
@@ -187,7 +187,7 @@ export function DnsRecordCard({
             {record.value}
           </code>
           <Button
-            className="h-7 w-7 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
+            className="row_icon_action h-7 w-7 flex-shrink-0 opacity-0 group-hover:opacity-100 focus-visible:opacity-100"
             size="icon"
             variant="ghost"
             onClick={(e) => {

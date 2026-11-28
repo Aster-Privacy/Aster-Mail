@@ -61,9 +61,12 @@ const INTERACTIVE_SELECTOR = [
 ].join(",");
 
 export const RIPPLE_ATTRIBUTE = "data-ripple";
+export const RIPPLE_ROW_ATTRIBUTE = "data-ripple-row";
+export const ROW_PRIMARY_ATTRIBUTE = "data-row-primary";
 
 const RIPPLE_SELECTOR = [
   `[${RIPPLE_ATTRIBUTE}]`,
+  `[${RIPPLE_ROW_ATTRIBUTE}]`,
   ".aster_btn_primary",
   ".aster_btn_destructive",
   ".aster_btn_depth",
@@ -200,7 +203,13 @@ export function find_press_target(
 ): HTMLElement | null {
   const target = find_interactive_target(start);
 
-  if (!target || !target.matches(RIPPLE_SELECTOR)) return null;
+  if (!target) return null;
+  if (target.hasAttribute(ROW_PRIMARY_ATTRIBUTE)) {
+    const row = target.closest(`[${RIPPLE_ROW_ATTRIBUTE}]`);
+
+    return row instanceof HTMLElement ? row : null;
+  }
+  if (!target.matches(RIPPLE_SELECTOR)) return null;
   const skip = start instanceof Element ? start.closest(SKIP_SELECTOR) : null;
 
   if (skip && target.contains(skip)) return null;
@@ -645,9 +654,13 @@ export function start_press_feedback(): () => void {
   const handle_key_down = (e: KeyboardEvent) => {
     if (e.repeat) return;
     if (e.key !== "Enter" && e.key !== " ") return;
-    const target = find_press_target(document.activeElement);
+    const active = document.activeElement;
+    const target = find_press_target(active);
 
-    if (!target || target !== document.activeElement) return;
+    if (!target || !active) return;
+    if (target !== active && !active.hasAttribute(ROW_PRIMARY_ATTRIBUTE)) {
+      return;
+    }
     press(target, null);
   };
 

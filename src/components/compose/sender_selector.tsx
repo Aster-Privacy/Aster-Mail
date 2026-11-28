@@ -236,33 +236,51 @@ function render_option(
   const pin_enabled =
     !!on_toggle_preferred && option.type !== "ghost" && !option.is_catch_all;
 
+  const disabled = option.sending_disabled === true;
+
   return (
     <div
       key={option.id}
-      className={`group w-full px-2.5 py-2 flex items-center gap-2 rounded-[var(--aster-radius-item)] transition-colors ${is_selected || is_active ? "bg-[var(--aster-selected)]" : "hover:bg-[var(--aster-floating-hover)]"}`}
+      className="aster_menu_row w-full"
+      data-active={is_active || undefined}
+      data-disabled={disabled || undefined}
+      data-ripple-row
+      data-selected={is_selected || undefined}
       data-sender-active={is_active || undefined}
     >
       <button
-        aria-disabled={option.sending_disabled || undefined}
-        className={`flex items-center gap-2.5 text-start flex-1 min-w-0 ${option.sending_disabled ? "opacity-60" : ""}`}
+        data-row-primary
+        aria-disabled={disabled || undefined}
+        className="aster_menu_row_main gap-2.5 ps-2.5 pe-2 py-2"
         type="button"
         onClick={on_click}
       >
-        <SenderOptionIcon option={option} size="xs" />
-        <div className="flex flex-1 min-w-0 flex-col justify-center">
-          <div className="flex items-center gap-2 min-w-0">
-            <p className="min-w-0 text-sm leading-5 truncate text-txt-primary">
+        <span className={disabled ? "flex opacity-60" : "flex"}>
+          <SenderOptionIcon option={option} size="xs" />
+        </span>
+        <span className="flex flex-1 min-w-0 flex-col justify-center">
+          <span className="flex items-center gap-2 min-w-0">
+            <span
+              className={`min-w-0 text-sm leading-5 truncate ${disabled ? "text-txt-secondary" : "text-txt-primary"}`}
+            >
               {option.email}
-            </p>
+            </span>
             {option.is_catch_all && <CatchAllBadge />}
-            {option.sending_disabled && <SendingDisabledBadge />}
-          </div>
-          {option.display_name && (
-            <p className="text-xs truncate text-txt-muted">
-              {option.display_name}
-            </p>
+          </span>
+          {(option.display_name || disabled) && (
+            <span className="flex items-center gap-1.5 min-w-0">
+              {option.display_name && (
+                <span className="min-w-0 text-xs truncate text-txt-muted">
+                  {option.display_name}
+                </span>
+              )}
+              {disabled && <SendingDisabledBadge />}
+            </span>
           )}
-        </div>
+        </span>
+        {is_selected && (
+          <CheckIcon className="w-4 h-4 flex-shrink-0 text-txt-primary" />
+        )}
       </button>
       {pin_enabled && (
         <button
@@ -271,11 +289,9 @@ function render_option(
               ? t("common.unpin_preferred_sender")
               : t("common.pin_preferred_sender")
           }
-          className={`flex-shrink-0 p-1.5 rounded transition-opacity ${
-            is_preferred
-              ? "opacity-100 text-[var(--accent-color)] hover:text-[var(--accent-color)]"
-              : "sm:opacity-0 opacity-60 sm:group-hover:opacity-60 text-txt-muted hover:opacity-100"
-          }`}
+          aria-pressed={is_preferred}
+          className="aster_menu_row_action"
+          data-on={is_preferred || undefined}
           title={
             is_preferred
               ? t("common.unpin_preferred_sender")
@@ -292,9 +308,6 @@ function render_option(
             filled={is_preferred}
           />
         </button>
-      )}
-      {is_selected && (
-        <CheckIcon className="w-4 h-4 flex-shrink-0 text-txt-primary" />
       )}
     </div>
   );

@@ -460,6 +460,7 @@ function RuleCard({
 
   return (
     <Island
+      data-ripple-row
       interactive
       className={`group relative cursor-pointer [&_*]:cursor-pointer ${
         is_drag_over ? "ring-2 ring-[var(--accent-color)]/40" : ""
@@ -478,7 +479,8 @@ function RuleCard({
     >
       <div className="flex items-start gap-3">
         <button
-          className="flex-1 text-start min-w-0 cursor-pointer"
+          data-row-primary
+          className="aster_row_stretch flex-1 text-start min-w-0 cursor-pointer"
           type="button"
         >
           <div className="flex items-center gap-1.5 mb-1.5">
@@ -539,7 +541,7 @@ function RuleCard({
             ))}
           </div>
         </button>
-        <div className="flex items-center gap-1 flex-shrink-0">
+        <div className="relative z-[1] flex items-center gap-1 flex-shrink-0">
           <span
             aria-label={t("mail_rules.drag_handle")}
             className="text-txt-muted cursor-grab transition-opacity opacity-0 group-hover:opacity-100"

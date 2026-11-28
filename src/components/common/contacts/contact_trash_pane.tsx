@@ -125,7 +125,7 @@ export function ContactTrashPane({
             <Tooltip tip={t("mail.restore")}>
               <button
                 aria-label={t("mail.restore")}
-                className="inline-flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full text-txt-muted opacity-0 transition-opacity hover:text-txt-primary focus-visible:opacity-100 group-hover/trash:opacity-100"
+                className="inline-flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full text-txt-muted opacity-0 transition-opacity hover:text-txt-primary focus-visible:opacity-100 group-hover/trash:opacity-100 group-focus-within/trash:opacity-100"
                 type="button"
                 onClick={() => on_restore(contact)}
               >
@@ -135,7 +135,7 @@ export function ContactTrashPane({
             <Tooltip tip={t("mail.delete_permanently")}>
               <button
                 aria-label={t("mail.delete_permanently")}
-                className="inline-flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full text-txt-muted opacity-0 transition-opacity hover:text-[var(--color-danger)] focus-visible:opacity-100 group-hover/trash:opacity-100"
+                className="inline-flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full text-txt-muted opacity-0 transition-opacity hover:text-[var(--color-danger)] focus-visible:opacity-100 group-hover/trash:opacity-100 group-focus-within/trash:opacity-100"
                 type="button"
                 onClick={() => on_delete_forever(contact)}
               >

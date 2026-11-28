@@ -194,9 +194,9 @@ function press_key(input: HTMLInputElement, key: string) {
 }
 
 function visible_emails(): string[] {
-  return Array.from(document.body.querySelectorAll("p.text-sm.truncate")).map(
-    (el) => el.textContent ?? "",
-  );
+  return Array.from(
+    document.body.querySelectorAll(".aster_menu_row span.text-sm.truncate"),
+  ).map((el) => el.textContent ?? "");
 }
 
 describe("SenderSelector search", () => {

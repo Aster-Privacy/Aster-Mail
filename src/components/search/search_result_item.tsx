@@ -156,59 +156,68 @@ const SearchResultRowBase = forwardRef<
   }, [preview_lines, query_terms]);
 
   return (
-    <button
-      ref={ref}
+    <div
+      data-ripple-row
       className={cn(
-        "search_result_row text-start rounded-[14px]",
+        "search_result_row rounded-[14px]",
         SEARCH_RESULT_ROW_LAYOUT,
       )}
-      onClick={on_click}
     >
-      <ProfileAvatar
-        email={result.sender_email}
-        image_url={marks_hidden ? undefined : result.avatar_url}
-        name={shown_sender_name}
-        plain={marks_hidden}
-        sender_authenticated={!marks_hidden && is_aster_trusted_sender(result)}
-        size="sm"
-        use_domain_logo={
-          preferences.show_profile_pictures !== false && !result.is_spam
-        }
-      />
-      <div className="flex-1 min-w-0 flex items-center gap-1.5">
-        <span className="text-[13px] font-medium truncate text-txt-primary flex-shrink-0 max-w-[30%]">
-          {shown_sender_name}
-        </span>
-        <span className="text-[11px] text-txt-muted flex-shrink-0">·</span>
-        <span
-          className="text-[12px] truncate flex-shrink-0 max-w-[40%]"
-          style={{
-            color: result.is_read
-              ? "var(--text-muted)"
-              : "var(--text-secondary)",
-            fontWeight: result.is_read ? 400 : 500,
-          }}
-        >
-          {subject_highlights.length > 0 ? (
-            <HighlightedText
-              highlights={subject_highlights}
-              text={result.subject}
-            />
-          ) : (
-            result.subject
-          )}
-        </span>
-        <span className="text-[11px] truncate flex-1 text-txt-muted">
-          {preview_highlights.length > 0 ? (
-            <HighlightedText
-              highlights={preview_highlights}
-              text={preview_lines}
-            />
-          ) : (
-            preview_lines
-          )}
-        </span>
-      </div>
+      <button
+        ref={ref}
+        data-row-primary
+        className="aster_row_stretch flex flex-1 min-w-0 items-center gap-3 text-start rounded-[14px]"
+        type="button"
+        onClick={on_click}
+      >
+        <ProfileAvatar
+          email={result.sender_email}
+          image_url={marks_hidden ? undefined : result.avatar_url}
+          name={shown_sender_name}
+          plain={marks_hidden}
+          sender_authenticated={
+            !marks_hidden && is_aster_trusted_sender(result)
+          }
+          size="sm"
+          use_domain_logo={
+            preferences.show_profile_pictures !== false && !result.is_spam
+          }
+        />
+        <div className="flex-1 min-w-0 flex items-center gap-1.5">
+          <span className="text-[13px] font-medium truncate text-txt-primary flex-shrink-0 max-w-[30%]">
+            {shown_sender_name}
+          </span>
+          <span className="text-[11px] text-txt-muted flex-shrink-0">·</span>
+          <span
+            className="text-[12px] truncate flex-shrink-0 max-w-[40%]"
+            style={{
+              color: result.is_read
+                ? "var(--text-muted)"
+                : "var(--text-secondary)",
+              fontWeight: result.is_read ? 400 : 500,
+            }}
+          >
+            {subject_highlights.length > 0 ? (
+              <HighlightedText
+                highlights={subject_highlights}
+                text={result.subject}
+              />
+            ) : (
+              result.subject
+            )}
+          </span>
+          <span className="text-[11px] truncate flex-1 text-txt-muted">
+            {preview_highlights.length > 0 ? (
+              <HighlightedText
+                highlights={preview_highlights}
+                text={preview_lines}
+              />
+            ) : (
+              preview_lines
+            )}
+          </span>
+        </div>
+      </button>
       <div
         className={
           quick_actions
@@ -221,6 +230,7 @@ const SearchResultRowBase = forwardRef<
             {result.item_type !== "sent" && (
               <button
                 className="search_result_action text-txt-muted"
+                type="button"
                 title={
                   result.is_read
                     ? t("mail.mark_unread_title")
@@ -246,6 +256,7 @@ const SearchResultRowBase = forwardRef<
             )}
             <button
               className="search_result_action"
+              type="button"
               style={{
                 color: result.is_starred
                   ? "var(--color-warning)"
@@ -271,6 +282,7 @@ const SearchResultRowBase = forwardRef<
             </button>
             <button
               className="search_result_action text-txt-muted"
+              type="button"
               title={t("mail.archive_action")}
               onClick={(e) => {
                 e.stopPropagation();
@@ -287,6 +299,7 @@ const SearchResultRowBase = forwardRef<
             </button>
             <button
               className="search_result_action text-txt-muted"
+              type="button"
               title={t("common.delete")}
               onClick={(e) => {
                 e.stopPropagation();
@@ -328,7 +341,7 @@ const SearchResultRowBase = forwardRef<
           </span>
         </div>
       </div>
-    </button>
+    </div>
   );
 });
 

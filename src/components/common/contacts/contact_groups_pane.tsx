@@ -644,7 +644,8 @@ export function ContactGroupsPane({
                 return (
                   <li
                     key={contact.id}
-                    className="contact_group_member_row my-px flex w-full items-center gap-3 px-2.5 py-1.5"
+                    data-ripple-row
+                    className="contact_group_member_row relative my-px flex w-full items-center gap-3 px-2.5 py-1.5"
                     data-active={is_selected}
                     data-testid={`contact_group_member_${contact.id}`}
                     style={{
@@ -653,8 +654,9 @@ export function ContactGroupsPane({
                     }}
                   >
                     <button
+                      data-row-primary
                       aria-current={is_selected ? "true" : undefined}
-                      className="flex min-w-0 flex-1 items-center gap-3 text-start"
+                      className="aster_row_stretch flex min-w-0 flex-1 items-center gap-3 text-start"
                       type="button"
                       onClick={() => on_open_contact(contact)}
                     >
@@ -767,7 +769,8 @@ export function ContactGroupsPane({
             return (
               <div
                 key={group.id}
-                className="contact_group_row my-0.5 flex w-full items-center gap-1 rounded-[var(--aster-radius-control)] py-1.5 pe-2 ps-3"
+                data-ripple-row
+                className="contact_group_row relative my-0.5 flex w-full items-center gap-1 rounded-[var(--aster-radius-control)] py-1.5 pe-2 ps-3"
               >
                 <button
                   ref={(element) => {
@@ -778,7 +781,8 @@ export function ContactGroupsPane({
                     name: group.name,
                     count: count_label,
                   })}
-                  className="flex min-w-0 flex-1 items-center gap-3 text-start"
+                  data-row-primary
+                  className="aster_row_stretch flex min-w-0 flex-1 items-center gap-3 text-start"
                   data-testid={`contact_group_row_${group.id}`}
                   type="button"
                   onClick={() => open_view(group)}
