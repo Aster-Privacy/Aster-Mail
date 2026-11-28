@@ -1910,7 +1910,7 @@ export const tr = {
       "Bir sorun oluştu. Tekrar deneyin.",
     unsaved_changes_title: "Değişiklikler atılsın mı?",
     unsaved_changes_body:
-      "Girdiğin bilgiler kaydedilmedi. Bu formu şimdi kapatırsan bu bilgileri kaybedersin.",
+      "Girdiğiniz bilgiler kaydedilmedi. Bu formu şimdi kapatırsanız bu bilgileri kaybedersiniz.",
     unknown_sender: "Bilinmeyen",
     unknown_merchant: "Bilinmeyen satıcı",
     uncategorized: "Kategorisiz",

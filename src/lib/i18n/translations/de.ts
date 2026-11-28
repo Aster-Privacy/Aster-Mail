@@ -11554,7 +11554,7 @@ export const de = {
     rename_saved: "Name aktualisiert",
   },
   errors: {
-    alias_sending_disabled: "Das Senden von diesem Alias ist ausgeschaltet. Um von ihm zu senden, schalten Sie das Senden zuerst ein.",
+    alias_sending_disabled: "Das Senden von diesem Alias ist ausgeschaltet. Um von ihm zu senden, schalte das Senden zuerst ein.",
     auth_salt_collision:
       "Die Anmeldung wurde abgebrochen, weil der Server einen unsicheren Wert gesendet hat. Es wurde nichts entsperrt. Kontaktieren Sie den Support, bevor Sie es erneut versuchen.",
     legacy_login_salt_new_device:

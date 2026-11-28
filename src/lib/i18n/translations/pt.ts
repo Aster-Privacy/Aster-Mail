@@ -3622,7 +3622,7 @@ export const pt = {
       "Quando abre uma mensagem, o Aster guarda uma cópia encriptada das suas imagens neste dispositivo, para que voltar a abri-la não contacte o remetente. Limpá-las liberta espaço neste dispositivo e não elimina nenhum email. As imagens são transferidas novamente da próxima vez que abrir uma mensagem que as contenha.",
     info_low_network_mode_title: "O que faz o modo de rede reduzida?",
     info_low_network_mode_description:
-      "Bloqueia todos os pedidos de rede não essenciais para manter o Aster utilizável em ligações lentas ou limitadas. Desativa fotos de perfil, logótipos de remetentes, favicons de domínios, imagens externas em e-mails, pré-carregamento de e-mails, tipos de letra personalizados, pré-visualizações de anexos e sons de notificação. Todos os e-mails são apresentados como texto simples e as conversas de e-mail estão limitadas a 4 mensagens. O Modo de rede reduzida é ativado automaticamente em ligações 2G ou com Poupança de dados. Também o pode ativar adicionando ?low_bandwidth=1 ao URL.",
+      "Bloqueia todos os pedidos de rede não essenciais para manter o Aster utilizável em ligações lentas ou limitadas. Desativa fotos de perfil, logótipos de remetentes, favicons de domínios, imagens externas em e-mails, pré-carregamento de e-mails, tipos de letra personalizados, pré-visualizações de anexos e sons de notificação. Todos os e-mails são apresentados como texto simples e as conversas de e-mail estão limitadas a 4 mensagens. O Modo de rede reduzida é ativado automaticamente em ligações 2G ou com Poupança de dados. Também o pode ativar ao adicionar ?low_bandwidth=1 ao URL.",
     fam_org_tab_overview: "Visão geral",
     fam_org_tab_members: "Membros",
     fam_org_tab_groups: "Grupos",
@@ -6179,7 +6179,7 @@ export const pt = {
     verification_help:
       'A maioria dos registadores tem uma secção de DNS ou Editor de Zona. Procure opções como "Adicionar Registo" ou "Gerir DNS". Selecione TXT como o tipo de registo.',
     mx_help:
-      "Os registos MX indicam aos outros servidores de e-mail onde entregar o e-mail do seu domínio. O número de prioridade define a ordem pela qual os servidores são tentados, começando pelos números mais baixos.",
+      "Os registos MX indicam aos outros servidores de e-mail onde entregar o e-mail do seu domínio. O número de prioridade define a ordem pela qual os servidores são tentados, a começar pelos números mais baixos.",
     spf_help:
       "Registos SPF são registos TXT que especificam quais servidores de e-mail estão autorizados a enviar e-mail para o seu domínio. Apenas um registo SPF deve existir por domínio.",
     dkim_help:
