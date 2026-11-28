@@ -2661,7 +2661,7 @@ export const nl = {
     muted_categories_empty:
       "Schakel inboxcategorieën in om te kiezen welke je dempt.",
     learn_from_moves: "Leren van je verplaatsingen",
-    learn_from_moves_description: "Als je een e-mail naar een categorie verplaatst, gaat toekomstige e-mail van die afzender daar ook heen. Dit blijft versleuteld en wordt nooit met ons gedeeld.",
+    learn_from_moves_description: "Als je een e-mail naar een categorie verplaatst, kun je kiezen of toekomstige e-mail van die afzender daar ook heen gaat. Je keuzes blijven versleuteld en worden nooit met ons gedeeld.",
     forget_learned_senders: "Geleerde afzenders vergeten ({{count}})",
     forget_learned_senders_one: "Geleerde afzenders vergeten ({{count}})",
     forget_learned_senders_title: "Geleerde afzenders vergeten?",
@@ -10683,6 +10683,10 @@ export const nl = {
       "Nieuwe berichten van deze afzender komen nu in {{category}}.",
     sender_rule_offer:
       "Je verplaatst berichten van {{sender}} vaak naar {{category}}. Wil je dat automatisch doen?",
+    category_future_prompt_one: "Verplaatst naar {{category}}. Dit ook doen voor toekomstige berichten van {{sender}}?",
+    category_future_prompt_many: "Verplaatst naar {{category}}. Dit ook doen voor toekomstige berichten van deze {{count}} afzenders?",
+    category_future_done_one: "Toekomstige berichten van {{sender}} gaan naar {{category}}.",
+    category_future_done_many: "Toekomstige berichten van deze {{count}} afzenders gaan naar {{category}}.",
   },
   auth: {
     account_chooser_title: "Kies een account",

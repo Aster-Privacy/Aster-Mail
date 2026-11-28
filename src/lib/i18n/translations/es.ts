@@ -2727,7 +2727,7 @@ export const es = {
     muted_categories_empty:
       "Activa las categorías de la bandeja de entrada para elegir cuáles silenciar.",
     learn_from_moves: "Aprender de tus movimientos",
-    learn_from_moves_description: "Cuando mueves un correo a una categoría, los correos futuros de ese remitente también van allí. Esto se mantiene cifrado y nunca se comparte con nosotros.",
+    learn_from_moves_description: "Cuando mueves un correo a una categoría, puedes elegir que los correos futuros de ese remitente también vayan allí. Tus elecciones se mantienen cifradas y nunca se comparten con nosotros.",
     forget_learned_senders: "Olvidar remitentes aprendidos ({{count}})",
     forget_learned_senders_one: "Olvidar remitentes aprendidos ({{count}})",
     forget_learned_senders_title: "¿Olvidar los remitentes aprendidos?",
@@ -10714,6 +10714,10 @@ export const es = {
       "El correo nuevo de este remitente ahora va a {{category}}.",
     sender_rule_offer:
       "Sueles mover el correo de {{sender}} a {{category}}. ¿Quieres que se haga automáticamente?",
+    category_future_prompt_one: "Movido a {{category}}. ¿Quieres hacer lo mismo con los mensajes futuros de {{sender}}?",
+    category_future_prompt_many: "Movido a {{category}}. ¿Quieres hacer lo mismo con los mensajes futuros de estos {{count}} remitentes?",
+    category_future_done_one: "Los mensajes futuros de {{sender}} irán a {{category}}.",
+    category_future_done_many: "Los mensajes futuros de estos {{count}} remitentes irán a {{category}}.",
   },
   auth: {
     account_chooser_title: "Elige una cuenta",

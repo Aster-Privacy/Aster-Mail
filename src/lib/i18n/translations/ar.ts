@@ -2811,7 +2811,7 @@ export const ar = {
     muted_categories_empty:
       "فعّل فئات صندوق الوارد لاختيار الفئات التي تكتمها.",
     learn_from_moves: "التعلّم من عمليات النقل",
-    learn_from_moves_description: "عندما تنقل رسالة إلى فئة، تنتقل الرسائل المستقبلية من ذلك المرسل إليها أيضًا. تبقى هذه البيانات مشفّرة ولا تتم مشاركتها معنا أبدًا.",
+    learn_from_moves_description: "عندما تنقل رسالة إلى فئة، يمكنك اختيار نقل الرسائل المستقبلية من ذلك المرسل إليها أيضًا. تبقى اختياراتك مشفّرة ولا تتم مشاركتها معنا أبدًا.",
     forget_learned_senders: "نسيان المرسلين المحفوظين ({{count}})",
     forget_learned_senders_one: "نسيان المرسلين المحفوظين ({{count}})",
     forget_learned_senders_title: "هل تريد نسيان المرسلين المحفوظين؟",
@@ -10508,6 +10508,10 @@ export const ar = {
     sender_rule_name: "{{category}} لـ {{sender}}",
     sender_rule_offer:
       "أنت تنقل الرسائل من {{sender}} إلى {{category}} كثيرًا. هل تريد أن يتم ذلك تلقائيًا؟",
+    category_future_prompt_one: "تم النقل إلى {{category}}. هل تريد تطبيق ذلك على الرسائل المستقبلية من {{sender}}؟",
+    category_future_prompt_many: "تم النقل إلى {{category}}. هل تريد تطبيق ذلك على الرسائل المستقبلية من هؤلاء المرسلين ({{count}})؟",
+    category_future_done_one: "ستنتقل الرسائل المستقبلية من {{sender}} إلى {{category}}.",
+    category_future_done_many: "ستنتقل الرسائل المستقبلية من هؤلاء المرسلين ({{count}}) إلى {{category}}.",
     bulk_archive_title_one: "هل تريد أرشفة رسالة واحدة؟",
     bulk_archive_title_other: "هل تريد أرشفة {{count}} رسالة؟",
     bulk_delete_title_one: "هل تريد حذف رسالة واحدة نهائيًا؟",

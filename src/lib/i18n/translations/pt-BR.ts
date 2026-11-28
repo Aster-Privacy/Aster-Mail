@@ -2730,7 +2730,7 @@ export const pt_br = {
     muted_categories_empty:
       "Ative as categorias da caixa de entrada para escolher quais silenciar.",
     learn_from_moves: "Aprender com suas movimentações",
-    learn_from_moves_description: "Quando você move um e-mail para uma categoria, os próximos e-mails desse remetente também vão para lá. Esses dados ficam criptografados e nunca são compartilhados conosco.",
+    learn_from_moves_description: "Quando você move um e-mail para uma categoria, pode escolher enviar para lá também os próximos e-mails desse remetente. Suas escolhas ficam criptografadas e nunca são compartilhadas conosco.",
     forget_learned_senders: "Esquecer remetentes aprendidos ({{count}})",
     forget_learned_senders_one: "Esquecer remetentes aprendidos ({{count}})",
     forget_learned_senders_title: "Esquecer os remetentes aprendidos?",
@@ -10729,6 +10729,10 @@ export const pt_br = {
       "As novas mensagens deste remetente passam a chegar em {{category}}.",
     sender_rule_offer:
       "Você move mensagens de {{sender}} para {{category}} com frequência. Quer fazer isso automaticamente?",
+    category_future_prompt_one: "Movido para {{category}}. Fazer o mesmo com as próximas mensagens de {{sender}}?",
+    category_future_prompt_many: "Movido para {{category}}. Fazer o mesmo com as próximas mensagens destes {{count}} remetentes?",
+    category_future_done_one: "As próximas mensagens de {{sender}} vão para {{category}}.",
+    category_future_done_many: "As próximas mensagens destes {{count}} remetentes vão para {{category}}.",
     pdf_preview_failed:
       "Este PDF não pode ser exibido aqui. Para abri-lo, faça o download.",
     pdf_password_title: "Este PDF está protegido por senha",

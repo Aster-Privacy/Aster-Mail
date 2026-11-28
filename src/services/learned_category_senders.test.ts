@@ -32,6 +32,7 @@ import {
   learnable_senders,
   merge_learned_senders,
   normalize_learned_sender,
+  pending_learned_senders,
   reconcile_learned_senders,
   record_category_move,
   reset_learned_senders_store,
@@ -688,5 +689,56 @@ describe("record_category_move", () => {
     });
 
     expect(get_learned_senders()).toEqual([]);
+  });
+});
+
+describe("pending_learned_senders", () => {
+  beforeEach(() => {
+    reset_learned_senders_store();
+  });
+
+  it("lists each learnable sender not yet sent to the category", () => {
+    setup_store([
+      entry("kept@example.com", "social", 5),
+      entry("moved@example.com", "promotions", 5),
+    ]);
+
+    expect(
+      pending_learned_senders(
+        [
+          { sender_email: "Kept@Example.com" },
+          { sender_email: "moved@example.com" },
+          { sender_email: "new@example.com" },
+          { sender_email: "new@example.com" },
+          { sender_email: "friend@astermail.org" },
+        ],
+        "social",
+      ),
+    ).toEqual(["moved@example.com", "new@example.com"]);
+  });
+
+  it("is empty while learning is off or not loaded", () => {
+    setup_store([], false);
+    expect(
+      pending_learned_senders([{ sender_email: "a@example.com" }], "social"),
+    ).toEqual([]);
+
+    reset_learned_senders_store();
+    expect(
+      pending_learned_senders([{ sender_email: "a@example.com" }], "social"),
+    ).toEqual([]);
+  });
+
+  it("makes a repeat record a no-op", () => {
+    const persisted = setup_store();
+
+    record_category_move([{ sender_email: "a@example.com" }], "social", 10);
+    expect(
+      record_category_move([{ sender_email: "a@example.com" }], "social", 20),
+    ).toBeNull();
+    expect(persisted).toHaveLength(1);
+    expect(get_learned_senders()).toEqual([
+      entry("a@example.com", "social", 10),
+    ]);
   });
 });

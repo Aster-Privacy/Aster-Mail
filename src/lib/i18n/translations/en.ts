@@ -3312,7 +3312,7 @@ export const en: Translations = {
     muted_categories_empty:
       "Turn on inbox categories to choose which ones to mute.",
     learn_from_moves: "Learn from your moves",
-    learn_from_moves_description: "When you move an email to a category, future email from that sender goes there too. This stays encrypted and is never shared with us.",
+    learn_from_moves_description: "When you move an email to a category, you can choose to send future email from that sender there too. Your choices stay encrypted and are never shared with us.",
     forget_learned_senders: "Forget {{count}} learned senders",
     forget_learned_senders_one: "Forget {{count}} learned sender",
     forget_learned_senders_title: "Forget learned senders?",
@@ -10449,6 +10449,10 @@ export const en: Translations = {
     sender_rule_name: "{{sender}} to {{category}}",
     sender_rule_offer:
       "You keep moving mail from {{sender}} to {{category}}. Do it automatically?",
+    category_future_prompt_one: "Moved to {{category}}. Do this for future messages from {{sender}}?",
+    category_future_prompt_many: "Moved to {{category}}. Do this for future messages from these {{count}} senders?",
+    category_future_done_one: "Future messages from {{sender}} go to {{category}}.",
+    category_future_done_many: "Future messages from these {{count}} senders go to {{category}}.",
   },
   auth: {
     account_chooser_title: "Choose an account",

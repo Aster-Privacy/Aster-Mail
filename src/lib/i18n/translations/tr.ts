@@ -2688,7 +2688,7 @@ export const tr = {
     muted_categories_empty:
       "Hangi kategorileri sessize alacağınızı seçmek için gelen kutusu kategorilerini açın.",
     learn_from_moves: "Taşımalarınızdan öğren",
-    learn_from_moves_description: "Bir e-postayı bir kategoriye taşıdığınızda, o göndericiden gelecek e-postalar da oraya gider. Bu bilgi şifreli kalır ve hiçbir zaman bizimle paylaşılmaz.",
+    learn_from_moves_description: "Bir e-postayı bir kategoriye taşıdığınızda, o göndericiden gelecek e-postaların da oraya gitmesini seçebilirsiniz. Seçimleriniz şifreli kalır ve hiçbir zaman bizimle paylaşılmaz.",
     forget_learned_senders: "Öğrenilen göndericileri unut ({{count}})",
     forget_learned_senders_one: "Öğrenilen göndericileri unut ({{count}})",
     forget_learned_senders_title: "Öğrenilen göndericiler unutulsun mu?",
@@ -10588,6 +10588,10 @@ export const tr = {
       "Bu gönderenden gelen yeni iletiler artık {{category}} kategorisine gelir.",
     sender_rule_offer:
       "{{sender}} kişisinden gelen iletileri sık sık {{category}} kategorisine taşıyorsunuz. Bu otomatik yapılsın mı?",
+    category_future_prompt_one: "{{category}} kategorisine taşındı. {{sender}} göndericisinden gelecek iletiler için de bunu yapmak ister misiniz?",
+    category_future_prompt_many: "{{category}} kategorisine taşındı. Bu {{count}} göndericiden gelecek iletiler için de bunu yapmak ister misiniz?",
+    category_future_done_one: "{{sender}} göndericisinden gelecek iletiler {{category}} kategorisine gidecek.",
+    category_future_done_many: "Bu {{count}} göndericiden gelecek iletiler {{category}} kategorisine gidecek.",
   },
   auth: {
     account_chooser_title: "Bir hesap seçin",

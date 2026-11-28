@@ -73,6 +73,8 @@ interface BulkResultToastOptions {
   action_type: ActionToastConfig["action_type"];
   email_ids?: string[];
   on_undo?: () => Promise<void>;
+  actions?: ActionToastConfig["actions"];
+  duration_ms?: number;
 }
 
 export function show_bulk_result_toast({
@@ -83,6 +85,8 @@ export function show_bulk_result_toast({
   action_type,
   email_ids,
   on_undo,
+  actions,
+  duration_ms,
 }: BulkResultToastOptions): BulkActionOutcome {
   const outcome = bulk_outcome(result);
 
@@ -117,6 +121,7 @@ export function show_bulk_result_toast({
     action_type,
     email_ids: email_ids ?? bulk_succeeded_ids(result),
     ...(on_undo ? { on_undo } : {}),
+    ...(actions?.length ? { actions, duration_ms } : {}),
   });
 
   return outcome;

@@ -2766,7 +2766,7 @@ export const pt = {
     muted_categories_empty:
       "Ative as categorias da caixa de entrada para escolher quais pretende silenciar.",
     learn_from_moves: "Aprender com as suas mudanças",
-    learn_from_moves_description: "Quando move um e-mail para uma categoria, os e-mails futuros desse remetente também vão para lá. Estes dados ficam encriptados e nunca são partilhados connosco.",
+    learn_from_moves_description: "Quando move um e-mail para uma categoria, pode escolher enviar para lá também os e-mails futuros desse remetente. As suas escolhas ficam encriptadas e nunca são partilhadas connosco.",
     forget_learned_senders: "Esquecer remetentes aprendidos ({{count}})",
     forget_learned_senders_one: "Esquecer remetentes aprendidos ({{count}})",
     forget_learned_senders_title: "Esquecer os remetentes aprendidos?",
@@ -10798,6 +10798,10 @@ export const pt = {
       "As novas mensagens deste remetente passam a ir para {{category}}.",
     sender_rule_offer:
       "Move frequentemente mensagens de {{sender}} para {{category}}. Pretende fazê-lo automaticamente?",
+    category_future_prompt_one: "Movido para {{category}}. Fazer o mesmo com as mensagens futuras de {{sender}}?",
+    category_future_prompt_many: "Movido para {{category}}. Fazer o mesmo com as mensagens futuras destes {{count}} remetentes?",
+    category_future_done_one: "As mensagens futuras de {{sender}} vão para {{category}}.",
+    category_future_done_many: "As mensagens futuras destes {{count}} remetentes vão para {{category}}.",
   },
   auth: {
     account_chooser_title: "Escolha uma conta",

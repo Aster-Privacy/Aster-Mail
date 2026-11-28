@@ -2717,7 +2717,7 @@ export const de = {
     muted_categories_empty:
       "Aktivieren Sie Posteingangskategorien, um zu wählen, welche Sie stummschalten.",
     learn_from_moves: "Aus Ihren Verschiebungen lernen",
-    learn_from_moves_description: "Wenn Sie eine E-Mail in eine Kategorie verschieben, landen künftige E-Mails dieses Absenders ebenfalls dort. Das bleibt verschlüsselt und wird nie mit uns geteilt.",
+    learn_from_moves_description: "Wenn Sie eine E-Mail in eine Kategorie verschieben, können Sie festlegen, dass künftige E-Mails dieses Absenders ebenfalls dort landen. Ihre Auswahl bleibt verschlüsselt und wird nie mit uns geteilt.",
     forget_learned_senders: "Gelernte Absender vergessen ({{count}})",
     forget_learned_senders_one: "Gelernte Absender vergessen ({{count}})",
     forget_learned_senders_title: "Gelernte Absender vergessen?",
@@ -10816,6 +10816,10 @@ export const de = {
     sender_rule_name: "{{sender}} nach {{category}}",
     sender_rule_offer:
       "Sie verschieben E-Mails von {{sender}} immer wieder nach {{category}}. Soll das automatisch passieren?",
+    category_future_prompt_one: "In {{category}} verschoben. Auch künftige Nachrichten von {{sender}} hierhin verschieben?",
+    category_future_prompt_many: "In {{category}} verschoben. Auch künftige Nachrichten von diesen {{count}} Absendern hierhin verschieben?",
+    category_future_done_one: "Künftige Nachrichten von {{sender}} landen in {{category}}.",
+    category_future_done_many: "Künftige Nachrichten von diesen {{count}} Absendern landen in {{category}}.",
   },
   auth: {
     account_chooser_title: "Konto auswählen",

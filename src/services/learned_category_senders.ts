@@ -370,6 +370,20 @@ export function get_learned_senders(): readonly LearnedCategorySender[] {
   return current_list;
 }
 
+export function pending_learned_senders(
+  sources: readonly LearnSource[],
+  category: string,
+): string[] {
+  if (!is_learning_enabled() || !persist_learned) return [];
+  if (!is_learnable_category(category)) return [];
+
+  const known = learned_sender_map(current_list);
+
+  return learnable_senders(sources).filter(
+    (sender) => known.get(sender) !== category,
+  );
+}
+
 export function record_category_move(
   sources: readonly LearnSource[],
   category: string,
@@ -378,7 +392,7 @@ export function record_category_move(
   if (!is_learning_enabled() || !persist_learned) return null;
 
   const before = current_list;
-  const senders = learnable_senders(sources);
+  const senders = pending_learned_senders(sources, category);
   const next = apply_learned_move(before, senders, category, now_seconds);
 
   if (!next) return null;

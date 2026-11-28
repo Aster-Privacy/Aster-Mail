@@ -2479,7 +2479,7 @@ export const zh_CN = {
       "开启某个类别即可静音它的通知。静音的类别仍会收到邮件并显示在收件箱中。",
     muted_categories_empty: "开启收件箱类别，以选择要静音的类别。",
     learn_from_moves: "从您的移动操作中学习",
-    learn_from_moves_description: "当您将邮件移到某个分类时，该发件人以后的邮件也会进入该分类。这些信息始终加密，绝不会与我们共享。",
+    learn_from_moves_description: "将邮件移到某个分类时，你可以选择让该发件人以后的邮件也进入该分类。你的选择始终加密，绝不会与我们共享。",
     forget_learned_senders: "清除已学习的发件人（{{count}}）",
     forget_learned_senders_one: "清除已学习的发件人（{{count}}）",
     forget_learned_senders_title: "要清除已学习的发件人吗？",
@@ -9547,6 +9547,10 @@ export const zh_CN = {
     sender_rule_name: "把 {{sender}} 归入{{category}}",
     sender_rule_offer:
       "您经常把 {{sender}} 的邮件移到{{category}}。要自动处理吗？",
+    category_future_prompt_one: "已移到{{category}}。以后来自 {{sender}} 的邮件也这样处理吗？",
+    category_future_prompt_many: "已移到{{category}}。以后来自这 {{count}} 位发件人的邮件也这样处理吗？",
+    category_future_done_one: "以后来自 {{sender}} 的邮件会进入{{category}}。",
+    category_future_done_many: "以后来自这 {{count}} 位发件人的邮件会进入{{category}}。",
   },
   auth: {
     account_chooser_title: "选择账户",
