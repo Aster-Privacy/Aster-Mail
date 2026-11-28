@@ -5653,14 +5653,9 @@ export const de = {
       "Wird als Absendername angezeigt, wenn Sie von diesem Alias antworten.",
     aliases_description:
       "Erstellen Sie alternative E-Mail-Adressen, die an Ihren Hauptposteingang weiterleiten. Verwenden Sie sie zum Schutz Ihrer Privatsphäre oder zur Organisation eingehender E-Mails.",
-    twin_address_title: "Ihre passende Adresse",
-    twin_address_reserved_description:
-      "{{ address }} ist für Ihr Konto reserviert, niemand sonst kann sie registrieren. Erstellen Sie sie als Alias, wenn Sie damit senden und empfangen möchten.",
-    twin_address_available_description:
-      "{{ address }} ist die passende Adresse auf der anderen Aster-Domain. Erstellen Sie sie als Alias, um damit zu senden und zu empfangen.",
-    twin_address_title_multiple: "Ihre passenden Adressen",
-    twin_address_multiple_description:
-      "{{ local_part }} ist auf {{ count }} Aster-Domains für Ihr Konto reserviert, niemand sonst kann sie registrieren. Erstellen Sie sie als Alias, wenn Sie damit senden und empfangen möchten.",
+    twin_address_reserved: "Für Sie reserviert",
+    twin_address_available: "Für Sie verfügbar",
+    twin_address_reserved_multiple: "Auf {{ count }} Domains für Sie reserviert",
     twin_address_create: "Alias erstellen",
     twin_address_dismiss: "Verwerfen",
     custom_domain_addresses_note:

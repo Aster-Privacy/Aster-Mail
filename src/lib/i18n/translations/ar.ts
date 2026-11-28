@@ -5822,14 +5822,9 @@ export const ar = {
       "يظهر كاسم المرسل عند الرد من هذا الاسم المستعار.",
     aliases_description:
       "أنشئ عناوين بريد بديلة تحوّل إلى صندوق الوارد الرئيسي. استخدمها لحماية خصوصيتك أو تنظيم البريد الوارد.",
-    twin_address_title: "عنوانك المطابق",
-    twin_address_reserved_description:
-      "‏{{ address }} محجوز لحسابك، لذا لا يمكن لأي شخص آخر تسجيله. أنشئه كاسم مستعار متى أردت الإرسال والاستقبال منه.",
-    twin_address_available_description:
-      "‏{{ address }} هو العنوان المطابق على نطاق Aster الآخر. أنشئه كاسم مستعار للإرسال والاستقبال منه.",
-    twin_address_title_multiple: "عناوينك المطابقة",
-    twin_address_multiple_description:
-      "{{ local_part }} محجوز لحسابك على {{ count }} من نطاقات Aster، لذا لا يمكن لأي شخص آخر تسجيله. أنشئه كاسم مستعار متى أردت الإرسال والاستقبال منه.",
+    twin_address_reserved: "محجوز لك",
+    twin_address_available: "متاح لك",
+    twin_address_reserved_multiple: "محجوز لك على {{ count }} نطاقات",
     twin_address_create: "إنشاء اسم مستعار",
     twin_address_dismiss: "إغلاق",
     custom_domain_addresses_note:

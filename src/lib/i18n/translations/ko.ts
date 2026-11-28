@@ -5697,14 +5697,9 @@ export const ko = {
       "이 별칭으로 답장할 때 발신자 이름으로 표시됩니다.",
     aliases_description:
       "기본 받은 편지함으로 전달되는 대체 이메일 주소를 만드세요. 개인정보를 보호하거나 수신 메일을 정리하는 데 사용하세요.",
-    twin_address_title: "일치하는 주소",
-    twin_address_reserved_description:
-      "{{ address }}은(는) 회원님의 계정을 위해 예약되어 있으므로 다른 사람은 등록할 수 없습니다. 이 주소로 보내고 받으려면 별칭으로 만드세요.",
-    twin_address_available_description:
-      "{{ address }}은(는) 다른 Aster 도메인의 일치하는 주소입니다. 이 주소로 보내고 받으려면 별칭으로 만드세요.",
-    twin_address_title_multiple: "일치하는 주소",
-    twin_address_multiple_description:
-      "{{ local_part }}은(는) {{ count }}개의 Aster 도메인에서 회원님의 계정용으로 예약되어 있어 다른 사람이 등록할 수 없습니다. 이 주소로 보내고 받으려면 별칭으로 만드세요.",
+    twin_address_reserved: "회원님 전용으로 예약됨",
+    twin_address_available: "사용 가능",
+    twin_address_reserved_multiple: "{{ count }}개 도메인에서 예약됨",
     twin_address_create: "별칭 만들기",
     twin_address_dismiss: "닫기",
     custom_domain_addresses_note:

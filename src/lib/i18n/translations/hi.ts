@@ -6839,14 +6839,9 @@ export const hi = {
       "इस एलियास से जवाब देने पर प्रेषक के नाम के तौर पर दिखता है।",
     aliases_description:
       "ऐसे वैकल्पिक ईमेल पते बनाएं जो आपके मुख्य इनबॉक्स में मेल भेजें। अपनी निजता बचाने या आने वाला मेल व्यवस्थित करने के लिए उनका इस्तेमाल करें।",
-    twin_address_title: "आपका मेल खाता पता",
-    twin_address_reserved_description:
-      "{{ address }} आपके खाते के लिए सुरक्षित है, इसलिए इसे कोई और पंजीकृत नहीं कर सकता। जब भी आप इससे भेजना और पाना चाहें, इसे एलियास के रूप में बनाएं।",
-    twin_address_available_description:
-      "दूसरे Aster डोमेन पर {{ address }} आपका मेल खाता पता है। इससे भेजने और पाने के लिए इसे एलियास के रूप में बनाएं।",
-    twin_address_title_multiple: "आपके मिलते-जुलते पते",
-    twin_address_multiple_description:
-      "{{ local_part }} आपके खाते के लिए {{ count }} Aster डोमेन पर आरक्षित है, इसलिए इसे कोई और पंजीकृत नहीं कर सकता। जब भी आप इससे भेजना और प्राप्त करना चाहें, इसे उपनाम के रूप में बनाएं।",
+    twin_address_reserved: "आपके लिए आरक्षित",
+    twin_address_available: "आपके लिए उपलब्ध",
+    twin_address_reserved_multiple: "{{ count }} डोमेन पर आपके लिए आरक्षित",
     twin_address_create: "एलियास बनाएं",
     twin_address_dismiss: "खारिज करें",
     custom_domain_addresses_note:

@@ -5657,14 +5657,9 @@ export const nl = {
       "Wordt getoond als afzendernaam wanneer je antwoordt vanuit deze alias.",
     aliases_description:
       "Maak alternatieve e-mailadressen aan die doorsturen naar je hoofdinbox. Gebruik ze om je privacy te beschermen of inkomende e-mail te organiseren.",
-    twin_address_title: "Je bijpassende adres",
-    twin_address_reserved_description:
-      "{{ address }} is gereserveerd voor je account, dus niemand anders kan het registreren. Maak het als alias aan wanneer je ermee wilt verzenden en ontvangen.",
-    twin_address_available_description:
-      "{{ address }} is het bijpassende adres op het andere Aster-domein. Maak het als alias aan om ermee te verzenden en ontvangen.",
-    twin_address_title_multiple: "Je overeenkomende adressen",
-    twin_address_multiple_description:
-      "{{ local_part }} is op {{ count }} Aster-domeinen gereserveerd voor je account, dus niemand anders kan het registreren. Maak het aan als alias wanneer je ermee wilt verzenden en ontvangen.",
+    twin_address_reserved: "Voor je gereserveerd",
+    twin_address_available: "Voor je beschikbaar",
+    twin_address_reserved_multiple: "Op {{ count }} domeinen voor je gereserveerd",
     twin_address_create: "Alias aanmaken",
     twin_address_dismiss: "Sluiten",
     custom_domain_addresses_note:
