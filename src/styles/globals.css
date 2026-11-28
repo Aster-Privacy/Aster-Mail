@@ -1744,30 +1744,23 @@
 .aster_cat_badge {
   display: inline-flex;
   align-items: center;
-  justify-content: center;
-  height: 18px;
-  padding: 0 7px;
-  border-radius: 9999px;
   font-size: calc(11px * var(--font-scale, 1));
   font-weight: 500;
   line-height: 1;
   white-space: nowrap;
-  color: var(--cat-on-solid);
-  background: var(--cat-solid);
+  font-variant-numeric: tabular-nums;
+  color: var(--cat-fg);
 }
 
 .aster_cat_badge_muted {
-  min-width: 18px;
-  padding: 0 5px;
-  font-weight: 500;
-  font-variant-numeric: tabular-nums;
+  color: var(--text-muted);
 }
 
 .aster_cat_badge_counting {
+  justify-content: center;
   width: 18px;
   min-width: 18px;
-  padding: 0;
-  background: none;
+  height: 18px;
 }
 
 .aster_cat_badge_counting::before {
