@@ -30,8 +30,6 @@ import {
   TrashIcon,
   ArrowUturnLeftIcon,
   ArrowUturnRightIcon,
-  EnvelopeIcon,
-  EnvelopeOpenIcon,
   PrinterIcon,
   CodeBracketIcon,
   ClipboardDocumentIcon,
@@ -55,6 +53,7 @@ import {
   MAX_TOOLBAR_ACTIONS,
 } from "./mobile_detail_toolbar";
 
+import { ReadToggleIcon } from "@/components/email/read_state_icons";
 import {
   NotSpamIcon,
   ReportSpamIcon,
@@ -296,11 +295,10 @@ export function MobileActionMenuSheet({
             type="button"
             onClick={on_toggle_read}
           >
-            {menu_message?.is_read ? (
-              <EnvelopeIcon className="h-5 w-5 text-[var(--text-muted)]" />
-            ) : (
-              <EnvelopeOpenIcon className="h-5 w-5 text-[var(--text-muted)]" />
-            )}
+            <ReadToggleIcon
+              className="h-5 w-5 text-[var(--text-muted)]"
+              is_read={menu_message?.is_read}
+            />
             <span className="text-[14px] text-[var(--text-primary)]">
               {menu_message?.is_read
                 ? t("mail.mark_unread")

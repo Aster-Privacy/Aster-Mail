@@ -26,7 +26,6 @@ import {
   ArrowLeftIcon,
   CheckCircleIcon,
   EllipsisVerticalIcon,
-  EnvelopeOpenIcon,
   ExclamationTriangleIcon,
   MagnifyingGlassIcon,
   StarIcon,
@@ -45,6 +44,10 @@ import {
 import { use_search_results_page } from "./use_search_results_page";
 import { search_row_key } from "./thread_grouping";
 
+import {
+  MarkReadIcon,
+  MarkUnreadIcon,
+} from "@/components/email/read_state_icons";
 import {
   SearchEmptyState,
   SearchIndexingRow,
@@ -461,7 +464,7 @@ export function SearchResultsPage(props: SearchResultsPageProps) {
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" className="min-w-56">
         <DropdownMenuItem onClick={() => handle_select_by_filter("unread")}>
-          <EnvelopeOpenIcon className="w-4 h-4" />
+          <MarkUnreadIcon className="w-4 h-4" />
           {t("common.select_unread")}
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => handle_select_by_filter("starred")}>
@@ -477,7 +480,7 @@ export function SearchResultsPage(props: SearchResultsPageProps) {
           disabled={selected_ids.size === 0}
           onClick={handle_bulk_mark_read}
         >
-          <EnvelopeOpenIcon className="w-4 h-4" />
+          <MarkReadIcon className="w-4 h-4" />
           {t("mail.mark_as_read")}
         </DropdownMenuItem>
         <DropdownMenuSeparator />

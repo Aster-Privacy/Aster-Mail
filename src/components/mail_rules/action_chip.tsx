@@ -26,7 +26,6 @@ import { createPortal } from "react-dom";
 import {
   FolderIcon,
   TagIcon,
-  EyeIcon,
   StarIcon,
   ArrowRightOnRectangleIcon,
   TrashIcon,
@@ -40,6 +39,10 @@ import {
 import { ChipPill, ChipSegment, use_chip_layout } from "./chip_pill";
 import { ActionTargetDropdown } from "./dropdowns/action_target_dropdown";
 
+import {
+  MarkReadIcon,
+  MarkUnreadIcon,
+} from "@/components/email/read_state_icons";
 import { PinIcon } from "@/components/common/icons";
 import { CreateFolderModal } from "@/components/folders/create_folder_modal";
 import {
@@ -113,7 +116,10 @@ export function ActionChip({
   const action_icons: Record<Action["type"], React.ElementType> = {
     move_to: FolderIcon,
     apply_labels: TagIcon,
-    mark_as: EyeIcon,
+    mark_as:
+      action.type === "mark_as" && action.state === "unread"
+        ? MarkUnreadIcon
+        : MarkReadIcon,
     star: StarIcon,
     skip_inbox: ArrowRightOnRectangleIcon,
     delete: TrashIcon,

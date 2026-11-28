@@ -27,8 +27,6 @@ import {
   ChevronDownIcon,
   ArchiveBoxArrowDownIcon,
   TrashIcon,
-  EnvelopeOpenIcon,
-  EnvelopeIcon,
   ArrowUturnLeftIcon,
   InboxIcon,
   ClockIcon,
@@ -43,6 +41,10 @@ import {
 import { Button, Tooltip } from "@aster/ui";
 import { Capacitor } from "@capacitor/core";
 
+import {
+  MarkReadIcon,
+  MarkUnreadIcon,
+} from "@/components/email/read_state_icons";
 import { ReportSpamIcon } from "@/components/email/spam_action_icons";
 import {
   DropdownMenu,
@@ -538,7 +540,7 @@ export function InboxHeader({
                     className="h-9 w-9 rounded-[10px] flex items-center justify-center transition-colors hover:bg-[var(--bg-hover)] text-[var(--icon-secondary)] hover:text-[var(--icon-active)]"
                     onClick={on_mark_read}
                   >
-                    <EnvelopeOpenIcon className="w-5 h-5" />
+                    <MarkReadIcon className="w-5 h-5" />
                   </button>
                 </Tooltip>
               )}
@@ -754,7 +756,7 @@ export function InboxHeader({
                   >
                     {on_mark_unread && !hide_mail_actions && (
                       <DropdownMenuItem onClick={on_mark_unread}>
-                        <EnvelopeIcon className="w-4 h-4 me-2" />
+                        <MarkUnreadIcon className="w-4 h-4 me-2" />
                         {t("mail.mark_as_unread")}
                       </DropdownMenuItem>
                     )}

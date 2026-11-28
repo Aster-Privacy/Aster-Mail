@@ -24,8 +24,6 @@ import { quotable_source } from "@/lib/html_text";
 import {
   AtSymbolIcon,
   StarIcon,
-  EyeIcon,
-  EyeSlashIcon,
   EllipsisVerticalIcon,
   ChevronDownIcon,
   ArchiveBoxIcon,
@@ -51,6 +49,7 @@ import { IslandDivider, IslandIconButton, Tooltip } from "@aster/ui";
 import { render_collapsed_thread_message } from "./thread_message_collapsed";
 import { use_thread_message_block } from "./use_thread_message_block";
 
+import { ReadToggleIcon } from "@/components/email/read_state_icons";
 import {
   NotSpamIcon,
   ReportSpamIcon,
@@ -629,11 +628,10 @@ export function ThreadMessageBlock(
                     on_toggle_read?.();
                   }}
                 >
-                  {is_read ? (
-                    <EyeSlashIcon className="w-4 h-4 me-2" />
-                  ) : (
-                    <EyeIcon className="w-4 h-4 me-2" />
-                  )}
+                  <ReadToggleIcon
+                    className="w-4 h-4 me-2"
+                    is_read={is_read}
+                  />
                   {is_read ? t("mail.mark_unread") : t("mail.mark_read")}
                 </DropdownMenuItem>
               )}

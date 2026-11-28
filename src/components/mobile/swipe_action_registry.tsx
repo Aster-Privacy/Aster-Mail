@@ -24,12 +24,12 @@ import type { TranslationKey } from "@/lib/i18n";
 import {
   ArchiveBoxIcon,
   TrashIcon,
-  EnvelopeOpenIcon,
   ClockIcon,
   StarIcon,
   FolderArrowDownIcon,
 } from "@heroicons/react/24/outline";
 
+import { MarkReadIcon } from "@/components/email/read_state_icons";
 import { ReportSpamIcon } from "@/components/email/spam_action_icons";
 
 export type SwipeActionId =
@@ -67,7 +67,7 @@ const SWIPE_ACTION_REGISTRY: Record<string, SwipeActionDefinition> = {
     id: "toggle_read",
     label_key: "mail.mark_read",
     settings_label_key: "settings.swipe_toggle_read",
-    icon: EnvelopeOpenIcon,
+    icon: MarkReadIcon,
     color: "#6366f1",
   },
   snooze: {

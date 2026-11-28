@@ -26,8 +26,6 @@ import {
   ArchiveBoxArrowDownIcon,
   ArrowUturnLeftIcon,
   AtSymbolIcon,
-  EnvelopeIcon,
-  EnvelopeOpenIcon,
   InboxIcon,
   PaperClipIcon,
   TrashIcon,
@@ -59,6 +57,7 @@ import {
   NotSpamIcon,
   ReportSpamIcon,
 } from "@/components/email/spam_action_icons";
+import { ReadToggleIcon } from "@/components/email/read_state_icons";
 import { use_i18n } from "@/lib/i18n/context";
 import { custom_forward_via_domain } from "@/utils/forwarding_alias";
 import { strip_preview_filler } from "@/utils/preview_text";
@@ -1079,11 +1078,10 @@ export const InboxEmailListItem = memo(
                     }
                     on_click={() => on_toggle_read(email)}
                   >
-                    {email.is_read ? (
-                      <EnvelopeIcon className="w-4 h-4 text-txt-muted" />
-                    ) : (
-                      <EnvelopeOpenIcon className="w-4 h-4 text-txt-muted" />
-                    )}
+                    <ReadToggleIcon
+                      className="w-4 h-4 text-txt-muted"
+                      is_read={email.is_read}
+                    />
                   </RowActionButton>
                 )}
 
