@@ -68,6 +68,7 @@ import {
 } from "./view_prefetch";
 
 import { resolve_effective_page_size } from "@/lib/inbox_page_size";
+import { within_deadline } from "@/lib/deadline";
 import {
   has_passphrase_in_memory,
   on_keys_ready,
@@ -132,6 +133,7 @@ export {
 
 const LOADING_SAFETY_MS = 10_000;
 const LOAD_RETRY_DELAY_MS = 1_500;
+export const LIST_LOAD_DEADLINE_MS = 45_000;
 const SILENT_FETCH_STALE_MS = 30_000;
 
 interface SilentFetchFlight {
@@ -527,7 +529,12 @@ export function use_email_list(
             { is_read: is_read_param },
           );
 
-        let result = await load_page().catch(() => null);
+        const load_page_in_time = () =>
+          within_deadline(load_page(), LIST_LOAD_DEADLINE_MS).catch(
+            () => null,
+          );
+
+        let result = await load_page_in_time();
 
         if (
           !result &&
@@ -537,7 +544,7 @@ export function use_email_list(
           await new Promise((r) => setTimeout(r, LOAD_RETRY_DELAY_MS));
 
           if (!signal.aborted && committed_view_ref.current === fetch_view) {
-            result = await load_page();
+            result = await load_page_in_time();
           }
         }
 

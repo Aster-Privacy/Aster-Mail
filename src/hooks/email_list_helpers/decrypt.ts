@@ -56,6 +56,7 @@ import { register_envelope_attachment_keys } from "@/services/crypto/inbound_att
 import { decrypt_legacy_ios_mail_envelope } from "@/services/crypto/legacy_ios_envelope";
 import { load_openpgp } from "@/services/crypto/openpgp_loader";
 import { drop_sender_verification } from "@/services/crypto/sender_verification";
+import { is_deadline_exceeded, within_deadline } from "@/lib/deadline";
 import {
   capture_decrypt_readiness,
   note_if_transient_error,
@@ -89,6 +90,7 @@ const ENVELOPE_CACHE_MAX_CHARS = 16_000_000;
 const ENVELOPE_CACHE_TAIL = 64;
 const FAILED_ENVELOPE_MAX = 2000;
 const FAILED_ENVELOPE_TTL_MS = 5 * 60 * 1000;
+export const ENVELOPE_OPEN_DEADLINE_MS = 30_000;
 
 interface EnvelopeAttempt {
   envelope: DecryptedEnvelope | null;
@@ -214,7 +216,19 @@ export async function decrypt_envelope(
 
   if (key === null) {
     const before = capture_decrypt_readiness();
-    const { envelope } = await open_envelope(encrypted, nonce, mail_item_id);
+    let opened: EnvelopeAttempt;
+
+    try {
+      opened = await within_deadline(
+        open_envelope(encrypted, nonce, mail_item_id),
+        ENVELOPE_OPEN_DEADLINE_MS,
+      );
+    } catch (caught) {
+      if (is_deadline_exceeded(caught)) return null;
+      throw caught;
+    }
+
+    const { envelope } = opened;
 
     if (envelope) {
       settle_decrypt_success(mail_item_id);
@@ -246,9 +260,10 @@ export async function decrypt_envelope(
   let attempt: EnvelopeAttempt;
 
   try {
-    attempt = await pending;
+    attempt = await within_deadline(pending, ENVELOPE_OPEN_DEADLINE_MS);
   } catch (caught) {
     if (envelope_cache.get(key) === pending) drop_cached_envelope(key);
+    if (is_deadline_exceeded(caught)) return null;
     throw caught;
   }
 
