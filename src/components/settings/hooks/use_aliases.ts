@@ -75,6 +75,7 @@ interface AliasesCache {
   max_aliases: number;
   max_domains: number;
   loaded: boolean;
+  domains_loaded: boolean;
 }
 
 const aliases_cache: AliasesCache = {
@@ -85,6 +86,7 @@ const aliases_cache: AliasesCache = {
   max_aliases: 3,
   max_domains: 0,
   loaded: false,
+  domains_loaded: false,
 };
 
 let aliases_cache_token = 0;
@@ -102,6 +104,7 @@ export function clear_aliases_cache(): void {
   aliases_cache.max_aliases = 3;
   aliases_cache.max_domains = 0;
   aliases_cache.loaded = false;
+  aliases_cache.domains_loaded = false;
   set_short_aliases_allowed(false);
 }
 
@@ -162,6 +165,7 @@ export async function ensure_aliases_and_domains_loaded(): Promise<void> {
 
       aliases_cache.domains = domains_response.data.domains;
       aliases_cache.max_domains = domains_response.data.max_domains;
+      aliases_cache.domains_loaded = true;
 
       if (active.length === 0) {
         aliases_cache.domain_addresses = [];
@@ -269,7 +273,7 @@ export function use_aliases() {
     [domains, limits],
   );
   const [domains_loading, set_domains_loading] = useState(
-    !aliases_cache.loaded,
+    !aliases_cache.domains_loaded,
   );
   const [max_domains, set_max_domains] = useState(aliases_cache.max_domains);
   const [domains_load_failed, set_domains_load_failed] = useState(false);
@@ -387,7 +391,7 @@ export function use_aliases() {
   const load_domains = useCallback(async () => {
     const token = aliases_cache_token;
 
-    if (!aliases_cache.loaded) {
+    if (!aliases_cache.domains_loaded) {
       set_domains_loading(true);
     }
 
@@ -402,6 +406,7 @@ export function use_aliases() {
         set_max_domains(response.data.max_domains);
         aliases_cache.domains = response.data.domains;
         aliases_cache.max_domains = response.data.max_domains;
+        aliases_cache.domains_loaded = true;
       } else {
         set_domains_load_failed(true);
       }
