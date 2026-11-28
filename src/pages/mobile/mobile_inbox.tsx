@@ -33,7 +33,6 @@ import {
   InboxIcon,
   TrashIcon,
   StarIcon,
-  EnvelopeOpenIcon,
   FolderIcon,
   TagIcon,
   BellSnoozeIcon,
@@ -44,6 +43,7 @@ import {
   Squares2X2Icon,
 } from "@heroicons/react/24/outline";
 
+import { ReadToggleIcon } from "@/components/email/read_state_icons";
 import {
   archive_keeps_row,
   leaves_view_on_folder_move,
@@ -1645,7 +1645,10 @@ function MobileInbox({
               type="button"
               onClick={handle_bulk_toggle_read}
             >
-              <EnvelopeOpenIcon className="h-5 w-5" />
+              <ReadToggleIcon
+                className="h-5 w-5"
+                is_read={!bulk_read_marks_read}
+              />
               <span className="text-[11px]">
                 {bulk_read_marks_read
                   ? t("mail.mark_as_read")

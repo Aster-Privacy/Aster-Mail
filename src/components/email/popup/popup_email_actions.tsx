@@ -32,14 +32,16 @@ import {
   InboxIcon,
   TrashIcon,
   ArrowTopRightOnSquareIcon,
-  EnvelopeIcon,
-  EnvelopeOpenIcon,
   EllipsisHorizontalIcon,
   PrinterIcon,
   FolderIcon,
 } from "@heroicons/react/24/outline";
 import { Button, Tooltip } from "@aster/ui";
 
+import {
+  MarkReadIcon,
+  MarkUnreadIcon,
+} from "@/components/email/read_state_icons";
 import {
   NotSpamIcon,
   ReportSpamIcon,
@@ -293,12 +295,12 @@ export function PopupEmailActions({
           <DropdownMenuItem onClick={on_read_toggle}>
             {is_read ? (
               <>
-                <EnvelopeIcon className="w-4 h-4 me-2" />
+                <MarkUnreadIcon className="w-4 h-4 me-2" />
                 {t("mail.mark_as_unread")}
               </>
             ) : (
               <>
-                <EnvelopeOpenIcon className="w-4 h-4 me-2" />
+                <MarkReadIcon className="w-4 h-4 me-2" />
                 {t("mail.mark_as_read")}
               </>
             )}

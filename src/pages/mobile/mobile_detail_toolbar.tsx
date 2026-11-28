@@ -25,13 +25,15 @@ import {
   ArchiveBoxIcon,
   InboxIcon,
   TrashIcon,
-  EnvelopeIcon,
-  EnvelopeOpenIcon,
   PrinterIcon,
   EllipsisHorizontalIcon,
 } from "@heroicons/react/24/outline";
 import { StarIcon as StarSolidIcon } from "@heroicons/react/24/solid";
 
+import {
+  MarkReadIcon,
+  MarkUnreadIcon,
+} from "@/components/email/read_state_icons";
 import {
   NotSpamIcon,
   ReportSpamIcon,
@@ -65,7 +67,7 @@ export const TOOLBAR_ACTION_MAP: Record<
   },
   star: { icon: StarIcon, label_key: "mail.star", group: "quick" },
   mark_read: {
-    icon: EnvelopeOpenIcon,
+    icon: MarkReadIcon,
     label_key: "mail.mark_read",
     group: "quick",
   },
@@ -137,7 +139,7 @@ export function MobileToolbar({
                 : action === "spam" && is_spam
                   ? NotSpamIcon
                   : action === "mark_read" && is_read
-                    ? EnvelopeIcon
+                    ? MarkUnreadIcon
                     : config.icon;
           const color = config.is_danger
             ? "var(--color-danger,#ef4444)"

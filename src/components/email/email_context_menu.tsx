@@ -30,8 +30,6 @@ import {
 import {
   ArrowUturnLeftIcon,
   ArrowUturnRightIcon,
-  EnvelopeIcon,
-  EnvelopeOpenIcon,
   FolderPlusIcon,
   TagIcon,
   ArchiveBoxIcon,
@@ -48,6 +46,10 @@ import {
   PaperClipIcon,
 } from "@heroicons/react/24/outline";
 
+import {
+  MarkReadIcon,
+  MarkUnreadIcon,
+} from "@/components/email/read_state_icons";
 import {
   NotSpamIcon,
   ReportSpamIcon,
@@ -419,12 +421,12 @@ function EmailContextMenuContentInner({
         >
           {email.is_read ? (
             <>
-              <EnvelopeIcon className="me-2 h-4 w-4" />
+              <MarkUnreadIcon className="me-2 h-4 w-4" />
               {t("mail.mark_as_unread")}
             </>
           ) : (
             <>
-              <EnvelopeOpenIcon className="me-2 h-4 w-4" />
+              <MarkReadIcon className="me-2 h-4 w-4" />
               {t("mail.mark_as_read")}
             </>
           )}
@@ -436,7 +438,7 @@ function EmailContextMenuContentInner({
           disabled={loading_action === "mark_read"}
           onClick={() => handle_action("mark_read", on_mark_read)}
         >
-          <EnvelopeOpenIcon className="me-2 h-4 w-4" />
+          <MarkReadIcon className="me-2 h-4 w-4" />
           {t("mail.mark_as_read")}
         </ContextMenuItem>
       )}
@@ -446,7 +448,7 @@ function EmailContextMenuContentInner({
           disabled={loading_action === "mark_unread"}
           onClick={() => handle_action("mark_unread", on_mark_unread)}
         >
-          <EnvelopeIcon className="me-2 h-4 w-4" />
+          <MarkUnreadIcon className="me-2 h-4 w-4" />
           {t("mail.mark_as_unread")}
         </ContextMenuItem>
       )}

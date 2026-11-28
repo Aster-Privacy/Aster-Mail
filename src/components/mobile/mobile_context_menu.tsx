@@ -24,8 +24,6 @@ import type { MobileActionSheetItem } from "@aster/ui";
 import { memo, useCallback, useMemo } from "react";
 import { MobileContextMenuView } from "@aster/ui";
 import {
-  EnvelopeOpenIcon,
-  EnvelopeIcon,
   StarIcon,
   ArchiveBoxIcon,
   FolderIcon,
@@ -35,6 +33,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { StarIcon as StarSolidIcon } from "@heroicons/react/24/solid";
 
+import { read_toggle_icon } from "@/components/email/read_state_icons";
 import { use_platform } from "@/hooks/use_platform";
 import { use_should_reduce_motion } from "@/provider";
 import { use_i18n } from "@/lib/i18n/context";
@@ -86,7 +85,7 @@ export const MobileContextMenu = memo(function MobileContextMenu({
 
     if (on_toggle_read && email.item_type !== "sent") {
       result.push({
-        icon: email.is_read ? EnvelopeIcon : EnvelopeOpenIcon,
+        icon: read_toggle_icon(email.is_read),
         label: email.is_read ? t("mail.mark_unread") : t("mail.mark_read"),
         on_action: () => handle_action(on_toggle_read),
       });

@@ -41,10 +41,10 @@ import {
   ArrowPathIcon,
   InboxStackIcon,
   MagnifyingGlassIcon,
-  EyeIcon,
   LockClosedIcon,
 } from "@heroicons/react/24/outline";
 
+import { MarkReadIcon } from "@/components/email/read_state_icons";
 import { ButtonSpinner } from "@/components/ui/spinner";
 import { useTheme } from "@/contexts/theme_context";
 import { use_auth } from "@/contexts/auth_context";
@@ -537,7 +537,7 @@ export function CommandPalette({
         id: "mark_all_read",
         label: t("mail.mark_all_read"),
         description: t("mail.mark_all_unread_as_read"),
-        icon: EyeIcon,
+        icon: MarkReadIcon,
         category: "actions",
         keywords: ["unread", "clear"],
         action: () =>

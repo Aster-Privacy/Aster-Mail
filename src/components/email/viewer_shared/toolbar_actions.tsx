@@ -29,11 +29,8 @@ import React from "react";
 import {
   XMarkIcon,
   NoSymbolIcon,
-  CheckCircleIcon,
   ArchiveBoxIcon,
   TrashIcon,
-  EnvelopeIcon,
-  EnvelopeOpenIcon,
   EllipsisHorizontalIcon,
   PrinterIcon,
   FolderIcon,
@@ -48,6 +45,11 @@ import {
 } from "@heroicons/react/24/outline";
 import { Button, Tooltip } from "@aster/ui";
 
+import {
+  MarkReadIcon,
+  MarkUnreadIcon,
+  ReadToggleIcon,
+} from "@/components/email/read_state_icons";
 import {
   NotSpamIcon,
   ReportSpamIcon,
@@ -512,11 +514,7 @@ export function ViewerToolbarActions({
             variant="ghost"
             onClick={on_read_toggle}
           >
-            {is_read ? (
-              <EnvelopeIcon className={icon_size} />
-            ) : (
-              <EnvelopeOpenIcon className={icon_size} />
-            )}
+            <ReadToggleIcon className={icon_size} is_read={is_read} />
           </Button>
         </Tooltip>
       )}
@@ -589,12 +587,12 @@ export function ViewerToolbarActions({
           <DropdownMenuItem onClick={on_read_toggle}>
             {is_read ? (
               <>
-                <EnvelopeIcon className="w-4 h-4 me-2" />
+                <MarkUnreadIcon className="w-4 h-4 me-2" />
                 {t("mail.mark_as_unread")}
               </>
             ) : (
               <>
-                <EnvelopeOpenIcon className="w-4 h-4 me-2" />
+                <MarkReadIcon className="w-4 h-4 me-2" />
                 {t("mail.mark_as_read")}
               </>
             )}
@@ -675,7 +673,7 @@ export function ViewerToolbarActions({
             <DropdownMenuItem
               onClick={() => thread_list_ref.current?.mark_all_read()}
             >
-              <CheckCircleIcon className="w-4 h-4 me-2" />
+              <MarkReadIcon className="w-4 h-4 me-2" />
               {t("mail.mark_all_read")}
             </DropdownMenuItem>
           )}

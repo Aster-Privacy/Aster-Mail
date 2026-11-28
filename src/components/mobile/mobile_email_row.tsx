@@ -37,7 +37,6 @@ import {
   PaperClipIcon,
   StarIcon as StarOutlineIcon,
   CheckIcon,
-  EnvelopeIcon,
   InboxIcon,
   ClipboardDocumentIcon,
   DocumentDuplicateIcon,
@@ -48,6 +47,7 @@ import {
 } from "@heroicons/react/24/solid";
 import { Tooltip } from "@aster/ui";
 
+import { MarkUnreadIcon } from "@/components/email/read_state_icons";
 import {
   SwipeActions,
   type SwipeAction,
@@ -384,7 +384,7 @@ export const MobileEmailRow = memo(function MobileEmailRow(
       const Icon = is_unarchive
         ? InboxIcon
         : is_mark_unread
-          ? EnvelopeIcon
+          ? MarkUnreadIcon
           : definition.icon;
       const label_key: TranslationKey = is_unarchive
         ? "mail.move_to_inbox"
