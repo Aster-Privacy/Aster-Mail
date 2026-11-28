@@ -8838,6 +8838,7 @@ export const zh_CN = {
       "废纸篓中的所有内容都将被彻底移除，且此操作无法撤销。",
     empty_tag_subtitle: "带有此标签的邮件将显示在此处",
     self_destructs_in: "将在{{time}}后自毁",
+    expires_in_time: "{{time}}后过期",
     cancel_scheduled_confirmation:
       "取消这封定时发送的邮件。它将不会发出，且此操作无法撤销，您的草稿会保留。",
     shipping_label_created: "已创建物流标签",
@@ -10814,6 +10815,12 @@ export const zh_CN = {
     claim_failed: "请重试。",
   },
   secure_view: {
+    preview: "预览",
+    preview_attachment: "预览 {{name}}",
+    download_attachment: "下载 {{name}}",
+    text_preview_truncated: "此预览仅显示前 1 MB。下载文件即可查看全部内容。",
+    media_unsupported: "你的浏览器无法播放此文件。请下载后打开。",
+    expires_on: "{{date}}过期",
     powered_by_prefix: "通过以下方式安全发送",
     title: "安全邮件",
     from: "发件人",

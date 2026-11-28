@@ -10174,6 +10174,7 @@ export const pl = {
       "Wszystko z kosza zostanie trwale usunięte i tej operacji nie można cofnąć.",
     empty_tag_subtitle: "E-maile oznaczone tą etykietą pojawią się tutaj",
     self_destructs_in: "Samozniszczenie za {{time}}",
+    expires_in_time: "Wygasa za {{time}}",
     cancel_scheduled_confirmation:
       "Anuluj tę zaplanowaną wiadomość. Nie zostanie wysłana i tej operacji nie można cofnąć, choć wersja robocza pozostaje zapisana.",
     shipping_label_created: "Etykieta utworzona",
@@ -12366,6 +12367,12 @@ export const pl = {
     granted_at: "Zdobyto {date}",
   },
   secure_view: {
+    preview: "Podgląd",
+    preview_attachment: "Podgląd pliku {{name}}",
+    download_attachment: "Pobierz {{name}}",
+    text_preview_truncated: "Ten podgląd pokazuje pierwszy 1 MB. Pobierz plik, aby zobaczyć całość.",
+    media_unsupported: "Twoja przeglądarka nie może odtworzyć tego pliku. Pobierz go, aby go otworzyć.",
+    expires_on: "Wygasa {{date}}",
     powered_by_prefix: "Wysłano bezpiecznie przez",
     title: "Bezpieczna wiadomość",
     from: "Od",

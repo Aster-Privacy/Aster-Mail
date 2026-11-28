@@ -9834,6 +9834,7 @@ export const tr = {
       "Çöp kutusundaki her şey kalıcı olarak kaldırılır ve geri alamazsınız.",
     empty_tag_subtitle: "Bu etiketle etiketlenen e-postalar burada görünecek",
     self_destructs_in: "{{time}} içinde kendini imha eder",
+    expires_in_time: "{{time}} içinde sona erer",
     cancel_scheduled_confirmation:
       "Bu zamanlanmış e-postayı iptal et. Gönderilmez ve bunu geri alamazsınız, ancak taslağınız saklı.",
     shipping_label_created: "Etiket Oluşturuldu",
@@ -11994,6 +11995,12 @@ export const tr = {
     granted_at: "{date} tarihinde kazanıldı",
   },
   secure_view: {
+    preview: "Önizle",
+    preview_attachment: "{{name}} dosyasını önizle",
+    download_attachment: "{{name}} dosyasını indir",
+    text_preview_truncated: "Bu önizleme ilk 1 MB'ı gösterir. Tamamını görmek için dosyayı indirin.",
+    media_unsupported: "Tarayıcınız bu dosyayı oynatamıyor. Açmak için indirin.",
+    expires_on: "{{date}} tarihinde sona erer",
     powered_by_prefix: "Şu aracılığıyla güvenli bir şekilde gönderildi:",
     title: "Güvenli mesaj",
     from: "Gönderen",

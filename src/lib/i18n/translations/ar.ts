@@ -9756,6 +9756,7 @@ export const ar = {
       "كل ما في سلة المهملات سيُزال نهائيًا ولا يمكن التراجع.",
     empty_tag_subtitle: "ستظهر الرسائل المصنفة بهذا التصنيف هنا",
     self_destructs_in: "تدمير ذاتي خلال {{time}}",
+    expires_in_time: "تنتهي صلاحيته خلال {{time}}",
     cancel_scheduled_confirmation:
       "إلغاء هذا البريد المجدول. لن يُرسل ولا يمكن التراجع، وإن كانت مسوّدتك محفوظة.",
     shipping_label_created: "تم إنشاء بطاقة الشحن",
@@ -11896,6 +11897,12 @@ export const ar = {
     claim_failed: "حاول مجددًا.",
   },
   secure_view: {
+    preview: "معاينة",
+    preview_attachment: "معاينة {{name}}",
+    download_attachment: "تنزيل {{name}}",
+    text_preview_truncated: "تعرض هذه المعاينة أول 1 ميغابايت. نزّل الملف لعرضه كاملًا.",
+    media_unsupported: "لا يمكن لمتصفحك تشغيل هذا الملف. نزّله لفتحه.",
+    expires_on: "تنتهي صلاحيته في {{date}}",
     powered_by_prefix: "أُرسِلت بأمان عبر",
     title: "رسالة آمنة",
     from: "من",

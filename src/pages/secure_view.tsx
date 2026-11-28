@@ -32,8 +32,10 @@ import { Button } from "@aster/ui";
 import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
 import { cn } from "@/lib/utils";
-import { sanitize_download_filename } from "@/lib/attachment_utils";
+import { SecureViewAttachments } from "@/components/email/secure_view_attachments";
+import { ExpirationCountdown } from "@/components/email/expiration_countdown";
 import { use_i18n } from "@/lib/i18n/context";
+import { use_should_reduce_motion } from "@/provider";
 import { sanitize_html } from "@/lib/html_sanitizer";
 import { SECURE_VIEW_SANITIZE_OPTIONS } from "@/lib/secure_view_sanitize_options";
 import { inline_secure_view_images } from "@/lib/secure_view_inline_images";
@@ -77,22 +79,63 @@ function is_transient_load_failure(err: unknown): boolean {
   return RETRYABLE_METADATA_STATUSES.includes(Number(match[1]));
 }
 
-const SECURE_BODY_CSS =
-  EMAIL_INLINE_FONT_FACE_CSS +
-  build_email_body_css() +
-  `
-html { color-scheme: dark !important; background: transparent !important; }
-body { background: transparent !important; padding: 16px 18px !important; color: #e5e7eb !important; }
-a { color: #93c5fd !important; }
-a:hover { color: #dbeafe !important; }
+type BodyScheme = "light" | "dark";
+
+const BODY_SCHEME_COLORS: Record<
+  BodyScheme,
+  { text: string; link: string; link_hover: string }
+> = {
+  light: { text: "#1f2937", link: "#2563eb", link_hover: "#1d4ed8" },
+  dark: { text: "#e5e7eb", link: "#93c5fd", link_hover: "#dbeafe" },
+};
+
+function build_secure_body_css(scheme: BodyScheme): string {
+  const colors = BODY_SCHEME_COLORS[scheme];
+
+  return (
+    EMAIL_INLINE_FONT_FACE_CSS +
+    build_email_body_css() +
+    `
+html { color-scheme: ${scheme} !important; background: transparent !important; }
+body { background: transparent !important; padding: 16px 18px !important; color: ${colors.text} !important; }
+a { color: ${colors.link} !important; }
+a:hover { color: ${colors.link_hover} !important; }
 .aster_quote, .gmail_quote, .protonmail_quote, .yahoo_quoted, .moz-cite-prefix { display: block !important; }
-`;
+`
+  );
+}
+
+function read_document_scheme(): BodyScheme {
+  return document.documentElement.classList.contains("dark")
+    ? "dark"
+    : "light";
+}
+
+function use_document_scheme(): BodyScheme {
+  const [scheme, set_scheme] = useState<BodyScheme>(read_document_scheme);
+
+  useEffect(() => {
+    const observer = new MutationObserver(() =>
+      set_scheme(read_document_scheme()),
+    );
+
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["class"],
+    });
+
+    return () => observer.disconnect();
+  }, []);
+
+  return scheme;
+}
 
 const HEIGHT_REPORT_SCRIPT = `(function(){function m(){var h=document.body?Math.min(document.body.scrollHeight+8,20000):0;parent.postMessage({type:"aster_sv_height",value:h},"*");}if(document.readyState==="loading"){document.addEventListener("DOMContentLoaded",m);}else{m();}if(document.fonts&&document.fonts.ready){document.fonts.ready.then(m);}try{new ResizeObserver(m).observe(document.body);}catch(_){}document.querySelectorAll("img").forEach(function(img){if(!img.complete){img.addEventListener("load",m,{once:true});}});})();`;
 
 function SecureMessageBody({ html, title }: { html: string; title: string }) {
   const frame_ref = useRef<HTMLIFrameElement | null>(null);
   const [height, set_height] = useState(0);
+  const scheme = use_document_scheme();
 
   const nonce = useMemo(() => {
     const bytes = new Uint8Array(16);
@@ -100,7 +143,7 @@ function SecureMessageBody({ html, title }: { html: string; title: string }) {
     crypto.getRandomValues(bytes);
 
     return btoa(String.fromCharCode(...Array.from(bytes)));
-  }, [html]);
+  }, [html, scheme]);
 
   const srcdoc = useMemo(() => {
     const csp = [
@@ -125,11 +168,11 @@ function SecureMessageBody({ html, title }: { html: string; title: string }) {
       `<meta http-equiv="x-dns-prefetch-control" content="off">` +
       `<meta http-equiv="Content-Security-Policy" content="${csp}">` +
       `<base target="_blank">` +
-      `<style>${SECURE_BODY_CSS}</style>` +
+      `<style>${build_secure_body_css(scheme)}</style>` +
       `<script nonce="${nonce}">${HEIGHT_REPORT_SCRIPT}</script>` +
       `</head><body>${html}</body></html>`
     );
-  }, [html, nonce]);
+  }, [html, nonce, scheme]);
 
   useEffect(() => {
     const handler = (e: MessageEvent) => {
@@ -160,7 +203,7 @@ function SecureMessageBody({ html, title }: { html: string; title: string }) {
         border: "none",
         display: "block",
         backgroundColor: "transparent",
-        colorScheme: "dark",
+        colorScheme: scheme,
         userSelect: "none",
         WebkitUserSelect: "none",
       }}
@@ -206,6 +249,7 @@ export default function SecureViewPage() {
   const [is_deleting, set_is_deleting] = useState(false);
   const [show_delete_confirm, set_show_delete_confirm] = useState(false);
   const [delete_error, set_delete_error] = useState("");
+  const reduce_motion = use_should_reduce_motion();
 
   useEffect(() => {
     let cancelled = false;
@@ -501,24 +545,14 @@ export default function SecureViewPage() {
     }
   };
 
-  const handle_download = (
-    filename: string,
-    content_type: string,
-    data: Uint8Array,
-  ) => {
-    const blob = new Blob([data], {
-      type: content_type || "application/octet-stream",
-    });
-    const url = URL.createObjectURL(blob);
-    const anchor = document.createElement("a");
-
-    anchor.href = url;
-    anchor.download = sanitize_download_filename(filename);
-    document.body.appendChild(anchor);
-    anchor.click();
-    document.body.removeChild(anchor);
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
-  };
+  const handle_expired = useCallback(() => {
+    set_view_state((current) =>
+      current === "ready" || current === "unlocked" ? "expired" : current,
+    );
+    set_decrypted(null);
+    set_password("");
+    set_credential(null);
+  }, []);
 
   const handle_reply = async () => {
     if (!token || !reply_text.trim()) return;
@@ -602,9 +636,18 @@ export default function SecureViewPage() {
             {sv("secure_view.from")} {sender_label}
           </p>
         ) : null}
-        <p>
-          {sv("secure_view.expires")} {expires_label}
-        </p>
+        {view_state === "expired" || view_state === "deleted" ? null : (
+          <div className="flex flex-wrap items-center gap-2">
+            <ExpirationCountdown
+              expires_at={metadata.expires_at}
+              on_expired={handle_expired}
+              show_tooltip={false}
+              size="md"
+              title={t("secure_view.expires_on", { date: expires_label })}
+            />
+            <span className="text-xs text-txt-muted">{expires_label}</span>
+          </div>
+        )}
       </div>
     );
   };
@@ -756,29 +799,11 @@ export default function SecureViewPage() {
                   <p className="text-sm font-medium text-txt-muted">
                     {sv("secure_view.attachments")}
                   </p>
-                  {decrypted.attachments.map((attachment, index) => (
-                    <div
-                      key={index}
-                      className="flex items-center justify-between gap-3 rounded-[12px] bg-surf-tertiary px-3 py-2"
-                    >
-                      <span className="truncate text-sm text-txt-primary">
-                        {attachment.filename}
-                      </span>
-                      <Button
-                        size="sm"
-                        variant="secondary"
-                        onClick={() =>
-                          handle_download(
-                            attachment.filename,
-                            attachment.content_type,
-                            attachment.data,
-                          )
-                        }
-                      >
-                        {sv("secure_view.download")}
-                      </Button>
-                    </div>
-                  ))}
+                  <SecureViewAttachments
+                    attachments={decrypted.attachments}
+                    reduce_motion={reduce_motion}
+                    t={t}
+                  />
                 </div>
               )}
 

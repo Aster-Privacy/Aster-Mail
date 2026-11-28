@@ -813,6 +813,12 @@ export interface PasskeysTranslations {
 }
 
 export interface SecureViewTranslations {
+  preview: string;
+  preview_attachment: string;
+  download_attachment: string;
+  text_preview_truncated: string;
+  media_unsupported: string;
+  expires_on: string;
   title: string;
   from: string;
   expires: string;
@@ -9170,6 +9176,7 @@ export interface MailTranslations {
   empty_trash_confirmation: string;
   empty_tag_subtitle: string;
   self_destructs_in: string;
+  expires_in_time: string;
   cancel_scheduled_confirmation: string;
   shipping_label_created: string;
   shipping_shipped: string;

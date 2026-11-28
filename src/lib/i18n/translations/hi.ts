@@ -9819,6 +9819,7 @@ export const hi = {
       "ट्रैश में मौजूद सब कुछ हमेशा के लिए हटा दिया जाएगा और आप इसे पहले जैसा नहीं कर सकते।",
     empty_tag_subtitle: "इस टैग वाले लेबल के ईमेल यहां दिखेंगे",
     self_destructs_in: "{{time}} में अपने आप मिट जाएगा",
+    expires_in_time: "{{time}} में समाप्त होगा",
     cancel_scheduled_confirmation:
       "यह शेड्यूल किया गया ईमेल रद्द करें। यह नहीं भेजा जाएगा और इसे पहले जैसा नहीं किया जा सकता, हालांकि आपका ड्राफ़्ट सहेज लिया गया है।",
     shipping_label_created: "लेबल बना",
@@ -11903,6 +11904,12 @@ export const hi = {
     claim_failed: "फिर से कोशिश करें।",
   },
   secure_view: {
+    preview: "पूर्वावलोकन",
+    preview_attachment: "{{name}} का पूर्वावलोकन",
+    download_attachment: "{{name}} डाउनलोड करें",
+    text_preview_truncated: "यह पूर्वावलोकन पहला 1 MB दिखाता है। पूरी फ़ाइल देखने के लिए उसे डाउनलोड करें।",
+    media_unsupported: "आपका ब्राउज़र यह फ़ाइल नहीं चला सकता। इसे खोलने के लिए डाउनलोड करें।",
+    expires_on: "{{date}} को समाप्त होगा",
     title: "सुरक्षित संदेश",
     from: "प्रेषक",
     expires: "समाप्ति",

@@ -9992,6 +9992,7 @@ export const it = {
       "Tutto ciò che è nel cestino verrà rimosso definitivamente e non è possibile annullare l'operazione.",
     empty_tag_subtitle: "Le email etichettate con questo tag appariranno qui",
     self_destructs_in: "Si autodistrugge tra {{time}}",
+    expires_in_time: "Scade tra {{time}}",
     cancel_scheduled_confirmation:
       "Annulli questa email programmata. Non verrà inviata e non è possibile annullare l'operazione, anche se la sua bozza è salvata.",
     shipping_label_created: "Etichetta creata",
@@ -12200,6 +12201,12 @@ export const it = {
     claim_failed: "Riprova.",
   },
   secure_view: {
+    preview: "Anteprima",
+    preview_attachment: "Anteprima di {{name}}",
+    download_attachment: "Scarica {{name}}",
+    text_preview_truncated: "Questa anteprima mostra il primo MB. Scarica il file per vederlo per intero.",
+    media_unsupported: "Il tuo browser non può riprodurre questo file. Scaricalo per aprirlo.",
+    expires_on: "Scade il {{date}}",
     powered_by_prefix: "Inviato in modo sicuro tramite",
     title: "Messaggio sicuro",
     from: "Da",

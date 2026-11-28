@@ -10049,6 +10049,7 @@ export const fr = {
     empty_tag_subtitle:
       "Les e-mails étiquetés avec ce libellé apparaîtront ici",
     self_destructs_in: "S'autodétruit dans {{time}}",
+    expires_in_time: "Expire dans {{time}}",
     cancel_scheduled_confirmation:
       "Annuler ce message programmé. Il ne sera pas envoyé et vous ne pouvez pas annuler cette action, mais votre brouillon est enregistré.",
     shipping_label_created: "Étiquette créée",
@@ -12277,6 +12278,12 @@ export const fr = {
     title: "Badges",
   },
   secure_view: {
+    preview: "Aperçu",
+    preview_attachment: "Aperçu de {{name}}",
+    download_attachment: "Télécharger {{name}}",
+    text_preview_truncated: "Cet aperçu affiche le premier Mo. Téléchargez le fichier pour le voir en entier.",
+    media_unsupported: "Votre navigateur ne peut pas lire ce fichier. Téléchargez-le pour l'ouvrir.",
+    expires_on: "Expire le {{date}}",
     powered_by_prefix: "Envoyé en toute sécurité via",
     title: "Message sécurisé",
     from: "De",

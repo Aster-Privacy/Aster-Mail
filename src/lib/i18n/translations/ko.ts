@@ -9523,6 +9523,7 @@ export const ko = {
       "휴지통의 모든 항목이 영구히 제거되며 되돌릴 수 없습니다.",
     empty_tag_subtitle: "이 태그가 붙은 이메일이 여기에 표시됩니다",
     self_destructs_in: "{{time}} 후에 자동 삭제됩니다",
+    expires_in_time: "{{time}} 후 만료",
     cancel_scheduled_confirmation:
       "이 예약 이메일을 취소합니다. 발송되지 않으며 되돌릴 수 없지만, 임시 저장 메일은 보관됩니다.",
     shipping_label_created: "라벨 생성됨",
@@ -11632,6 +11633,12 @@ export const ko = {
     claim_failed: "다시 시도하세요.",
   },
   secure_view: {
+    preview: "미리 보기",
+    preview_attachment: "{{name}} 미리 보기",
+    download_attachment: "{{name}} 다운로드",
+    text_preview_truncated: "이 미리 보기에는 처음 1MB만 표시됩니다. 전체 내용을 보려면 파일을 다운로드하세요.",
+    media_unsupported: "브라우저에서 이 파일을 재생할 수 없습니다. 다운로드해서 여세요.",
+    expires_on: "{{date}}에 만료",
     powered_by_prefix: "다음을 통해 안전하게 전송됨:",
     title: "보안 메시지",
     from: "보낸 사람",

@@ -10027,6 +10027,7 @@ export const pt = {
       "Tudo no Lixo será removido definitivamente e não é possível anular esta ação.",
     empty_tag_subtitle: "E-mails com esta etiqueta aparecerão aqui",
     self_destructs_in: "Autodestrói em {{time}}",
+    expires_in_time: "Expira em {{time}}",
     cancel_scheduled_confirmation:
       "Cancelar este e-mail agendado. Não será enviado e não é possível anular esta ação, mas o seu rascunho fica guardado.",
     shipping_label_created: "Etiqueta criada",
@@ -12252,6 +12253,12 @@ export const pt = {
     granted_at: "Conquistado em {date}",
   },
   secure_view: {
+    preview: "Pré-visualizar",
+    preview_attachment: "Pré-visualizar {{name}}",
+    download_attachment: "Transferir {{name}}",
+    text_preview_truncated: "Esta pré-visualização mostra o primeiro 1 MB. Transfira o ficheiro para ver tudo.",
+    media_unsupported: "O seu navegador não consegue reproduzir este ficheiro. Transfira-o para o abrir.",
+    expires_on: "Expira a {{date}}",
     powered_by_prefix: "Enviado com segurança através de",
     title: "Mensagem segura",
     from: "De",

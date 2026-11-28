@@ -9689,6 +9689,7 @@ export const ja = {
       "ゴミ箱の中身はすべて完全に削除され、元に戻せません。",
     empty_tag_subtitle: "このタグのラベルが付いたメールはここに表示されます",
     self_destructs_in: "{{time}}後に自動削除",
+    expires_in_time: "あと {{time}} で期限切れ",
     cancel_scheduled_confirmation:
       "この予約送信メールを取り消します。送信されず、元に戻せませんが、下書きは保存されます。",
     shipping_label_created: "ラベル作成済み",
@@ -11842,6 +11843,12 @@ export const ja = {
     claim_failed: "もう一度お試しください。",
   },
   secure_view: {
+    preview: "プレビュー",
+    preview_attachment: "{{name}} をプレビュー",
+    download_attachment: "{{name}} をダウンロード",
+    text_preview_truncated: "このプレビューには最初の 1 MB が表示されます。すべてを見るにはファイルをダウンロードしてください。",
+    media_unsupported: "このブラウザではこのファイルを再生できません。ダウンロードして開いてください。",
+    expires_on: "{{date}} に期限切れ",
     powered_by_prefix: "安全に送信",
     title: "セキュアメッセージ",
     from: "差出人",

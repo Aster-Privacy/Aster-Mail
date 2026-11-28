@@ -9925,6 +9925,7 @@ export const nl = {
       "Alles in de prullenbak wordt definitief verwijderd en je kunt dit niet ongedaan maken.",
     empty_tag_subtitle: "E-mails met dit label verschijnen hier",
     self_destructs_in: "Vernietigt zichzelf over {{time}}",
+    expires_in_time: "Verloopt over {{time}}",
     cancel_scheduled_confirmation:
       "Annuleer deze geplande e-mail. Hij wordt niet verzonden en je kunt dit niet ongedaan maken, hoewel je concept is opgeslagen.",
     shipping_label_created: "Label aangemaakt",
@@ -12121,6 +12122,12 @@ export const nl = {
     claim_failed: "Probeer het opnieuw.",
   },
   secure_view: {
+    preview: "Voorbeeld",
+    preview_attachment: "Voorbeeld van {{name}}",
+    download_attachment: "{{name}} downloaden",
+    text_preview_truncated: "Dit voorbeeld toont de eerste MB. Download het bestand om alles te zien.",
+    media_unsupported: "Je browser kan dit bestand niet afspelen. Download het om het te openen.",
+    expires_on: "Verloopt op {{date}}",
     powered_by_prefix: "Veilig verzonden via",
     title: "Beveiligd bericht",
     from: "Van",
