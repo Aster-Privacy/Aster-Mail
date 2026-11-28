@@ -399,6 +399,7 @@ on_vault_stored((event) => {
           owner_id,
           mail_legacy_migration_deps(owner_id),
         );
+        start_format_retirement(owner_id);
         import("@/services/api/scheduled")
           .then((scheduled) => scheduled.snapshot_untagged_scheduled())
           .catch((caught) =>
@@ -409,7 +410,6 @@ on_vault_stored((event) => {
           );
       },
     );
-    start_format_retirement(event.owner_id);
   }
   level2_storage
     .handle_stored(event)
