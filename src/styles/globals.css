@@ -5645,6 +5645,10 @@ html:not(.dark) .sender_logo_light > img {
   text-wrap: pretty;
 }
 
+.aster_tip_portal[data-tip-arrow] {
+  white-space: nowrap;
+}
+
 .profile_avatar_edit {
   outline: none;
   box-shadow: 0 0 0 4px var(--aster-island-fill, var(--bg-primary));
