@@ -26,10 +26,7 @@ import { useMemo } from "react";
 
 import { EncryptionInfoDropdown } from "@/components/common/encryption_info_dropdown";
 import { TrackingProtectionShield } from "@/components/email/tracking_protection_shield";
-import {
-  get_cached_iframe_height,
-  CONTENT_READY_FALLBACK_MS,
-} from "@/components/email/sandboxed_email_renderer";
+import { CONTENT_READY_FALLBACK_MS } from "@/components/email/sandboxed_email_renderer";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmailOpenSkeleton } from "@/components/email/viewer_shared/email_open_skeleton";
 import { use_i18n } from "@/lib/i18n/context";
@@ -233,24 +230,15 @@ export function FullEmailViewer({
     t,
   ]);
 
-  const [content_ready, set_content_ready] = useState(
-    () => !!get_cached_iframe_height(email_id),
-  );
+  const [content_ready, set_content_ready] = useState(false);
   const content_ready_email_ref = useRef(email_id);
 
   if (content_ready_email_ref.current !== email_id) {
     content_ready_email_ref.current = email_id;
-    const cached_now = !!get_cached_iframe_height(email_id);
-
-    if (cached_now !== content_ready) set_content_ready(cached_now);
+    if (content_ready) set_content_ready(false);
   }
 
   useEffect(() => {
-    const already_cached = !!get_cached_iframe_height(email_id);
-
-    set_content_ready(already_cached);
-    if (already_cached) return;
-
     const mark_ready = () => set_content_ready(true);
     const handler = (event: Event) => {
       const detail = (event as CustomEvent<string>).detail;

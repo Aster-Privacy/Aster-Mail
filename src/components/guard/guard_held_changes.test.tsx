@@ -488,7 +488,7 @@ describe("GuardHeldChanges", () => {
     expect(opened).toHaveBeenCalledTimes(1);
   });
 
-  it("shows an empty state when no change is held", async () => {
+  it("shows nothing when no change is held", async () => {
     h.changes = [];
     await render(
       <GuardHeldChanges
@@ -499,8 +499,8 @@ describe("GuardHeldChanges", () => {
     );
 
     expect(has("guard_held_changes")).toBe(false);
-    expect(has("guard_held_empty")).toBe(true);
-    expect(container.textContent).toContain("guard.held_empty_body");
+    expect(has("guard_held_empty")).toBe(false);
+    expect(container.textContent).not.toContain("guard.held_title");
   });
 
   it("measures how much of the hold has passed", () => {

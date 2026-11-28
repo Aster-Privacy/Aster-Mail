@@ -271,7 +271,9 @@ export function decode_encoded_words(input: string): string {
 }
 
 function base64_decode(input: string): Uint8Array | null {
-  const cleaned = input.replace(/[^A-Za-z0-9+/]/g, "");
+  const stripped = input.replace(/[^A-Za-z0-9+/]/g, "");
+  const cleaned =
+    stripped.length % 4 === 1 ? stripped.slice(0, -1) : stripped;
 
   try {
     const binary = atob(cleaned + "===".slice(0, (4 - (cleaned.length % 4)) % 4));

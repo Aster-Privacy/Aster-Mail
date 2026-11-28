@@ -36,8 +36,10 @@ import { get_alias_hash_by_address } from "@/hooks/use_sidebar_aliases";
 import { alias_address_of } from "@/hooks/email_list_helpers/alias_view";
 import {
   is_fully_built as is_category_index_built,
+  is_index_capped,
   is_index_reconciled,
   is_index_settled,
+  is_serving_previous_build,
 } from "@/services/category_index";
 import { use_category_drop } from "@/components/email/inbox/use_category_drop";
 import { use_settled_empty_state } from "@/components/email/inbox/use_settled_empty_state";
@@ -402,8 +404,12 @@ export function use_email_inbox_state(props: EmailInboxProps) {
   const alias_scoped_by_server =
     is_alias_view &&
     get_alias_hash_by_address(alias_address_of(current_view) ?? "") !== null;
+  const index_backs_pages =
+    is_category_index_built() ||
+    is_index_capped() ||
+    is_serving_previous_build();
   const unfiltered_total_for_pages = categories.enabled
-    ? is_category_index_built()
+    ? index_backs_pages
       ? (categories.counts[categories.active_category]?.total ?? 0)
       : stats_total_for_view || 0
     : is_alias_view && !alias_scoped_by_server
@@ -466,7 +472,7 @@ export function use_email_inbox_state(props: EmailInboxProps) {
   });
 
   const totals_authoritative = categories.enabled
-    ? is_category_index_built()
+    ? index_backs_pages
     : email_state.has_initial_load && !email_state.is_loading;
 
   const live_header_count =

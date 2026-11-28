@@ -47,6 +47,7 @@ import {
   capture_link_commitment,
   clear_link_commitment,
   format_fingerprint_input,
+  link_commitment_fragment,
   normalize_fingerprint,
   read_link_commitment,
 } from "@/lib/device_link_commitment";
@@ -320,7 +321,8 @@ function AccountChooser({
     personal_account_count >= max_account_limit;
 
   const token_backed_sessions = api_client.can_persist_session();
-  const return_path = () => `${app_pathname()}${window.location.search}`;
+  const return_path = () =>
+    `${app_pathname()}${window.location.search}${link_commitment_fragment()}`;
 
   const handle_switch = async (account_id: string) => {
     if (switching_id) return;
@@ -558,7 +560,9 @@ function LinkDeviceFlow({
   useEffect(() => {
     if (auth_loading) return;
     if (!is_authenticated) {
-      const next = encodeURIComponent(app_pathname() + window.location.search);
+      const next = encodeURIComponent(
+        app_pathname() + window.location.search + link_commitment_fragment(),
+      );
 
       navigate(`/sign-in?next=${next}`, { replace: true });
     }

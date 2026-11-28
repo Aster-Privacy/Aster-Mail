@@ -95,6 +95,7 @@ export interface SettingsKeywordsTranslations {
   settings_search_account_recovery: string;
   feature_recovery_codes: string;
   settings_search_active_sessions: string;
+  link_device: string;
   account_security_review_cta: string;
   export_public_key_label: string;
   export_private_key_label: string;
@@ -6223,6 +6224,7 @@ export interface SettingsTranslations {
   external_reconnect_required: string;
   external_message_rejected: string;
   external_send_reconnect_required: string;
+  external_provider_not_ready: string;
   oauth_folder_picker_title: string;
   oauth_folder_picker_description: string;
   oauth_folder_picker_load_failed: string;
@@ -10671,6 +10673,7 @@ export interface GuardTranslations {
   held_already_ended: string;
   held_stale: string;
   held_toast: string;
+  held_toast_confirm: string;
   held_view: string;
   held_kind_forwarding_change: string;
   held_kind_mail_rule_change: string;

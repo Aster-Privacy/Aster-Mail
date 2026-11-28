@@ -280,22 +280,16 @@ export function GuardHeldChanges({
     }
   };
 
+  if (shown.length === 0) return null;
+
   return (
     <IslandSection
-      data-testid={shown.length === 0 ? undefined : "guard_held_changes"}
+      data-testid="guard_held_changes"
       icon={<ClockIcon />}
-      padding={shown.length === 0 ? "lg" : "none"}
+      padding="none"
       title={t("guard.held_title")}
     >
-      {shown.length === 0 ? (
-        <p
-          className="text-sm text-center text-txt-muted"
-          data-testid="guard_held_empty"
-        >
-          {t("guard.held_empty_body")}
-        </p>
-      ) : (
-        shown.map((change) => {
+      {shown.map((change) => {
           const urgent = URGENT_KINDS.has(change.kind);
           const Icon = HELD_KIND_ICONS[change.kind] ?? QuestionMarkCircleIcon;
           const kind_label = t(
@@ -368,8 +362,7 @@ export function GuardHeldChanges({
               }
             />
           );
-        })
-      )}
+        })}
       {step_up.step_up_modal}
     </IslandSection>
   );

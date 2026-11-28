@@ -810,9 +810,13 @@ export function use_category_inbox(
       abort_ref.current?.abort();
 
       if (ids.length === 0) {
+        const past_capped_index =
+          is_index_capped() && target_page * limit >= total;
         const built =
-          is_index_readable() &&
-          (get_index_entry_count() > 0 || removed_within(REMOVAL_SETTLE_MS));
+          (is_index_readable() &&
+            (get_index_entry_count() > 0 ||
+              removed_within(REMOVAL_SETTLE_MS))) ||
+          past_capped_index;
 
         abort_ref.current = null;
         set_state({

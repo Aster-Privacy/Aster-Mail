@@ -55,6 +55,7 @@ vi.mock("@/components/email/use_inbox_view_state", () => ({
 
 vi.mock("@/services/category_index", () => ({
   is_fully_built: () => false,
+  is_index_capped: () => false,
   is_index_reconciled: () => false,
   is_index_settled: () => true,
   is_serving_previous_build: () => false,

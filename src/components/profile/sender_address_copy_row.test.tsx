@@ -133,7 +133,7 @@ describe("SenderAddressCopyRow", () => {
     expect(classes).not.toMatch(/#[0-9a-f]{3,6}\b/i);
   });
 
-  it("copies on select and shows copied feedback that resets", async () => {
+  it("copies on select and keeps the copy icon while the status resets", async () => {
     vi.useFakeTimers();
     const on_copy = vi.fn(() => Promise.resolve(true));
     const row = render_row(on_copy);
@@ -146,7 +146,7 @@ describe("SenderAddressCopyRow", () => {
     expect(row.querySelector('[role="status"]')!.textContent).toBe(
       "common.copied",
     );
-    expect(icon_markup(row)).not.toBe(idle_icon);
+    expect(icon_markup(row)).toBe(idle_icon);
 
     act(() => {
       vi.advanceTimersByTime(SENDER_ADDRESS_COPIED_RESET_MS);

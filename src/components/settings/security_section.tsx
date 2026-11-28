@@ -22,6 +22,7 @@ import type { ApiResponse } from "@/services/api/client";
 import type { HardwareKeysListResponse } from "@/services/api/webauthn";
 
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Badge,
   Button,
@@ -37,6 +38,7 @@ import {
   CodeBracketIcon,
   CpuChipIcon,
   BugAntIcon,
+  ComputerDesktopIcon,
 } from "@heroicons/react/24/outline";
 
 import { TotpDisableModal } from "./totp_disable_modal";
@@ -116,6 +118,7 @@ export function SecuritySection({
     guard_protection_state(guard_status.status),
   );
   const { t } = use_i18n();
+  const navigate = useNavigate();
   const { preferences, update_preference, update_preferences } =
     use_preferences();
   const lockdown_active = use_lockdown_active();
@@ -316,6 +319,17 @@ export function SecuritySection({
           sessions_loading={security.sessions_loading}
         />
       </div>
+
+      <IslandSection
+        icon={<ComputerDesktopIcon />}
+        title={t("auth.link_device_title")}
+      >
+        <IslandRow
+          description={t("auth.link_device_enter_code")}
+          label={t("auth.link_device_title")}
+          on_press={() => navigate("/link-device")}
+        />
+      </IslandSection>
 
       <div id={SETTINGS_ANCHORS.trusted_devices}>
         <TrustedDevicesSection />

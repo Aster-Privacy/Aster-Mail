@@ -114,7 +114,7 @@ describe("account_index_url", () => {
   });
 
   it("treats invite pages as public pages that keep the signed-in account", () => {
-    for (const path of ["/join/family", "/family/claim/abc"]) {
+    for (const path of ["/join/family", "/family/claim/abc", "/link-device"]) {
       expect(is_public_entry_path(path)).toBe(true);
       expect(is_signed_in_entry_path(path)).toBe(true);
     }

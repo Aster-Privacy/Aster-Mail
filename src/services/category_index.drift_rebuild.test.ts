@@ -67,7 +67,9 @@ import {
   build_index,
   sync_recent,
   clear_category_index_memory,
+  init_category_index,
   is_fully_built,
+  is_index_capped,
 } from "@/services/category_index";
 
 const mocked_list = vi.mocked(list_mail_items);
@@ -257,6 +259,53 @@ describe("category index server drift self heal", () => {
 
     expect(full_rebuild_calls()).toBe(0);
   });
+
+  it("keeps a capped index capped after a reload instead of rebuilding", async () => {
+    const half = 25000;
+    const make_batch = (offset: number): MailItem[] =>
+      Array.from({ length: half }, (_, i) => {
+        const ts = new Date(
+          Date.UTC(2026, 6, 1) - (offset + i) * 1000,
+        ).toISOString();
+
+        return {
+          ...page_item(offset + i, 1),
+          id: `capped-${offset + i}`,
+          created_at: ts,
+          message_ts: ts,
+        } as MailItem;
+      });
+
+    mocked_list
+      .mockResolvedValueOnce({
+        data: { items: make_batch(0), has_more: true, next_cursor: "c1" },
+      } as never)
+      .mockResolvedValueOnce({
+        data: { items: make_batch(half), has_more: true, next_cursor: "c2" },
+      } as never);
+
+    await build_index({ force: true });
+    await flush();
+    expect(is_index_capped()).toBe(true);
+
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+    await flush();
+
+    clear_category_index_memory();
+    mocked_list.mockReset();
+    stats_snapshot.inbox = 110000;
+    mocked_list.mockResolvedValue({
+      data: { items: [], has_more: false },
+    } as never);
+
+    await init_category_index();
+    await flush();
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    await flush();
+
+    expect(is_index_capped()).toBe(true);
+    expect(full_rebuild_calls()).toBe(0);
+  }, 60_000);
 
   it("does not rebuild when the server reports no inbox threads", async () => {
     await build_small_index();
