@@ -5696,14 +5696,9 @@ export const tr = {
       "Bu takma addan yanıt verdiğinizde gönderen adı olarak gösterilir.",
     aliases_description:
       "Ana gelen kutunuza yönlendiren alternatif e-posta adresleri oluşturun. Gizliliğinizi korumak veya gelen postaları düzenlemek için kullanın.",
-    twin_address_title: "Eşleşen adresiniz",
-    twin_address_reserved_description:
-      "{{ address }} hesabınız için ayrıldı, bu yüzden başka kimse kaydedemez. Bu adresten gönderip almak istediğinizde takma ad olarak oluşturun.",
-    twin_address_available_description:
-      "{{ address }}, diğer Aster alan adındaki eşleşen adrestir. Bu adresten gönderip almak için takma ad olarak oluşturun.",
-    twin_address_title_multiple: "Eşleşen adresleriniz",
-    twin_address_multiple_description:
-      "{{ local_part }}, {{ count }} Aster alan adında hesabınız için ayrılmıştır, bu yüzden başka kimse kaydedemez. Bu adresten gönderip almak istediğinizde takma ad olarak oluşturun.",
+    twin_address_reserved: "Size ayrıldı",
+    twin_address_available: "Kullanımınıza açık",
+    twin_address_reserved_multiple: "{{ count }} alan adında size ayrıldı",
     twin_address_create: "Takma ad oluştur",
     twin_address_dismiss: "Kapat",
     custom_domain_addresses_note:

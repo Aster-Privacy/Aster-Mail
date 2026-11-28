@@ -7149,14 +7149,9 @@ export const it = {
       "Mostrato come nome mittente quando rispondi da questo alias.",
     aliases_description:
       "Crea indirizzi email alternativi che inoltrano alla tua casella principale. Usali per proteggere la tua privacy o organizzare la posta in arrivo.",
-    twin_address_title: "Il tuo indirizzo corrispondente",
-    twin_address_reserved_description:
-      "{{ address }} è riservato al tuo account, quindi nessun altro può registrarlo. Crealo come alias quando vuoi inviare e ricevere da questo indirizzo.",
-    twin_address_available_description:
-      "{{ address }} è l'indirizzo corrispondente sull'altro dominio Aster. Crealo come alias per inviare e ricevere da questo indirizzo.",
-    twin_address_title_multiple: "I tuoi indirizzi corrispondenti",
-    twin_address_multiple_description:
-      "{{ local_part }} è riservato al tuo account su {{ count }} domini Aster, quindi nessun altro può registrarlo. Crealo come alias quando vuoi inviare e ricevere da questo indirizzo.",
+    twin_address_reserved: "Riservato a te",
+    twin_address_available: "Disponibile per te",
+    twin_address_reserved_multiple: "Riservato a te su {{ count }} domini",
     twin_address_create: "Crea alias",
     twin_address_dismiss: "Ignora",
     custom_domain_addresses_note:

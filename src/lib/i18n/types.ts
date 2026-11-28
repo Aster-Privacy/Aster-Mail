@@ -6441,11 +6441,9 @@ export interface SettingsTranslations {
   address_label: string;
   display_name_sender_note: string;
   aliases_description: string;
-  twin_address_title: string;
-  twin_address_reserved_description: string;
-  twin_address_available_description: string;
-  twin_address_title_multiple: string;
-  twin_address_multiple_description: string;
+  twin_address_reserved: string;
+  twin_address_available: string;
+  twin_address_reserved_multiple: string;
   twin_address_create: string;
   twin_address_dismiss: string;
   custom_domain_addresses_note: string;

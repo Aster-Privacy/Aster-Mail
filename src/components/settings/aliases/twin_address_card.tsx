@@ -18,12 +18,13 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { ShieldCheckIcon, XMarkIcon } from "@heroicons/react/24/outline";
+import type { TwinSibling } from "@/services/api/aliases";
+
+import { XMarkIcon } from "@heroicons/react/24/outline";
 import { Island, IslandIconButton, PillButton } from "@aster/ui";
 
 import { use_preferences } from "@/contexts/preferences_context";
 import { use_i18n } from "@/lib/i18n/context";
-import type { TwinSibling } from "@/services/api/aliases";
 
 interface TwinAddressCardProps {
   siblings: TwinSibling[];
@@ -40,33 +41,26 @@ export function TwinAddressCard({ siblings, on_claim }: TwinAddressCardProps) {
 
   const primary = siblings[0];
   const multiple = siblings.length > 1;
+  const label = multiple ? primary.local_part : primary.address;
+  const status = multiple
+    ? t("settings.twin_address_reserved_multiple", { count: siblings.length })
+    : primary.state === "reserved"
+      ? t("settings.twin_address_reserved")
+      : t("settings.twin_address_available");
 
   return (
     <Island className="mb-2" padding="md">
-      <div className="flex flex-wrap items-start gap-3 sm:flex-nowrap">
-        <ShieldCheckIcon className="mt-0.5 h-5 w-5 shrink-0 text-txt-secondary" />
-        <div className="min-w-0 flex-1">
-          <p className="text-sm font-semibold text-txt-primary">
-            {multiple
-              ? t("settings.twin_address_title_multiple")
-              : t("settings.twin_address_title")}
-          </p>
-          <p className="mt-1 break-words text-sm text-txt-muted">
-            {multiple
-              ? t("settings.twin_address_multiple_description", {
-                  local_part: primary.local_part,
-                  count: siblings.length,
-                })
-              : primary.state === "reserved"
-                ? t("settings.twin_address_reserved_description", {
-                    address: primary.address,
-                  })
-                : t("settings.twin_address_available_description", {
-                    address: primary.address,
-                  })}
-          </p>
-        </div>
-        <div className="ml-8 flex shrink-0 items-center gap-1 self-center sm:ml-0">
+      <div className="flex items-center gap-3">
+        <p className="flex min-w-0 flex-1 flex-wrap items-baseline gap-x-2 text-sm">
+          <span
+            className="min-w-0 max-w-full truncate font-medium text-txt-primary"
+            title={label}
+          >
+            {label}
+          </span>
+          <span className="text-txt-muted">{status}</span>
+        </p>
+        <div className="flex shrink-0 items-center gap-1">
           <PillButton
             size="sm"
             variant="tonal"

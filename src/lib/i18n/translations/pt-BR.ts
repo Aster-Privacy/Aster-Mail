@@ -5715,14 +5715,9 @@ export const pt_br = {
       "Exibido como o nome do remetente quando você responde deste alias.",
     aliases_description:
       "Crie endereços de e-mail alternativos que encaminham para sua caixa de entrada principal. Use-os para proteger sua privacidade ou organizar os e-mails recebidos.",
-    twin_address_title: "Seu endereço correspondente",
-    twin_address_reserved_description:
-      "{{ address }} está reservado para sua conta, então ninguém mais pode registrá-lo. Crie-o como alias quando quiser enviar e receber a partir dele.",
-    twin_address_available_description:
-      "{{ address }} é o endereço correspondente no outro domínio Aster. Crie-o como alias para enviar e receber a partir dele.",
-    twin_address_title_multiple: "Seus endereços correspondentes",
-    twin_address_multiple_description:
-      "{{ local_part }} está reservado para sua conta em {{ count }} domínios Aster, então ninguém mais pode registrá-lo. Crie-o como alias quando quiser enviar e receber a partir dele.",
+    twin_address_reserved: "Reservado para você",
+    twin_address_available: "Disponível para você",
+    twin_address_reserved_multiple: "Reservado para você em {{ count }} domínios",
     twin_address_create: "Criar alias",
     twin_address_dismiss: "Dispensar",
     custom_domain_addresses_note:

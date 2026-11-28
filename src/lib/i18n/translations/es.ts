@@ -5789,14 +5789,9 @@ export const es = {
       "Se muestra como nombre del remitente cuando respondes desde este alias.",
     aliases_description:
       "Crea direcciones de correo alternativas que reenvíen a tu bandeja principal. Úsalas para proteger tu privacidad u organizar el correo entrante.",
-    twin_address_title: "Tu dirección coincidente",
-    twin_address_reserved_description:
-      "{{ address }} está reservada para tu cuenta, así que nadie más puede registrarla. Créala como alias cuando quieras enviar y recibir desde ella.",
-    twin_address_available_description:
-      "{{ address }} es la dirección coincidente en el otro dominio de Aster. Créala como alias para enviar y recibir desde ella.",
-    twin_address_title_multiple: "Tus direcciones coincidentes",
-    twin_address_multiple_description:
-      "{{ local_part }} está reservado para tu cuenta en {{ count }} dominios de Aster, así que nadie más puede registrarlo. Créalo como alias cuando quieras enviar y recibir desde él.",
+    twin_address_reserved: "Reservada para ti",
+    twin_address_available: "Disponible para ti",
+    twin_address_reserved_multiple: "Reservado para ti en {{ count }} dominios",
     twin_address_create: "Crear alias",
     twin_address_dismiss: "Descartar",
     custom_domain_addresses_note:
