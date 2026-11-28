@@ -2756,6 +2756,12 @@ button.press_scale:active {
   background-color: var(--aster-selected);
 }
 
+.app_rail_btn:focus-visible,
+.app_rail_toggle:focus-visible {
+  outline: 2px solid var(--accent-color);
+  outline-offset: 1px;
+}
+
 .app_rail_icon {
   display: block;
   width: 24px;
@@ -2804,6 +2810,120 @@ button.press_scale:active {
 @media (prefers-reduced-motion: reduce) {
   .app_rail_column,
   .app_rail_popout {
+    transition: none;
+    animation: none;
+  }
+}
+
+.app_switcher_row {
+  transition: background-color 0.1s ease;
+}
+
+.app_switcher_external {
+  opacity: 0;
+  transition:
+    opacity 0.12s ease,
+    transform 0.16s cubic-bezier(0.2, 0, 0, 1);
+}
+
+.app_switcher_row[data-highlighted] .app_switcher_external,
+.app_switcher_row:focus-visible .app_switcher_external {
+  opacity: 1;
+  transform: translate(1px, -1px);
+}
+
+@media (hover: none) {
+  .app_switcher_external {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app_switcher_external {
+    transition: none;
+  }
+}
+
+.calendar_panel_chip {
+  position: relative;
+  padding-inline-start: 11px;
+  background-color: var(--chip_fill);
+  transition:
+    background-color 0.12s ease,
+    opacity 0.12s ease;
+}
+
+.calendar_panel_chip::before {
+  content: "";
+  position: absolute;
+  inset-block: 3px;
+  inset-inline-start: 3px;
+  width: 3px;
+  border-radius: 999px;
+  background-color: var(--chip_accent);
+}
+
+.calendar_panel_chip:hover {
+  background-color: var(--chip_hover);
+}
+
+.calendar_panel_chip:focus-visible {
+  outline: 2px solid var(--accent-color);
+  outline-offset: 1px;
+  z-index: 3;
+}
+
+.calendar_panel_chip_past {
+  opacity: 0.6;
+}
+
+.calendar_panel_chip_past:hover,
+.calendar_panel_chip_past:focus-visible {
+  opacity: 1;
+}
+
+.calendar_panel_draft {
+  z-index: 2;
+  color: var(--text-primary);
+  background-color: color-mix(in srgb, var(--accent-color) 14%, var(--bg-primary));
+  border: 1px dashed color-mix(in srgb, var(--accent-color) 70%, transparent);
+}
+
+.calendar_panel_quick_create {
+  box-shadow: var(--dropdown-shadow);
+  animation: calendar_panel_rise 0.16s cubic-bezier(0.2, 0, 0, 1);
+}
+
+.calendar_panel_month {
+  animation: calendar_panel_reveal 0.16s cubic-bezier(0.2, 0, 0, 1);
+}
+
+@keyframes calendar_panel_rise {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes calendar_panel_reveal {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .calendar_panel_chip,
+  .calendar_panel_quick_create,
+  .calendar_panel_month {
     transition: none;
     animation: none;
   }
@@ -4546,10 +4666,6 @@ input:-webkit-autofill:active {
   }
 }
 
-.account_avatar_button {
-  background-color: transparent;
-  overflow: visible;
-}
 
 .dark .sender_logo_dark {
   background-color: var(--avatar-logo-light-bg) !important;
@@ -4604,47 +4720,30 @@ html:not(.dark) .sender_logo_light > img {
   justify-content: center;
   width: 32px;
   height: 32px;
-  aspect-ratio: 1 / 1;
-  vertical-align: middle;
   line-height: 0;
   border-radius: 9999px;
-  transition: box-shadow 120ms ease;
 }
 
 .account_avatar_ring > * {
-  width: 32px;
-  height: 32px;
   flex: 0 0 auto;
 }
 
-.account_avatar_button:hover .account_avatar_ring:not(.plan_ring),
-.account_avatar_button[data-state="open"] .account_avatar_ring:not(.plan_ring) {
-  box-shadow: 0 0 0 3px var(--bg-hover);
+.account_avatar_ring.plan_ring > * {
+  margin: 0;
+  border-width: 2px;
 }
 
-.account_avatar_ring.plan_ring {
-  box-shadow: none;
-}
-
-.account_avatar_ring.plan_ring::after {
-  content: "";
-  position: absolute;
-  inset: -5px;
-  z-index: -2;
-  border-radius: 9999px;
-  background-color: transparent;
+.account_avatar_button {
   transition: background-color 120ms ease;
-  pointer-events: none;
 }
 
-.account_avatar_button:hover .account_avatar_ring.plan_ring::after,
-.account_avatar_button[data-state="open"]
-  .account_avatar_ring.plan_ring::after {
+.account_avatar_button:hover,
+.account_avatar_button[aria-expanded="true"] {
+  --plan-ring-gap-color: var(--bg-hover);
   background-color: var(--bg-hover);
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .account_avatar_ring,
   .account_avatar_button {
     transition: none;
   }

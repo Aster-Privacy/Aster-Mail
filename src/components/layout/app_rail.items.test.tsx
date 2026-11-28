@@ -46,14 +46,15 @@ vi.mock("@/components/layout/quick_security_panel", () => ({
 }));
 
 const calendar = vi.hoisted(() => ({
-  origin: "https://calendar.astermail.org" as string | null,
   open_externally: vi.fn(),
 }));
 
-vi.mock("@/components/layout/quick_calendar_panel", () => ({
-  get_calendar_panel_origin: () => calendar.origin,
+vi.mock("@/components/layout/open_calendar_externally", () => ({
   open_calendar_externally: calendar.open_externally,
-  QuickCalendarPanel: ({ is_open }: { is_open: boolean }) => (
+}));
+
+vi.mock("@/components/layout/desktop_calendar_panel", () => ({
+  DesktopCalendarPanel: ({ is_open }: { is_open: boolean }) => (
     <div data-open={is_open ? "1" : "0"} data-testid="calendar_panel" />
   ),
 }));
@@ -102,7 +103,6 @@ describe("app rail items", () => {
   };
 
   beforeEach(async () => {
-    calendar.origin = "https://calendar.astermail.org";
     calendar.open_externally.mockReset();
     localStorage.clear();
     container = document.createElement("div");

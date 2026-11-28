@@ -281,7 +281,7 @@ function top_bar_base({
 
   return (
     <header
-      className="flex items-center h-14 pe-2 sm:pe-3 flex-shrink-0 select-none"
+      className="flex items-center h-14 pe-2 flex-shrink-0 select-none"
       style={{ backgroundColor: "var(--bg-secondary)" }}
     >
       <div
@@ -310,11 +310,6 @@ function top_bar_base({
             <TopBarLogo is_rail_header={is_rail_header} />
           </button>
         </Tooltip>
-        {!is_rail_header && (
-          <div className="hidden sm:flex flex-shrink-0 items-center">
-            <AppSwitcher on_open_current={go_home} />
-          </div>
-        )}
       </div>
 
       <div
@@ -339,7 +334,7 @@ function top_bar_base({
             <DropdownMenuTrigger asChild>
               <button
                 aria-label={t("common.help")}
-                className="flex items-center justify-center w-9 h-9 rounded-full transition-colors text-[var(--text-primary)] hover:bg-[var(--bg-hover)] focus:outline-none"
+                className="flex items-center justify-center w-9 h-9 rounded-full transition-colors text-[var(--text-primary)] hover:bg-[var(--bg-hover)] aria-expanded:bg-[var(--bg-hover)] focus:outline-none"
                 type="button"
               >
                 <QuestionMarkCircleIcon className="w-5 h-5" />
@@ -420,9 +415,13 @@ function top_bar_base({
           </Tooltip>
         )}
 
+        <div className="hidden sm:flex flex-shrink-0 items-center">
+          <AppSwitcher />
+        </div>
+
         <div
           ref={account_tip_anchor}
-          className={`relative ${is_free_plan ? "" : "ms-1.5"}`}
+          className="relative"
           onMouseEnter={open_account_tip}
           onMouseLeave={leave_account_tip}
           onPointerDownCapture={close_account_tip}
@@ -449,7 +448,7 @@ function top_bar_base({
                     profile_color={
                       user?.profile_color || preferences.profile_color
                     }
-                    size="sm"
+                    size={is_paid_plan ? "xs" : "sm"}
                   />
                 </span>
               </button>

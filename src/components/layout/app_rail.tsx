@@ -18,20 +18,14 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { memo, useCallback, useEffect, useMemo, useState } from "react";
+import { memo, useCallback, useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { AppRailView } from "@aster/ui";
 
 import { AppRailIcon } from "@/components/icons/app_rail_icon";
 import { QuickContactsPanel } from "@/components/layout/quick_contacts_panel";
 import { QuickSecurityPanel } from "@/components/layout/quick_security_panel";
-import {
-  get_calendar_panel_origin,
-  open_calendar_externally,
-  QuickCalendarPanel,
-} from "@/components/layout/quick_calendar_panel";
 import { DesktopCalendarPanel } from "@/components/layout/desktop_calendar_panel";
-import { is_tauri } from "@/native/desktop_device_auth";
 import { use_panel_transition } from "@/components/layout/use_panel_transition";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_preferences } from "@/contexts/preferences_context";
@@ -79,8 +73,6 @@ function AppRailComponent({
   const is_settings_view = location.pathname.startsWith("/settings");
   const [is_hidden, set_is_hidden] = useState(read_hidden);
   const [is_swapping, set_is_swapping] = useState(false);
-  const calendar_origin = useMemo(get_calendar_panel_origin, []);
-  const is_desktop = useMemo(is_tauri, []);
 
   const close_contacts = useCallback(() => {
     write_rail_contacts_open(false);
@@ -137,12 +129,6 @@ function AppRailComponent({
   }, [on_calendar_open_change]);
 
   const toggle_calendar = useCallback(() => {
-    if (!calendar_origin && !is_desktop) {
-      open_calendar_externally();
-
-      return;
-    }
-
     const next = !is_calendar_open;
 
     set_is_swapping(next && (is_contacts_open || is_security_open));
@@ -154,8 +140,6 @@ function AppRailComponent({
       on_security_open_change(false);
     }
   }, [
-    calendar_origin,
-    is_desktop,
     is_calendar_open,
     is_contacts_open,
     is_security_open,
@@ -260,22 +244,11 @@ function AppRailComponent({
             is_swapping={is_swapping}
             on_close={close_security}
           />
-          {is_desktop ? (
-            <DesktopCalendarPanel
-              is_open={is_calendar_open}
-              is_swapping={is_swapping}
-              on_close={close_calendar}
-            />
-          ) : (
-            calendar_origin && (
-              <QuickCalendarPanel
-                is_open={is_calendar_open}
-                is_swapping={is_swapping}
-                origin={calendar_origin}
-                on_close={close_calendar}
-              />
-            )
-          )}
+          <DesktopCalendarPanel
+            is_open={is_calendar_open}
+            is_swapping={is_swapping}
+            on_close={close_calendar}
+          />
         </>
       }
       on_toggle_hidden={toggle_hidden}

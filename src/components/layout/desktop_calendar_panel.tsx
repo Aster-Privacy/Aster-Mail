@@ -19,26 +19,21 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type {
+  CalendarEventDraft,
   DecryptedCalendar,
   DecryptedCalendarEvent,
 } from "@/types/calendar";
 import type { KeyboardEvent as ReactKeyboardEvent, ReactNode } from "react";
 
-import {
-  Fragment,
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ArrowLeftIcon,
   ArrowTopRightOnSquareIcon,
-  CalendarDaysIcon,
+  ChevronDownIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
   MapPinIcon,
+  PlusIcon,
   XMarkIcon,
 } from "@heroicons/react/24/outline";
 import { Button, Skeleton, Tooltip } from "@aster/ui";
@@ -55,10 +50,9 @@ import {
 } from "@/services/app_lock_store";
 import { open_external } from "@/utils/open_link";
 import { use_panel_transition } from "@/components/layout/use_panel_transition";
-import { open_calendar_externally } from "@/components/layout/quick_calendar_panel";
+import { open_calendar_externally } from "@/components/layout/open_calendar_externally";
+import { create_event } from "@/services/api/calendar";
 import {
-  AGENDA_DAY_COUNT,
-  UP_NEXT_SOON_MS,
   add_days,
   add_months,
   bucket_events_by_day,
@@ -67,22 +61,26 @@ import {
   day_key,
   end_of_day,
   is_same_day,
-  pick_next_event,
   plain_text,
   resolve_event_color,
   start_of_day,
   week_start_day_index,
-  type UpNextPick,
 } from "@/components/layout/desktop_calendar_days";
 import { use_desktop_agenda } from "@/components/layout/use_desktop_agenda";
 import {
-  EventKindIcon,
-  NowDivider,
-  compact_time_range,
-  event_segment_for_day,
-  now_divider_index,
-  relative_day_label,
-} from "@/components/layout/desktop_calendar_agenda_parts";
+  DEFAULT_DRAFT_MINUTES,
+  MINUTES_PER_DAY,
+  date_at_minute,
+  initial_scroll_minute,
+  layout_day,
+  next_draft_start,
+} from "@/components/layout/desktop_calendar_timeline_layout";
+import {
+  AllDayStrip,
+  DayTimeline,
+  QuickCreate,
+  type DraftRange,
+} from "@/components/layout/desktop_calendar_day_view";
 
 const NOW_TICK_MS = 30_000;
 const KEY_STEPS: Record<string, number> = {
@@ -143,9 +141,10 @@ function use_now(is_active: boolean): Date {
 
 interface PanelHeaderProps {
   on_close: () => void;
+  on_new_event: (() => void) | null;
 }
 
-function PanelHeader({ on_close }: PanelHeaderProps) {
+function PanelHeader({ on_close, on_new_event }: PanelHeaderProps) {
   const { t } = use_i18n();
 
   return (
@@ -153,6 +152,20 @@ function PanelHeader({ on_close }: PanelHeaderProps) {
       <h2 className="min-w-0 flex-1 truncate text-[15px] font-medium text-txt-primary">
         {t("common.app_name_calendar")}
       </h2>
+      {on_new_event && (
+        <Tooltip position="bottom" tip={t("calendar.new_event")}>
+          <Button
+            aria-label={t("calendar.new_event")}
+            className="h-8 w-8 flex-shrink-0 text-txt-secondary"
+            data-testid="desktop_calendar_new_event"
+            size="icon"
+            variant="ghost"
+            onClick={on_new_event}
+          >
+            <PlusIcon className="h-4 w-4" />
+          </Button>
+        </Tooltip>
+      )}
       <Tooltip position="bottom" tip={t("calendar.panel_open_calendar")}>
         <Button
           aria-label={t("calendar.panel_open_calendar")}
@@ -255,6 +268,11 @@ function use_formatters(language: string, time_format: "12h" | "24h") {
         minute: "2-digit",
         hour12: time_format === "12h",
       }),
+      hour:
+        time_format === "12h"
+          ? safe({ hour: "numeric", hour12: true })
+          : safe({ hour: "2-digit", minute: "2-digit", hour12: false }),
+      nav_day: safe({ weekday: "long", month: "short", day: "numeric" }),
       month: safe({ month: "long", year: "numeric" }),
       weekday_short: safe({ weekday: "narrow" }),
       short_date: safe({ month: "short", day: "numeric" }),
@@ -450,336 +468,6 @@ function MiniMonth({
   );
 }
 
-function segment_time_label(
-  event: DecryptedCalendarEvent,
-  day: Date,
-  formatters: Formatters,
-  all_day_label: string,
-): string {
-  const segment = event_segment_for_day(event, day);
-
-  if (segment.is_all_day) return all_day_label;
-  if (Number.isNaN(segment.start.getTime())) return "";
-  if (
-    Number.isNaN(segment.end.getTime()) ||
-    segment.end.getTime() <= segment.start.getTime()
-  ) {
-    return formatters.time.format(segment.start);
-  }
-
-  return compact_time_range(
-    formatters.time.format(segment.start),
-    formatters.time.format(segment.end),
-  );
-}
-
-function month_key(day: Date): string {
-  return `${day.getFullYear()}-${day.getMonth()}`;
-}
-
-interface AgendaEventRowProps {
-  event: DecryptedCalendarEvent;
-  day: Date;
-  now: Date;
-  color: string;
-  formatters: Formatters;
-  on_open: (event: DecryptedCalendarEvent) => void;
-}
-
-function AgendaEventRow({
-  event,
-  day,
-  now,
-  color,
-  formatters,
-  on_open,
-}: AgendaEventRowProps) {
-  const { t } = use_i18n();
-  const is_past = new Date(event.ends_at).getTime() < now.getTime();
-  const location = (event.location ?? "").trim();
-  const time = segment_time_label(
-    event,
-    day,
-    formatters,
-    t("calendar.all_day"),
-  );
-
-  return (
-    <button
-      className="flex w-full items-center gap-2.5 rounded-[var(--aster-radius-control,8px)] px-2 py-1.5 text-start transition-colors duration-150 ease-out hover:bg-[var(--aster-hover)] focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2"
-      style={{
-        opacity: is_past ? 0.6 : undefined,
-        outlineColor: "var(--accent-color)",
-      }}
-      title={event.title}
-      type="button"
-      onClick={() => on_open(event)}
-    >
-      <span
-        aria-hidden="true"
-        className="h-2.5 w-2.5 flex-shrink-0 rounded-full"
-        style={{ backgroundColor: color }}
-      />
-      <span className="flex min-w-0 flex-1 flex-col">
-        <span className="flex min-w-0 items-center gap-1.5 text-[13px] font-medium text-txt-primary">
-          <EventKindIcon kind={event.event_kind} />
-          <span
-            className={`truncate${
-              event.event_kind === "task" && event.is_completed
-                ? " line-through opacity-70"
-                : ""
-            }`}
-          >
-            {event.title.trim() || t("calendar.untitled_event")}
-          </span>
-        </span>
-        <span className="flex min-w-0 items-center gap-1.5 text-[12px] tabular-nums text-txt-muted">
-          <span className="flex-shrink-0 truncate" dir="ltr">
-            {time}
-          </span>
-          {location && (
-            <>
-              <span aria-hidden="true">·</span>
-              <MapPinIcon
-                aria-hidden="true"
-                className="h-3 w-3 flex-shrink-0"
-              />
-              <span className="min-w-0 truncate">{location}</span>
-            </>
-          )}
-        </span>
-      </span>
-    </button>
-  );
-}
-
-interface UpNextProps {
-  pick: UpNextPick | null;
-  now: Date;
-  color_of: (event: DecryptedCalendarEvent) => string;
-  formatters: Formatters;
-  on_open: (event: DecryptedCalendarEvent) => void;
-}
-
-function UpNext({ pick, now, color_of, formatters, on_open }: UpNextProps) {
-  const { t, language } = use_i18n();
-  const heading = (
-    <span className="text-[11px] font-semibold uppercase tracking-wider text-txt-muted">
-      {t("calendar.panel_up_next")}
-    </span>
-  );
-
-  if (!pick) {
-    return (
-      <div
-        className="mx-3 mt-3 rounded-xl border border-edge-secondary px-3 py-2.5"
-        data-testid="desktop_calendar_up_next"
-      >
-        {heading}
-        <p className="mt-1 flex items-center gap-2 text-[13px] text-txt-muted">
-          <CalendarDaysIcon
-            aria-hidden="true"
-            className="h-4 w-4 flex-shrink-0"
-          />
-          <span>{t("calendar.panel_up_next_empty")}</span>
-        </p>
-      </div>
-    );
-  }
-
-  const { event } = pick;
-  const now_ms = now.getTime();
-  const is_ongoing = pick.start_ms <= now_ms && now_ms < pick.end_ms;
-  const minutes = Math.max(1, Math.ceil((pick.start_ms - now_ms) / 60_000));
-  let badge = "";
-
-  if (!event.is_all_day && is_ongoing) {
-    badge = t("calendar.panel_up_next_now");
-  } else if (!event.is_all_day && pick.start_ms - now_ms <= UP_NEXT_SOON_MS) {
-    badge = t("calendar.panel_up_next_in_minutes", { count: minutes });
-  }
-
-  const start = new Date(pick.start_ms);
-  const is_later_day = !is_same_day(start, now) && pick.start_ms > now_ms;
-  const day_text = is_later_day
-    ? `${relative_day_label(start, now, language)}, ${formatters.short_date.format(start)}`
-    : relative_day_label(now, now, language);
-
-  return (
-    <button
-      className="mx-3 mt-3 flex w-[calc(100%-1.5rem)] flex-col rounded-xl border border-edge-secondary px-3 py-2.5 text-start transition-colors duration-150 ease-out hover:bg-[var(--aster-hover)] focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2"
-      data-testid="desktop_calendar_up_next"
-      style={{ outlineColor: "var(--accent-color)" }}
-      type="button"
-      onClick={() => on_open(event)}
-    >
-      <span className="flex w-full items-center gap-2">
-        {heading}
-        {badge && (
-          <span className="ms-auto rounded-full bg-[var(--accent-color)] px-2 py-0.5 text-[11px] font-medium text-[var(--accent-color-foreground,#ffffff)]">
-            {badge}
-          </span>
-        )}
-      </span>
-      <span className="mt-1.5 flex w-full items-center gap-2.5">
-        <span
-          aria-hidden="true"
-          className="h-2.5 w-2.5 flex-shrink-0 rounded-full"
-          style={{ backgroundColor: color_of(event) }}
-        />
-        <span className="flex min-w-0 flex-1 items-center gap-1.5 text-[14px] font-medium text-txt-primary">
-          <EventKindIcon kind={event.event_kind} />
-          <span className="truncate">
-            {event.title.trim() || t("calendar.untitled_event")}
-          </span>
-        </span>
-      </span>
-      <span className="mt-0.5 flex w-full min-w-0 items-center gap-1.5 ps-5 text-[12px] tabular-nums text-txt-muted">
-        <span
-          className="flex-shrink-0 font-medium"
-          style={{ color: is_later_day ? undefined : "var(--accent-color)" }}
-        >
-          {day_text}
-        </span>
-        <span aria-hidden="true">·</span>
-        <span className="min-w-0 truncate" dir="ltr">
-          {event_time_label(event, formatters, t("calendar.all_day"))}
-        </span>
-      </span>
-    </button>
-  );
-}
-
-interface AgendaListProps {
-  days: Date[];
-  selected: Date;
-  buckets: Map<string, DecryptedCalendarEvent[]>;
-  now: Date;
-  today: Date;
-  color_of: (event: DecryptedCalendarEvent) => string;
-  formatters: Formatters;
-  on_open: (event: DecryptedCalendarEvent) => void;
-}
-
-function AgendaList({
-  days,
-  selected,
-  buckets,
-  now,
-  today,
-  color_of,
-  formatters,
-  on_open,
-}: AgendaListProps) {
-  const { t, language } = use_i18n();
-  const groups = days
-    .map((day) => ({ day, events: buckets.get(day_key(day)) ?? [] }))
-    .filter(
-      ({ day, events }) =>
-        events.length > 0 ||
-        is_same_day(day, selected) ||
-        is_same_day(day, today),
-    );
-  let rendered_month = groups.length > 0 ? month_key(groups[0].day) : "";
-
-  return (
-    <div
-      className="mt-2 flex flex-col pb-4"
-      data-testid="desktop_calendar_agenda_list"
-    >
-      {groups.map(({ day, events }, index) => {
-        const is_today = is_same_day(day, today);
-        const is_past_day = day.getTime() < today.getTime();
-        const current_month = month_key(day);
-        const show_month_header = current_month !== rendered_month;
-        const divider_at = is_today ? now_divider_index(events, now) : -1;
-
-        rendered_month = current_month;
-
-        return (
-          <div key={day_key(day)}>
-            {show_month_header && (
-              <div
-                className="sticky top-0 z-10 flex h-7 items-center border-b border-edge-secondary bg-surf-primary px-4 text-[11px] font-semibold uppercase tracking-wider text-txt-muted"
-                data-testid="agenda_month_header"
-              >
-                {formatters.month.format(day)}
-              </div>
-            )}
-            <section
-              aria-current={is_today ? "date" : undefined}
-              aria-label={formatters.full_day.format(day)}
-              className={`flex gap-1 px-2 py-2 ${
-                index === 0 || show_month_header
-                  ? ""
-                  : "border-t border-edge-secondary"
-              }`}
-            >
-              <div className="flex w-16 flex-shrink-0 flex-col items-center pt-0.5">
-                <span
-                  className="max-w-full truncate whitespace-nowrap text-[10px] font-semibold uppercase tracking-wide"
-                  style={{
-                    color: is_today
-                      ? "var(--accent-color)"
-                      : "var(--text-muted)",
-                  }}
-                >
-                  {relative_day_label(day, today, language)}
-                </span>
-                <span
-                  className="mt-0.5 inline-flex h-8 min-w-8 items-center justify-center rounded-full px-1 text-[16px] font-medium tabular-nums"
-                  style={{
-                    backgroundColor: is_today
-                      ? "var(--accent-color)"
-                      : undefined,
-                    color: is_today
-                      ? "var(--accent-color-foreground, #ffffff)"
-                      : is_past_day
-                        ? "var(--text-muted)"
-                        : "var(--text-primary)",
-                  }}
-                >
-                  {day.getDate()}
-                </span>
-              </div>
-              {events.length === 0 ? (
-                <p className="flex h-10 min-w-0 flex-1 items-center gap-2 px-2 text-[13px] text-txt-muted">
-                  <CalendarDaysIcon
-                    aria-hidden="true"
-                    className="h-4 w-4 flex-shrink-0"
-                  />
-                  <span className="truncate">
-                    {t("calendar.panel_no_events")}
-                  </span>
-                </p>
-              ) : (
-                <ul className="flex min-w-0 flex-1 flex-col gap-0.5">
-                  {events.map((event, event_index) => (
-                    <Fragment key={`${event.id}-${event.starts_at}`}>
-                      {event_index === divider_at && <NowDivider />}
-                      <li>
-                        <AgendaEventRow
-                          color={color_of(event)}
-                          day={day}
-                          event={event}
-                          formatters={formatters}
-                          now={now}
-                          on_open={on_open}
-                        />
-                      </li>
-                    </Fragment>
-                  ))}
-                  {divider_at === events.length && <NowDivider />}
-                </ul>
-              )}
-            </section>
-          </div>
-        );
-      })}
-    </div>
-  );
-}
-
 interface EventViewProps {
   event: DecryptedCalendarEvent;
   calendar: DecryptedCalendar | undefined;
@@ -867,20 +555,152 @@ function EventView({
   );
 }
 
+const MONTH_OPEN_STORAGE_KEY = "aster_calendar_panel_month_open";
+
+function read_month_open(): boolean {
+  try {
+    return window.localStorage.getItem(MONTH_OPEN_STORAGE_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+
+function write_month_open(value: boolean) {
+  try {
+    window.localStorage.setItem(MONTH_OPEN_STORAGE_KEY, value ? "1" : "0");
+  } catch {
+    return;
+  }
+}
+
+function build_draft(
+  calendar_id: string,
+  title: string,
+  day: Date,
+  range: DraftRange,
+): CalendarEventDraft {
+  return {
+    calendar_id,
+    title,
+    description: "",
+    location: "",
+    starts_at: date_at_minute(day, range.start_minute).toISOString(),
+    ends_at: date_at_minute(day, range.end_minute).toISOString(),
+    is_all_day: false,
+    status: "confirmed",
+    attendees: [],
+    tags: [],
+    reminder_minutes: null,
+    color: null,
+    availability: "busy",
+    visibility: "default",
+    event_kind: "default",
+    is_completed: false,
+    working_location: null,
+    conference_url: "",
+    guests_can_modify: false,
+    guests_can_invite: false,
+    guests_can_see_guests: true,
+    recurrence: null,
+    recurrence_exceptions: [],
+  };
+}
+
+interface DayNavigatorProps {
+  selected: Date;
+  is_today: boolean;
+  is_month_open: boolean;
+  formatters: Formatters;
+  on_toggle_month: () => void;
+  on_today: () => void;
+  on_step: (delta: number) => void;
+}
+
+function DayNavigator({
+  selected,
+  is_today,
+  is_month_open,
+  formatters,
+  on_toggle_month,
+  on_today,
+  on_step,
+}: DayNavigatorProps) {
+  const { t } = use_i18n();
+
+  return (
+    <div className="flex h-10 flex-shrink-0 items-center gap-1 ps-2 pe-2">
+      <button
+        aria-controls="calendar_panel_month"
+        aria-expanded={is_month_open}
+        aria-label={`${formatters.full_day.format(selected)}, ${t(
+          is_month_open
+            ? "calendar.panel_hide_month"
+            : "calendar.panel_show_month",
+        )}`}
+        className="flex h-8 min-w-0 flex-1 items-center gap-1 rounded-[var(--aster-radius-control,8px)] px-2 text-start text-[14px] font-medium text-txt-primary transition-colors duration-150 ease-out hover:bg-[var(--aster-hover)] focus:outline-none focus-visible:shadow-[0_0_0_2px_var(--accent-color)]"
+        data-testid="desktop_calendar_day_button"
+        type="button"
+        onClick={on_toggle_month}
+      >
+        <span className="truncate">{formatters.nav_day.format(selected)}</span>
+        <ChevronDownIcon
+          aria-hidden="true"
+          className={`h-3.5 w-3.5 flex-shrink-0 text-txt-secondary transition-transform duration-200 ease-out motion-reduce:transition-none ${
+            is_month_open ? "rotate-180" : ""
+          }`}
+        />
+      </button>
+      <Button
+        className="h-8 flex-shrink-0 px-3"
+        disabled={is_today}
+        size="sm"
+        variant="outline"
+        onClick={on_today}
+      >
+        {t("calendar.today")}
+      </Button>
+      <Tooltip position="bottom" tip={t("calendar.panel_previous_day")}>
+        <Button
+          aria-label={t("calendar.panel_previous_day")}
+          className="h-8 w-8 flex-shrink-0 text-txt-secondary"
+          size="icon"
+          variant="ghost"
+          onClick={() => on_step(-1)}
+        >
+          <ChevronLeftIcon className="h-4 w-4 rtl:rotate-180" />
+        </Button>
+      </Tooltip>
+      <Tooltip position="bottom" tip={t("calendar.panel_next_day")}>
+        <Button
+          aria-label={t("calendar.panel_next_day")}
+          className="h-8 w-8 flex-shrink-0 text-txt-secondary"
+          size="icon"
+          variant="ghost"
+          onClick={() => on_step(1)}
+        >
+          <ChevronRightIcon className="h-4 w-4 rtl:rotate-180" />
+        </Button>
+      </Tooltip>
+    </div>
+  );
+}
+
 interface AgendaBodyProps {
   account_id: string;
-  self_email: string;
   is_open: boolean;
+  create_request: number;
   selected_event: DecryptedCalendarEvent | null;
   on_select_event: (event: DecryptedCalendarEvent | null) => void;
+  on_ready_change: (is_ready: boolean) => void;
 }
 
 function AgendaBody({
   account_id,
-  self_email,
   is_open,
+  create_request,
   selected_event,
   on_select_event,
+  on_ready_change,
 }: AgendaBodyProps) {
   const { t, language } = use_i18n();
   const { preferences } = use_preferences();
@@ -888,48 +708,52 @@ function AgendaBody({
   const today = useMemo(() => start_of_day(now), [now]);
   const [selected, set_selected] = useState(() => start_of_day(new Date()));
   const [anchor, set_anchor] = useState(() => start_of_day(new Date()));
+  const [is_month_open, set_is_month_open] = useState(read_month_open);
+  const [draft, set_draft] = useState<DraftRange | null>(null);
+  const [is_composing, set_is_composing] = useState(false);
+  const handled_request_ref = useRef(create_request);
+  const return_focus_ref = useRef<string | null>(null);
   const week_start = week_start_day_index(preferences.calendar_week_starts_on);
   const formatters = use_formatters(language, preferences.time_format);
+  const is_today = is_same_day(selected, today);
 
   const grid = useMemo(
     () => build_month_grid(anchor, week_start),
     [anchor, week_start],
-  );
-  const agenda_days = useMemo(
-    () =>
-      Array.from({ length: AGENDA_DAY_COUNT }, (_, index) =>
-        add_days(selected, index),
-      ),
-    [selected],
   );
   const range_start = useMemo(
     () => start_of_day(grid[0] < selected ? grid[0] : selected),
     [grid, selected],
   );
   const range_end = useMemo(() => {
-    const last_agenda = agenda_days[agenda_days.length - 1];
     const last_grid = grid[grid.length - 1];
 
-    return end_of_day(last_agenda > last_grid ? last_agenda : last_grid);
-  }, [agenda_days, grid]);
-  const up_next_end = useMemo(
-    () => end_of_day(add_days(today, AGENDA_DAY_COUNT + 1)),
-    [today],
-  );
+    return end_of_day(selected > last_grid ? selected : last_grid);
+  }, [grid, selected]);
 
   const agenda = use_desktop_agenda({
     enabled: true,
     account_id,
     range_start,
     range_end,
-    up_next_start: today,
-    up_next_end,
+    up_next_start: range_start,
+    up_next_end: range_end,
   });
 
   const calendars_by_id = useMemo(
     () => new Map(agenda.calendars.map((calendar) => [calendar.id, calendar])),
     [agenda.calendars],
   );
+  const visible_calendars = useMemo(
+    () => agenda.calendars.filter((calendar) => calendar.is_visible),
+    [agenda.calendars],
+  );
+  const default_calendar_id =
+    visible_calendars.find((calendar) => calendar.is_default)?.id ??
+    agenda.calendars.find((calendar) => calendar.is_default)?.id ??
+    visible_calendars[0]?.id ??
+    agenda.calendars[0]?.id ??
+    "";
   const visible_events = useMemo(() => {
     const hidden = new Set(
       agenda.calendars.filter((c) => !c.is_visible).map((c) => c.id),
@@ -937,9 +761,21 @@ function AgendaBody({
 
     return agenda.events.filter((event) => !hidden.has(event.calendar_id));
   }, [agenda.events, agenda.calendars]);
-  const agenda_buckets = useMemo(
-    () => bucket_events_by_day(visible_events, agenda_days),
-    [visible_events, agenda_days],
+  const selected_events = useMemo(
+    () =>
+      bucket_events_by_day(visible_events, [selected]).get(day_key(selected)) ??
+      [],
+    [visible_events, selected],
+  );
+  const layout = useMemo(
+    () => layout_day(selected_events, selected),
+    [selected_events, selected],
+  );
+  const selected_time = selected.getTime();
+  const has_timed_events = layout.timed.length > 0;
+  const scroll_minute = useMemo(
+    () => initial_scroll_minute(layout, is_today, now, selected),
+    [selected_time, has_timed_events, is_today],
   );
   const event_days = useMemo(() => {
     const buckets = bucket_events_by_day(visible_events, grid);
@@ -950,11 +786,6 @@ function AgendaBody({
         .map(([key]) => key),
     );
   }, [visible_events, grid]);
-  const pick = useMemo(
-    () =>
-      pick_next_event(agenda.up_next_events, agenda.calendars, now, self_email),
-    [agenda.up_next_events, agenda.calendars, now, self_email],
-  );
   const color_of = useCallback(
     (event: DecryptedCalendarEvent) =>
       resolve_event_color(event, calendars_by_id),
@@ -964,6 +795,8 @@ function AgendaBody({
     const next = start_of_day(day);
 
     set_selected(next);
+    set_draft(null);
+    set_is_composing(false);
     set_anchor((current) =>
       current.getFullYear() === next.getFullYear() &&
       current.getMonth() === next.getMonth()
@@ -971,11 +804,102 @@ function AgendaBody({
         : next,
     );
   }, []);
+  const toggle_month = useCallback(() => {
+    set_is_month_open((value) => {
+      write_month_open(!value);
+
+      return !value;
+    });
+  }, []);
+  const open_event = useCallback(
+    (event: DecryptedCalendarEvent) => {
+      return_focus_ref.current = event.id;
+      set_draft(null);
+      set_is_composing(false);
+      on_select_event(event);
+    },
+    [on_select_event],
+  );
+  const start_draft = useCallback((range: DraftRange) => {
+    set_draft(range);
+    set_is_composing(true);
+  }, []);
+  const preview_draft = useCallback((range: DraftRange | null) => {
+    set_draft(range);
+    set_is_composing(false);
+  }, []);
+  const cancel_draft = useCallback(() => {
+    set_draft(null);
+    set_is_composing(false);
+  }, []);
+  const save_draft = useCallback(
+    async (input: {
+      title: string;
+      calendar_id: string;
+      range: DraftRange;
+    }) => {
+      try {
+        const result = await create_event(
+          build_draft(
+            input.calendar_id,
+            input.title || t("calendar.untitled_event"),
+            selected,
+            input.range,
+          ),
+        );
+
+        if (!result.data) return false;
+        set_draft(null);
+        set_is_composing(false);
+        agenda.retry();
+
+        return true;
+      } catch {
+        return false;
+      }
+    },
+    [selected, agenda.retry, t],
+  );
+
+  const is_ready = agenda.status === "ready";
+
+  useEffect(() => {
+    on_ready_change(is_ready);
+  }, [is_ready, on_ready_change]);
+
+  useEffect(() => () => on_ready_change(false), [on_ready_change]);
+
+  useEffect(() => {
+    if (create_request === handled_request_ref.current) return;
+    handled_request_ref.current = create_request;
+    if (!is_ready || !default_calendar_id) return;
+
+    const start = next_draft_start(now, selected, is_today);
+
+    on_select_event(null);
+    start_draft({
+      start_minute: start,
+      end_minute: Math.min(MINUTES_PER_DAY, start + DEFAULT_DRAFT_MINUTES),
+    });
+  }, [create_request]);
 
   useEffect(() => {
     if (!selected_event) return;
     if (agenda.status !== "ready") on_select_event(null);
   }, [agenda.status, selected_event, on_select_event]);
+
+  useEffect(() => {
+    if (selected_event || !return_focus_ref.current) return;
+
+    const id = return_focus_ref.current;
+
+    return_focus_ref.current = null;
+    document
+      .querySelector<HTMLButtonElement>(
+        `[data-testid="desktop_calendar_panel"] [data-event-id="${CSS.escape(id)}"]`,
+      )
+      ?.focus();
+  }, [selected_event]);
 
   if (agenda.status === "loading") return <AgendaSkeleton />;
   if (agenda.status === "failed") {
@@ -1006,9 +930,11 @@ function AgendaBody({
     );
   }
 
+  const is_empty_day = selected_events.length === 0;
+
   return (
     <div
-      className="flex flex-1 flex-col overflow-y-auto"
+      className="relative flex min-h-0 flex-1 flex-col"
       data-testid="desktop_calendar_agenda"
     >
       {agenda.refresh_failed && (
@@ -1024,33 +950,75 @@ function AgendaBody({
           </Button>
         </div>
       )}
-      <MiniMonth
-        anchor={anchor}
-        event_days={event_days}
+      <DayNavigator
         formatters={formatters}
+        is_month_open={is_month_open}
+        is_today={is_today}
         selected={selected}
-        today={today}
-        week_start={week_start}
-        on_anchor_change={set_anchor}
-        on_select={select_day}
+        on_step={(delta) => select_day(add_days(selected, delta))}
+        on_today={() => select_day(today)}
+        on_toggle_month={toggle_month}
       />
-      <UpNext
+      {is_month_open && (
+        <div
+          className="calendar_panel_month flex-shrink-0 pb-2"
+          id="calendar_panel_month"
+        >
+          <MiniMonth
+            anchor={anchor}
+            event_days={event_days}
+            formatters={formatters}
+            selected={selected}
+            today={today}
+            week_start={week_start}
+            on_anchor_change={set_anchor}
+            on_select={select_day}
+          />
+        </div>
+      )}
+      <div className="h-px flex-shrink-0 bg-[var(--border-secondary)]" />
+      <AllDayStrip
+        key={day_key(selected)}
         color_of={color_of}
-        formatters={formatters}
-        now={now}
-        pick={pick}
-        on_open={on_select_event}
+        events={layout.all_day}
+        on_open={open_event}
       />
-      <AgendaList
-        buckets={agenda_buckets}
+      {is_empty_day && (
+        <p
+          className="flex-shrink-0 border-b border-edge-secondary px-4 py-2 text-[12px] text-txt-muted"
+          data-testid="desktop_calendar_empty_day"
+        >
+          {t("calendar.panel_empty_day")}
+        </p>
+      )}
+      <DayTimeline
         color_of={color_of}
-        days={agenda_days}
+        day={selected}
+        draft={draft}
         formatters={formatters}
+        is_today={is_today}
+        layout={layout}
         now={now}
-        selected={selected}
-        today={today}
-        on_open={on_select_event}
+        scroll_minute={scroll_minute}
+        on_draft={start_draft}
+        on_draft_preview={preview_draft}
+        on_open={open_event}
       />
+      {is_composing && draft && default_calendar_id && (
+        <QuickCreate
+          key={`${draft.start_minute}-${draft.end_minute}`}
+          calendars={
+            visible_calendars.length > 0 ? visible_calendars : agenda.calendars
+          }
+          date_label={formatters.nav_day.format(selected)}
+          day={selected}
+          default_calendar_id={default_calendar_id}
+          formatters={formatters}
+          range={draft}
+          on_cancel={cancel_draft}
+          on_save={save_draft}
+        />
+      )}
     </div>
   );
 }
@@ -1073,6 +1041,8 @@ export function DesktopCalendarPanel({
   const [selected_event, set_selected_event] =
     useState<DecryptedCalendarEvent | null>(null);
   const [gate_tick, set_gate_tick] = useState(0);
+  const [create_request, set_create_request] = useState(0);
+  const [is_body_ready, set_is_body_ready] = useState(false);
   const { is_visible, is_closing } = use_panel_transition(is_open, is_swapping);
   const account_id = auth.current_account_id ?? auth.user?.id ?? null;
   const user_id = auth.user?.id ?? null;
@@ -1159,9 +1129,10 @@ export function DesktopCalendarPanel({
         <AgendaBody
           key={account_id}
           account_id={account_id}
+          create_request={create_request}
           is_open={is_open}
-          self_email={auth.user?.email ?? ""}
           selected_event={selected_event}
+          on_ready_change={set_is_body_ready}
           on_select_event={set_selected_event}
         />
       );
@@ -1177,7 +1148,14 @@ export function DesktopCalendarPanel({
       } ${is_closing ? "quick_panel_closing" : "z-10"}`}
       data-testid="desktop_calendar_panel"
     >
-      <PanelHeader on_close={on_close} />
+      <PanelHeader
+        on_close={on_close}
+        on_new_event={
+          gate === "ready" && is_body_ready
+            ? () => set_create_request((value) => value + 1)
+            : null
+        }
+      />
       {body}
     </aside>
   );

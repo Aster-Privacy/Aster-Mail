@@ -606,7 +606,14 @@ export interface CalendarTranslations {
   panel_previous_month: string;
   panel_next_month: string;
   panel_open_event: string;
-  panel_set_up: string;
+  panel_previous_day: string;
+  panel_next_day: string;
+  panel_show_month: string;
+  panel_hide_month: string;
+  panel_empty_day: string;
+  panel_save_failed: string;
+  panel_show_less: string;
+  panel_timeline_hint: string;
   beta_waitlist_start: string;
   beta_waitlist_features_title: string;
   beta_waitlist_info_title: string;
@@ -1252,6 +1259,7 @@ export interface CommonTranslations {
   app_name_calendar: string;
   app_current_tip: string;
   app_description_mail: string;
+  app_you_are_here: string;
   app_description_calendar: string;
   aster_account: string;
   workspace_title: string;

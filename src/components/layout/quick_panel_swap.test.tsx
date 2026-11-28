@@ -72,10 +72,8 @@ vi.mock("@/components/layout/quick_security_panel", () => ({
 
 const calendar_renders: boolean[] = [];
 
-vi.mock("@/components/layout/quick_calendar_panel", () => ({
-  get_calendar_panel_origin: () => "https://calendar.astermail.org",
-  open_calendar_externally: () => {},
-  QuickCalendarPanel: ({
+vi.mock("@/components/layout/desktop_calendar_panel", () => ({
+  DesktopCalendarPanel: ({
     is_open,
     is_swapping,
   }: {
@@ -226,7 +224,7 @@ describe("quick panel swap", () => {
     for (const file of [
       "src/components/layout/quick_contacts_panel.tsx",
       "src/components/layout/quick_security_panel.tsx",
-      "src/components/layout/quick_calendar_panel.tsx",
+      "src/components/layout/desktop_calendar_panel.tsx",
     ]) {
       const source = readFileSync(file, "utf8");
       const root_class = source

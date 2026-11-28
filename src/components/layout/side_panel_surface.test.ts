@@ -20,7 +20,6 @@
 //
 import { afterEach, describe, expect, it } from "vitest";
 
-import calendar_panel_source from "./quick_calendar_panel.tsx?raw";
 import contacts_panel_source from "./quick_contacts_panel.tsx?raw";
 import security_panel_source from "./quick_security_panel.tsx?raw";
 import desktop_calendar_source from "./desktop_calendar_panel.tsx?raw";
@@ -32,7 +31,6 @@ import {
 } from "@/components/layout/use_host_appearance";
 
 const PANELS: [string, string, string][] = [
-  ["quick_calendar_panel", calendar_panel_source, "`quick_calendar_panel "],
   ["quick_contacts_panel", contacts_panel_source, "`quick_contacts_panel "],
   ["quick_security_panel", security_panel_source, "`quick_security_panel "],
   ["desktop_calendar_panel", desktop_calendar_source, "`quick_calendar_panel "],
