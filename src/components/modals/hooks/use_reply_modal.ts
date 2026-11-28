@@ -782,7 +782,11 @@ export function use_reply_modal(props: UseReplyModalProps) {
       on_complete: (sent_id?: string) => {
         if (!detached) release_send_lock();
         emit_email_sent();
-        show_email_sent_toast(t("common.email_sent"), delay_seconds > 0);
+        show_email_sent_toast(
+          t("common.email_sent"),
+          delay_seconds > 0,
+          sent_id,
+        );
 
         if (bubble_token) {
           emit_thread_reply_sent({
