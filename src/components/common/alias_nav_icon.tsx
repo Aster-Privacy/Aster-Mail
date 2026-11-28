@@ -34,7 +34,7 @@ interface AliasNavIconProps {
 
 export function AliasNavIcon({
   address,
-  is_random,
+  is_random: _is_random,
   size,
   profile_picture,
   icon_class_name,
@@ -62,7 +62,7 @@ export function AliasNavIcon({
     <AliasIconView
       background={gradient}
       icon_class_name={icon_class_name}
-      is_random={is_random}
+      is_random={false}
       size={size}
     />
   );

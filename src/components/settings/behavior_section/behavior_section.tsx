@@ -734,7 +734,7 @@ export function BehaviorSection() {
             { value: "right", label: t("settings.thread_count_right") },
           ]}
           title={t("settings.thread_count_position")}
-          value={preferences.thread_count_position ?? "left"}
+          value={preferences.thread_count_position ?? "right"}
         />
 
         <SettingToggleRow
@@ -768,19 +768,6 @@ export function BehaviorSection() {
           ]}
           title={t("settings.conversation_order")}
           value={preferences.conversation_order ?? "asc"}
-        />
-
-        <SettingToggleRow
-          checked={preferences.show_message_size === true}
-          description={t("settings.show_message_size_description")}
-          label={t("settings.show_message_size")}
-          on_change={() =>
-            update_preference(
-              "show_message_size",
-              !preferences.show_message_size,
-              true,
-            )
-          }
         />
 
         <ToggleSetting

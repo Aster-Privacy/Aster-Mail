@@ -41,7 +41,6 @@ import {
   MAIL_ROW_LAYOUT,
   RowActionButton,
   StarToggleButton,
-  format_email_size,
   format_mobile_timestamp,
   get_density_classes,
   sweep_drag_images,
@@ -92,6 +91,7 @@ import {
   is_mac_platform,
   is_system_email,
   trust_source_for_display,
+  is_aster_trusted_sender,
 } from "@/lib/utils";
 import { list_click_intent } from "@/lib/list_click_selection";
 import { is_compact_density, list_select_slot_class } from "@/lib/list_density";
@@ -129,7 +129,7 @@ export const InboxEmailListItem = memo(
         density,
         show_profile_pictures,
         show_email_preview,
-        show_message_size,
+        show_message_size: _show_message_size,
         show_thread_count = true,
         search_preview_node,
         current_view,
@@ -160,6 +160,10 @@ export const InboxEmailListItem = memo(
         email.thread_message_count,
       );
       const has_new_reaction = use_has_unseen_reaction(email);
+      const listed_attachments =
+        attachment_previews?.state === "loaded"
+          ? attachment_previews.attachments.filter((att) => !att.is_inline)
+          : null;
       const is_trash_view = current_view === "trash";
       const is_spam_view = current_view === "spam";
       const is_archive_view = current_view === "archive";
@@ -563,7 +567,7 @@ export const InboxEmailListItem = memo(
                       plain={marks_hidden}
                       sender_authenticated={
                         !marks_hidden &&
-                        is_system_email(
+                        is_aster_trusted_sender(
                           trust_source_for_display(email, show_sender_email),
                         )
                       }
@@ -604,10 +608,10 @@ export const InboxEmailListItem = memo(
 
               {show_thread_count &&
                 thread_message_count > 1 &&
-                (preferences.thread_count_position ?? "left") === "left" && (
+                (preferences.thread_count_position ?? "right") === "left" && (
                   <span
                     className={cn(
-                      "text-xs font-medium flex-shrink-0 min-w-[18px] h-[18px] px-1 flex items-center justify-center rounded-[5px] border border-transparent bg-[color-mix(in_srgb,currentColor_12%,transparent)]",
+                      "text-xs font-medium tabular-nums flex-shrink-0 min-w-[18px] h-[18px] px-1 flex items-center justify-center rounded-[5px] border border-transparent bg-[color-mix(in_srgb,currentColor_12%,transparent)]",
                       email.is_read ? "text-txt-muted" : "text-txt-secondary",
                     )}
                   >
@@ -619,7 +623,7 @@ export const InboxEmailListItem = memo(
                 className={cn(
                   "truncate text-sm",
                   email.is_read
-                    ? "font-normal text-txt-muted"
+                    ? "font-normal text-txt-secondary"
                     : "font-semibold text-txt-primary",
                 )}
                 dir="auto"
@@ -655,10 +659,10 @@ export const InboxEmailListItem = memo(
 
               {show_thread_count &&
                 thread_message_count > 1 &&
-                (preferences.thread_count_position ?? "left") === "right" && (
+                (preferences.thread_count_position ?? "right") === "right" && (
                   <span
                     className={cn(
-                      "text-xs font-medium flex-shrink-0 min-w-[18px] h-[18px] px-1 flex items-center justify-center rounded-[5px] border border-transparent bg-[color-mix(in_srgb,currentColor_12%,transparent)]",
+                      "text-xs font-medium tabular-nums flex-shrink-0 min-w-[18px] h-[18px] px-1 flex items-center justify-center rounded-[5px] border border-transparent bg-[color-mix(in_srgb,currentColor_12%,transparent)]",
                       email.is_read ? "text-txt-muted" : "text-txt-secondary",
                     )}
                   >
@@ -850,11 +854,12 @@ export const InboxEmailListItem = memo(
                 </div>
               )}
 
-              {email.has_attachment && (
+              {email.has_attachment && listed_attachments?.length !== 0 && (
                 <span
                   aria-label={t("mail.has_attachments")}
                   className={cn(
                     "flex-shrink-0 inline-flex items-center",
+                    listed_attachments && "md:hidden",
                     email.is_read ? "text-txt-muted" : "text-txt-secondary",
                   )}
                   data-testid="attachment-indicator"
@@ -879,8 +884,8 @@ export const InboxEmailListItem = memo(
                   className={cn(
                     "truncate",
                     email.is_read
-                      ? "font-normal text-txt-tertiary"
-                      : "font-medium text-txt-primary",
+                      ? "font-normal text-txt-secondary"
+                      : "font-semibold text-txt-primary",
                   )}
                   dir="auto"
                 >
@@ -888,8 +893,7 @@ export const InboxEmailListItem = memo(
                 </span>
                 {show_email_preview &&
                   (search_preview_node || email.preview) && (
-                    <span className="text-txt-muted" dir="auto">
-                      {" - "}
+                    <span className="ms-3 text-txt-muted" dir="auto">
                       {search_preview_node ||
                         (email.preview === RATCHET_UNDECRYPTABLE_SENTINEL ||
                         email.preview === PGP_UNDECRYPTABLE_SENTINEL
@@ -914,13 +918,12 @@ export const InboxEmailListItem = memo(
                   />
                 </span>
               )}
-              {attachment_previews?.state === "loaded" &&
-                attachment_previews.attachments.length > 0 && (
+              {listed_attachments && listed_attachments.length > 0 && (
                   <div
-                    className="hidden md:flex items-center gap-1 mt-1 mb-0.5"
+                    className="hidden md:flex items-center gap-1.5 flex-shrink-0"
                     data-testid="attachment-chips-container"
                   >
-                    {attachment_previews.attachments.slice(0, 3).map((att) => (
+                    {listed_attachments.slice(0, 1).map((att) => (
                       <AttachmentChip
                         key={att.id}
                         filename={att.filename}
@@ -929,10 +932,10 @@ export const InboxEmailListItem = memo(
                         type_label={att.type_label}
                       />
                     ))}
-                    {attachment_previews.attachments.length > 3 && (
-                      <span className="text-xs text-txt-muted">
+                    {listed_attachments.length > 1 && (
+                      <span className="text-xs tabular-nums text-txt-muted">
                         {t("mail.attachment_chips_more", {
-                          count: attachment_previews.attachments.length - 3,
+                          count: listed_attachments.length - 1,
                         })}
                       </span>
                     )}
@@ -942,14 +945,6 @@ export const InboxEmailListItem = memo(
 
             <span className={cn(MAIL_ROW_LAYOUT.mobile_date, "text-txt-muted")}>
               {format_mobile_timestamp(email.timestamp)}
-              {show_message_size &&
-                email.size_bytes != null &&
-                email.size_bytes > 0 && (
-                  <span className="ms-1.5">
-                    {"\u2022 "}
-                    {format_email_size(email.size_bytes)}
-                  </span>
-                )}
             </span>
           </div>
 
@@ -1027,14 +1022,6 @@ export const InboxEmailListItem = memo(
               )}
             >
               {email.timestamp}
-              {show_message_size &&
-                email.size_bytes != null &&
-                email.size_bytes > 0 && (
-                  <span className="ms-1.5">
-                    {"\u2022 "}
-                    {format_email_size(email.size_bytes)}
-                  </span>
-                )}
             </span>
 
             {show_hover_actions && (

@@ -95,7 +95,7 @@ import {
   apply_stat_deltas,
   revert_stat_deltas,
 } from "@/hooks/use_stat_helpers";
-import { report_spam_sender, remove_spam_sender } from "@/services/api/mail";
+import { remove_spam_sender } from "@/services/api/mail";
 import { reindex_ids } from "@/services/category_index";
 import { sync_thread_spam } from "@/services/trash_state";
 import { mark_conversation_read } from "@/hooks/mark_conversation_read";
@@ -113,6 +113,7 @@ import {
   get_display_time_zone,
 } from "@/utils/date_format";
 import { resolve_reply_references } from "@/lib/reply_references";
+import { report_spam_with_retract } from "@/components/email/viewer_shared/report_phishing";
 
 export interface EmailViewerActionsDeps {
   email_id: string;
@@ -654,14 +655,7 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
     if (result.success) {
       const sender = deps.email?.sender_email;
 
-      if (sender) {
-        report_spam_sender(sender).catch((caught) =>
-          ignore_error(
-            "components/email/email_viewer_actions:clear_clipboard_after_timeout",
-            caught,
-          ),
-        );
-      }
+      const retract_report = sender ? report_spam_with_retract(sender) : null;
       emit_mail_items_removed({ ids: [deps.email_id] });
       emit_mail_changed();
       show_action_toast({
@@ -697,14 +691,7 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
             is_spam: false,
             is_trashed: prev_is_trashed,
           });
-          if (sender) {
-            remove_spam_sender(sender).catch((caught) =>
-              ignore_error(
-                "components/email/email_viewer_actions:clear_clipboard_after_timeout",
-                caught,
-              ),
-            );
-          }
+          void retract_report?.();
           emit_mail_soft_refresh();
         },
       });

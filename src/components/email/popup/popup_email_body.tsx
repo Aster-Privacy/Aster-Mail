@@ -99,6 +99,7 @@ interface PopupEmailBodyProps {
   on_per_message_trash: (msg: DecryptedThreadMessage) => void;
   on_per_message_print: (msg: DecryptedThreadMessage) => void;
   on_per_message_report_phishing: (msg: DecryptedThreadMessage) => void;
+  on_per_message_block_sender?: (msg: DecryptedThreadMessage) => void;
   on_per_message_not_spam?: (msg: DecryptedThreadMessage) => void;
   is_spam?: boolean;
   is_trashed?: boolean;
@@ -158,6 +159,7 @@ export function PopupEmailBody({
   on_per_message_trash,
   on_per_message_print,
   on_per_message_report_phishing,
+  on_per_message_block_sender,
   on_per_message_not_spam,
   is_spam,
   is_trashed,
@@ -373,6 +375,7 @@ export function PopupEmailBody({
               on_print={on_per_message_print}
               on_reply={handle_inline_reply}
               on_reply_all={handle_inline_reply_all}
+              on_block_sender={on_per_message_block_sender}
               on_report_phishing={on_per_message_report_phishing}
               on_set_inline_mode={set_inline_mode}
               on_toggle_message_read={on_toggle_message_read}

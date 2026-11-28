@@ -79,6 +79,8 @@ interface PopupEmailActionsProps {
   applied_folder_tokens?: string[];
   on_unarchive?: () => void;
   on_not_spam?: () => void;
+  on_report_phishing?: () => void;
+  is_phishing_reported?: boolean;
   on_folder_toggle?: (folder_id: string) => void | Promise<void>;
   on_move_out_of_bin?: () => void | Promise<void>;
   on_close: () => void;
@@ -113,6 +115,8 @@ export function PopupEmailActions({
   applied_folder_tokens = [],
   on_unarchive,
   on_not_spam,
+  on_report_phishing,
+  is_phishing_reported = false,
   on_folder_toggle,
   on_move_out_of_bin,
   on_close,
@@ -337,6 +341,19 @@ export function PopupEmailActions({
               {t("mail.report_spam")}
             </DropdownMenuItem>
           ) : null}
+          {on_report_phishing && (
+            <DropdownMenuItem
+              disabled={is_phishing_reported}
+              onClick={on_report_phishing}
+            >
+              <ReportSpamIcon className="w-4 h-4 me-2 text-amber-500" />
+              <span className="text-amber-500">
+                {is_phishing_reported
+                  ? t("common.reported_as_phishing")
+                  : t("common.report_phishing")}
+              </span>
+            </DropdownMenuItem>
+          )}
           <DropdownMenuItem disabled={is_trash_loading} onClick={on_trash}>
             <TrashIcon className="w-4 h-4 me-2" />
             {trash_label}

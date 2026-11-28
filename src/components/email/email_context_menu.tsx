@@ -87,6 +87,7 @@ import {
   system_move_targets,
   type SystemMoveTarget,
 } from "@/lib/system_move_targets";
+import { can_report_phishing } from "@/components/email/viewer_shared/report_phishing";
 
 interface FolderOption {
   id: string;
@@ -138,6 +139,7 @@ export interface EmailContextMenuContentProps {
   on_move_to_inbox?: () => void;
   on_restore?: () => void;
   on_mark_not_spam?: () => void;
+  on_report_phishing?: () => void;
   on_category_change?: (category: EmailCategory) => void;
   categories_enabled?: boolean;
   disabled?: boolean;
@@ -182,6 +184,7 @@ function EmailContextMenuContentInner({
   on_move_to_inbox,
   on_restore,
   on_mark_not_spam,
+  on_report_phishing,
   on_category_change,
   categories_enabled = false,
   disabled = false,
@@ -743,6 +746,22 @@ function EmailContextMenuContentInner({
           >
             <ReportSpamIcon className="me-2 h-4 w-4" />
             {t("mail.report_spam")}
+          </ContextMenuItem>
+        )}
+
+      {!is_drafts &&
+        !is_scheduled &&
+        !is_sent &&
+        (is_selection || can_report_phishing(email.item_type)) &&
+        on_report_phishing && (
+          <ContextMenuItem
+            disabled={loading_action === "report_phishing"}
+            onClick={() => handle_action("report_phishing", on_report_phishing)}
+          >
+            <ReportSpamIcon className="me-2 h-4 w-4 text-amber-500" />
+            <span className="text-amber-500">
+              {t("common.report_phishing")}
+            </span>
           </ContextMenuItem>
         )}
 

@@ -28,6 +28,8 @@ import { use_inbox_bulk_actions } from "@/components/email/inbox/use_inbox_bulk_
 import { use_inbox_selection } from "@/components/email/inbox/use_inbox_selection";
 import { use_inbox_toolbar_actions } from "@/components/email/inbox/use_inbox_toolbar_actions";
 import { use_inbox_categories } from "@/hooks/use_inbox_categories";
+import { use_i18n } from "@/lib/i18n/context";
+import { report_phishing_for_emails } from "@/components/email/viewer_shared/report_phishing";
 
 export type InboxSelectionMenuParams = {
   categories: ReturnType<typeof use_inbox_categories>;
@@ -38,6 +40,7 @@ export type InboxSelectionMenuParams = {
   effective_total_for_pages: number;
   handle_category_drop: ReturnType<typeof use_category_drop>;
   set_show_toolbar_custom_snooze: (value: boolean) => void;
+  current_view?: string;
 };
 
 export function use_inbox_selection_menu({
@@ -49,6 +52,7 @@ export function use_inbox_selection_menu({
   effective_total_for_pages,
   handle_category_drop,
   set_show_toolbar_custom_snooze,
+  current_view,
 }: InboxSelectionMenuParams): SelectionMenuScope | null {
   const {
     handle_delete_wrapped,
@@ -65,6 +69,7 @@ export function use_inbox_selection_menu({
     handle_category_change_wrapped,
   } = bulk_actions;
 
+  const { t } = use_i18n();
   const selected_emails = useMemo(
     () => email_state.emails.filter((e) => e.is_selected),
     [email_state.emails],
@@ -92,6 +97,14 @@ export function use_inbox_selection_menu({
       on_mark_unread: handle_mark_unread_wrapped,
       on_restore: handle_restore_wrapped,
       on_mark_not_spam: handle_not_spam_wrapped,
+      on_report_phishing: is_all_mode
+        ? undefined
+        : () =>
+            void report_phishing_for_emails(
+              selected_emails,
+              current_view === "spam",
+              t,
+            ),
       on_move_to_inbox: handle_unarchive_wrapped,
       on_snooze: handle_snooze_wrapped,
       on_custom_snooze: () => set_show_toolbar_custom_snooze(true),
@@ -123,6 +136,8 @@ export function use_inbox_selection_menu({
     effective_total_for_pages,
     toolbar,
     categories.enabled,
+    current_view,
+    t,
     handle_category_drop,
     handle_archive_wrapped,
     handle_delete_wrapped,
