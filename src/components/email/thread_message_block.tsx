@@ -340,7 +340,7 @@ export function ThreadMessageBlock(
   }
 
   return wrap_in_island(
-    <div className="overflow-hidden">
+    <div key="expanded" className="overflow-hidden">
       <div
         className={`group flex items-start gap-3 ps-4 pe-2 pt-3 pb-2 ${can_collapse ? "cursor-pointer select-none" : ""}`}
         data-ripple={can_collapse ? "" : undefined}
@@ -919,7 +919,7 @@ export function ThreadMessageBlock(
         )}
 
       <div
-        className={`${is_plain_text || show_as_text ? "ps-[52px] pb-4" : "pb-0"} pt-1`}
+        className={`${is_plain_text || show_as_text ? "ps-[52px] pb-4" : "pb-3"} pt-1`}
       >
         {message.is_sending === true && (
           <div

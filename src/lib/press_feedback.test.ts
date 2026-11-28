@@ -137,6 +137,31 @@ describe("press_feedback", () => {
     document.body.innerHTML = "";
   });
 
+  it("clears the ripple when its element stops being a ripple target", () => {
+    const row = document.getElementById("row") as HTMLElement;
+
+    pointer("pointerdown", row);
+    expect(row.hasAttribute(PRESS_ATTRIBUTE)).toBe(true);
+    row.removeAttribute("data-ripple");
+    vi.advanceTimersByTime(16);
+
+    expect(row.hasAttribute(PRESS_ATTRIBUTE)).toBe(false);
+    expect(row.style.getPropertyValue("--aster-ripple-to-r")).toBe("");
+    pointer("pointerup", row);
+    vi.advanceTimersByTime(PRESS_MIN_HOLD_MS + PRESS_RELEASE_MS);
+    expect(row.hasAttribute(PRESS_ATTRIBUTE)).toBe(false);
+  });
+
+  it("clears the ripple when its element leaves the document", () => {
+    const row = document.getElementById("row") as HTMLElement;
+
+    pointer("pointerdown", row);
+    row.remove();
+    vi.advanceTimersByTime(16);
+
+    expect(row.hasAttribute(PRESS_ATTRIBUTE)).toBe(false);
+  });
+
   it("marks the innermost control on pointer down", () => {
     pointer("pointerdown", document.getElementById("icon")!);
 
