@@ -238,13 +238,13 @@ details.aster-forwarded-collapse > .aster-forwarded-content {
   justify-content: center;
   position: relative;
   box-sizing: border-box;
-  width: 24px;
-  height: 12px;
-  margin: 10px 0 8px;
+  width: 28px;
+  height: 16px;
+  margin: 8px 0 6px;
   padding: 0;
   list-style: none;
   border: 0;
-  border-radius: 6px;
+  border-radius: 8px;
   background: rgba(128, 128, 128, 0.12);
   color: rgba(80, 80, 80, 0.9);
   cursor: pointer;
@@ -259,7 +259,7 @@ details.aster-forwarded-collapse > .aster-forwarded-content {
 .aster-quote-toggle::after {
   content: "";
   position: absolute;
-  inset: -8px -6px;
+  inset: -6px -4px;
 }
 
 .aster-quote-toggle::-webkit-details-marker {
@@ -271,16 +271,12 @@ details.aster-forwarded-collapse > .aster-forwarded-content {
 }
 
 .aster-quote-toggle-dots {
-  display: block;
-  flex: none;
-  margin: 0;
-  width: 3px;
-  height: 3px;
-  border-radius: 50%;
-  background: currentColor;
-  box-shadow:
-    -5px 0 0 currentColor,
-    5px 0 0 currentColor;
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle, currentColor 1.4px, transparent 1.9px) calc(50% - 6px) 50% / 6px 6px no-repeat,
+    radial-gradient(circle, currentColor 1.4px, transparent 1.9px) 50% 50% / 6px 6px no-repeat,
+    radial-gradient(circle, currentColor 1.4px, transparent 1.9px) calc(50% + 6px) 50% / 6px 6px no-repeat;
 }
 
 .aster-quote-toggle:hover,
@@ -406,7 +402,7 @@ const IMAGE_BACKGROUND_EXCLUDE =
 
 const BRAND_BACKGROUND_EXCLUDE = `:not([${BRAND_BACKGROUND_MARK}])`;
 
-const FORCED_NEUTRALIZE_EXCLUDE = `${IMAGE_BACKGROUND_EXCLUDE}${BRAND_BACKGROUND_EXCLUDE}`;
+const FORCED_NEUTRALIZE_EXCLUDE = `${IMAGE_BACKGROUND_EXCLUDE}${BRAND_BACKGROUND_EXCLUDE}:not(.aster-quote-toggle)`;
 
 export function build_auto_dark_mode_css(
   text_color = DARK_INHERITED_INK,
@@ -464,19 +460,6 @@ blockquote blockquote {
 
 blockquote blockquote blockquote {
   border-left-color: color-mix(in srgb, ${rail_color} 55%, #4b5563) !important;
-}
-
-.aster-quote-toggle {
-  background: rgba(180, 180, 180, 0.15) !important;
-  color: rgba(210, 210, 210, 0.9) !important;
-}
-
-.aster-quote-toggle:hover {
-  background: rgba(180, 180, 180, 0.25) !important;
-}
-
-.aster-quote-toggle:active {
-  background: rgba(180, 180, 180, 0.34) !important;
 }
 
 .aster-quoted-content {
