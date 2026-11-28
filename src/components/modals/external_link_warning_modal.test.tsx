@@ -416,8 +416,12 @@ describe("ExternalLinkWarningModal", () => {
     const card = q('[data-testid="link_destination_card"]')!;
 
     expect(card.className).toContain("aster_island");
-    expect(card.querySelector('[data-testid="link_destination_site"]')).not.toBeNull();
-    expect(card.querySelector('[data-testid="link_destination_url"]')).not.toBeNull();
+    expect(
+      card.querySelector('[data-testid="link_destination_site"]'),
+    ).not.toBeNull();
+    expect(
+      card.querySelector('[data-testid="link_destination_url"]'),
+    ).not.toBeNull();
     expect(card.querySelector("[data-copied]")).not.toBeNull();
     expect(card.querySelector("[aria-expanded]")).not.toBeNull();
   });
@@ -450,7 +454,9 @@ describe("ExternalLinkWarningModal", () => {
     for (const url of ["mailto:ada@example.com", "javascript:alert(1)"]) {
       render({ url });
       expect(
-        q('[data-testid="link_destination_icon"] [data-testid="link_destination_glyph"]'),
+        q(
+          '[data-testid="link_destination_icon"] [data-testid="link_destination_glyph"]',
+        ),
       ).not.toBeNull();
       act(() => root?.unmount());
       container?.remove();
