@@ -27,13 +27,12 @@ import {
   IslandSections,
   SettingControlRow,
   Switch,
-  UpgradeBtn,
 } from "@aster/ui";
 
 import { InfoHint } from "@/components/settings/aliases/info_hint";
 import { label_toggle_children_with_text } from "@/lib/labeled_control";
 import { use_i18n } from "@/lib/i18n/context";
-import { prompt_upgrade } from "@/components/settings/aliases/feature_lock";
+import { PlanUpgradeButton } from "@/components/common/plan_locked";
 import {
   Select,
   SelectTrigger,
@@ -260,18 +259,10 @@ export function AliasPreferencesPanel({
               label={t("settings.alias_pref_readable_reverse")}
             >
               {readable_locked ? (
-                <UpgradeBtn
-                  size="sm"
-                  onClick={() =>
-                    prompt_upgrade(
-                      t("settings.feature_requires_upgrade"),
-                      undefined,
-                      "has_advanced_aliases",
-                    )
-                  }
-                >
-                  {t("settings.alias_feature_locked_upgrade_cta")}
-                </UpgradeBtn>
+                <PlanUpgradeButton
+                  feature="has_advanced_aliases"
+                  message={t("settings.feature_requires_upgrade")}
+                />
               ) : (
                 <Switch
                   checked={prefs.readable_reverse_aliases}

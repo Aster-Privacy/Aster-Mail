@@ -39,7 +39,6 @@ import {
   IslandSections,
   SettingControlRow,
   SettingToggleRow,
-  UpgradeBtn,
 } from "@aster/ui";
 
 import { SignatureMode } from "./helpers";
@@ -76,7 +75,7 @@ import {
 } from "@/components/compose/compose_toolbar/shared";
 import { sanitize_compose_paste } from "@/lib/html_sanitizer";
 import { plain_signature_to_html } from "@/lib/signature_html";
-import { prompt_upgrade } from "@/components/settings/aliases/feature_lock";
+import { PlanUpgradeButton } from "@/components/common/plan_locked";
 
 export function SignatureSection() {
   const {
@@ -652,18 +651,10 @@ export function SignatureSection() {
           }
           trailing={
             is_paid_plan ? undefined : (
-              <UpgradeBtn
-                size="sm"
-                onClick={() =>
-                  prompt_upgrade(
-                    t("settings.feature_requires_upgrade"),
-                    undefined,
-                    "has_remove_branding",
-                  )
-                }
-              >
-                {t("settings.upgrade_to_unlock")}
-              </UpgradeBtn>
+              <PlanUpgradeButton
+                feature="has_remove_branding"
+                message={t("settings.feature_requires_upgrade")}
+              />
             )
           }
         />

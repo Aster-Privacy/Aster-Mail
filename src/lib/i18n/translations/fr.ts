@@ -2771,7 +2771,7 @@ export const fr = {
     delete_category_description:
       "Cette action supprime définitivement « {{name}} ». Vous ne pouvez pas l'annuler.",
     custom_categories_locked:
-      "Les catégories personnalisées ne sont pas disponibles avec votre forfait actuel.",
+      "Classez vos e-mails dans des catégories que vous créez.",
     custom_categories_limit_reached:
       "Vous avez atteint la limite de catégories personnalisées de votre forfait. Passez à un forfait supérieur pour en ajouter davantage.",
     edit_custom_category: "Modifier la catégorie",
@@ -3383,7 +3383,7 @@ export const fr = {
     alias_directory_color: "Couleur",
     alias_directory_updated: "Répertoire mis à jour",
     alias_feature_locked_directories:
-      "Améliorez votre forfait pour utiliser les répertoires d'alias.",
+      "Chaque adresse d’un répertoire devient un alias dès qu’elle reçoit son premier e-mail.",
     alias_feature_locked_rules:
       "Améliorez votre forfait pour utiliser les règles d'alias.",
     alias_feature_locked_relay:
@@ -7819,7 +7819,7 @@ export const fr = {
     confirm_cancel_addon_description:
       "Annuler cette extension de stockage ? Votre stockage supplémentaire reste disponible jusqu'à la fin de la période de facturation en cours.",
     free_plan_description:
-      "Vous êtes sur l'offre gratuite. Découvrez les offres payantes ci-dessous pour plus de stockage, d'alias et de fonctionnalités.",
+      "Les forfaits payants ajoutent plus de stockage, plus d’alias et des domaines personnalisés.",
     free_plan_banner_title: "Vous êtes sur l'offre gratuite",
     usage_overview_description:
       "Suivez votre utilisation actuelle des fonctionnalités de votre offre.",
@@ -8187,7 +8187,7 @@ export const fr = {
     subscription_manager_locked:
       "Gérez vos abonnements aux newsletters et désabonnez-vous en masse",
     quiet_hours_locked:
-      "Désactivez les notifications pendant des heures précises pour rester concentré",
+      "Coupez les notifications pendant les heures de votre choix.",
     folder_lock_locked:
       "Protégez les dossiers sensibles avec un mot de passe supplémentaire",
     key_rotation_locked:

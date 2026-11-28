@@ -19,7 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { useState, useEffect } from "react";
-import { Badge, IslandRow, Skeleton, UpgradeBtn } from "@aster/ui";
+import { Badge, IslandRow, Skeleton } from "@aster/ui";
 
 import { login_safety_error_key } from "@/services/crypto/auth_salt_guard";
 import { Button } from "@/components/ui/button";
@@ -51,7 +51,7 @@ import {
 } from "@/services/lockdown_store";
 import { clear_session_unlock } from "@/services/app_lock_store";
 import { remove_app_lock } from "@/services/app_lock_unlock";
-import { prompt_upgrade } from "@/components/settings/aliases/feature_lock";
+import { PlanUpgradeButton } from "@/components/common/plan_locked";
 import {
   enable_vanguard,
   disable_vanguard,
@@ -455,18 +455,10 @@ export function VanguardSection() {
           label={vanguard_label}
           layout="stacked"
           trailing={
-            <UpgradeBtn
-              size="sm"
-              onClick={() =>
-                prompt_upgrade(
-                  t("settings.feature_requires_upgrade"),
-                  undefined,
-                  "nova",
-                )
-              }
-            >
-              {t("settings.vanguard_upgrade_cta")}
-            </UpgradeBtn>
+            <PlanUpgradeButton
+              feature="nova"
+              message={t("settings.feature_requires_upgrade")}
+            />
           }
         />
       )}

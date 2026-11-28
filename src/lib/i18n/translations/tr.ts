@@ -2715,7 +2715,7 @@ export const tr = {
     delete_category_description:
       "Bu işlem “{{name}}” kategorisini kalıcı olarak siler ve geri alınamaz.",
     custom_categories_locked:
-      "Özel kategoriler mevcut planınızda kullanılamıyor.",
+      "E-postaları kendi oluşturduğunuz kategorilere ayırın.",
     custom_categories_limit_reached:
       "Planınızın özel kategori sınırına ulaştınız. Daha fazlası için yükseltin.",
     edit_custom_category: "Kategoriyi düzenle",
@@ -3312,7 +3312,7 @@ export const tr = {
     alias_directory_color: "Renk",
     alias_directory_updated: "Dizin güncellendi",
     alias_feature_locked_directories:
-      "Rumuz dizinlerini kullanmak için planınızı yükseltin.",
+      "Bir dizindeki her adres, ilk e-postasını aldığında bir takma ad olur.",
     alias_feature_locked_rules:
       "Rumuz kurallarını kullanmak için planınızı yükseltin.",
     alias_feature_locked_relay:
@@ -7902,7 +7902,7 @@ export const tr = {
       "Aster postalarınızı şifreli olarak saklar, bu yüzden onları okuyamayız. Aster kullanıcıları arasındaki postalar da gönderilmeden önce cihazınızda şifrelenir.",
     folder_lock_locked: "Hassas klasörleri ek bir parolayla koruyun",
     free_plan_description:
-      "Ücretsiz plandasınız. Daha fazla depolama, takma ad ve özellik için aşağıdaki ücretli planları keşfedin.",
+      "Ücretli planlar daha fazla depolama alanı, daha fazla takma ad ve özel alan adları sunar.",
     free_plan_banner_title: "Ücretsiz plandasınız",
     import_manual_step_1:
       "E-postalarınızı mevcut sağlayıcınızdan MBOX, EML veya PST dosyaları olarak dışa aktarın",
@@ -7924,8 +7924,7 @@ export const tr = {
       "Fiyatlar USD olarak gösterilmektedir. Son tutar ödeme sırasında belirlenir.",
     prices_converted_note:
       "Fiyatlar ABD dolarından çevrilir ve yaklaşıktır. Dönüşüm ücreti dahil kesin tutarı ödeme adımında görürsünüz.",
-    quiet_hours_locked:
-      "Odaklanmak için belirli saatlerde bildirimleri sessize alın",
+    quiet_hours_locked: "Seçtiğiniz saatlerde bildirimleri sessize alın.",
     quiet_hours_schedule_description:
       "Sessiz saatlerin başlangıç ve bitiş zamanlarını ayarlayın",
     receipt_tracking_locked:

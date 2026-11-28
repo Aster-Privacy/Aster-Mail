@@ -37,7 +37,7 @@ import {
   CheckIcon,
   PhotoIcon,
 } from "@heroicons/react/24/outline";
-import { Button, Switch, UpgradeBtn } from "@aster/ui";
+import { Button, Switch } from "@aster/ui";
 
 import {
   SettingsGroup,
@@ -64,7 +64,7 @@ import {
 } from "@/hooks/use_sender_aliases";
 import { use_preferences } from "@/contexts/preferences_context";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
-import { prompt_upgrade } from "@/components/settings/aliases/feature_lock";
+import { PlanUpgradeButton } from "@/components/common/plan_locked";
 import { use_editor } from "@/hooks/use_editor";
 import { LinkDialog } from "@/components/compose/link_dialog";
 import { FontFamilySelect } from "@/components/compose/compose_toolbar/font_family";
@@ -989,18 +989,10 @@ export function SignaturesSection({
                   }
                 />
               ) : (
-                <UpgradeBtn
-                  size="sm"
-                  onClick={() =>
-                    prompt_upgrade(
-                      t("settings.feature_requires_upgrade"),
-                      undefined,
-                      "has_remove_branding",
-                    )
-                  }
-                >
-                  {t("settings.upgrade_to_unlock")}
-                </UpgradeBtn>
+                <PlanUpgradeButton
+                  feature="has_remove_branding"
+                  message={t("settings.feature_requires_upgrade")}
+                />
               )
             }
           />

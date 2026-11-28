@@ -36,7 +36,6 @@ import {
   SettingControlRow,
   SettingNote,
   Spinner,
-  UpgradeBtn,
 } from "@aster/ui";
 
 import {
@@ -55,6 +54,7 @@ import {
 } from "@/components/ui/select";
 import { show_toast } from "@/components/toast/simple_toast";
 import { prompt_upgrade } from "@/components/settings/aliases/feature_lock";
+import { PlanUpgradeButton } from "@/components/common/plan_locked";
 import { format_date, format_time } from "@/utils/date_format";
 
 const NEVER = "never";
@@ -232,18 +232,10 @@ export function SourceCleanupSection({
         : null;
 
   const control = is_locked ? (
-    <UpgradeBtn
-      size="sm"
-      onClick={() =>
-        prompt_upgrade(
-          t("settings.feature_requires_upgrade"),
-          undefined,
-          "has_source_cleanup",
-        )
-      }
-    >
-      {t("settings.alias_feature_locked_upgrade_cta")}
-    </UpgradeBtn>
+    <PlanUpgradeButton
+      feature="has_source_cleanup"
+      message={t("settings.feature_requires_upgrade")}
+    />
   ) : (
     <Select
       disabled={!is_two_way || busy !== null || !settings}

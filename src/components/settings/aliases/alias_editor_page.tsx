@@ -37,7 +37,6 @@ import {
   Island,
   IslandSection,
   IslandSections,
-  IslandStack,
   SettingControlRow,
   Switch,
 } from "@aster/ui";
@@ -51,7 +50,7 @@ import { use_plan_limits } from "@/hooks/use_plan_limits";
 import { update_alias } from "@/services/api/aliases";
 import { update_domain_address } from "@/services/api/domains";
 import { show_toast } from "@/components/toast/simple_toast";
-import { LockedFeatureCard } from "@/components/settings/aliases/feature_lock";
+import { PlanLockedPanel } from "@/components/common/plan_locked";
 import {
   FEATURE_MIN_PLAN,
   PLAN_TIERS,
@@ -433,37 +432,12 @@ export function AliasEditorPage({
       ))}
 
       {locked_sections.length > 0 && (
-        <div className="relative min-h-[196px]">
-          <IslandSections
-            aria-hidden="true"
-            className="pointer-events-none select-none opacity-40 blur-[1px]"
-          >
-            {locked_sections.map((section) => (
-              <IslandSection
-                key={section.key}
-                bare
-                icon={<section.icon />}
-                title={section.label}
-              >
-                <fieldset disabled className="min-w-0 border-0 p-0 m-0">
-                  <IslandStack>{section.render()}</IslandStack>
-                </fieldset>
-              </IslandSection>
-            ))}
-          </IslandSections>
-
-          <div className="pointer-events-none absolute inset-0 flex items-start justify-center p-4">
-            <div className="sticky top-6">
-              <LockedFeatureCard
-                detail={locked_sections
-                  .map((section) => section.label)
-                  .join(" · ")}
-                feature={locked_feature}
-                message={t("settings.upgrade_to_unlock")}
-              />
-            </div>
-          </div>
-        </div>
+        <PlanLockedPanel
+          description={locked_sections
+            .map((section) => section.label)
+            .join(", ")}
+          feature={locked_feature}
+        />
       )}
     </IslandSections>
   );

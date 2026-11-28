@@ -31,7 +31,6 @@ import {
   ExclamationCircleIcon,
   LockClosedIcon,
   PencilSquareIcon,
-  SparklesIcon,
 } from "@heroicons/react/24/outline";
 import { Island, IslandRow, IslandSection, IslandSections } from "@aster/ui";
 
@@ -218,28 +217,17 @@ function FreePlanBanner() {
   if (is_onion_host() || plan_code !== "free") return null;
 
   return (
-    <Island padding="md" tone="accent">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
-        <span className="hidden h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-brand text-[var(--accent-fg)] sm:flex">
-          <SparklesIcon className="h-5 w-5" />
-        </span>
-        <div className="min-w-0 flex-1">
-          <p className="text-[15px] font-semibold leading-5 text-txt-primary">
-            {t("settings.free_plan_banner_title")}
-          </p>
-          <p className="mt-0.5 text-[13px] leading-5 text-txt-secondary">
-            {t("settings.free_plan_description")}
-          </p>
-        </div>
-        <Button
-          className="flex-shrink-0"
-          size="md"
-          variant="depth"
-          onClick={() => show_upgrade_plans()}
-        >
-          {t("settings.upgrade_view_plans")}
-        </Button>
-      </div>
+    <Island padding="none" tone="accent">
+      <IslandRow
+        description={t("settings.free_plan_description")}
+        label={t("settings.free_plan_banner_title")}
+        layout="stacked"
+        trailing={
+          <Button size="sm" variant="depth" onClick={() => show_upgrade_plans()}>
+            {t("settings.upgrade_view_plans")}
+          </Button>
+        }
+      />
     </Island>
   );
 }

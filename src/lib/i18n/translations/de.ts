@@ -2744,7 +2744,7 @@ export const de = {
     delete_category_description:
       "Dadurch wird „{{name}}“ endgültig gelöscht. Dies lässt sich nicht rückgängig machen.",
     custom_categories_locked:
-      "Benutzerdefinierte Kategorien sind in Ihrem aktuellen Tarif nicht verfügbar.",
+      "Sortiere E-Mails in Kategorien, die du selbst erstellst.",
     custom_categories_limit_reached:
       "Sie haben das Limit für benutzerdefinierte Kategorien Ihres Tarifs erreicht. Führen Sie ein Upgrade durch, um mehr zu erhalten.",
     edit_custom_category: "Kategorie bearbeiten",
@@ -3367,7 +3367,7 @@ export const de = {
     alias_directory_color: "Farbe",
     alias_directory_updated: "Verzeichnis aktualisiert",
     alias_feature_locked_directories:
-      "Führen Sie ein Upgrade Ihres Tarifs durch, um Alias-Verzeichnisse zu nutzen.",
+      "Jede Adresse in einem Verzeichnis wird zum Alias, sobald sie zum ersten Mal E-Mails empfängt.",
     alias_feature_locked_rules:
       "Führen Sie ein Upgrade Ihres Tarifs durch, um Alias-Regeln zu nutzen.",
     alias_feature_locked_relay:
@@ -6889,7 +6889,7 @@ export const de = {
     upgrade_for_more_short: "Upgrade für mehr",
     plans_coming_soon: "Tarif-Abonnements sind bald verfügbar.",
     free_plan_description:
-      "Sie nutzen den kostenlosen Tarif. Entdecken Sie unten die kostenpflichtigen Tarife für mehr Speicher, Aliase und Funktionen.",
+      "Bezahlte Tarife bieten mehr Speicher, mehr Aliasse und eigene Domains.",
     free_plan_banner_title: "Sie nutzen den kostenlosen Tarif",
     plan_f_storage: "{{value}} verschlüsselter Speicher",
     plan_f_attachments: "Bis zu {{value}} Anhänge",
@@ -7968,7 +7968,7 @@ export const de = {
     subscription_manager_locked:
       "Newsletter-Abonnements verwalten und Massenabmeldungen durchführen",
     quiet_hours_locked:
-      "Benachrichtigungen zu bestimmten Zeiten stumm schalten, um konzentriert zu bleiben",
+      "Schalte Benachrichtigungen zu den Zeiten stumm, die du wählst.",
     folder_lock_locked:
       "Sensible Ordner mit einem zusätzlichen Passwort schützen",
     key_rotation_locked:

@@ -2687,8 +2687,7 @@ export const nl = {
     delete_category_title: "Categorie verwijderen?",
     delete_category_description:
       "Hiermee wordt “{{name}}” definitief verwijderd. Je kunt dit niet ongedaan maken.",
-    custom_categories_locked:
-      "Aangepaste categorieën zijn niet beschikbaar in je huidige abonnement.",
+    custom_categories_locked: "Sorteer mail in categorieën die je zelf maakt.",
     custom_categories_limit_reached:
       "Je hebt de limiet voor aangepaste categorieën van je abonnement bereikt. Upgrade voor meer.",
     edit_custom_category: "Categorie bewerken",
@@ -3295,7 +3294,7 @@ export const nl = {
     alias_directory_color: "Kleur",
     alias_directory_updated: "Directory bijgewerkt",
     alias_feature_locked_directories:
-      "Upgrade je abonnement om aliasdirectory's te gebruiken.",
+      "Elk adres in een map wordt een alias zodra het voor het eerst mail ontvangt.",
     alias_feature_locked_rules:
       "Upgrade je abonnement om aliasregels te gebruiken.",
     alias_feature_locked_relay:
@@ -6863,7 +6862,7 @@ export const nl = {
     upgrade_for_more_short: "Upgrade voor meer",
     plans_coming_soon: "Abonnementen komen binnenkort.",
     free_plan_description:
-      "Je gebruikt het gratis abonnement. Bekijk hieronder betaalde abonnementen voor meer opslag, aliassen en functies.",
+      "Betaalde abonnementen bieden meer opslag, meer aliassen en eigen domeinen.",
     free_plan_banner_title: "Je gebruikt het gratis abonnement",
     plan_f_storage: "{{value}} versleutelde opslag",
     plan_f_attachments: "Bijlagen tot {{value}}",
@@ -8025,8 +8024,7 @@ export const nl = {
       "Inkomende e-mails automatisch doorsturen naar een ander adres",
     subscription_manager_locked:
       "Beheer nieuwsbriefabonnementen en massaal uitschrijven",
-    quiet_hours_locked:
-      "Demp meldingen tijdens specifieke uren om gefocust te blijven",
+    quiet_hours_locked: "Demp meldingen tijdens de uren die je kiest.",
     folder_lock_locked: "Bescherm gevoelige mappen met een extra wachtwoord",
     key_rotation_locked:
       "Stel aangepaste intervallen in voor automatische versleutelingssleutelrotatie",

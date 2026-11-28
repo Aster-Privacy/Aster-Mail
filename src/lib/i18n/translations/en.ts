@@ -3337,8 +3337,7 @@ export const en: Translations = {
     delete_category_title: "Delete category?",
     delete_category_description:
       "This permanently deletes “{{name}}”. You can't undo this.",
-    custom_categories_locked:
-      "Custom categories aren't available on your current plan.",
+    custom_categories_locked: "Sort mail into categories you create.",
     custom_categories_limit_reached:
       "You've reached your plan's custom category limit. Upgrade for more.",
     edit_custom_category: "Edit category",
@@ -5089,7 +5088,7 @@ export const en: Translations = {
     upgrade_for_more_short: "Upgrade for more",
     plans_coming_soon: "Plan subscriptions aren't available yet.",
     free_plan_description:
-      "You\u2019re on the free plan. Explore paid plans below for more storage, aliases, and features.",
+      "Paid plans add more storage, more aliases, and custom domains.",
     free_plan_banner_title: "You\u2019re on the Free plan",
     plan_f_storage: "{{value}} encrypted storage",
     plan_f_attachments: "Up to {{value}} attachments",
@@ -8261,8 +8260,7 @@ export const en: Translations = {
       "Automatically forward incoming emails to another address",
     subscription_manager_locked:
       "Manage newsletter subscriptions and bulk unsubscribe",
-    quiet_hours_locked:
-      "Mute notifications during specific hours to stay focused",
+    quiet_hours_locked: "Mute notifications during the hours you choose.",
     carddav_locked: "Import contacts from CardDAV-compatible services",
     contact_merge_locked: "Merge duplicate contacts",
     encrypted_export_locked: "Export your data with end-to-end encryption",
@@ -8726,7 +8724,7 @@ export const en: Translations = {
     alias_directory_color: "Color",
     alias_directory_updated: "Directory updated",
     alias_feature_locked_directories:
-      "Upgrade your plan to use alias directories.",
+      "Each address in a directory becomes an alias the first time it gets mail.",
     alias_feature_locked_rules: "Upgrade your plan to use alias rules.",
     alias_feature_locked_relay: "Upgrade your plan to use external relay.",
     alias_feature_locked_contacts:
