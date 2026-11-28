@@ -25,6 +25,8 @@ import { MemoryRouter } from "react-router-dom";
 
 import { AppRail } from "./app_rail";
 
+import { RailTipLayer } from "@/components/layout/sidebar/rail_tip_layer";
+
 vi.mock("@/contexts/preferences_context", () => ({
   use_preferences: () => ({ preferences: { show_side_panel: true } }),
 }));
@@ -109,7 +111,12 @@ describe("app rail items", () => {
     document.body.appendChild(container);
     root = createRoot(container);
     await act(async () => {
-      root.render(<StatefulRail />);
+      root.render(
+        <>
+          <StatefulRail />
+          <RailTipLayer />
+        </>,
+      );
     });
   });
 
@@ -204,5 +211,81 @@ describe("app rail items", () => {
     expect(rail?.innerHTML).not.toContain(
       "M15 19.128a9.38 9.38 0 0 0 2.625.372",
     );
+  });
+
+  describe("tooltips", () => {
+    const tip = () => document.getElementById("aster_rail_tip");
+
+    const hover = async (label: string) => {
+      await act(async () => {
+        rail_item(label)?.dispatchEvent(
+          new PointerEvent("pointerover", { bubbles: true }),
+        );
+        vi.advanceTimersByTime(450);
+      });
+    };
+
+    beforeEach(() => {
+      vi.useFakeTimers();
+    });
+
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    it("shows each item's own label to the left of the rail", async () => {
+      const buttons = Array.from(
+        container.querySelectorAll<HTMLButtonElement>(
+          ".app_rail_column button[aria-expanded]",
+        ),
+      );
+
+      expect(buttons).toHaveLength(3);
+      for (const button of buttons) {
+        const label = button.getAttribute("aria-label") ?? "";
+
+        expect(button.getAttribute("data-rail-tip")).toBe(label);
+        await hover(label);
+        expect(tip()?.textContent).toBe(label);
+        expect(tip()?.getAttribute("data-tip-arrow")).toBe("left");
+        expect(button.getAttribute("aria-describedby")).toBe("aster_rail_tip");
+      }
+    });
+
+    it("follows the pointer between items in both directions", async () => {
+      const path = [
+        "common.security_center",
+        "common.contacts",
+        "common.app_name_calendar",
+        "common.contacts",
+        "common.security_center",
+      ];
+
+      for (const label of path) {
+        await hover(label);
+        expect(tip()?.textContent).toBe(label);
+        expect(
+          container.querySelectorAll('[aria-describedby="aster_rail_tip"]'),
+        ).toHaveLength(1);
+      }
+    });
+
+    it("drops the tip of an item once its panel is open", async () => {
+      await hover("common.contacts");
+      expect(tip()?.textContent).toBe("common.contacts");
+
+      await click("common.contacts");
+      await act(async () => {
+        await Promise.resolve();
+      });
+
+      expect(tip()).toBeNull();
+      expect(rail_item("common.contacts")?.hasAttribute("data-rail-tip")).toBe(
+        false,
+      );
+
+      await hover("common.security_center");
+      expect(tip()?.textContent).toBe("common.security_center");
+    });
   });
 });
