@@ -96,11 +96,11 @@ export function ListEmptyState({
         className="mb-4 h-10 w-10 shrink-0 text-txt-muted"
         strokeWidth={1.25}
       />
-      <p className="max-w-[360px] break-words text-[15px] font-semibold leading-6 text-txt-primary">
+      <p className="max-w-[380px] text-balance break-words text-[15px] font-semibold leading-6 text-txt-primary">
         {title}
       </p>
       {description && (
-        <p className="mt-1 max-w-[340px] text-[13px] leading-5 text-txt-muted">
+        <p className="mt-1 max-w-[380px] text-balance text-[13px] leading-5 text-txt-muted">
           {description}
         </p>
       )}
