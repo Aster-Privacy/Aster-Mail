@@ -9168,6 +9168,11 @@ export const es = {
     upgrade_modal_description_specific:
       "Has alcanzado el límite de {{resource}} en el plan {{plan}}. Mejora tu plan para tener más.",
     upgrade_modal_title: "Has alcanzado el límite de tu plan",
+    plan_picker_limit_subtitle: "Alcanzaste el límite de {{resource}} en {{plan}}.",
+    plan_picker_generic_subtitle: "Alcanzaste un límite de tu plan.",
+    plan_picker_storage_subtitle: "El correo nuevo está en pausa hasta que liberes espacio o actualices tu plan.",
+    plan_picker_family_link: "Ver planes familiares",
+    plan_picker_individual_link: "Ver planes individuales",
     upgrade_perk_aliases: "Más alias",
     upgrade_perk_domains: "Dominios personalizados",
     upgrade_perk_features: "Funciones avanzadas",

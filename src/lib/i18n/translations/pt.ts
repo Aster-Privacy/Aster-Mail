@@ -8708,6 +8708,11 @@ export const pt = {
     usage_filters: "Filtros personalizados",
     usage_custom_categories: "Categorias personalizadas",
     upgrade_modal_title: "Atingiu o limite do seu plano",
+    plan_picker_limit_subtitle: "Atingiu o limite de {{resource}} no {{plan}}.",
+    plan_picker_generic_subtitle: "Atingiu um limite do seu plano.",
+    plan_picker_storage_subtitle: "O correio novo está em pausa até libertar espaço ou mudar de plano.",
+    plan_picker_family_link: "Ver planos familiares",
+    plan_picker_individual_link: "Ver planos individuais",
     upgrade_modal_description_specific:
       "Atingiu o limite de {{resource}} no plano {{plan}}. Mude para um plano superior para ter mais.",
     upgrade_modal_description_generic:

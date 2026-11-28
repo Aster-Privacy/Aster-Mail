@@ -5535,6 +5535,11 @@ export interface SettingsTranslations {
   usage_filters: string;
   usage_custom_categories: string;
   upgrade_modal_title: string;
+  plan_picker_limit_subtitle: string;
+  plan_picker_generic_subtitle: string;
+  plan_picker_storage_subtitle: string;
+  plan_picker_family_link: string;
+  plan_picker_individual_link: string;
   upgrade_modal_description_specific: string;
   upgrade_modal_description_generic: string;
   usage_linked_accounts: string;

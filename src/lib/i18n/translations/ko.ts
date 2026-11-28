@@ -8305,6 +8305,11 @@ export const ko = {
     usage_filters: "맞춤 필터",
     usage_custom_categories: "맞춤 카테고리",
     upgrade_modal_title: "플랜 한도에 도달했습니다",
+    plan_picker_limit_subtitle: "{{plan}}의 {{resource}} 한도에 도달했습니다.",
+    plan_picker_generic_subtitle: "플랜 한도에 도달했습니다.",
+    plan_picker_storage_subtitle: "공간을 확보하거나 업그레이드할 때까지 새 메일 수신이 일시 중지됩니다.",
+    plan_picker_family_link: "가족 플랜 보기",
+    plan_picker_individual_link: "개인 플랜 보기",
     upgrade_modal_description_specific:
       "{{plan}} 플랜의 {{resource}} 한도에 도달했습니다. 더 많이 이용하려면 업그레이드하세요.",
     upgrade_modal_description_generic:

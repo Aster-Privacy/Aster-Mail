@@ -7734,6 +7734,11 @@ export const zh_CN = {
     connected_accounts_no_new_emails: "没有新邮件",
     upgrade: "升级",
     upgrade_modal_title: "您已达到套餐限额",
+    plan_picker_limit_subtitle: "您已达到 {{plan}} 的{{resource}}上限。",
+    plan_picker_generic_subtitle: "您已达到套餐的某项上限。",
+    plan_picker_storage_subtitle: "在您释放空间或升级之前，新邮件将暂停接收。",
+    plan_picker_family_link: "查看家庭套餐",
+    plan_picker_individual_link: "查看个人套餐",
     upgrade_modal_description_generic:
       "您已达到当前套餐的限额。升级即可获得更多。",
     upgrade_modal_description_specific:

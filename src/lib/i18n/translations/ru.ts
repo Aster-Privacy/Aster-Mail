@@ -9292,6 +9292,11 @@ export const ru = {
     upgrade_modal_description_specific:
       "Вы достигли лимита {{resource}} на тарифе {{plan}}. Повысьте тариф, чтобы получить больше.",
     upgrade_modal_title: "Вы достигли лимита тарифа",
+    plan_picker_limit_subtitle: "Вы достигли лимита {{resource}} в тарифе {{plan}}.",
+    plan_picker_generic_subtitle: "Вы достигли лимита вашего тарифа.",
+    plan_picker_storage_subtitle: "Новая почта приостановлена, пока вы не освободите место или не смените тариф.",
+    plan_picker_family_link: "Семейные тарифы",
+    plan_picker_individual_link: "Индивидуальные тарифы",
     upgrade_perk_aliases: "Больше псевдонимов и пользовательских доменов",
     upgrade_perk_domains: "Расширенные фильтры, подписи и шаблоны",
     upgrade_perk_features:

@@ -8845,6 +8845,11 @@ export const ja = {
     upgrade_modal_description_specific:
       "{{plan}}プランの{{resource}}の上限に達しました。アップグレードすると上限が増えます。",
     upgrade_modal_title: "プランの上限に達しました",
+    plan_picker_limit_subtitle: "{{plan}} の {{resource}} の上限に達しました。",
+    plan_picker_generic_subtitle: "プランの上限に達しました。",
+    plan_picker_storage_subtitle: "空き容量を確保するかアップグレードするまで、新着メールは一時停止されます。",
+    plan_picker_family_link: "ファミリープランを見る",
+    plan_picker_individual_link: "個人プランを見る",
     upgrade_perk_aliases: "より多くのエイリアスとカスタムドメイン",
     upgrade_perk_domains: "高度なフィルター、署名、テンプレート",
     upgrade_perk_features: "不在時返信、予約送信など",

@@ -9256,6 +9256,11 @@ export const fr = {
     upgrade_modal_description_specific:
       "Vous avez atteint la limite {{resource}} du forfait {{plan}}. Passez à un forfait supérieur pour en obtenir davantage.",
     upgrade_modal_title: "Vous avez atteint la limite de votre forfait",
+    plan_picker_limit_subtitle: "Vous avez atteint la limite de {{resource}} du forfait {{plan}}.",
+    plan_picker_generic_subtitle: "Vous avez atteint une limite de votre forfait.",
+    plan_picker_storage_subtitle: "Les nouveaux e-mails sont en pause jusqu'à ce que vous libériez de l'espace ou changiez de forfait.",
+    plan_picker_family_link: "Voir les forfaits famille",
+    plan_picker_individual_link: "Voir les forfaits individuels",
     upgrade_perk_aliases: "Plus d'alias",
     upgrade_perk_domains: "Domaines personnalisés",
     upgrade_perk_features: "Fonctionnalités avancées",

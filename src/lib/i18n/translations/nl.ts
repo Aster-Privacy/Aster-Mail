@@ -9127,6 +9127,11 @@ export const nl = {
     upgrade_modal_description_specific:
       "Je hebt de {{resource}}-limiet bereikt voor het {{plan}}-abonnement. Upgrade voor meer.",
     upgrade_modal_title: "Je hebt de limiet van je abonnement bereikt",
+    plan_picker_limit_subtitle: "U hebt de limiet voor {{resource}} op {{plan}} bereikt.",
+    plan_picker_generic_subtitle: "U hebt een limiet van uw abonnement bereikt.",
+    plan_picker_storage_subtitle: "Nieuwe e-mail is gepauzeerd totdat u ruimte vrijmaakt of upgradet.",
+    plan_picker_family_link: "Gezinsabonnementen bekijken",
+    plan_picker_individual_link: "Individuele abonnementen bekijken",
     upgrade_perk_aliases: "Meer e-mailaliassen",
     upgrade_perk_domains: "Meer aangepaste domeinen",
     upgrade_perk_features: "Afwezigheidsantwoorden, gepland verzenden en meer",

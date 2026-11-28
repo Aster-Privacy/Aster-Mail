@@ -22,7 +22,6 @@ import type { ChangeEvent } from "react";
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { LockClosedIcon, CheckCircleIcon } from "@heroicons/react/24/solid";
 import { CheckIcon } from "@heroicons/react/24/outline";
 import { Button } from "@aster/ui";
 
@@ -63,11 +62,6 @@ import {
   type PlanTier,
 } from "@/components/settings/billing/billing_constants";
 import { use_currency_rates } from "@/components/settings/billing/use_currency_rates";
-import {
-  PlanCard,
-  Segmented,
-  Tabs,
-} from "@/components/settings/billing/plan_card";
 import { PlanFeaturesModal } from "@/components/settings/billing/plan_features_modal";
 import { PlanPaymentMethodModal } from "@/components/settings/billing/plan_payment_method_modal";
 import { CryptoTermModal } from "@/components/settings/billing/crypto_term_modal";
@@ -84,15 +78,6 @@ import {
 } from "@/stores/upgrade_store";
 import { checkout_error_text } from "@/components/settings/billing/checkout_error_text";
 import { has_tauri_runtime } from "@/lib/tauri_runtime";
-
-const USAGE_NOT_REPORTED: ReadonlySet<UpgradeLimitKey> = new Set([
-  "max_labels",
-]);
-
-const EXTERNAL_LIMIT_KEYS: ReadonlySet<string> = new Set([
-  "max_external_accounts",
-  "max_send_only_accounts",
-]);
 
 const LIMIT_LABEL_KEY: Record<UpgradeLimitKey, string> = {
   max_email_aliases: "settings.usage_aliases",
@@ -114,15 +99,7 @@ interface PlanHighlight {
   kind: HighlightKind;
   label_key: string;
   params?: Record<string, string>;
-  info_key?: string;
 }
-
-const HIGHLIGHT_INFO_KEY: Record<HighlightKind, string> = {
-  storage: "settings.zero_knowledge_storage_description",
-  aliases: "settings.aliases_description",
-  domains: "settings.domains_description",
-  extra: "",
-};
 
 type PlanAudience = "individual" | "family";
 
@@ -134,7 +111,6 @@ const PLAN_HIGHLIGHTS: Record<string, PlanHighlight[]> = {
     {
       kind: "extra",
       label_key: "settings.plan_feat_imap_smtp",
-      info_key: "settings.plan_desc_apps",
     },
   ],
   nova: [
@@ -145,12 +121,10 @@ const PLAN_HIGHLIGHTS: Record<string, PlanHighlight[]> = {
       kind: "extra",
       label_key: "settings.plan_f_multi_accounts",
       params: { value: "5" },
-      info_key: "settings.plan_desc_multi_accounts",
     },
     {
       kind: "extra",
       label_key: "settings.plan_feat_smart_folders",
-      info_key: "settings.plan_tip_smart_folders",
     },
   ],
   supernova: [
@@ -160,17 +134,14 @@ const PLAN_HIGHLIGHTS: Record<string, PlanHighlight[]> = {
       kind: "extra",
       label_key: "settings.plan_f_multi_accounts",
       params: { value: "20" },
-      info_key: "settings.plan_desc_multi_accounts",
     },
     {
       kind: "extra",
       label_key: "settings.plan_f_support_dedicated",
-      info_key: "settings.plan_desc_support_dedicated",
     },
     {
       kind: "extra",
       label_key: "settings.plan_f_early_access",
-      info_key: "settings.plan_desc_early_access",
     },
   ],
 };
@@ -192,8 +163,10 @@ function order_highlights(
   ];
 }
 
+const CARD_FEATURE_COUNT = 4;
+
 const GRID_COLUMNS: Record<number, string> = {
-  1: "sm:grid-cols-1 sm:max-w-sm sm:mx-auto",
+  1: "sm:grid-cols-1 sm:max-w-sm sm:mx-auto w-full",
   2: "sm:grid-cols-2",
   3: "sm:grid-cols-3",
 };
@@ -247,9 +220,6 @@ export function UpgradeModal() {
     billing: string;
   } | null>(null);
   const [compare_open, set_compare_open] = useState(false);
-  const [selected_tier_id, set_selected_tier_id] = useState<string | null>(
-    null,
-  );
   const [is_starting, set_is_starting] = useState(false);
   const pending_desktop_checkout_ref = useRef(false);
   const [seeded_open_seq, set_seeded_open_seq] = useState(0);
@@ -386,7 +356,6 @@ export function UpgradeModal() {
     set_seeded_open_seq(state.open_seq);
     set_is_starting(false);
     set_compare_open(false);
-    set_selected_tier_id(null);
     set_crypto_tier(null);
     set_plan_change_target(null);
 
@@ -454,16 +423,10 @@ export function UpgradeModal() {
     }
 
     return order_highlights(PLAN_HIGHLIGHTS[tier.id] ?? [], lead_kind).map(
-      (highlight) => {
-        const info_key =
-          highlight.info_key ?? HIGHLIGHT_INFO_KEY[highlight.kind];
-
-        return {
-          label: t(highlight.label_key as never, highlight.params),
-          on: true,
-          info: info_key ? t(info_key as never) : undefined,
-        };
-      },
+      (highlight) => ({
+        label: t(highlight.label_key as never, highlight.params),
+        on: true,
+      }),
     );
   };
 
@@ -482,21 +445,28 @@ export function UpgradeModal() {
           : t("settings.upgrade_modal_title");
 
   const description = is_storage
-    ? t("settings.storage_locked_description")
+    ? t("settings.plan_picker_storage_subtitle")
     : is_resume
       ? t("settings.upgrade_resume_description")
       : is_offer
         ? t("settings.offer_upgrade_description")
         : is_manual
           ? t("settings.upgrade_for_more")
-          : state.server_message && state.server_message.trim().length > 0
-            ? state.server_message
-            : limit_info && resource_label
-              ? t("settings.upgrade_modal_description_specific", {
+          : required_tier
+            ? t("settings.available_on_plan", { plan: required_tier.name })
+            : limit_info && resource_label && plan_name
+              ? t("settings.plan_picker_limit_subtitle", {
                   resource: String(resource_label).toLowerCase(),
-                  plan: plan_name ?? "",
+                  plan: plan_name,
                 })
-              : t("settings.upgrade_modal_description_generic");
+              : state.server_message && state.server_message.trim().length > 0
+                ? state.server_message
+                : t("settings.plan_picker_generic_subtitle");
+
+  const limit_note =
+    state.limit_key === "max_linked_accounts"
+      ? t("settings.upgrade_linked_accounts_note")
+      : null;
 
   const monthly_equivalent = (tier: PlanTier) =>
     interval === "year"
@@ -506,32 +476,15 @@ export function UpgradeModal() {
   const price_label = (tier: PlanTier) =>
     format_price(convert_cents(monthly_equivalent(tier), currency), currency);
 
-  const yearly_total_label = (tier: PlanTier) =>
-    `${t("settings.billed_annually")} · ${format_price(
-      convert_cents(tier.yearly_cents, currency),
-      currency,
-    )}${t("settings.per_year_short")}`;
-
-  const lead_in_for = (tier: PlanTier) => {
-    if (audience === "family") return null;
-
-    const index = PLAN_TIERS.findIndex((entry) => entry.id === tier.id);
-    const previous = index > 0 ? PLAN_TIERS[index - 1] : null;
-
-    return t("settings.plan_everything_in", {
-      plan: previous ? previous.name : t("settings.plan_free"),
-    });
-  };
-
-  const trust_points = [
-    t("settings.money_back_guarantee"),
-    t("settings.cancel_anytime"),
-  ];
-
-  const selected_tier =
-    tiers.find((tier) => tier.id === selected_tier_id) ?? default_tier;
-
-  const row_summary = (tier: PlanTier) => tier_features(tier)[0]?.label ?? "";
+  const billing_line = (tier: PlanTier) =>
+    interval === "year"
+      ? t("settings.billing_billed_yearly_total", {
+          amount: format_price(
+            convert_cents(tier.yearly_cents, currency),
+            currency,
+          ),
+        })
+      : t("settings.billing_billed_monthly");
 
   const start_plan_change = async (
     tier: PlanTier,
@@ -717,71 +670,38 @@ export function UpgradeModal() {
         </ModalHeader>
 
         <ModalBody className="space-y-4">
-          {state.limit_key === "max_external_accounts" ? (
-            <div className="rounded-[var(--aster-radius-control)] bg-[var(--aster-field-bg)] px-3.5 py-2.5">
-              <p className="text-[13px] text-txt-secondary">
-                {t("settings.upgrade_external_accounts_note")}
-              </p>
-            </div>
-          ) : null}
-
-          {state.limit_key === "max_send_only_accounts" ? (
-            <div className="rounded-[var(--aster-radius-control)] bg-[var(--aster-field-bg)] px-3.5 py-2.5">
-              <p className="text-[13px] text-txt-secondary">
-                {t("settings.ext_v2_upgrade_send_only_note")}
-              </p>
-            </div>
-          ) : null}
-
-          {state.limit_key === "max_linked_accounts" ? (
-            <div className="rounded-[var(--aster-radius-control)] bg-[var(--aster-field-bg)] px-3.5 py-2.5">
-              <p className="text-[13px] text-txt-secondary">
-                {t("settings.upgrade_linked_accounts_note")}
-              </p>
-              <a
-                className="mt-1 inline-block text-[13px] font-medium underline"
-                href="https://astermail.org/terms#section-2"
-                rel="noopener noreferrer"
-                style={{ color: "var(--accent-color)" }}
-                target="_blank"
-              >
-                {t("settings.upgrade_linked_accounts_link")}
-              </a>
-            </div>
-          ) : null}
-
-          {required_tier ? (
-            <div
-              className="flex items-center gap-2.5 rounded-[var(--aster-radius-control)] px-3.5 py-2.5"
-              style={{
-                backgroundColor:
-                  "color-mix(in srgb, var(--accent-color) 10%, transparent)",
-              }}
-            >
-              <LockClosedIcon
-                className="h-4 w-4 flex-shrink-0"
-                style={{ color: "var(--accent-color)" }}
-              />
-              <p className="text-[13px] font-medium text-txt-primary">
-                {t("settings.available_on_plan", {
-                  plan: required_tier.name,
-                })}
-              </p>
-            </div>
+          {limit_note ? (
+            <p className="text-[13px] leading-5 text-txt-muted">
+              {limit_note}
+              {state.limit_key === "max_linked_accounts" ? (
+                <>
+                  {" "}
+                  <a
+                    className="font-medium underline underline-offset-2"
+                    href="https://astermail.org/terms#section-2"
+                    rel="noopener noreferrer"
+                    style={{ color: "var(--accent-color)" }}
+                    target="_blank"
+                  >
+                    {t("settings.upgrade_linked_accounts_link")}
+                  </a>
+                </>
+              ) : null}
+            </p>
           ) : null}
 
           {is_storage && storage ? (
-            <div className="rounded-[var(--aster-radius-control)] bg-[var(--aster-field-bg)] p-3">
-              <div className="flex items-center justify-between mb-1.5">
-                <span className="text-sm font-medium text-txt-primary">
+            <div>
+              <div className="mb-1.5 flex items-center justify-between">
+                <span className="text-[13px] font-medium text-txt-primary">
                   {t("settings.usage_storage")}
                 </span>
                 <span
-                  className="text-xs font-medium"
+                  className="text-[12px] tabular-nums"
                   style={{
                     color: storage.is_locked
                       ? "var(--destructive)"
-                      : "var(--text-secondary)",
+                      : "var(--text-muted)",
                   }}
                 >
                   {format_bytes(storage.used_bytes)} /{" "}
@@ -795,7 +715,7 @@ export function UpgradeModal() {
               {storage.days_until_permanent_bounce !== null &&
                 storage.is_locked && (
                   <p
-                    className="mt-3 text-xs"
+                    className="mt-2 text-[12px]"
                     style={{ color: "var(--destructive)" }}
                   >
                     {t("settings.storage_locked_bounce_warning", {
@@ -803,52 +723,6 @@ export function UpgradeModal() {
                     })}
                   </p>
                 )}
-            </div>
-          ) : null}
-
-          {!is_storage &&
-          limit_info &&
-          !USAGE_NOT_REPORTED.has(state.limit_key) ? (
-            <div className="rounded-[var(--aster-radius-control)] bg-[var(--aster-field-bg)] p-3">
-              <div className="flex items-center justify-between mb-1.5">
-                <span className="text-sm font-medium text-txt-primary">
-                  {resource_label}
-                </span>
-                <span
-                  className="text-xs font-medium tabular-nums"
-                  style={{
-                    color: limit_info.is_at_limit
-                      ? "var(--destructive)"
-                      : "var(--text-secondary)",
-                  }}
-                >
-                  {t("settings.usage_of", {
-                    current: limit_info.current,
-                    limit:
-                      limit_info.limit === -1
-                        ? t("settings.usage_unlimited")
-                        : String(limit_info.limit),
-                  })}
-                </span>
-              </div>
-              <Progress
-                className={`h-1.5 ${limit_info.is_at_limit ? "[&>div]:bg-red-500" : ""}`}
-                value={
-                  limit_info.limit > 0
-                    ? Math.min(
-                        100,
-                        (limit_info.current / limit_info.limit) * 100,
-                      )
-                    : 100
-                }
-              />
-              {EXTERNAL_LIMIT_KEYS.has(state.limit_key) &&
-              limit_info.limit >= 0 &&
-              limit_info.current > limit_info.limit ? (
-                <p className="mt-2 text-[12px] text-txt-muted">
-                  {t("settings.ext_v2_usage_over_limit_note")}
-                </p>
-              ) : null}
             </div>
           ) : null}
 
@@ -864,324 +738,205 @@ export function UpgradeModal() {
 
           {!is_first_load && !limits_failed && tiers.length > 0 && (
             <>
-              <div className="flex flex-col items-center gap-3 pt-1">
-                <Tabs
-                  on_change={set_audience}
-                  options={[
-                    {
-                      id: "individual",
-                      label: t("settings.plan_type_individual"),
-                    },
-                    { id: "family", label: t("settings.plan_type_family") },
-                  ]}
-                  value={audience}
-                />
-                <div className="flex flex-wrap items-center justify-center gap-2">
-                  <div className="w-64">
-                    <Segmented
-                      on_change={(value) => set_interval(value)}
-                      options={[
-                        { id: "month", label: t("settings.billing_monthly") },
-                        {
-                          id: "year",
-                          label: t("settings.billing_yearly"),
-                          badge:
-                            yearly_save_percent > 0
-                              ? t("settings.save_percent", {
-                                  percent: yearly_save_percent,
-                                })
-                              : undefined,
-                        },
-                      ]}
-                      value={interval}
-                    />
-                  </div>
-                  <select
-                    aria-label={t("settings.select_currency")}
-                    className="cursor-pointer rounded-full border-0 bg-[var(--aster-field-bg)] px-3 py-1.5 text-xs text-txt-secondary outline-none transition-colors hover:text-txt-primary focus:ring-2 focus:ring-[var(--accent-color)]"
-                    value={currency}
-                    onChange={handle_currency_change}
-                  >
-                    {SUPPORTED_CURRENCIES.map((entry) => (
-                      <option key={entry.code} value={entry.code}>
-                        {entry.label}
-                      </option>
-                    ))}
-                  </select>
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div
+                  aria-label={t("settings.billing_term_heading")}
+                  className="aster_segmented"
+                  role="group"
+                >
+                  {(["month", "year"] as const).map((period) => (
+                    <button
+                      key={period}
+                      aria-pressed={interval === period}
+                      className="aster_segmented_option"
+                      type="button"
+                      onClick={() => set_interval(period)}
+                    >
+                      {period === "year"
+                        ? t("settings.billing_yearly")
+                        : t("settings.billing_monthly")}
+                      {period === "year" && yearly_save_percent > 0 && (
+                        <span
+                          className="ms-1.5 text-[11.5px] font-semibold"
+                          style={{
+                            color:
+                              interval === "year"
+                                ? "inherit"
+                                : "var(--color-success)",
+                          }}
+                        >
+                          {t("settings.billing_save_percent", {
+                            percent: yearly_save_percent,
+                          })}
+                        </span>
+                      )}
+                    </button>
+                  ))}
                 </div>
+                <button
+                  className="text-[13px] font-medium text-txt-secondary underline-offset-4 transition-colors hover:text-txt-primary hover:underline focus-visible:underline focus-visible:outline-none"
+                  type="button"
+                  onClick={() =>
+                    set_audience(
+                      audience === "family" ? "individual" : "family",
+                    )
+                  }
+                >
+                  {audience === "family"
+                    ? t("settings.plan_picker_individual_link")
+                    : t("settings.plan_picker_family_link")}
+                </button>
               </div>
 
               <div
-                className={`hidden gap-4 pt-3 sm:grid ${GRID_COLUMNS[tiers.length] ?? "sm:grid-cols-3"}`}
+                className={`grid grid-cols-1 gap-3 ${GRID_COLUMNS[tiers.length] ?? "sm:grid-cols-3"}`}
               >
                 {tiers.map((tier) => {
                   const is_featured = default_tier?.id === tier.id;
 
                   return (
-                    <PlanCard
+                    <div
                       key={tier.id}
-                      compact
-                      anchor_label={
-                        interval === "year"
-                          ? format_price(
-                              convert_cents(tier.monthly_cents, currency),
-                              currency,
-                            )
-                          : null
-                      }
-                      badge={
-                        is_featured ? t("settings.plan_recommended") : null
-                      }
-                      billed_note={
-                        interval === "year" ? yearly_total_label(tier) : null
-                      }
-                      cta_disabled={is_starting}
-                      cta_label={t("settings.get_plan", { name: tier.name })}
-                      description={null}
-                      featured={is_featured}
-                      features={tier_features(tier)}
-                      is_current={false}
-                      lead_in={lead_in_for(tier)}
-                      name={tier.name}
-                      on_cta={() => handle_select_tier(tier)}
-                      period_label={t("settings.per_month_short")}
-                      price_label={price_label(tier)}
-                      save_label={null}
-                    />
-                  );
-                })}
-              </div>
-
-              <div
-                aria-label={t("settings.select_your_plan")}
-                className="space-y-2 pt-1 sm:hidden"
-                role="radiogroup"
-              >
-                {tiers.map((tier) => {
-                  const is_selected = selected_tier?.id === tier.id;
-                  const badge =
-                    required_tier?.id === tier.id
-                      ? t("common.unlock")
-                      : tier.is_recommended
-                        ? t("settings.plan_recommended")
-                        : null;
-
-                  return (
-                    <button
-                      key={tier.id}
-                      aria-checked={is_selected}
-                      className={`flex w-full items-center gap-3 rounded-2xl border px-4 py-3 text-start transition-colors ${
-                        is_selected
-                          ? "bg-surf-tertiary"
-                          : "border-edge-secondary"
-                      }`}
-                      role="radio"
-                      style={
-                        is_selected
-                          ? { borderColor: "var(--accent-blue)" }
-                          : undefined
-                      }
-                      type="button"
-                      onClick={() => set_selected_tier_id(tier.id)}
+                      className={`flex flex-col gap-4 rounded-[var(--aster-radius-control)] p-4 ${is_featured ? "order-first sm:order-none" : ""}`}
+                      data-plan-card={tier.id}
+                      style={{
+                        backgroundColor: "var(--aster-field-bg)",
+                        boxShadow: is_featured
+                          ? "inset 0 0 0 2px var(--accent-color)"
+                          : "none",
+                      }}
                     >
-                      <span
-                        className="flex h-[18px] w-[18px] flex-shrink-0 items-center justify-center rounded-full border-2"
-                        style={{
-                          borderColor: is_selected
-                            ? "var(--accent-blue)"
-                            : "var(--border-primary)",
-                        }}
-                      >
-                        {is_selected && (
-                          <span
-                            className="h-2 w-2 rounded-full"
-                            style={{ backgroundColor: "var(--accent-blue)" }}
-                          />
-                        )}
-                      </span>
-                      <span className="min-w-0 flex-1">
-                        <span className="flex items-center gap-2">
-                          <span className="text-sm font-semibold text-txt-primary">
+                      <div>
+                        <div className="flex items-center justify-between gap-2">
+                          <h5 className="text-[17px] font-semibold leading-6 text-txt-primary">
                             {tier.name}
-                          </span>
-                          {badge && (
+                          </h5>
+                          {is_featured && (
                             <span
-                              className="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide"
-                              style={{
-                                backgroundColor: "var(--accent-blue)",
-                                color: "var(--accent-fg, #ffffff)",
-                              }}
+                              className="text-[12px] font-medium"
+                              style={{ color: "var(--accent-color)" }}
                             >
-                              {badge}
+                              {t("settings.plan_recommended")}
                             </span>
                           )}
-                        </span>
-                        <span className="mt-0.5 block truncate text-xs text-txt-muted">
-                          {row_summary(tier)}
-                        </span>
-                      </span>
-                      <span className="flex-shrink-0 text-end tabular-nums">
-                        {interval === "year" && (
-                          <span className="block text-[11px] text-txt-muted line-through">
-                            {format_price(
-                              convert_cents(tier.monthly_cents, currency),
-                              currency,
-                            )}
+                        </div>
+                        <div className="mt-2 flex items-baseline gap-1">
+                          <span className="text-[26px] font-semibold tabular-nums leading-8 tracking-tight text-txt-primary">
+                            {price_label(tier)}
                           </span>
-                        )}
-                        <span className="block text-sm font-semibold text-txt-primary">
-                          {price_label(tier)}
-                          <span className="text-xs font-normal text-txt-muted">
+                          <span className="text-[13px] text-txt-muted">
                             {t("settings.per_month_short")}
                           </span>
-                        </span>
-                      </span>
-                    </button>
+                        </div>
+                        <p className="mt-1 text-[12.5px] text-txt-muted">
+                          {billing_line(tier)}
+                        </p>
+                      </div>
+                      <Button
+                        className="w-full"
+                        disabled={is_starting}
+                        size="lg"
+                        variant={is_featured ? "primary" : "secondary"}
+                        onClick={() => handle_select_tier(tier)}
+                      >
+                        {t("settings.get_plan", { name: tier.name })}
+                      </Button>
+                      <ul className="flex flex-col gap-2">
+                        {tier_features(tier)
+                          .filter((feature) => feature.on)
+                          .slice(0, CARD_FEATURE_COUNT)
+                          .map((feature) => (
+                            <li
+                              key={feature.label}
+                              className="flex items-start gap-2 text-[13px] leading-5 text-txt-secondary"
+                            >
+                              <CheckIcon className="mt-0.5 h-4 w-4 flex-shrink-0 text-txt-muted" />
+                              <span>{feature.label}</span>
+                            </li>
+                          ))}
+                      </ul>
+                    </div>
                   );
                 })}
-
-                {selected_tier && (
-                  <div className="rounded-2xl border border-edge-secondary px-4 py-3.5">
-                    {lead_in_for(selected_tier) && (
-                      <p className="mb-2.5 text-[11px] font-semibold uppercase tracking-wide text-txt-muted">
-                        {lead_in_for(selected_tier)}
-                      </p>
-                    )}
-                    <ul className="space-y-2">
-                      {tier_features(selected_tier).map((feature) => (
-                        <li
-                          key={feature.label}
-                          className="flex items-start gap-2.5 text-[13px] text-txt-secondary"
-                        >
-                          <CheckIcon
-                            className="mt-0.5 h-4 w-4 flex-shrink-0"
-                            style={{ color: "var(--accent-blue)" }}
-                          />
-                          <span>{feature.label}</span>
-                        </li>
-                      ))}
-                    </ul>
-                    {interval === "year" && (
-                      <p className="mt-3 text-xs text-txt-muted">
-                        {yearly_total_label(selected_tier)}
-                      </p>
-                    )}
-                  </div>
-                )}
               </div>
             </>
           )}
 
           {!is_first_load && !limits_failed && tiers.length === 0 && (
-            <ul className="space-y-2.5 text-[13px] text-txt-secondary">
+            <ul className="flex flex-col gap-2">
               {[
                 t("settings.upgrade_perk_storage"),
                 t("settings.upgrade_perk_aliases"),
                 t("settings.upgrade_perk_domains"),
                 t("settings.upgrade_perk_features"),
               ].map((perk) => (
-                <li key={perk} className="flex items-start gap-2.5">
-                  <CheckCircleIcon
-                    className="mt-0.5 h-[18px] w-[18px] flex-shrink-0"
-                    style={{ color: "var(--accent-blue)" }}
-                  />
+                <li
+                  key={perk}
+                  className="flex items-start gap-2 text-[13px] leading-5 text-txt-secondary"
+                >
+                  <CheckIcon className="mt-0.5 h-4 w-4 flex-shrink-0 text-txt-muted" />
                   <span>{perk}</span>
                 </li>
               ))}
             </ul>
           )}
 
-          <div className="flex flex-col items-center gap-2 pt-1 text-center">
-            <p className="text-xs text-txt-secondary">
-              {t("settings.plan_every_plan_includes")}
-            </p>
-            <ul className="flex flex-wrap items-center justify-center gap-x-5 gap-y-1.5">
-              {trust_points.map((point) => (
-                <li
-                  key={point}
-                  className="flex items-center gap-1.5 text-xs text-txt-secondary"
+          <p className="flex flex-wrap items-center justify-center gap-x-1.5 text-center text-[12px] text-txt-muted">
+            <span>
+              {t("settings.money_back_guarantee")} ·{" "}
+              {t("settings.cancel_anytime")}
+            </span>
+            {tiers.length > 0 && (
+              <>
+                <span aria-hidden="true">·</span>
+                <select
+                  aria-label={t("settings.select_currency")}
+                  className="cursor-pointer appearance-none bg-transparent text-[12px] text-txt-muted underline-offset-4 outline-none transition-colors hover:text-txt-primary hover:underline focus-visible:underline"
+                  value={currency}
+                  onChange={handle_currency_change}
                 >
-                  <CheckIcon
-                    className="h-3.5 w-3.5 flex-shrink-0"
-                    style={{ color: "var(--accent-blue)" }}
-                  />
-                  <span>{point}</span>
-                </li>
-              ))}
-              {tiers.length > 0 && (
-                <li className="flex items-center">
-                  <select
-                    aria-label={t("settings.select_currency")}
-                    className="cursor-pointer rounded-md bg-transparent py-0.5 text-xs font-medium text-txt-secondary underline decoration-dotted underline-offset-4 outline-none transition-colors hover:text-txt-primary focus-visible:ring-2 focus-visible:ring-[var(--accent-color)]"
-                    value={currency}
-                    onChange={handle_currency_change}
-                  >
-                    {SUPPORTED_CURRENCIES.map((entry) => (
-                      <option key={entry.code} value={entry.code}>
-                        {entry.label}
-                      </option>
-                    ))}
-                  </select>
-                </li>
-              )}
-            </ul>
-            <p className="text-[12px] leading-relaxed text-txt-tertiary">
-              {currency !== "usd" && tiers.length > 0
-                ? `${t("settings.prices_converted_note")} `
-                : ""}
-              {t("settings.plan_billing_terms")}
-            </p>
-          </div>
+                  {SUPPORTED_CURRENCIES.map((entry) => (
+                    <option key={entry.code} value={entry.code}>
+                      {entry.label}
+                    </option>
+                  ))}
+                </select>
+              </>
+            )}
+          </p>
         </ModalBody>
 
-        <ModalFooter className="sticky bottom-0 z-10 flex-col gap-2 border-t border-edge-secondary bg-[var(--modal-bg)] pt-3 sm:static sm:flex-row sm:border-t-0 sm:pt-2">
-          {selected_tier && !is_first_load && !limits_failed && (
-            <div className="w-full sm:hidden">
-              <Button
-                className="w-full"
-                disabled={is_starting}
-                variant="primary"
-                onClick={() => handle_select_tier(selected_tier)}
-              >
-                {t("settings.continue_with_plan", {
-                  plan: selected_tier.name,
-                })}
-              </Button>
-            </div>
+        <ModalFooter className="flex items-center justify-between gap-3">
+          {is_storage ? (
+            <Button
+              disabled={is_starting}
+              size="sm"
+              variant="ghost"
+              onClick={handle_buy_storage}
+            >
+              {t("settings.upgrade_buy_storage")}
+            </Button>
+          ) : (
+            <Button
+              disabled={is_starting}
+              size="sm"
+              variant="ghost"
+              onClick={handle_compare_plans}
+            >
+              {t("settings.compare_all_features")}
+            </Button>
           )}
-          <div className="flex w-full items-center justify-between gap-3">
-            {is_storage ? (
-              <Button
-                disabled={is_starting}
-                size="sm"
-                variant="outline"
-                onClick={handle_buy_storage}
-              >
-                {t("settings.upgrade_buy_storage")}
-              </Button>
-            ) : (
-              <Button
-                disabled={is_starting}
-                size="sm"
-                variant="ghost"
-                onClick={handle_compare_plans}
-              >
-                {t("settings.compare_all_features")}
-              </Button>
-            )}
-            <span className="flex items-center gap-1">
-              {is_starting && <Spinner size="xs" />}
-              <Button
-                className="text-txt-muted"
-                disabled={is_starting}
-                size="sm"
-                variant="ghost"
-                onClick={close_upgrade_modal}
-              >
-                {t("common.not_now")}
-              </Button>
-            </span>
-          </div>
+          <span className="flex items-center gap-1">
+            {is_starting && <Spinner size="xs" />}
+            <Button
+              disabled={is_starting}
+              size="sm"
+              variant="ghost"
+              onClick={close_upgrade_modal}
+            >
+              {t("common.not_now")}
+            </Button>
+          </span>
         </ModalFooter>
       </Modal>
 

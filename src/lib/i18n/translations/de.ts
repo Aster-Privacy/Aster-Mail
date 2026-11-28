@@ -9106,6 +9106,11 @@ export const de = {
     upgrade_modal_description_specific:
       "Sie haben das {{resource}}-Limit des {{plan}}-Tarifs erreicht. Führen Sie ein Upgrade durch, um mehr zu erhalten.",
     upgrade_modal_title: "Sie haben Ihr Tariflimit erreicht",
+    plan_picker_limit_subtitle: "Sie haben das Limit für {{resource}} in {{plan}} erreicht.",
+    plan_picker_generic_subtitle: "Sie haben ein Limit Ihres Tarifs erreicht.",
+    plan_picker_storage_subtitle: "Neue E-Mails sind pausiert, bis Sie Speicherplatz freigeben oder upgraden.",
+    plan_picker_family_link: "Familientarife ansehen",
+    plan_picker_individual_link: "Einzeltarife ansehen",
     upgrade_perk_aliases: "Mehr Aliase und benutzerdefinierte Domains",
     upgrade_perk_domains: "Erweiterte Filter, Signaturen und Vorlagen",
     upgrade_perk_features: "Urlaubsantworten, geplantes Senden und mehr",

@@ -8651,6 +8651,11 @@ export const it = {
     usage_filters: "Filtri personalizzati",
     usage_custom_categories: "Categorie personalizzate",
     upgrade_modal_title: "Hai raggiunto il limite del tuo piano",
+    plan_picker_limit_subtitle: "Hai raggiunto il limite di {{resource}} su {{plan}}.",
+    plan_picker_generic_subtitle: "Hai raggiunto un limite del tuo piano.",
+    plan_picker_storage_subtitle: "La nuova posta è in pausa finché non liberi spazio o esegui l'upgrade.",
+    plan_picker_family_link: "Vedi i piani famiglia",
+    plan_picker_individual_link: "Vedi i piani individuali",
     upgrade_modal_description_specific:
       "Hai raggiunto il limite di {{resource}} sul piano {{plan}}. Aggiorna per avere di più.",
     upgrade_modal_description_generic:

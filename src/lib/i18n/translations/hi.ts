@@ -5411,6 +5411,11 @@ export const hi = {
     usage_filters: "कस्टम फ़िल्टर",
     usage_custom_categories: "अपनी श्रेणियां",
     upgrade_modal_title: "आप अपने प्लान की सीमा पर पहुंच गए हैं",
+    plan_picker_limit_subtitle: "आप {{plan}} पर {{resource}} की सीमा तक पहुंच गए हैं।",
+    plan_picker_generic_subtitle: "आप अपने प्लान की एक सीमा तक पहुंच गए हैं।",
+    plan_picker_storage_subtitle: "जगह खाली करने या अपग्रेड करने तक नई मेल रुकी हुई है।",
+    plan_picker_family_link: "फ़ैमिली प्लान देखें",
+    plan_picker_individual_link: "व्यक्तिगत प्लान देखें",
     upgrade_modal_description_specific:
       "आप {{plan}} प्लान पर {{resource}} की सीमा पर पहुंच गए हैं। और पाने के लिए प्लान बढ़ाएं।",
     upgrade_modal_description_generic:

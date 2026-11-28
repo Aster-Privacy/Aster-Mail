@@ -8535,6 +8535,11 @@ export const tr = {
     usage_filters: "Özel filtreler",
     usage_custom_categories: "Özel kategoriler",
     upgrade_modal_title: "Plan sınırınıza ulaştınız",
+    plan_picker_limit_subtitle: "{{plan}} planında {{resource}} sınırına ulaştınız.",
+    plan_picker_generic_subtitle: "Planınızın bir sınırına ulaştınız.",
+    plan_picker_storage_subtitle: "Yer açana veya yükseltene kadar yeni postalar duraklatıldı.",
+    plan_picker_family_link: "Aile planlarını gör",
+    plan_picker_individual_link: "Bireysel planları gör",
     upgrade_modal_description_specific:
       "{{plan}} planındaki {{resource}} sınırına ulaştınız. Daha fazlası için yükseltin.",
     upgrade_modal_description_generic:

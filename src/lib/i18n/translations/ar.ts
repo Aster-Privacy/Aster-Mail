@@ -8428,6 +8428,11 @@ export const ar = {
     usage_filters: "الفلاتر المخصصة",
     usage_custom_categories: "الفئات المخصصة",
     upgrade_modal_title: "لقد وصلت إلى حد خطتك",
+    plan_picker_limit_subtitle: "لقد بلغت حد {{resource}} في {{plan}}.",
+    plan_picker_generic_subtitle: "لقد بلغت أحد حدود خطتك.",
+    plan_picker_storage_subtitle: "تم إيقاف البريد الجديد مؤقتًا حتى تفرغ مساحة أو تقوم بالترقية.",
+    plan_picker_family_link: "عرض خطط العائلة",
+    plan_picker_individual_link: "عرض الخطط الفردية",
     upgrade_modal_description_specific:
       "لقد وصلت إلى حد {{resource}} في خطة {{plan}}. قم بالترقية للحصول على المزيد.",
     upgrade_modal_description_generic:

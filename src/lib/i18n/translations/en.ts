@@ -5312,6 +5312,11 @@ export const en: Translations = {
     usage_filters: "Custom filters",
     usage_custom_categories: "Custom categories",
     upgrade_modal_title: "You've reached your plan limit",
+    plan_picker_limit_subtitle: "You reached the {{resource}} limit on {{plan}}.",
+    plan_picker_generic_subtitle: "You reached a limit on your plan.",
+    plan_picker_storage_subtitle: "New mail is paused until you free up space or upgrade.",
+    plan_picker_family_link: "See family plans",
+    plan_picker_individual_link: "See individual plans",
     upgrade_modal_description_specific:
       "You've reached the {{resource}} limit on the {{plan}} plan. Upgrade to get more.",
     upgrade_modal_description_generic:

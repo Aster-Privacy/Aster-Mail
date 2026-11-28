@@ -8783,6 +8783,11 @@ export const pl = {
     usage_filters: "Filtry niestandardowe",
     usage_custom_categories: "Kategorie niestandardowe",
     upgrade_modal_title: "Osiągnięto limit planu",
+    plan_picker_limit_subtitle: "Osiągnięto limit {{resource}} w planie {{plan}}.",
+    plan_picker_generic_subtitle: "Osiągnięto limit Twojego planu.",
+    plan_picker_storage_subtitle: "Nowa poczta jest wstrzymana, dopóki nie zwolnisz miejsca lub nie zmienisz planu.",
+    plan_picker_family_link: "Zobacz plany rodzinne",
+    plan_picker_individual_link: "Zobacz plany indywidualne",
     upgrade_modal_description_specific:
       "Osiągnięto limit {{resource}} w planie {{plan}}. Uaktualnij plan, aby zyskać więcej.",
     upgrade_modal_description_generic:
