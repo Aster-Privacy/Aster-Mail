@@ -90,7 +90,7 @@ describe("hero_copy", () => {
     );
 
     expect(copy.tone).toBe("unknown");
-    expect(lookup(copy.title_key)).toContain("could not read your DNS");
+    expect(lookup(copy.title_key)).toContain("Couldn't read your DNS");
   });
 
   it("falls back to unknown when the request failed entirely", () => {
