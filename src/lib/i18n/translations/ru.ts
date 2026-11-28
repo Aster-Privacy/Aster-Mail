@@ -1247,7 +1247,7 @@ export const ru = {
     undo_failed: "Попробуйте снова.",
     expired: "Истекло",
     expires_in: "Истекает через ",
-    report_phishing: "Сообщить о спаме",
+    report_phishing: "Сообщить о фишинге",
     suspicious: "Подозрительно",
     dangerous: "Опасно",
     click_to_edit: "Нажмите для редактирования",
@@ -10000,7 +10000,7 @@ export const ru = {
     mark_all_read: "Отметить все как прочитанные",
     empty_trash: "Очистить корзину",
     empty_spam: "Очистить спам",
-    report_phishing: "Сообщить о спаме",
+    report_phishing: "Сообщить о фишинге",
     not_spam: "Не спам",
     pending_send_failed: "Не удалось отправить это сообщение.",
     pending_send_offline:

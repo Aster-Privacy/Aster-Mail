@@ -52,6 +52,10 @@ import { render_collapsed_thread_message } from "./thread_message_collapsed";
 import { use_thread_message_block } from "./use_thread_message_block";
 
 import {
+  phishing_menu_state,
+  use_phishing_reported,
+} from "@/components/email/viewer_shared/report_phishing";
+import {
   NotSpamIcon,
   ReportSpamIcon,
 } from "@/components/email/spam_action_icons";
@@ -163,6 +167,13 @@ export function ThreadMessageBlock(
     island_ref,
   } = props;
   const state = use_thread_message_block(props);
+  const phishing_reported = use_phishing_reported(message.id);
+  const phishing_menu = phishing_menu_state({
+    item_type: message.item_type,
+    is_own_message,
+    in_spam: !!on_not_spam,
+    is_reported: phishing_reported,
+  });
   const forward_mail_as_attachment = use_forward_as_attachment();
   const {
     t,
@@ -759,7 +770,7 @@ export function ThreadMessageBlock(
                 <CodeBracketIcon className="w-4 h-4 me-2" />
                 {viewing_source ? t("mail.hide_source") : t("mail.view_source")}
               </DropdownMenuItem>
-              {on_not_spam ? (
+              {on_not_spam && phishing_menu.show_not_spam && (
                 <DropdownMenuItem
                   onClick={(e) => {
                     e.stopPropagation();
@@ -769,19 +780,24 @@ export function ThreadMessageBlock(
                   <NotSpamIcon className="w-4 h-4 me-2" />
                   {t("mail.not_spam")}
                 </DropdownMenuItem>
-              ) : on_report_phishing ? (
-                <DropdownMenuItem
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    on_report_phishing(message);
-                  }}
-                >
-                  <ReportSpamIcon className="w-4 h-4 me-2 text-amber-500" />
-                  <span className="text-amber-500">
-                    {t("common.report_phishing")}
-                  </span>
-                </DropdownMenuItem>
-              ) : null}
+              )}
+              {on_report_phishing &&
+                phishing_menu.report_phishing !== "hidden" && (
+                  <DropdownMenuItem
+                    disabled={phishing_menu.report_phishing === "reported"}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      on_report_phishing(message);
+                    }}
+                  >
+                    <ReportSpamIcon className="w-4 h-4 me-2 text-amber-500" />
+                    <span className="text-amber-500">
+                      {phishing_menu.report_phishing === "reported"
+                        ? t("common.reported_as_phishing")
+                        : t("common.report_phishing")}
+                    </span>
+                  </DropdownMenuItem>
+                )}
               {on_block_sender && !is_own_message && (
                 <DropdownMenuItem
                   onClick={(e) => {

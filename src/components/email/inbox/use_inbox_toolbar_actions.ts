@@ -94,6 +94,7 @@ import {
   begin_read_change,
   is_read_ticket_current,
 } from "@/services/read_intent";
+import { report_spam_with_retract } from "@/components/email/viewer_shared/report_phishing";
 
 const EMIT_UPDATED_MAX = 200;
 
@@ -398,14 +399,8 @@ export function use_inbox_toolbar_actions({
           reindex_ids(uncovered_thread_ids);
         }
       }
-      if (sender && !is_outgoing) {
-        report_spam_sender(sender).catch((caught) =>
-          ignore_error(
-            "components/email/inbox/use_inbox_toolbar_actions:use_inbox_toolbar_actions",
-            caught,
-          ),
-        );
-      }
+      const retract_report =
+        sender && !is_outgoing ? report_spam_with_retract(sender) : null;
       show_action_toast({
         message:
           same_sender_emails.length > 0
@@ -428,14 +423,7 @@ export function use_inbox_toolbar_actions({
           reindex_ids(
             Array.from(new Set([...combined_ids, ...removed_thread_ids])),
           );
-          if (sender) {
-            remove_spam_sender(sender).catch((caught) =>
-              ignore_error(
-                "components/email/inbox/use_inbox_toolbar_actions:use_inbox_toolbar_actions",
-                caught,
-              ),
-            );
-          }
+          void retract_report?.();
           window.dispatchEvent(new CustomEvent(MAIL_EVENTS.MAIL_SOFT_REFRESH));
         },
       });

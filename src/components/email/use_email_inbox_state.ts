@@ -796,6 +796,7 @@ export function use_email_inbox_state(props: EmailInboxProps) {
     effective_total_for_pages,
     handle_category_drop,
     set_show_toolbar_custom_snooze,
+    current_view,
   });
 
   const nav = use_inbox_navigation({

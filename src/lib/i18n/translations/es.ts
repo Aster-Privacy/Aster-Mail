@@ -1263,7 +1263,7 @@ export const es = {
     undo_failed: "Inténtalo de nuevo.",
     expired: "Expirado",
     expires_in: "Expira en ",
-    report_phishing: "Reportar spam",
+    report_phishing: "Reportar phishing",
     suspicious: "Sospechoso",
     dangerous: "Peligroso",
     click_to_edit: "Haz clic para editar",
@@ -9814,7 +9814,7 @@ export const es = {
     mark_all_read: "Marcar todo como leído",
     empty_trash: "Vaciar papelera",
     empty_spam: "Vaciar spam",
-    report_phishing: "Reportar spam",
+    report_phishing: "Reportar phishing",
     not_spam: "No es spam",
     pending_send_failed: "No se pudo enviar este mensaje.",
     pending_send_offline:

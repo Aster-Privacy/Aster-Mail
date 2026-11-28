@@ -1107,7 +1107,7 @@ export const de = {
     message_marked_as_spam: "Nachricht als Spam markiert",
     expired: "Abgelaufen",
     expires_in: "Läuft ab in ",
-    report_phishing: "Spam melden",
+    report_phishing: "Phishing melden",
     suspicious: "Verdächtig",
     dangerous: "Gefährlich",
     click_to_edit: "Zum Bearbeiten klicken",
@@ -9901,7 +9901,7 @@ export const de = {
     mark_all_read: "Alle als gelesen markieren",
     empty_trash: "Papierkorb leeren",
     empty_spam: "Spam leeren",
-    report_phishing: "Spam melden",
+    report_phishing: "Phishing melden",
     not_spam: "Kein Spam",
     pending_send_failed: "Diese Nachricht konnte nicht gesendet werden.",
     pending_send_offline:

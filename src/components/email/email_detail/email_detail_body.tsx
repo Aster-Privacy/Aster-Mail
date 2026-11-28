@@ -73,6 +73,7 @@ interface EmailDetailBodyProps {
   thread_draft: DraftWithContent | null;
   current_user_email: string;
   set_is_block_sender_modal_open: (open: boolean) => void;
+  on_block_message_sender?: (msg: DecryptedThreadMessage) => void;
   handle_per_message_archive: (msg: DecryptedThreadMessage) => void;
   handle_per_message_trash: (msg: DecryptedThreadMessage) => void;
   handle_per_message_print: (msg: DecryptedThreadMessage) => void;
@@ -102,6 +103,7 @@ export function EmailDetailBody({
   thread_draft,
   current_user_email,
   set_is_block_sender_modal_open,
+  on_block_message_sender,
   handle_per_message_archive,
   handle_per_message_trash,
   handle_per_message_print,
@@ -364,7 +366,10 @@ export function EmailDetailBody({
                     ]
               }
               on_archive={handle_per_message_archive}
-              on_block_sender={() => set_is_block_sender_modal_open(true)}
+              on_block_sender={
+                on_block_message_sender ??
+                (() => set_is_block_sender_modal_open(true))
+              }
               on_close_inline_reply={handle_close_inline_reply}
               on_external_content_detected={on_external_content_detected}
               on_forward={handle_inline_forward}

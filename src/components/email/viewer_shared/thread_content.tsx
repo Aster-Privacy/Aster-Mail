@@ -62,6 +62,7 @@ export interface ViewerThreadContentProps {
   on_print: (msg: DecryptedThreadMessage) => void;
   on_view_source: (msg: DecryptedThreadMessage) => void;
   on_report_phishing: (msg: DecryptedThreadMessage) => void;
+  on_block_sender?: (msg: DecryptedThreadMessage) => void;
   on_not_spam?: (msg: DecryptedThreadMessage) => void;
   on_toggle_message_read: (message_id: string, next_read: boolean) => void;
   on_edit_thread_draft?: (draft: DraftWithContent) => void;
@@ -100,6 +101,7 @@ export function ViewerThreadContent({
   on_print,
   on_view_source,
   on_report_phishing,
+  on_block_sender,
   on_not_spam,
   on_toggle_message_read,
   on_edit_thread_draft: _on_edit_thread_draft,
@@ -264,6 +266,7 @@ export function ViewerThreadContent({
           on_print={on_print}
           on_reply={handle_inline_reply}
           on_reply_all={handle_inline_reply_all}
+          on_block_sender={on_block_sender}
           on_report_phishing={on_report_phishing}
           on_set_inline_mode={handle_set_inline_mode}
           on_toggle_message_read={on_toggle_message_read}
