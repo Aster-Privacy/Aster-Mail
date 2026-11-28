@@ -20,7 +20,7 @@
 //
 import type { UseRegistrationReturn } from "@/components/register/hooks/use_registration";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import {
   DropdownMenu,
@@ -31,6 +31,8 @@ import {
 import { apply_input_transform } from "@/utils/input_transform";
 import { sanitize_username_input } from "@/services/sanitize";
 import { create_alias } from "@/services/api/aliases/crud";
+import { auto_claim_matching_addresses } from "@/services/api/aliases/matching_claim";
+import { clear_twin_address_cache } from "@/components/settings/aliases/use_twin_address";
 import { validate_local_part } from "@/services/api/aliases/validate";
 import {
   CheckCircleIcon,
@@ -58,15 +60,67 @@ export const RegisterStepAddresses = ({ reg }: RegisterStepAddressesProps) => {
     ADDRESS_SLOTS.map(() => reg.email_domain),
   );
   const [is_adding, set_is_adding] = useState(false);
+  const [is_claiming, set_is_claiming] = useState(true);
   const input_refs = useRef<(HTMLInputElement | null)[]>([]);
   const last_created_at_ref = useRef(0);
+  const added_ref = useRef(reg.added_addresses);
+  const values_ref = useRef(values);
+
+  added_ref.current = reg.added_addresses;
+  values_ref.current = values;
+
+  const { username, email_domain, set_added_addresses } = reg;
+
+  useEffect(() => {
+    let active = true;
+
+    void auto_claim_matching_addresses(`${username}@${email_domain}`).then(
+      (results) => {
+        if (!active) return;
+        set_is_claiming(false);
+        if (results.length === 0) return;
+
+        const added = [...added_ref.current];
+        const next_values = [...values_ref.current];
+        const next_domains: (string | null)[] = ADDRESS_SLOTS.map(() => null);
+
+        for (const result of results) {
+          if (added.includes(result.address)) continue;
+          const slot = ADDRESS_SLOTS.find(
+            (index) => !added[index] && !next_values[index].trim(),
+          );
+
+          if (slot === undefined) break;
+          const [local_part, domain] = result.address.split("@");
+
+          added[slot] = result.address;
+          next_values[slot] = local_part;
+          next_domains[slot] = domain;
+        }
+
+        if (results.some((result) => result.created)) {
+          last_created_at_ref.current = Date.now();
+        }
+        clear_twin_address_cache();
+        set_values(next_values);
+        set_domains((current) =>
+          current.map((domain, index) => next_domains[index] ?? domain),
+        );
+        set_added_addresses(added);
+      },
+    );
+
+    return () => {
+      active = false;
+    };
+  }, [username, email_domain, set_added_addresses]);
 
   const pending_count = values.filter(
     (value, index) => value.trim() && !reg.added_addresses[index],
   ).length;
 
   const handle_add = async () => {
-    if (is_adding) return;
+    if (is_adding || is_claiming) return;
     const next_errors = ["", "", ""];
     let has_error = false;
 
@@ -143,7 +197,7 @@ export const RegisterStepAddresses = ({ reg }: RegisterStepAddressesProps) => {
                   autoComplete="off"
                   autoCorrect="off"
                   className="notranslate pe-36"
-                  disabled={done || is_adding}
+                  disabled={done || is_adding || is_claiming}
                   maxLength={64}
                   placeholder={reg.t("auth.address_n", {
                     n: String(index + 1),
@@ -183,7 +237,7 @@ export const RegisterStepAddresses = ({ reg }: RegisterStepAddressesProps) => {
                       <button
                         aria-label={reg.t("auth.switch_domain")}
                         className="inline-flex items-center gap-1 rounded-[var(--aster-radius-item,8px)] px-1.5 py-1 text-sm text-txt-secondary transition-colors hover:bg-[var(--aster-hover)] hover:text-txt-primary disabled:pointer-events-none notranslate"
-                        disabled={done || is_adding}
+                        disabled={done || is_adding || is_claiming}
                         tabIndex={-1}
                         translate="no"
                         type="button"
@@ -246,7 +300,7 @@ export const RegisterStepAddresses = ({ reg }: RegisterStepAddressesProps) => {
 
       <OnboardingButton
         className="mt-4 w-full"
-        disabled={is_adding || pending_count === 0}
+        disabled={is_adding || is_claiming || pending_count === 0}
         is_loading={is_adding}
         variant="primary"
         onClick={() => void handle_add()}

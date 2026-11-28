@@ -157,6 +157,18 @@ export interface TwinAddressResponse {
   siblings?: TwinSibling[];
 }
 
+export interface ClaimTwinAliasRequest {
+  encrypted_local_part: string;
+  local_part_nonce: string;
+  alias_address_hash: string;
+  domain: string;
+}
+
+export interface ClaimTwinAliasResponse {
+  id: string;
+  created: boolean;
+}
+
 export interface AliasCountsResponse {
   count: number;
   max: number;
