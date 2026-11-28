@@ -34,26 +34,3 @@ export type ProfileColor = (typeof PROFILE_COLORS)[number];
 export function get_default_profile_color(): ProfileColor {
   return PROFILE_COLORS[Math.floor(Math.random() * PROFILE_COLORS.length)];
 }
-
-const GRADIENT_CONFIGS: Record<
-  string,
-  { top_left: string; bottom_right: string }
-> = {
-  "#3b82f6": { top_left: "#3b82f6", bottom_right: "#312e81" },
-  "#8b5cf6": { top_left: "#7c3aed", bottom_right: "#1e3a5f" },
-  "#ec4899": { top_left: "#ec4899", bottom_right: "#581c87" },
-  "#ef4444": { top_left: "#d97706", bottom_right: "#7f1d1d" },
-  "#f97316": { top_left: "#eab308", bottom_right: "#78350f" },
-  "#22c55e": { top_left: "#4ade80", bottom_right: "#064e3b" },
-  "#14b8a6": { top_left: "#2dd4bf", bottom_right: "#134e4a" },
-  "#6b7280": { top_left: "#9ca3af", bottom_right: "#111827" },
-};
-
-export function get_gradient_background(color: string): string {
-  const config = GRADIENT_CONFIGS[color] || {
-    top_left: color,
-    bottom_right: color,
-  };
-
-  return `linear-gradient(135deg, ${config.top_left} 0%, ${config.bottom_right} 100%)`;
-}
