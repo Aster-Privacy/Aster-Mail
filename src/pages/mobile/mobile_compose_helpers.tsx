@@ -23,11 +23,11 @@ import type { TranslationKey } from "@/lib/i18n";
 import type { EditDraftData } from "@/components/compose/compose_shared";
 
 import { useMemo } from "react";
-import { AtSymbolIcon } from "@heroicons/react/24/outline";
 
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
 import { get_gradient_background } from "@/constants/profile";
 import { get_alias_color } from "@/lib/avatar_color";
+import { AliasAtIcon } from "@/components/icons/alias_icons";
 
 export function MobileSenderIcon({
   option,
@@ -65,7 +65,7 @@ export function MobileSenderIcon({
           "inset 0 1px 1px rgba(255,255,255,0.2), inset 0 -1px 1px rgba(0,0,0,0.15)",
       }}
     >
-      <AtSymbolIcon className={`${icon_cls} text-white`} />
+      <AliasAtIcon className={`${icon_cls} text-white`} />
     </div>
   );
 }

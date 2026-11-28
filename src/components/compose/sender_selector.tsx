@@ -37,8 +37,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   ChevronDownIcon,
   CheckIcon,
-  AtSymbolIcon,
-  EyeSlashIcon,
   MagnifyingGlassIcon,
 } from "@heroicons/react/24/outline";
 
@@ -61,6 +59,7 @@ import {
   typed_catch_all_domains,
   typed_catch_all_options,
 } from "@/services/catch_all_sender";
+import { AliasAtIcon, GhostMaskIcon } from "@/components/icons/alias_icons";
 
 function SenderAliasIcon({
   address,
@@ -104,7 +103,7 @@ function SenderAliasIcon({
           "inset 0 1px 1px rgba(255,255,255,0.2), inset 0 -1px 1px rgba(0,0,0,0.15)",
       }}
     >
-      <AtSymbolIcon className={`${icon_cls} text-white`} />
+      <AliasAtIcon className={`${icon_cls} text-white`} />
     </div>
   );
 }
@@ -124,7 +123,7 @@ function GhostSenderIcon({ size }: { size: string }) {
           "inset 0 1px 1px rgba(255,255,255,0.2), inset 0 -1px 1px rgba(0,0,0,0.15)",
       }}
     >
-      <EyeSlashIcon className={`${icon_cls} text-white`} />
+      <GhostMaskIcon className={`${icon_cls} text-white`} />
     </div>
   );
 }
@@ -483,7 +482,7 @@ export function SenderSelector({
       <div className="flex-1 flex items-center gap-1.5">
         <GhostSenderIcon size="xs" />
         <span className="text-sm text-txt-primary">{display_option.email}</span>
-        <EyeSlashIcon className="w-3.5 h-3.5 text-purple-400" />
+        <GhostMaskIcon className="w-3.5 h-3.5 text-purple-400" />
       </div>
     );
   }

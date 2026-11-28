@@ -24,7 +24,6 @@ import type { DecryptedDomainAddress } from "@/services/api/domains";
 import { useMemo } from "react";
 import {
   ArrowLeftIcon,
-  AtSymbolIcon,
   ChartBarIcon,
   IdentificationIcon,
   InboxArrowDownIcon,
@@ -66,6 +65,7 @@ import {
   StatsPanel,
   type AliasDeliveryState,
 } from "@/components/settings/aliases/alias_advanced_panel";
+import { AliasAtIcon } from "@/components/icons/alias_icons";
 
 interface EditorSection {
   key: string;
@@ -381,7 +381,7 @@ export function AliasEditorPage({
               <ArrowLeftIcon className="h-[18px] w-[18px] rtl:-scale-x-100" />
             </button>
             <h3 className="min-w-0 text-base font-semibold text-txt-primary flex items-center gap-2">
-              <AtSymbolIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
+              <AliasAtIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
               <button
                 className="min-w-0 truncate rounded-none text-start transition-colors hover:text-txt-secondary"
                 title={t("common.copy_address")}

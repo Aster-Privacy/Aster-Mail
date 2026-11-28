@@ -32,6 +32,7 @@ import { has_text_selection_within } from "@/lib/text_selection";
 import { EmailTag } from "@/components/ui/email_tag";
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
 import { MessageDetailsModal } from "@/components/email/message_details_modal";
+import { GhostMaskIcon } from "@/components/icons/alias_icons";
 
 export function render_collapsed_thread_message(
   props: ThreadMessageBlockProps,
@@ -100,7 +101,7 @@ export function render_collapsed_thread_message(
             <Tooltip tip={t("common.ghost_mode_tooltip")}>
               <EmailTag
                 className="flex-shrink-0"
-                icon="eye-slash"
+                icon={<GhostMaskIcon className="w-full h-full" />}
                 label={t("common.ghost_label")}
                 muted={is_read}
                 size="sm"

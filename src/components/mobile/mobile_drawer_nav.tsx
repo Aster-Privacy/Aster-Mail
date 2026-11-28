@@ -548,9 +548,6 @@ export const DrawerNavContent = memo(function DrawerNavContent({
             count={unread_count}
             icon={
               <AliasNavIcon
-                address={alias.full_address}
-                icon_class_name="w-3 h-3"
-                is_random={alias.is_random}
                 profile_picture={alias.profile_picture}
                 size={20}
               />

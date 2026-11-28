@@ -23,7 +23,6 @@ import type { DecryptedEmailAlias } from "@/services/api/aliases";
 import type { SettingsSection } from "@/components/settings/settings_content";
 
 import { memo } from "react";
-import { AtSymbolIcon } from "@heroicons/react/24/outline";
 import {
   SidebarEmptyText,
   SidebarMoreToggle,
@@ -46,6 +45,7 @@ import { RailUnreadDot } from "@/components/common/rail_unread_dot";
 import { AliasNavIcon } from "@/components/common/alias_nav_icon";
 import { AliasContextMenu } from "@/components/layout/sidebar/alias_context_menu";
 import { is_sidebar_orderable } from "@/hooks/sidebar_alias_order";
+import { AliasAtIcon } from "@/components/icons/alias_icons";
 
 interface SidebarAliasesProps {
   is_collapsed: boolean;
@@ -125,7 +125,7 @@ export const SidebarAliases = memo(function SidebarAliases({
 
       {is_collapsed && (
         <SidebarRailSectionButton
-          icon={AtSymbolIcon}
+          icon={AliasAtIcon}
           icon_style={{ color: "var(--accent-color)" }}
           label={t("common.aliases")}
           on_click={() => on_settings_click("aliases")}
@@ -178,10 +178,9 @@ export const SidebarAliases = memo(function SidebarAliases({
                   }
                   icon_slot={
                     <AliasNavIcon
-                      address={alias.full_address}
-                      is_random={alias.is_random}
+                      picture_size={is_collapsed ? 24 : 20}
                       profile_picture={alias.profile_picture}
-                      size={is_collapsed ? 24 : 20}
+                      size={is_collapsed ? 20 : 16}
                     />
                   }
                   is_collapsed={is_collapsed}

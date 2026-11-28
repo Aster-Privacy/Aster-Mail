@@ -33,7 +33,6 @@ import {
   BellIcon,
   CreditCardIcon,
   ArrowRightStartOnRectangleIcon,
-  AtSymbolIcon,
   ArrowDownTrayIcon,
   PencilSquareIcon,
   AdjustmentsHorizontalIcon,
@@ -41,7 +40,6 @@ import {
   ChatBubbleBottomCenterTextIcon,
   ServerStackIcon,
   ComputerDesktopIcon,
-  EyeSlashIcon,
   UserGroupIcon,
   BoltIcon,
   CodeBracketIcon,
@@ -127,6 +125,7 @@ import {
   highlight_settings_target,
   start_scroll_seek,
 } from "@/components/settings/settings_scroll_target";
+import { AliasAtIcon, GhostMaskIcon } from "@/components/icons/alias_icons";
 
 const StorageSection = lazy_with_retry(() =>
   import("./settings/storage_section").then((m) => ({
@@ -677,7 +676,7 @@ function MobileSettingsPage() {
                       type="button"
                       onClick={() => open_section("aliases")}
                     >
-                      <AtSymbolIcon className="h-5 w-5 shrink-0 text-[var(--text-primary)]" />
+                      <AliasAtIcon className="h-5 w-5 shrink-0 text-[var(--text-primary)]" />
                       <span className="min-w-0 flex-1 text-[15px] text-[var(--text-primary)]">
                         {t("settings.alias_tab_aliases")}
                       </span>
@@ -699,7 +698,7 @@ function MobileSettingsPage() {
                       type="button"
                       onClick={() => open_section("ghost_aliases")}
                     >
-                      <EyeSlashIcon className="h-5 w-5 shrink-0 text-[var(--text-primary)]" />
+                      <GhostMaskIcon className="h-5 w-5 shrink-0 text-[var(--text-primary)]" />
                       <span className="min-w-0 flex-1 text-[15px] text-[var(--text-primary)]">
                         {t("settings.ghost_aliases")}
                       </span>

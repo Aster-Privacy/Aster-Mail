@@ -22,7 +22,6 @@ import type { ThreadMessageBlockProps } from "./use_thread_message_block";
 
 import { quotable_source } from "@/lib/html_text";
 import {
-  AtSymbolIcon,
   StarIcon,
   EyeIcon,
   EyeSlashIcon,
@@ -115,6 +114,7 @@ import { SETTINGS_ANCHORS, open_settings_target } from "@/lib/settings_links";
 import { ForwardedViaLine } from "@/components/email/shared/forwarded_via_line";
 import { use_forward_as_attachment } from "@/components/compose/use_forward_as_attachment";
 import { has_text_selection_within } from "@/lib/text_selection";
+import { AliasAtIcon, GhostMaskIcon } from "@/components/icons/alias_icons";
 
 export function ThreadMessageBlock(
   props: ThreadMessageBlockProps,
@@ -450,7 +450,7 @@ export function ThreadMessageBlock(
               <Tooltip tip={t("common.ghost_mode_tooltip")}>
                 <EmailTag
                   className="flex-shrink-0"
-                  icon="eye-slash"
+                  icon={<GhostMaskIcon className="w-full h-full" />}
                   label={t("common.ghost_label")}
                   muted={is_read}
                   size="sm"
@@ -522,7 +522,7 @@ export function ThreadMessageBlock(
                   })}
                   className="flex-shrink-0 inline-flex items-center text-txt-muted"
                 >
-                  <AtSymbolIcon className="h-3.5 w-3.5" />
+                  <AliasAtIcon className="h-3.5 w-3.5" />
                 </span>
               </Tooltip>
             )}

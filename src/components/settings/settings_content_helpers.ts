@@ -30,7 +30,6 @@ import {
   SpeakerWaveIcon,
   PaintBrushIcon,
   AdjustmentsHorizontalIcon,
-  AtSymbolIcon,
   GlobeAltIcon,
   CreditCardIcon,
   ArrowsRightLeftIcon,
@@ -50,6 +49,7 @@ import {
   settings_tab_for,
   type SettingsSection,
 } from "@/lib/settings_section_names";
+import { AliasAtIcon } from "@/components/icons/alias_icons";
 
 export {
   SETTINGS_SECTION_IDS,
@@ -297,7 +297,7 @@ export function get_nav_items(
     {
       id: "aliases",
       label: t("settings.alias_tab_aliases"),
-      icon: AtSymbolIcon,
+      icon: AliasAtIcon,
       description: "Custom email addresses that route mail to your inbox",
       keywords: [
         "alias",

@@ -26,7 +26,6 @@ import type { TranslationKey } from "@/lib/i18n/types";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   TrashIcon,
-  AtSymbolIcon,
   GlobeAltIcon,
   BoltIcon,
   CameraIcon,
@@ -62,6 +61,7 @@ import { PinIcon } from "@/components/common/icons";
 import { AliasDisplayNameEditor } from "@/components/settings/aliases/alias_display_name_editor";
 import { AliasMetaEditor } from "@/components/settings/aliases/alias_meta_editor";
 import { AliasNoteEditor } from "@/components/settings/aliases/alias_note_editor";
+import { AliasAtIcon } from "@/components/icons/alias_icons";
 
 function AliasAvatar({
   profile_picture,
@@ -402,7 +402,7 @@ export function AliasItem({
               alias.is_random ? (
                 <BoltIcon className="w-5 h-5 text-white" />
               ) : (
-                <AtSymbolIcon className="w-5 h-5 text-white" />
+                <AliasAtIcon className="w-5 h-5 text-white" />
               )
             }
             is_locked={is_avatar_locked}
