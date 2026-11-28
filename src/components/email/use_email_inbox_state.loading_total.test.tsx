@@ -263,4 +263,29 @@ describe("use_email_inbox_state list total before the first page arrives", () =>
 
     expect(state().effective_total_for_pages).toBe(38);
   });
+
+  it("shows no page count while the list shows its load error", async () => {
+    await render("archive", {
+      ...loading_state(),
+      is_loading: false,
+      has_initial_load: true,
+      has_load_error: true,
+      total_messages: 3,
+    });
+
+    expect(state().pager_total).toBe(0);
+  });
+
+  it("keeps the page count when rows are still on screen after a failed load", async () => {
+    await render("sent", {
+      ...loading_state(),
+      emails: rows(3),
+      is_loading: false,
+      has_initial_load: true,
+      has_load_error: true,
+      total_messages: 3,
+    });
+
+    expect(state().pager_total).toBeGreaterThan(0);
+  });
 });

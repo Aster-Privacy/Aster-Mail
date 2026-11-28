@@ -365,6 +365,8 @@ export function use_email_inbox_state(props: EmailInboxProps) {
   );
 
   const is_client_filtered = active_filter !== "all";
+  const list_load_failed =
+    email_state.has_load_error && filtered_emails.length === 0;
   const stats_total_for_view = useMemo(() => {
     switch (current_view) {
       case "inbox":
@@ -1175,15 +1177,17 @@ export function use_email_inbox_state(props: EmailInboxProps) {
     empty_state_visible,
     skeleton_visible,
     effective_total_for_pages,
-    pager_total: is_server_filtered
-      ? resolve_filtered_pager_total(
-          server_filtered_total,
-          total_pages,
-          page_size,
-        )
-      : is_client_filtered
-        ? unfiltered_total_for_pages
-        : effective_total_for_pages,
+    pager_total: list_load_failed
+      ? 0
+      : is_server_filtered
+        ? resolve_filtered_pager_total(
+            server_filtered_total,
+            total_pages,
+            page_size,
+          )
+        : is_client_filtered
+          ? unfiltered_total_for_pages
+          : effective_total_for_pages,
     header_display_count,
     total_pages,
     selection,
