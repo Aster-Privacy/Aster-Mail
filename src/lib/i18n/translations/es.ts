@@ -10375,6 +10375,11 @@ export const es = {
     manual_unsubscribe_link: "Enlace de cancelación manual:",
     empty_snoozed_title: "Nada pospuesto en este momento",
     empty_snoozed_subtitle: "Los correos pospuestos aparecerán aquí",
+    empty_scheduled_title: "Nada programado",
+    empty_scheduled_subtitle: "Los correos que programes para más tarde aparecen aquí",
+    empty_alias_title: "Aún no hay correo para este alias",
+    empty_alias_subtitle: "El correo enviado a este alias o desde él aparece aquí",
+    list_load_failed_title: "Tu correo no se cargó",
     block_sender_spam_warning:
       "A partir de ahora, los correos nuevos de este remitente irán directamente a spam. Puedes desbloquearlo más tarde desde tu lista de bloqueo.",
     block_sender_confirm_message:

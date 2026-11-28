@@ -10426,6 +10426,11 @@ export const it = {
     manual_unsubscribe_link: "Link annullamento iscrizione manuale:",
     empty_snoozed_title: "Niente in pausa al momento",
     empty_snoozed_subtitle: "Le email posticipate si risveglieranno qui",
+    empty_scheduled_title: "Nessun invio programmato",
+    empty_scheduled_subtitle: "Le email che programmi per dopo appaiono qui",
+    empty_alias_title: "Ancora nessuna email per questo alias",
+    empty_alias_subtitle: "Le email inviate a questo alias o da questo alias appaiono qui",
+    list_load_failed_title: "La tua posta non si è caricata",
     all_on_page_selected:
       "Tutte le {{ count }} conversazioni su questa pagina sono selezionate.",
     all_on_page_selected_one:

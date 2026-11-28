@@ -10109,6 +10109,11 @@ export const ja = {
       "コンポーザーは同時に 3 つまで開けます。1 つ閉じると新しく開けます。下書きは保存されています。",
     empty_snoozed_title: "スヌーズ中のメールはありません",
     empty_snoozed_subtitle: "スヌーズしたメールはここに表示されます",
+    empty_scheduled_title: "予約送信はありません",
+    empty_scheduled_subtitle: "後で送信するよう予約したメールがここに表示されます",
+    empty_alias_title: "このエイリアスのメールはまだありません",
+    empty_alias_subtitle: "このエイリアス宛て、またはこのエイリアスから送信したメールがここに表示されます",
+    list_load_failed_title: "メールを読み込めませんでした",
     all_on_page_selected:
       "このページの {{ count }} 件の会話がすべて選択されています。",
     select_all_in_folder: "「{{ folder }}」の {{ count }} 件の会話をすべて選択",

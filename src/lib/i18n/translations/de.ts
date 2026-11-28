@@ -10464,6 +10464,11 @@ export const de = {
       "Markieren Sie wichtige E-Mails, um sie schnell wiederzufinden",
     empty_snoozed_title: "Nichts zurückgestellt",
     empty_snoozed_subtitle: "Zurückgestellte E-Mails erscheinen hier wieder",
+    empty_scheduled_title: "Nichts geplant",
+    empty_scheduled_subtitle: "E-Mails, die Sie für später planen, erscheinen hier",
+    empty_alias_title: "Noch keine E-Mails für diese Alias-Adresse",
+    empty_alias_subtitle: "E-Mails an oder von dieser Alias-Adresse erscheinen hier",
+    list_load_failed_title: "Ihre E-Mails wurden nicht geladen",
     empty_folder_subtitle:
       "Verschieben Sie E-Mails hierher, um sie zu organisieren",
     archive_email_message:

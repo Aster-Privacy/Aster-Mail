@@ -9237,6 +9237,11 @@ export interface MailTranslations {
   empty_trash_title: string;
   empty_snoozed_title: string;
   empty_snoozed_subtitle: string;
+  empty_scheduled_title: string;
+  empty_scheduled_subtitle: string;
+  empty_alias_title: string;
+  empty_alias_subtitle: string;
+  list_load_failed_title: string;
   empty_folder_title: string;
   empty_folder_subtitle: string;
   empty_tag_title: string;

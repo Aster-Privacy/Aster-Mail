@@ -24,12 +24,14 @@ import type { TranslationKey } from "@/lib/i18n/types";
 import { useState, useMemo, useCallback, useEffect, useRef } from "react";
 import {
   MagnifyingGlassIcon,
+  NewspaperIcon,
   Bars3Icon,
   TrashIcon,
 } from "@heroicons/react/24/outline";
 import { ShieldCheckIcon } from "@heroicons/react/24/solid";
-import { Badge, Checkbox, IslandEmpty, PillButton } from "@aster/ui";
+import { Badge, Checkbox, PillButton } from "@aster/ui";
 
+import { ListEmptyState } from "@/components/common/list_empty_state";
 import { use_shift_key_ref } from "@/lib/use_shift_range_select";
 import { SettingsTabBar } from "@/components/settings/settings_tab_bar";
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
@@ -432,9 +434,12 @@ export function SubscriptionsContent({
       {is_loading || (scan_in_flight && subscriptions.length === 0) ? (
         <SubscriptionsListSkeleton />
       ) : current_list.length === 0 ? (
-        <div className="flex-1 overflow-y-auto px-4 pb-4 pt-1">
-          <IslandEmpty
-            icon={<MagnifyingGlassIcon />}
+        <div className="flex-1 overflow-y-auto">
+          <ListEmptyState
+            description={
+              search_query ? t("settings.try_different_search") : undefined
+            }
+            icon={search_query ? MagnifyingGlassIcon : NewspaperIcon}
             title={
               search_query
                 ? t("common.no_results")

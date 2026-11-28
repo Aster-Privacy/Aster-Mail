@@ -23,6 +23,7 @@ import type { TranslationKey } from "@/lib/i18n/types";
 
 import { SparklesIcon } from "@heroicons/react/24/outline";
 
+import { ListEmptyState } from "@/components/common/list_empty_state";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_preferences } from "@/contexts/preferences_context";
 import {
@@ -91,15 +92,11 @@ export function CategoryEmptyState({
     const Icon = rule ? category_icon(rule.icon) : SparklesIcon;
 
     return (
-      <div className="flex flex-col items-center justify-center px-6 py-24 text-center">
-        <Icon className="mb-4 h-12 w-12 text-txt-muted" strokeWidth={1.25} />
-        <h3 className="text-base font-semibold text-txt-primary">
-          {rule ? rule.name : t("mail.category_empty_primary_title")}
-        </h3>
-        <p className="mt-1.5 max-w-sm text-sm text-txt-secondary">
-          {t("mail.category_empty_custom_desc")}
-        </p>
-      </div>
+      <ListEmptyState
+        description={t("mail.category_empty_custom_desc")}
+        icon={Icon}
+        title={rule ? rule.name : t("mail.category_empty_primary_title")}
+      />
     );
   }
 
@@ -108,14 +105,10 @@ export function CategoryEmptyState({
   const Icon = category_icon(def?.icon ?? "inbox");
 
   return (
-    <div className="flex flex-col items-center justify-center px-6 py-24 text-center">
-      <Icon className="mb-4 h-12 w-12 text-txt-muted" strokeWidth={1.25} />
-      <h3 className="text-base font-semibold text-txt-primary">
-        {t(title_key)}
-      </h3>
-      <p className="mt-1.5 max-w-sm text-sm text-txt-secondary">
-        {t(desc_key)}
-      </p>
-    </div>
+    <ListEmptyState
+      description={t(desc_key)}
+      icon={Icon}
+      title={t(title_key)}
+    />
   );
 }
