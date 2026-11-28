@@ -391,6 +391,7 @@ export const ProfileAvatar = memo(function ProfileAvatar({
           name={name}
           on_compose={on_compose}
           plain={plain}
+          sender_authenticated={sender_authenticated}
         >
           {avatar_element}
         </SenderProfileTrigger>

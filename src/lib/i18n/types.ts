@@ -9649,6 +9649,7 @@ export interface MailTranslations {
   mark_read: string;
   official_sender: string;
   official_sender_desc: string;
+  system_sender_no_replies: string;
   verified_sender: string;
   verified_sender_desc: string;
   sender_warning_title: string;

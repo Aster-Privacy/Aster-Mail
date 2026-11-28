@@ -10153,6 +10153,8 @@ export const ko = {
     official_sender: "Aster 공식 주소",
     official_sender_desc:
       "이 메시지는 Aster 공식 주소에서 발송되었습니다. Aster는 이메일로 비밀번호나 복구 문구를 요청하지 않습니다.",
+    system_sender_no_replies:
+      "이 주소는 자동 메시지를 보내며 답장을 받을 수 없습니다.",
     message_details: "메시지 세부 정보",
     message_headers: "메시지 헤더",
     message_id_label: "메시지 ID",

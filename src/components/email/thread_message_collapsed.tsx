@@ -27,7 +27,7 @@ import type {
 import { StarIcon as StarIconSolid } from "@heroicons/react/24/solid";
 import { Tooltip } from "@aster/ui";
 
-import { is_system_email, trust_source_for_display } from "@/lib/utils";
+import { trust_source_for_display, is_aster_trusted_sender } from "@/lib/utils";
 import { has_text_selection_within } from "@/lib/text_selection";
 import { EmailTag } from "@/components/ui/email_tag";
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
@@ -86,7 +86,9 @@ export function render_collapsed_thread_message(
         plain={marks_hidden}
         sender_authenticated={
           !marks_hidden &&
-          is_system_email(trust_source_for_display(message, show_sender_email))
+          is_aster_trusted_sender(
+            trust_source_for_display(message, show_sender_email),
+          )
         }
         size="md"
       />

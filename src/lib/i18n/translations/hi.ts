@@ -10310,6 +10310,8 @@ export const hi = {
     official_sender: "आधिकारिक Aster पता",
     official_sender_desc:
       "यह संदेश एक आधिकारिक Aster पते से है। Aster कभी भी ईमेल से आपका पासवर्ड या रिकवरी वाक्यांश नहीं मांगेगा।",
+    system_sender_no_replies:
+      "यह पता स्वचालित संदेश भेजता है और जवाब प्राप्त नहीं कर सकता।",
     verified_sender: "सत्यापित डोमेन",
     verified_sender_desc:
       "Aster के सर्वर ने जाँच की है कि {{domain}} भेजने वाले का है।",

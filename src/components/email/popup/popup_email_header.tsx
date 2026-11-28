@@ -47,7 +47,11 @@ import {
   type TagIconName,
 } from "@/components/ui/email_tag";
 import { use_tags } from "@/hooks/use_tags";
-import { is_system_email, trust_source_for_display } from "@/lib/utils";
+import {
+  is_system_email,
+  trust_source_for_display,
+  is_aster_trusted_sender,
+} from "@/lib/utils";
 import { OfficialBadge } from "@/components/email/official_badge";
 import { PriorityBadge } from "@/components/email/priority_badge";
 import { priority_from_headers } from "@/services/mail_priority";
@@ -291,7 +295,7 @@ export function PopupEmailHeader({
             plain={marks_hidden}
             sender_authenticated={
               !marks_hidden &&
-              is_system_email(
+              is_aster_trusted_sender(
                 trust_source_for_display(email, show_sender_email),
               )
             }

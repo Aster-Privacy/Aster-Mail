@@ -10488,6 +10488,8 @@ export const tr = {
     official_sender: "Resmi Aster adresi",
     official_sender_desc:
       "Bu mesaj resmi bir Aster adresinden gönderildi. Aster parolanızı veya kurtarma ifadenizi asla e-posta ile istemez.",
+    system_sender_no_replies:
+      "Bu adres otomatik mesajlar gönderir ve yanıt alamaz.",
     message_details: "Mesaj ayrıntıları",
     message_headers: "Mesaj başlıkları",
     message_id_label: "Mesaj Kimliği:",

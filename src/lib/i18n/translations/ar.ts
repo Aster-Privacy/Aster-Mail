@@ -10394,6 +10394,8 @@ export const ar = {
     official_sender: "عنوان Aster الرسمي",
     official_sender_desc:
       "هذه الرسالة من عنوان Aster رسمي. لن يطلب منك Aster كلمة المرور أو عبارة الاسترداد عبر البريد الإلكتروني أبدًا.",
+    system_sender_no_replies:
+      "يرسل هذا العنوان رسائل تلقائية ولا يمكنه استلام الردود.",
     message_details: "تفاصيل الرسالة",
     message_headers: "ترويسات الرسالة",
     message_id_label: "معرف الرسالة:",

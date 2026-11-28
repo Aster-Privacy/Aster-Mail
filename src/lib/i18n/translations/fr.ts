@@ -10778,6 +10778,8 @@ export const fr = {
     official_sender: "Adresse officielle Aster",
     official_sender_desc:
       "Ce message provient d'une adresse officielle Aster. Aster ne vous demandera jamais votre mot de passe ni votre phrase de récupération par e-mail.",
+    system_sender_no_replies:
+      "Cette adresse envoie des messages automatiques et ne peut pas recevoir de réponses.",
     zero_access_encrypted: "Chiffré sans accès",
     sort_by: "Trier par",
     newest_first: "Plus récents d’abord",
