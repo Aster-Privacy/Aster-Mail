@@ -60,6 +60,7 @@ export function render_collapsed_thread_message(
 
   return (
     <div
+      key="collapsed"
       className="group flex cursor-pointer select-none items-center gap-3 px-4 py-3.5 transition-colors hover:bg-[var(--aster-island-hover)] focus-visible:bg-[var(--aster-island-hover)]"
       data-ripple
       role="button"
