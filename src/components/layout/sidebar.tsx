@@ -77,6 +77,7 @@ import {
 } from "@/lib/sidebar_layout";
 import { SidebarAccountSwitcher } from "@/components/layout/sidebar/sidebar_account_switcher";
 import { RailTipLayer } from "@/components/layout/sidebar/rail_tip_layer";
+import { SidebarFrame } from "@/components/layout/sidebar/sidebar_frame";
 import { use_sidebar_aliases } from "@/hooks/use_sidebar_aliases";
 import { use_preferences } from "@/contexts/preferences_context";
 import { use_sidebar_show_all } from "@/components/layout/sidebar/use_sidebar_show_all";
@@ -887,154 +888,171 @@ const sidebar_base = ({
         is_mobile={is_mobile}
         label={t("common.main_navigation")}
       >
-        {is_collapsed && is_tablet && (
-          <SidebarRailOpenButton
-            label={t("common.open_menu")}
-            on_click={() => set_force_expanded(true)}
-          />
-        )}
-        <SidebarTopBarView
-          is_collapsed={is_collapsed}
-          is_compact={is_mobile || (forced_collapse && !is_collapsed)}
-        >
-          {is_mobile && on_mobile_toggle && (
-            <SidebarCloseButton
-              label={t("common.close_menu")}
-              on_click={on_mobile_toggle}
-            />
-          )}
-          {!is_mobile && forced_collapse && !is_collapsed && (
-            <SidebarCloseButton
-              label={t("common.close_menu")}
-              on_click={() => set_force_expanded(false)}
-              type="button"
-            />
-          )}
-          {shows_close_button && <div aria-hidden="true" className="h-6" />}
-        </SidebarTopBarView>
-
-        <div
-          className="contents"
-          onFocus={preload_compose_window}
-          onPointerEnter={preload_compose_window}
-        >
-          <SidebarComposeButtonView
-            is_collapsed={is_collapsed}
-            label={t("mail.compose")}
-            on_click={() => {
-              on_modal_open?.();
-              on_compose();
-            }}
-          />
-        </div>
-
-        <ShareModal
-          is_open={is_share_open}
-          on_close={() => set_is_share_open(false)}
-          on_compose_to={(email) => on_compose(email)}
-        />
-        <CreateFolderModal
-          initial_parent_token={create_folder_parent_token}
-          is_open={is_create_folder_open}
-          on_close={() => {
-            set_is_create_folder_open(false);
-            set_create_folder_parent_token(undefined);
-          }}
-        />
-        <ContactsModal
-          is_open={is_contacts_open}
-          on_close={() => set_is_contacts_open(false)}
-          on_compose_to={(email) => {
-            set_is_contacts_open(false);
-            on_compose(email);
-          }}
-        />
-        <FolderManagementModal
-          action={folder_modal_action}
-          folder_color={selected_folder_for_modal?.folder_color ?? "#3b82f6"}
-          folder_id={selected_folder_for_modal?.folder_id ?? ""}
-          folder_name={selected_folder_for_modal?.folder_name ?? ""}
-          hasChildren={selected_folder_for_modal?.hasChildren}
-          is_locked={selected_folder_for_modal?.is_locked ?? false}
-          is_open={folder_modal_action !== null}
-          on_close={close_folder_modal}
-          on_deleted={handle_folder_deleted}
-        />
-        <CreateTagModal
-          initial_parent_token={create_tag_parent_token}
-          is_open={is_create_tag_open}
-          on_close={() => {
-            set_is_create_tag_open(false);
-            set_create_tag_parent_token(undefined);
-          }}
-        />
-        <TagManagementModal
-          action={tag_modal_action}
-          is_open={tag_modal_action !== null}
-          on_close={close_tag_modal}
-          on_deleted={handle_tag_deleted}
-          tag_color={selected_tag_for_modal?.tag_color ?? "#3b82f6"}
-          tag_icon={selected_tag_for_modal?.tag_icon}
-          tag_id={selected_tag_for_modal?.tag_id ?? ""}
-          tag_name={selected_tag_for_modal?.tag_name ?? ""}
-        />
-        {password_modal_folder && (
-          <FolderPasswordModal
-            folder_id={password_modal_folder.folder_id}
-            folder_name={password_modal_folder.folder_name}
-            is_open={true}
-            mode={password_modal_folder.mode}
-            on_close={() => set_password_modal_folder(null)}
-            on_success={() => {
-              const folder_token = password_modal_folder.folder_token;
-              const mode = password_modal_folder.mode;
-
-              set_password_modal_folder(null);
-              if (mode === "unlock" || mode === "setup") {
-                set_selected_item(`folder-${folder_token}`);
-                navigate(`/folder/${encodeURIComponent(folder_token)}`);
-              }
-            }}
-          />
-        )}
-
-        <RailTipLayer />
-
-        <SidebarScrollAreaView
-          container_ref={container_ref}
-          indicator_style={indicator_style}
-          is_collapsed={is_collapsed}
-          show_indicator={!is_collapsed && !is_search_active}
-        >
-          {section_order.map((section_id) => (
-            <Fragment key={section_id}>{section_nodes[section_id]}</Fragment>
-          ))}
-        </SidebarScrollAreaView>
-
-        <LockdownBanner
-          is_collapsed={is_collapsed}
-          on_settings_click={on_settings_click}
-          user_id={user?.id ?? ""}
-        />
-
-        <SidebarAccountSwitcher
-          is_collapsed={is_collapsed}
-          on_modal_open={on_modal_open}
-          on_settings_click={on_settings_click}
-          on_toggle_collapse={
-            is_mobile || is_tablet
-              ? undefined
-              : () => {
-                  update_preference(
-                    "sidebar_minimized",
-                    !(preferences.sidebar_minimized ?? false),
-                    true,
-                  );
+        <SidebarFrame
+          footer={
+            <>
+              <LockdownBanner
+                is_collapsed={is_collapsed}
+                on_settings_click={on_settings_click}
+                user_id={user?.id ?? ""}
+              />
+              <SidebarAccountSwitcher
+                is_collapsed={is_collapsed}
+                on_modal_open={on_modal_open}
+                on_settings_click={on_settings_click}
+                on_toggle_collapse={
+                  is_mobile || is_tablet
+                    ? undefined
+                    : () => {
+                        update_preference(
+                          "sidebar_minimized",
+                          !(preferences.sidebar_minimized ?? false),
+                          true,
+                        );
+                      }
                 }
+                storage_percentage={storage_percentage}
+                storage_total_bytes={
+                  has_initialized ? stats.storage_total_bytes : 0
+                }
+                storage_used_bytes={stats.storage_used_bytes}
+              />
+            </>
           }
-          storage_percentage={storage_percentage}
-          storage_total_bytes={has_initialized ? stats.storage_total_bytes : 0}
-          storage_used_bytes={stats.storage_used_bytes}
+          header={
+            <>
+              {is_collapsed && is_tablet && (
+                <SidebarRailOpenButton
+                  label={t("common.open_menu")}
+                  on_click={() => set_force_expanded(true)}
+                />
+              )}
+              <SidebarTopBarView
+                is_collapsed={is_collapsed}
+                is_compact={is_mobile || (forced_collapse && !is_collapsed)}
+              >
+                {is_mobile && on_mobile_toggle && (
+                  <SidebarCloseButton
+                    label={t("common.close_menu")}
+                    on_click={on_mobile_toggle}
+                  />
+                )}
+                {!is_mobile && forced_collapse && !is_collapsed && (
+                  <SidebarCloseButton
+                    label={t("common.close_menu")}
+                    on_click={() => set_force_expanded(false)}
+                    type="button"
+                  />
+                )}
+                {shows_close_button && (
+                  <div aria-hidden="true" className="h-6" />
+                )}
+              </SidebarTopBarView>
+
+              <div
+                className="contents"
+                onFocus={preload_compose_window}
+                onPointerEnter={preload_compose_window}
+              >
+                <SidebarComposeButtonView
+                  is_collapsed={is_collapsed}
+                  label={t("mail.compose")}
+                  on_click={() => {
+                    on_modal_open?.();
+                    on_compose();
+                  }}
+                />
+              </div>
+
+              <ShareModal
+                is_open={is_share_open}
+                on_close={() => set_is_share_open(false)}
+                on_compose_to={(email) => on_compose(email)}
+              />
+              <CreateFolderModal
+                initial_parent_token={create_folder_parent_token}
+                is_open={is_create_folder_open}
+                on_close={() => {
+                  set_is_create_folder_open(false);
+                  set_create_folder_parent_token(undefined);
+                }}
+              />
+              <ContactsModal
+                is_open={is_contacts_open}
+                on_close={() => set_is_contacts_open(false)}
+                on_compose_to={(email) => {
+                  set_is_contacts_open(false);
+                  on_compose(email);
+                }}
+              />
+              <FolderManagementModal
+                action={folder_modal_action}
+                folder_color={
+                  selected_folder_for_modal?.folder_color ?? "#3b82f6"
+                }
+                folder_id={selected_folder_for_modal?.folder_id ?? ""}
+                folder_name={selected_folder_for_modal?.folder_name ?? ""}
+                hasChildren={selected_folder_for_modal?.hasChildren}
+                is_locked={selected_folder_for_modal?.is_locked ?? false}
+                is_open={folder_modal_action !== null}
+                on_close={close_folder_modal}
+                on_deleted={handle_folder_deleted}
+              />
+              <CreateTagModal
+                initial_parent_token={create_tag_parent_token}
+                is_open={is_create_tag_open}
+                on_close={() => {
+                  set_is_create_tag_open(false);
+                  set_create_tag_parent_token(undefined);
+                }}
+              />
+              <TagManagementModal
+                action={tag_modal_action}
+                is_open={tag_modal_action !== null}
+                on_close={close_tag_modal}
+                on_deleted={handle_tag_deleted}
+                tag_color={selected_tag_for_modal?.tag_color ?? "#3b82f6"}
+                tag_icon={selected_tag_for_modal?.tag_icon}
+                tag_id={selected_tag_for_modal?.tag_id ?? ""}
+                tag_name={selected_tag_for_modal?.tag_name ?? ""}
+              />
+              {password_modal_folder && (
+                <FolderPasswordModal
+                  folder_id={password_modal_folder.folder_id}
+                  folder_name={password_modal_folder.folder_name}
+                  is_open={true}
+                  mode={password_modal_folder.mode}
+                  on_close={() => set_password_modal_folder(null)}
+                  on_success={() => {
+                    const folder_token = password_modal_folder.folder_token;
+                    const mode = password_modal_folder.mode;
+
+                    set_password_modal_folder(null);
+                    if (mode === "unlock" || mode === "setup") {
+                      set_selected_item(`folder-${folder_token}`);
+                      navigate(`/folder/${encodeURIComponent(folder_token)}`);
+                    }
+                  }}
+                />
+              )}
+
+              <RailTipLayer />
+            </>
+          }
+          list={
+            <SidebarScrollAreaView
+              container_ref={container_ref}
+              indicator_style={indicator_style}
+              is_collapsed={is_collapsed}
+              show_indicator={!is_collapsed && !is_search_active}
+            >
+              {section_order.map((section_id) => (
+                <Fragment key={section_id}>
+                  {section_nodes[section_id]}
+                </Fragment>
+              ))}
+            </SidebarScrollAreaView>
+          }
         />
       </SidebarAsideView>
     </div>
@@ -1061,6 +1079,7 @@ const sidebar_base = ({
                 initial={
                   reduce_motion ? false : { x: -(window.innerWidth + 20) }
                 }
+                style={{ height: "100dvh" }}
                 transition={{
                   type: "tween",
                   duration: reduce_motion ? 0 : 0.25,
