@@ -8927,7 +8927,7 @@ export const fr = {
     app_lock_locked_out_for: "Trop de tentatives. Réessayez dans {{s}}s.",
     vanguard_title: "Aster Vanguard",
     vanguard_description:
-      "Protection avancée pour les journalistes, les militants et les comptes à haut risque. Nova+ uniquement.",
+      "Protection avancée pour les journalistes, les militants et les comptes à haut risque.",
     vanguard_info:
       "Aster Vanguard ajoute une protection supplémentaire pour les journalistes, les militants, les avocats et toute personne plus exposée. Il comprend le verrouillage par PIN et le mode isolement.",
     vanguard_active: "Vanguard actif",

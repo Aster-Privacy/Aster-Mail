@@ -8152,7 +8152,7 @@ export const tr = {
     app_lock_locked_out_for: "Çok fazla deneme yapıldı. {{s}} sn içinde tekrar deneyin.",
     vanguard_title: "Aster Vanguard",
     vanguard_description:
-      "Gazeteciler, aktivistler ve yüksek risk taşıyan hesaplar için gelişmiş koruma. Yalnızca Nova+.",
+      "Gazeteciler, aktivistler ve yüksek risk taşıyan hesaplar için gelişmiş koruma.",
     vanguard_info:
       "Aster Vanguard; gazeteciler, aktivistler, avukatlar ve daha yüksek risk altındaki herkes için ek koruma sağlar. PIN uygulama kilidi ve kilitleme modunu içerir.",
     vanguard_active: "Vanguard etkin",

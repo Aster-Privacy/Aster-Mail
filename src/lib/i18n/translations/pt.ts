@@ -8316,7 +8316,7 @@ export const pt = {
       "Demasiadas tentativas. Tente novamente em {{s}}s.",
     vanguard_title: "Aster Vanguard",
     vanguard_description:
-      "Proteção avançada para jornalistas, ativistas e contas de alto risco. Apenas Nova+.",
+      "Proteção avançada para jornalistas, ativistas e contas de alto risco.",
     vanguard_info:
       "O Aster Vanguard acrescenta proteção adicional para jornalistas, ativistas, advogados e qualquer pessoa com risco mais elevado. Inclui bloqueio da aplicação com PIN e modo de bloqueio.",
     vanguard_active: "Vanguard ativo",

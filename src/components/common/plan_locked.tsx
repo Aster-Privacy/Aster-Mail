@@ -84,9 +84,18 @@ export function PlanLockedPanel({
   return (
     <Island className={className} padding="none">
       <IslandRow
+        className="max-md:[&>span:first-child]:!hidden"
         description={title ? description : undefined}
         icon={<LockClosedIcon aria-hidden="true" />}
-        label={title ?? description}
+        label={
+          <>
+            <LockClosedIcon
+              aria-hidden="true"
+              className="mr-1.5 hidden h-4 w-4 align-[-0.125em] text-txt-secondary max-md:inline-block"
+            />
+            {title ?? description}
+          </>
+        }
         layout="stacked"
         trailing={
           <PlanUpgradeButton

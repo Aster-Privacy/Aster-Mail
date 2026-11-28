@@ -8526,7 +8526,7 @@ export const ja = {
     app_lock_locked_out_for: "試行回数が多すぎます。{{s}}秒後にもう一度お試しください。",
     vanguard_title: "Aster Vanguard",
     vanguard_description:
-      "ジャーナリスト、活動家、リスクの高いアカウントのための高度な保護機能です。Nova+ 限定。",
+      "ジャーナリスト、活動家、リスクの高いアカウントのための高度な保護機能です。",
     vanguard_info:
       "Aster Vanguard は、ジャーナリスト、活動家、弁護士など、リスクの高い方のための追加の保護機能です。PINアプロックとロックダウンモードが含まれます。",
     vanguard_active: "Vanguard 有効",

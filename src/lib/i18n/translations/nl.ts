@@ -8811,7 +8811,7 @@ export const nl = {
     app_lock_locked_out_for: "Te veel pogingen. Probeer het over {{s}}s opnieuw.",
     vanguard_title: "Aster Vanguard",
     vanguard_description:
-      "Geavanceerde bescherming voor journalisten, activisten en accounts met een hoog risico. Alleen Nova+.",
+      "Geavanceerde bescherming voor journalisten, activisten en accounts met een hoog risico.",
     vanguard_info:
       "Aster Vanguard voegt extra bescherming toe voor journalisten, activisten, advocaten en iedereen met een hoger risico. Het bevat een PIN-appvergrendeling en de blokkeringsmodus.",
     vanguard_active: "Vanguard actief",

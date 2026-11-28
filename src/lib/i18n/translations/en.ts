@@ -2790,7 +2790,7 @@ export const en: Translations = {
     duress_pin_confirm_setup: "Set up duress PIN",
     vanguard_title: "Aster Vanguard",
     vanguard_description:
-      "Advanced protection for journalists, activists, and high-risk accounts. Nova+ only.",
+      "Advanced protection for journalists, activists, and high-risk accounts.",
     vanguard_info:
       "Aster Vanguard adds extra protection for journalists, activists, lawyers, and anyone at higher risk. It includes a PIN app lock and Lockdown Mode.",
     vanguard_active: "Vanguard active",

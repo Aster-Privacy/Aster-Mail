@@ -7278,7 +7278,7 @@ export const zh_CN = {
     app_lock_locked_out_for: "尝试次数过多。请在 {{s}} 秒后重试。",
     vanguard_title: "Aster Vanguard",
     vanguard_description:
-      "为记者、社会活动人士和高风险账户提供的高级保护。仅限 Nova+。",
+      "为记者、社会活动人士和高风险账户提供的高级保护。",
     vanguard_info:
       "Aster Vanguard 为记者、活动人士、律师以及面临更高风险的任何人提供额外保护。它包括 PIN 应用锁和锁定模式。",
     vanguard_active: "Vanguard 已激活",
