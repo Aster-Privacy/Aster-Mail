@@ -28,8 +28,9 @@ import {
   useRef,
 } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { Button } from "@aster/ui";
 import {
-  CheckIcon,
+  CheckCircleIcon,
   ExclamationCircleIcon,
   ExclamationTriangleIcon,
   InformationCircleIcon,
@@ -40,7 +41,6 @@ import {
 
 import { use_should_reduce_motion } from "@/provider";
 import { use_i18n } from "@/lib/i18n/context";
-import { ButtonSpinner } from "@/components/ui/spinner";
 import { play_iconic_sound, type IconicSound } from "@/services/iconic_sounds";
 import {
   use_toast_position,
@@ -521,7 +521,7 @@ function render_toast_icon(icon: ActionToastIcon) {
     case "download":
       return <ArrowDownTrayIcon className={icon_class} />;
     case "check":
-      return <CheckIcon className={icon_class} />;
+      return <CheckCircleIcon className={`${icon_class} text-success`} />;
     default:
       return <InformationCircleIcon className={icon_class} />;
   }
@@ -655,10 +655,11 @@ export function ActionToast({ position }: ActionToastProps) {
               </span>
               {!toast.progress &&
                 toast.actions?.map((action) => (
-                  <button
+                  <Button
                     key={action.label}
-                    className="inline-flex flex-shrink-0 items-center whitespace-nowrap text-[13px] font-medium ms-1 underline text-brand"
-                    type="button"
+                    className="flex-shrink-0 whitespace-nowrap font-medium"
+                    size="sm"
+                    variant="ghost"
                     onClick={() => {
                       if (toast.resume_key) {
                         release_action_toast(toast.resume_key);
@@ -669,19 +670,18 @@ export function ActionToast({ position }: ActionToastProps) {
                     }}
                   >
                     {action.label}
-                  </button>
+                  </Button>
                 ))}
               {toast.on_undo && !toast.progress && (
-                <button
-                  className="inline-flex flex-shrink-0 items-center whitespace-nowrap text-[13px] font-medium ms-1 underline text-brand"
-                  aria-busy={is_undoing}
-                  disabled={is_undoing}
-                  type="button"
+                <Button
+                  className="flex-shrink-0 whitespace-nowrap font-medium"
+                  is_loading={is_undoing}
+                  size="sm"
+                  variant="ghost"
                   onClick={handle_undo}
                 >
                   {toast.action_label || t("common.undo")}
-                  {is_undoing && <ButtonSpinner size="xs" />}
-                </button>
+                </Button>
               )}
               {!toast.hide_dismiss && (
                 <button
@@ -707,12 +707,14 @@ export function ActionToast({ position }: ActionToastProps) {
                   {progress_percentage}%
                 </span>
                 {toast.on_cancel && (
-                  <button
-                    className="text-[13px] font-medium text-brand hover:underline flex-shrink-0"
+                  <Button
+                    className="flex-shrink-0 font-medium"
+                    size="sm"
+                    variant="ghost"
                     onClick={handle_cancel}
                   >
                     {t("common.cancel")}
-                  </button>
+                  </Button>
                 )}
               </div>
             )}
