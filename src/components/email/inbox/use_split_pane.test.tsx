@@ -362,7 +362,7 @@ describe("use_split_pane resizing", () => {
     expect(saved_value(rtl_save, "split_pane_width")).toBe(776);
   });
 
-  it("resets to an even split", () => {
+  it("resets to the default list width", () => {
     vi.stubGlobal("ResizeObserver", FakeResizeObserver);
     const on_save = mount_controlled({ saved_ratio: 0.3 });
 
@@ -370,6 +370,6 @@ describe("use_split_pane resizing", () => {
 
     expect(saved_value(on_save, "split_pane_width")).toBe(0);
     expect(saved_value(on_save, "split_pane_ratio")).toBe(0);
-    expect(latest_pane?.list_column_ref.current?.style.width).toBe("800px");
+    expect(latest_pane?.list_column_ref.current?.style.width).toBe("680px");
   });
 });

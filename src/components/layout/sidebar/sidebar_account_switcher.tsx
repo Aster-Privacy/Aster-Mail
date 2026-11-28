@@ -29,7 +29,7 @@ import { format_bytes, format_decimal } from "@/lib/utils";
 import { use_i18n } from "@/lib/i18n/context";
 
 const CRITICAL_STORAGE_PERCENT = 90;
-export const STORAGE_VISIBLE_PERCENT = 50;
+export const STORAGE_VISIBLE_PERCENT = 80;
 
 const footer_row_class =
   "flex items-center h-8 rounded-[10px] text-txt-secondary hover:text-txt-primary hover:bg-[var(--aster-hover,var(--bg-hover))]";

@@ -192,7 +192,6 @@ export interface SettingsKeywordsTranslations {
   conversation_order: string;
   thread_count_position: string;
   reading_pane_position: string;
-  show_message_size: string;
   force_dark_mode_emails: string;
   sidebar_width: string;
   minimize_sidebar: string;
@@ -5483,6 +5482,11 @@ export interface SettingsTranslations {
   storage_promo_cta: string;
   storage_select_option_first: string;
   storage_used_of_total: string;
+  inbox_footer_legal: string;
+  inbox_footer_terms: string;
+  inbox_footer_privacy: string;
+  inbox_footer_other_device_activity: string;
+  inbox_footer_only_this_device: string;
   storage_nudge_almost_title: string;
   storage_nudge_critical_title: string;
   storage_nudge_full_title: string;

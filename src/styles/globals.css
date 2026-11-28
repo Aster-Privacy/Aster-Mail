@@ -6979,9 +6979,10 @@ html.aster_drag_active * {
   .sidebar-nav-btn:not(.sidebar-active)[data-state="open"]
   span {
   color: var(--text-primary) !important;
+}
+
 :root {
   --aster-radius-chip: 6px;
-  --aster-radius-button: 10px;
   --aster-primary-top: color-mix(in srgb, var(--accent-color, #3b6aef) 90%, white);
   --aster-primary-bottom: var(--accent-color, #3b6aef);
   --aster-primary-border: color-mix(in srgb, var(--accent-color, #3b6aef) 82%, black);
@@ -6995,7 +6996,6 @@ html:root.dark .aster_btn_depth,
 html:root.dark .aster_btn_primary {
   color: #fff;
   font-weight: 500;
-  border-radius: var(--aster-radius-button);
   border: 1px solid var(--aster-primary-border);
   background: linear-gradient(
     to bottom,
@@ -7044,11 +7044,6 @@ html[data-input-modality="keyboard"] .aster_btn_primary:focus-visible {
 html:root [data-onboarding="compose-button"] svg,
 html:root [data-onboarding="compose-button"] span {
   color: #fff;
-}
-
-html:root .aster_input,
-html:root .aster_select_trigger {
-  border-radius: var(--aster-radius-button);
 }
 
 .tabular_figures {
@@ -7173,4 +7168,24 @@ html:root .aster_select_trigger {
   width: 0;
   height: 0;
   display: none;
+}
+
+.aster_tip_portal[data-tip-arrow][data-tip-arrow]::after {
+  width: 6px;
+  height: 12px;
+  border: 0;
+  background: inherit;
+  transform: translateY(-50%);
+}
+
+.aster_tip_portal[data-tip-arrow][data-tip-arrow="left"]::after {
+  right: -5.5px;
+  left: auto;
+  clip-path: polygon(0 0, 100% 50%, 0 100%);
+}
+
+.aster_tip_portal[data-tip-arrow][data-tip-arrow="right"]::after {
+  left: -5.5px;
+  right: auto;
+  clip-path: polygon(100% 0, 0 50%, 100% 100%);
 }
