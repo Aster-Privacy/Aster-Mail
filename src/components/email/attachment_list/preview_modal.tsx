@@ -20,6 +20,7 @@
 //
 import type { TranslationKey } from "@/lib/i18n/types";
 import type {
+  KeyboardEvent as ReactKeyboardEvent,
   MouseEvent as ReactMouseEvent,
   PointerEvent as ReactPointerEvent,
 } from "react";
@@ -41,7 +42,7 @@ import { is_top_overlay_layer } from "@/lib/overlay_layer_stack";
 export const PREVIEW_MIN_SCALE = 1;
 export const PREVIEW_MAX_SCALE = 8;
 export const PREVIEW_ZOOM_STEP = 1.5;
-export const PREVIEW_DOUBLE_CLICK_SCALE = 2.5;
+export const PREVIEW_CLICK_SCALE = 2.5;
 
 const DRAG_THRESHOLD_PX = 4;
 const WHEEL_ZOOM_RATE = 0.01;
@@ -111,6 +112,7 @@ export function ImagePreviewModal({
   const pointers_ref = useRef(new Map<number, { x: number; y: number }>());
   const gesture_ref = useRef<GestureState | null>(null);
   const moved_ref = useRef(false);
+  const press_on_image_ref = useRef<boolean | null>(null);
 
   const clamp_offset = useCallback((next: ZoomState): ZoomState => {
     const stage = stage_ref.current;
@@ -159,6 +161,9 @@ export function ImagePreviewModal({
     },
     [apply_zoom],
   );
+
+  const is_on_image = (target: EventTarget | null) =>
+    target instanceof Node && !!image_ref.current?.contains(target);
 
   const stage_point = useCallback((client_x: number, client_y: number) => {
     const rect = stage_ref.current?.getBoundingClientRect();
@@ -268,6 +273,9 @@ export function ImagePreviewModal({
   const handle_pointer_down = (e: ReactPointerEvent<HTMLDivElement>) => {
     if (e.pointerType === "mouse" && e.button !== 0) return;
     pointers_ref.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (pointers_ref.current.size === 1) {
+      press_on_image_ref.current = is_on_image(e.target);
+    }
     e.currentTarget.setPointerCapture?.(e.pointerId);
     moved_ref.current = false;
 
@@ -313,6 +321,7 @@ export function ImagePreviewModal({
       const ratio = scale / gesture.start_scale;
 
       moved_ref.current = true;
+      set_is_dragging(true);
       apply_zoom({
         scale,
         x: gesture.origin_x - (gesture.origin_x - gesture.start_x) * ratio,
@@ -354,31 +363,49 @@ export function ImagePreviewModal({
     start_gesture(remaining.x, remaining.y, true);
   };
 
-  const handle_stage_click = (e: ReactMouseEvent<HTMLDivElement>) => {
-    if (moved_ref.current) return;
-    if (e.target === e.currentTarget) on_close();
-  };
-
-  const handle_double_click = (e: ReactMouseEvent<HTMLImageElement>) => {
-    e.preventDefault();
+  const toggle_zoom = (point?: { x: number; y: number }) => {
     if (zoom_ref.current.scale > PREVIEW_MIN_SCALE) {
       apply_zoom(FIT_STATE);
 
       return;
     }
 
-    const point = stage_point(e.clientX, e.clientY);
+    zoom_at(PREVIEW_CLICK_SCALE, point?.x, point?.y);
+  };
 
-    zoom_at(PREVIEW_DOUBLE_CLICK_SCALE, point.x, point.y);
+  const handle_stage_click = (e: ReactMouseEvent<HTMLDivElement>) => {
+    const pressed_image = press_on_image_ref.current ?? is_on_image(e.target);
+
+    press_on_image_ref.current = null;
+    if (moved_ref.current) {
+      moved_ref.current = false;
+
+      return;
+    }
+
+    if (pressed_image) {
+      toggle_zoom(stage_point(e.clientX, e.clientY));
+
+      return;
+    }
+
+    on_close();
+  };
+
+  const handle_image_key = (e: ReactKeyboardEvent<HTMLImageElement>) => {
+    if (e.key !== "Enter" && e.key !== " ") return;
+    e.preventDefault();
+    e.stopPropagation();
+    toggle_zoom();
   };
 
   const is_zoomed = zoom.scale > PREVIEW_MIN_SCALE;
   const caption_text = caption?.trim() ?? "";
-  const image_cursor = is_zoomed
-    ? is_dragging
-      ? "grabbing"
-      : "grab"
-    : "zoom-in";
+  const image_cursor = is_dragging
+    ? "grabbing"
+    : is_zoomed
+      ? "zoom-out"
+      : "zoom-in";
 
   return (
     <motion.div
@@ -495,20 +522,24 @@ export function ImagePreviewModal({
           onPointerMove={handle_pointer_move}
           onPointerUp={handle_pointer_end}
         >
-          <img
+          <motion.img
             ref={image_ref}
             alt={caption_text || filename}
-            className="max-h-full max-w-full select-none rounded-lg object-contain"
+            animate={{ x: zoom.x, y: zoom.y, scale: zoom.scale }}
+            className={`max-h-full max-w-full select-none rounded-lg object-contain ${FOCUS_RING}`}
             data-testid="image_preview_image"
+            data-zoomed={is_zoomed}
             draggable={false}
+            initial={false}
             src={src}
-            style={{
-              transform: `translate(${zoom.x}px, ${zoom.y}px) scale(${zoom.scale})`,
-              transition:
-                is_dragging || reduce_motion ? "none" : "transform 0.15s ease",
-              cursor: image_cursor,
-            }}
-            onDoubleClick={handle_double_click}
+            style={{ cursor: image_cursor }}
+            tabIndex={0}
+            transition={
+              is_dragging || reduce_motion
+                ? { duration: 0 }
+                : { duration: 0.2, ease: [0.2, 0, 0, 1] }
+            }
+            onKeyDown={handle_image_key}
           />
         </motion.div>
         {on_next && (
