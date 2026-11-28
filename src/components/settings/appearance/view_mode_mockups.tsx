@@ -18,666 +18,93 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { useId } from "react";
 
-interface ViewMockupProps {
-  theme: "light" | "dark" | "themed";
-  use_accent?: boolean;
-}
+import {
+  AppChrome,
+  FloatingPanel,
+  InboxList,
+  MessagePane,
+  PreviewSvg,
+  SCENE_HEIGHT,
+  SCENE_WIDTH,
+  preview_ids,
+} from "@/components/settings/appearance/app_preview";
 
-function get_colors(theme: "light" | "dark" | "themed", use_accent = false) {
-  if (theme === "themed") {
-    return {
-      bg: "var(--bg-primary)",
-      sidebar_bg: "var(--bg-secondary)",
-      sidebar_border: "var(--border-secondary)",
-      brand: "var(--accent-color)",
-      compose_gradient:
-        "linear-gradient(to bottom, var(--accent-mix-w80, #629bf8), var(--accent-color), var(--accent-mix-b80, #2f68c5))",
-      compose_border_top: "rgba(255,255,255,0.15)",
-      compose_border_bottom: "rgba(0,0,0,0.15)",
-      text_primary: "var(--text-primary)",
-      text_secondary: "var(--text-secondary)",
-      text_tertiary: "var(--text-tertiary)",
-      text_muted: "var(--text-muted)",
-      selected_bg:
-        "color-mix(in srgb, var(--accent-color) 18%, var(--bg-primary))",
-      indicator_bg: "var(--bg-primary)",
-      indicator_border: "var(--border-secondary)",
-      border: "var(--border-secondary)",
-      border_secondary: "var(--border-secondary)",
-      body_line: "var(--border-secondary)",
-      avatar_read:
-        "color-mix(in srgb, var(--text-muted) 55%, var(--bg-primary))",
-      storage_track: "rgba(255,255,255,0.08)",
-      modal_overlay: "rgba(0,0,0,0.85)",
-      card_shadow: "0 8px 32px rgba(0,0,0,0.5), 0 2px 8px rgba(0,0,0,0.3)",
-    };
-  }
+const SPLIT_LIST_RATIO = 0.5;
+const POPUP_WIDTH = 720;
+const POPUP_HEIGHT = 700;
 
-  if (theme === "light") {
-    return {
-      bg: "#ffffff",
-      sidebar_bg: "#f5f5f5",
-      sidebar_border: "#e8e8e8",
-      brand: use_accent ? "var(--accent-color, #3b82f6)" : "#3b82f6",
-      compose_gradient: use_accent
-        ? "linear-gradient(to bottom, var(--accent-mix-w80, #629bf8), var(--accent-color, #4f6ef7), var(--accent-mix-b80, #2f68c5))"
-        : "linear-gradient(to bottom, #6b8afd, #4f6ef7, #3d5ce0)",
-      compose_border_top: "rgba(255,255,255,0.15)",
-      compose_border_bottom: "rgba(0,0,0,0.15)",
-      text_primary: "#111827",
-      text_secondary: "#374151",
-      text_tertiary: "#6b7280",
-      text_muted: "#9ca3af",
-      selected_bg: use_accent
-        ? "color-mix(in srgb, var(--accent-color, #3b82f6) 10%, white)"
-        : "#eff6ff",
-      indicator_bg: "#ffffff",
-      indicator_border: "#e8e8e8",
-      border: "#e8e8e8",
-      border_secondary: "#e5e7eb",
-      body_line: "#e5e7eb",
-      avatar_read: "#d1d5db",
-      storage_track: "#0000000d",
-      modal_overlay: "rgba(0,0,0,0.5)",
-      card_shadow: "0 8px 32px rgba(0,0,0,0.18), 0 2px 8px rgba(0,0,0,0.08)",
-    };
-  }
+export function ViewMockupPopup() {
+  const ids = preview_ids(useId());
+  const popup_x = (SCENE_WIDTH - POPUP_WIDTH) / 2;
+  const popup_y = (SCENE_HEIGHT - POPUP_HEIGHT) / 2;
 
-  return {
-    bg: "#121212",
-    sidebar_bg: "#0a0a0a",
-    sidebar_border: "#2a2a2a",
-    brand: use_accent ? "var(--accent-color, #3b82f6)" : "#3b82f6",
-    compose_gradient: use_accent
-      ? "linear-gradient(to bottom, var(--accent-mix-w80, #629bf8), var(--accent-color, #4f6ef7), var(--accent-mix-b80, #2f68c5))"
-      : "linear-gradient(to bottom, #6b8afd, #4f6ef7, #3d5ce0)",
-    compose_border_top: "rgba(255,255,255,0.15)",
-    compose_border_bottom: "rgba(0,0,0,0.15)",
-    text_primary: "#ffffff",
-    text_secondary: "#e5e5e5",
-    text_tertiary: "#888888",
-    text_muted: "#666666",
-    selected_bg: use_accent
-      ? "color-mix(in srgb, var(--accent-color, #3b82f6) 18%, #121212)"
-      : "#142744",
-    indicator_bg: "#121212",
-    indicator_border: "#333333",
-    border: "#333333",
-    border_secondary: "#2a2a2a",
-    body_line: "#2a2a2a",
-    avatar_read: "#3a3a3a",
-    storage_track: "#ffffff0f",
-    modal_overlay: "rgba(0,0,0,0.85)",
-    card_shadow: "0 8px 32px rgba(0,0,0,0.5), 0 2px 8px rgba(0,0,0,0.3)",
-  };
-}
-
-type Colors = ReturnType<typeof get_colors>;
-
-function MockupSidebar({ c }: { c: Colors }) {
   return (
-    <div
-      className="w-[52px] h-full flex flex-col p-1.5 gap-1.5 flex-shrink-0"
-      style={{
-        backgroundColor: c.sidebar_bg,
-        borderRight: `1px solid ${c.sidebar_border}`,
-      }}
-    >
-      <div className="flex items-center gap-1.5 px-1">
-        <div className="w-4 h-4 rounded" style={{ backgroundColor: c.brand }} />
-        <div
-          className="flex-1 h-1.5 rounded-sm"
-          style={{ backgroundColor: c.text_secondary }}
+    <PreviewSvg ids={ids}>
+      <AppChrome ids={ids}>
+        {(island) => <InboxList active_row={1} {...island} />}
+      </AppChrome>
+      <FloatingPanel
+        h={POPUP_HEIGHT}
+        ids={ids}
+        w={POPUP_WIDTH}
+        x={popup_x}
+        y={popup_y}
+      >
+        <MessagePane
+          h={POPUP_HEIGHT}
+          w={POPUP_WIDTH}
+          x={popup_x}
+          y={popup_y}
         />
-      </div>
-      <div
-        className="h-5 rounded flex items-center justify-center"
-        style={{
-          background: c.compose_gradient,
-          borderTop: `1px solid ${c.compose_border_top}`,
-          borderBottom: `1px solid ${c.compose_border_bottom}`,
+      </FloatingPanel>
+    </PreviewSvg>
+  );
+}
+
+export function ViewMockupSplit() {
+  const ids = preview_ids(useId());
+
+  return (
+    <PreviewSvg ids={ids}>
+      <AppChrome ids={ids}>
+        {(island) => {
+          const list_w = Math.round(island.w * SPLIT_LIST_RATIO);
+
+          return (
+            <g>
+              <InboxList active_row={1} {...island} w={list_w} />
+              <line
+                style={{ stroke: "var(--border-primary)" }}
+                strokeWidth={1}
+                vectorEffect="non-scaling-stroke"
+                x1={island.x + list_w}
+                x2={island.x + list_w}
+                y1={island.y}
+                y2={island.y + island.h}
+              />
+              <MessagePane
+                {...island}
+                w={island.w - list_w - 1}
+                x={island.x + list_w + 1}
+              />
+            </g>
+          );
         }}
-      >
-        <div className="w-2.5 h-2.5 rounded-sm bg-white/80" />
-      </div>
-      <div className="flex-1 flex flex-col mt-0.5">
-        <div className="px-1 mb-0.5">
-          <div
-            className="w-3.5 h-0.5 rounded-sm"
-            style={{ backgroundColor: c.text_muted, opacity: 0.5 }}
-          />
-        </div>
-        <div className="space-y-px">
-          <div
-            className="h-4 rounded px-1.5 flex items-center gap-1"
-            style={{
-              backgroundColor: c.indicator_bg,
-              border: `1px solid ${c.indicator_border}`,
-            }}
-          >
-            <div
-              className="w-2 h-2 rounded-sm"
-              style={{ backgroundColor: c.text_primary }}
-            />
-            <div
-              className="flex-1 h-1 rounded-sm"
-              style={{ backgroundColor: c.text_primary }}
-            />
-            <div
-              className="w-1 h-1 rounded-full"
-              style={{ backgroundColor: c.brand }}
-            />
-          </div>
-          <div className="h-4 rounded px-1.5 flex items-center gap-1">
-            <div
-              className="w-2 h-2 rounded-sm"
-              style={{ backgroundColor: c.text_muted }}
-            />
-            <div
-              className="flex-1 h-1 rounded-sm"
-              style={{ backgroundColor: c.text_muted }}
-            />
-          </div>
-          <div className="h-4 rounded px-1.5 flex items-center gap-1">
-            <div
-              className="w-2 h-2 rounded-sm"
-              style={{ backgroundColor: c.text_muted }}
-            />
-            <div
-              className="flex-1 h-1 rounded-sm"
-              style={{ backgroundColor: c.text_muted }}
-            />
-          </div>
-        </div>
-        <div className="px-1 mt-1.5 mb-0.5">
-          <div
-            className="w-3 h-0.5 rounded-sm"
-            style={{ backgroundColor: c.text_muted, opacity: 0.5 }}
-          />
-        </div>
-        <div className="h-4 rounded px-1.5 flex items-center gap-1">
-          <div
-            className="w-2 h-2 rounded-sm"
-            style={{ backgroundColor: c.text_muted }}
-          />
-          <div
-            className="flex-1 h-1 rounded-sm"
-            style={{ backgroundColor: c.text_muted }}
-          />
-        </div>
-        <div className="flex-1" />
-        <div className="px-0.5">
-          <div
-            className="w-full h-1 rounded-full overflow-hidden"
-            style={{ backgroundColor: c.storage_track }}
-          >
-            <div
-              className="h-full rounded-full"
-              style={{ width: "35%", backgroundColor: c.brand }}
-            />
-          </div>
-        </div>
-      </div>
-    </div>
+      </AppChrome>
+    </PreviewSvg>
   );
 }
 
-function MockupEmailList({
-  c,
-  full_width = false,
-}: {
-  c: Colors;
-  full_width?: boolean;
-}) {
-  return (
-    <div
-      className={full_width ? "flex-1 flex flex-col" : "w-[55%] flex flex-col"}
-      style={full_width ? undefined : { borderRight: `1px solid ${c.border}` }}
-    >
-      <div
-        className="h-4 flex items-center justify-between px-1.5 flex-shrink-0"
-        style={{ borderBottom: `1px solid ${c.border_secondary}` }}
-      >
-        <div className="flex items-center gap-1">
-          <div
-            className="w-2 h-2 rounded-sm"
-            style={{ border: `1.5px solid ${c.text_muted}` }}
-          />
-          <div
-            className="h-1.5 rounded-sm w-5"
-            style={{ backgroundColor: c.text_primary }}
-          />
-        </div>
-        <div className="flex items-center gap-0.5">
-          <div
-            className="w-1.5 h-1.5 rounded-full"
-            style={{ backgroundColor: c.text_muted }}
-          />
-          <div
-            className="h-0.5 rounded-sm w-4"
-            style={{ backgroundColor: c.text_muted }}
-          />
-        </div>
-      </div>
-      <div className="flex-1">
-        <div
-          className="h-6 flex items-center gap-1 px-1.5"
-          style={{
-            backgroundColor: c.selected_bg,
-            borderBottom: `1px solid ${c.border_secondary}`,
-          }}
-        >
-          <div
-            className="w-3 h-3 rounded-full flex-shrink-0"
-            style={{ backgroundColor: c.brand }}
-          />
-          <div
-            className="h-1 rounded-sm flex-shrink-0"
-            style={{ width: "28%", backgroundColor: c.text_primary }}
-          />
-          <div
-            className="flex-1 h-1 rounded-sm"
-            style={{ backgroundColor: c.text_secondary }}
-          />
-          <div
-            className="w-2 h-0.5 rounded-sm flex-shrink-0"
-            style={{ backgroundColor: c.text_muted }}
-          />
-          <div
-            className="w-1.5 h-1.5 rounded-full flex-shrink-0"
-            style={{ backgroundColor: c.brand }}
-          />
-        </div>
-        <div
-          className="h-6 flex items-center gap-1 px-1.5"
-          style={{ borderBottom: `1px solid ${c.border_secondary}` }}
-        >
-          <div
-            className="w-3 h-3 rounded-full flex-shrink-0"
-            style={{ backgroundColor: c.avatar_read }}
-          />
-          <div
-            className="h-1 rounded-sm flex-shrink-0"
-            style={{ width: "24%", backgroundColor: c.text_secondary }}
-          />
-          <div
-            className="flex-1 h-1 rounded-sm"
-            style={{ backgroundColor: c.text_tertiary }}
-          />
-          <div
-            className="w-2 h-0.5 rounded-sm flex-shrink-0"
-            style={{ backgroundColor: c.text_muted }}
-          />
-        </div>
-        <div
-          className="h-6 flex items-center gap-1 px-1.5"
-          style={{ borderBottom: `1px solid ${c.border_secondary}` }}
-        >
-          <div
-            className="w-3 h-3 rounded-full flex-shrink-0"
-            style={{ backgroundColor: c.avatar_read }}
-          />
-          <div
-            className="h-1 rounded-sm flex-shrink-0"
-            style={{ width: "32%", backgroundColor: c.text_secondary }}
-          />
-          <div
-            className="flex-1 h-1 rounded-sm"
-            style={{ backgroundColor: c.text_tertiary }}
-          />
-          <div
-            className="w-2 h-0.5 rounded-sm flex-shrink-0"
-            style={{ backgroundColor: c.text_muted }}
-          />
-        </div>
-        <div
-          className="h-6 flex items-center gap-1 px-1.5"
-          style={{ borderBottom: `1px solid ${c.border_secondary}` }}
-        >
-          <div
-            className="w-3 h-3 rounded-full flex-shrink-0"
-            style={{ backgroundColor: c.avatar_read }}
-          />
-          <div
-            className="h-1 rounded-sm flex-shrink-0"
-            style={{ width: "26%", backgroundColor: c.text_secondary }}
-          />
-          <div
-            className="flex-1 h-1 rounded-sm"
-            style={{ backgroundColor: c.text_tertiary }}
-          />
-          <div
-            className="w-2 h-0.5 rounded-sm flex-shrink-0"
-            style={{ backgroundColor: c.text_muted }}
-          />
-        </div>
-        <div
-          className="h-6 flex items-center gap-1 px-1.5"
-          style={{ borderBottom: `1px solid ${c.border_secondary}` }}
-        >
-          <div
-            className="w-3 h-3 rounded-full flex-shrink-0"
-            style={{ backgroundColor: c.avatar_read }}
-          />
-          <div
-            className="h-1 rounded-sm flex-shrink-0"
-            style={{ width: "30%", backgroundColor: c.text_secondary }}
-          />
-          <div
-            className="flex-1 h-1 rounded-sm"
-            style={{ backgroundColor: c.text_tertiary }}
-          />
-          <div
-            className="w-2 h-0.5 rounded-sm flex-shrink-0"
-            style={{ backgroundColor: c.text_muted }}
-          />
-        </div>
-        <div
-          className="h-6 flex items-center gap-1 px-1.5"
-          style={{ borderBottom: `1px solid ${c.border_secondary}` }}
-        >
-          <div
-            className="w-3 h-3 rounded-full flex-shrink-0"
-            style={{ backgroundColor: c.avatar_read }}
-          />
-          <div
-            className="h-1 rounded-sm flex-shrink-0"
-            style={{ width: "22%", backgroundColor: c.text_secondary }}
-          />
-          <div
-            className="flex-1 h-1 rounded-sm"
-            style={{ backgroundColor: c.text_tertiary }}
-          />
-          <div
-            className="w-2 h-0.5 rounded-sm flex-shrink-0"
-            style={{ backgroundColor: c.text_muted }}
-          />
-        </div>
-      </div>
-    </div>
-  );
-}
-
-export function ViewMockupSplit({ theme, use_accent }: ViewMockupProps) {
-  const c = get_colors(theme, use_accent);
+export function ViewMockupFullpage() {
+  const ids = preview_ids(useId());
 
   return (
-    <div
-      className="w-full h-full rounded-md overflow-hidden flex"
-      style={{ backgroundColor: c.bg }}
-    >
-      <MockupSidebar c={c} />
-      <div className="flex-1 flex" style={{ backgroundColor: c.bg }}>
-        <MockupEmailList c={c} />
-        <div className="flex-1 flex flex-col">
-          <div
-            className="h-3.5 flex items-center gap-0.5 px-1.5 flex-shrink-0"
-            style={{ borderBottom: `1px solid ${c.border_secondary}` }}
-          >
-            <div
-              className="w-1.5 h-1.5 rounded-sm"
-              style={{ backgroundColor: c.text_muted }}
-            />
-            <div
-              className="w-1.5 h-1.5 rounded-sm"
-              style={{ backgroundColor: c.text_muted }}
-            />
-            <div
-              className="w-1.5 h-1.5 rounded-sm"
-              style={{ backgroundColor: c.text_muted }}
-            />
-            <div className="flex-1" />
-            <div
-              className="w-1.5 h-1.5 rounded-sm"
-              style={{ backgroundColor: c.text_muted }}
-            />
-          </div>
-          <div className="flex-1 p-2">
-            <div
-              className="w-[75%] h-1.5 rounded-sm mb-1"
-              style={{ backgroundColor: c.text_primary }}
-            />
-            <div className="flex items-center gap-1 mb-1.5">
-              <div
-                className="w-2.5 h-2.5 rounded-full flex-shrink-0"
-                style={{ backgroundColor: c.brand }}
-              />
-              <div>
-                <div
-                  className="w-6 h-0.5 rounded-sm mb-0.5"
-                  style={{ backgroundColor: c.text_secondary }}
-                />
-                <div
-                  className="w-10 h-0.5 rounded-sm"
-                  style={{ backgroundColor: c.text_muted }}
-                />
-              </div>
-            </div>
-            <div
-              className="w-full mb-1.5"
-              style={{ height: "1px", backgroundColor: c.border_secondary }}
-            />
-            <div className="space-y-1">
-              <div
-                className="w-full h-1 rounded-sm"
-                style={{ backgroundColor: c.body_line }}
-              />
-              <div
-                className="w-[92%] h-1 rounded-sm"
-                style={{ backgroundColor: c.body_line }}
-              />
-              <div
-                className="w-[85%] h-1 rounded-sm"
-                style={{ backgroundColor: c.body_line }}
-              />
-              <div
-                className="w-[78%] h-1 rounded-sm"
-                style={{ backgroundColor: c.body_line }}
-              />
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-export function ViewMockupPopup({ theme, use_accent }: ViewMockupProps) {
-  const c = get_colors(theme, use_accent);
-
-  return (
-    <div
-      className="w-full h-full rounded-md overflow-hidden flex relative"
-      style={{ backgroundColor: c.bg }}
-    >
-      <MockupSidebar c={c} />
-      <div className="flex-1 flex" style={{ backgroundColor: c.bg }}>
-        <MockupEmailList full_width c={c} />
-      </div>
-      <div
-        className="absolute inset-0 flex items-center justify-center"
-        style={{ backgroundColor: c.modal_overlay }}
-      >
-        <div
-          className="w-[56%] rounded-lg flex flex-col overflow-hidden"
-          style={{
-            backgroundColor: c.bg,
-            boxShadow: c.card_shadow,
-            border: `1px solid ${c.border}`,
-            height: "70%",
-          }}
-        >
-          <div
-            className="h-3.5 flex items-center px-1.5 flex-shrink-0 gap-0.5"
-            style={{ borderBottom: `1px solid ${c.border_secondary}` }}
-          >
-            <div
-              className="w-1.5 h-1.5 rounded-sm"
-              style={{ backgroundColor: c.text_muted }}
-            />
-            <div
-              className="w-1.5 h-1.5 rounded-sm"
-              style={{ backgroundColor: c.text_muted }}
-            />
-            <div className="flex-1" />
-            <div
-              className="w-1.5 h-1.5 rounded-sm"
-              style={{ backgroundColor: c.text_muted }}
-            />
-            <div
-              className="w-1.5 h-1.5 rounded-sm"
-              style={{ backgroundColor: c.text_muted }}
-            />
-            <div
-              className="w-1.5 h-1.5 rounded-sm"
-              style={{ backgroundColor: c.text_muted }}
-            />
-          </div>
-          <div className="flex-1 p-2 overflow-hidden">
-            <div
-              className="w-[75%] h-1.5 rounded-sm mb-1"
-              style={{ backgroundColor: c.text_primary }}
-            />
-            <div className="flex items-center gap-1 mb-1.5">
-              <div
-                className="w-2.5 h-2.5 rounded-full flex-shrink-0"
-                style={{ backgroundColor: c.brand }}
-              />
-              <div>
-                <div
-                  className="w-6 h-0.5 rounded-sm mb-0.5"
-                  style={{ backgroundColor: c.text_secondary }}
-                />
-                <div
-                  className="w-10 h-0.5 rounded-sm"
-                  style={{ backgroundColor: c.text_muted }}
-                />
-              </div>
-            </div>
-            <div
-              className="w-full mb-1.5"
-              style={{ height: "1px", backgroundColor: c.border_secondary }}
-            />
-            <div className="space-y-1">
-              <div
-                className="w-full h-1 rounded-sm"
-                style={{ backgroundColor: c.body_line }}
-              />
-              <div
-                className="w-[90%] h-1 rounded-sm"
-                style={{ backgroundColor: c.body_line }}
-              />
-              <div
-                className="w-[75%] h-1 rounded-sm"
-                style={{ backgroundColor: c.body_line }}
-              />
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-export function ViewMockupFullpage({ theme, use_accent }: ViewMockupProps) {
-  const c = get_colors(theme, use_accent);
-
-  return (
-    <div
-      className="w-full h-full rounded-md overflow-hidden flex"
-      style={{ backgroundColor: c.bg }}
-    >
-      <MockupSidebar c={c} />
-      <div className="flex-1 flex flex-col" style={{ backgroundColor: c.bg }}>
-        <div
-          className="h-4 flex items-center justify-between px-2 flex-shrink-0"
-          style={{ borderBottom: `1px solid ${c.border_secondary}` }}
-        >
-          <div className="flex items-center gap-0.5">
-            <svg
-              className="w-2 h-2"
-              fill="none"
-              stroke={c.brand}
-              strokeLinecap="round"
-              strokeWidth={2.5}
-              viewBox="0 0 8 8"
-            >
-              <path d="M5 1L2 4L5 7" />
-            </svg>
-            <div
-              className="w-3.5 h-1 rounded-sm"
-              style={{ backgroundColor: c.brand }}
-            />
-          </div>
-          <div className="flex items-center gap-0.5">
-            <div
-              className="h-0.5 w-3 rounded-sm"
-              style={{ backgroundColor: c.text_muted }}
-            />
-            <div
-              className="w-1.5 h-1.5 rounded-sm"
-              style={{ backgroundColor: c.text_muted }}
-            />
-            <div
-              className="w-1.5 h-1.5 rounded-sm"
-              style={{ backgroundColor: c.text_muted }}
-            />
-          </div>
-        </div>
-        <div className="flex-1 p-2.5">
-          <div
-            className="w-[65%] h-2 rounded-sm mb-1.5"
-            style={{ backgroundColor: c.text_primary }}
-          />
-          <div className="flex items-center gap-1.5 mb-2">
-            <div
-              className="w-3.5 h-3.5 rounded-full flex-shrink-0"
-              style={{ backgroundColor: c.brand }}
-            />
-            <div>
-              <div
-                className="w-8 h-1 rounded-sm mb-0.5"
-                style={{ backgroundColor: c.text_secondary }}
-              />
-              <div
-                className="w-14 h-0.5 rounded-sm"
-                style={{ backgroundColor: c.text_muted }}
-              />
-            </div>
-          </div>
-          <div
-            className="w-full mb-2"
-            style={{ height: "1px", backgroundColor: c.border_secondary }}
-          />
-          <div className="space-y-1">
-            <div
-              className="w-full h-1 rounded-sm"
-              style={{ backgroundColor: c.body_line }}
-            />
-            <div
-              className="w-[94%] h-1 rounded-sm"
-              style={{ backgroundColor: c.body_line }}
-            />
-            <div
-              className="w-[88%] h-1 rounded-sm"
-              style={{ backgroundColor: c.body_line }}
-            />
-            <div
-              className="w-[82%] h-1 rounded-sm"
-              style={{ backgroundColor: c.body_line }}
-            />
-            <div
-              className="w-[75%] h-1 rounded-sm"
-              style={{ backgroundColor: c.body_line }}
-            />
-            <div
-              className="w-[90%] h-1 rounded-sm"
-              style={{ backgroundColor: c.body_line }}
-            />
-          </div>
-        </div>
-      </div>
-    </div>
+    <PreviewSvg ids={ids}>
+      <AppChrome ids={ids}>
+        {(island) => <MessagePane show_back show_reply {...island} />}
+      </AppChrome>
+    </PreviewSvg>
   );
 }

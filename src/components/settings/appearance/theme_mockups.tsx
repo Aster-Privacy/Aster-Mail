@@ -18,15 +18,17 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { ViewMockupSplit } from "@/components/settings/appearance/view_mode_mockups";
+import { useId } from "react";
 
-export function ThemeMockupLight() {
-  return <ViewMockupSplit theme="light" />;
-}
+import {
+  AppChrome,
+  InboxList,
+  PreviewSvg,
+  preview_ids,
+} from "@/components/settings/appearance/app_preview";
 
-export function ThemeMockupDark() {
-  return <ViewMockupSplit theme="dark" />;
-}
+const THEME_SCENE_WIDTH = 880;
+const THEME_SCENE_HEIGHT = 550;
 
 export type ColorThemeName =
   | "purple"
@@ -45,22 +47,51 @@ export type ColorThemeName =
   | "pink"
   | "black";
 
-export function ThemeMockupColor(_props: { name: ColorThemeName }) {
-  return <ViewMockupSplit theme="themed" />;
+export type ThemePreviewMode = "light" | "dark" | "system" | ColorThemeName;
+
+export const LIGHT_PREVIEW_SCOPE = "theme_preview_scope theme_preview_light";
+export const DARK_PREVIEW_SCOPE = "theme_preview_scope dark";
+
+export function get_theme_preview_scope(mode: ThemePreviewMode) {
+  if (mode === "light") return LIGHT_PREVIEW_SCOPE;
+  if (mode === "dark") return DARK_PREVIEW_SCOPE;
+  if (mode === "system") return "";
+
+  return `${DARK_PREVIEW_SCOPE} theme-${mode}`;
+}
+
+export function ThemeMockup() {
+  const ids = preview_ids(useId());
+
+  return (
+    <PreviewSvg
+      height={THEME_SCENE_HEIGHT}
+      ids={ids}
+      width={THEME_SCENE_WIDTH}
+    >
+      <AppChrome
+        height={THEME_SCENE_HEIGHT}
+        ids={ids}
+        width={THEME_SCENE_WIDTH}
+      >
+        {(island) => <InboxList {...island} />}
+      </AppChrome>
+    </PreviewSvg>
+  );
 }
 
 export function ThemeMockupSystem() {
   return (
-    <div className="relative w-full h-full rounded-lg overflow-hidden">
-      <div className="absolute inset-0 rounded-lg overflow-hidden [&>div]:rounded-none">
-        <ViewMockupSplit theme="light" />
-      </div>
-      <div
-        className="absolute inset-0 rounded-lg overflow-hidden [&>div]:rounded-none"
-        style={{ clipPath: "polygon(100% 0, 100% 100%, 0 100%)" }}
+    <span className="relative block h-full w-full">
+      <span className={`absolute inset-0 ${LIGHT_PREVIEW_SCOPE}`}>
+        <ThemeMockup />
+      </span>
+      <span
+        className={`absolute inset-0 ${DARK_PREVIEW_SCOPE}`}
+        style={{ clipPath: "polygon(62% 0, 100% 0, 100% 100%, 38% 100%)" }}
       >
-        <ViewMockupSplit theme="dark" />
-      </div>
-    </div>
+        <ThemeMockup />
+      </span>
+    </span>
   );
 }

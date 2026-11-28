@@ -18,23 +18,19 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { SelectionMark } from "@aster/ui";
-
+import { PreviewOption } from "@/components/settings/appearance/app_preview";
 import {
-  ThemeMockupLight,
-  ThemeMockupDark,
+  ThemeMockup,
   ThemeMockupSystem,
-  ThemeMockupColor,
-  type ColorThemeName,
+  get_theme_preview_scope,
+  type ThemePreviewMode,
 } from "@/components/settings/appearance/theme_mockups";
 
 interface ThemeCardProps {
-  mode: "light" | "dark" | "system" | ColorThemeName;
+  mode: ThemePreviewMode;
   label: string;
   is_selected: boolean;
   on_select: () => void;
-  full_width?: boolean;
-  size?: "default" | "lg";
 }
 
 export function ThemeCard({
@@ -42,76 +38,15 @@ export function ThemeCard({
   label,
   is_selected,
   on_select,
-  full_width = false,
-  size = "default",
 }: ThemeCardProps) {
-  const color_names: ColorThemeName[] = [
-    "purple",
-    "green",
-    "rose",
-    "orange",
-    "teal",
-    "indigo",
-    "amber",
-    "cyan",
-    "slate",
-    "aster-blue",
-    "lime",
-    "fuchsia",
-    "emerald",
-    "pink",
-    "black",
-  ];
-  const is_color_theme = color_names.includes(mode as ColorThemeName);
-
-  const get_mockup = () => {
-    if (mode === "light") return <ThemeMockupLight />;
-    if (mode === "dark") return <ThemeMockupDark />;
-    if (mode === "system") return <ThemeMockupSystem />;
-
-    return <ThemeMockupColor name={mode} />;
-  };
-
-  const get_border_color = () => {
-    if (mode === "light") return "1px solid #e5e5e5";
-    if (mode === "system" || is_color_theme)
-      return "1px solid var(--border-secondary)";
-
-    return "1px solid #1a1a1a";
-  };
-
-  const get_bg_color = () => {
-    if (mode === "light") return "#ffffff";
-    if (mode === "system" || is_color_theme) return "var(--bg-primary)";
-
-    return "#121212";
-  };
-
-  const scope_class = is_color_theme ? `dark theme-${mode}` : "";
-
   return (
-    <button
-      className={`group p-3 rounded-[14px] transition-all cursor-pointer outline-none focus:outline-none ${full_width ? "w-full" : size === "lg" ? "w-56 flex-none" : "w-40 flex-none"}`}
-      type="button"
-      onClick={on_select}
+    <PreviewOption
+      is_selected={is_selected}
+      label={label}
+      scope_class={get_theme_preview_scope(mode)}
+      on_select={on_select}
     >
-      <div
-        className={`${scope_class} relative w-full aspect-[4/3] rounded-lg mb-3 group-focus-visible:outline group-focus-visible:outline-2 group-focus-visible:outline-offset-2 group-focus-visible:outline-[var(--accent-color)]`}
-      >
-        <div
-          className="w-full h-full rounded-lg overflow-hidden"
-          style={{
-            border: get_border_color(),
-            backgroundColor: get_bg_color(),
-          }}
-        >
-          {get_mockup()}
-        </div>
-        <SelectionMark selected={is_selected} />
-      </div>
-      <div className="flex items-center justify-center">
-        <span className="text-sm font-medium text-txt-primary">{label}</span>
-      </div>
-    </button>
+      {mode === "system" ? <ThemeMockupSystem /> : <ThemeMockup />}
+    </PreviewOption>
   );
 }

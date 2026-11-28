@@ -18,8 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { SelectionMark } from "@aster/ui";
-
+import { PreviewOption } from "@/components/settings/appearance/app_preview";
 import {
   ViewMockupPopup,
   ViewMockupSplit,
@@ -31,7 +30,6 @@ interface ViewModeCardProps {
   label: string;
   is_selected: boolean;
   on_select: () => void;
-  theme: "light" | "dark" | "themed";
 }
 
 export function ViewModeCard({
@@ -39,40 +37,16 @@ export function ViewModeCard({
   label,
   is_selected,
   on_select,
-  theme,
 }: ViewModeCardProps) {
-  const get_mockup = () => {
-    if (mode === "popup") return <ViewMockupPopup use_accent theme={theme} />;
-    if (mode === "split") return <ViewMockupSplit use_accent theme={theme} />;
-
-    return <ViewMockupFullpage use_accent theme={theme} />;
-  };
-
-  const get_border_color = () => {
-    if (theme === "themed") return "1px solid var(--border-secondary)";
-    if (theme === "light") return "1px solid #e5e5e5";
-
-    return "1px solid #1a1a1a";
-  };
-
   return (
-    <button
-      className="flex-1 p-3 rounded-[14px] transition-all cursor-pointer"
-      type="button"
-      onClick={on_select}
+    <PreviewOption
+      is_selected={is_selected}
+      label={label}
+      on_select={on_select}
     >
-      <div className="relative w-full aspect-[4/3] rounded-lg mb-3">
-        <div
-          className="w-full h-full rounded-lg overflow-hidden"
-          style={{ border: get_border_color() }}
-        >
-          {get_mockup()}
-        </div>
-        <SelectionMark selected={is_selected} />
-      </div>
-      <div className="flex items-center justify-center">
-        <span className="text-sm font-medium text-txt-primary">{label}</span>
-      </div>
-    </button>
+      {mode === "popup" && <ViewMockupPopup />}
+      {mode === "split" && <ViewMockupSplit />}
+      {mode === "fullpage" && <ViewMockupFullpage />}
+    </PreviewOption>
   );
 }
