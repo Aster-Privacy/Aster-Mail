@@ -233,9 +233,9 @@ describe("sender selector rows", () => {
     const row = rows()[2];
     const main = row.querySelector<HTMLElement>("[data-row-primary]")!;
     const spans = Array.from(row.querySelectorAll("span"));
-    const address = spans.find(
-      (el) => el.textContent === "paused@astermail.org",
-    )!;
+    const address = spans
+      .filter((el) => el.textContent === "paused@astermail.org")
+      .pop()!;
     const badge = row.querySelector("[data-sending-disabled-badge]")!;
 
     expect(row.hasAttribute("data-disabled")).toBe(true);
@@ -243,6 +243,9 @@ describe("sender selector rows", () => {
     expect(address).toBeDefined();
     expect(badge).not.toBeNull();
     expect(address.parentElement!.contains(badge)).toBe(false);
+    expect(address.parentElement!.nextElementSibling!.contains(badge)).toBe(
+      true,
+    );
     expect(find_press_target(main)).toBeNull();
     expect(find_press_target(row)).toBeNull();
   });
