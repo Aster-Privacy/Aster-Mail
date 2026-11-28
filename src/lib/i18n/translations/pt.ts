@@ -2792,8 +2792,7 @@ export const pt = {
     delete_category_title: "Eliminar categoria?",
     delete_category_description:
       "Esta ação elimina permanentemente “{{name}}” e não pode ser desfeita.",
-    custom_categories_locked:
-      "As categorias personalizadas não estão disponíveis no seu plano atual.",
+    custom_categories_locked: "Organize o e-mail em categorias criadas por si.",
     custom_categories_limit_reached:
       "Atingiu o limite de categorias personalizadas do seu plano. Atualize o plano para obter mais.",
     edit_custom_category: "Editar categoria",
@@ -3407,7 +3406,7 @@ export const pt = {
     alias_directory_color: "Cor",
     alias_directory_updated: "Diretório atualizado",
     alias_feature_locked_directories:
-      "Atualize o seu plano para utilizar diretórios de alias.",
+      "Cada endereço de um diretório torna-se um alias na primeira vez que recebe e-mail.",
     alias_feature_locked_rules:
       "Atualize o seu plano para utilizar regras de alias.",
     alias_feature_locked_relay:
@@ -7765,7 +7764,7 @@ export const pt = {
     confirm_cancel_addon_description:
       "Cancelar este complemento de armazenamento? O seu armazenamento extra continua disponível até ao fim do período de faturação atual.",
     free_plan_description:
-      "Está no plano gratuito. Explore os planos pagos abaixo para obter mais armazenamento, aliases e funcionalidades.",
+      "Os planos pagos adicionam mais armazenamento, mais aliases e domínios personalizados.",
     free_plan_banner_title: "Está no plano gratuito",
     usage_overview_description:
       "Acompanhe a sua utilização atual das funcionalidades do plano.",
@@ -8129,7 +8128,7 @@ export const pt = {
     subscription_manager_locked:
       "Faça a gestão das subscrições de newsletters e cancele subscrições em massa",
     quiet_hours_locked:
-      "Silencie notificações em horários específicos para manter o foco",
+      "Silencie as notificações durante as horas que escolher.",
     folder_lock_locked:
       "Proteja pastas sensíveis com uma palavra-passe adicional",
     key_rotation_locked:
@@ -8317,7 +8316,7 @@ export const pt = {
       "Demasiadas tentativas. Tente novamente em {{s}}s.",
     vanguard_title: "Aster Vanguard",
     vanguard_description:
-      "Proteção avançada para jornalistas, ativistas e contas de alto risco. Apenas Nova+.",
+      "Proteção avançada para jornalistas, ativistas e contas de alto risco.",
     vanguard_info:
       "O Aster Vanguard acrescenta proteção adicional para jornalistas, ativistas, advogados e qualquer pessoa com risco mais elevado. Inclui bloqueio da aplicação com PIN e modo de bloqueio.",
     vanguard_active: "Vanguard ativo",

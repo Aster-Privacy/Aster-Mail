@@ -29,10 +29,6 @@ vi.mock("@/hooks/use_plan_limits", () => ({
   use_plan_limits: () => ({ is_feature_locked: () => false }),
 }));
 
-vi.mock("@/components/upgrade/upgrade_inline_card", () => ({
-  UpgradeInlineCard: () => null,
-}));
-
 vi.mock(
   "@/components/settings/aliases/recently_deleted_aliases_section",
   () => ({ RecentlyDeletedAliasesSection: () => null }),

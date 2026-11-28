@@ -2502,7 +2502,7 @@ export const zh_CN = {
     category_collapse: "收起",
     delete_category_title: "删除分类？",
     delete_category_description: "这会永久删除“{{name}}”，且无法撤销。",
-    custom_categories_locked: "自定义分类在您当前的套餐中不可用。",
+    custom_categories_locked: "将邮件归入你自己创建的类别。",
     custom_categories_limit_reached:
       "您已达到套餐的自定义分类上限。升级以添加更多。",
     edit_custom_category: "编辑分类",
@@ -3045,7 +3045,7 @@ export const zh_CN = {
       "发送至 anything.{{ key }}@{{ domain }} 即可创建一个新别名。",
     alias_directory_color: "颜色",
     alias_directory_updated: "目录已更新",
-    alias_feature_locked_directories: "升级您的套餐以使用别名目录。",
+    alias_feature_locked_directories: "目录中的每个地址在首次收到邮件时都会成为别名。",
     alias_feature_locked_rules: "升级您的套餐以使用别名规则。",
     alias_feature_locked_relay: "升级您的套餐以使用外部中继。",
     alias_feature_locked_contacts: "升级您的套餐以使用反向别名联系人。",
@@ -6222,8 +6222,7 @@ export const zh_CN = {
     free_upgrade_price_note: "套餐低至每月 {{price}}。",
     upgrade_for_more_short: "升级以获取更多",
     plans_coming_soon: "套餐订阅即将推出。",
-    free_plan_description:
-      "您当前使用的是免费套餐。浏览下方的付费套餐以获取更多存储空间、别名和功能。",
+    free_plan_description: "付费方案提供更多存储空间、更多别名和自定义域名。",
     free_plan_banner_title: "您正在使用免费套餐",
     plan_f_storage: "{{value}}加密存储",
     plan_f_attachments: "最大{{value}}附件",
@@ -7175,7 +7174,7 @@ export const zh_CN = {
     catch_all_locked: "全部接收可接收发送到您域名上任何地址的邮件",
     auto_forward_locked: "自动将收件转发到其他地址",
     subscription_manager_locked: "管理订阅邮件并批量取消订阅",
-    quiet_hours_locked: "在特定时间静音通知以保持专注",
+    quiet_hours_locked: "在你选择的时段将通知静音。",
     carddav_locked: "从支持 CardDAV 的服务导入联系人",
     contact_merge_locked: "合并重复联系人",
     encrypted_export_locked: "使用端到端加密导出您的数据",
@@ -7279,7 +7278,7 @@ export const zh_CN = {
     app_lock_locked_out_for: "尝试次数过多。请在 {{s}} 秒后重试。",
     vanguard_title: "Aster Vanguard",
     vanguard_description:
-      "为记者、社会活动人士和高风险账户提供的高级保护。仅限 Nova+。",
+      "为记者、社会活动人士和高风险账户提供的高级保护。",
     vanguard_info:
       "Aster Vanguard 为记者、活动人士、律师以及面临更高风险的任何人提供额外保护。它包括 PIN 应用锁和锁定模式。",
     vanguard_active: "Vanguard 已激活",

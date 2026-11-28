@@ -2911,7 +2911,7 @@ export const pl = {
     delete_category_description:
       "Kategoria „{{name}}” zostanie trwale usunięta. Tej operacji nie można cofnąć.",
     custom_categories_locked:
-      "Niestandardowe kategorie nie są dostępne w Twoim obecnym planie.",
+      "Sortuj pocztę w kategoriach, które sam tworzysz.",
     custom_categories_limit_reached:
       "Osiągnięto limit niestandardowych kategorii w Twoim planie. Ulepsz plan, aby dodać więcej.",
     edit_custom_category: "Edytuj kategorię",
@@ -3527,7 +3527,7 @@ export const pl = {
     alias_directory_color: "Kolor",
     alias_directory_updated: "Katalog zaktualizowany",
     alias_feature_locked_directories:
-      "Przejdź na wyższy plan, aby korzystać z katalogów aliasów.",
+      "Każdy adres w katalogu staje się aliasem, gdy po raz pierwszy otrzyma wiadomość.",
     alias_feature_locked_rules:
       "Przejdź na wyższy plan, aby korzystać z reguł aliasów.",
     alias_feature_locked_relay:
@@ -7100,7 +7100,7 @@ export const pl = {
     upgrade_for_more_short: "Ulepsz, aby zyskać więcej",
     plans_coming_soon: "Subskrypcje planów już wkrótce.",
     free_plan_description:
-      "Korzystasz z darmowego planu. Zapoznaj się z płatnymi planami poniżej, aby uzyskać więcej miejsca, aliasów i funkcji.",
+      "Płatne plany dają więcej miejsca, więcej aliasów i własne domeny.",
     free_plan_banner_title: "Korzystasz z darmowego planu",
     plan_f_storage: "{{value}} szyfrowanego miejsca",
     plan_f_attachments: "Załączniki do {{value}}",
@@ -8192,8 +8192,7 @@ export const pl = {
       "Automatycznie przekierowuj przychodzące e-maile na inny adres",
     subscription_manager_locked:
       "Zarządzaj subskrypcjami biuletynów i masowo się wypisuj",
-    quiet_hours_locked:
-      "Wycisz powiadomienia w określonych godzinach, aby się skupić",
+    quiet_hours_locked: "Wycisz powiadomienia w wybranych godzinach.",
     carddav_locked: "Importuj kontakty z usług kompatybilnych z CardDAV",
     contact_merge_locked: "Scalaj zduplikowane kontakty",
     encrypted_export_locked: "Eksportuj dane z szyfrowaniem end-to-end",
@@ -8394,7 +8393,7 @@ export const pl = {
     app_lock_locked_out_for: "Zbyt wiele prób. Spróbuj ponownie za {{s}} s.",
     vanguard_title: "Aster Vanguard",
     vanguard_description:
-      "Zaawansowana ochrona dla dziennikarzy, aktywistów i kont wysokiego ryzyka. Tylko Nova+.",
+      "Zaawansowana ochrona dla dziennikarzy, aktywistów i kont wysokiego ryzyka.",
     vanguard_info:
       "Aster Vanguard dodaje ochronę dla dziennikarzy, aktywistów, prawników i wszystkich bardziej narażonych osób. Obejmuje blokadę aplikacji PIN i tryb blokady.",
     vanguard_active: "Vanguard aktywny",

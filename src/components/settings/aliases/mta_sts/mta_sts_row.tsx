@@ -22,7 +22,7 @@ import type { CustomDomain } from "@/services/api/domains";
 
 import { useState } from "react";
 import { ShieldCheckIcon } from "@heroicons/react/24/outline";
-import { Button, UpgradeBtn } from "@aster/ui";
+import { Button } from "@aster/ui";
 
 import { MtaStsModal } from "./mta_sts_modal";
 import { MtaStsStateChip } from "./mta_sts_state_chip";
@@ -30,7 +30,7 @@ import { mta_sts_row_message } from "./mta_sts_copy";
 
 import { use_i18n } from "@/lib/i18n/context";
 import { normalize_mta_sts_state } from "@/services/api/mta_sts";
-import { prompt_upgrade } from "@/components/settings/aliases/feature_lock";
+import { PlanUpgradeButton } from "@/components/common/plan_locked";
 
 interface MtaStsRowProps {
   domain: CustomDomain;
@@ -68,18 +68,10 @@ export function MtaStsRow({ domain, on_changed }: MtaStsRowProps) {
         <p className="text-sm mt-0.5 text-txt-muted">{t(message)}</p>
       </div>
       {locked ? (
-        <UpgradeBtn
-          size="sm"
-          onClick={() =>
-            prompt_upgrade(
-              t("settings.mta_sts_locked_description"),
-              undefined,
-              "has_mta_sts_hosting",
-            )
-          }
-        >
-          {t("common.upgrade")}
-        </UpgradeBtn>
+        <PlanUpgradeButton
+          feature="has_mta_sts_hosting"
+          message={t("settings.mta_sts_locked_description")}
+        />
       ) : (
         <Button
           className="disabled:opacity-50"

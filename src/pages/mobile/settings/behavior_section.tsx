@@ -24,7 +24,7 @@ import type { MemberRetentionPolicy } from "@/services/api/family_org";
 import { useEffect, useRef, useState } from "react";
 import { Capacitor } from "@capacitor/core";
 import { CheckIcon, LockClosedIcon } from "@heroicons/react/24/outline";
-import { Switch, UpgradeBtn } from "@aster/ui";
+import { Switch } from "@aster/ui";
 
 import {
   SettingsGroup,
@@ -47,7 +47,7 @@ import { SkinToneSwatches } from "@/components/settings/skin_tone_swatches";
 import { normalize_skin_tone } from "@/config/emoji/skin_tones";
 import { show_toast } from "@/components/toast/simple_toast";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
-import { prompt_upgrade } from "@/components/settings/aliases/feature_lock";
+import { PlanUpgradeButton } from "@/components/common/plan_locked";
 import {
   get_spam_settings,
   save_spam_settings,
@@ -908,18 +908,10 @@ export function BehaviorSection({
                   }
                 />
               ) : (
-                <UpgradeBtn
-                  size="sm"
-                  onClick={() =>
-                    prompt_upgrade(
-                      t("settings.feature_requires_upgrade"),
-                      undefined,
-                      "has_remove_branding",
-                    )
-                  }
-                >
-                  {t("settings.upgrade_to_unlock")}
-                </UpgradeBtn>
+                <PlanUpgradeButton
+                  feature="has_remove_branding"
+                  message={t("settings.feature_requires_upgrade")}
+                />
               )
             }
           />

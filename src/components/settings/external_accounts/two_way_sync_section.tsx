@@ -32,7 +32,6 @@ import {
   SettingControlRow,
   SettingNote,
   SettingToggleRow,
-  UpgradeBtn,
 } from "@aster/ui";
 
 import {
@@ -41,6 +40,7 @@ import {
 } from "@/services/api/external_accounts";
 import { show_toast } from "@/components/toast/simple_toast";
 import { prompt_upgrade } from "@/components/settings/aliases/feature_lock";
+import { PlanUpgradeButton } from "@/components/common/plan_locked";
 import { ConfirmationModal } from "@/components/modals/confirmation_modal";
 
 const STATUS_POLL_MS = 15000;
@@ -202,18 +202,10 @@ export function TwoWaySyncSection({
       {is_locked ? (
         <SettingControlRow
           control={
-            <UpgradeBtn
-              size="sm"
-              onClick={() =>
-                prompt_upgrade(
-                  t("settings.feature_requires_upgrade"),
-                  undefined,
-                  "has_two_way_sync",
-                )
-              }
-            >
-              {t("settings.alias_feature_locked_upgrade_cta")}
-            </UpgradeBtn>
+            <PlanUpgradeButton
+              feature="has_two_way_sync"
+              message={t("settings.feature_requires_upgrade")}
+            />
           }
           description={t("settings.ext_v2_two_way_description", {
             email: account.email,

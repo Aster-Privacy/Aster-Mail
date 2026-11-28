@@ -2652,8 +2652,7 @@ export const ko = {
     delete_category_title: "카테고리를 삭제하시겠습니까?",
     delete_category_description:
       "“{{name}}”이(가) 영구적으로 삭제됩니다. 이 작업은 되돌릴 수 없습니다.",
-    custom_categories_locked:
-      "사용자 지정 카테고리는 현재 요금제에서 사용할 수 없습니다.",
+    custom_categories_locked: "직접 만든 카테고리로 메일을 분류합니다.",
     custom_categories_limit_reached:
       "요금제의 사용자 지정 카테고리 한도에 도달했습니다. 더 추가하려면 업그레이드하세요.",
     edit_custom_category: "카테고리 편집",
@@ -3232,8 +3231,7 @@ export const ko = {
       "anything.{{ key }}@{{ domain }}로 보내 새 별칭을 만드세요.",
     alias_directory_color: "색상",
     alias_directory_updated: "디렉터리가 업데이트되었습니다",
-    alias_feature_locked_directories:
-      "별칭 디렉터리를 사용하려면 요금제를 업그레이드하세요.",
+    alias_feature_locked_directories: "디렉터리의 각 주소는 처음 메일을 받을 때 별칭이 됩니다.",
     alias_feature_locked_rules:
       "별칭 규칙을 사용하려면 요금제를 업그레이드하세요.",
     alias_feature_locked_relay:
@@ -6822,8 +6820,7 @@ export const ko = {
     free_upgrade_price_note: "요금제는 월 {{price}}부터 시작합니다.",
     upgrade_for_more_short: "업그레이드하고 더 많이 이용하기",
     plans_coming_soon: "플랜 구독이 곧 제공됩니다.",
-    free_plan_description:
-      "현재 무료 플랜을 사용 중입니다. 아래에서 더 많은 저장 공간, 별칭 및 기능을 위한 유료 플랜을 살펴보세요.",
+    free_plan_description: "유료 요금제에는 더 많은 저장 공간과 별칭, 사용자 지정 도메인이 포함됩니다.",
     free_plan_banner_title: "무료 플랜을 사용 중입니다",
     plan_f_storage: "{{value}} 암호화된 저장 공간",
     plan_f_attachments: "최대 {{value}} 첨부 파일",
@@ -7850,7 +7847,7 @@ export const ko = {
     auto_forward_locked: "수신 이메일을 다른 주소로 자동 전달합니다",
     subscription_manager_locked:
       "뉴스레터 구독을 관리하고 일괄 구독 취소합니다",
-    quiet_hours_locked: "집중을 위해 특정 시간에 알림을 음소거합니다",
+    quiet_hours_locked: "선택한 시간 동안 알림을 무음으로 설정합니다.",
     carddav_locked: "CardDAV 호환 서비스에서 연락처를 가져옵니다",
     contact_merge_locked: "중복 연락처를 병합합니다",
     encrypted_export_locked: "종단간 암호화로 데이터를 내보냅니다",
@@ -7929,7 +7926,7 @@ export const ko = {
     app_lock_locked_out_for: "시도 횟수를 초과했습니다. {{s}}초 후에 다시 시도하세요.",
     vanguard_title: "Aster Vanguard",
     vanguard_description:
-      "기자, 활동가 및 고위험 계정을 위한 고급 보호 기능입니다. Nova+ 전용입니다.",
+      "기자, 활동가 및 고위험 계정을 위한 고급 보호 기능입니다.",
     vanguard_info:
       "Aster Vanguard는 기자, 활동가, 변호사 등 위험이 큰 모든 사람을 위한 추가 보호 기능입니다. PIN 앱 잠금과 차단 모드가 포함됩니다.",
     vanguard_active: "Vanguard 활성",

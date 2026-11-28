@@ -2764,8 +2764,7 @@ export const it = {
     delete_category_title: "Eliminare la categoria?",
     delete_category_description:
       "“{{name}}” verrà eliminata definitivamente. Questa operazione non può essere annullata.",
-    custom_categories_locked:
-      "Le categorie personalizzate non sono disponibili con il tuo piano attuale.",
+    custom_categories_locked: "Ordina la posta in categorie create da te.",
     custom_categories_limit_reached:
       "Hai raggiunto il limite di categorie personalizzate del tuo piano. Esegui l'upgrade per aggiungerne altre.",
     edit_custom_category: "Modifica categoria",
@@ -3375,7 +3374,7 @@ export const it = {
     alias_directory_color: "Colore",
     alias_directory_updated: "Directory aggiornata",
     alias_feature_locked_directories:
-      "Aggiorna il tuo piano per usare le directory di alias.",
+      "Ogni indirizzo di una directory diventa un alias la prima volta che riceve posta.",
     alias_feature_locked_rules:
       "Aggiorna il tuo piano per usare le regole degli alias.",
     alias_feature_locked_relay:
@@ -4996,7 +4995,7 @@ export const it = {
     upgrade_for_more_short: "Aggiorna per avere di più",
     plans_coming_soon: "Gli abbonamenti ai piani saranno disponibili a breve.",
     free_plan_description:
-      "Sei sul piano gratuito. Esplora i piani a pagamento qui sotto per più spazio, alias e funzionalità.",
+      "I piani a pagamento aggiungono più spazio, più alias e domini personalizzati.",
     free_plan_banner_title: "Sei sul piano gratuito",
     plan_f_storage: "{{value}} di archiviazione crittografata",
     plan_f_attachments: "Allegati fino a {{value}}",
@@ -6342,8 +6341,7 @@ export const it = {
       "Inoltra automaticamente le email in arrivo a un altro indirizzo",
     subscription_manager_locked:
       "Gestisci le iscrizioni alle newsletter e annulla in blocco",
-    quiet_hours_locked:
-      "Silenzia le notifiche durante orari specifici per restare concentrato",
+    quiet_hours_locked: "Silenzia le notifiche nelle ore che scegli.",
     folder_lock_locked:
       "Proteggi le cartelle sensibili con una password aggiuntiva",
     key_rotation_locked:
@@ -8259,7 +8257,7 @@ export const it = {
     app_lock_locked_out_for: "Troppi tentativi. Riprova tra {{s}}s.",
     vanguard_title: "Aster Vanguard",
     vanguard_description:
-      "Protezione avanzata per giornalisti, attivisti e account ad alto rischio. Solo Nova+.",
+      "Protezione avanzata per giornalisti, attivisti e account ad alto rischio.",
     vanguard_info:
       "Aster Vanguard aggiunge una protezione extra per giornalisti, attivisti, avvocati e chiunque sia più a rischio. Include il blocco app con PIN e la modalità isolamento.",
     vanguard_active: "Vanguard attivo",

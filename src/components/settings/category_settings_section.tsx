@@ -316,7 +316,7 @@ export function CategorySettingsSection() {
           </span>
         }
         trailing={
-          !can_add_custom || at_limit ? (
+          !can_add_custom ? undefined : at_limit ? (
             <UpgradeBtn size="sm" onClick={handle_add_category}>
               {t("settings.add_category")}
             </UpgradeBtn>

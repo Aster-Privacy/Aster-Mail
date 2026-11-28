@@ -2887,7 +2887,7 @@ export const hi = {
     duress_pin_confirm_setup: "आपात PIN सेट करें",
     vanguard_title: "Aster Vanguard",
     vanguard_description:
-      "पत्रकारों, कार्यकर्ताओं और ज़्यादा जोखिम वाले खातों के लिए उन्नत सुरक्षा। सिर्फ़ Nova+ पर।",
+      "पत्रकारों, कार्यकर्ताओं और ज़्यादा जोखिम वाले खातों के लिए उन्नत सुरक्षा।",
     vanguard_info:
       "Aster Vanguard पत्रकारों, कार्यकर्ताओं, वकीलों और ज़्यादा जोखिम वाले सभी लोगों के लिए अतिरिक्त सुरक्षा जोड़ता है। इसमें PIN ऐप लॉक और लॉकडाउन मोड शामिल हैं।",
     vanguard_active: "Vanguard चालू है",
@@ -3424,8 +3424,7 @@ export const hi = {
     delete_category_title: "श्रेणी हटाएं?",
     delete_category_description:
       "इससे “{{name}}” हमेशा के लिए हट जाती है। इसे पहले जैसा नहीं किया जा सकता।",
-    custom_categories_locked:
-      "आपके मौजूदा प्लान में अपनी श्रेणियां बनाने की सुविधा नहीं है।",
+    custom_categories_locked: "मेल को अपनी बनाई श्रेणियों में छांटें।",
     custom_categories_limit_reached:
       "आप अपने प्लान की बनाई हुई श्रेणियों की सीमा तक पहुंच गए हैं। और पाने के लिए प्लान बढ़ाएं।",
     edit_custom_category: "श्रेणी में बदलाव करें",
@@ -5188,7 +5187,7 @@ export const hi = {
     upgrade_for_more_short: "और पाने के लिए अपग्रेड करें",
     plans_coming_soon: "प्लान सदस्यताएं जल्द आ रही हैं।",
     free_plan_description:
-      "आप मुफ़्त प्लान पर हैं। ज़्यादा स्टोरेज, एलियास और सुविधाओं के लिए नीचे दिए भुगतान वाले प्लान देखें।",
+      "सशुल्क प्लान में ज़्यादा स्टोरेज, ज़्यादा उपनाम और कस्टम डोमेन मिलते हैं।",
     free_plan_banner_title: "आप Free प्लान पर हैं",
     plan_f_storage: "{{value}} एन्क्रिप्टेड स्टोरेज",
     plan_f_attachments: "{{value}} तक के अटैचमेंट",
@@ -8343,7 +8342,7 @@ export const hi = {
       "आने वाले ईमेल अपने आप किसी दूसरे पते पर फ़ॉरवर्ड करें",
     subscription_manager_locked:
       "न्यूज़लेटर की सदस्यताएं संभालें और एक साथ छोड़ें",
-    quiet_hours_locked: "ध्यान बनाए रखने के लिए तय घंटों में सूचनाएं शांत रखें",
+    quiet_hours_locked: "अपने चुने हुए घंटों में सूचनाएं म्यूट करें।",
     carddav_locked: "CardDAV के अनुकूल सेवाओं से संपर्क इंपोर्ट करें",
     contact_merge_locked: "डुप्लीकेट संपर्कों को मिलाएं",
     encrypted_export_locked:
@@ -8811,7 +8810,7 @@ export const hi = {
     alias_directory_color: "रंग",
     alias_directory_updated: "डायरेक्टरी अपडेट हो गई",
     alias_feature_locked_directories:
-      "एलियास डायरेक्टरी इस्तेमाल करने के लिए अपना प्लान बढ़ाएं।",
+      "डायरेक्टरी का हर पता पहली बार मेल मिलने पर उपनाम बन जाता है।",
     alias_feature_locked_rules:
       "एलियास नियम इस्तेमाल करने के लिए अपना प्लान बढ़ाएं।",
     alias_feature_locked_relay:

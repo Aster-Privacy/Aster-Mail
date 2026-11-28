@@ -2719,8 +2719,7 @@ export const ja = {
     delete_category_title: "カテゴリを削除しますか?",
     delete_category_description:
       "「{{name}}」を完全に削除します。この操作は元に戻せません。",
-    custom_categories_locked:
-      "カスタムカテゴリは現在のプランでは利用できません。",
+    custom_categories_locked: "作成したカテゴリにメールを振り分けます。",
     custom_categories_limit_reached:
       "プランのカスタムカテゴリの上限に達しました。アップグレードするとさらに追加できます。",
     edit_custom_category: "カテゴリを編集",
@@ -3312,8 +3311,7 @@ export const ja = {
       "anything.{{ key }}@{{ domain }} 宛に送信すると新しいエイリアスが作成されます。",
     alias_directory_color: "色",
     alias_directory_updated: "ディレクトリを更新しました",
-    alias_feature_locked_directories:
-      "エイリアスディレクトリを使用するにはプランをアップグレードしてください。",
+    alias_feature_locked_directories: "ディレクトリ内のアドレスは、最初にメールを受信した時点でエイリアスになります。",
     alias_feature_locked_rules:
       "エイリアスルールを使用するにはプランをアップグレードしてください。",
     alias_feature_locked_relay:
@@ -6815,8 +6813,7 @@ export const ja = {
     upgrade_for_more_short: "アップグレードで機能を拡張",
     plans_coming_soon:
       "プランのサブスクリプションは近日公開予定です。",
-    free_plan_description:
-      "現在は無料プランをご利用中です。以下の有料プランで、より多くのストレージ、エイリアス、機能をご利用いただけます。",
+    free_plan_description: "有料プランでは、ストレージとエイリアスが増え、カスタムドメインも使えます。",
     free_plan_banner_title: "無料プランをご利用中です",
     plan_f_storage: "{{value}}の暗号化ストレージ",
     plan_f_attachments: "最大{{value}}の添付ファイル",
@@ -7854,7 +7851,7 @@ export const ja = {
     auto_forward_locked: "受信メールを自動的に別のアドレスに転送します",
     subscription_manager_locked:
       "ニュースレターの購読を管理し、一括で購読解除できます",
-    quiet_hours_locked: "特定の時間帯の通知をミュートして集中できます",
+    quiet_hours_locked: "選んだ時間帯の通知をミュートします。",
     folder_lock_locked: "機密フォルダを追加のパスワードで保護します",
     key_rotation_locked:
       "暗号化キーの自動ローテーション間隔をカスタマイズできます",
@@ -8529,7 +8526,7 @@ export const ja = {
     app_lock_locked_out_for: "試行回数が多すぎます。{{s}}秒後にもう一度お試しください。",
     vanguard_title: "Aster Vanguard",
     vanguard_description:
-      "ジャーナリスト、活動家、リスクの高いアカウントのための高度な保護機能です。Nova+ 限定。",
+      "ジャーナリスト、活動家、リスクの高いアカウントのための高度な保護機能です。",
     vanguard_info:
       "Aster Vanguard は、ジャーナリスト、活動家、弁護士など、リスクの高い方のための追加の保護機能です。PINアプロックとロックダウンモードが含まれます。",
     vanguard_active: "Vanguard 有効",

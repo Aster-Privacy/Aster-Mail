@@ -53,7 +53,6 @@ import { BottomPagination } from "@/components/email/inbox/inbox_bottom_paginati
 import { CreateAliasModal } from "@/components/settings/aliases/alias_form";
 import { prompt_alias_limit_upgrade } from "@/components/settings/aliases/feature_lock";
 import { AliasUsageMeter } from "@/components/settings/aliases/alias_usage_meter";
-import { UpgradeInlineCard } from "@/components/upgrade/upgrade_inline_card";
 import { RecentlyDeletedAliasesSection } from "@/components/settings/aliases/recently_deleted_aliases_section";
 import { DomainSetupWizard } from "@/components/settings/aliases_section";
 import { DomainPurchaseModal } from "@/components/settings/aliases/domain_purchase_modal";
@@ -441,11 +440,6 @@ export function AliasesSection({
         </div>
 
         <div className="px-4">
-          <UpgradeInlineCard
-            className="mb-3"
-            limit_key="max_email_aliases"
-            resource_label="aliases"
-          />
           <motion.button
             className="flex w-full items-center justify-center gap-2 rounded-xl py-3 text-[15px] font-semibold text-white disabled:opacity-50"
             style={{

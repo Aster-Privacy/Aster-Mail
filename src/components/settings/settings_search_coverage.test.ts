@@ -58,6 +58,7 @@ const NOT_SETTINGS = new Set([
   "settings.reset",
   "settings.billing_see_all_features",
   "settings.crypto_renew_link",
+  "settings.free_plan_banner_title",
   "settings.fam_kids_reserve_btn",
   "settings.fam_org_groups_add_member",
   "settings.fam_org_groups_delete",

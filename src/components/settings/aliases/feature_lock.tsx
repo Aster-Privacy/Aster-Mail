@@ -19,9 +19,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { LockClosedIcon } from "@heroicons/react/24/solid";
-import { UpgradeBtn } from "@aster/ui";
 
 import { use_i18n } from "@/lib/i18n/context";
+import { PlanLockedPanel } from "@/components/common/plan_locked";
 import { show_plan_limit_upgrade } from "@/stores/upgrade_store";
 import { show_alias_cap_upsell } from "@/stores/alias_cap_upsell_store";
 import {
@@ -116,20 +116,7 @@ export function FeatureLockOverlay({
   message: string;
   feature?: string;
 }) {
-  const { t } = use_i18n();
-
-  return (
-    <div className="flex flex-col items-start gap-2.5 py-3">
-      <RequiredPlanPill feature={feature} />
-      <p className="text-[13px] leading-5 text-txt-secondary">{message}</p>
-      <UpgradeBtn
-        size="sm"
-        onClick={() => prompt_upgrade(message, undefined, feature)}
-      >
-        {t("settings.alias_feature_locked_upgrade_cta")}
-      </UpgradeBtn>
-    </div>
-  );
+  return <PlanLockedPanel description={message} feature={feature} />;
 }
 
 export function LockedFeature({
@@ -147,11 +134,7 @@ export function LockedFeature({
     return <>{children}</>;
   }
 
-  return (
-    <div className="flex min-h-[196px] items-center justify-center py-8">
-      <LockedFeatureCard feature={feature} message={message} />
-    </div>
-  );
+  return <PlanLockedPanel description={message} feature={feature} />;
 }
 
 export function LockedFeatureCard({
@@ -163,21 +146,11 @@ export function LockedFeatureCard({
   detail?: string;
   feature?: string;
 }) {
-  const { t } = use_i18n();
-
   return (
-    <div className="flex w-full max-w-sm flex-col items-center gap-3 text-center">
-      <LockClosedIcon className="h-7 w-7 text-txt-muted" />
-      <p className="text-sm leading-5 text-txt-primary">{message}</p>
-      {detail && <p className="text-[13px] text-txt-muted">{detail}</p>}
-      <RequiredPlanPill feature={feature} />
-      <UpgradeBtn
-        className="w-full"
-        size="sm"
-        onClick={() => prompt_upgrade(message, undefined, feature)}
-      >
-        {t("settings.alias_feature_locked_upgrade_cta")}
-      </UpgradeBtn>
-    </div>
+    <PlanLockedPanel
+      description={detail ?? message}
+      feature={feature}
+      title={detail ? message : undefined}
+    />
   );
 }

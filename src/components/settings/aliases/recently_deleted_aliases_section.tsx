@@ -27,13 +27,13 @@ import {
   ChevronDownIcon,
   TrashIcon,
 } from "@heroicons/react/24/outline";
-import { Button, Island, IslandRow, UpgradeBtn } from "@aster/ui";
+import { Button, Island, IslandRow } from "@aster/ui";
 
 import { ButtonSpinner, Spinner } from "@/components/ui/spinner";
 import { use_i18n } from "@/lib/i18n/context";
 import { show_toast } from "@/components/toast/simple_toast";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
-import { prompt_upgrade } from "@/components/settings/aliases/feature_lock";
+import { PlanUpgradeButton } from "@/components/common/plan_locked";
 import { ConfirmationModal } from "@/components/modals/confirmation_modal";
 import { ignore_error } from "@/lib/ignore_error";
 import {
@@ -326,18 +326,10 @@ export function RecentlyDeletedAliasesSection({
                 }
                 trailing={
                   restore_locked ? (
-                    <UpgradeBtn
-                      size="sm"
-                      onClick={() =>
-                        prompt_upgrade(
-                          t("settings.feature_requires_upgrade"),
-                          undefined,
-                          "has_advanced_aliases",
-                        )
-                      }
-                    >
-                      {t("settings.alias_feature_locked_upgrade_cta")}
-                    </UpgradeBtn>
+                    <PlanUpgradeButton
+                      feature="has_advanced_aliases"
+                      message={t("settings.feature_requires_upgrade")}
+                    />
                   ) : (
                     <div className="flex items-center gap-1.5 flex-shrink-0">
                       <Button

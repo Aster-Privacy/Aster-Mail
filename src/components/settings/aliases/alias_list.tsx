@@ -51,7 +51,6 @@ import { ButtonSpinner, Spinner } from "@/components/ui/spinner";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
 import { use_delayed_flag } from "@/hooks/use_delayed_flag";
-import { UpgradeInlineCard } from "@/components/upgrade/upgrade_inline_card";
 import {
   AliasItem,
   DomainAddressItem,
@@ -658,10 +657,6 @@ export function AliasList({
   if (aliases.length === 0 && domain_addresses.length === 0) {
     return (
       <div className="space-y-2">
-        <UpgradeInlineCard
-          limit_key="max_email_aliases"
-          resource_label="aliases"
-        />
         <IslandEmpty
           icon={<AtSymbolIcon className="w-6 h-6" />}
           title={t("settings.no_aliases_yet")}
@@ -679,12 +674,6 @@ export function AliasList({
 
   return (
     <>
-      <UpgradeInlineCard
-        className="mb-2"
-        limit_key="max_email_aliases"
-        resource_label="aliases"
-      />
-
       <div className="flex flex-wrap items-center gap-2 mb-2">
         <div className="relative min-w-0 flex-1 basis-48">
           <MagnifyingGlassIcon className="absolute start-3 top-1/2 -translate-y-1/2 w-4 h-4 text-txt-muted pointer-events-none" />

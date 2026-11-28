@@ -2837,7 +2837,7 @@ export const ar = {
     delete_category_title: "حذف الفئة؟",
     delete_category_description:
       "سيؤدي هذا إلى حذف “{{name}}” نهائيًا. لا يمكن التراجع عن ذلك.",
-    custom_categories_locked: "الفئات المخصصة غير متاحة في خطتك الحالية.",
+    custom_categories_locked: "رتّب بريدك في فئات تنشئها بنفسك.",
     custom_categories_limit_reached:
       "لقد وصلت إلى حد الفئات المخصصة لخطتك. قم بالترقية للمزيد.",
     edit_custom_category: "تعديل الفئة",
@@ -3423,7 +3423,7 @@ export const ar = {
     alias_directory_color: "اللون",
     alias_directory_updated: "تم تحديث الدليل",
     alias_feature_locked_directories:
-      "قم بترقية خطتك لاستخدام أدلة الأسماء المستعارة.",
+      "يصبح كل عنوان في الدليل اسمًا مستعارًا عند وصول أول رسالة إليه.",
     alias_feature_locked_rules:
       "قم بترقية خطتك لاستخدام قواعد الأسماء المستعارة.",
     alias_feature_locked_relay: "قم بترقية خطتك لاستخدام الترحيل الخارجي.",
@@ -6933,7 +6933,7 @@ export const ar = {
     upgrade_for_more_short: "قم بالترقية للمزيد",
     plans_coming_soon: "اشتراكات الخطط قادمة قريبًا.",
     free_plan_description:
-      "أنت على الخطة المجانية. استكشف الخطط المدفوعة أدناه للحصول على مزيد من التخزين والأسماء المستعارة والميزات.",
+      "تضيف الخطط المدفوعة مساحة تخزين أكبر وأسماء مستعارة أكثر ونطاقات مخصصة.",
     free_plan_banner_title: "أنت على الخطة المجانية",
     plan_f_storage: "{{value}} تخزين مشفر",
     plan_f_attachments: "مرفقات حتى {{value}}",
@@ -7973,7 +7973,7 @@ export const ar = {
     auto_forward_locked: "تحويل الرسائل الواردة تلقائيًا إلى عنوان آخر",
     subscription_manager_locked:
       "إدارة اشتراكات النشرات البريدية وإلغاء الاشتراك الجماعي",
-    quiet_hours_locked: "كتم الإشعارات خلال ساعات محددة للتركيز",
+    quiet_hours_locked: "اكتم الإشعارات خلال الساعات التي تختارها.",
     carddav_locked: "استيراد جهات الاتصال من خدمات متوافقة مع CardDAV",
     contact_merge_locked: "دمج جهات الاتصال المكررة",
     encrypted_export_locked: "تصدير بياناتك بتشفير من طرف إلى طرف",
@@ -8055,7 +8055,7 @@ export const ar = {
     app_lock_locked_out_for: "محاولات كثيرة جدًا. حاول مرة أخرى بعد {{s}} ثانية.",
     vanguard_title: "Aster Vanguard",
     vanguard_description:
-      "حماية متقدمة للصحفيين والناشطين والحسابات عالية الخطورة. متاحة لـ Nova+ فقط.",
+      "حماية متقدمة للصحفيين والناشطين والحسابات عالية الخطورة.",
     vanguard_info:
       "يضيف Aster Vanguard حماية إضافية للصحفيين والناشطين والمحامين وكل من يواجه مخاطر أعلى. ويتضمن قفل التطبيق بالرمز السري ووضع الإغلاق.",
     vanguard_active: "Vanguard نشط",
