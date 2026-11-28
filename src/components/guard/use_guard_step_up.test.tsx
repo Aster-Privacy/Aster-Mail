@@ -185,7 +185,7 @@ describe("use_guard_step_up run", () => {
     await confirm();
 
     expect(settled).toBe(failure);
-    expect(field("step-up-password")).toBeNull();
+    await vi.waitFor(() => expect(field("step-up-password")).toBeNull());
   });
 
   it("resolves null when the dialog is dismissed", async () => {

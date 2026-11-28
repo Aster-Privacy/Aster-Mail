@@ -82,6 +82,9 @@ vi.mock("@/services/crypto/ratchet_plaintext_cache", () => ({
   get_cached_ratchet_plaintext: vi.fn(async () => null),
   get_cached_ratchet_sender_key: vi.fn(async () => null),
   set_cached_ratchet_plaintext: vi.fn(async () => {}),
+  read_cached_opening: vi.fn(async () => null),
+  mark_cached_downgraded: vi.fn(async () => {}),
+  is_cached_plaintext_foreign: vi.fn(async () => false),
 }));
 
 vi.mock("@/utils/unsubscribe_detector", () => ({
