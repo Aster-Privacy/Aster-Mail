@@ -32,15 +32,16 @@ const stable = vi.hoisted(() => ({
   },
 }));
 
-const prompt_upgrade = vi.fn();
+const show_plan_limit_upgrade = vi.fn();
 const modal_props = vi.fn();
 
 vi.mock("@/lib/i18n/context", () => ({
   use_i18n: () => stable.i18n,
 }));
 
-vi.mock("@/components/settings/aliases/feature_lock", () => ({
-  prompt_upgrade: (...args: unknown[]) => prompt_upgrade(...args),
+vi.mock("@/stores/upgrade_store", () => ({
+  show_plan_limit_upgrade: (...args: unknown[]) =>
+    show_plan_limit_upgrade(...args),
 }));
 
 vi.mock("./mta_sts_modal", () => ({
@@ -90,7 +91,7 @@ beforeEach(() => {
   container = document.createElement("div");
   document.body.appendChild(container);
   root = createRoot(container);
-  prompt_upgrade.mockReset();
+  show_plan_limit_upgrade.mockReset();
   modal_props.mockReset();
 });
 
@@ -118,11 +119,11 @@ describe("MtaStsRow", () => {
     expect(container.textContent).toContain("settings.mta_sts_state_locked");
     expect(container.textContent).toContain("settings.mta_sts_row_locked");
     act(() => button().click());
-    expect(prompt_upgrade).toHaveBeenCalledWith(
-      "settings.mta_sts_locked_description",
-      undefined,
-      "has_mta_sts_hosting",
-    );
+    expect(show_plan_limit_upgrade).toHaveBeenCalledWith({
+      message: "settings.mta_sts_locked_description",
+      resource: null,
+      feature: "has_mta_sts_hosting",
+    });
     expect(modal_props).not.toHaveBeenCalled();
   });
 
