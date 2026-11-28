@@ -155,7 +155,7 @@ describe("load_viewer_image_blob", () => {
     expect(fetch_mock).toHaveBeenCalledWith(
       PROXIED,
       expect.objectContaining({
-        credentials: "same-origin",
+        credentials: "include",
         referrerPolicy: "no-referrer",
       }),
     );
@@ -173,6 +173,36 @@ describe("load_viewer_image_blob", () => {
       load_viewer_image_blob("javascript:alert(1)"),
     ).rejects.toBeInstanceOf(UnsafeImageSourceError);
     expect(fetch_mock).not.toHaveBeenCalled();
+  });
+
+  it("sends the session only to the image proxy", async () => {
+    const fetch_mock = vi.fn(async () => image_response("image/png"));
+    const proxy = "https://proxy.test/api/images/v1/proxy";
+
+    vi.stubGlobal("fetch", fetch_mock);
+
+    const remote_sources = [
+      "https://tracker.example.com/pixel.png",
+      "https://proxy.test.example.com/api/images/v1/proxy?url=x",
+      "https://proxy.test/other/path.png",
+      "http://proxy.test/api/images/v1/proxy?url=x",
+    ];
+
+    for (const source of remote_sources) {
+      await expect(
+        load_viewer_image_blob(source, proxy),
+      ).rejects.toBeInstanceOf(UnsafeImageSourceError);
+    }
+
+    expect(fetch_mock).not.toHaveBeenCalled();
+
+    await load_viewer_image_blob(BLOB_SRC);
+
+    expect(fetch_mock).toHaveBeenCalledTimes(1);
+    expect(fetch_mock).toHaveBeenCalledWith(
+      BLOB_SRC,
+      expect.objectContaining({ credentials: "omit" }),
+    );
   });
 
   it("rejects a response that is not an image", async () => {
@@ -469,6 +499,30 @@ describe("copy_viewer_image on desktop", () => {
     expect(tauri.invoke).toHaveBeenCalledWith(
       "plugin:clipboard-manager|write_image",
       { image: [137, 80, 78, 71, 13, 10, 26, 10] },
+    );
+    expect(clipboard.write).not.toHaveBeenCalled();
+  });
+
+  it("sends the session to a proxy on another origin", async () => {
+    stub_canvas();
+    const clipboard = stub_clipboard();
+    const proxy = "https://app.astermail.org/api/images/v1/proxy";
+    const src = `${proxy}?url=${encodeURIComponent("https://cdn.example.com/shot.jpg")}`;
+    const fetch_mock = vi.fn(async (_url: string, init?: RequestInit) =>
+      init?.credentials === "include"
+        ? image_response("image/jpeg")
+        : new Response("", { status: 401 }),
+    );
+
+    (window as unknown as Record<string, unknown>).__TAURI_INTERNALS__ = {};
+    vi.stubGlobal("fetch", fetch_mock);
+
+    await copy_viewer_image(src, proxy);
+
+    expect(fetch_mock).toHaveBeenCalledWith(src, expect.anything());
+    expect(tauri.invoke).toHaveBeenCalledWith(
+      "plugin:clipboard-manager|write_image",
+      { image: Array.from(CANVAS_PNG) },
     );
     expect(clipboard.write).not.toHaveBeenCalled();
   });
