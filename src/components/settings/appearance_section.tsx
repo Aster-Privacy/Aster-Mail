@@ -203,9 +203,6 @@ export function AppearanceSection() {
   };
 
   const is_default_color = effective_theme_fields.color_theme === "default";
-  const mockup_theme: "light" | "dark" | "themed" = is_default_color
-    ? theme
-    : "themed";
 
   const handle_custom_color_change = (hex: string, immediate: boolean) => {
     if (!is_valid_hex_color(hex)) return;
@@ -331,36 +328,26 @@ export function AppearanceSection() {
         icon={<PaintBrushIcon />}
         title={t("settings.theme")}
       >
-        <div
-          className={
-            show_more_themes
-              ? "flex gap-4 flex-wrap"
-              : "grid grid-cols-2 sm:grid-cols-4 gap-4"
-          }
-        >
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4">
           <ThemeCard
-            full_width={!show_more_themes}
             is_selected={theme_preference === "system" && is_default_color}
             label={t("settings.theme_system")}
             mode="system"
             on_select={() => handle_theme_select("system")}
           />
           <ThemeCard
-            full_width={!show_more_themes}
             is_selected={theme_preference === "light" && is_default_color}
             label={t("settings.theme_light")}
             mode="light"
             on_select={() => handle_theme_select("light")}
           />
           <ThemeCard
-            full_width={!show_more_themes}
             is_selected={theme_preference === "dark" && is_default_color}
             label={t("settings.theme_dark")}
             mode="dark"
             on_select={() => handle_theme_select("dark")}
           />
           <ThemeCard
-            full_width={!show_more_themes}
             is_selected={effective_theme_fields.color_theme === "aster-blue"}
             label={t("settings.color_theme_aster_blue")}
             mode="aster-blue"
@@ -759,7 +746,7 @@ export function AppearanceSection() {
         icon={<ViewColumnsIcon />}
         title={t("settings.email_view_mode")}
       >
-        <div className="flex gap-4">
+        <div className="grid grid-cols-3 gap-2 sm:gap-4">
           <ViewModeCard
             is_selected={opens_in_popup}
             label={t("settings.popup")}
@@ -767,7 +754,6 @@ export function AppearanceSection() {
             on_select={() =>
               update_preference("email_view_mode", "popup", true)
             }
-            theme={mockup_theme}
           />
           <ViewModeCard
             is_selected={
@@ -776,7 +762,6 @@ export function AppearanceSection() {
             label={t("settings.split_view")}
             mode="split"
             on_select={select_split_view}
-            theme={mockup_theme}
           />
           <ViewModeCard
             is_selected={preferences.email_view_mode === "fullpage"}
@@ -785,7 +770,6 @@ export function AppearanceSection() {
             on_select={() =>
               update_preference("email_view_mode", "fullpage", true)
             }
-            theme={mockup_theme}
           />
         </div>
 
@@ -838,7 +822,7 @@ export function AppearanceSection() {
         icon={<PencilSquareIcon />}
         title={t("settings.compose_window_mode")}
       >
-        <div className="flex gap-4">
+        <div className="grid grid-cols-3 gap-2 sm:gap-4">
           <ComposeModeCard
             is_selected={
               (preferences.compose_window_mode ?? "default") === "default"
@@ -848,7 +832,6 @@ export function AppearanceSection() {
             on_select={() =>
               update_preference("compose_window_mode", "default", true)
             }
-            theme={mockup_theme}
           />
           <ComposeModeCard
             is_selected={
@@ -859,7 +842,6 @@ export function AppearanceSection() {
             on_select={() =>
               update_preference("compose_window_mode", "fullscreen", true)
             }
-            theme={mockup_theme}
           />
           <ComposeModeCard
             is_selected={
@@ -870,7 +852,6 @@ export function AppearanceSection() {
             on_select={() =>
               update_preference("compose_window_mode", "minimized", true)
             }
-            theme={mockup_theme}
           />
         </div>
       </IslandSection>
