@@ -252,7 +252,8 @@ export function UpgradeModal() {
   );
   const [is_starting, set_is_starting] = useState(false);
   const pending_desktop_checkout_ref = useRef(false);
-  const seeded_open_seq_ref = useRef(0);
+  const [seeded_open_seq, set_seeded_open_seq] = useState(0);
+  const [is_resume_review, set_is_resume_review] = useState(false);
 
   use_currency_rates();
 
@@ -379,11 +380,10 @@ export function UpgradeModal() {
   useEffect(() => {
     if (!state.is_open || is_blocked) return;
 
+    if (seeded_open_seq === state.open_seq) return;
+
     refresh(true);
-
-    if (seeded_open_seq_ref.current === state.open_seq) return;
-    seeded_open_seq_ref.current = state.open_seq;
-
+    set_seeded_open_seq(state.open_seq);
     set_is_starting(false);
     set_compare_open(false);
     set_selected_tier_id(null);
@@ -394,19 +394,28 @@ export function UpgradeModal() {
       set_audience(resume_target.audience);
       set_term_id(term_id_for_interval(state.preselect_interval));
       set_pending_tier(resume_target.tier);
+      set_is_resume_review(true);
 
       return;
     }
 
     set_pending_tier(null);
+    set_is_resume_review(false);
   }, [
     state.is_open,
     state.open_seq,
     state.preselect_interval,
+    seeded_open_seq,
     resume_target,
     is_blocked,
     refresh,
   ]);
+
+  const close_resume_review = () => {
+    set_pending_tier(null);
+    set_is_resume_review(false);
+    close_upgrade_modal();
+  };
 
   const handle_currency_change = (event: ChangeEvent<HTMLSelectElement>) => {
     const next = event.target.value;
@@ -694,6 +703,7 @@ export function UpgradeModal() {
         is_open={
           state.is_open &&
           !is_blocked &&
+          seeded_open_seq === state.open_seq &&
           !pending_tier &&
           !crypto_tier &&
           !plan_change_target
@@ -1186,6 +1196,11 @@ export function UpgradeModal() {
           on_choose_crypto={handle_choose_crypto}
           on_close={() => {
             if (is_starting) return;
+            if (is_resume_review) {
+              close_resume_review();
+
+              return;
+            }
             set_pending_tier(null);
           }}
           on_select_plan={(id) => {
@@ -1278,7 +1293,10 @@ export function UpgradeModal() {
             set_crypto_tier(null);
             set_pending_tier(tier);
           }}
-          on_finished={() => set_crypto_tier(null)}
+          on_finished={() => {
+            set_crypto_tier(null);
+            if (is_resume_review) close_resume_review();
+          }}
           on_native_invoice={(invoice_id) => {
             close_upgrade_modal();
             navigate(`/crypto-invoice/${invoice_id}`);
