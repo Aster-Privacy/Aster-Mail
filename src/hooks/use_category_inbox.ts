@@ -115,6 +115,7 @@ import { batch_archive as api_batch_archive } from "@/services/api/archive";
 import { bulk_update_metadata_by_ids } from "@/services/crypto/mail_metadata";
 import { emit_mail_soft_refresh } from "@/hooks/email_action_types";
 import { ignore_error } from "@/lib/ignore_error";
+import { within_deadline } from "@/lib/deadline";
 import {
   assemble_cached_page,
   assemble_known_rows,
@@ -149,6 +150,7 @@ const LOADING_BACKSTOP_MS = 6_000;
 const GATE_RECHECK_MS = 15_000;
 const MAX_FETCH_RETRIES = 4;
 const FETCH_RETRY_DELAY_MS = 1500;
+const LIST_LOAD_DEADLINE_MS = 45_000;
 const MAX_PENDING_ROW_RETRIES = 5;
 const PENDING_ROW_RETRY_BASE_MS = 2_000;
 
@@ -932,10 +934,9 @@ export function use_category_inbox(
           missing_ids,
           unrenderable_ids,
           request_ok,
-        } = await fetch_mail_by_ids_reconciled(
-          ids,
-          format_options,
-          user?.email || "",
+        } = await within_deadline(
+          fetch_mail_by_ids_reconciled(ids, format_options, user?.email || ""),
+          LIST_LOAD_DEADLINE_MS,
         );
 
         fetch_settled = true;
