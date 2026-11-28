@@ -95,6 +95,7 @@ export interface SettingsKeywordsTranslations {
   settings_search_account_recovery: string;
   feature_recovery_codes: string;
   settings_search_active_sessions: string;
+  link_device: string;
   account_security_review_cta: string;
   export_public_key_label: string;
   export_private_key_label: string;
