@@ -428,6 +428,7 @@ export const InboxEmailListItem = memo(
         <div
           ref={ref}
           draggable
+          data-ripple
           className={cn(
             "mail_row group relative cursor-pointer",
             MAIL_ROW_LAYOUT.row,
