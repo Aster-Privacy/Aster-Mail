@@ -187,7 +187,7 @@ describe("ExternalLinkWarningModal", () => {
       expect(text.slice(0, -1)).not.toMatch(/[/?&=]/);
     }
     expect(paragraph.getAttribute("dir")).toBe("ltr");
-    expect(paragraph.parentElement?.className).toContain("text-[14px]");
+    expect(paragraph.parentElement?.className).toContain("text-[13px]");
     expect(paragraph.parentElement?.className).toContain("text-start");
   });
 
@@ -343,16 +343,20 @@ describe("ExternalLinkWarningModal", () => {
     render({ url: LONG_URL });
 
     const copy = q<HTMLButtonElement>("[data-copied]")!;
+    const icon_before = copy.innerHTML;
 
     await act(async () => {
       copy.click();
     });
 
+    expect(copy.innerHTML).toBe(icon_before);
+    expect(h.show_toast).toHaveBeenCalledWith("common.link_copied", "success");
+
     const status = q('[data-testid="link_copy_status"]')!;
 
     expect(h.copy_text).toHaveBeenCalledWith(LONG_URL);
     expect(copy.getAttribute("data-copied")).toBe("true");
-    expect(copy.textContent).toBe("common.copied");
+    expect(copy.getAttribute("aria-label")).toBe("common.copied");
     expect(status.getAttribute("aria-live")).toBe("polite");
     expect(status.getAttribute("role")).toBe("status");
     expect(status.textContent).toBe("common.link_copied");
@@ -372,24 +376,97 @@ describe("ExternalLinkWarningModal", () => {
     });
 
     expect(h.copy_text).toHaveBeenCalledWith("ada@example.com");
+    expect(h.show_toast).toHaveBeenCalledWith(
+      "common.address_copied_to_clipboard",
+      "success",
+    );
     expect(q('[data-testid="link_copy_status"]')?.textContent).toBe(
       "common.address_copied_to_clipboard",
     );
   });
 
-  it("gives every text control and the checkbox label a 24 px target", () => {
+  it("gives every control a target of at least 24 px", () => {
     render({ url: LONG_URL });
 
-    const controls = [
-      q("[data-copied]"),
-      q("[aria-expanded]"),
-      q('label[for="external-link-dont-show-checkbox"]'),
-    ];
+    expect(q("[aria-expanded]")?.className).toContain("min-h-6");
+    expect(q("[aria-expanded]")?.className).toContain("focus-visible:outline");
+    expect(q("[data-copied]")?.className).toContain("aster_island_icon_btn");
+    expect(
+      q('label[for="external-link-dont-show-checkbox"]')?.className,
+    ).toContain("min-h-11");
+  });
 
-    for (const control of controls) {
-      expect(control?.className).toContain("min-h-6");
+  it("names the copy button for what it copies", () => {
+    render();
+    expect(q("[data-copied]")?.getAttribute("aria-label")).toBe(
+      "common.link_dialog_copy",
+    );
+    act(() => root?.unmount());
+    container?.remove();
+
+    render({ url: "mailto:ada@example.com" });
+    expect(q("[data-copied]")?.getAttribute("aria-label")).toBe(
+      "common.copy_address",
+    );
+  });
+
+  it("groups the site, the address and the copy button in one card", () => {
+    render({ url: LONG_URL });
+
+    const card = q('[data-testid="link_destination_card"]')!;
+
+    expect(card.className).toContain("aster_island");
+    expect(card.querySelector('[data-testid="link_destination_site"]')).not.toBeNull();
+    expect(card.querySelector('[data-testid="link_destination_url"]')).not.toBeNull();
+    expect(card.querySelector("[data-copied]")).not.toBeNull();
+    expect(card.querySelector("[aria-expanded]")).not.toBeNull();
+  });
+
+  it("starts the address and the toggle on the same edge as the site name", () => {
+    render({ url: LONG_URL });
+
+    const icon = q('[data-testid="link_destination_icon"]')!;
+    const grid = icon.parentElement!;
+
+    expect(grid.className).toContain("grid-cols-[20px_minmax(0,1fr)]");
+    expect(icon.className).toContain("h-5 w-5");
+    expect(q('[data-testid="link_destination_url"]')?.className).toContain(
+      "col-start-2",
+    );
+    expect(q("[aria-expanded]")?.className).toContain("col-start-2");
+  });
+
+  it("shows a fallback glyph at the icon size when no site icon is available", () => {
+    render({ url: "https://www.forbes.com/sites/story" });
+
+    const glyph = q('[data-testid="link_destination_glyph"]');
+
+    expect(glyph).not.toBeNull();
+    expect(glyph?.getAttribute("class")).toContain("h-4 w-4");
+    expect(q('[data-testid="link_destination_favicon"]')).toBeNull();
+  });
+
+  it("keeps the glyph slot for mail and blocked links", () => {
+    for (const url of ["mailto:ada@example.com", "javascript:alert(1)"]) {
+      render({ url });
+      expect(
+        q('[data-testid="link_destination_icon"] [data-testid="link_destination_glyph"]'),
+      ).not.toBeNull();
+      act(() => root?.unmount());
+      container?.remove();
     }
-    expect(q("[data-copied]")?.className).toContain("focus-visible:outline");
+  });
+
+  it("draws the Don't show again option as a full-width row", () => {
+    render();
+
+    const row = q('[data-testid="link_dont_show_row"]')!;
+
+    expect(row.tagName).toBe("LABEL");
+    expect(row.className).toContain("aster_island_row");
+    expect(row.className).toContain("aster_island_row_pressable");
+    expect(row.className).toContain("w-[calc(100%+1.5rem)]");
+    expect(row.className).not.toContain("w-fit");
   });
 
   it("reports a failed copy", async () => {

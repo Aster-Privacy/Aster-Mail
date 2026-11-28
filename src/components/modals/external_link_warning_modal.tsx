@@ -21,8 +21,14 @@
 import type { TranslationKey } from "@/lib/i18n";
 
 import { Fragment, useEffect, useId, useMemo, useRef, useState } from "react";
-import { ExclamationTriangleIcon } from "@heroicons/react/24/outline";
-import { Checkbox } from "@aster/ui";
+import {
+  DocumentDuplicateIcon,
+  EnvelopeIcon,
+  ExclamationTriangleIcon,
+  GlobeAltIcon,
+  NoSymbolIcon,
+} from "@heroicons/react/24/outline";
+import { Checkbox, Island, IslandIconButton, Tooltip } from "@aster/ui";
 
 import { Button } from "@/components/ui/button";
 import { use_i18n } from "@/lib/i18n/context";
@@ -38,6 +44,7 @@ import { show_toast } from "@/components/toast/simple_toast";
 import {
   AlertDialog,
   AlertDialogContent,
+  AlertDialogDescription,
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
@@ -66,8 +73,11 @@ const SIGNAL_KEYS: Record<LinkSignal, TranslationKey> = {
   not_encrypted: "common.link_dialog_warning_http",
 };
 
-const TEXT_ACTION_CLASS =
-  "inline-flex min-h-6 items-center rounded-[4px] text-[14px] font-medium leading-5 text-txt-primary underline decoration-[var(--text-muted)] underline-offset-[3px] hover:decoration-current focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent-color)]";
+const TOGGLE_CLASS =
+  "-ms-1.5 inline-flex min-h-6 items-center justify-self-start rounded-[var(--aster-radius-item)] px-1.5 text-[13px] font-medium leading-5 text-txt-secondary transition-colors hover:bg-[var(--aster-hover)] hover:text-txt-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[var(--accent-color)]";
+
+const OPTION_ROW_CLASS =
+  "aster_island_row aster_island_row_pressable -mx-3 mt-2.5 w-[calc(100%+1.5rem)] min-h-11 select-none gap-3 rounded-[var(--aster-radius-item)] px-3 py-2.5 [--aster-island-hover:var(--aster-hover)] [--aster-island-press:var(--aster-selected)]";
 
 const WARNING_TEXT_CLASS = "text-amber-700 dark:text-[var(--color-warning)]";
 
@@ -95,6 +105,17 @@ function UrlText({ destination }: { destination: LinkDestination }) {
       ))}
     </>
   );
+}
+
+function LeadingIcon({ kind }: { kind: LinkDestination["kind"] }) {
+  const Icon =
+    kind === "mailto"
+      ? EnvelopeIcon
+      : kind === "blocked"
+        ? NoSymbolIcon
+        : GlobeAltIcon;
+
+  return <Icon className="h-4 w-4" data-testid="link_destination_glyph" />;
 }
 
 const TOKEN_PATTERN = /\u0000(\d+)\u0000/;
@@ -242,6 +263,12 @@ export function ExternalLinkWarningModal({
 
       return;
     }
+    show_toast(
+      is_mail
+        ? t("common.address_copied_to_clipboard")
+        : t("common.link_copied"),
+      "success",
+    );
     set_copied(true);
     if (copied_timer_ref.current) clearTimeout(copied_timer_ref.current);
     copied_timer_ref.current = setTimeout(
@@ -269,6 +296,9 @@ export function ExternalLinkWarningModal({
     : is_blocked
       ? destination.scheme.replace(/:$/, "")
       : destination.site_display;
+  const copy_label = is_mail
+    ? t("common.copy_address")
+    : t("common.link_dialog_copy");
   const described_by = [
     description_id,
     is_mail ? address_id : url_region_id,
@@ -306,109 +336,118 @@ export function ExternalLinkWarningModal({
               <AlertDialogTitle className="text-[16px] font-semibold">
                 {title}
               </AlertDialogTitle>
-              <p
+              <AlertDialogDescription
                 className="text-[14px] leading-5"
                 id={description_id}
-                style={{ color: "var(--text-tertiary)" }}
               >
                 {body}
-              </p>
+              </AlertDialogDescription>
             </AlertDialogHeader>
 
-            <div className="mt-5">
-              <div className="flex items-start gap-2.5">
-                {show_favicon && (
-                  <img
-                    alt=""
-                    aria-hidden="true"
-                    className="mt-0.5 h-4 w-4 shrink-0 rounded-[3px]"
-                    data-testid="link_destination_favicon"
-                    decoding="async"
-                    draggable={false}
-                    referrerPolicy="no-referrer"
-                    src={favicon_src}
-                    onError={() => set_favicon_failed(true)}
-                  />
-                )}
+            <Island
+              className={`mt-5 flex items-start gap-2 bg-[color-mix(in_srgb,var(--text-primary)_5%,transparent)] py-3.5 ps-4 ${is_blocked ? "pe-4" : "pe-2"}`}
+              data-testid="link_destination_card"
+            >
+              <div className="grid min-w-0 flex-1 grid-cols-[20px_minmax(0,1fr)] gap-x-3 gap-y-1">
+                <span
+                  aria-hidden="true"
+                  className="flex h-5 w-5 items-center justify-center text-txt-muted"
+                  data-testid="link_destination_icon"
+                >
+                  {show_favicon ? (
+                    <img
+                      alt=""
+                      className="h-4 w-4 rounded-[3px]"
+                      data-testid="link_destination_favicon"
+                      decoding="async"
+                      draggable={false}
+                      referrerPolicy="no-referrer"
+                      src={favicon_src}
+                      onError={() => set_favicon_failed(true)}
+                    />
+                  ) : (
+                    <LeadingIcon kind={destination.kind} />
+                  )}
+                </span>
                 <p
-                  className="min-w-0 flex-1 text-start text-[16px] font-semibold leading-5 text-txt-primary [overflow-wrap:anywhere]"
+                  className="min-w-0 text-start text-[16px] font-semibold leading-5 text-txt-primary [overflow-wrap:anywhere]"
                   data-testid="link_destination_site"
                   id={address_id}
                   translate="no"
                 >
                   <span dir="ltr">{hero}</span>
                 </p>
+
+                {!is_mail && (
+                  <div
+                    className="col-start-2 min-w-0"
+                    data-expanded={expanded ? "true" : "false"}
+                    data-testid="link_destination_url"
+                  >
+                    <p
+                      className={`select-text text-start text-[13px] leading-5 text-txt-muted ${expanded ? "" : "line-clamp-2"}`}
+                      id={url_region_id}
+                      translate="no"
+                    >
+                      <span className="sr-only">
+                        {`${t("common.link_dialog_full_address")}: `}
+                      </span>
+                      <span data-testid="link_destination_address" dir="ltr">
+                        <UrlText destination={destination} />
+                      </span>
+                    </p>
+                  </div>
+                )}
+
+                {show_toggle && (
+                  <button
+                    aria-controls={url_region_id}
+                    aria-expanded={expanded}
+                    className={`col-start-2 mt-1 ${TOGGLE_CLASS}`}
+                    type="button"
+                    onClick={() => set_expanded((value) => !value)}
+                  >
+                    {expanded
+                      ? t("common.show_less")
+                      : t("common.link_dialog_show_full")}
+                  </button>
+                )}
               </div>
 
-              {!is_mail && (
-                <div
-                  className="mt-1"
-                  data-expanded={expanded ? "true" : "false"}
-                  data-testid="link_destination_url"
-                >
-                  <p
-                    className={`select-text text-start text-[14px] leading-[22px] text-txt-muted ${expanded ? "" : "line-clamp-2"}`}
-                    id={url_region_id}
-                    translate="no"
-                  >
-                    <span className="sr-only">
-                      {`${t("common.link_dialog_full_address")}: `}
-                    </span>
-                    <span data-testid="link_destination_address" dir="ltr">
-                      <UrlText destination={destination} />
-                    </span>
-                  </p>
-                </div>
-              )}
-
               {!is_blocked && (
-                <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-1">
-                  <button
-                    className={TEXT_ACTION_CLASS}
+                <Tooltip tip={copied ? t("common.copied") : copy_label}>
+                  <IslandIconButton
+                    className="-my-2"
                     data-copied={copied ? "true" : "false"}
-                    type="button"
+                    label={copied ? t("common.copied") : copy_label}
                     onClick={handle_copy}
                   >
-                    {copied
-                      ? t("common.copied")
-                      : is_mail
-                        ? t("common.copy_address")
-                        : t("common.link_dialog_copy")}
-                  </button>
-                  {show_toggle && (
-                    <button
-                      aria-controls={url_region_id}
-                      aria-expanded={expanded}
-                      className={TEXT_ACTION_CLASS}
-                      type="button"
-                      onClick={() => set_expanded((value) => !value)}
-                    >
-                      {expanded
-                        ? t("common.show_less")
-                        : t("common.link_dialog_show_full")}
-                    </button>
-                  )}
-                </div>
+                    <DocumentDuplicateIcon
+                      aria-hidden="true"
+                      className="h-[18px] w-[18px]"
+                    />
+                  </IslandIconButton>
+                </Tooltip>
               )}
-              <p
-                aria-atomic="true"
-                aria-live="polite"
-                className="sr-only"
-                data-testid="link_copy_status"
-                role="status"
-              >
-                {copied
-                  ? is_mail
-                    ? t("common.address_copied_to_clipboard")
-                    : t("common.link_copied")
-                  : ""}
-              </p>
-            </div>
+            </Island>
+            <p
+              aria-atomic="true"
+              aria-live="polite"
+              className="sr-only"
+              data-testid="link_copy_status"
+              role="status"
+            >
+              {copied
+                ? is_mail
+                  ? t("common.address_copied_to_clipboard")
+                  : t("common.link_copied")
+                : ""}
+            </p>
 
             {has_signal && (
               <ul
                 aria-label={t("common.link_dialog_warnings_label")}
-                className="mt-5 flex flex-col gap-2"
+                className="mt-4 flex flex-col gap-2"
                 data-testid="link_warnings"
                 id={warnings_id}
               >
@@ -443,7 +482,8 @@ export function ExternalLinkWarningModal({
 
             {can_open && (
               <label
-                className="mt-5 flex min-h-6 w-fit cursor-pointer select-none items-center gap-2"
+                className={OPTION_ROW_CLASS}
+                data-testid="link_dont_show_row"
                 htmlFor="external-link-dont-show-checkbox"
               >
                 <Checkbox
@@ -453,7 +493,7 @@ export function ExternalLinkWarningModal({
                     set_dont_show_again(checked === true)
                   }
                 />
-                <span className="text-[14px] leading-5 text-txt-muted">
+                <span className="min-w-0 text-[14px] leading-5 text-txt-secondary">
                   {t("common.dont_show_warning_again")}
                 </span>
               </label>
