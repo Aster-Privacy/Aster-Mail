@@ -512,21 +512,6 @@ export function BehaviorSection({
             }
           />
           <SettingsRow
-            label={t("settings.show_message_size")}
-            trailing={
-              <Switch
-                checked={preferences.show_message_size === true}
-                onCheckedChange={() =>
-                  update_preference(
-                    "show_message_size",
-                    !preferences.show_message_size,
-                    true,
-                  )
-                }
-              />
-            }
-          />
-          <SettingsRow
             label={t("settings.quick_preview_text")}
             trailing={
               <Switch
