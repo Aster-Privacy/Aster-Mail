@@ -112,10 +112,12 @@ export function ContactGroupsPane({
       {visible_groups.map((group) => (
         <div
           key={group.id}
-          className="quick_contacts_row aster_island_row aster_island_row_pressable group gap-2.5 pe-1.5 ps-3"
+          data-ripple-row
+          className="quick_contacts_row aster_island_row aster_island_row_pressable group relative gap-2.5 pe-1.5 ps-3"
         >
           <button
-            className="flex min-w-0 flex-1 items-center gap-2.5 text-start"
+            data-row-primary
+            className="aster_row_stretch flex min-w-0 flex-1 items-center gap-2.5 text-start"
             type="button"
             onClick={() => on_open(group)}
           >
@@ -131,7 +133,7 @@ export function ContactGroupsPane({
               </span>
             </span>
           </button>
-          <span className="flex flex-shrink-0 items-center opacity-0 transition-opacity focus-within:opacity-100 group-hover:opacity-100">
+          <span className="relative z-[1] flex flex-shrink-0 items-center opacity-0 transition-opacity focus-within:opacity-100 group-hover:opacity-100">
             <Tooltip position="top" tip={t("common.edit")}>
               <button
                 aria-label={t("common.edit")}

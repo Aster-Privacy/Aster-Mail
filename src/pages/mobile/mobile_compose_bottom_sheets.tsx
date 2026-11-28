@@ -142,43 +142,59 @@ export function MobileSenderSheet({
             {t("common.no_results")}
           </p>
         )}
-        <div className="space-y-1">
+        <div className="space-y-0.5">
           {filtered_sender_options.map((sender) => (
             <div
               key={sender.id}
-              className="flex w-full items-center gap-1 rounded-[14px] active:bg-[var(--bg-tertiary)]"
+              className="aster_menu_row w-full [--aster-radius-item:14px]"
+              data-disabled={sender.sending_disabled || undefined}
+              data-ripple-row
+              data-selected={current_sender?.id === sender.id || undefined}
             >
               <button
+                data-row-primary
                 aria-disabled={sender.sending_disabled || undefined}
-                className={`flex min-w-0 flex-1 items-center gap-3 px-3 py-2.5 text-start ${sender.sending_disabled ? "opacity-60" : ""}`}
+                className="aster_menu_row_main gap-3 ps-3 pe-2 py-2.5"
                 type="button"
                 onClick={() => handle_select(sender)}
               >
-                <MobileSenderIcon option={sender} size="sm" />
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-2">
-                    <span className="truncate text-[14px] font-medium text-[var(--text-primary)]">
+                <span
+                  className={
+                    sender.sending_disabled ? "flex opacity-60" : "flex"
+                  }
+                >
+                  <MobileSenderIcon option={sender} size="sm" />
+                </span>
+                <span className="flex min-w-0 flex-1 flex-col">
+                  <span className="flex min-w-0 items-center gap-2">
+                    <span
+                      className={`min-w-0 truncate text-[14px] font-medium ${sender.sending_disabled ? "text-[var(--text-secondary)]" : "text-[var(--text-primary)]"}`}
+                    >
                       {sender.display_name || sender.email}
                     </span>
                     {sender.type !== "primary" && (
                       <span
-                        className={`rounded-full px-1.5 py-0.5 text-[10px] font-medium ${sender_type_color(sender.type)}`}
+                        className={`shrink-0 rounded-full px-1.5 py-0.5 text-[10px] font-medium ${sender_type_color(sender.type)}`}
                       >
                         {sender_type_label(sender.type, t)}
                       </span>
                     )}
-                    {sender.sending_disabled && (
-                      <span className="rounded-full px-1.5 py-0.5 text-[10px] font-medium text-[var(--color-danger)]">
-                        {t("mail.sending_disabled_badge")}
-                      </span>
-                    )}
-                  </div>
-                  {sender.display_name && (
-                    <p className="truncate text-[12px] text-[var(--text-muted)]">
-                      {sender.email}
-                    </p>
+                  </span>
+                  {(sender.display_name || sender.sending_disabled) && (
+                    <span className="flex min-w-0 items-center gap-1.5">
+                      {sender.display_name && (
+                        <span className="min-w-0 truncate text-[12px] text-[var(--text-muted)]">
+                          {sender.email}
+                        </span>
+                      )}
+                      {sender.sending_disabled && (
+                        <span className="shrink-0 text-[12px] font-medium text-[var(--color-danger)]">
+                          {t("mail.sending_disabled_badge")}
+                        </span>
+                      )}
+                    </span>
                   )}
-                </div>
+                </span>
                 {current_sender?.id === sender.id && (
                   <CheckIcon className="h-5 w-5 shrink-0 text-brand" />
                 )}
@@ -190,17 +206,16 @@ export function MobileSenderSheet({
                       ? t("common.unpin_preferred_sender")
                       : t("common.pin_preferred_sender")
                   }
-                  className={`shrink-0 rounded-[10px] p-2.5 ${
-                    preferred_id === sender.id
-                      ? "text-brand"
-                      : "text-[var(--text-muted)]"
-                  }`}
+                  aria-pressed={preferred_id === sender.id}
+                  className="aster_menu_row_action !h-11 !w-11"
+                  data-on={preferred_id === sender.id || undefined}
                   type="button"
-                  onClick={() =>
+                  onClick={(e) => {
+                    e.stopPropagation();
                     on_set_preferred(
                       preferred_id === sender.id ? null : sender.id,
-                    )
-                  }
+                    );
+                  }}
                 >
                   <PinIcon
                     className={`h-5 w-5 transition-transform duration-200 ${

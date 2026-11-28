@@ -258,6 +258,8 @@ export function RetentionPolicyCard({
 
   return (
     <Island
+      data-ripple-row
+      interactive
       className={`group relative transition-opacity ${
         policy.enabled ? "" : "opacity-60"
       }`}
@@ -265,7 +267,8 @@ export function RetentionPolicyCard({
     >
       <div className="flex flex-wrap items-center gap-3">
         <button
-          className="flex-1 text-start min-w-0 cursor-pointer"
+          data-row-primary
+          className="aster_row_stretch flex-1 text-start min-w-0 cursor-pointer"
           type="button"
           onClick={on_edit}
         >
@@ -285,7 +288,7 @@ export function RetentionPolicyCard({
           </div>
           <div className="text-xs text-txt-muted">{summary}</div>
         </button>
-        <div className="flex items-center gap-2 flex-shrink-0">
+        <div className="relative z-[1] flex items-center gap-2 flex-shrink-0">
           <Switch
             aria-label={folder_name}
             checked={policy.enabled}

@@ -122,6 +122,10 @@ describe("press_feedback", () => {
       <div style="opacity: 0"><button id="hidden_action" data-ripple>h</button></div>
       <div id="sender" style="cursor: pointer">sender@example.com</div>
       <button id="grad" data-ripple>g</button>
+      <div id="menu_row" class="aster_menu_row" data-ripple-row><button id="menu_row_main" data-row-primary type="button"><span id="menu_row_label">a@example.com</span></button><button id="menu_row_pin" class="aster_menu_row_action" type="button">p</button></div>
+      <label id="option_row" class="flex w-fit cursor-pointer" for="option_input"><label class="aster_checkbox"><input id="option_input" class="aster_checkbox_input" type="checkbox" /><span id="option_box" class="aster_checkbox_box"></span></label><span id="option_text">Remember</span></label>
+      <label id="switch_row" class="aster_switch" style="cursor: pointer"><input id="switch_input" class="aster_switch_input" type="checkbox" /><span id="switch_track" class="aster_switch_track"></span></label>
+      <div id="menu_row_off" class="aster_menu_row" data-ripple-row data-disabled><button id="menu_row_off_main" data-row-primary aria-disabled="true" type="button">b</button></div>
     `;
     button = document.getElementById("menu") as HTMLButtonElement;
     clicks = 0;
@@ -160,6 +164,52 @@ describe("press_feedback", () => {
     vi.advanceTimersByTime(16);
 
     expect(row.hasAttribute(PRESS_ATTRIBUTE)).toBe(false);
+  });
+
+  it("ripples the whole menu row when its main area is pressed", () => {
+    const row = document.getElementById("menu_row")!;
+    const main = document.getElementById("menu_row_main")!;
+
+    expect(find_press_target(document.getElementById("menu_row_label"))).toBe(
+      row,
+    );
+    pointer("pointerdown", document.getElementById("menu_row_label")!);
+    expect(row.getAttribute(PRESS_ATTRIBUTE)).toBe("down");
+    expect(main.hasAttribute(PRESS_ATTRIBUTE)).toBe(false);
+  });
+
+  it("never paints a press inside a menu row's trailing action", () => {
+    const row = document.getElementById("menu_row")!;
+    const pin = document.getElementById("menu_row_pin")!;
+
+    expect(find_press_target(pin)).toBeNull();
+    pointer("pointerdown", pin);
+    expect(row.hasAttribute(PRESS_ATTRIBUTE)).toBe(false);
+    expect(pin.hasAttribute(PRESS_ATTRIBUTE)).toBe(false);
+  });
+
+  it("gives a disabled menu row no press", () => {
+    const row = document.getElementById("menu_row_off")!;
+
+    expect(
+      find_press_target(document.getElementById("menu_row_off_main")),
+    ).toBeNull();
+    pointer("pointerdown", document.getElementById("menu_row_off_main")!);
+    expect(row.hasAttribute(PRESS_ATTRIBUTE)).toBe(false);
+  });
+
+  it("ripples the menu row from the keyboard on its main area", () => {
+    const row = document.getElementById("menu_row")!;
+    const main = document.getElementById("menu_row_main") as HTMLElement;
+
+    main.focus();
+    document.dispatchEvent(
+      new KeyboardEvent("keydown", { key: "Enter", bubbles: true }),
+    );
+    expect(row.getAttribute(PRESS_ATTRIBUTE)).toBe("down");
+    document.dispatchEvent(
+      new KeyboardEvent("keyup", { key: "Enter", bubbles: true }),
+    );
   });
 
   it("marks the innermost control on pointer down", () => {
@@ -356,6 +406,24 @@ describe("press_feedback", () => {
       expect(find_press_target(el)).toBeNull();
       pointer("pointerdown", el);
       expect(el.hasAttribute(PRESS_ATTRIBUTE)).toBe(false);
+      pointer("pointerup", el);
+    }
+  });
+
+  it("never paints a box around a checkbox, switch or its label", () => {
+    for (const id of [
+      "option_row",
+      "option_box",
+      "option_text",
+      "option_input",
+      "switch_row",
+      "switch_track",
+    ]) {
+      const el = document.getElementById(id)!;
+
+      expect(find_press_target(el)).toBeNull();
+      pointer("pointerdown", el);
+      expect(document.querySelector(`[${PRESS_ATTRIBUTE}]`)).toBeNull();
       pointer("pointerup", el);
     }
   });

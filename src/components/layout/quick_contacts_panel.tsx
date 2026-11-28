@@ -1511,7 +1511,8 @@ export function QuickContactsPanel({
                     {section.contacts.map((contact) => (
                       <div
                         key={contact.id}
-                        className="quick_contacts_row aster_island_row aster_island_row_pressable group gap-2.5 pe-1.5 ps-2.5"
+                        data-ripple-row
+                        className="quick_contacts_row aster_island_row aster_island_row_pressable group relative gap-2.5 pe-1.5 ps-2.5"
                         data-selected={selected_ids.has(contact.id)}
                       >
                         <button
@@ -1521,7 +1522,7 @@ export function QuickContactsPanel({
                               : t("common.select_contact")
                           }
                           aria-pressed={selected_ids.has(contact.id)}
-                          className="quick_contacts_avatar_button relative flex h-[30px] w-[30px] flex-shrink-0 items-center justify-center rounded-full"
+                          className="quick_contacts_avatar_button relative z-[1] flex h-[30px] w-[30px] flex-shrink-0 items-center justify-center rounded-full"
                           type="button"
                           onClick={() => toggle_selected(contact.id)}
                         >
@@ -1558,7 +1559,8 @@ export function QuickContactsPanel({
                           )}
                         </button>
                         <button
-                          className="quick_contacts_row_open flex min-w-0 flex-1 items-center gap-2.5 text-start"
+                          data-row-primary
+                          className="quick_contacts_row_open aster_row_stretch flex min-w-0 flex-1 items-center gap-2.5 text-start"
                           type="button"
                           onClick={() =>
                             is_selecting
@@ -1588,7 +1590,7 @@ export function QuickContactsPanel({
                               )}
                           </span>
                         </button>
-                        <span className="flex flex-shrink-0 items-center opacity-0 transition-opacity focus-within:opacity-100 group-hover:opacity-100">
+                        <span className="relative z-[1] flex flex-shrink-0 items-center opacity-0 transition-opacity focus-within:opacity-100 group-hover:opacity-100">
                           {contact.emails[0] && (
                             <>
                               <Tooltip

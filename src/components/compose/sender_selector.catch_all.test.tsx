@@ -78,10 +78,12 @@ afterEach(() => {
 
 function row_for(email: string): HTMLElement {
   const label = Array.from(
-    document.body.querySelectorAll<HTMLElement>("p.text-sm.truncate"),
+    document.body.querySelectorAll<HTMLElement>(
+      ".aster_menu_row span.text-sm.truncate",
+    ),
   ).find((el) => el.textContent === email);
 
-  return label!.closest<HTMLElement>(".group")!;
+  return label!.closest<HTMLElement>(".aster_menu_row")!;
 }
 
 describe("SenderSelector catch-all identities", () => {

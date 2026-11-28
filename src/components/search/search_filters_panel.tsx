@@ -247,33 +247,33 @@ export function SearchHistorySection({
       {history.slice(0, 5).map((entry) => (
         <div
           key={entry.id}
-          className="search_list_row group flex items-center gap-2.5 px-3.5 py-2.5 rounded-[12px] cursor-pointer"
-          role="button"
-          tabIndex={0}
-          onClick={() => on_select(entry.query)}
-          onKeyDown={(e) => {
-            if (e["key"] === "Enter" || e["key"] === " ") {
-              e.preventDefault();
-              on_select(entry.query);
-            }
-          }}
+          data-ripple-row
+          className="aster_menu_row [--aster-radius-item:12px]"
         >
-          <svg
-            className="w-4 h-4 flex-shrink-0 text-txt-muted"
-            fill="currentColor"
-            viewBox="0 0 24 24"
+          <button
+            data-row-primary
+            className="aster_menu_row_main gap-2.5 ps-3.5 pe-1 py-2.5"
+            type="button"
+            onClick={() => on_select(entry.query)}
           >
-            <path d="M13 3c-4.97 0-9 4.03-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42C8.27 19.99 10.51 21 13 21c4.97 0 9-4.03 9-9s-4.03-9-9-9zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z" />
-          </svg>
-          <span className="flex-1 text-sm truncate text-txt-primary">
-            {entry.query}
-          </span>
-          <span className="text-xs text-txt-muted">
-            {format_history_timestamp(entry.timestamp)}
-          </span>
+            <svg
+              className="w-4 h-4 flex-shrink-0 text-txt-muted"
+              fill="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path d="M13 3c-4.97 0-9 4.03-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42C8.27 19.99 10.51 21 13 21c4.97 0 9-4.03 9-9s-4.03-9-9-9zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z" />
+            </svg>
+            <span className="flex-1 text-sm truncate text-txt-primary">
+              {entry.query}
+            </span>
+            <span className="text-xs text-txt-muted">
+              {format_history_timestamp(entry.timestamp)}
+            </span>
+          </button>
           <button
             aria-label={t("common.delete")}
-            className="search_icon_btn p-1 rounded-full transition-opacity opacity-0 group-hover:opacity-100 focus-visible:opacity-100"
+            className="aster_menu_row_action"
+            type="button"
             onClick={(e) => {
               e.stopPropagation();
               on_remove(entry.id);
@@ -317,35 +317,35 @@ export function SavedSearchesSection({
       {saved_searches.slice(0, 5).map((saved) => (
         <div
           key={saved.id}
-          className="search_list_row group flex items-center gap-2.5 px-3.5 py-2.5 rounded-[12px] cursor-pointer"
-          role="button"
-          tabIndex={0}
-          onClick={() => on_select(saved)}
-          onKeyDown={(e) => {
-            if (e["key"] === "Enter" || e["key"] === " ") {
-              e.preventDefault();
-              on_select(saved);
-            }
-          }}
+          data-ripple-row
+          className="aster_menu_row [--aster-radius-item:12px]"
         >
-          <svg
-            className="w-4 h-4 flex-shrink-0 text-brand"
-            fill="currentColor"
-            viewBox="0 0 24 24"
+          <button
+            data-row-primary
+            className="aster_menu_row_main gap-2.5 ps-3.5 pe-1 py-2.5"
+            type="button"
+            onClick={() => on_select(saved)}
           >
-            <path d="M17 3H7c-1.1 0-1.99.9-1.99 2L5 21l7-3 7 3V5c0-1.1-.9-2-2-2z" />
-          </svg>
-          <div className="flex-1 min-w-0">
-            <span className="text-sm font-medium block truncate text-txt-primary">
-              {saved.name}
+            <svg
+              className="w-4 h-4 flex-shrink-0 text-brand"
+              fill="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path d="M17 3H7c-1.1 0-1.99.9-1.99 2L5 21l7-3 7 3V5c0-1.1-.9-2-2-2z" />
+            </svg>
+            <span className="flex-1 min-w-0">
+              <span className="text-sm font-medium block truncate text-txt-primary">
+                {saved.name}
+              </span>
+              <span className="text-xs block truncate text-txt-muted">
+                {saved.query}
+              </span>
             </span>
-            <span className="text-xs block truncate text-txt-muted">
-              {saved.query}
-            </span>
-          </div>
+          </button>
           <button
             aria-label={t("common.delete")}
-            className="search_icon_btn p-1 rounded-full transition-opacity opacity-0 group-hover:opacity-100 focus-visible:opacity-100"
+            className="aster_menu_row_action"
+            type="button"
             onClick={(e) => {
               e.stopPropagation();
               on_delete(saved.id);

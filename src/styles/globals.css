@@ -2197,9 +2197,36 @@ label:has(> .aster_btn_spinner) > :not(.aster_btn_spinner) {
 
 html[data-input-modality="keyboard"]
   .aster_checkbox_input:focus-visible
-  + .aster_checkbox_box {
+  + .aster_checkbox_box,
+html[data-input-modality="keyboard"]
+  .aster_radio_input:focus-visible
+  + .aster_radio_circle,
+html[data-input-modality="keyboard"]
+  .aster_switch_input:focus-visible
+  + .aster_switch_track,
+html[data-input-modality="keyboard"]
+  .aster_seg_input:focus-visible
+  + .aster_seg_label {
   outline: 2px solid var(--accent-color);
   outline-offset: 2px;
+}
+
+.aster_checkbox,
+.aster_radio,
+.aster_switch,
+.aster_switch_labeled,
+label:has(> .aster_checkbox),
+label:has(> .aster_switch) {
+  -webkit-tap-highlight-color: transparent;
+}
+
+.aster_checkbox:hover,
+.aster_checkbox:active,
+.aster_radio:hover,
+.aster_radio:active,
+.aster_switch:hover,
+.aster_switch:active {
+  background: none;
 }
 
 html:not([data-input-modality="keyboard"]) :focus,
@@ -2314,10 +2341,20 @@ select:focus-visible,
 
 @media (hover: hover) {
   [data-sidebar-root] .mt-5.mb-1 > button:hover,
-  [data-sidebar-root] .mt-5.mb-1 > .justify-between > button:hover,
-  [data-sidebar-root] .sidebar-nav-btn [role="button"]:hover {
+  [data-sidebar-root] .mt-5.mb-1 > .justify-between > button:hover {
     background-color: var(--aster-hover);
   }
+}
+
+[data-sidebar-root] .sidebar-nav-btn [role="button"] {
+  background: none !important;
+  opacity: 0.7;
+  transition: opacity 0.15s ease;
+}
+
+[data-sidebar-root] .sidebar-nav-btn [role="button"]:hover,
+[data-sidebar-root] .sidebar-nav-btn [role="button"]:focus-visible {
+  opacity: 1;
 }
 
 textarea.aster_input {
@@ -2839,13 +2876,24 @@ button.press_scale:active {
   background-color: var(--sidebar-hover);
 }
 
-.quick_contacts_action {
+.quick_contacts_action,
+.row_icon_action {
   color: var(--icon-muted);
+  background: none !important;
+  transition:
+    color 0.15s ease,
+    opacity 0.15s ease;
 }
 
-.quick_contacts_action:hover {
-  background-color: var(--indicator-bg);
+.quick_contacts_action:hover,
+.quick_contacts_action:focus-visible,
+.row_icon_action:hover,
+.row_icon_action:focus-visible {
   color: var(--text-primary);
+}
+
+[data-ripple-row].aster_island_row_pressable:active {
+  background-color: var(--aster-island-hover);
 }
 
 .quick_contacts_search {
@@ -3618,8 +3666,7 @@ html:not([data-input-modality="keyboard"])
 }
 
 .list_select_control:has(:focus-visible) {
-  box-shadow: 0 0 0 2px
-    color-mix(in srgb, var(--accent-color) 60%, transparent);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent-color) 60%, transparent);
 }
 
 .list_select_control_toggle:hover
@@ -3840,7 +3887,8 @@ html:not([data-input-modality="keyboard"])
 
 .mail_row_selected,
 .mail_row:has(+ .mail_row_selected),
-[data-row-email-id]:has(+ [data-row-email-id] > .mail_row_selected) > .mail_row {
+[data-row-email-id]:has(+ [data-row-email-id] > .mail_row_selected)
+  > .mail_row {
   border-bottom-color: color-mix(
     in srgb,
     var(--accent-color, #3b82f6) 48%,
@@ -3850,7 +3898,9 @@ html:not([data-input-modality="keyboard"])
 
 .dark .mail_row_selected,
 .dark .mail_row:has(+ .mail_row_selected),
-.dark [data-row-email-id]:has(+ [data-row-email-id] > .mail_row_selected) > .mail_row {
+.dark
+  [data-row-email-id]:has(+ [data-row-email-id] > .mail_row_selected)
+  > .mail_row {
   border-bottom-color: color-mix(
     in srgb,
     var(--accent-color, #3b82f6) 68%,
@@ -5109,6 +5159,13 @@ html:not(.dark) .sender_logo_light > img {
   }
 }
 
+[data-ripple-row] .contact_group_icon_button {
+  position: relative;
+  z-index: 1;
+  background: none !important;
+  transform: none !important;
+}
+
 .contact_group_reveal {
   opacity: 0;
 }
@@ -6322,8 +6379,12 @@ html[data-input-modality="keyboard"]
   transition: background-color 0.1s ease;
 }
 
+.search_result_row {
+  position: relative;
+}
+
 .search_result_row:hover,
-.search_result_row:focus-visible {
+html[data-input-modality="keyboard"] .search_result_row:has(:focus-visible) {
   background-color: var(--bg-hover);
 }
 
@@ -6345,11 +6406,11 @@ html[data-input-modality="keyboard"]
 }
 
 .search_result_actions {
+  position: relative;
+  z-index: 1;
   display: none;
   align-items: center;
   gap: 2px;
-  border-radius: 14px;
-  background-color: var(--bg-hover);
 }
 
 .search_result_row:hover .search_result_actions,
@@ -6365,17 +6426,19 @@ html[data-input-modality="keyboard"]
 }
 
 .search_result_action {
-  padding: 6px;
-  border-radius: 14px;
-  transition:
-    background-color 0.14s ease,
-    color 0.14s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--aster-radius-item);
+  background: none !important;
+  transition: color 0.14s ease;
 }
 
 .search_result_action:hover,
 .search_result_action:focus-visible {
-  background-color: color-mix(in srgb, var(--text-primary) 10%, transparent);
-  color: var(--text-primary);
+  color: var(--text-primary) !important;
 }
 
 @layer utilities {
@@ -6587,6 +6650,119 @@ html[data-input-modality="keyboard"]
 .contact_group_member_row[data-active="true"]
   + .contact_group_member_row::before {
   opacity: 0;
+}
+
+.aster_menu_row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  border-radius: var(--aster-radius-item);
+  transition: background-color 0.15s ease;
+}
+
+@media (hover: hover) {
+  .aster_menu_row:hover:not([data-disabled]) {
+    background-color: var(--aster-floating-hover, var(--aster-hover));
+  }
+}
+
+.aster_menu_row[data-active="true"]:not([data-disabled]),
+html[data-input-modality="keyboard"]
+  .aster_menu_row:has(:focus-visible):not([data-disabled]) {
+  background-color: var(--aster-floating-hover, var(--aster-hover));
+}
+
+.aster_menu_row[data-selected="true"] {
+  background-color: var(--aster-selected);
+}
+
+.aster_menu_row[data-disabled],
+.aster_menu_row[data-disabled] .aster_menu_row_main {
+  cursor: not-allowed;
+}
+
+.aster_menu_row_main {
+  display: flex;
+  flex: 1 1 auto;
+  min-width: 0;
+  align-self: stretch;
+  align-items: center;
+  text-align: start;
+  border-radius: inherit;
+  background: none;
+}
+
+.aster_row_stretch::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+}
+
+.aster_row_stretch:focus-visible {
+  outline: none !important;
+}
+
+html[data-input-modality="keyboard"]
+  [data-ripple-row]:has(.aster_row_stretch:focus-visible) {
+  outline: 2px solid var(--accent-color);
+  outline-offset: -2px;
+}
+
+.aster_menu_row_main:focus-visible {
+  outline: none !important;
+}
+
+html[data-input-modality="keyboard"]
+  .aster_menu_row:has(> .aster_menu_row_main:focus-visible) {
+  outline: 2px solid var(--accent-color);
+  outline-offset: -2px;
+}
+
+.aster_menu_row_action {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  margin-inline-end: 2px;
+  border-radius: var(--aster-radius-item);
+  background: none !important;
+  color: var(--text-muted);
+  opacity: 0.7;
+  transition:
+    opacity 0.15s ease,
+    color 0.15s ease;
+}
+
+@media (hover: hover) {
+  .aster_menu_row_action:not([data-on="true"]) {
+    opacity: 0;
+  }
+}
+
+.aster_menu_row:hover .aster_menu_row_action,
+.aster_menu_row:focus-within .aster_menu_row_action,
+.aster_menu_row[data-active="true"] .aster_menu_row_action {
+  opacity: 0.7;
+}
+
+.aster_menu_row .aster_menu_row_action:hover,
+.aster_menu_row .aster_menu_row_action:focus-visible {
+  opacity: 1;
+  color: var(--text-primary);
+}
+
+.aster_menu_row .aster_menu_row_action[data-on="true"] {
+  opacity: 1;
+  color: var(--accent-color);
+}
+
+html[data-input-modality="keyboard"] .aster_menu_row_action:focus-visible {
+  outline: 2px solid var(--accent-color);
+  outline-offset: -2px;
 }
 
 @property --aster-press-alpha {
@@ -6954,8 +7130,7 @@ html.aster_drag_active * {
       [data-state="open"]
     )
 ) {
-  background-color: color-mix(in srgb, var(--text-primary) 10%, transparent);
-  color: var(--text-primary);
+  color: var(--text-primary) !important;
 }
 
 .quick_settings_row:is(
@@ -6967,9 +7142,7 @@ html.aster_drag_active * {
   background-color: color-mix(in srgb, var(--text-primary) 6%, transparent);
 }
 
-[data-sidebar-root]
-  [data-state="open"]
-  > .sidebar-nav-btn:not(.sidebar-active),
+[data-sidebar-root] [data-state="open"] > .sidebar-nav-btn:not(.sidebar-active),
 [data-sidebar-root] .sidebar-nav-btn:not(.sidebar-active)[data-state="open"] {
   color: var(--text-primary) !important;
   background-color: var(--aster-hover, var(--bg-hover)) !important;

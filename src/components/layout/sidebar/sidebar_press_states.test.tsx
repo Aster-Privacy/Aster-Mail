@@ -179,8 +179,22 @@ describe("sidebar press and focus states", () => {
     ).toBe(true);
   });
 
+  it("keeps the row chevron icon-only with no hover fill", () => {
+    const fills = rules_matching(rules, row_chevron, has_hover).filter(
+      (rule) =>
+        rule.declarations.get("background-color") === "var(--aster-hover)",
+    );
+
+    expect(fills).toHaveLength(0);
+    expect(
+      rules_matching(rules, row_chevron, any_selector).some(
+        (rule) => rule.declarations.get("background") === "none",
+      ),
+    ).toBe(true);
+  });
+
   it("gives every sidebar control the same hover background and radius", () => {
-    for (const element of [toggle_button, add_button, row_chevron]) {
+    for (const element of [toggle_button, add_button]) {
       const hover = rules_matching(rules, element, has_hover).filter(
         (rule) =>
           rule.in_hover_media &&
