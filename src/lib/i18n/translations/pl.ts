@@ -2884,7 +2884,7 @@ export const pl = {
     muted_categories_empty:
       "Włącz kategorie skrzynki odbiorczej, aby wybrać, które wyciszyć.",
     learn_from_moves: "Ucz się z Twoich przeniesień",
-    learn_from_moves_description: "Gdy przenosisz wiadomość do kategorii, przyszłe wiadomości od tego nadawcy również tam trafiają. Te dane pozostają zaszyfrowane i nigdy nie są nam udostępniane.",
+    learn_from_moves_description: "Gdy przenosisz wiadomość do kategorii, możesz zdecydować, aby przyszłe wiadomości od tego nadawcy również tam trafiały. Twoje wybory pozostają zaszyfrowane i nigdy nie są nam udostępniane.",
     forget_learned_senders: "Zapomnij zapamiętanych nadawców ({{count}})",
     forget_learned_senders_one: "Zapomnij zapamiętanych nadawców ({{count}})",
     forget_learned_senders_title: "Zapomnieć zapamiętanych nadawców?",
@@ -10931,6 +10931,10 @@ export const pl = {
       "Nowe wiadomości od tego nadawcy trafiają teraz do {{category}}.",
     sender_rule_offer:
       "Często przenosisz wiadomości od {{sender}} do {{category}}. Robić to automatycznie?",
+    category_future_prompt_one: "Przeniesiono do kategorii {{category}}. Zrobić to samo z przyszłymi wiadomościami od {{sender}}?",
+    category_future_prompt_many: "Przeniesiono do kategorii {{category}}. Zrobić to samo z przyszłymi wiadomościami od tych nadawców ({{count}})?",
+    category_future_done_one: "Przyszłe wiadomości od {{sender}} będą trafiać do kategorii {{category}}.",
+    category_future_done_many: "Przyszłe wiadomości od tych nadawców ({{count}}) będą trafiać do kategorii {{category}}.",
   },
   auth: {
     account_chooser_title: "Wybierz konto",

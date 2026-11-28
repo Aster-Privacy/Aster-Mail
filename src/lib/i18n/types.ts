@@ -9264,6 +9264,10 @@ export interface MailTranslations {
   move_to_category: string;
   moved_to_category: string;
   sender_rule_offer: string;
+  category_future_prompt_one: string;
+  category_future_prompt_many: string;
+  category_future_done_one: string;
+  category_future_done_many: string;
   sender_rule_confirm: string;
   sender_rule_created: string;
   sender_rule_name: string;

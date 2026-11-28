@@ -48,16 +48,25 @@ import {
   show_bulk_result_toast,
 } from "@/hooks/bulk_action_result";
 import { show_toast } from "@/components/toast/simple_toast";
+import { show_action_toast } from "@/components/toast/action_toast";
 import {
   category_display_name,
   type CustomCategoryRule,
 } from "@/data/category_catalog";
 import { maybe_offer_sender_rule } from "@/components/email/inbox/category_sender_rule";
-import { record_category_move } from "@/services/learned_category_senders";
+import {
+  future_done_message,
+  future_prompt_message,
+} from "@/components/email/inbox/category_future_prompt";
+import {
+  pending_learned_senders,
+  record_category_move,
+} from "@/services/learned_category_senders";
 import { ignore_error } from "@/lib/ignore_error";
 import { is_primary_locked_sender } from "@/services/learned_sender_gate";
 
 const MAX_OWN_WRITES = 500;
+const PROMPT_TOAST_MS = 8000;
 
 type Translate = (
   key: TranslationKey,
@@ -519,29 +528,32 @@ export function move_items_to_category(
 
   apply_rows_locally(rows, category, update_email);
 
-  let undo_learned: (() => void) | null = null;
+  const category_label = category_display_name(category, custom_categories, t);
   const row_ids = rows.map((row) => row.item.id);
-
-  show_bulk_result_toast({
-    result: bulk_action_result(row_ids, []),
+  const prompt = future_prompt_message(
+    pending_learned_senders(
+      rows.map((row) => row.item),
+      category,
+    ),
+    category_label,
     t,
-    success_message: t("mail.moved_to_category"),
-    error_message: t("common.something_went_wrong"),
-    action_type: "folder",
-    email_ids: row_ids,
-    on_undo: () => {
-      const live = rows.filter((row) => !row.undone);
+  );
+  let undo_learned: (() => void) | null = null;
+  let accepted = false;
+  let moved: RowMove[] = [];
 
-      for (const row of live) row.undone = true;
-      restore_rows_locally(live, update_email);
-      undo_learned?.();
-      undo_learned = null;
+  const on_undo = (): Promise<void> => {
+    const live = rows.filter((row) => !row.undone);
 
-      return enqueue(() => undo_rows(live, category, options));
-    },
-  });
+    for (const row of live) row.undone = true;
+    restore_rows_locally(live, update_email);
+    undo_learned?.();
+    undo_learned = null;
 
-  return enqueue(async () => {
+    return enqueue(() => undo_rows(live, category, options));
+  };
+
+  const written = enqueue(async () => {
     const { failed_ids, undecryptable } = await write_rows(
       rows,
       category,
@@ -562,21 +574,53 @@ export function move_items_to_category(
       );
     }
 
-    const moved = rows.filter(
-      (row) => !failed_ids.has(row.item.id) && !row.undone,
-    );
-
+    moved = rows.filter((row) => !failed_ids.has(row.item.id) && !row.undone);
     if (moved.length > 0) {
-      undo_learned = record_category_move(
-        moved.map((row) => row.item),
-        category,
-      );
       maybe_offer_sender_rule(
         moved.map((row) => row.item),
         category,
-        category_display_name(category, custom_categories, t),
+        category_label,
         t,
       );
     }
   });
+
+  const accept = (): void => {
+    if (accepted) return;
+    accepted = true;
+    void written.then(() => {
+      const kept = moved
+        .filter((row) => !row.undone)
+        .map((row) => row.item);
+      const senders = pending_learned_senders(kept, category);
+
+      undo_learned = record_category_move(kept, category);
+      if (!undo_learned) return;
+      show_action_toast({
+        message: future_done_message(senders, category_label, t),
+        action_type: "folder",
+        email_ids: row_ids,
+        on_undo,
+        sound: "none",
+      });
+    });
+  };
+
+  show_bulk_result_toast({
+    result: bulk_action_result(row_ids, []),
+    t,
+    success_message: prompt ?? t("mail.moved_to_category"),
+    error_message: t("common.something_went_wrong"),
+    action_type: "folder",
+    email_ids: row_ids,
+    on_undo,
+    ...(prompt
+      ? {
+          actions: [{ label: t("common.yes"), on_press: accept }],
+          duration_ms: PROMPT_TOAST_MS,
+        }
+      : {}),
+  });
+
+  return written;
 }

@@ -59,12 +59,17 @@ vi.mock("@/components/toast/simple_toast", () => ({
   show_toast: (...a: unknown[]) => hoisted.show_toast(...a),
 }));
 
+vi.mock("@/components/toast/action_toast", () => ({
+  show_action_toast: vi.fn(),
+}));
+
 vi.mock("@/components/email/inbox/category_sender_rule", () => ({
   maybe_offer_sender_rule: vi.fn(),
 }));
 
 vi.mock("@/services/learned_category_senders", () => ({
   record_category_move: () => null,
+  pending_learned_senders: () => [],
 }));
 
 vi.mock("@/data/category_catalog", () => ({

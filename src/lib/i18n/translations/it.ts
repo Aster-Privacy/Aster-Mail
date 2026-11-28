@@ -2738,7 +2738,7 @@ export const it = {
     muted_categories_empty:
       "Attiva le categorie della casella di posta per scegliere quali silenziare.",
     learn_from_moves: "Impara dai tuoi spostamenti",
-    learn_from_moves_description: "Quando sposti un'email in una categoria, anche le email future di quel mittente finiscono lì. Questi dati restano crittografati e non vengono mai condivisi con noi.",
+    learn_from_moves_description: "Quando sposti un'email in una categoria, puoi scegliere di inviare lì anche le email future di quel mittente. Le tue scelte restano crittografate e non vengono mai condivise con noi.",
     forget_learned_senders: "Dimentica i mittenti appresi ({{count}})",
     forget_learned_senders_one: "Dimentica i mittenti appresi ({{count}})",
     forget_learned_senders_title: "Dimenticare i mittenti appresi?",
@@ -10743,6 +10743,10 @@ export const it = {
       "I nuovi messaggi di questo mittente arrivano in {{category}}.",
     sender_rule_offer:
       "Sposti spesso i messaggi di {{sender}} in {{category}}. Vuoi farlo automaticamente?",
+    category_future_prompt_one: "Spostato in {{category}}. Vuoi fare lo stesso per i messaggi futuri di {{sender}}?",
+    category_future_prompt_many: "Spostato in {{category}}. Vuoi fare lo stesso per i messaggi futuri di questi {{count}} mittenti?",
+    category_future_done_one: "I messaggi futuri di {{sender}} andranno in {{category}}.",
+    category_future_done_many: "I messaggi futuri di questi {{count}} mittenti andranno in {{category}}.",
   },
   auth: {
     account_chooser_title: "Scegli un account",

@@ -2744,7 +2744,7 @@ export const fr = {
     muted_categories_empty:
       "Activez les catégories de boîte de réception pour choisir celles à mettre en sourdine.",
     learn_from_moves: "Apprendre de vos déplacements",
-    learn_from_moves_description: "Lorsque vous déplacez un e-mail vers une catégorie, les futurs e-mails de cet expéditeur y vont aussi. Ces données restent chiffrées et ne sont jamais partagées avec nous.",
+    learn_from_moves_description: "Lorsque vous déplacez un e-mail vers une catégorie, vous pouvez choisir d'y envoyer aussi les futurs e-mails de cet expéditeur. Vos choix restent chiffrés et ne sont jamais partagés avec nous.",
     forget_learned_senders: "Oublier les expéditeurs appris ({{count}})",
     forget_learned_senders_one: "Oublier les expéditeurs appris ({{count}})",
     forget_learned_senders_title: "Oublier les expéditeurs appris ?",
@@ -10817,6 +10817,10 @@ export const fr = {
       "Les nouveaux messages de cet expéditeur arrivent désormais dans {{category}}.",
     sender_rule_offer:
       "Vous déplacez souvent les messages de {{sender}} vers {{category}}. Voulez-vous le faire automatiquement ?",
+    category_future_prompt_one: "Déplacé vers {{category}}. Faire de même pour les futurs messages de {{sender}} ?",
+    category_future_prompt_many: "Déplacé vers {{category}}. Faire de même pour les futurs messages de ces {{count}} expéditeurs ?",
+    category_future_done_one: "Les futurs messages de {{sender}} iront dans {{category}}.",
+    category_future_done_many: "Les futurs messages de ces {{count}} expéditeurs iront dans {{category}}.",
   },
   auth: {
     account_chooser_title: "Choisissez un compte",

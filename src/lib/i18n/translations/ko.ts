@@ -2626,7 +2626,7 @@ export const ko = {
     muted_categories_empty:
       "음소거할 카테고리를 선택하려면 받은 편지함 카테고리를 켜세요.",
     learn_from_moves: "이동한 메일에서 학습",
-    learn_from_moves_description: "메일을 카테고리로 이동하면 해당 발신자의 이후 메일도 그 카테고리로 이동합니다. 이 정보는 암호화된 상태로 유지되며 Aster와 공유되지 않습니다.",
+    learn_from_moves_description: "메일을 카테고리로 이동할 때 해당 발신자의 이후 메일도 그 카테고리로 보낼지 선택할 수 있습니다. 선택 내용은 암호화된 상태로 유지되며 Aster와 공유되지 않습니다.",
     forget_learned_senders: "학습한 발신자 지우기({{count}})",
     forget_learned_senders_one: "학습한 발신자 지우기({{count}})",
     forget_learned_senders_title: "학습한 발신자를 지우시겠습니까?",
@@ -10249,6 +10249,10 @@ export const ko = {
       "이제 이 발신자의 새 메일은 {{category}}(으)로 들어옵니다.",
     sender_rule_offer:
       "{{sender}}의 메일을 {{category}}(으)로 자주 옮기고 있습니다. 자동으로 처리할까요?",
+    category_future_prompt_one: "{{category}}(으)로 이동했습니다. {{sender}}의 이후 메시지에도 적용할까요?",
+    category_future_prompt_many: "{{category}}(으)로 이동했습니다. 이 발신자 {{count}}명의 이후 메시지에도 적용할까요?",
+    category_future_done_one: "{{sender}}의 이후 메시지는 {{category}}(으)로 이동합니다.",
+    category_future_done_many: "이 발신자 {{count}}명의 이후 메시지는 {{category}}(으)로 이동합니다.",
   },
   auth: {
     account_chooser_title: "계정 선택",

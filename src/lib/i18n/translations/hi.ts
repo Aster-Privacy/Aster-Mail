@@ -3399,7 +3399,7 @@ export const hi = {
     muted_categories_empty:
       "कौन सी श्रेणियां शांत करनी हैं यह चुनने के लिए इनबॉक्स श्रेणियां चालू करें।",
     learn_from_moves: "आपके मूव से सीखें",
-    learn_from_moves_description: "जब आप किसी ईमेल को किसी श्रेणी में ले जाते हैं, तो उस भेजने वाले के आगे के ईमेल भी वहीं जाते हैं। यह जानकारी एन्क्रिप्टेड रहती है और हमारे साथ कभी साझा नहीं की जाती।",
+    learn_from_moves_description: "जब आप किसी ईमेल को किसी श्रेणी में ले जाते हैं, तो आप चुन सकते हैं कि उस भेजने वाले के आगे के ईमेल भी वहीं जाएं। आपकी पसंद एन्क्रिप्टेड रहती है और हमारे साथ कभी साझा नहीं की जाती।",
     forget_learned_senders: "सीखे गए भेजने वालों को भूलें ({{count}})",
     forget_learned_senders_one: "सीखे गए भेजने वालों को भूलें ({{count}})",
     forget_learned_senders_title: "सीखे गए भेजने वालों को भूलें?",
@@ -10490,6 +10490,10 @@ export const hi = {
     sender_rule_name: "{{sender}} से {{category}}",
     sender_rule_offer:
       "आप बार-बार {{sender}} का मेल {{category}} में ले जा रहे हैं। इसे अपने आप करें?",
+    category_future_prompt_one: "{{category}} में ले जाया गया। क्या {{sender}} के आगे के संदेशों के लिए भी ऐसा करें?",
+    category_future_prompt_many: "{{category}} में ले जाया गया। क्या इन {{count}} भेजने वालों के आगे के संदेशों के लिए भी ऐसा करें?",
+    category_future_done_one: "{{sender}} के आगे के संदेश {{category}} में जाएंगे।",
+    category_future_done_many: "इन {{count}} भेजने वालों के आगे के संदेश {{category}} में जाएंगे।",
   },
   auth: {
     account_chooser_title: "खाता चुनें",

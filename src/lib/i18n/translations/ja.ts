@@ -2693,7 +2693,7 @@ export const ja = {
     muted_categories_empty:
       "ミュートするカテゴリを選ぶには、受信トレイのカテゴリをオンにします。",
     learn_from_moves: "移動から学習",
-    learn_from_moves_description: "メールをカテゴリに移動すると、その送信者からの今後のメールも同じカテゴリに振り分けられます。この情報は暗号化されたままで、Aster と共有されることはありません。",
+    learn_from_moves_description: "メールをカテゴリに移動したときに、その送信者からの今後のメールも同じカテゴリに振り分けるかどうかを選べます。選択内容は暗号化されたままで、Aster と共有されることはありません。",
     forget_learned_senders: "学習した送信者を消去（{{count}}）",
     forget_learned_senders_one: "学習した送信者を消去（{{count}}）",
     forget_learned_senders_title: "学習した送信者を消去しますか？",
@@ -10421,6 +10421,10 @@ export const ja = {
     sender_rule_name: "{{sender}} を {{category}} に",
     sender_rule_offer:
       "{{sender}} からのメールを {{category}} によく移動しています。今後は自動的に振り分けますか。",
+    category_future_prompt_one: "{{category}} に移動しました。{{sender}} からの今後のメッセージにも適用しますか？",
+    category_future_prompt_many: "{{category}} に移動しました。これら {{count}} 件の送信者からの今後のメッセージにも適用しますか？",
+    category_future_done_one: "{{sender}} からの今後のメッセージは {{category}} に振り分けられます。",
+    category_future_done_many: "これら {{count}} 件の送信者からの今後のメッセージは {{category}} に振り分けられます。",
   },
   auth: {
     account_chooser_title: "アカウントを選択",

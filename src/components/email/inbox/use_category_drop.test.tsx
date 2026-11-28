@@ -224,6 +224,16 @@ function mount(emails: InboxEmail[]): Harness {
   return harness;
 }
 
+interface PromptToast {
+  message: string;
+  actions?: { label: string; on_press: () => void }[];
+  on_undo?: () => Promise<void>;
+}
+
+function prompt_toast(index: number): PromptToast {
+  return show_action_toast.mock.calls[index]![0] as PromptToast;
+}
+
 async function flush(): Promise<void> {
   await act(async () => {
     await Promise.resolve();
@@ -346,7 +356,7 @@ describe("use_category_drop", () => {
     expect(show_action_toast).toHaveBeenCalledTimes(1);
   });
 
-  it("learns the sender instead of offering a rule while learning is on", async () => {
+  it("asks before learning and learns the sender only on Yes", async () => {
     set_message_category.mockResolvedValue(applied_result);
     restore_message_category.mockResolvedValue(applied_result);
 
@@ -359,37 +369,151 @@ describe("use_category_drop", () => {
       persist: (list) => persisted.push(list),
     });
 
-    const harness = mount([
-      email("a", "primary"),
-      { ...email("b", "primary"), sender_email: "Other@Example.com" },
-    ]);
+    const harness = mount([email("a", "primary")]);
 
     await act(async () => {
       await harness.drop("promotions", ["a"]);
     });
+
+    const prompt = prompt_toast(0);
+
+    expect(prompt.message).toBe("mail.category_future_prompt_one");
+    expect(prompt.actions?.map((action) => action.label)).toEqual([
+      "common.yes",
+    ]);
+    expect(prompt.on_undo).toBeTypeOf("function");
+    expect(get_learned_senders()).toEqual([]);
+
     await act(async () => {
-      await harness.drop("promotions", ["a", "b"]);
+      prompt.actions![0]!.on_press();
+      prompt.actions![0]!.on_press();
+      await flush();
     });
 
-    expect(show_toast).not.toHaveBeenCalled();
+    expect(persisted).toHaveLength(1);
+    expect(
+      get_learned_senders().map((entry) => `${entry.sender}:${entry.category}`),
+    ).toEqual(["sender@example.com:promotions"]);
+    expect(show_action_toast).toHaveBeenCalledTimes(2);
+
+    const done = prompt_toast(1);
+
+    expect(done.message).toBe("mail.category_future_done_one");
+    expect(done.actions).toBeUndefined();
+
+    await act(async () => {
+      await done.on_undo!();
+    });
+
+    expect(get_learned_senders()).toEqual([]);
+    expect(persisted).toHaveLength(2);
+    expect(harness.updates.at(-1)).toEqual({ id: "a", category: "primary" });
+  });
+
+  it("asks once for several senders and counts them", async () => {
+    set_message_category.mockResolvedValue(applied_result);
+    configure_learned_senders({
+      loaded: true,
+      enabled: true,
+      list: [],
+      persist: () => {},
+    });
+
+    const harness = mount([
+      email("a", "primary"),
+      { ...email("b", "primary"), sender_email: "Other@Example.com" },
+      email("c", "primary"),
+    ]);
+
+    await act(async () => {
+      await harness.drop("social", ["a", "b", "c"]);
+    });
+
+    expect(show_action_toast).toHaveBeenCalledTimes(1);
+    expect(prompt_toast(0).message).toBe("mail.category_future_prompt_many");
+
+    await act(async () => {
+      prompt_toast(0).actions![0]!.on_press();
+      await flush();
+    });
+
     expect(
       get_learned_senders()
-        .map((entry) => `${entry.sender}:${entry.category}`)
+        .map((entry) => entry.sender)
         .sort(),
-    ).toEqual(["other@example.com:promotions", "sender@example.com:promotions"]);
+    ).toEqual(["other@example.com", "sender@example.com"]);
+    expect(prompt_toast(1).message).toBe("mail.category_future_done_many");
+  });
 
-    const toast = show_action_toast.mock.calls[1]![0] as {
-      on_undo: () => Promise<void>;
-    };
-
-    await act(async () => {
-      await toast.on_undo();
+  it("does not ask again when the sender already goes to that category", async () => {
+    set_message_category.mockResolvedValue(applied_result);
+    configure_learned_senders({
+      loaded: true,
+      enabled: true,
+      list: [
+        { sender: "sender@example.com", category: "promotions", updated_at: 1 },
+      ],
+      persist: () => {},
     });
 
-    expect(get_learned_senders().map((entry) => entry.sender)).toEqual([
-      "sender@example.com",
-    ]);
-    expect(persisted).toHaveLength(3);
+    const harness = mount([email("a", "primary")]);
+
+    await act(async () => {
+      await harness.drop("promotions", ["a"]);
+    });
+
+    expect(prompt_toast(0).message).toBe("mail.moved_to_category");
+    expect(prompt_toast(0).actions).toBeUndefined();
+  });
+
+  it("does not ask while learning is off", async () => {
+    set_message_category.mockResolvedValue(applied_result);
+    configure_learned_senders({
+      loaded: true,
+      enabled: false,
+      list: [],
+      persist: null,
+    });
+
+    const harness = mount([email("a", "primary")]);
+
+    await act(async () => {
+      await harness.drop("promotions", ["a"]);
+    });
+
+    expect(prompt_toast(0).message).toBe("mail.moved_to_category");
+    expect(prompt_toast(0).actions).toBeUndefined();
+  });
+
+  it("learns nothing on Yes after Undo", async () => {
+    set_message_category.mockResolvedValue(applied_result);
+    restore_message_category.mockResolvedValue(applied_result);
+
+    const persisted: LearnedCategorySender[][] = [];
+
+    configure_learned_senders({
+      loaded: true,
+      enabled: true,
+      list: [],
+      persist: (list) => persisted.push(list),
+    });
+
+    const harness = mount([email("a", "primary")]);
+
+    await act(async () => {
+      await harness.drop("promotions", ["a"]);
+    });
+
+    const prompt = prompt_toast(0);
+
+    await act(async () => {
+      await prompt.on_undo!();
+      prompt.actions![0]!.on_press();
+      await flush();
+    });
+
+    expect(persisted).toEqual([]);
+    expect(show_action_toast).toHaveBeenCalledTimes(1);
   });
 
   it("learns nothing when the category write fails", async () => {
@@ -408,6 +532,10 @@ describe("use_category_drop", () => {
 
     await act(async () => {
       await harness.drop("promotions", ["a"]);
+    });
+    await act(async () => {
+      prompt_toast(0).actions?.[0]?.on_press();
+      await flush();
     });
 
     expect(get_learned_senders()).toEqual([]);
@@ -434,13 +562,18 @@ describe("use_category_drop", () => {
     await act(async () => {
       await harness.drop("promotions", ["a", "b"]);
     });
+    await act(async () => {
+      prompt_toast(0).actions![0]!.on_press();
+      await flush();
+    });
 
     expect(get_learned_senders().map((entry) => entry.sender)).toEqual([
       "sender@example.com",
     ]);
+    expect(prompt_toast(1).message).toBe("mail.category_future_done_one");
   });
 
-  it("learns nothing before preferences load", async () => {
+  it("does not ask before preferences load", async () => {
     set_message_category.mockResolvedValue(applied_result);
 
     configure_learned_senders({
@@ -456,10 +589,11 @@ describe("use_category_drop", () => {
       await harness.drop("promotions", ["a"]);
     });
 
+    expect(prompt_toast(0).actions).toBeUndefined();
     expect(get_learned_senders()).toEqual([]);
   });
 
-  it("does not learn an Aster-domain or failed-auth sender from a drop", async () => {
+  it("does not ask about an Aster-domain or failed-auth sender", async () => {
     set_message_category.mockResolvedValue(applied_result);
 
     configure_learned_senders({
@@ -482,6 +616,7 @@ describe("use_category_drop", () => {
       await harness.drop("promotions", ["a", "b"]);
     });
 
+    expect(prompt_toast(0).actions).toBeUndefined();
     expect(get_learned_senders()).toEqual([]);
   });
 
