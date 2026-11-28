@@ -329,7 +329,7 @@ export function PlanPaymentMethodModal({
     ? format_for(effective_method, summary_total_cents)
     : null;
   const save_badge = special_offer ? (
-    <span className="plan_galaxy_badge inline-flex flex-shrink-0 items-center rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide">
+    <span className="flex-shrink-0 text-[12px] font-semibold text-[var(--accent-color)]">
       {t("settings.special_offer_save_badge", {
         percent: String(special_offer.percent_off),
       })}
@@ -439,14 +439,14 @@ export function PlanPaymentMethodModal({
                       <span className="mt-1 block text-[15px] font-bold text-txt-primary">
                         {choice.price_label}
                       </span>
+                      {choice.is_recommended && (
+                        <span className="mt-1 block text-[12px] font-semibold text-[var(--accent-color)]">
+                          {t("settings.plan_recommended")}
+                        </span>
+                      )}
                       {choice.note && (
                         <span className="mt-1 block text-[11px] leading-snug text-txt-muted">
                           {choice.note}
-                        </span>
-                      )}
-                      {choice.is_recommended && (
-                        <span className="plan_galaxy_badge mt-2 inline-flex w-fit items-center self-start rounded-full px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide">
-                          {t("settings.plan_recommended")}
                         </span>
                       )}
                     </button>
@@ -495,7 +495,7 @@ export function PlanPaymentMethodModal({
                             ? save_badge
                             : !special_offer &&
                               option.id === best_value_id && (
-                                <span className="plan_galaxy_badge inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider">
+                                <span className="text-[12px] font-semibold text-[var(--accent-color)]">
                                   {t("settings.best_value")}
                                 </span>
                               )}
@@ -714,7 +714,7 @@ export function PlanPaymentMethodModal({
                 : !special_offer &&
                   active_option &&
                   active_option.id === best_value_id && (
-                    <span className="plan_galaxy_badge inline-flex flex-shrink-0 items-center rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide">
+                    <span className="flex-shrink-0 text-[12px] font-semibold text-[var(--accent-color)]">
                       {t("settings.best_value")}
                     </span>
                   )}
