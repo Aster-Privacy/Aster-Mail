@@ -67,7 +67,7 @@ import {
   press_control,
   use_press_prefetch,
 } from "@/components/email/hooks/use_press_prefetch";
-import { is_system_email, trust_source_for_display } from "@/lib/utils";
+import { trust_source_for_display, is_aster_trusted_sender } from "@/lib/utils";
 import { use_should_reduce_motion } from "@/provider";
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
 import {
@@ -498,7 +498,7 @@ export const MobileEmailRow = memo(function MobileEmailRow(
             plain={marks_hidden}
             sender_authenticated={
               !marks_hidden &&
-              is_system_email(
+              is_aster_trusted_sender(
                 trust_source_for_display(email, show_sender_email),
               )
             }

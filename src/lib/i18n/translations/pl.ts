@@ -10828,6 +10828,8 @@ export const pl = {
     official_sender: "Oficjalny adres Aster",
     official_sender_desc:
       "Ta wiadomość pochodzi z oficjalnego adresu Aster. Aster nigdy nie poprosi Cię e-mailem o hasło ani frazę odzyskiwania.",
+    system_sender_no_replies:
+      "Ten adres wysyła wiadomości automatyczne i nie może odbierać odpowiedzi.",
     message_details: "Szczegóły wiadomości",
     message_headers: "Nagłówki wiadomości",
     message_id_label: "ID wiadomości:",

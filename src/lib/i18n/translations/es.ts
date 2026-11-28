@@ -10660,6 +10660,8 @@ export const es = {
     official_sender: "Dirección oficial de Aster",
     official_sender_desc:
       "Este mensaje proviene de una dirección oficial de Aster. Aster nunca te pedirá tu contraseña ni tu frase de recuperación por correo.",
+    system_sender_no_replies:
+      "Esta dirección envía mensajes automáticos y no puede recibir respuestas.",
     zero_access_encrypted: "Cifrado de extremo a extremo",
     sort_by: "Ordenar por",
     newest_first: "Más recientes primero",

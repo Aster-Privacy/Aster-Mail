@@ -54,11 +54,9 @@ export function SenderAddressCopyRow({
 
   return (
     <DropdownMenuItem
-      aria-label={t("common.copy_address")}
-      className="-mx-2 mt-1.5 text-[13px] text-txt-secondary"
+      className="gap-2 cursor-pointer"
       data-copied={is_copied ? "true" : "false"}
       data-testid="sender_address_copy_row"
-      title={t("common.copy_address")}
       onSelect={(event) => {
         event.preventDefault();
         void on_copy().then((copied) => {
@@ -66,19 +64,14 @@ export function SenderAddressCopyRow({
         });
       }}
     >
-      <span
-        className="min-w-0 flex-1 truncate text-start"
-        data-testid="sender_address_copy_value"
-        dir="ltr"
-        translate="no"
-      >
-        {email}
-      </span>
       <Square2StackIcon
         aria-hidden="true"
-        className="text-txt-muted"
+        className="w-4 h-4 flex-shrink-0"
         data-testid="sender_address_copy_icon"
       />
+      <span className="flex-1" data-testid="sender_address_copy_label">
+        {is_copied ? t("common.copied") : t("common.copy_address")}
+      </span>
       <span aria-live="polite" className="sr-only" role="status">
         {is_copied ? t("common.copied") : ""}
       </span>

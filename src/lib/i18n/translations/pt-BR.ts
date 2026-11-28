@@ -10636,6 +10636,8 @@ export const pt_br = {
     official_sender: "Endereço oficial da Aster",
     official_sender_desc:
       "Esta mensagem é de um endereço oficial da Aster. A Aster nunca solicitará sua senha ou frase de recuperação por e-mail.",
+    system_sender_no_replies:
+      "Este endereço envia mensagens automáticas e não pode receber respostas.",
     important: "Importante",
     most_recent: "Mais recentes",
     sent_by_me: "Enviado por mim",

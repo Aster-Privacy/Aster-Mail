@@ -10676,6 +10676,8 @@ export const it = {
     official_sender: "Indirizzo ufficiale Aster",
     official_sender_desc:
       "Questo messaggio proviene da un indirizzo ufficiale Aster. Aster non ti chiederà mai la password o la frase di recupero via email.",
+    system_sender_no_replies:
+      "Questo indirizzo invia messaggi automatici e non può ricevere risposte.",
     filter_not_prefix: "Non ",
     filter_from: "Da: {{ value }}",
     filter_to: "A: {{ value }}",

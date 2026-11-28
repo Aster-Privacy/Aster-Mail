@@ -10750,6 +10750,8 @@ export const de = {
     official_sender: "Offizielle Aster-Adresse",
     official_sender_desc:
       "Diese Nachricht stammt von einer offiziellen Aster-Adresse. Aster fragt Sie niemals per E-Mail nach Ihrem Passwort oder Ihrer Wiederherstellungsphrase.",
+    system_sender_no_replies:
+      "Diese Adresse versendet automatische Nachrichten und kann keine Antworten empfangen.",
     zero_access_encrypted: "Ende-zu-Ende-verschlüsselt",
     sort_by: "Sortieren nach",
     newest_first: "Neueste zuerst",

@@ -10185,6 +10185,8 @@ export const ja = {
     official_sender: "Aster公式アドレス",
     official_sender_desc:
       "このメッセージはAsterの公式アドレスから送信されています。Asterがメールでパスワードやリカバリーフレーズを尋ねることはありません。",
+    system_sender_no_replies:
+      "このアドレスは自動送信専用のため、返信を受け取れません。",
     message_details: "メッセージの詳細",
     message_headers: "メッセージヘッダー",
     message_id_label: "メッセージ ID：",

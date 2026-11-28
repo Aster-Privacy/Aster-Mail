@@ -93,6 +93,7 @@ import {
   is_mac_platform,
   is_system_email,
   trust_source_for_display,
+  is_aster_trusted_sender,
 } from "@/lib/utils";
 import { list_click_intent } from "@/lib/list_click_selection";
 import { is_compact_density, list_select_slot_class } from "@/lib/list_density";
@@ -563,7 +564,7 @@ export const InboxEmailListItem = memo(
                       plain={marks_hidden}
                       sender_authenticated={
                         !marks_hidden &&
-                        is_system_email(
+                        is_aster_trusted_sender(
                           trust_source_for_display(email, show_sender_email),
                         )
                       }

@@ -10439,6 +10439,8 @@ export const nl = {
     official_sender: "Officieel Aster-adres",
     official_sender_desc:
       "Dit bericht komt van een officieel Aster-adres. Aster vraagt je nooit per e-mail om je wachtwoord of herstelzin.",
+    system_sender_no_replies:
+      "Dit adres verstuurt automatische berichten en kan geen antwoorden ontvangen.",
     message_details: "Berichtdetails",
     message_headers: "Berichtkoppen",
     message_id_label: "Bericht-ID:",

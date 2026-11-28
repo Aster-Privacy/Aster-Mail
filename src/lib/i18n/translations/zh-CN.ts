@@ -9368,6 +9368,8 @@ export const zh_CN = {
     official_sender: "Aster 官方地址",
     official_sender_desc:
       "此邮件来自 Aster 官方地址。Aster 绝不会通过电子邮件向您索要密码或恢复短语。",
+    system_sender_no_replies:
+      "此地址发送自动邮件，无法接收回复。",
     search_scope_label: "搜索",
     search_scope_all: "所有邮件",
     search_from_placeholder: "name@example.com",

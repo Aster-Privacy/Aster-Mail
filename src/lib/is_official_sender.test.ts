@@ -21,6 +21,7 @@
 import { describe, it, expect } from "vitest";
 
 import {
+  is_aster_trusted_sender,
   is_official_address,
   is_official_sender,
   trust_source_for_display,
@@ -243,5 +244,47 @@ describe("official owner address", () => {
     expect(
       is_official_sender(trust_source_for_display(source, " Findley@Aster.CX ")),
     ).toBe(true);
+  });
+});
+
+describe("is_aster_trusted_sender", () => {
+  it("trusts proven system mail from a no-reply address", () => {
+    expect(
+      is_aster_trusted_sender({
+        ...proven_system,
+        sender_email: "noreply@astermail.org",
+      }),
+    ).toBe(true);
+  });
+
+  it("trusts a verified internal official person address", () => {
+    expect(
+      is_aster_trusted_sender({
+        ...proven_human,
+        sender_email: "support@astermail.org",
+      }),
+    ).toBe(true);
+  });
+
+  it("does not trust an official address without proof", () => {
+    expect(
+      is_aster_trusted_sender({ sender_email: "noreply@astermail.org" }),
+    ).toBe(false);
+    expect(
+      is_aster_trusted_sender({
+        is_external: true,
+        sender_verification: "verified",
+        sender_email: "support@astermail.org",
+      }),
+    ).toBe(false);
+  });
+
+  it("does not trust a regular user even with a system origin", () => {
+    expect(
+      is_aster_trusted_sender({
+        ...proven_system,
+        sender_email: "kosei@astermail.org",
+      }),
+    ).toBe(false);
   });
 });

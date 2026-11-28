@@ -23,16 +23,21 @@ import type { SenderProfileAvatarRenderer } from "@aster/ui";
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { SenderProfileCardView, is_aster_email_address } from "@aster/ui";
+import { is_aster_email_address } from "@aster/ui";
 
 import { copy_text_or_throw } from "@/utils/copy_text";
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
 import { ProfileNotesInline } from "@/components/profile/profile_notes_inline";
 import { SenderAddressCopyRow } from "@/components/profile/sender_address_copy_row";
+import { SenderProfileCard } from "@/components/profile/sender_profile_card";
+import { SystemSenderCard } from "@/components/profile/system_sender_card";
 import { show_toast } from "@/components/toast/simple_toast";
 import { use_auth } from "@/contexts/auth_context";
 import { use_i18n } from "@/lib/i18n/context";
-import { get_email_domain, get_email_username } from "@/lib/utils";
+import {
+  get_email_username,
+  is_system_address,
+} from "@/lib/utils";
 import {
   create_contact_encrypted,
   delete_contact,
@@ -63,6 +68,7 @@ export interface SenderProfileTriggerProps {
   className?: string;
   plain?: boolean;
   selectable?: boolean;
+  sender_authenticated?: boolean;
 }
 
 export function SenderProfileTrigger({
@@ -73,6 +79,7 @@ export function SenderProfileTrigger({
   className,
   plain,
   selectable = false,
+  sender_authenticated = false,
 }: SenderProfileTriggerProps) {
   const { t } = use_i18n();
   const navigate = useNavigate();
@@ -92,12 +99,13 @@ export function SenderProfileTrigger({
   const content_ref = useRef<HTMLSpanElement>(null);
   const anchor_ref = useRef<HTMLSpanElement>(null);
   const was_open_ref = useRef(false);
-  const domain = get_email_domain(email);
   const is_aster_user = is_aster_email_address(email);
   const display_name = name || get_email_username(email);
+  const is_trusted = sender_authenticated && !plain;
+  const is_system_sender = is_trusted && is_system_address(email);
 
   const load_status = useCallback(async () => {
-    if (!has_keys) return;
+    if (!has_keys || is_system_sender) return;
 
     ensure_contact_email_index().then(() => {
       set_existing_contact_id(get_cached_contact_id(email) ?? null);
@@ -116,7 +124,7 @@ export function SenderProfileTrigger({
     } catch {
       checked_ref.current = null;
     }
-  }, [email, has_keys, is_aster_user]);
+  }, [email, has_keys, is_aster_user, is_system_sender]);
 
   useEffect(() => {
     if (!is_open) {
@@ -345,19 +353,36 @@ export function SenderProfileTrigger({
       email={email}
       name={display_name}
       plain={plain}
+      sender_authenticated={is_trusted}
       size={size}
     />
   );
 
-  const card = (trigger_children: React.ReactNode, trigger_class?: string) => (
-    <SenderProfileCardView
-      address_row={
+  const system_card = (
+    trigger_children: React.ReactNode,
+    trigger_class?: string,
+  ) => (
+    <SystemSenderCard
+      display_name={display_name}
+      email={email}
+      is_open={is_open}
+      render_avatar={render_avatar}
+      trigger_className={trigger_class}
+      on_copy_email={handle_copy_email}
+      on_open_change={set_is_open}
+    >
+      {trigger_children}
+    </SystemSenderCard>
+  );
+
+  const standard_card = (trigger_children: React.ReactNode, trigger_class?: string) => (
+    <SenderProfileCard
+      copy_row={
         <SenderAddressCopyRow email={email} on_copy={handle_copy_email} />
       }
       allowlist_disabled={is_allowlist_loading || !has_keys}
       contact_disabled={is_contact_loading || !has_keys}
       display_name={display_name}
-      domain={domain}
       email={email}
       is_allowlist_loading={is_allowlist_loading}
       is_allowlisted={is_allowlisted}
@@ -372,7 +397,6 @@ export function SenderProfileTrigger({
       on_block_action={handle_block}
       on_compose={on_compose ? handle_compose : undefined}
       on_contact_action={handle_contact_action}
-      on_copy_email={handle_copy_email}
       on_messages_from={handle_messages_from}
       on_open_change={set_is_open}
       on_toggle_notes={() => set_show_notes((p) => !p)}
@@ -394,8 +418,10 @@ export function SenderProfileTrigger({
       trigger_className={trigger_class}
     >
       {trigger_children}
-    </SenderProfileCardView>
+    </SenderProfileCard>
   );
+
+  const card = is_system_sender ? system_card : standard_card;
 
   if (!selectable) return card(children, className);
 

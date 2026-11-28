@@ -24,22 +24,30 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 
-const card_props = vi.hoisted(() => ({ address_row: null as unknown }));
+const card_props = vi.hoisted(() => ({ copy_row: null as unknown }));
+const avatar_props = vi.hoisted(() => ({
+  last: null as null | { sender_authenticated?: boolean },
+}));
+const system_card_props = vi.hoisted(() => ({
+  last: null as null | { email: string; display_name: string },
+}));
 
 vi.mock("@aster/ui", () => ({
   is_aster_email_address: () => true,
-  SenderProfileCardView: ({
+}));
+vi.mock("@/components/profile/sender_profile_card", () => ({
+  SenderProfileCard: ({
     children,
     is_open,
     on_open_change,
-    address_row,
+    copy_row,
   }: {
     children: ReactNode;
     is_open: boolean;
     on_open_change: (open: boolean) => void;
-    address_row?: ReactNode;
+    copy_row?: ReactNode;
   }) => {
-    card_props.address_row = address_row;
+    card_props.copy_row = copy_row;
 
     return (
       <button
@@ -61,7 +69,33 @@ vi.mock("@/lib/i18n/context", () => ({
   use_i18n: () => ({ t: (key: string) => key }),
 }));
 vi.mock("@/components/ui/profile_avatar", () => ({
-  ProfileAvatar: () => null,
+  ProfileAvatar: (props: { sender_authenticated?: boolean }) => {
+    avatar_props.last = props;
+
+    return null;
+  },
+}));
+vi.mock("@/components/profile/system_sender_card", () => ({
+  SystemSenderCard: ({
+    children,
+    email,
+    display_name,
+    render_avatar,
+  }: {
+    children: ReactNode;
+    email: string;
+    display_name: string;
+    render_avatar: (o: { size: string }) => ReactNode;
+  }) => {
+    system_card_props.last = { email, display_name };
+
+    return (
+      <div data-testid="system_card">
+        {render_avatar({ size: "md" })}
+        {children}
+      </div>
+    );
+  },
 }));
 vi.mock("@/components/profile/profile_notes_inline", () => ({
   ProfileNotesInline: () => null,
@@ -256,9 +290,9 @@ describe("SenderProfileTrigger selectable label", () => {
     expect(second.defaultPrevented).toBe(true);
   });
 
-  it("hands the card the themed address copy row", () => {
+  it("hands the card the copy address action", () => {
     render_trigger(false);
-    const row = card_props.address_row as {
+    const row = card_props.copy_row as {
       type: unknown;
       props: { email: string; on_copy: unknown };
     };
@@ -266,5 +300,53 @@ describe("SenderProfileTrigger selectable label", () => {
     expect(row.type).toBe(SenderAddressCopyRow);
     expect(row.props.email).toBe("kosei@astermail.org");
     expect(typeof row.props.on_copy).toBe("function");
+  });
+});
+
+describe("SenderProfileTrigger system senders", () => {
+  function render_sender(email: string, sender_authenticated: boolean) {
+    system_card_props.last = null;
+    avatar_props.last = null;
+    act(() => {
+      root!.render(
+        <SenderProfileTrigger
+          email={email}
+          name="Aster Mail"
+          sender_authenticated={sender_authenticated}
+        >
+          <span>Aster Mail</span>
+        </SenderProfileTrigger>,
+      );
+    });
+  }
+
+  it("shows the system card with the trusted avatar for a verified no-reply sender", () => {
+    render_sender("noreply@astermail.org", true);
+
+    expect(
+      container!.querySelector('[data-testid="system_card"]'),
+    ).not.toBeNull();
+    expect(container!.querySelector("[data-open]")).toBeNull();
+    expect(system_card_props.last).toEqual({
+      email: "noreply@astermail.org",
+      display_name: "Aster Mail",
+    });
+    expect(avatar_props.last?.sender_authenticated).toBe(true);
+  });
+
+  it("keeps the full card for an unverified sender using a system address", () => {
+    render_sender("noreply@astermail.org", false);
+
+    expect(container!.querySelector('[data-testid="system_card"]')).toBeNull();
+    expect(container!.querySelector("[data-open]")).not.toBeNull();
+    expect(avatar_props.last?.sender_authenticated).toBe(false);
+  });
+
+  it("keeps the full card with the trusted avatar for an official person address", () => {
+    render_sender("support@astermail.org", true);
+
+    expect(container!.querySelector('[data-testid="system_card"]')).toBeNull();
+    expect(container!.querySelector("[data-open]")).not.toBeNull();
+    expect(avatar_props.last?.sender_authenticated).toBe(true);
   });
 });

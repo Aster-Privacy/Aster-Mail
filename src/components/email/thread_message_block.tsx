@@ -56,7 +56,7 @@ import {
   ReportSpamIcon,
 } from "@/components/email/spam_action_icons";
 import { copy_text_or_throw } from "@/utils/copy_text";
-import { is_system_email, trust_source_for_display } from "@/lib/utils";
+import { trust_source_for_display, is_aster_trusted_sender } from "@/lib/utils";
 import { EmailTag } from "@/components/ui/email_tag";
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
 import {
@@ -374,7 +374,7 @@ export function ThreadMessageBlock(
             className="flex-shrink-0 mt-0.5 select-none"
             email={message.sender_email}
             name={message.sender_name}
-            sender_authenticated={is_system_email(message)}
+            sender_authenticated={is_aster_trusted_sender(message)}
             size="md"
           />
         ) : (
@@ -383,6 +383,7 @@ export function ThreadMessageBlock(
             email={message.sender_email}
             name={sender_trust ? sender_trust.name : message.sender_name}
             plain={marks_hidden}
+            sender_authenticated={is_aster_trusted_sender(message)}
           >
             <ProfileAvatar
               use_domain_logo
@@ -391,7 +392,7 @@ export function ThreadMessageBlock(
               plain={marks_hidden}
               sender_authenticated={
                 !marks_hidden &&
-                is_system_email(
+                is_aster_trusted_sender(
                   trust_source_for_display(message, show_sender_email),
                 )
               }
@@ -415,6 +416,7 @@ export function ThreadMessageBlock(
                 name={sender_trust ? sender_trust.name : message.sender_name}
                 plain={marks_hidden}
                 selectable
+                sender_authenticated={is_aster_trusted_sender(message)}
               >
                 {name}
               </SenderProfileTrigger>
@@ -500,7 +502,7 @@ export function ThreadMessageBlock(
                   plain_avatar={marks_hidden}
                   sender_authenticated={
                     !marks_hidden &&
-                    is_system_email(
+                    is_aster_trusted_sender(
                       trust_source_for_display(message, show_sender_email),
                     )
                   }

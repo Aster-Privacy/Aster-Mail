@@ -10250,6 +10250,8 @@ export const en: Translations = {
     official_sender: "Official Aster address",
     official_sender_desc:
       "This message is from an official Aster address. Aster will never ask for your password or recovery phrase by email.",
+    system_sender_no_replies:
+      "This address sends automated messages and can't receive replies.",
     verified_sender: "Verified domain",
     verified_sender_desc:
       "Aster's servers checked that the sender owns {{domain}}.",
