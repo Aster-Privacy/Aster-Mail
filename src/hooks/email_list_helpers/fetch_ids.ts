@@ -114,6 +114,7 @@ export async function fetch_mail_by_ids_reconciled(
                 user_email,
                 envelope.from?.email || "",
                 item.id,
+                item.created_at,
               );
 
               envelope.body_text = bundle.body;

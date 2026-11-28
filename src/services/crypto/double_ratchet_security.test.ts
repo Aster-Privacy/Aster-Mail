@@ -25,6 +25,7 @@ import {
   generate_keypair,
   type EncryptedMessage,
 } from "./double_ratchet";
+import { array_to_base64 } from "./base64";
 import {
   append_legacy_key_raw_bytes,
   clear_legacy_keks_from_memory,
@@ -271,5 +272,89 @@ describe("DoubleRatchet header version downgrade", () => {
     expect(await DoubleRatchet.decrypt_with_message_key(v1, message_key)).toBe(
       "legacy v1 mail",
     );
+  });
+});
+
+describe("DoubleRatchet nonce checks", () => {
+  function with_nonce_bytes(message: EncryptedMessage, length: number) {
+    const bytes = new Uint8Array(length).fill(3);
+    let binary = "";
+
+    for (const byte of bytes) binary += String.fromCharCode(byte);
+
+    return { ...message, nonce: btoa(binary) };
+  }
+
+  it("refuses a nonce that is not 12 bytes and keeps the session usable", async () => {
+    const { alice, bob } = await make_pair();
+    const message = await alice.encrypt("hello");
+    const before = snapshot_state(bob);
+
+    for (const length of [0, 8, 11, 13, 16]) {
+      await expect(
+        bob.decrypt(with_nonce_bytes(message, length)),
+      ).rejects.toThrow("Malformed ratchet nonce");
+    }
+
+    await expect(
+      bob.decrypt({ ...message, nonce: "A".repeat(4096) }),
+    ).rejects.toThrow("Malformed ratchet nonce");
+    expect(snapshot_state(bob)).toBe(before);
+    expect(await bob.decrypt(message)).toBe("hello");
+  });
+
+  it("refuses a malformed nonce on a skipped message key", async () => {
+    const { alice, bob } = await make_pair();
+    const first = await alice.encrypt("first");
+    const second = await alice.encrypt("second");
+
+    expect(await bob.decrypt(second)).toBe("second");
+    await expect(
+      bob.decrypt(with_nonce_bytes(first, 16)),
+    ).rejects.toThrow("Malformed ratchet nonce");
+    expect(await bob.decrypt(first)).toBe("first");
+  });
+});
+
+describe("DoubleRatchet signed prekey secret lifetime", () => {
+  it("drops the signed prekey secret from state after the first message", async () => {
+    const shared_secret = new Uint8Array(32).fill(7);
+    const spk = await generate_keypair();
+    const spk_secret = array_to_base64(spk.secret_key);
+    const bob = await DoubleRatchet.init_receiver(
+      shared_secret,
+      spk,
+      "conv-spk",
+    );
+    const alice = await DoubleRatchet.init_sender(
+      shared_secret,
+      spk.public_key,
+      "conv-spk",
+    );
+
+    expect(await bob.decrypt(await alice.encrypt("first"))).toBe("first");
+
+    const saved = JSON.stringify(await bob.serialize());
+
+    expect(saved).not.toContain(spk_secret);
+  });
+
+  it("leaves the receiver unchanged when the first message fails", async () => {
+    const shared_secret = new Uint8Array(32).fill(7);
+    const spk = await generate_keypair();
+    const bob = await DoubleRatchet.init_receiver(
+      shared_secret,
+      spk,
+      "conv-spk-fail",
+    );
+    const alice = await DoubleRatchet.init_sender(
+      new Uint8Array(32).fill(8),
+      spk.public_key,
+      "conv-spk-fail",
+    );
+    const before = snapshot_state(bob);
+
+    await expect(bob.decrypt(await alice.encrypt("first"))).rejects.toThrow();
+    expect(snapshot_state(bob)).toBe(before);
   });
 });

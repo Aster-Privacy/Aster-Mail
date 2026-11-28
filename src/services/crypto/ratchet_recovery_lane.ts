@@ -626,7 +626,7 @@ export async function open_unauthenticated_recovery_lane(
       base64_to_array(data.nonce),
       base64_to_array(data.ciphertext),
       info,
-      stored_unbound_policy(),
+      stored_unbound_policy("recovery_lane_unbound"),
     );
 
     return new TextDecoder().decode(plaintext);

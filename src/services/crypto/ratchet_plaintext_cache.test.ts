@@ -54,11 +54,14 @@ vi.mock("@/services/account_manager", () => ({
 import {
   get_cached_ratchet_plaintext,
   is_cached_plaintext_foreign,
+  mark_cached_downgraded,
+  read_cached_opening,
   set_cached_ratchet_plaintext,
 } from "./ratchet_plaintext_cache";
 import {
   clear_ratchet_verification_status,
   clear_unauthenticated_plaintext,
+  is_downgraded_plaintext,
   is_unauthenticated_plaintext,
   is_trusted_ratchet_plaintext,
   clear_unconfirmed_sender_plaintext,
@@ -325,5 +328,76 @@ describe("ratchet plaintext cache sender binding", () => {
     );
     expect(is_unconfirmed_sender_plaintext("older bound body")).toBe(false);
     expect(is_unauthenticated_plaintext("older bound body")).toBe(false);
+  });
+
+  it("stores how a message was opened with the entry", async () => {
+    await set_cached_ratchet_plaintext(
+      "k1",
+      "older start",
+      false,
+      ALICE,
+      false,
+      undefined,
+      { account_unbound: true, sent_at: 2000 },
+    );
+
+    expect(await read_cached_opening("k1", ALICE)).toEqual({
+      downgraded: false,
+      account_unbound: true,
+      sent_at: 2000,
+    });
+    expect(await read_cached_opening("k1", MALLORY)).toBeNull();
+  });
+
+  it("keeps a downgraded mark when the entry is written again", async () => {
+    await set_cached_ratchet_plaintext(
+      "k1",
+      "older start",
+      false,
+      ALICE,
+      true,
+      undefined,
+      { downgraded: true, account_unbound: true, sent_at: 2000 },
+    );
+    await set_cached_ratchet_plaintext("k1", "older start", false, ALICE);
+    clear_ratchet_verification_status();
+
+    expect(await read_cached_opening("k1", ALICE)).toEqual({
+      downgraded: true,
+      account_unbound: true,
+      sent_at: 2000,
+    });
+    expect(await get_cached_ratchet_plaintext("k1", ALICE)).toBe("older start");
+    expect(is_downgraded_plaintext("older start")).toBe(true);
+    expect(is_unconfirmed_sender_plaintext("older start")).toBe(true);
+  });
+
+  it("marks a cached entry as downgraded for its own sender only", async () => {
+    await set_cached_ratchet_plaintext("k1", "older start", false, ALICE);
+    await mark_cached_downgraded("k1", MALLORY);
+
+    expect((await read_cached_opening("k1", ALICE))?.downgraded).toBe(false);
+
+    await mark_cached_downgraded("k1", ALICE);
+    clear_ratchet_verification_status();
+
+    expect((await read_cached_opening("k1", ALICE))?.downgraded).toBe(true);
+    expect(await get_cached_ratchet_plaintext("k1", ALICE)).toBe("older start");
+    expect(is_downgraded_plaintext("older start")).toBe(true);
+    expect(is_unconfirmed_sender_plaintext("older start")).toBe(true);
+  });
+
+  it("drops a sent time that is not a positive number", async () => {
+    await set_cached_ratchet_plaintext(
+      "k1",
+      "older start",
+      false,
+      ALICE,
+      false,
+      undefined,
+      { account_unbound: true, sent_at: Number.NaN },
+    );
+
+    expect((await read_cached_opening("k1", ALICE))?.sent_at).toBeUndefined();
   });
 });

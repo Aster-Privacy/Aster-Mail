@@ -216,6 +216,7 @@ describe("export of end-to-end encrypted bodies", () => {
       expect.objectContaining({ type: "double_ratchet_v2" }),
       key_store.vault,
       "mail_1",
+      Date.parse("2026-11-01T00:00:00.000Z"),
     );
 
     const raw = await serialized(out[0]);
@@ -257,6 +258,7 @@ describe("export of end-to-end encrypted bodies", () => {
       expect.anything(),
       key_store.vault,
       "mail_3",
+      Date.parse("2026-11-01T00:00:00.000Z"),
     );
     expect(out[0].is_sent_or_draft).toBe(true);
 

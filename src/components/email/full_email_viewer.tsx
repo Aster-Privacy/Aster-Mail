@@ -25,6 +25,7 @@ import { ArrowLeftIcon } from "@heroicons/react/24/outline";
 import { useMemo } from "react";
 
 import { EncryptionInfoDropdown } from "@/components/common/encryption_info_dropdown";
+import { SafetyNumberNotice } from "@/components/common/safety_number/safety_number_notice";
 import { TrackingProtectionShield } from "@/components/email/tracking_protection_shield";
 import { CONTENT_READY_FALLBACK_MS } from "@/components/email/sandboxed_email_renderer";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -518,6 +519,10 @@ export function FullEmailViewer({
                       is_received={viewer.mail_item?.item_type === "received"}
                       sender_verification={email.sender_verification}
                       size={22}
+                    />
+                    <SafetyNumberNotice
+                      email={email.sender_email}
+                      name={email.sender}
                     />
                     {external_content_state.report && (
                       <TrackingProtectionShield

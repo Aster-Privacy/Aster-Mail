@@ -128,6 +128,47 @@ describe("ratchet header counters", () => {
     await expect(bob.decrypt(message)).rejects.toThrow(/header/i);
   });
 
+  for (const [label, value] of [
+    ["zero", 0],
+    ["above one byte", 258],
+    ["a fraction", 2.5],
+    ["a string", "2"],
+  ] as [string, unknown][]) {
+    it(`refuses a header version that is ${label} and keeps the state`, async () => {
+      const { alice, bob } = await make_pair();
+      const message = with_header(await alice.encrypt("one"), { v: value });
+      const before = snapshot(bob);
+
+      await expect(bob.decrypt(message)).rejects.toThrow(/header/i);
+      expect(snapshot(bob)).toBe(before);
+    });
+  }
+
+  it("refuses a ratchet key in a non-canonical encoding", async () => {
+    const { alice, bob } = await make_pair();
+    const message = await alice.encrypt("one");
+    const unpadded = message.header.dh_public.replace(/=+$/, "");
+    const before = snapshot(bob);
+
+    await expect(
+      bob.decrypt(with_header(message, { dh_public: unpadded })),
+    ).rejects.toThrow(/header/i);
+    await expect(
+      bob.decrypt(with_header(message, { dh_public: ` ${message.header.dh_public}` })),
+    ).rejects.toThrow(/header/i);
+    expect(snapshot(bob)).toBe(before);
+    expect(await bob.decrypt(message)).toBe("one");
+  });
+
+  it("refuses a ratchet key of the wrong length", async () => {
+    const { alice, bob } = await make_pair();
+    const message = with_header(await alice.encrypt("one"), {
+      dh_public: btoa("x".repeat(32)),
+    });
+
+    await expect(bob.decrypt(message)).rejects.toThrow(/header/i);
+  });
+
   it("still opens well-formed messages in and out of order", async () => {
     const { alice, bob } = await make_pair();
     const first = await alice.encrypt("one");

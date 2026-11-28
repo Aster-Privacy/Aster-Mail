@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type { StepUpCredentials } from "./step_up";
+import type { StepUpHardwareKeyAssertion } from "./webauthn";
 
 import { api_client, ApiResponse } from "./client";
 import { default_guard_device_name } from "@/services/guard/guard_device_label";
@@ -240,6 +241,7 @@ interface ChangePasswordRequest {
   keep_device_lock_id?: string;
   expected_vault_sha256?: string;
   totp_code?: string;
+  hardware_key_assertion?: StepUpHardwareKeyAssertion;
 }
 
 interface ChangePasswordResponse {

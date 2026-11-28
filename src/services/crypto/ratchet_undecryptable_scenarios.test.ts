@@ -36,6 +36,7 @@ vi.mock("@/services/crypto/key_manager_pgp", async (import_original) => ({
 const h = vi.hoisted(() => ({
   vault: null as unknown,
   bundle: null as unknown,
+  history: null as unknown,
   store: new Map<string, unknown>(),
 }));
 
@@ -78,6 +79,8 @@ vi.mock("@/services/crypto/ratchet_plaintext_cache", () => ({
   get_cached_ratchet_plaintext: vi.fn(async () => null),
   get_cached_ratchet_sender_key: vi.fn(async () => null),
   set_cached_ratchet_plaintext: vi.fn(async () => {}),
+  read_cached_opening: vi.fn(async () => null),
+  mark_cached_downgraded: vi.fn(async () => {}),
 }));
 
 vi.mock("@/services/crypto/message_escrow", () => ({
@@ -116,9 +119,11 @@ vi.mock("@/services/crypto/lane_replay_sync", async (import_original) => ({
 vi.mock("@/services/api/client", () => ({
   api_client: {
     get: vi.fn(async (url: string) =>
-      url.includes("prekey-bundle")
-        ? { data: h.bundle }
-        : { code: "NOT_FOUND" },
+      h.history && url.includes("/history")
+        ? { data: h.history }
+        : url.includes("prekey-bundle")
+          ? { data: h.bundle }
+          : { code: "NOT_FOUND" },
     ),
     put: vi.fn(async () => ({ data: { state_version: 1 } })),
     post: vi.fn(async () => ({ data: { state_version: 1 } })),
@@ -140,6 +145,7 @@ import {
   derive_conversation_id,
   RecoveryLaneUnavailableError,
 } from "@/services/crypto/ratchet_manager";
+import { escrow_account_bound } from "@/services/crypto/ratchet_decrypt";
 
 import {
   fetch_from_escrow,
@@ -169,6 +175,7 @@ import {
   check_sender_identity_continuity,
   clear_sender_identity_authentication_cache,
   note_message_sender_identity,
+  SenderIdentityUnverifiedError,
 } from "@/services/crypto/sender_identity_authentication";
 import * as recovery_lane from "@/services/crypto/ratchet_recovery_lane";
 import { seal_recovery_lane as seal_legacy_recovery_lane } from "@/tests/fixtures/legacy_recovery_lane";
@@ -618,7 +625,6 @@ describe("undecryptable-message failure modes", () => {
   });
 
   it("blocks the send when the recovery lane cannot be sealed", async () => {
-
     const sender_vault = make_vault((await generate_ratchet_keys())!);
     const receiver_vault = make_vault((await generate_ratchet_keys())!);
 
@@ -1001,16 +1007,15 @@ describe("recovery lane trust", () => {
     Reflect.deleteProperty(recovery, "sct");
     Reflect.deleteProperty(recovery, "snonce");
 
-    const stripped = await decrypt_ratchet_message(
-      RECIPIENT,
-      SENDER,
-      parsed_list[1],
-      receiver_vault,
-      "lane-pin-2",
-    );
-
-    expect(stripped).toBe("stripped second");
-    expect(is_unauthenticated_plaintext(stripped, "lane-pin-2")).toBe(true);
+    await expect(
+      decrypt_ratchet_message(
+        RECIPIENT,
+        SENDER,
+        parsed_list[1],
+        receiver_vault,
+        "lane-pin-2",
+      ),
+    ).rejects.toBeInstanceOf(SenderIdentityUnverifiedError);
     expect(get_message_sender_identity("lane-pin-2")).toBe("unverified");
   });
 
@@ -1172,9 +1177,9 @@ describe("recovery lane trust", () => {
     );
 
     expect(plaintext).toBe("below the shared floor");
-    expect(
-      is_unauthenticated_plaintext(plaintext, "lane-shared-floor"),
-    ).toBe(true);
+    expect(is_unauthenticated_plaintext(plaintext, "lane-shared-floor")).toBe(
+      true,
+    );
   });
 
   it("keeps the replay record across devices through the vault", async () => {
@@ -1255,9 +1260,7 @@ describe("recovery lane trust", () => {
   });
 
   it("keeps a genuine message trusted when a planted copy of its text carries a warning", async () => {
-    const { parsed_list, receiver_vault } = await lane_messages([
-      "same words",
-    ]);
+    const { parsed_list, receiver_vault } = await lane_messages(["same words"]);
 
     mark_unauthenticated_plaintext("same words", "planted-item");
 
@@ -1325,6 +1328,9 @@ describe("recovery lane trust", () => {
       "opened through the lane",
       true,
       expect.objectContaining({ sender: SENDER }),
+      false,
+      undefined,
+      expect.objectContaining({ downgraded: false }),
     );
   });
 
@@ -1349,7 +1355,7 @@ describe("recovery lane trust", () => {
     expect(plaintext).toBe("decrypted on another device");
     expect(is_unauthenticated_plaintext(plaintext)).toBe(false);
     expect(is_ratchet_verified_body(envelope, plaintext)).toBe(true);
-    expect(note_message_sender_identity).toHaveBeenCalledWith("lane-2", SENDER);
+    expect(note_message_sender_identity).toHaveBeenCalledWith("lane-2");
     expect(fetch_verified_from_escrow).toHaveBeenCalledWith(
       expect.stringContaining("lane-2"),
       expect.objectContaining({ sender: SENDER }),
@@ -1394,6 +1400,8 @@ describe("recovery lane trust", () => {
       plaintext: "unbound escrow copy",
       verified: false,
       unconfirmed_sender: false,
+      downgraded: false,
+      account_unbound: false,
     }));
 
     const plaintext = await decrypt_ratchet_message(
@@ -1429,6 +1437,8 @@ describe("recovery lane trust", () => {
       plaintext: "cached through the lane",
       verified: false,
       unconfirmed_sender: false,
+      downgraded: false,
+      account_unbound: false,
     }));
 
     const plaintext = await decrypt_ratchet_message(
@@ -1476,10 +1486,7 @@ describe("recovery lane trust", () => {
     expect(plaintext).toBe("cached then verified");
     expect(is_unauthenticated_plaintext(plaintext)).toBe(false);
     expect(is_ratchet_verified_body(envelope, plaintext)).toBe(true);
-    expect(note_message_sender_identity).toHaveBeenCalledWith(
-      "lane-3b",
-      SENDER,
-    );
+    expect(note_message_sender_identity).toHaveBeenCalledWith("lane-3b");
   });
 
   it("does not ask the escrow again after a bound copy was missing", async () => {
@@ -1551,6 +1558,8 @@ describe("recovery lane trust", () => {
             plaintext: "the real message",
             verified: true,
             unconfirmed_sender: false,
+            downgraded: false,
+            account_unbound: false,
           }
         : null,
     );
@@ -1601,6 +1610,8 @@ describe("recovery lane trust", () => {
       plaintext: "recovered from escrow",
       verified: true,
       unconfirmed_sender: false,
+      downgraded: false,
+      account_unbound: false,
     }));
 
     const plaintext = await decrypt_ratchet_message(
@@ -1637,6 +1648,8 @@ describe("recovery lane trust", () => {
       plaintext: "recovered from v2 escrow",
       verified: false,
       unconfirmed_sender: false,
+      downgraded: false,
+      account_unbound: false,
     }));
 
     const plaintext = await decrypt_ratchet_message(
@@ -1680,6 +1693,8 @@ describe("recovery lane trust", () => {
       "first contact",
       expect.objectContaining({ sender: SENDER }),
       true,
+      false,
+      { account_unbound: true, account_bound: false, sent_at: undefined },
     );
 
     h.vault = receiver_vault;
@@ -1706,8 +1721,18 @@ describe("recovery lane trust", () => {
         conversation_id: expect.any(String),
       }),
       false,
+      false,
+      expect.objectContaining({ account_unbound: true, account_bound: false }),
     );
     expect(fetch_verified_from_escrow).not.toHaveBeenCalled();
+  });
+
+  it("marks an escrow copy account bound only for a clean bound opening", () => {
+    expect(escrow_account_bound(true, false, false)).toBe(true);
+    expect(escrow_account_bound(true, true, false)).toBe(false);
+    expect(escrow_account_bound(true, false, true)).toBe(false);
+    expect(escrow_account_bound(false, false, false)).toBe(false);
+    expect(escrow_account_bound(undefined, false, false)).toBe(false);
   });
 
   it("drops the verified mark and shows a notice when a known sender's key changes", async () => {
@@ -1997,6 +2022,235 @@ describe("recovery lane trust", () => {
       expect.objectContaining({ sender: SENDER }),
       true,
       sender_vault.ratchet_identity_public!,
+      expect.objectContaining({ downgraded: false }),
     );
+  });
+});
+
+describe("sender key publish window", () => {
+  const IN_WINDOW = Date.parse("2026-09-21T12:00:00Z");
+  const AFTER_GRACE = Date.parse("2026-09-22T00:10:01Z");
+
+  beforeEach(() => {
+    h.vault = null;
+    h.bundle = null;
+    h.history = null;
+    h.store.clear();
+    localStorage.clear();
+    clear_sender_identity_authentication_cache();
+    vi.mocked(fetch_from_escrow).mockReset();
+    vi.mocked(fetch_from_escrow).mockImplementation(async () => null);
+    vi.mocked(fetch_verified_from_escrow).mockReset();
+    vi.mocked(fetch_verified_from_escrow).mockImplementation(async () => null);
+    vi.mocked(get_cached_ratchet_plaintext).mockReset();
+    vi.mocked(get_cached_ratchet_plaintext).mockImplementation(
+      async () => null,
+    );
+    vi.mocked(get_cached_ratchet_sender_key).mockReset();
+    vi.mocked(get_cached_ratchet_sender_key).mockImplementation(
+      async () => null,
+    );
+  });
+
+  async function rotated_sender() {
+    const old_vault = make_vault((await generate_ratchet_keys())!);
+    const new_vault = make_vault((await generate_ratchet_keys())!);
+    const receiver_vault = make_vault((await generate_ratchet_keys())!);
+
+    return {
+      old_vault,
+      new_vault,
+      receiver_vault,
+      publish: () => {
+        h.bundle = bundle_for(new_vault);
+        h.history = {
+          user_id: "sender",
+          history_complete: true,
+          entries: [
+            {
+              kem_identity_key: new_vault.ratchet_identity_public,
+              first_published_at: "2026-09-22T00:00:00Z",
+              last_published_at: "2026-09-23T00:00:00Z",
+            },
+            {
+              kem_identity_key: old_vault.ratchet_identity_public,
+              first_published_at: "2026-09-20T00:00:00Z",
+              last_published_at: "2026-09-21T00:00:00Z",
+            },
+          ],
+        };
+        clear_sender_identity_authentication_cache();
+      },
+    };
+  }
+
+  async function open(
+    envelope: string,
+    receiver_vault: EncryptedVault,
+    message_id: string,
+    sent_at?: number,
+  ) {
+    h.vault = receiver_vault;
+
+    return decrypt_ratchet_message(
+      RECIPIENT,
+      SENDER,
+      parse_ratchet_envelope(envelope)!,
+      receiver_vault,
+      message_id,
+      sent_at,
+    );
+  }
+
+  async function sealed_by_old_key(body: string) {
+    const parties = await rotated_sender();
+
+    h.bundle = bundle_for(parties.receiver_vault);
+
+    const envelope = await send(body, parties.old_vault);
+
+    h.store.clear();
+    parties.publish();
+
+    return { ...parties, envelope };
+  }
+
+  it("verifies mail from a past key received inside its publish window", async () => {
+    const { envelope, receiver_vault, old_vault } =
+      await sealed_by_old_key("in window");
+
+    h.vault = receiver_vault;
+    await trust_recipient_keys(
+      SENDER,
+      old_vault.ratchet_identity_public!,
+      null,
+      null,
+      false,
+      true,
+    );
+
+    const plaintext = await open(envelope, receiver_vault, "w-1", IN_WINDOW);
+
+    expect(plaintext).toBe("in window");
+    expect(is_ratchet_verified_body(envelope, plaintext)).toBe(true);
+  });
+
+  it("opens mail from a retired key without verifying or remembering it", async () => {
+    const { envelope, receiver_vault, old_vault } =
+      await sealed_by_old_key("after rotation");
+
+    const plaintext = await open(envelope, receiver_vault, "w-2", AFTER_GRACE);
+
+    expect(plaintext).toBe("after rotation");
+    expect(is_ratchet_verified_body(envelope, plaintext)).toBe(false);
+    expect(get_message_sender_identity("w-2")).not.toBe("verified");
+    expect(
+      await check_sender_identity_continuity(
+        SENDER,
+        old_vault.ratchet_identity_public!,
+      ),
+    ).toBe("new");
+  });
+
+  it("treats a past key with no receive time as retired", async () => {
+    const { envelope, receiver_vault, old_vault } =
+      await sealed_by_old_key("no receive time");
+
+    const plaintext = await open(envelope, receiver_vault, "w-3");
+
+    expect(plaintext).toBe("no receive time");
+    expect(is_ratchet_verified_body(envelope, plaintext)).toBe(false);
+    expect(
+      await check_sender_identity_continuity(
+        SENDER,
+        old_vault.ratchet_identity_public!,
+      ),
+    ).toBe("new");
+  });
+
+  it("does not let a known key that was since retired start a verified session", async () => {
+    const { old_vault, receiver_vault, publish } = await rotated_sender();
+
+    h.bundle = bundle_for(receiver_vault);
+
+    const first = await send("first", old_vault);
+    h.store.clear();
+    publish();
+    h.vault = receiver_vault;
+    await trust_recipient_keys(
+      SENDER,
+      old_vault.ratchet_identity_public!,
+      null,
+      null,
+      false,
+      true,
+    );
+
+    const opened = await open(first, receiver_vault, "w-4", IN_WINDOW);
+
+    expect(is_ratchet_verified_body(first, opened)).toBe(true);
+    expect(
+      await check_sender_identity_continuity(
+        SENDER,
+        old_vault.ratchet_identity_public!,
+      ),
+    ).toBe("known");
+
+    const receiver_store = snapshot_state();
+
+    h.store.clear();
+    h.bundle = bundle_for(receiver_vault);
+
+    const late = await send("late bootstrap", old_vault);
+
+    restore_state(receiver_store);
+    publish();
+
+    const plaintext = await open(late, receiver_vault, "w-5", AFTER_GRACE);
+
+    expect(plaintext).toBe("late bootstrap");
+    expect(is_ratchet_verified_body(late, plaintext)).toBe(false);
+    expect(get_message_sender_identity("w-5")).not.toBe("verified");
+  });
+
+  it("does not verify a new session from a remembered key the directory stopped listing", async () => {
+    const { old_vault, receiver_vault, publish } = await rotated_sender();
+
+    h.bundle = bundle_for(receiver_vault);
+
+    const first = await send("first", old_vault);
+
+    h.store.clear();
+    publish();
+    await open(first, receiver_vault, "w-7", IN_WINDOW);
+
+    const receiver_store = snapshot_state();
+
+    h.store.clear();
+    h.bundle = bundle_for(receiver_vault);
+
+    const next = await send("unlisted bootstrap", old_vault);
+
+    restore_state(receiver_store);
+    publish();
+    h.history = { user_id: "sender", history_complete: true, entries: [] };
+
+    const plaintext = await open(next, receiver_vault, "w-8", IN_WINDOW);
+
+    expect(plaintext).toBe("unlisted bootstrap");
+    expect(is_ratchet_verified_body(next, plaintext)).toBe(false);
+    expect(get_message_sender_identity("w-8")).not.toBe("verified");
+  });
+
+  it("does not verify a bootstrap from a key the directory never listed", async () => {
+    const { envelope, receiver_vault } = await sealed_by_old_key("unlisted");
+
+    (h.history as { entries: unknown[] }).entries.pop();
+    clear_sender_identity_authentication_cache();
+
+    const plaintext = await open(envelope, receiver_vault, "w-6", IN_WINDOW);
+
+    expect(plaintext).toBe("unlisted");
+    expect(is_ratchet_verified_body(envelope, plaintext)).toBe(false);
   });
 });

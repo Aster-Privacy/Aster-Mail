@@ -23,8 +23,10 @@ import type { SerializedState, SkippedMessageKey } from "./double_ratchet";
 import { describe, it, expect } from "vitest";
 
 import {
+  archived_session_supersedes,
   merge_discards_local_epoch,
   merge_ratchet_states,
+  server_replacement_supersedes,
 } from "./ratchet_state_merge";
 
 const CONVERSATION = "conversation-token-abc";
@@ -613,5 +615,138 @@ describe("retaining skipped message keys across devices", () => {
 
     expect(Math.min(...timestamps)).toBe(1_000 + 1000);
     expect(Math.max(...timestamps)).toBe(10_000 + 1499);
+  });
+});
+
+describe("archived session promotion", () => {
+  it("keeps the current session when an older one has ratcheted further", () => {
+    const current = make_state({ created_at: 5_000, epoch: 1 });
+    const older = make_state({
+      root_key: "older-root",
+      created_at: 1_000,
+      epoch: 40,
+    });
+
+    expect(archived_session_supersedes(older, current)).toBe(false);
+  });
+
+  it("promotes an archived session created after the current one", () => {
+    const current = make_state({ created_at: 1_000, epoch: 9 });
+    const newer = make_state({
+      root_key: "newer-root",
+      created_at: 5_000,
+      epoch: 0,
+    });
+
+    expect(archived_session_supersedes(newer, current)).toBe(true);
+  });
+
+  it("never promotes an archived session without a creation time", () => {
+    const current = make_state({ created_at: 1_000 });
+    const undated = make_state({ created_at: undefined, epoch: 99 });
+
+    expect(archived_session_supersedes(undated, current)).toBe(false);
+  });
+
+  it("promotes an archived session when no current session exists", () => {
+    expect(archived_session_supersedes(make_state(), null)).toBe(true);
+  });
+});
+
+describe("server state replacement", () => {
+  it("accepts the server state when there is no local session", () => {
+    expect(server_replacement_supersedes(make_state(), null)).toBe(true);
+  });
+
+  it("refuses an older copy of the same epoch so a used message key stays used", () => {
+    const loaded = make_state({
+      chain_key_recv: "recv-chain-4",
+      recv_message_number: 4,
+      updated_at: 2_000,
+    });
+    const server = make_state({
+      chain_key_recv: "recv-chain-1",
+      recv_message_number: 1,
+      updated_at: 1_500,
+    });
+
+    expect(server_replacement_supersedes(server, loaded)).toBe(false);
+  });
+
+  it("refuses a server state from an earlier epoch", () => {
+    const loaded = make_state({ root_key: "root-key-epoch-3", epoch: 3 });
+    const server = make_state({
+      root_key: "root-key-epoch-2",
+      dh_remote_public: "older-remote-dh",
+      epoch: 2,
+      updated_at: 9_000,
+    });
+
+    expect(server_replacement_supersedes(server, loaded)).toBe(false);
+  });
+
+  it("accepts a server state another device moved to a later epoch", () => {
+    const loaded = make_state({ root_key: "root-key-epoch-2", epoch: 2 });
+    const server = make_state({
+      root_key: "root-key-epoch-3",
+      dh_remote_public: "newer-remote-dh",
+      epoch: 3,
+    });
+
+    expect(server_replacement_supersedes(server, loaded)).toBe(true);
+  });
+
+  it("refuses a server state for another conversation", () => {
+    const server = {
+      ...make_state({ root_key: "root-key-epoch-9", epoch: 9 }),
+      conversation_id: "another-conversation",
+    } as SerializedState;
+
+    expect(server_replacement_supersedes(server, make_state())).toBe(false);
+  });
+});
+
+describe("session binding across merges", () => {
+  it("keeps the binding when one copy of the same epoch lacks it", () => {
+    const local = make_state();
+    const remote = make_state({ session_binding: "sb-1" });
+
+    expect(merge_ratchet_states(local, remote).state.session_binding).toBe(
+      "sb-1",
+    );
+    expect(merge_ratchet_states(remote, local).state.session_binding).toBe(
+      "sb-1",
+    );
+  });
+
+  it("keeps the binding when a newer epoch of the same session lacks it", () => {
+    const bound = make_state({ session_binding: "sb-1" });
+    const stepped = make_state({
+      root_key: "root-key-epoch-2",
+      dh_remote_public: "remote-dh-pub-2",
+      epoch: 1,
+      updated_at: 2_000,
+    });
+
+    const merged = merge_ratchet_states(bound, stepped).state;
+
+    expect(merged.root_key).toBe("root-key-epoch-2");
+    expect(merged.session_binding).toBe("sb-1");
+  });
+
+  it("does not move a binding onto a different session", () => {
+    const bound = make_state({ session_binding: "sb-1" });
+    const other = make_state({
+      root_key: "root-key-other",
+      dh_remote_public: "remote-dh-pub-other",
+      epoch: 1,
+      created_at: 5_000,
+      updated_at: 5_000,
+    });
+
+    const merged = merge_ratchet_states(bound, other).state;
+
+    expect(merged.root_key).toBe("root-key-other");
+    expect(merged.session_binding).toBeUndefined();
   });
 });

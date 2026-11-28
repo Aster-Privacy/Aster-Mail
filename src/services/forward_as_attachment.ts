@@ -182,6 +182,7 @@ export async function load_eml_source(
     decrypted,
     resolve_our_email,
     item.id,
+    item.created_at,
   );
 
   if (!readable) return null;

@@ -233,9 +233,11 @@ export function is_custom_category_id(id: string): boolean {
 
 export function make_custom_category_id(): string {
   const random =
-    typeof crypto !== "undefined" && "randomUUID" in crypto
+    typeof crypto.randomUUID === "function"
       ? crypto.randomUUID()
-      : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+      : Array.from(crypto.getRandomValues(new Uint8Array(16)), (b) =>
+            b.toString(16).padStart(2, "0"),
+          ).join("");
 
   return `${CUSTOM_CATEGORY_PREFIX}${random}`;
 }

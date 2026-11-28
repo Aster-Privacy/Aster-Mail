@@ -380,7 +380,7 @@ export async function open_legacy_account_key_from_escrow(
         parts.nonce,
         parts.ciphertext,
         seal_aad(LEGACY_AAD_PREFIX, user_id, token_version),
-        stored_unbound_policy(),
+        stored_unbound_policy("recovery_escrow_legacy"),
       ),
   );
 }

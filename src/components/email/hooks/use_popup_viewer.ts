@@ -744,6 +744,7 @@ export function use_popup_viewer({
           user?.email,
           response.data.id,
           response.data.dkim_result,
+          response.data.created_at,
         );
 
         if (fetch_seq !== fetch_seq_ref.current) return;

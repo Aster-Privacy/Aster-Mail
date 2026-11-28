@@ -23,6 +23,8 @@ import { describe, it, expect } from "vitest";
 import {
   bootstrap_record_key,
   claim_bootstrap_record,
+  claim_synced_bootstrap_record,
+  merge_bootstrap_seen,
 } from "./bootstrap_replay";
 import { MAX_LANE_REPLAY_ENTRIES } from "./lane_replay";
 
@@ -75,7 +77,7 @@ describe("bootstrap record", () => {
       NOW + 6000,
     );
 
-    expect(evicted.claim).toBe("unknown");
+    expect(evicted.claim).toBe("replayed");
     expect(
       claim_bootstrap_record(evicted.record, "k0", "m-third", NOW + 7000).claim,
     ).toBe("replayed");
@@ -171,5 +173,157 @@ describe("bootstrap record", () => {
     expect(
       claim_bootstrap_record(opened.record, first, "m2", NOW + 1).claim,
     ).toBe("replayed");
+  });
+});
+
+describe("bootstrap record after eviction", () => {
+  function fill(count: number): unknown {
+    let record: unknown = null;
+
+    for (let i = 0; i < count; i++) {
+      record = claim_bootstrap_record(record, `k${i}`, `m${i}`, NOW + i).record;
+    }
+
+    return record;
+  }
+
+  it("refuses a session start that was evicted by newer entries", () => {
+    const record = fill(MAX_LANE_REPLAY_ENTRIES + 10);
+
+    expect(
+      claim_bootstrap_record(record, "k0", "m-replay", NOW + 9000).claim,
+    ).toBe("replayed");
+  });
+
+  it("refuses an evicted session start from an unverified sender", () => {
+    const record = fill(MAX_LANE_REPLAY_ENTRIES + 10);
+
+    expect(
+      claim_bootstrap_record(record, "k0", "m-replay", NOW + 9000, false)
+        .claim,
+    ).toBe("replayed");
+  });
+
+  it("still opens the evicted message itself again", () => {
+    const record = fill(MAX_LANE_REPLAY_ENTRIES + 10);
+
+    expect(claim_bootstrap_record(record, "k0", "m0", NOW + 9000).claim).toBe(
+      "same_message",
+    );
+  });
+
+  it("does not refuse new session starts after eviction", () => {
+    const record = fill(MAX_LANE_REPLAY_ENTRIES + 10);
+    const claims = new Set<string>();
+
+    for (let i = 0; i < 200; i++) {
+      claims.add(
+        claim_bootstrap_record(record, `fresh${i}`, `n${i}`, NOW + 9000).claim,
+      );
+    }
+
+    expect([...claims]).toEqual(["unknown"]);
+  });
+
+  it("keeps evicted entries when two stored copies merge", () => {
+    const evicted = fill(MAX_LANE_REPLAY_ENTRIES + 10);
+    const merged = merge_bootstrap_seen(null, evicted);
+
+    expect(
+      claim_bootstrap_record(merged, "k0", "m-replay", NOW + 9000).claim,
+    ).toBe("replayed");
+  });
+
+  it("remembers entries that a merge drops over the size limit", () => {
+    const left = fill(MAX_LANE_REPLAY_ENTRIES);
+    let right: unknown = null;
+
+    for (let i = 0; i < 20; i++) {
+      right = claim_bootstrap_record(
+        right,
+        `r${i}`,
+        `rm${i}`,
+        NOW + 5000 + i,
+      ).record;
+    }
+
+    const merged = merge_bootstrap_seen(left, right);
+
+    expect(merged.e.length).toBe(MAX_LANE_REPLAY_ENTRIES);
+    expect(
+      claim_bootstrap_record(merged, "k0", "m-replay", NOW + 9000).claim,
+    ).toBe("replayed");
+  });
+
+  it("leaves a record without evictions in its old shape", () => {
+    expect(claim_bootstrap_record(null, "k1", "m1", NOW).record).toEqual({
+      f: 0,
+      e: [{ k: "k1", m: "m1", t: NOW }],
+    });
+  });
+});
+
+describe("bootstrap record shared across devices", () => {
+  it("refuses a session start another device already used for a different message", () => {
+    const synced = { f: 0, e: [{ k: "k1", m: "m1", t: NOW }] };
+    const outcome = claim_synced_bootstrap_record(null, synced, "k1", "m2", NOW + 1);
+
+    expect(outcome.claim).toBe("replayed");
+    expect(outcome.changed).toBe(false);
+    expect(outcome.shared).toBeNull();
+  });
+
+  it("accepts the same message that another device already opened", () => {
+    const synced = { f: 0, e: [{ k: "k1", m: "m1", t: NOW }] };
+    const outcome = claim_synced_bootstrap_record(null, synced, "k1", "m1", NOW + 1);
+
+    expect(outcome.claim).toBe("first");
+    expect(outcome.shared).toBeNull();
+  });
+
+  it("shares a new session start with the other devices", () => {
+    const outcome = claim_synced_bootstrap_record(null, null, "k1", "m1", NOW);
+
+    expect(outcome.claim).toBe("first");
+    expect(outcome.shared).toEqual({ f: 0, e: [{ k: "k1", m: "m1", t: NOW }] });
+  });
+
+  it("keeps refusing a shared session start however old it is", () => {
+    const synced = { f: 0, e: [{ k: "k1", m: "m1", t: NOW }] };
+    const later = NOW + 10 * 365 * 24 * 60 * 60 * 1000;
+    const outcome = claim_synced_bootstrap_record(null, synced, "k1", "m2", later);
+
+    expect(outcome.claim).toBe("replayed");
+  });
+
+  it("does not evict from a full record when the sender is unverified", () => {
+    const full = {
+      f: 0,
+      e: Array.from({ length: MAX_LANE_REPLAY_ENTRIES }, (_, i) => ({
+        k: `k${i}`,
+        m: `m${i}`,
+        t: NOW,
+      })),
+    };
+    const outcome = claim_synced_bootstrap_record(
+      full,
+      null,
+      "fresh",
+      "m-fresh",
+      NOW + 1,
+      false,
+    );
+
+    expect(outcome.claim).toBe("unknown");
+    expect(outcome.changed).toBe(false);
+    expect(outcome.shared).toBeNull();
+  });
+
+  it("still uses the device record when nothing is shared", () => {
+    const first = claim_bootstrap_record(null, "k1", "m1", NOW);
+    const outcome = claim_synced_bootstrap_record(first.record, null, "k1", "m2", NOW + 1);
+
+    expect(outcome.claim).toBe("replayed");
+    expect(outcome.shared).toBeNull();
   });
 });

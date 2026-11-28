@@ -320,6 +320,7 @@ export function use_snoozed_emails(): UseSnoozedEmailsReturn {
               user?.email || "",
               envelope.from?.email || "",
               item.id,
+              item.created_at,
             );
 
             body_pending = is_pending_decrypt_body(bundle.body);

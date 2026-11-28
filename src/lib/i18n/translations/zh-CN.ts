@@ -20,6 +20,20 @@
 //
 export const zh_CN = {
   common: {
+    safety_number_compare: "比对安全码",
+    safety_number_section_title: "加密",
+    safety_number: "安全码",
+    safety_number_not_verified: "未验证",
+    safety_number_verified: "已验证",
+    safety_number_status_changed: "已更改",
+    safety_number_changed: "安全码已更改",
+    safety_number_description: "为确保只有 {{name}} 能读取你的加密邮件，请当面或通过通话，将这些数字与 {{name}} 设备上显示的数字进行比对。",
+    safety_number_changed_description: "{{name}} 的账户密钥已更改。你的邮件仍然是加密的。为确保没有其他人持有 {{name}} 的密钥，请重新比对安全码。",
+    safety_number_unavailable: "安全码暂时不可用。请稍后再试。",
+    safety_number_copy: "复制号码",
+    safety_number_mark_verified: "标记为已验证",
+    safety_number_clear: "移除验证",
+    safety_number_save_failed: "验证未保存。请重试。",
     couldnt_load: "无法加载。",
     try_again_action: "重试",
     merge_primary_label: "主要",
@@ -8569,8 +8583,14 @@ export const zh_CN = {
       "自上次互发邮件以来，此发件人的加密身份已更改。如果这不在您的预期之内，请通过其他方式向对方确认。",
     sender_identity_downgraded:
       "此发件人的邮件不再受后量子保护。如果这不在您的预期之内，请通过其他方式向对方确认。",
+    recipient_identity_downgraded:
+      "发送给 {{email}} 的邮件不再受后量子保护。如果这不在您的预期之内，请通过其他方式向对方确认。",
     sender_identity_unreadable:
       "此设备无法读取此发件人的已保存加密密钥，因此无法验证此邮件。要重新验证对方的邮件，请通过其他方式与对方确认密钥，然后选择“信任新密钥”。",
+    sender_identity_unverified:
+      "无法验证此邮件是否来自该发件人。如果你没有预料到这封邮件，请通过其他方式与对方确认。",
+    sender_identity_mismatch:
+      "此邮件使用的密钥与该发件人发布的密钥不一致。在通过其他方式与对方确认其密钥之前，请勿信任此邮件。",
     recipient_identity_changed:
       "{{email}} 的加密密钥已更改。如果这不在您的预期之内，请在发送敏感信息前通过其他方式向对方确认。",
     message_password_requirements:

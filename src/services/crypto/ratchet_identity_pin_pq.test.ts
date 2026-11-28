@@ -51,6 +51,7 @@ vi.mock("@/services/account_manager", () => ({
 import {
   check_and_pin_identity,
   has_peer_advertised_pq,
+  note_account_bound_opening,
   read_peer_downgrade_floor,
   remembered_peer_x3dh_version,
 } from "@/services/crypto/ratchet_identity_pin";
@@ -159,6 +160,7 @@ describe("ratchet identity pin pq memory and failure modes", () => {
   it("reads the downgrade floor a peer has shown", async () => {
     expect(await read_peer_downgrade_floor("henry")).toEqual({
       x3dh_version: 1,
+      bound_at: {},
       pq_seen: false,
       pq_signed_seen: false,
     });
@@ -167,9 +169,128 @@ describe("ratchet identity pin pq memory and failure modes", () => {
 
     expect(await read_peer_downgrade_floor("henry")).toEqual({
       x3dh_version: 2,
+      bound_at: {},
       pq_seen: true,
       pq_signed_seen: true,
     });
+  });
+
+  it("records the earliest account-bound opening per receiving address", async () => {
+    await check_and_pin_identity("kate", KEY_A, true, false, false, 4);
+
+    expect(await note_account_bound_opening("kate", "me@x", KEY_A, 2000)).toBe(
+      true,
+    );
+    expect(await note_account_bound_opening("kate", "me@x", KEY_A, 3000)).toBe(
+      false,
+    );
+    expect(await note_account_bound_opening("kate", "me@x", KEY_A, 1000)).toBe(
+      true,
+    );
+    expect(
+      await note_account_bound_opening("kate", "alias@x", KEY_A, 5000),
+    ).toBe(true);
+
+    const floor = await read_peer_downgrade_floor("kate");
+
+    expect(floor).not.toBe("unreadable");
+    if (floor === "unreadable") return;
+    expect(floor.bound_at).toEqual({ "me@x": 1000, "alias@x": 5000 });
+    expect(floor.x3dh_version).toBe(4);
+    expect(await remembered_peer_x3dh_version("kate")).toBe(4);
+  });
+
+  it("ignores an opening without a valid time or address", async () => {
+    await check_and_pin_identity("liam", KEY_A, true, false, false, 4);
+
+    expect(
+      await note_account_bound_opening("liam", "me@x", KEY_A, undefined),
+    ).toBe(false);
+    expect(await note_account_bound_opening("liam", "me@x", KEY_A, 0)).toBe(
+      false,
+    );
+    expect(await note_account_bound_opening("liam", "me@x", KEY_A, NaN)).toBe(
+      false,
+    );
+    expect(await note_account_bound_opening("liam", " ", KEY_A, 1000)).toBe(
+      false,
+    );
+
+    const floor = await read_peer_downgrade_floor("liam");
+
+    expect(floor !== "unreadable" && floor.bound_at).toEqual({});
+  });
+
+  it("ignores an opening for a different identity key", async () => {
+    await check_and_pin_identity("mona", KEY_A, true, false, false, 4);
+
+    expect(await note_account_bound_opening("mona", "me@x", KEY_B, 1000)).toBe(
+      false,
+    );
+
+    const floor = await read_peer_downgrade_floor("mona");
+
+    expect(floor !== "unreadable" && floor.bound_at).toEqual({});
+  });
+
+  it("does not create a pin from an opening", async () => {
+    expect(await note_account_bound_opening("nora", "me@x", KEY_A, 1000)).toBe(
+      false,
+    );
+
+    expect(await read_peer_downgrade_floor("nora")).toEqual({
+      x3dh_version: 1,
+      bound_at: {},
+      pq_seen: false,
+      pq_signed_seen: false,
+    });
+  });
+
+  it("keeps the floor when the pin is checked again with the same key", async () => {
+    await check_and_pin_identity("owen", KEY_A, true, false, false, 4);
+    await note_account_bound_opening("owen", "me@x", KEY_A, 1000);
+    await check_and_pin_identity("owen", KEY_A, true, false, false, 4);
+
+    const floor = await read_peer_downgrade_floor("owen");
+
+    expect(floor !== "unreadable" && floor.bound_at).toEqual({ "me@x": 1000 });
+    expect(floor !== "unreadable" && floor.x3dh_version).toBe(4);
+  });
+
+  it("keeps the floor across a verified rotation", async () => {
+    await check_and_pin_identity("pia", KEY_A, true, false, false, 4);
+    await note_account_bound_opening("pia", "me@x", KEY_A, 1000);
+
+    expect(await check_and_pin_identity("pia", KEY_B, true, false, false, 4)).toBe(
+      "rotated",
+    );
+
+    const floor = await read_peer_downgrade_floor("pia");
+
+    expect(floor !== "unreadable" && floor.bound_at).toEqual({ "me@x": 1000 });
+  });
+
+  it("makes room for a new address by dropping the latest floor", async () => {
+    await check_and_pin_identity("quinn", KEY_A, true, false, false, 4);
+
+    for (let i = 1; i <= 64; i++) {
+      expect(
+        await note_account_bound_opening("quinn", `a${i}@x`, KEY_A, i * 10),
+      ).toBe(true);
+    }
+
+    expect(await note_account_bound_opening("quinn", "new@x", KEY_A, 5)).toBe(
+      true,
+    );
+
+    const floor = await read_peer_downgrade_floor("quinn");
+
+    expect(floor).not.toBe("unreadable");
+    if (floor === "unreadable") return;
+    expect(Object.keys(floor.bound_at)).toHaveLength(64);
+    expect(floor.bound_at["new@x"]).toBe(5);
+    expect(floor.bound_at["a64@x"]).toBeUndefined();
+    expect(floor.bound_at["a1@x"]).toBe(10);
   });
 
   it("reports the downgrade floor as unreadable when the pin store is unavailable", async () => {

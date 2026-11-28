@@ -28,6 +28,7 @@ import { Tooltip } from "@aster/ui";
 import { use_i18n } from "@/lib/i18n/context";
 import { OfflineCopyNotice } from "@/components/email/failed_open_pending_replies";
 import { EncryptionInfoDropdown } from "@/components/common/encryption_info_dropdown";
+import { SafetyNumberNotice } from "@/components/common/safety_number/safety_number_notice";
 import { TrackingProtectionShield } from "@/components/email/tracking_protection_shield";
 import {
   EmailTag,
@@ -582,6 +583,10 @@ export function SplitEmailViewer({
                       is_received={viewer.mail_item?.item_type === "received"}
                       sender_verification={email.sender_verification}
                       size={18}
+                    />
+                    <SafetyNumberNotice
+                      email={email.sender_email}
+                      name={email.sender}
                     />
                     {external_content_state.report && (
                       <TrackingProtectionShield

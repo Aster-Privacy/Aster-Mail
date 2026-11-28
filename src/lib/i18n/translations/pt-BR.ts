@@ -20,6 +20,20 @@
 //
 export const pt_br = {
   common: {
+    safety_number_compare: "Comparar números de segurança",
+    safety_number_section_title: "Criptografia",
+    safety_number: "Número de segurança",
+    safety_number_not_verified: "Não verificado",
+    safety_number_verified: "Verificado",
+    safety_number_status_changed: "Alterado",
+    safety_number_changed: "O número de segurança mudou",
+    safety_number_description: "Para garantir que só {{name}} possa ler seus e-mails criptografados, compare estes números com os que aparecem no dispositivo de {{name}}, pessoalmente ou em uma ligação.",
+    safety_number_changed_description: "A chave da conta de {{name}} mudou. Seus e-mails continuam criptografados. Para garantir que ninguém mais tenha as chaves de {{name}}, compare os números de segurança de novo.",
+    safety_number_unavailable: "O número de segurança não está disponível agora. Tente novamente mais tarde.",
+    safety_number_copy: "Copiar número",
+    safety_number_mark_verified: "Marcar como verificado",
+    safety_number_clear: "Remover verificação",
+    safety_number_save_failed: "A verificação não foi salva. Tente novamente.",
     couldnt_load: "Não foi possível carregar.",
     try_again_action: "Tentar novamente",
     merge_primary_label: "Principal",
@@ -9674,8 +9688,14 @@ export const pt_br = {
       "A identidade de criptografia deste remetente mudou desde a última troca de mensagens. Se você não esperava isso, confirme com essa pessoa por outro meio.",
     sender_identity_downgraded:
       "As mensagens deste remetente já não contam com proteção pós-quântica. Se você não esperava isso, confirme com essa pessoa por outro meio.",
+    recipient_identity_downgraded:
+      "As mensagens para {{email}} já não contam com proteção pós-quântica. Se você não esperava isso, confirme com essa pessoa por outro meio.",
     sender_identity_unreadable:
       "A chave de criptografia salva deste remetente não pode ser lida neste dispositivo, então esta mensagem não pode ser verificada. Para voltar a verificar as mensagens dessa pessoa, confirme a chave com ela por outro meio e escolha Confiar na nova chave.",
+    sender_identity_unverified:
+      "Não é possível verificar se esta mensagem veio deste remetente. Se você não a esperava, confirme com essa pessoa por outro meio.",
+    sender_identity_mismatch:
+      "Esta mensagem foi criptografada com uma chave que não corresponde à chave publicada por este remetente. Não confie nela até confirmar a chave com essa pessoa por outro meio.",
     recipient_identity_changed:
       "A chave de criptografia de {{email}} mudou. Se você não esperava isso, confirme a mudança com essa pessoa por outro meio antes de enviar informações confidenciais.",
     message_password_requirements:

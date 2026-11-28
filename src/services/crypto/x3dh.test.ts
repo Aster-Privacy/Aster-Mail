@@ -364,6 +364,41 @@ describe("X3DH Key Exchange Protocol", () => {
   });
 
   describe("security properties", () => {
+    it("generates the sender ephemeral private key as non-extractable", async () => {
+      const sender_identity = await generate_exportable_ke_keypair();
+      const recipient_identity = await generate_exportable_ke_keypair();
+      const recipient_signed_prekey = await generate_exportable_ke_keypair();
+      const generate_key = vi.spyOn(crypto.subtle, "generateKey");
+
+      try {
+        await perform_x3dh_sender(sender_identity.secret_key_jwk, {
+          kem_identity_key: array_to_base64(recipient_identity.public_key_raw),
+          signed_prekey: array_to_base64(
+            recipient_signed_prekey.public_key_raw,
+          ),
+          signed_prekey_signature: "",
+        });
+
+        const ephemeral_calls = generate_key.mock.calls.filter(
+          ([algorithm]) => (algorithm as EcKeyGenParams).name === _KE,
+        );
+
+        expect(ephemeral_calls).toHaveLength(1);
+        expect(ephemeral_calls[0][1]).toBe(false);
+
+        const generated = (await generate_key.mock.results[
+          generate_key.mock.calls.indexOf(ephemeral_calls[0])
+        ].value) as CryptoKeyPair;
+
+        expect(generated.privateKey.extractable).toBe(false);
+        await expect(
+          crypto.subtle.exportKey("jwk", generated.privateKey),
+        ).rejects.toThrow();
+      } finally {
+        generate_key.mockRestore();
+      }
+    });
+
     it("should provide forward secrecy (different ephemeral each time)", async () => {
       const alice_identity = await generate_exportable_ke_keypair();
       const bob_identity = await generate_exportable_ke_keypair();

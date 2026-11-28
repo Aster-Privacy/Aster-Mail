@@ -36,6 +36,7 @@ import { Button } from "@aster/ui";
 
 import { EmailOpenSkeleton } from "@/components/email/viewer_shared/email_open_skeleton";
 import { EncryptionInfoDropdown } from "@/components/common/encryption_info_dropdown";
+import { SafetyNumberNotice } from "@/components/common/safety_number/safety_number_notice";
 import { ExpirationCountdown } from "@/components/email/expiration_countdown";
 import { UnsubscribeBanner } from "@/components/email/unsubscribe_banner";
 import { build_unsubscribe_delivery } from "@/utils/unsubscribe_delivery";
@@ -204,6 +205,10 @@ export function EmailDetailBody({
                       is_external={!!mail_item?.is_external}
                       is_received={mail_item?.item_type === "received"}
                       size={20}
+                    />
+                    <SafetyNumberNotice
+                      email={email.sender_email}
+                      name={email.sender}
                     />
                   </span>
                   {email.subject || t("mail.no_subject")}

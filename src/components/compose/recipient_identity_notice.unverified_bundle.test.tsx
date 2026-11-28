@@ -23,6 +23,7 @@ import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 
 const h = vi.hoisted(() => ({
+  downgraded: new Set<string>(),
   pinned_owner: "fp:owner" as string | null,
   flagged: new Set<string>(),
   accepted: new Set<string>(),
@@ -115,6 +116,11 @@ vi.mock("@/services/crypto/ratchet_identity_pin", () => ({
 }));
 
 vi.mock("@/services/crypto/ratchet_verification_status", () => ({
+  get_peer_identity_event: (peer: string) =>
+    h.downgraded.has(peer) ? { event: "downgraded" } : null,
+  dismiss_peer_identity_event: (peer: string) => {
+    h.downgraded.delete(peer);
+  },
   subscribe_peer_identity_events: (listener: () => void) => {
     h.listeners.push(listener);
 

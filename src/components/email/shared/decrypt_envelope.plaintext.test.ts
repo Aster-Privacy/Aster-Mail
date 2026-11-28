@@ -135,6 +135,26 @@ describe("decrypt_mail_envelope trust claims in stored envelopes", () => {
     expect(opened?.sender_verification).toBeUndefined();
   });
 
+  it("an unencrypted envelope cannot claim server sender checks", async () => {
+    const opened = await decrypt_mail_envelope<Record<string, unknown>>(
+      as_base64(
+        JSON.stringify(
+          envelope({
+            sender_verified: true,
+            sender_verified_domain: "example.com",
+            sender_aligned: true,
+          }),
+        ),
+      ),
+      "",
+    );
+
+    expect(opened?.subject).toBe("Hello");
+    expect(opened?.sender_verified).toBeUndefined();
+    expect(opened?.sender_verified_domain).toBeUndefined();
+    expect(opened?.sender_aligned).toBeUndefined();
+  });
+
   it("a passphrase sealed envelope cannot claim a verified sender", async () => {
     const sealed = await encrypt_envelope_with_bytes(
       envelope({ sender_verification: "verified" }),

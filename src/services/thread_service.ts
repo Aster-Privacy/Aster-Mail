@@ -70,6 +70,7 @@ import {
   resolve_inbound_pgp_body,
   has_inbound_pgp_block,
   is_quoted_inbound_pgp,
+  server_sent_at,
 } from "@/utils/email_crypto";
 import { filter_locked_mail_items } from "@/services/locked_folders";
 import { resolve_forwarding_display } from "@/utils/forwarding_alias";
@@ -158,6 +159,7 @@ async function decrypt_reaction_body(
         ratchet_env,
         vault,
         mail_item_id,
+        server_sent_at(item.created_at),
       );
 
       if (!decrypted) return null;
@@ -339,6 +341,7 @@ async function decode_thread_envelope(
               ratchet_env,
               ratchet_vault,
               msg.id,
+              server_sent_at(msg.created_at),
             ),
         );
 
@@ -832,6 +835,7 @@ export async function fetch_and_decrypt_virtual_group(
                 ratchet_env,
                 ratchet_vault,
                 item.id,
+                server_sent_at(item.created_at),
               ),
           );
 

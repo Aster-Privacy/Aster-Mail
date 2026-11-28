@@ -269,7 +269,7 @@ describe("device recovery", () => {
       expect(await open_device_snapshot(record, secret, other)).toBeNull();
     });
 
-    it("opens an outer layer sealed without its binding only in the Mac desktop app", async () => {
+    it("refuses an outer layer sealed without its binding on every platform", async () => {
       const { key, secret, record } = await sealed_record();
       const aad = new TextEncoder().encode(
         `aster-device-recovery-v1|${meta.user_id}|${meta.snapshot_id}|${meta.source_hash}`,
@@ -296,9 +296,7 @@ describe("device recovery", () => {
       });
 
       try {
-        expect(await open_device_snapshot(unbound, secret, key)).toEqual(
-          payload,
-        );
+        expect(await open_device_snapshot(unbound, secret, key)).toBeNull();
       } finally {
         vi.unstubAllGlobals();
         Reflect.deleteProperty(window, "__TAURI_INTERNALS__");

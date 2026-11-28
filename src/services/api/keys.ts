@@ -24,6 +24,8 @@ import type { TranslationKey } from "@/lib/i18n/types";
 import { api_client, type ApiResponse } from "./client";
 import { GHOST_DOMAIN } from "./ghost_aliases";
 
+import { strip_plus_tag } from "@/utils/address_dots";
+
 import { load_openpgp } from "@/services/crypto/openpgp_loader";
 import { is_any_lockdown_active } from "@/services/lockdown_store";
 
@@ -255,8 +257,11 @@ export async function get_recipient_public_key(
   username: string,
   email?: string,
 ): Promise<ApiResponse<PublicKeyResponse>> {
-  const outside = is_outside_address(email);
-  const key = `${username.toLowerCase()}|${(email ?? "").toLowerCase()}`;
+  const lookup_email = email
+    ? strip_plus_tag(email).toLowerCase()
+    : undefined;
+  const outside = is_outside_address(lookup_email);
+  const key = `${username.toLowerCase()}|${lookup_email ?? ""}`;
 
   if (outside) {
     const miss = recipient_key_misses.get(key);
@@ -270,7 +275,7 @@ export async function get_recipient_public_key(
 
   if (pending) return pending;
 
-  const request = fetch_recipient_public_key(username, email, outside)
+  const request = fetch_recipient_public_key(username, lookup_email, outside)
     .then((response) => {
       if (outside && is_recipient_key_miss(response)) {
         recipient_key_misses.set(key, { response, timestamp: Date.now() });
@@ -642,7 +647,7 @@ export function extract_username_from_email(email: string): string | null {
 
   if (parts.length !== 2) return null;
 
-  return parts[0];
+  return strip_plus_tag(email).toLowerCase().split("@")[0];
 }
 
 const INTERNAL_DOMAINS = [

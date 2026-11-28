@@ -28,7 +28,15 @@ import {
 } from "./ratchet_prekey_bundle";
 import { verify_address_entry } from "./address_identity_entry";
 import {
+  history_standing,
+  received_at_us,
+  standing_confirms,
+  type PublishedIdentityEntry,
+  type SenderKeyStanding,
+} from "./sender_key_retirement";
+import {
   dismiss_peer_identity_event,
+  get_message_sender_identity,
   record_message_sender_identity,
   type SenderIdentityStatus,
 } from "./ratchet_verification_status";
@@ -40,6 +48,7 @@ import {
   read_sender_history,
 } from "./ratchet_identity_pin";
 import { base64_to_array, compute_hash } from "./key_manager_core";
+import { is_address_identity_mode_enabled } from "./crypto_enforcement_policy";
 import {
   with_contact_lock,
   write_contact_entry,
@@ -70,9 +79,14 @@ const published_cache = new Map<string, PublishedCacheEntry>();
 const published_history_cache = new Map<string, PublishedHistoryCacheEntry>();
 const status_cache = new Map<string, SenderIdentityStatus>();
 const refresh_cache = new Map<string, number>();
+interface AddressEntryKeys {
+  current: string | null;
+  entries: PublishedIdentityEntry[];
+}
+
 const address_entry_cache = new Map<
   string,
-  { identity_keys: string[]; timestamp: number }
+  AddressEntryKeys & { timestamp: number }
 >();
 
 function bound_peer_caches(): void {
@@ -101,6 +115,13 @@ export class SenderIdentityUnverifiedError extends Error {
     this.name = "SenderIdentityUnverifiedError";
     this.sender_email = sender_email;
     this.status = status;
+  }
+}
+
+export class AccountBindingRefusedError extends SenderIdentityUnverifiedError {
+  constructor(sender_email: string) {
+    super(sender_email, "mismatch");
+    this.name = "AccountBindingRefusedError";
   }
 }
 
@@ -214,25 +235,27 @@ async function resolve_published_history(
   return history;
 }
 
-async function resolve_address_entry_keys(peer: string): Promise<string[]> {
+async function resolve_address_entry_keys(
+  peer: string,
+): Promise<AddressEntryKeys> {
+  const none: AddressEntryKeys = { current: null, entries: [] };
+
+  if (!is_address_identity_mode_enabled()) return none;
+
   const cached = address_entry_cache.get(peer);
 
   if (cached && Date.now() - cached.timestamp < PUBLISHED_CACHE_TTL_MS) {
-    return cached.identity_keys;
+    return cached;
   }
 
   const username = extract_username_from_email(peer);
 
-  if (!username) return [];
+  if (!username) return none;
 
-  const identity_keys: string[] = [];
+  let keys = none;
 
   try {
     const entry = await fetch_ratchet_identity(username, peer, true);
-
-    if (entry?.address_scoped === true && entry.kem_identity_key) {
-      identity_keys.push(entry.kem_identity_key);
-    }
 
     if (entry?.address_scoped === true) {
       const history = await fetch_published_identity_history(
@@ -241,18 +264,73 @@ async function resolve_address_entry_keys(peer: string): Promise<string[]> {
         true,
       );
 
-      if (history?.address_scoped === true) {
-        identity_keys.push(...history.identity_keys);
-      }
+      keys = {
+        current: entry.kem_identity_key || null,
+        entries: history?.address_scoped === true ? history.entries : [],
+      };
     }
   } catch {
-    identity_keys.length = 0;
+    keys = none;
   }
 
-  address_entry_cache.set(peer, { identity_keys, timestamp: Date.now() });
+  address_entry_cache.set(peer, { ...keys, timestamp: Date.now() });
   bound_peer_caches();
 
-  return identity_keys;
+  return keys;
+}
+
+function address_entry_keys(keys: AddressEntryKeys): string[] {
+  return [
+    ...(keys.current ? [keys.current] : []),
+    ...keys.entries.flatMap((entry) =>
+      entry.kem_identity_key ? [entry.kem_identity_key] : [],
+    ),
+  ];
+}
+
+async function key_standing(
+  peer: string,
+  identity_key: string,
+  received_at: number | null,
+): Promise<SenderKeyStanding> {
+  if ((await resolve_published_identity(peer)) === identity_key) {
+    return "current";
+  }
+
+  const history = await resolve_published_history(peer);
+  const account = history_standing(
+    identity_key,
+    history?.entries ?? [],
+    received_at,
+  );
+
+  if (account !== "unlisted") return account;
+
+  const address = await resolve_address_entry_keys(peer);
+
+  if (address.current === identity_key) return "current";
+
+  const scoped = history_standing(identity_key, address.entries, received_at);
+
+  if (scoped !== "unlisted") return scoped;
+
+  return history ? "unlisted" : "unavailable";
+}
+
+export async function sender_key_standing(
+  sender_email: string,
+  sender_identity_key: string,
+  sent_at: number | undefined,
+): Promise<SenderKeyStanding> {
+  if (!sender_email.includes("@") || !sender_identity_key) {
+    return "unavailable";
+  }
+
+  return key_standing(
+    sender_email.trim().toLowerCase(),
+    sender_identity_key,
+    received_at_us(sent_at),
+  );
 }
 
 function claim_directory_refresh(peer: string): boolean {
@@ -271,6 +349,7 @@ async function resolve_directory_status(
   peer: SenderPeer,
   sender_identity_key: string,
   refresh: boolean,
+  received_at: number | null,
 ): Promise<SenderIdentityStatus> {
   if (refresh) {
     published_cache.delete(peer.address);
@@ -278,28 +357,23 @@ async function resolve_directory_status(
     address_entry_cache.delete(peer.address);
   }
 
-  const published = await resolve_published_identity(peer.address);
-  const published_history = await resolve_published_history(peer.address);
-
-  const published_confirms =
-    Boolean(published) && published === sender_identity_key;
-  const history_confirms = Boolean(
-    published_history?.identity_keys.includes(sender_identity_key),
+  const standing = await key_standing(
+    peer.address,
+    sender_identity_key,
+    received_at,
   );
-  const address_entry_confirms =
-    !published_confirms &&
-    !history_confirms &&
-    (await resolve_address_entry_keys(peer.address)).includes(
-      sender_identity_key,
-    );
 
-  if (published_confirms || history_confirms || address_entry_confirms) {
+  if (standing_confirms(standing)) {
     return (await remember_identity(peer, sender_identity_key)) === "refused"
       ? "unverified"
       : "verified";
   }
 
-  return published_history?.history_complete ? "mismatch" : "unverified";
+  if (standing !== "unlisted") return "unverified";
+
+  return (await resolve_published_history(peer.address))?.history_complete
+    ? "mismatch"
+    : "unverified";
 }
 
 export type SenderIdentityContinuity =
@@ -383,23 +457,25 @@ async function is_endorsed_by_known_key(
     return false;
   }
 
+  if (pinned && !pinned.rotated) {
+    for (const endorser of endorsers) {
+      if (
+        (await compute_hash(base64_to_array(endorser))) === pinned.fingerprint
+      ) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
   const history = await read_sender_history(peer.slot);
 
   if (history.state !== "found" && history.state !== "absent") return false;
 
   const remembered = history.state === "found" ? history.value : [];
 
-  if (endorsers.some((endorser) => remembered.includes(endorser))) return true;
-
-  if (!pinned || pinned.rotated) return false;
-
-  for (const endorser of endorsers) {
-    if ((await compute_hash(base64_to_array(endorser))) === pinned.fingerprint) {
-      return true;
-    }
-  }
-
-  return false;
+  return endorsers.some((endorser) => remembered.includes(endorser));
 }
 
 export async function accept_endorsed_sender_rotation(
@@ -408,6 +484,7 @@ export async function accept_endorsed_sender_rotation(
   persist: boolean,
 ): Promise<boolean> {
   if (!sender_email || !sender_identity_key) return false;
+  if (!is_address_identity_mode_enabled()) return false;
 
   const peer = await resolve_sender_peer(sender_email);
   const slot = peer.slot;
@@ -515,12 +592,15 @@ export async function is_sender_identity_published(
     return true;
   }
 
-  return (await resolve_address_entry_keys(peer)).includes(sender_identity_key);
+  return address_entry_keys(await resolve_address_entry_keys(peer)).includes(
+    sender_identity_key,
+  );
 }
 
 export async function authenticate_sender_identity(
   sender_email: string,
   sender_identity_key: string,
+  sent_at?: number,
 ): Promise<SenderIdentityStatus> {
   if (!sender_email || !sender_identity_key) return "unverified";
 
@@ -537,10 +617,21 @@ export async function authenticate_sender_identity(
     return "verified";
   }
 
-  let status = await resolve_directory_status(peer, sender_identity_key, false);
+  const received_at = received_at_us(sent_at);
+  let status = await resolve_directory_status(
+    peer,
+    sender_identity_key,
+    false,
+    received_at,
+  );
 
   if (status !== "verified" && claim_directory_refresh(peer.address)) {
-    status = await resolve_directory_status(peer, sender_identity_key, true);
+    status = await resolve_directory_status(
+      peer,
+      sender_identity_key,
+      true,
+      received_at,
+    );
   }
 
   status_cache.set(peer.address, status);
@@ -557,16 +648,10 @@ export function peek_sender_identity_status(
   return status_cache.get(sender_email.trim().toLowerCase()) ?? null;
 }
 
-export function note_message_sender_identity(
-  message_key: string,
-  sender_email: string,
-): void {
-  if (!message_key) return;
+export function note_message_sender_identity(message_key: string): void {
+  if (!message_key || get_message_sender_identity(message_key) !== null) return;
 
-  record_message_sender_identity(
-    message_key,
-    peek_sender_identity_status(sender_email) ?? "unverified",
-  );
+  record_message_sender_identity(message_key, "unverified");
 }
 
 export function clear_sender_identity_authentication_cache(): void {

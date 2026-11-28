@@ -31,9 +31,11 @@ function get_push_device_id(): string | null {
     if (existing) return existing;
 
     const generated =
-      typeof crypto !== "undefined" && "randomUUID" in crypto
+      typeof crypto.randomUUID === "function"
         ? crypto.randomUUID()
-        : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+        : Array.from(crypto.getRandomValues(new Uint8Array(16)), (b) =>
+            b.toString(16).padStart(2, "0"),
+          ).join("");
 
     localStorage.setItem(DEVICE_ID_STORAGE_KEY, generated);
 

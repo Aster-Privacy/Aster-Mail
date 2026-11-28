@@ -36,7 +36,21 @@ const h = vi.hoisted(() => ({
   owner_key: null as string | null,
   owner_pin: null as { fingerprint: string; conflict: boolean } | null,
   owner_check: "ok" as "ok" | "changed",
+  replay_claim: null as null | "unknown",
 }));
+
+vi.mock("@/services/crypto/bootstrap_replay", async (import_original) => {
+  const actual =
+    await import_original<typeof import("@/services/crypto/bootstrap_replay")>();
+
+  return {
+    ...actual,
+    claim_bootstrap: vi.fn(
+      async (...args: Parameters<typeof actual.claim_bootstrap>) =>
+        h.replay_claim ?? actual.claim_bootstrap(...args),
+    ),
+  };
+});
 
 vi.mock("@/services/crypto/key_manager_pgp", async (import_original) => ({
   ...(await import_original<
@@ -164,6 +178,11 @@ import {
 } from "@/services/crypto/ratchet_manager";
 import { RecipientKeyUntrustedError } from "@/services/crypto/ratchet_types";
 import { clear_sender_identity_authentication_cache } from "@/services/crypto/sender_identity_authentication";
+import { SENDER_HISTORY_PREFIX } from "@/services/crypto/storage_key_names";
+import {
+  get_message_sender_identity,
+  is_unauthenticated_plaintext,
+} from "@/services/crypto/ratchet_verification_status";
 
 const SENDER = "davidw@astermail.org";
 const RECIPIENT = "hello@astermail.org";
@@ -318,6 +337,61 @@ async function settle(pending: Promise<string | null>) {
     () => null,
   );
 }
+
+const BASE64_ALPHABET =
+  "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+
+function non_canonical_encoding(base64: string): string {
+  const padding = base64.endsWith("==") ? 2 : base64.endsWith("=") ? 1 : 0;
+
+  expect(padding).toBeGreaterThan(0);
+
+  const position = base64.length - padding - 1;
+  const index = BASE64_ALPHABET.indexOf(base64[position]);
+
+  return (
+    base64.slice(0, position) +
+    BASE64_ALPHABET[index ^ 1] +
+    base64.slice(position + 1)
+  );
+}
+
+describe("opening message key encoding", () => {
+  beforeEach(() => {
+    h.vault = null;
+    h.directory.clear();
+    h.history_complete = true;
+    h.binding = "verified";
+    h.owner_key = null;
+    h.owner_pin = null;
+    h.owner_check = "ok";
+    h.store.clear();
+    localStorage.clear();
+    clear_sender_identity_authentication_cache();
+  });
+
+  it("refuses an opening message whose sender key is not canonically encoded", async () => {
+    const receiver_vault = make_vault((await generate_ratchet_keys())!);
+    const sender_vault = make_vault((await generate_ratchet_keys())!);
+
+    publish("hello", receiver_vault);
+    publish("davidw", sender_vault);
+
+    restore(new Map());
+    const first = await send("first", sender_vault);
+    const identity = sender_vault.ratchet_identity_public as string;
+    const altered = first.split(identity).join(non_canonical_encoding(identity));
+
+    expect(altered).not.toBe(first);
+
+    restore(new Map());
+    expect(await settle(receive(altered, receiver_vault, "m1"))).toBeNull();
+
+    restore(new Map());
+    clear_sender_identity_authentication_cache();
+    expect(await receive(first, receiver_vault, "m1")).toBe("first");
+  });
+});
 
 describe("bootstrap message for an established session", () => {
   beforeEach(() => {
@@ -511,6 +585,36 @@ describe("bootstrap message for an established session", () => {
     expect(result.replaced).toBe(true);
   });
 
+  function forget_sender_history() {
+    for (const key of [...h.store.keys()]) {
+      if (key.startsWith(SENDER_HISTORY_PREFIX)) h.store.delete(key);
+    }
+
+    clear_sender_identity_authentication_cache();
+  }
+
+  it("keeps the session for an unremembered identity with a tampered binding when the owner key is pinned", async () => {
+    const result = await receive_rotation(() => {
+      forget_sender_history();
+      pin_owner_key();
+      h.binding = "tampered";
+    });
+
+    expect(result.opened).toBe("after rotation");
+    expect(result.replaced).toBe(false);
+  });
+
+  it("replaces the session for an unremembered identity bound by a verified signature", async () => {
+    const result = await receive_rotation(() => {
+      forget_sender_history();
+      pin_owner_key();
+      h.binding = "verified";
+    });
+
+    expect(result.opened).toBe("after rotation");
+    expect(result.replaced).toBe(true);
+  });
+
   it("keeps the session for a changed identity the directory does not confirm", async () => {
     const { receiver_vault, sender_vault, sender_store, receiver_store } =
       await establish();
@@ -538,10 +642,34 @@ describe("bootstrap message for an established session", () => {
     restore(receiver_store);
     const before = JSON.stringify(stored_ratchet_states());
 
-    expect(await settle(receive(after, receiver_vault, "m2"))).toBe(
-      "unpublished rotation",
-    );
+    const shown = await settle(receive(after, receiver_vault, "m2"));
+
+    expect(shown).toBe("unpublished rotation");
+    expect(is_unauthenticated_plaintext(shown!, "m2")).toBe(true);
+    expect(get_message_sender_identity("m2")).toBe("unverified");
     expect(JSON.stringify(stored_ratchet_states())).toBe(before);
+  });
+
+  it("marks a session start unauthenticated when its replay check cannot decide", async () => {
+    const { receiver_vault, sender_vault, sender_store, receiver_store } =
+      await establish();
+
+    restore(sender_store);
+    clear_local_ratchet_states();
+    const restarted = await send("unchecked restart", sender_vault);
+
+    restore(receiver_store);
+    h.replay_claim = "unknown";
+
+    try {
+      const shown = await settle(receive(restarted, receiver_vault, "m-unknown"));
+
+      expect(shown).toBe("unchecked restart");
+      expect(is_unauthenticated_plaintext(shown!, "m-unknown")).toBe(true);
+      expect(get_message_sender_identity("m-unknown")).toBe("unverified");
+    } finally {
+      h.replay_claim = null;
+    }
   });
 
   it("replaces the session when the same identity starts a new chain", async () => {

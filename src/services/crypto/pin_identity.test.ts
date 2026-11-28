@@ -291,6 +291,12 @@ describe("canonical pin id", () => {
 });
 
 describe("identity pin across address variants", () => {
+  it("refuses to vouch for an empty identity or contact", async () => {
+    expect(await check_and_pin_identity(PLAIN, "")).toBe("unknown");
+    expect(await check_and_pin_identity("", KEY_A)).toBe("unknown");
+    expect(names_under(IDENTITY_PIN_PREFIX)).toEqual([]);
+  });
+
   it("resolves a dotted and tagged variant to the existing pin", async () => {
     expect(await check_and_pin_identity(PLAIN, KEY_A)).toBe("first");
     expect(await check_and_pin_identity(VARIANT, KEY_A)).toBe("ok");

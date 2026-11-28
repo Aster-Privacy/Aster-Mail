@@ -74,6 +74,7 @@ export async function readable_export_envelope(
   envelope: DecryptedEnvelope,
   resolve_our_email: () => Promise<string | undefined>,
   message_id: string,
+  created_at?: string,
 ): Promise<DecryptedEnvelope | null> {
   if (!needs_inner_decryption(envelope)) return envelope;
 
@@ -95,6 +96,8 @@ export async function readable_export_envelope(
     working,
     our_email,
     message_id,
+    undefined,
+    created_at,
   );
 
   let text = processed.body_text ?? "";

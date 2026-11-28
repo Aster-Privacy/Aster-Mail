@@ -49,6 +49,11 @@ import { use_preferences } from "@/contexts/preferences_context";
 import { show_toast } from "@/components/toast/simple_toast";
 import { use_i18n } from "@/lib/i18n/context";
 import { clamp_password } from "@/services/sanitize";
+import {
+  is_valid_second_factor_code,
+  normalize_second_factor_code,
+  SECOND_FACTOR_CODE_MAX_LENGTH,
+} from "@/components/settings/security/second_factor_code";
 import { ButtonSpinner, Spinner } from "@/components/ui/spinner";
 import { Input } from "@/components/ui/input";
 import { api_client } from "@/services/api/client";
@@ -98,6 +103,7 @@ export function SecuritySection({
   const [login_alerts_failed, set_login_alerts_failed] = useState(false);
   const [show_password_change, set_show_password_change] = useState(false);
   const [current_password, set_current_password] = useState("");
+  const [pw_totp_code, set_pw_totp_code] = useState("");
   const [new_password, set_new_password] = useState("");
   const [confirm_password, set_confirm_password] = useState("");
   const [show_current_pw, set_show_current_pw] = useState(false);
@@ -249,6 +255,7 @@ export function SecuritySection({
         new_password,
         preferences,
         t,
+        totp_code: pw_totp_code || undefined,
         on_background_notice: (message) =>
           set_pw_unreadable_notice((prev) =>
             append_password_notice(prev, message),
@@ -261,10 +268,12 @@ export function SecuritySection({
           set_current_password("");
           set_new_password("");
           set_confirm_password("");
+          set_pw_totp_code("");
 
           return;
         }
 
+        set_pw_totp_code("");
         set_pw_error(result.error);
 
         return;
@@ -276,12 +285,21 @@ export function SecuritySection({
       set_current_password("");
       set_new_password("");
       set_confirm_password("");
+      set_pw_totp_code("");
     } catch (err) {
       set_pw_error(password_change_failure_message(err, t));
     } finally {
       set_pw_loading(false);
     }
-  }, [user, current_password, new_password, confirm_password, preferences, t]);
+  }, [
+    user,
+    current_password,
+    new_password,
+    confirm_password,
+    pw_totp_code,
+    preferences,
+    t,
+  ]);
 
   const handle_logout_others = useCallback(async () => {
     set_logout_others_loading(true);
@@ -726,6 +744,28 @@ export function SecuritySection({
                   set_confirm_password(clamp_password(e.target.value))
                 }
               />
+              {totp_status?.enabled && (
+                <div className="space-y-1.5">
+                  <Input
+                    aria-label={t("settings.authenticator_or_backup_code")}
+                    autoComplete="one-time-code"
+                    className="w-full"
+                    maxLength={SECOND_FACTOR_CODE_MAX_LENGTH}
+                    name="totp_code"
+                    placeholder={t("settings.authenticator_or_backup_code")}
+                    status={pw_error ? "error" : "default"}
+                    value={pw_totp_code}
+                    onChange={(e) =>
+                      set_pw_totp_code(
+                        normalize_second_factor_code(e.target.value),
+                      )
+                    }
+                  />
+                  <p className="text-[13px] text-[var(--text-muted)]">
+                    {t("settings.disable_2fa_code_hint")}
+                  </p>
+                </div>
+              )}
               {pw_error && (
                 <p className="text-[13px] text-[var(--color-danger,#ef4444)]">
                   {pw_error}
@@ -746,6 +786,7 @@ export function SecuritySection({
                     set_current_password("");
                     set_new_password("");
                     set_confirm_password("");
+                    set_pw_totp_code("");
                     set_pw_error("");
                     set_pw_breach_warning(false);
                   }}
@@ -758,6 +799,8 @@ export function SecuritySection({
                     !current_password ||
                     !new_password ||
                     !confirm_password ||
+                    (totp_status?.enabled === true &&
+                      !is_valid_second_factor_code(pw_totp_code)) ||
                     pw_loading
                   }
                   style={{

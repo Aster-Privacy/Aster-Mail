@@ -104,6 +104,7 @@ import { array_to_base64, base64_to_array } from "./base64";
 import { server_known_kek_id } from "./server_known_keys";
 import {
   clear_ratchet_verification_status,
+  is_downgraded_plaintext,
   is_unconfirmed_sender_plaintext,
 } from "./ratchet_verification_status";
 
@@ -199,6 +200,8 @@ describe("escrow entries are bound to their message", () => {
       plaintext: "real body",
       verified: false,
       unconfirmed_sender: false,
+      downgraded: false,
+      account_unbound: true,
     });
     expect(cached_flags.get(KEY)).toBe(true);
   });
@@ -253,9 +256,42 @@ describe("escrow entries are bound to their message", () => {
       plaintext: "first contact body",
       verified: true,
       unconfirmed_sender: true,
+      downgraded: false,
+      account_unbound: true,
     });
     expect(cached_unconfirmed.get(KEY)).toBe(true);
     expect(is_unconfirmed_sender_plaintext("first contact body")).toBe(true);
+  });
+
+  it("carries a downgraded mark to the other devices", async () => {
+    await upload_to_escrow(KEY, "older start body", ALICE, false, true);
+    serve_posted();
+
+    expect(await fetch_from_escrow(KEY, ALICE)).toEqual({
+      plaintext: "older start body",
+      verified: true,
+      unconfirmed_sender: true,
+      downgraded: true,
+      account_unbound: true,
+    });
+    expect(cached_unconfirmed.get(KEY)).toBe(true);
+    expect(is_downgraded_plaintext("older start body")).toBe(true);
+    expect(is_unconfirmed_sender_plaintext("older start body")).toBe(true);
+  });
+
+  it("keeps the downgraded mark during a full sync", async () => {
+    await upload_to_escrow(
+      "mail-m:BA==:1",
+      "older synced body",
+      ALICE,
+      false,
+      true,
+    );
+    serve_posted();
+
+    await sync_escrow_to_cache();
+
+    expect(cached_unconfirmed.get("mail-m:BA==:1")).toBe(true);
   });
 
   it("keeps the unconfirmed mark when upgrading from the escrow", async () => {
@@ -283,8 +319,124 @@ describe("escrow entries are bound to their message", () => {
       plaintext: "known body",
       verified: true,
       unconfirmed_sender: false,
+      downgraded: false,
+      account_unbound: true,
     });
     expect(is_unconfirmed_sender_plaintext("known body")).toBe(false);
+  });
+
+  it("carries the account binding state and send time to the other devices", async () => {
+    await upload_to_escrow(KEY, "older body", ALICE, false, false, {
+      account_unbound: true,
+      sent_at: 1234.7,
+    });
+    serve_posted();
+
+    expect(await fetch_from_escrow(KEY, ALICE)).toEqual({
+      plaintext: "older body",
+      verified: true,
+      unconfirmed_sender: false,
+      downgraded: false,
+      account_unbound: true,
+      sent_at: 1234,
+    });
+  });
+
+  it("keeps an account bound opening clean on the other devices", async () => {
+    await upload_to_escrow(KEY, "bound body", ALICE, false, false, {
+      account_bound: true,
+      sent_at: 1234,
+    });
+    serve_posted();
+
+    expect(await fetch_from_escrow(KEY, ALICE)).toEqual({
+      plaintext: "bound body",
+      verified: true,
+      unconfirmed_sender: false,
+      downgraded: false,
+      account_unbound: false,
+      sent_at: 1234,
+    });
+  });
+
+  it("seals the account bound mark inside the authenticated header", async () => {
+    await upload_to_escrow(KEY, "bound body", ALICE, false, false, {
+      account_bound: true,
+    });
+
+    const [bound] = posted;
+
+    expect(JSON.stringify(bound)).not.toContain('"b"');
+    expect(
+      new TextDecoder().decode(
+        await crypto.subtle.decrypt(
+          {
+            name: "AES-GCM",
+            iv: base64_to_array(bound.plaintext_nonce),
+            additionalData: escrow_aad_v3(KEY),
+          },
+          await escrow_key(),
+          base64_to_array(bound.encrypted_plaintext),
+        ),
+      ),
+    ).toBe(
+      `${JSON.stringify({ s: "alice@astermail.org", c: "conv-a", b: 1 })}
+bound body`,
+    );
+  });
+
+  it("lets the unbound mark win over the account bound mark", async () => {
+    const sealed = await seal(
+      KEY,
+      `${JSON.stringify({ s: "alice@astermail.org", c: "conv-a", a: 1, b: 1 })}
+both body`,
+      escrow_aad_v3(KEY),
+    );
+
+    served.set(bound_escrow_key(KEY), {
+      ...sealed,
+      message_id: bound_escrow_key(KEY),
+    });
+
+    expect((await fetch_from_escrow(KEY, ALICE))?.account_unbound).toBe(true);
+  });
+
+  it("ignores an account bound mark that is not exactly one", async () => {
+    const sealed = await seal(
+      KEY,
+      `${JSON.stringify({ s: "alice@astermail.org", c: "conv-a", b: true })}
+odd body`,
+      escrow_aad_v3(KEY),
+    );
+
+    served.set(bound_escrow_key(KEY), {
+      ...sealed,
+      message_id: bound_escrow_key(KEY),
+    });
+
+    expect((await fetch_from_escrow(KEY, ALICE))?.account_unbound).toBe(true);
+  });
+
+  it("ignores an unreadable send time in a bound entry", async () => {
+    const sealed = await seal(
+      KEY,
+      `${JSON.stringify({ s: "alice@astermail.org", c: "conv-a", a: 1, t: "soon" })}
+odd body`,
+      escrow_aad_v3(KEY),
+    );
+
+    served.set(bound_escrow_key(KEY), {
+      ...sealed,
+      message_id: bound_escrow_key(KEY),
+    });
+
+    expect(await fetch_from_escrow(KEY, ALICE)).toEqual({
+      plaintext: "odd body",
+      verified: true,
+      unconfirmed_sender: false,
+      downgraded: false,
+      account_unbound: true,
+    });
   });
 
   it("keeps a bound entry without a flag confirmed", async () => {
@@ -303,6 +455,8 @@ describe("escrow entries are bound to their message", () => {
       plaintext: "legacy body",
       verified: true,
       unconfirmed_sender: false,
+      downgraded: false,
+      account_unbound: true,
     });
     expect(is_unconfirmed_sender_plaintext("legacy body")).toBe(false);
   });
@@ -362,6 +516,8 @@ describe("escrow entries are bound to their message", () => {
       plaintext: "real body",
       verified: true,
       unconfirmed_sender: false,
+      downgraded: false,
+      account_unbound: true,
     });
     expect(cached_bindings.get(KEY)).toEqual(ALICE);
     expect(cached_flags.get(KEY)).toBe(false);
@@ -405,6 +561,8 @@ describe("escrow entries are bound to their message", () => {
       plaintext: "mobile body",
       verified: false,
       unconfirmed_sender: false,
+      downgraded: false,
+      account_unbound: true,
     });
     expect(cached_flags.get(KEY)).toBe(true);
     expect(cached_bindings.get(KEY)).toEqual(MALLORY);
@@ -505,6 +663,8 @@ describe("escrow entries are bound to their message", () => {
       plaintext: "old body",
       verified: false,
       unconfirmed_sender: false,
+      downgraded: false,
+      account_unbound: true,
     });
   });
 
@@ -536,6 +696,8 @@ describe("escrow entries are bound to their message", () => {
       plaintext: "Hello from the escrow vector. Ünïcödé ✓",
       verified: false,
       unconfirmed_sender: false,
+      downgraded: false,
+      account_unbound: true,
     });
   });
 

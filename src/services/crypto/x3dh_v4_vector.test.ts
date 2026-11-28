@@ -201,13 +201,7 @@ function reference_secret(info: string, with_pq: boolean): string {
   ]);
 
   return to_hex(
-    hkdf(
-      sha256,
-      input,
-      new Uint8Array(32),
-      new TextEncoder().encode(info),
-      32,
-    ),
+    hkdf(sha256, input, new Uint8Array(32), new TextEncoder().encode(info), 32),
   );
 }
 
@@ -239,7 +233,7 @@ async function receive(
 describe("x3dh one-time bound vectors", () => {
   it("keeps the write ceiling below the one-time bound version", () => {
     expect(X3DH_VERSION_MAX).toBe(X3DH_VERSION_KEY_BOUND);
-    expect(X3DH_READ_VERSION_MAX).toBe(X3DH_VERSION_ONE_TIME_BOUND);
+    expect(X3DH_READ_VERSION_MAX).toBe(X3DH_VERSION_ONE_TIME_BOUND + 1);
     expect(X3DH_VERSION_ONE_TIME_BOUND).toBe(4);
   });
 
@@ -309,7 +303,12 @@ describe("x3dh one-time bound vectors", () => {
 
   it("derives the one-time bound identity lane secret", async () => {
     expect(
-      await receive(X3DH_VERSION_ONE_TIME_BOUND, true, true, ONE_TIME_PREKEY_ID),
+      await receive(
+        X3DH_VERSION_ONE_TIME_BOUND,
+        true,
+        true,
+        ONE_TIME_PREKEY_ID,
+      ),
     ).toBe(EXPECTED_PQ_IDENTITY_V4);
   });
 

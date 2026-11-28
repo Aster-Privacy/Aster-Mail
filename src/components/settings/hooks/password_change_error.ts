@@ -39,6 +39,10 @@ const SERVER_ERROR_TRANSLATION_KEYS: Record<string, TranslationKey> = {
   [IDENTITY_CONTINUITY_REQUIRED_CODE]:
     "settings.password_change_identity_continuity_required",
   [VAULT_CHANGED_CODE]: "settings.password_change_vault_changed",
+  TOTP_REQUIRED: "settings.please_enter_2fa_code",
+  INVALID_TWO_FACTOR_CODE: "settings.invalid_2fa_code",
+  TOTP_CODE_REPLAYED: "auth.two_fa_code_already_used",
+  SECURITY_KEY_REQUIRED: "common.step_up_security_key_hint",
 };
 
 export function resolve_password_change_error(

@@ -23,6 +23,7 @@ import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 
 const h = vi.hoisted(() => ({
+  downgraded: new Set<string>(),
   changed: new Set<string>(),
   untrusted: new Set<string>(),
   trusted: [] as string[],
@@ -91,6 +92,11 @@ vi.mock("@/services/crypto/ratchet_identity_pin", () => ({
 }));
 
 vi.mock("@/services/crypto/ratchet_verification_status", () => ({
+  get_peer_identity_event: (peer: string) =>
+    h.downgraded.has(peer) ? { event: "downgraded" } : null,
+  dismiss_peer_identity_event: (peer: string) => {
+    h.downgraded.delete(peer);
+  },
   subscribe_peer_identity_events: (listener: () => void) => {
     h.listeners.push(listener);
 
@@ -121,6 +127,7 @@ async function render(recipients: string[]) {
 }
 
 beforeEach(() => {
+  h.downgraded = new Set();
   h.changed = new Set();
   h.untrusted = new Set();
   h.trusted = [];
@@ -246,5 +253,44 @@ describe("RecipientIdentityNotice", () => {
     expect(h.trusted).toEqual([]);
     expect(h.toasts).toEqual(["mail.trust_new_key_failed"]);
     expect(container.querySelector('[role="alert"]')).not.toBeNull();
+  });
+});
+
+describe("RecipientIdentityNotice post-quantum downgrade", () => {
+  it("shows a notice for a recipient whose post-quantum key was dropped", async () => {
+    h.downgraded.add("dana@astermail.org");
+
+    const { container } = await render(["dana@astermail.org"]);
+
+    expect(container.textContent).toContain(
+      "mail.recipient_identity_downgraded:dana@astermail.org",
+    );
+  });
+
+  it("shows nothing for a recipient with no downgrade", async () => {
+    const { container } = await render(["erin@astermail.org"]);
+
+    expect(container.textContent).not.toContain(
+      "mail.recipient_identity_downgraded",
+    );
+  });
+
+  it("clears the downgrade event when dismissed", async () => {
+    h.downgraded.add("dana@astermail.org");
+
+    const { container } = await render(["dana@astermail.org"]);
+    const button = [...container.querySelectorAll("button")].find(
+      (entry) => entry.textContent === "common.dismiss",
+    );
+
+    await act(async () => {
+      button?.click();
+    });
+
+    expect(h.downgraded.has("dana@astermail.org")).toBe(false);
+    expect(h.acknowledged).toEqual([]);
+    expect(container.textContent).not.toContain(
+      "mail.recipient_identity_downgraded",
+    );
   });
 });

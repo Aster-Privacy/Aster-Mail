@@ -56,6 +56,7 @@ export const RATCHET_PLAINTEXT_PREFIX = "ratchet_plaintext_";
 export const RATCHET_SYNC_FLOOR_PREFIX = "ratchet_sync_floor_";
 export const RATCHET_SYNC_SEALED_PREFIX = "ratchet_sync_sealed_";
 export const PQ_RECONCILER_LIMITS_PREFIX = "pq_reconciler_limits_";
+export const SAFETY_NUMBER_VERIFIED_PREFIX = "safety_number_verified_";
 
 const SCOPED_PREFIXES: readonly string[] = [
   SENDER_HISTORY_PREFIX,
@@ -74,6 +75,7 @@ const SCOPED_PREFIXES: readonly string[] = [
   RATCHET_SYNC_FLOOR_PREFIX,
   RATCHET_SYNC_SEALED_PREFIX,
   PQ_RECONCILER_LIMITS_PREFIX,
+  SAFETY_NUMBER_VERIFIED_PREFIX,
 ];
 
 const ACCOUNT_EXACT_KEY_PREFIXES: readonly string[] = [

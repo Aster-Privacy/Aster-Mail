@@ -20,6 +20,10 @@
 //
 import { array_to_base64, base64_to_array } from "./base64";
 import {
+  encode_ratchet_header_ad,
+  type RatchetHeaderFields,
+} from "./handshake_encoding";
+import {
   MAX_RECEIVED_CHAINS,
   record_received_chain,
   type ReceivedChain,
@@ -27,7 +31,7 @@ import {
 
 import { zero_uint8_array } from "@/services/crypto/secure_memory";
 import { HASH_ALG } from "@/services/crypto/constants";
-import { stored_unbound_policy } from "@/services/crypto/aes_gcm_aad_fallback";
+import { ratchet_unbound_policy } from "@/services/format_retirement/policies";
 
 const ECDH_ALGORITHM = "ECDH";
 const ECDH_CURVE = "P-256";
@@ -59,6 +63,7 @@ export interface BootstrapData {
   x3dh_version?: number;
   one_time_prekey_id?: number;
   signed_prekey_id?: string;
+  initiator_fingerprint?: string;
 }
 
 export interface RatchetState {
@@ -84,6 +89,8 @@ export interface RatchetState {
   remote_identity_key?: string;
   header_bound?: boolean;
   weak_bootstrap?: boolean;
+  account_unbound?: boolean;
+  session_binding?: string;
 }
 
 export interface SerializedState {
@@ -91,12 +98,7 @@ export interface SerializedState {
   conversation_id: string;
 }
 
-interface MessageHeader {
-  dh_public: string;
-  previous_chain_length: number;
-  message_number: number;
-  v?: number;
-}
+type MessageHeader = RatchetHeaderFields;
 
 interface EncryptedMessage {
   header: MessageHeader;
@@ -104,31 +106,18 @@ interface EncryptedMessage {
   nonce: string;
 }
 
-const RATCHET_HEADER_AD_PREFIX = new TextEncoder().encode(
-  "astermail-ratchet-header-v2",
-);
+function header_ad(
+  header: MessageHeader,
+  session_binding?: string,
+): Uint8Array | null {
+  if (
+    session_binding &&
+    ((header.v ?? 1) < 3 || header.sb !== session_binding)
+  ) {
+    throw new Error("Refusing a header outside the bound session");
+  }
 
-function serialize_header_for_ad(header: MessageHeader): Uint8Array {
-  const dh_public_bytes = base64_to_array(header.dh_public);
-  const meta = new Uint8Array(8);
-  const view = new DataView(meta.buffer);
-
-  view.setUint32(0, header.previous_chain_length >>> 0, false);
-  view.setUint32(4, header.message_number >>> 0, false);
-
-  const out = new Uint8Array(
-    RATCHET_HEADER_AD_PREFIX.length + 1 + dh_public_bytes.length + meta.length,
-  );
-  let offset = 0;
-
-  out.set(RATCHET_HEADER_AD_PREFIX, offset);
-  offset += RATCHET_HEADER_AD_PREFIX.length;
-  out[offset++] = (header.v ?? 1) & 0xff;
-  out.set(dh_public_bytes, offset);
-  offset += dh_public_bytes.length;
-  out.set(meta, offset);
-
-  return out;
+  return encode_ratchet_header_ad(header);
 }
 
 const MAX_HEADER_COUNTER = 0x7fffffff;
@@ -142,14 +131,41 @@ function is_header_counter(value: unknown): value is number {
   );
 }
 
-function assert_well_formed_header(header: MessageHeader): void {
-  const version: unknown = header.v;
+const MAX_HEADER_VERSION = 0xff;
+const RAW_P256_PUBLIC_KEY_LEN = 65;
 
+function is_header_version(value: unknown): boolean {
+  return (
+    value === undefined ||
+    (typeof value === "number" &&
+      Number.isInteger(value) &&
+      value >= 1 &&
+      value <= MAX_HEADER_VERSION)
+  );
+}
+
+function is_canonical_dh_public(value: unknown): boolean {
+  if (typeof value !== "string") return false;
+
+  try {
+    const bytes = base64_to_array(value);
+
+    return (
+      bytes.length === RAW_P256_PUBLIC_KEY_LEN &&
+      bytes[0] === 0x04 &&
+      array_to_base64(bytes) === value
+    );
+  } catch {
+    return false;
+  }
+}
+
+function assert_well_formed_header(header: MessageHeader): void {
   if (
-    typeof header.dh_public !== "string" ||
+    !is_canonical_dh_public(header.dh_public) ||
     !is_header_counter(header.message_number) ||
     !is_header_counter(header.previous_chain_length) ||
-    (version !== undefined && !is_header_counter(version))
+    !is_header_version(header.v)
   ) {
     throw new Error("Malformed ratchet header");
   }
@@ -181,6 +197,14 @@ function header_skip_total(state: RatchetState, header: MessageHeader): number {
   return Math.max(0, header.message_number - state.recv_message_number);
 }
 
+function bound_session_field(session_binding: Uint8Array | null | undefined): {
+  session_binding?: string;
+} {
+  return session_binding
+    ? { session_binding: array_to_base64(session_binding) }
+    : {};
+}
+
 function clone_state(state: RatchetState): RatchetState {
   return {
     dh_keypair: { ...state.dh_keypair },
@@ -202,6 +226,8 @@ function clone_state(state: RatchetState): RatchetState {
     remote_identity_key: state.remote_identity_key,
     header_bound: state.header_bound,
     weak_bootstrap: state.weak_bootstrap,
+    account_unbound: state.account_unbound,
+    session_binding: state.session_binding,
   };
 }
 
@@ -278,7 +304,7 @@ async function import_secret_key(
     "jwk",
     jwk,
     { name: ECDH_ALGORITHM, namedCurve: ECDH_CURVE },
-    true,
+    false,
     ["deriveBits"],
   );
 }
@@ -372,6 +398,23 @@ interface OpenedMessage {
   header_bound: boolean;
 }
 
+const GCM_NONCE_LEN = 12;
+const ENCODED_NONCE_MAX_LEN = 24;
+
+function decode_message_nonce(encoded: unknown): Uint8Array {
+  if (typeof encoded !== "string" || encoded.length > ENCODED_NONCE_MAX_LEN) {
+    throw new Error("Malformed ratchet nonce");
+  }
+
+  const nonce = base64_to_array(encoded);
+
+  if (nonce.length !== GCM_NONCE_LEN) {
+    throw new Error("Malformed ratchet nonce");
+  }
+
+  return nonce;
+}
+
 async function decrypt_with_key(
   ciphertext: Uint8Array,
   nonce: Uint8Array,
@@ -379,6 +422,10 @@ async function decrypt_with_key(
   associated_data: Uint8Array | null,
   bound_session = false,
 ): Promise<OpenedMessage> {
+  if (nonce.length !== GCM_NONCE_LEN) {
+    throw new Error("Malformed ratchet nonce");
+  }
+
   const key = await crypto.subtle.importKey(
     "raw",
     message_key,
@@ -387,7 +434,7 @@ async function decrypt_with_key(
     ["decrypt"],
   );
 
-  const unbound = bound_session ? "refuse_unbound" : stored_unbound_policy();
+  const unbound = bound_session ? "refuse_unbound" : ratchet_unbound_policy();
 
   if (!associated_data) {
     if (unbound === "refuse_unbound") {
@@ -525,7 +572,9 @@ function is_valid_serialized_state(data: unknown): data is SerializedState {
     is_optional(state.bootstrap, is_record) &&
     is_optional(state.remote_identity_key, is_string) &&
     is_optional(state.header_bound, is_boolean) &&
-    is_optional(state.weak_bootstrap, is_boolean)
+    is_optional(state.weak_bootstrap, is_boolean) &&
+    is_optional(state.account_unbound, is_boolean) &&
+    is_optional(state.session_binding, is_string)
   );
 }
 
@@ -543,6 +592,7 @@ export class DoubleRatchet {
     remote_public_key: Uint8Array,
     conversation_id: string,
     remote_identity_key?: string,
+    session_binding?: Uint8Array | null,
   ): Promise<DoubleRatchet> {
     const dh_keypair = await generate_dh_keypair();
     const secret_key = await import_secret_key(
@@ -576,6 +626,7 @@ export class DoubleRatchet {
       created_at: Date.now(),
       updated_at: Date.now(),
       ...(remote_identity_key ? { remote_identity_key } : {}),
+      ...bound_session_field(session_binding),
     };
 
     return new DoubleRatchet(state, conversation_id);
@@ -586,6 +637,7 @@ export class DoubleRatchet {
     own_keypair: RatchetKeyPair,
     conversation_id: string,
     remote_identity_key?: string,
+    session_binding?: Uint8Array | null,
   ): Promise<DoubleRatchet> {
     const state: RatchetState = {
       dh_keypair: {
@@ -606,6 +658,7 @@ export class DoubleRatchet {
       created_at: Date.now(),
       updated_at: Date.now(),
       remote_identity_key,
+      ...bound_session_field(session_binding),
     };
 
     return new DoubleRatchet(state, conversation_id);
@@ -640,10 +693,11 @@ export class DoubleRatchet {
       dh_public: this.state.dh_keypair.public_key,
       previous_chain_length: this.state.previous_chain_length,
       message_number: this.state.send_message_number,
-      v: 2,
+      v: this.state.session_binding ? 3 : 2,
+      ...(this.state.session_binding ? { sb: this.state.session_binding } : {}),
     };
 
-    const ad = serialize_header_for_ad(header);
+    const ad = header_ad(header);
 
     const { ciphertext, nonce } = await encrypt_with_key(
       plaintext_bytes,
@@ -674,16 +728,14 @@ export class DoubleRatchet {
   ): Promise<string> {
     assert_well_formed_header(message.header);
 
-    const ad =
-      (message.header.v ?? 1) >= 2
-        ? serialize_header_for_ad(message.header)
-        : null;
+    const ad = header_ad(message.header);
 
     const opened = await decrypt_with_key(
       base64_to_array(message.ciphertext),
-      base64_to_array(message.nonce),
+      decode_message_nonce(message.nonce),
       message_key,
       ad,
+      (message.header.v ?? 1) >= 3,
     );
 
     return new TextDecoder().decode(opened.plaintext);
@@ -701,6 +753,8 @@ export class DoubleRatchet {
     if (message.header.message_number >= MAX_HEADER_COUNTER) {
       throw new Error("Malformed ratchet header");
     }
+
+    const nonce = decode_message_nonce(message.nonce);
 
     const skipped = await DoubleRatchet.try_skipped_message_keys_on(
       this.state,
@@ -746,12 +800,8 @@ export class DoubleRatchet {
     const { new_chain_key, message_key } = await kdf_chain_key(chain_key);
 
     const ciphertext = base64_to_array(message.ciphertext);
-    const nonce = base64_to_array(message.nonce);
 
-    const ad =
-      (message.header.v ?? 1) >= 2
-        ? serialize_header_for_ad(message.header)
-        : null;
+    const ad = header_ad(message.header, this.state.session_binding);
 
     let opened: OpenedMessage;
 
@@ -761,7 +811,7 @@ export class DoubleRatchet {
         nonce,
         message_key,
         ad,
-        this.state.header_bound === true,
+        this.state.header_bound === true || (message.header.v ?? 1) >= 3,
       );
     } catch (error) {
       zero_uint8_array(chain_key);
@@ -799,14 +849,11 @@ export class DoubleRatchet {
     }
 
     const skipped = state.skipped_message_keys[index];
+    const nonce = decode_message_nonce(message.nonce);
     const message_key = base64_to_array(skipped.message_key);
     const ciphertext = base64_to_array(message.ciphertext);
-    const nonce = base64_to_array(message.nonce);
 
-    const ad =
-      (message.header.v ?? 1) >= 2
-        ? serialize_header_for_ad(message.header)
-        : null;
+    const ad = header_ad(message.header, state.session_binding);
 
     let opened: OpenedMessage;
 
@@ -816,7 +863,7 @@ export class DoubleRatchet {
         nonce,
         message_key,
         ad,
-        state.header_bound === true,
+        state.header_bound === true || (message.header.v ?? 1) >= 3,
       );
     } catch {
       zero_uint8_array(message_key);
@@ -976,6 +1023,21 @@ export class DoubleRatchet {
 
   mark_weak_bootstrap(): void {
     this.state.weak_bootstrap = true;
+    this.state.dirty_since_sync = true;
+  }
+
+  is_account_unbound(): boolean {
+    return this.state.account_unbound === true && !this.state.session_binding;
+  }
+
+  is_session_bound(): boolean {
+    return Boolean(this.state.session_binding);
+  }
+
+  set_account_unbound(account_unbound: boolean): void {
+    if ((this.state.account_unbound === true) === account_unbound) return;
+
+    this.state.account_unbound = account_unbound || undefined;
     this.state.dirty_since_sync = true;
   }
 

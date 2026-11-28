@@ -20,6 +20,20 @@
 //
 export const ko = {
   common: {
+    safety_number_compare: "안전 번호 비교",
+    safety_number_section_title: "암호화",
+    safety_number: "안전 번호",
+    safety_number_not_verified: "확인되지 않음",
+    safety_number_verified: "확인됨",
+    safety_number_status_changed: "변경됨",
+    safety_number_changed: "안전 번호가 변경됨",
+    safety_number_description: "{{name}}님만 암호화된 메일을 읽을 수 있는지 확인하려면 직접 만나거나 통화하면서 이 숫자를 {{name}}님의 기기에 표시된 숫자와 비교하세요.",
+    safety_number_changed_description: "{{name}}님의 계정 키가 변경되었습니다. 메일은 계속 암호화됩니다. 다른 사람이 {{name}}님의 키를 갖고 있지 않은지 확인하려면 안전 번호를 다시 비교하세요.",
+    safety_number_unavailable: "지금은 안전 번호를 사용할 수 없습니다. 나중에 다시 시도하세요.",
+    safety_number_copy: "번호 복사",
+    safety_number_mark_verified: "확인됨으로 표시",
+    safety_number_clear: "확인 해제",
+    safety_number_save_failed: "확인 상태가 저장되지 않았습니다. 다시 시도하세요.",
     couldnt_load: "불러오지 못했습니다.",
     try_again_action: "다시 시도",
     merge_primary_label: "기본",
@@ -9235,8 +9249,14 @@ export const ko = {
       "이 발신자의 암호화 ID가 마지막으로 메시지를 주고받은 이후 변경되었습니다. 예상하지 못한 변경이라면 다른 방법으로 상대방에게 확인하세요.",
     sender_identity_downgraded:
       "이 발신자의 메시지에 더 이상 양자 내성 보호가 적용되지 않습니다. 예상하지 못한 변경이라면 다른 방법으로 상대방에게 확인하세요.",
+    recipient_identity_downgraded:
+      "{{email}}에게 보내는 메시지에 더 이상 양자 내성 보호가 적용되지 않습니다. 예상하지 못한 변경이라면 다른 방법으로 상대방에게 확인하세요.",
     sender_identity_unreadable:
       "이 기기에서 이 발신자의 저장된 암호화 키를 읽을 수 없어 이 메시지를 확인할 수 없습니다. 메시지를 다시 확인하려면 다른 방법으로 상대방에게 키를 확인한 다음 새 키 신뢰를 선택하세요.",
+    sender_identity_unverified:
+      "이 메시지가 이 발신자에게서 왔는지 확인할 수 없습니다. 예상하지 못한 메시지라면 다른 방법으로 상대방에게 확인하세요.",
+    sender_identity_mismatch:
+      "이 메시지는 이 발신자가 게시한 키와 일치하지 않는 키로 암호화되었습니다. 다른 방법으로 상대방의 키를 확인하기 전까지 이 메시지를 신뢰하지 마세요.",
     recipient_identity_changed:
       "{{email}}의 암호화 키가 변경되었습니다. 예상하지 못한 변경이라면 민감한 정보를 보내기 전에 다른 방법으로 상대방에게 확인하세요.",
     message_password_requirements:

@@ -31,16 +31,31 @@ import {
   cap_lane_replay,
   lane_replay_message,
   MAX_LANE_REPLAY_ENTRIES,
-  merge_lane_replay,
   normalize_lane_replay,
   type LaneReplayRecord,
 } from "./lane_replay";
+import {
+  queue_bootstrap_replay,
+  vault_bootstrap_replay,
+} from "./bootstrap_replay_sync";
+import {
+  decode_evicted_filter,
+  encode_evicted_filter,
+  evicted_filter_add,
+  evicted_filter_has,
+  evicted_filter_union,
+  evicted_pair,
+} from "./bootstrap_evicted_filter";
 
 export type BootstrapClaim = "first" | "same_message" | "replayed" | "unknown";
 
+export interface BootstrapSeenRecord extends LaneReplayRecord {
+  x?: string;
+}
+
 export interface BootstrapRecordClaim {
   claim: BootstrapClaim;
-  record: LaneReplayRecord;
+  record: BootstrapSeenRecord;
   changed: boolean;
 }
 
@@ -67,6 +82,65 @@ export function bootstrap_record_key(
   );
 }
 
+function stored_filter(stored: unknown): Uint8Array {
+  return decode_evicted_filter(
+    stored && typeof stored === "object" && !Array.isArray(stored)
+      ? (stored as Record<string, unknown>).x
+      : undefined,
+  );
+}
+
+function remember_evicted(
+  filter: Uint8Array,
+  entries: LaneReplayRecord["e"],
+): void {
+  for (const entry of entries) {
+    evicted_filter_add(filter, entry.k);
+    evicted_filter_add(filter, evicted_pair(entry.k, entry.m));
+  }
+}
+
+function seen_record(
+  record: LaneReplayRecord,
+  filter: Uint8Array,
+): BootstrapSeenRecord {
+  const x = encode_evicted_filter(filter);
+
+  return x ? { f: record.f, e: record.e, x } : { f: record.f, e: record.e };
+}
+
+function capped_seen_record(
+  record: LaneReplayRecord,
+  filter: Uint8Array,
+): BootstrapSeenRecord {
+  const capped = cap_lane_replay(record);
+  const kept = new Set(capped.e.map((entry) => entry.k));
+
+  remember_evicted(
+    filter,
+    record.e.filter((entry) => !kept.has(entry.k)),
+  );
+
+  return seen_record(capped, filter);
+}
+
+export function merge_bootstrap_seen(
+  primary: unknown,
+  secondary: unknown,
+): BootstrapSeenRecord {
+  const first = normalize_lane_replay(primary);
+  const second = normalize_lane_replay(secondary);
+  const keys = new Set(first.e.map((entry) => entry.k));
+
+  return capped_seen_record(
+    {
+      f: Math.max(first.f, second.f),
+      e: [...first.e, ...second.e.filter((entry) => !keys.has(entry.k))],
+    },
+    evicted_filter_union(stored_filter(primary), stored_filter(secondary)),
+  );
+}
+
 export function claim_bootstrap_record(
   stored: unknown,
   key: string,
@@ -75,27 +149,84 @@ export function claim_bootstrap_record(
   may_evict = true,
 ): BootstrapRecordClaim {
   const normalized = normalize_lane_replay(stored);
+  const filter = stored_filter(stored);
+  const current = seen_record(normalized, filter);
   const prior = normalized.e.find((entry) => entry.k === key);
 
   if (prior) {
     return {
       claim: prior.m === message ? "same_message" : "replayed",
-      record: normalized,
+      record: current,
+      changed: false,
+    };
+  }
+
+  if (evicted_filter_has(filter, key)) {
+    return {
+      claim: evicted_filter_has(filter, evicted_pair(key, message))
+        ? "same_message"
+        : "replayed",
+      record: current,
       changed: false,
     };
   }
 
   if (!may_evict && normalized.e.length >= MAX_LANE_REPLAY_ENTRIES) {
-    return { claim: "unknown", record: normalized, changed: false };
+    return { claim: "unknown", record: current, changed: false };
   }
 
   return {
     claim: normalized.f > 0 ? "unknown" : "first",
-    record: cap_lane_replay({
-      f: normalized.f,
-      e: [...normalized.e, { k: key, m: message, t: Math.max(now, 1) }],
-    }),
+    record: capped_seen_record(
+      {
+        f: normalized.f,
+        e: [...normalized.e, { k: key, m: message, t: Math.max(now, 1) }],
+      },
+      filter,
+    ),
     changed: true,
+  };
+}
+
+export interface SyncedBootstrapClaim extends BootstrapRecordClaim {
+  shared: LaneReplayRecord | null;
+}
+
+export function claim_synced_bootstrap_record(
+  stored: unknown,
+  synced: unknown,
+  key: string,
+  message: string,
+  now: number,
+  may_evict = true,
+): SyncedBootstrapClaim {
+  const prior = normalize_lane_replay(synced).e.find(
+    (entry) => entry.k === key,
+  );
+
+  if (prior && prior.m !== message) {
+    return {
+      claim: "replayed",
+      record: normalize_lane_replay(stored),
+      changed: false,
+      shared: null,
+    };
+  }
+
+  const outcome = claim_bootstrap_record(
+    stored,
+    key,
+    message,
+    now,
+    may_evict,
+  );
+
+  return {
+    ...outcome,
+    shared:
+      !prior && outcome.claim === "first"
+        ? { f: 0, e: [{ k: key, m: message, t: now }] }
+        : null,
   };
 }
 
@@ -131,13 +262,14 @@ export async function claim_bootstrap(
         BOOTSTRAP_SEEN_PREFIX,
         slot,
         () => true,
-        merge_lane_replay,
+        merge_bootstrap_seen,
       );
 
       if (read.state !== "found" && read.state !== "absent") return "unknown";
 
-      const outcome = claim_bootstrap_record(
+      const outcome = claim_synced_bootstrap_record(
         read.state === "found" ? read.value : null,
+        vault_bootstrap_replay(sender),
         key,
         message,
         Date.now(),
@@ -147,6 +279,8 @@ export async function claim_bootstrap(
       if (outcome.changed) {
         await write_contact_entry(BOOTSTRAP_SEEN_PREFIX, slot, outcome.record);
       }
+
+      if (outcome.shared) queue_bootstrap_replay(sender, outcome.shared);
 
       return outcome.claim;
     });

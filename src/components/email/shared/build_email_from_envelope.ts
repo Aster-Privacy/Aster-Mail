@@ -106,6 +106,7 @@ export async function process_envelope_body(
   user_email?: string,
   message_id?: string,
   dkim_result?: string,
+  created_at?: string,
 ): Promise<ProcessedEnvelope> {
   try {
     return await resolve_envelope_body(
@@ -113,6 +114,7 @@ export async function process_envelope_body(
       user_email,
       message_id,
       dkim_result,
+      created_at,
     );
   } catch (caught) {
     ignore_error(
@@ -129,6 +131,7 @@ async function resolve_envelope_body(
   user_email?: string,
   message_id?: string,
   dkim_result?: string,
+  created_at?: string,
 ): Promise<ProcessedEnvelope> {
   let resolved_html = envelope.body_html || envelope.html_body || undefined;
 
@@ -147,6 +150,7 @@ async function resolve_envelope_body(
         user_email,
         envelope.from.email,
         message_id,
+        created_at,
       )
     : resolved_text;
 

@@ -30,7 +30,10 @@ import {
   set_cached_ratchet_plaintext,
   type PlaintextBinding,
 } from "./ratchet_plaintext_cache";
-import { mark_unconfirmed_sender_plaintext } from "./ratchet_verification_status";
+import {
+  mark_downgraded_plaintext,
+  mark_unconfirmed_sender_plaintext,
+} from "./ratchet_verification_status";
 
 import { ignore_error } from "@/lib/ignore_error";
 import { api_client } from "@/services/api/client";
@@ -152,7 +155,7 @@ interface EscrowEntry {
   plaintext_nonce: string;
 }
 
-async function derive_escrow_key_from_base(
+export async function derive_escrow_key_from_base(
   key_material: CryptoKey,
 ): Promise<CryptoKey> {
   return crypto.subtle.deriveKey(
@@ -193,7 +196,7 @@ async function escrow_key_from(
   }
 }
 
-async function get_escrow_key(): Promise<CryptoKey | null> {
+export async function get_escrow_key(): Promise<CryptoKey | null> {
   return escrow_key_from(await load_storage_write_key_bytes());
 }
 
@@ -282,12 +285,30 @@ interface BoundEscrowPayload {
   conversation_id: string;
   plaintext: string;
   unconfirmed_sender: boolean;
+  downgraded: boolean;
+  account_unbound: boolean;
+  sent_at?: number;
 }
 
 export interface EscrowedPlaintext {
   plaintext: string;
   verified: boolean;
   unconfirmed_sender: boolean;
+  downgraded: boolean;
+  account_unbound: boolean;
+  sent_at?: number;
+}
+
+export interface EscrowOpening {
+  account_unbound?: boolean;
+  account_bound?: boolean;
+  sent_at?: number;
+}
+
+function escrow_sent_at(value: unknown): number | undefined {
+  return typeof value === "number" && Number.isFinite(value) && value > 0
+    ? Math.floor(value)
+    : undefined;
 }
 
 function normalize_sender(sender: string): string {
@@ -298,11 +319,18 @@ function encode_bound_payload(
   binding: PlaintextBinding,
   plaintext: string,
   unconfirmed_sender: boolean,
+  downgraded: boolean,
+  opening: EscrowOpening,
 ): Uint8Array {
+  const sent_at = escrow_sent_at(opening.sent_at);
   const header = JSON.stringify({
     s: normalize_sender(binding.sender),
     c: binding.conversation_id,
-    ...(unconfirmed_sender ? { u: 1 } : {}),
+    ...(unconfirmed_sender || downgraded ? { u: 1 } : {}),
+    ...(downgraded ? { m: 1 } : {}),
+    ...(opening.account_unbound === true ? { a: 1 } : {}),
+    ...(opening.account_bound === true ? { b: 1 } : {}),
+    ...(sent_at !== undefined ? { t: sent_at } : {}),
   });
 
   return new TextEncoder().encode(`${header}\n${plaintext}`);
@@ -319,6 +347,10 @@ function decode_bound_payload(bytes: ArrayBuffer): BoundEscrowPayload | null {
       s?: unknown;
       c?: unknown;
       u?: unknown;
+      m?: unknown;
+      a?: unknown;
+      b?: unknown;
+      t?: unknown;
     };
 
     if (typeof header.s !== "string" || typeof header.c !== "string") {
@@ -329,7 +361,10 @@ function decode_bound_payload(bytes: ArrayBuffer): BoundEscrowPayload | null {
       sender: header.s,
       conversation_id: header.c,
       plaintext: text.slice(split + 1),
-      unconfirmed_sender: header.u === 1,
+      unconfirmed_sender: header.u === 1 || header.m === 1,
+      downgraded: header.m === 1,
+      account_unbound: header.a === 1 || header.b !== 1,
+      sent_at: escrow_sent_at(header.t),
     };
   } catch {
     return null;
@@ -375,6 +410,8 @@ export async function upload_to_escrow(
   plaintext: string,
   binding: PlaintextBinding,
   unconfirmed_sender = false,
+  downgraded = false,
+  opening: EscrowOpening = {},
 ): Promise<void> {
   if (!dedupe_key || !plaintext) return;
 
@@ -392,7 +429,13 @@ export async function upload_to_escrow(
     await post_escrow_entry(
       verifying_key,
       bound_escrow_key(dedupe_key),
-      encode_bound_payload(binding, plaintext, unconfirmed_sender),
+      encode_bound_payload(
+        binding,
+        plaintext,
+        unconfirmed_sender,
+        downgraded,
+        opening,
+      ),
       escrow_aad_v3(dedupe_key),
     );
   }
@@ -519,12 +562,22 @@ async function adopt_bound_payload(
     mark_unconfirmed_sender_plaintext(bound.plaintext, dedupe_key);
   }
 
+  if (bound.downgraded) {
+    mark_downgraded_plaintext(bound.plaintext, dedupe_key);
+  }
+
   await set_cached_ratchet_plaintext(
     dedupe_key,
     bound.plaintext,
     false,
     binding,
     bound.unconfirmed_sender,
+    undefined,
+    {
+      downgraded: bound.downgraded,
+      account_unbound: bound.account_unbound,
+      sent_at: bound.sent_at,
+    },
   );
 }
 
@@ -585,6 +638,9 @@ export async function fetch_from_escrow(
       plaintext: bound.plaintext,
       verified: true,
       unconfirmed_sender: bound.unconfirmed_sender,
+      downgraded: bound.downgraded,
+      account_unbound: bound.account_unbound,
+      sent_at: bound.sent_at,
     };
   }
 
@@ -604,7 +660,13 @@ export async function fetch_from_escrow(
 
     await set_cached_ratchet_plaintext(dedupe_key, plaintext, true, binding);
 
-    return { plaintext, verified: false, unconfirmed_sender: false };
+    return {
+      plaintext,
+      verified: false,
+      unconfirmed_sender: false,
+      downgraded: false,
+      account_unbound: true,
+    };
   } catch {
     return null;
   }
@@ -638,6 +700,12 @@ export async function sync_escrow_to_cache(): Promise<void> {
       false,
       { sender: payload.sender, conversation_id: payload.conversation_id },
       payload.unconfirmed_sender,
+      undefined,
+      {
+        downgraded: payload.downgraded,
+        account_unbound: payload.account_unbound,
+        sent_at: payload.sent_at,
+      },
     );
   }
 }

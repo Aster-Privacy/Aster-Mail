@@ -312,6 +312,44 @@ describe("merge_vault_for_write", () => {
     expect(merged.lane_replay).toEqual({ "a@example.com": record });
   });
 
+  it("keeps both writers' session start records", () => {
+    const local = stale_local_vault();
+    const server_copy = {
+      ...random_server_vault(),
+      bootstrap_replay: {
+        "a@example.com": { f: 0, e: [{ k: "k1", m: "m1", t: 10 }] },
+      },
+    };
+    const merged = merge_vault_for_write(server_copy, local, {
+      ...local,
+      bootstrap_replay: {
+        "a@example.com": { f: 0, e: [{ k: "k2", m: "m2", t: 12 }] },
+      },
+    });
+
+    expect(merged.bootstrap_replay).toEqual({
+      "a@example.com": {
+        f: 0,
+        e: [
+          { k: "k1", m: "m1", t: 10 },
+          { k: "k2", m: "m2", t: 12 },
+        ],
+      },
+    });
+  });
+
+  it("keeps the server session start records when the caller has none", () => {
+    const local = stale_local_vault();
+    const record = { f: 0, e: [{ k: "k1", m: "m1", t: 9 }] };
+    const merged = merge_vault_for_write(
+      { ...random_server_vault(), bootstrap_replay: { "a@example.com": record } },
+      local,
+      { ...local, identity_key: "identity-3" },
+    );
+
+    expect(merged.bootstrap_replay).toEqual({ "a@example.com": record });
+  });
+
   it("keeps the server prekey seal key over a concurrent local one", () => {
     const local = stale_local_vault();
     const server_copy = {

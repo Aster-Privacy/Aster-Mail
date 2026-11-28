@@ -23,6 +23,7 @@ import { ml_kem768 } from "@noble/post-quantum/ml-kem.js";
 import { api_client } from "../api/client";
 
 import { array_to_base64 } from "./base64";
+import { sign_one_time_prekeys } from "./handshake_keys/bundle_signing";
 import {
   save_pq_secrets_bulk,
   delete_pq_secret,
@@ -86,9 +87,8 @@ async function load_taken_key_ids(): Promise<Set<number>> {
 
 async function pending_rollback_storage_key(): Promise<string | null> {
   try {
-    const { get_current_account_id } = await import(
-      "@/services/account_manager"
-    );
+    const { get_current_account_id } =
+      await import("@/services/account_manager");
     const uid = await get_current_account_id();
 
     return uid ? `aster_pq_pending_rollback:${uid}` : null;
@@ -248,7 +248,7 @@ export async function upload_prekeys(
   };
 
   if (pq_prekeys.length > 0) {
-    request.pq_prekeys = pq_prekeys;
+    request.pq_prekeys = sign_one_time_prekeys("pq", pq_prekeys);
   }
 
   const response = await api_client.post("/crypto/v1/keys/prekeys", request);

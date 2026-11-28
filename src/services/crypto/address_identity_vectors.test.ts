@@ -24,6 +24,7 @@ import { p256 } from "@noble/curves/nist.js";
 
 import {
   address_entry_forms,
+  address_receiver_key_sets,
   derive_address_key_set,
   sign_address_entry,
   verify_address_entry,
@@ -86,6 +87,31 @@ function fixed_vault(): EncryptedVault {
 describe("address identity vectors", () => {
   it("derives the published address forms", () => {
     expect(address_entry_forms(expected.address)).toEqual(expected.forms);
+  });
+
+  it("keeps dots in the address form on other domains", () => {
+    expect(address_entry_forms("J.Doe+shop@Custom.Example")).toEqual([
+      "j.doe+shop@custom.example",
+      "j.doe@custom.example",
+    ]);
+    expect(address_entry_forms("j.doe@custom.example")).toEqual([
+      "j.doe@custom.example",
+    ]);
+    expect(address_entry_forms("j.doe+shop@astermail.org")).toEqual([
+      "j.doe+shop@astermail.org",
+      "jdoe@astermail.org",
+    ]);
+  });
+
+  it("still opens mail sealed to the earlier dotless form", () => {
+    const vault = fixed_vault();
+    const publics = address_receiver_key_sets(vault, expected.address).map(
+      (set) => set.ratchet_identity_public,
+    );
+
+    for (const vector of expected.derived) {
+      expect(publics).toContain(vector.identity_public);
+    }
   });
 
   it("derives the same key sets for every form", () => {

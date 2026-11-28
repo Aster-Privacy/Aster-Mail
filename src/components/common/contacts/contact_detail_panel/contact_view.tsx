@@ -50,6 +50,7 @@ import {
 } from "./helpers";
 
 import { ContactAvatar } from "@/components/common/contacts/contact_avatar";
+import { SafetyNumberSection } from "@/components/common/safety_number/safety_number_section";
 import { show_toast } from "@/components/toast/simple_toast";
 import { cn } from "@/lib/utils";
 import { format_contact_date } from "@/utils/date_utils";
@@ -373,6 +374,11 @@ export function ContactView({
           ))}
         </div>
       )}
+
+      <SafetyNumberSection
+        emails={emails.map((entry) => entry.value)}
+        name={`${draft.first_name || ""} ${draft.last_name || ""}`.trim()}
+      />
     </div>
   );
 }

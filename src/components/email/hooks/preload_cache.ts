@@ -540,6 +540,7 @@ export async function preload_email_detail(
             user_email,
             envelope.from.email,
             item.id,
+            item.created_at,
           )
         : resolved_text;
 

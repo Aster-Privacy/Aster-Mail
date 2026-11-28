@@ -69,6 +69,7 @@ import {
 import { get_current_account } from "@/services/account_manager";
 import { api_client } from "@/services/api/client";
 import { ignore_error } from "@/lib/ignore_error";
+import { merge_format_retirements } from "@/services/format_retirement/record";
 
 export const VAULT_PATH = "/crypto/v1/keys/vault";
 export const MAX_VAULT_CONFLICT_RETRIES = 3;
@@ -295,7 +296,8 @@ export function merge_vault_for_write(
       key === "legacy_keks" ||
       key === "vault_format" ||
       key === RETIRED_STORAGE_HASHES_FIELD ||
-      key === "lane_replay"
+      key === "lane_replay" ||
+      key === "bootstrap_replay"
     ) {
       continue;
     }
@@ -351,6 +353,14 @@ export function merge_vault_for_write(
 
   if (retired_marker) merged.mail_legacy_retired = retired_marker;
 
+  const retirements = merge_format_retirements(
+    server.format_retirements,
+    base?.format_retirements,
+    next.format_retirements,
+  );
+
+  if (retirements) merged.format_retirements = retirements;
+
   const folder_key_pins = merge_folder_key_pins(
     server.folder_key_pins,
     base?.folder_key_pins,
@@ -388,6 +398,16 @@ export function merge_vault_for_write(
     merged.lane_replay = merge_lane_replay_maps(
       server.lane_replay,
       next.lane_replay,
+    );
+  }
+
+  if (
+    server.bootstrap_replay !== undefined ||
+    next.bootstrap_replay !== undefined
+  ) {
+    merged.bootstrap_replay = merge_lane_replay_maps(
+      server.bootstrap_replay,
+      next.bootstrap_replay,
     );
   }
 

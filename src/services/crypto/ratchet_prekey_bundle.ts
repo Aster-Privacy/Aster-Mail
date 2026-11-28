@@ -21,6 +21,10 @@
 import { api_client } from "../api/client";
 
 import { array_to_base64 } from "./base64";
+import {
+  note_account_bound_upload,
+  sign_prekey_bundle_upload,
+} from "./handshake_keys/bundle_signing";
 import { type EncryptedVault } from "./key_manager";
 import {
   PINNED_FINGERPRINTS,
@@ -29,8 +33,6 @@ import {
   pin_fingerprint,
   verify_pinned_fingerprint,
 } from "./key_manager_core";
-import { sign_ratchet_prekey_bundle } from "./key_manager_pgp";
-import { select_published_signing_key } from "./published_signing_key";
 import {
   get_passphrase_from_memory,
   get_vault_from_memory,
@@ -38,8 +40,10 @@ import {
 } from "./memory_key_store";
 import { lookup_pinned_identity } from "./ratchet_identity_pin";
 import { type PrekeyBundle } from "./x3dh";
+import { type PublishedIdentityEntry } from "./sender_key_retirement";
 
 import { HASH_ALG } from "@/services/crypto/constants";
+import { strip_plus_tag } from "@/utils/address_dots";
 import { load_openpgp } from "@/services/crypto/openpgp_loader";
 
 export async function detect_identity_pin_drift(
@@ -126,7 +130,9 @@ function lookup_params(email?: string, address_scope = false): string {
 
   const scope = address_scope ? "&scope=address" : "";
 
-  return `?email=${encodeURIComponent(email)}${scope}`;
+  const address = strip_plus_tag(email).toLowerCase();
+
+  return `?email=${encodeURIComponent(address)}${scope}`;
 }
 
 export async function fetch_ratchet_identity(
@@ -216,6 +222,7 @@ interface RatchetIdentityHistoryResponse {
 
 export interface PublishedIdentityHistory {
   identity_keys: string[];
+  entries: PublishedIdentityEntry[];
   history_complete: boolean;
   address_scoped?: boolean;
 }
@@ -248,9 +255,18 @@ export async function fetch_published_identity_history(
       .filter(
         (key): key is string => typeof key === "string" && key.length > 0,
       ),
+    entries: entries.map((entry) => ({
+      kem_identity_key: text_or_null(entry?.kem_identity_key),
+      first_published_at: text_or_null(entry?.first_published_at),
+      last_published_at: text_or_null(entry?.last_published_at),
+    })),
     history_complete: response.data.history_complete === true,
     ...(response.data.address_scoped === true ? { address_scoped: true } : {}),
   };
+}
+
+function text_or_null(value: unknown): string | null {
+  return typeof value === "string" && value.length > 0 ? value : null;
 }
 
 async function legacy_prekey_signature(
@@ -263,12 +279,6 @@ async function legacy_prekey_signature(
   const signature_hash = await crypto.subtle.digest(HASH_ALG, signature_input);
 
   return array_to_base64(new Uint8Array(signature_hash));
-}
-
-async function select_bundle_signing_key(
-  vault: EncryptedVault,
-): Promise<string> {
-  return (await select_published_signing_key(vault)) ?? vault.identity_key;
 }
 
 export interface UploadPrekeyBundleResult {
@@ -319,12 +329,14 @@ export function has_deferred_prekey_publish(): boolean {
 export async function upload_prekey_bundle_result(
   vault: EncryptedVault,
 ): Promise<UploadPrekeyBundleResult> {
-  if (!vault.ratchet_identity_public || !vault.ratchet_signed_prekey_public) {
-    return { ok: false };
-  }
+  const identity_public = vault.ratchet_identity_public;
+  const signed_prekey_public = vault.ratchet_signed_prekey_public;
+
+  if (!identity_public || !signed_prekey_public) return { ok: false };
 
   const passphrase = get_passphrase_from_memory();
   let signature: string;
+  let account_fields: Record<string, string> = {};
 
   if (vault.identity_key && !passphrase) {
     schedule_deferred_publish();
@@ -336,30 +348,32 @@ export async function upload_prekey_bundle_result(
     await load_openpgp();
 
     try {
-      signature = await sign_ratchet_prekey_bundle(
-        await select_bundle_signing_key(vault),
+      ({ signature, account_fields } = await sign_prekey_bundle_upload(
+        vault,
         passphrase,
-        vault.ratchet_identity_public,
-        vault.ratchet_signed_prekey_public,
-        vault.ratchet_pq_identity_public ?? null,
-      );
+        identity_public,
+        signed_prekey_public,
+      ));
     } catch {
       return { ok: false, code: "signing_failed" };
     }
   } else {
     signature = await legacy_prekey_signature(
-      vault.ratchet_identity_public,
-      vault.ratchet_signed_prekey_public,
+      identity_public,
+      signed_prekey_public,
     );
   }
 
   const response = await api_client.put("/crypto/v1/ratchet/prekey-bundle", {
-    kem_identity_key: vault.ratchet_identity_public,
-    signed_prekey: vault.ratchet_signed_prekey_public,
+    kem_identity_key: identity_public,
+    signed_prekey: signed_prekey_public,
     signed_prekey_signature: signature,
     one_time_prekeys: [],
     pq_kem_public_key: vault.ratchet_pq_identity_public ?? null,
+    ...account_fields,
   });
+
+  note_account_bound_upload(account_fields, !response.error, identity_public);
 
   return {
     ok: !response.error,

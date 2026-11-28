@@ -37,6 +37,11 @@ import {
 import { reprotect_vault_keys_for_password_change } from "@/services/crypto/identity_key_materials";
 import { collect_vault_key_fingerprints } from "@/services/crypto/vault_key_fingerprints";
 import { change_password, get_user_salt } from "@/services/api/auth";
+import {
+  perform_step_up_webauthn_assertion,
+  type StepUpHardwareKeyAssertion,
+} from "@/services/api/webauthn";
+import { is_desktop } from "@/native/invoke_bridge";
 import { api_client } from "@/services/api/client";
 import { compute_password_strength_tier } from "@/services/password_strength_score";
 import {
@@ -112,10 +117,20 @@ export interface PasswordChangeRequest {
   user_email: string;
   current_password: string;
   new_password: string;
-  totp_code?: string;
   preferences: UserPreferences;
   t: (key: TranslationKey, params?: Record<string, string | number>) => string;
   on_background_notice: (message: string) => void;
+  totp_code?: string;
+}
+
+const SECURITY_KEY_REQUIRED_CODE = "SECURITY_KEY_REQUIRED";
+
+async function request_password_change_key(
+  t: (key: TranslationKey) => string,
+): Promise<StepUpHardwareKeyAssertion> {
+  if (is_desktop()) throw new Error(t("common.step_up_key_needs_browser"));
+
+  return perform_step_up_webauthn_assertion();
 }
 
 export type PasswordChangeResult =
@@ -156,12 +171,46 @@ export async function run_password_change(
     user_email,
     current_password,
     new_password,
-    totp_code,
     preferences,
     t,
     on_background_notice,
+    totp_code,
   } = request;
-  const totp_field = totp_code ? { totp_code } : {};
+
+  const factor_field: { totp_code?: string } = totp_code ? { totp_code } : {};
+  let key_assertion: StepUpHardwareKeyAssertion | undefined;
+  let key_failure = "";
+  const send_change = async (body: Parameters<typeof change_password>[0]) => {
+    const key_field = key_assertion
+      ? { hardware_key_assertion: key_assertion }
+      : {};
+    const first = await change_password({
+      ...body,
+      ...factor_field,
+      ...key_field,
+    });
+
+    if (
+      first.server_code !== SECURITY_KEY_REQUIRED_CODE ||
+      key_assertion ||
+      totp_code
+    ) {
+      return first;
+    }
+
+    try {
+      key_assertion = await request_password_change_key(t);
+    } catch (caught) {
+      key_failure =
+        caught instanceof Error && caught.message
+          ? caught.message
+          : t("settings.failed_change_password");
+
+      return first;
+    }
+
+    return change_password({ ...body, hardware_key_assertion: key_assertion });
+  };
 
   const user_hash = await hash_email(user_email);
   const salt_response = await get_user_salt({ user_hash });
@@ -304,7 +353,7 @@ export async function run_password_change(
       vault_write_iterations(),
       (iterations) => encrypt_vault(vault, new_password, iterations),
       (sealed, kdf_field) =>
-        change_password({
+        send_change({
           current_password_hash,
           new_password_hash,
           new_password_hash_v2,
@@ -317,7 +366,6 @@ export async function run_password_change(
           ...kept_app_lock_field(user_id),
           ...fingerprint_field,
           ...cas_field,
-          ...totp_field,
         }),
     );
 
@@ -338,11 +386,9 @@ export async function run_password_change(
     }
 
     if (response.error) {
-      failure = resolve_password_change_error(
-        response.error,
-        t,
-        response.server_code,
-      );
+      failure =
+        key_failure ||
+        resolve_password_change_error(response.error, t, response.server_code);
 
       return false;
     }

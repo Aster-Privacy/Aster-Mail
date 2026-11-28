@@ -42,6 +42,11 @@ import {
 import { use_should_reduce_motion } from "@/provider";
 import { use_i18n } from "@/lib/i18n/context";
 import { clamp_password } from "@/services/sanitize";
+import {
+  is_valid_second_factor_code,
+  normalize_second_factor_code,
+  SECOND_FACTOR_CODE_MAX_LENGTH,
+} from "@/components/settings/security/second_factor_code";
 import { ActionRecommendedBadge } from "@/components/settings/security/recommendation_box";
 import { app_locale, get_display_time_zone } from "@/utils/date_format";
 
@@ -71,7 +76,7 @@ interface PasswordSectionProps {
   on_cancel: () => void;
   totp_enabled?: boolean;
   totp_code?: string;
-  set_totp_code?: (code: string) => void;
+  set_totp_code?: (value: string) => void;
 }
 
 export function PasswordSection({
@@ -109,7 +114,8 @@ export function PasswordSection({
     !password_loading &&
     !!current_password &&
     !!new_password &&
-    !!confirm_password;
+    !!confirm_password &&
+    (!totp_enabled || is_valid_second_factor_code(totp_code));
 
   const handle_password_key_down = (
     event: React.KeyboardEvent<HTMLDivElement>,
@@ -377,29 +383,30 @@ export function PasswordSection({
               />
             </div>
 
-            {totp_enabled && set_totp_code && (
+            {totp_enabled && (
               <div>
                 <label
                   className="text-sm font-medium block mb-2 text-txt-primary"
-                  htmlFor="password-change-code"
+                  htmlFor="password-change-totp"
                 >
-                  {t("settings.authenticator_code")}
+                  {t("settings.authenticator_or_backup_code")}
                 </label>
                 <Input
                   autoComplete="one-time-code"
                   disabled={password_loading}
-                  id="password-change-code"
-                  inputMode="numeric"
-                  maxLength={6}
+                  id="password-change-totp"
+                  maxLength={SECOND_FACTOR_CODE_MAX_LENGTH}
+                  name="totp_code"
                   placeholder="000000"
-                  type="text"
                   value={totp_code}
                   onChange={(e) =>
-                    set_totp_code(e.target.value.replace(/\D/g, "").slice(0, 6))
+                    set_totp_code?.(
+                      normalize_second_factor_code(e.target.value),
+                    )
                   }
                 />
-                <p className="text-xs mt-1 text-txt-muted">
-                  {t("settings.password_change_code_hint")}
+                <p className="text-xs mt-1.5 text-txt-muted">
+                  {t("settings.disable_2fa_code_hint")}
                 </p>
               </div>
             )}

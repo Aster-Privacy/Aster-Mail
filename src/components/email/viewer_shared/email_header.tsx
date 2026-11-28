@@ -37,6 +37,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { EncryptionInfoDropdown } from "@/components/common/encryption_info_dropdown";
+import { SafetyNumberNotice } from "@/components/common/safety_number/safety_number_notice";
 import { TrackingProtectionShield } from "@/components/email/tracking_protection_shield";
 import { is_system_email, trust_source_for_display } from "@/lib/utils";
 import { OfficialBadge } from "@/components/email/official_badge";
@@ -151,6 +152,10 @@ export function ViewerEmailHeader({
               is_received={mail_item?.item_type === "received"}
               sender_verification={email.sender_verification}
               size={encryption_size}
+            />
+            <SafetyNumberNotice
+              email={email.sender_email}
+              name={email.sender}
             />
             {tracking_report && (
               <TrackingProtectionShield

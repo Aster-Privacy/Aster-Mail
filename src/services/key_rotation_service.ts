@@ -440,10 +440,17 @@ export async function perform_key_rotation(
       new_key_bytes,
     );
 
+    if (!rotation_signature_pgp) {
+      return {
+        success: false,
+        error: "Failed to sign the new identity key",
+      };
+    }
+
     const request: IdentityRotationFields = {
       new_identity_key: btoa(new_keypair.public_key),
       rotation_signature: rotation_proof,
-      ...(rotation_signature_pgp ? { rotation_signature_pgp } : {}),
+      rotation_signature_pgp,
       new_signed_prekey: btoa(new_prekey.public_key),
       new_signed_prekey_id: prekey_id,
       new_signed_prekey_signature: btoa(prekey_signature),

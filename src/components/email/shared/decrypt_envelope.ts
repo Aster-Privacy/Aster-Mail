@@ -54,6 +54,7 @@ import {
   normalize_parsed_envelope,
 } from "@/services/crypto/envelope";
 import { decrypt_legacy_ios_mail_envelope } from "@/services/crypto/legacy_ios_envelope";
+import { unbound_gcm } from "@/services/format_retirement/policies";
 import {
   drop_sender_verification,
   resolve_inline_pgp_sender_keys,
@@ -243,9 +244,7 @@ function inbound_gcm_params(
   header_len: number,
   owner: Uint8Array | null,
 ): AesGcmParams {
-  if (!is_inbound_bound_marker(enc_bytes[0])) {
-    return { name: "AES-GCM", iv: nonce_bytes };
-  }
+  if (!is_inbound_bound_marker(enc_bytes[0])) return unbound_gcm(nonce_bytes);
   if (!owner || owner.length !== INBOUND_BOUND_OWNER_LEN) {
     throw new Error("bound inbound envelope needs its owner");
   }
@@ -550,6 +549,22 @@ function collect_envelope_identity_keys(vault: EncryptedVault): string[] {
   return vault_identity_key_materials(vault);
 }
 
+const PLAINTEXT_TRUST_CLAIMS = [
+  "sender_verified",
+  "sender_verified_domain",
+  "sender_aligned",
+] as const;
+
+function drop_plaintext_trust_claims<Envelope>(envelope: Envelope): Envelope {
+  if (envelope && typeof envelope === "object") {
+    for (const claim of PLAINTEXT_TRUST_CLAIMS) {
+      delete (envelope as Record<string, unknown>)[claim];
+    }
+  }
+
+  return envelope;
+}
+
 export async function decrypt_mail_envelope<T = DecryptedEnvelope>(
   encrypted_envelope: string,
   envelope_nonce: string,
@@ -565,8 +580,10 @@ export async function decrypt_mail_envelope<T = DecryptedEnvelope>(
       const text = new TextDecoder().decode(encrypted_bytes);
 
       if (!text.startsWith("-----BEGIN PGP")) {
-        const parsed_obj = drop_sender_verification(
-          drop_sent_encryption_evidence(JSON.parse(text)),
+        const parsed_obj = drop_plaintext_trust_claims(
+          drop_sender_verification(
+            drop_sent_encryption_evidence(JSON.parse(text)),
+          ),
         );
 
         register_envelope_attachment_keys(mail_item_id, parsed_obj, {

@@ -20,6 +20,20 @@
 //
 export const es = {
   common: {
+    safety_number_compare: "Comparar números de seguridad",
+    safety_number_section_title: "Cifrado",
+    safety_number: "Número de seguridad",
+    safety_number_not_verified: "Sin verificar",
+    safety_number_verified: "Verificado",
+    safety_number_status_changed: "Cambiado",
+    safety_number_changed: "El número de seguridad cambió",
+    safety_number_description: "Para asegurarte de que solo {{name}} pueda leer tu correo cifrado, compara estos números con los que ve {{name}} en su dispositivo, en persona o en una llamada.",
+    safety_number_changed_description: "La clave de cuenta de {{name}} cambió. Tu correo sigue cifrado. Para asegurarte de que nadie más tenga las claves de {{name}}, vuelve a comparar los números de seguridad.",
+    safety_number_unavailable: "El número de seguridad no está disponible ahora. Inténtalo más tarde.",
+    safety_number_copy: "Copiar número",
+    safety_number_mark_verified: "Marcar como verificado",
+    safety_number_clear: "Quitar verificación",
+    safety_number_save_failed: "No se guardó la verificación. Inténtalo de nuevo.",
     couldnt_load: "No se pudo cargar.",
     try_again_action: "Reintentar",
     merge_primary_label: "Principal",
@@ -9643,8 +9657,14 @@ export const es = {
       "La identidad de cifrado de este remitente cambió desde la última vez que intercambiaron mensajes. Si no lo esperabas, confírmalo con esa persona por otro medio.",
     sender_identity_downgraded:
       "Los mensajes de este remitente ya no cuentan con protección poscuántica. Si no lo esperabas, confírmalo con esa persona por otro medio.",
+    recipient_identity_downgraded:
+      "Los mensajes para {{email}} ya no cuentan con protección poscuántica. Si no lo esperabas, confírmalo con esa persona por otro medio.",
     sender_identity_unreadable:
       "La clave de cifrado guardada de este remitente no se puede leer en este dispositivo, así que este mensaje no se puede verificar. Para volver a verificar sus mensajes, confirma la clave con esa persona por otro medio y elige Confiar en la nueva clave.",
+    sender_identity_unverified:
+      "No se puede verificar que este mensaje proceda de este remitente. Si no lo esperabas, confírmalo con esa persona por otro medio.",
+    sender_identity_mismatch:
+      "Este mensaje se cifró con una clave que no coincide con la clave que publicó este remitente. No confíes en él hasta confirmar su clave con esa persona por otro medio.",
     recipient_identity_changed:
       "La clave de cifrado de {{email}} cambió. Si no lo esperabas, confirma el cambio con esa persona por otro medio antes de enviar información confidencial.",
     message_password_requirements:

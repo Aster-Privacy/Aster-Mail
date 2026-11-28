@@ -20,6 +20,20 @@
 //
 export const fr = {
   common: {
+    safety_number_compare: "Comparer les numéros de sécurité",
+    safety_number_section_title: "Chiffrement",
+    safety_number: "Numéro de sécurité",
+    safety_number_not_verified: "Non vérifié",
+    safety_number_verified: "Vérifié",
+    safety_number_status_changed: "Modifié",
+    safety_number_changed: "Le numéro de sécurité a changé",
+    safety_number_description: "Pour vous assurer que seul {{name}} peut lire vos e-mails chiffrés, comparez ces chiffres avec ceux affichés sur l’appareil de {{name}}, en personne ou lors d’un appel.",
+    safety_number_changed_description: "La clé de compte de {{name}} a changé. Vos e-mails restent chiffrés. Pour vous assurer que personne d’autre ne détient les clés de {{name}}, comparez à nouveau les numéros de sécurité.",
+    safety_number_unavailable: "Le numéro de sécurité n’est pas disponible pour le moment. Réessayez plus tard.",
+    safety_number_copy: "Copier le numéro",
+    safety_number_mark_verified: "Marquer comme vérifié",
+    safety_number_clear: "Retirer la vérification",
+    safety_number_save_failed: "La vérification n’a pas été enregistrée. Réessayez.",
     couldnt_load: "Échec du chargement.",
     try_again_action: "Réessayer",
     merge_primary_label: "Principal",
@@ -9744,8 +9758,14 @@ export const fr = {
       "L'identité de chiffrement de cet expéditeur a changé depuis votre dernier échange de messages. Si vous ne vous y attendiez pas, confirmez-le avec cette personne par un autre moyen.",
     sender_identity_downgraded:
       "Les messages de cet expéditeur ne bénéficient plus de la protection post-quantique. Si vous ne vous y attendiez pas, confirmez-le avec cette personne par un autre moyen.",
+    recipient_identity_downgraded:
+      "Les messages envoyés à {{email}} ne bénéficient plus de la protection post-quantique. Si vous ne vous y attendiez pas, confirmez-le avec cette personne par un autre moyen.",
     sender_identity_unreadable:
       "La clé de chiffrement enregistrée de cet expéditeur est illisible sur cet appareil, ce message ne peut donc pas être vérifié. Pour vérifier de nouveau ses messages, confirmez la clé avec cette personne par un autre moyen, puis choisissez Faire confiance à la nouvelle clé.",
+    sender_identity_unverified:
+      "Impossible de vérifier que ce message provient de cet expéditeur. Si vous ne l'attendiez pas, confirmez-le auprès de cette personne par un autre moyen.",
+    sender_identity_mismatch:
+      "Ce message a été chiffré avec une clé qui ne correspond pas à la clé publiée par cet expéditeur. Ne vous y fiez pas avant d'avoir confirmé sa clé auprès de cette personne par un autre moyen.",
     recipient_identity_changed:
       "La clé de chiffrement de {{email}} a changé. Si vous ne vous y attendiez pas, confirmez ce changement avec cette personne par un autre moyen avant d'envoyer des informations sensibles.",
     message_password_requirements:

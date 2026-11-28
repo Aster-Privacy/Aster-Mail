@@ -20,6 +20,20 @@
 //
 export const pl = {
   common: {
+    safety_number_compare: "Porównaj numery bezpieczeństwa",
+    safety_number_section_title: "Szyfrowanie",
+    safety_number: "Numer bezpieczeństwa",
+    safety_number_not_verified: "Niezweryfikowany",
+    safety_number_verified: "Zweryfikowany",
+    safety_number_status_changed: "Zmieniony",
+    safety_number_changed: "Numer bezpieczeństwa się zmienił",
+    safety_number_description: "Aby mieć pewność, że tylko {{name}} może czytać Twoją zaszyfrowaną pocztę, porównaj te cyfry z cyframi na urządzeniu {{name}}, osobiście lub podczas rozmowy.",
+    safety_number_changed_description: "Klucz konta {{name}} się zmienił. Twoja poczta nadal jest zaszyfrowana. Aby mieć pewność, że nikt inny nie ma kluczy {{name}}, ponownie porównaj numery bezpieczeństwa.",
+    safety_number_unavailable: "Numer bezpieczeństwa jest teraz niedostępny. Spróbuj ponownie później.",
+    safety_number_copy: "Kopiuj numer",
+    safety_number_mark_verified: "Oznacz jako zweryfikowany",
+    safety_number_clear: "Usuń weryfikację",
+    safety_number_save_failed: "Weryfikacja nie została zapisana. Spróbuj ponownie.",
     couldnt_load: "Nie udało się wczytać.",
     try_again_action: "Spróbuj ponownie",
     merge_primary_label: "Główny",
@@ -9868,8 +9882,14 @@ export const pl = {
       "Tożsamość szyfrowania tego nadawcy zmieniła się od czasu ostatniej wymiany wiadomości. Jeśli tego nie oczekujesz, potwierdź to z tą osobą w inny sposób.",
     sender_identity_downgraded:
       "Wiadomości tego nadawcy nie mają już ochrony postkwantowej. Jeśli tego nie oczekujesz, potwierdź to z tą osobą w inny sposób.",
+    recipient_identity_downgraded:
+      "Wiadomości do {{email}} nie mają już ochrony postkwantowej. Jeśli tego nie oczekujesz, potwierdź to z tą osobą w inny sposób.",
     sender_identity_unreadable:
       "Zapisanego klucza szyfrowania tego nadawcy nie można odczytać na tym urządzeniu, więc tej wiadomości nie można zweryfikować. Aby ponownie weryfikować wiadomości od tej osoby, potwierdź z nią klucz w inny sposób, a następnie wybierz Zaufaj nowemu kluczowi.",
+    sender_identity_unverified:
+      "Nie można zweryfikować, że ta wiadomość pochodzi od tego nadawcy. Jeśli się jej nie spodziewałeś, potwierdź ją z tą osobą w inny sposób.",
+    sender_identity_mismatch:
+      "Ta wiadomość została zaszyfrowana kluczem, który nie pasuje do klucza opublikowanego przez tego nadawcę. Nie ufaj jej, dopóki nie potwierdzisz klucza z tą osobą w inny sposób.",
     recipient_identity_changed:
       "Klucz szyfrowania dla {{email}} zmienił się. Jeśli tego nie oczekujesz, potwierdź zmianę z tą osobą w inny sposób, zanim wyślesz poufne informacje.",
     message_password_requirements:

@@ -147,6 +147,7 @@ import {
   authenticate_sender_identity,
   clear_sender_identity_authentication_cache,
 } from "@/services/crypto/sender_identity_authentication";
+import { check_and_pin_identity } from "@/services/crypto/ratchet_identity_pin";
 
 const PRIMARY_EMAIL = "pat@astermail.org";
 const SHOP_EMAIL = "shop@astermail.org";
@@ -402,6 +403,16 @@ describe("per-address key directory entries", () => {
   });
 
   it("verifies a message from an alias against the alias entry", async () => {
+    vi.stubEnv("VITE_ADDRESS_IDENTITY_MODE", "1");
+
+    try {
+      await verify_alias_message();
+    } finally {
+      vi.unstubAllEnvs();
+    }
+  });
+
+  async function verify_alias_message(): Promise<void> {
     const alias_identity = derive_address_sender_identity(
       sender_vault.ratchet_identity_key,
       SHOP_EMAIL,
@@ -414,6 +425,7 @@ describe("per-address key directory entries", () => {
         authenticate_sender_identity(
           SHOP_EMAIL,
           alias_identity.identity_public,
+          Date.now(),
         ),
       ),
     ).not.toBe("verified");
@@ -445,10 +457,11 @@ describe("per-address key directory entries", () => {
         authenticate_sender_identity(
           SHOP_EMAIL,
           alias_identity.identity_public,
+          Date.now(),
         ),
       ),
     ).toBe("verified");
-  });
+  }
 
   it("keeps a conversation that started before the address had an entry", async () => {
     const opener = await send(
@@ -484,6 +497,50 @@ describe("per-address key directory entries", () => {
     expect(
       await read(reader_vault, HELP_EMAIL, PRIMARY_EMAIL, next, "c-1"),
     ).toBe("next");
+  });
+
+  it("trusts a rotated entry through an endorsement only in address identity mode", async () => {
+    const original_keys = (await generate_ratchet_keys())!;
+    const original = make_vault(original_keys);
+    const first_entry = serve_entry(HELP_EMAIL, original);
+
+    await as_party(sender_store, () =>
+      check_and_pin_identity(
+        HELP_EMAIL,
+        first_entry.kem_identity_key,
+        false,
+        false,
+        true,
+      ),
+    );
+
+    const rotated = {
+      ...make_vault((await generate_ratchet_keys())!),
+      ratchet_previous_keys: [
+        {
+          ratchet_identity_key: original_keys.identity_jwk,
+          ratchet_identity_public: original_keys.identity_public,
+          ratchet_signed_prekey: original_keys.signed_prekey_jwk,
+          ratchet_signed_prekey_public: original_keys.signed_prekey_public,
+        },
+      ],
+    } as unknown as EncryptedVault;
+    const rotated_entry = serve_entry(HELP_EMAIL, rotated);
+
+    expect(verify_address_entry(HELP_EMAIL, rotated_entry).endorsers).toHaveLength(1);
+
+    const resolve = () =>
+      as_party(sender_store, () => resolve_recipient_bundle("help", HELP_EMAIL));
+
+    expect((await resolve())?.trust).toBe("replaced");
+
+    vi.stubEnv("VITE_ADDRESS_IDENTITY_MODE", "1");
+
+    try {
+      expect((await resolve())?.trust).toBe("endorsed");
+    } finally {
+      vi.unstubAllEnvs();
+    }
   });
 
   it("opens an old-format envelope and one sealed to the address entry", async () => {

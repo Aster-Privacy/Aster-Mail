@@ -30,9 +30,10 @@ import {
 } from "./envelope_capability";
 import { X3DH_READ_VERSION_MAX, X3DH_VERSION_MAX } from "./x3dh";
 
-function make_deps(
-  one_time_prekeys_readable?: () => Promise<boolean>,
-): { deps: EnvelopeCapabilityDeps; reported: number[] } {
+function make_deps(one_time_prekeys_readable?: () => Promise<boolean>): {
+  deps: EnvelopeCapabilityDeps;
+  reported: number[];
+} {
   const store = new Map<string, string>();
   const reported: number[] = [];
 
@@ -77,7 +78,7 @@ describe("reported handshake version", () => {
   it("keeps the read ceiling one above the write ceiling", () => {
     expect(ENVELOPE_CAPABILITY_X3DH_MAX_VERSION).toBe(X3DH_VERSION_MAX);
     expect(ENVELOPE_CAPABILITY_X3DH_ONE_TIME_VERSION).toBe(
-      X3DH_READ_VERSION_MAX,
+      X3DH_READ_VERSION_MAX - 1,
     );
   });
 
@@ -110,7 +111,11 @@ describe("reported handshake version", () => {
     const without_probe = make_deps();
     const unreadable = make_deps(async () => false);
 
-    await report_envelope_capability_if_due("user-1", false, without_probe.deps);
+    await report_envelope_capability_if_due(
+      "user-1",
+      false,
+      without_probe.deps,
+    );
     await report_envelope_capability_if_due("user-1", false, unreadable.deps);
 
     expect(without_probe.reported).toEqual([3]);
