@@ -20,7 +20,13 @@
 //
 import type { PurchasedDnsResponse } from "@/services/api/domains";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  type ReactNode,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import {
   PlusIcon,
   GlobeAltIcon,
@@ -63,6 +69,35 @@ import { open_payment_url } from "@/services/api/billing";
 import { is_tauri_env } from "@/services/api/client/helpers";
 import { ignore_error } from "@/lib/ignore_error";
 import { app_locale, get_display_time_zone } from "@/utils/date_format";
+
+function IslandEmptyLoading({
+  icon,
+  title,
+  label,
+}: {
+  icon: ReactNode;
+  title: string;
+  label: string;
+}) {
+  return (
+    <div
+      aria-busy="true"
+      aria-label={label}
+      className="relative"
+      data-testid="island-empty-loading"
+      role="status"
+    >
+      <IslandEmpty
+        aria-hidden="true"
+        icon={<span className="invisible">{icon}</span>}
+        title={<span className="invisible">{title}</span>}
+      />
+      <span className="absolute inset-0 flex items-center justify-center">
+        <Spinner className="text-txt-muted" size="sm" />
+      </span>
+    </div>
+  );
+}
 
 export function DomainsSection() {
   const { t } = use_i18n();
@@ -119,7 +154,7 @@ export function DomainsSection() {
   };
   const [search_query, set_search_query] = useState("");
   const [purchased_orders, set_purchased_orders] = useState<DomainOrder[]>([]);
-  const [purchased_loading, set_purchased_loading] = useState(false);
+  const [purchased_loaded, set_purchased_loaded] = useState(false);
   const [purchased_load_failed, set_purchased_load_failed] = useState(false);
   const [purchased_reload, set_purchased_reload] = useState(0);
   const pending_desktop_renew_ref = useRef(false);
@@ -148,11 +183,13 @@ export function DomainsSection() {
 
   useEffect(() => {
     if (purchase_open) return;
-    set_purchased_loading(true);
-    set_purchased_load_failed(false);
+    let cancelled = false;
+
     list_domain_orders()
       .then((r) => {
+        if (cancelled) return;
         if (r.data) {
+          set_purchased_load_failed(false);
           set_purchased_orders(
             r.data.orders.filter(
               (o) =>
@@ -166,13 +203,20 @@ export function DomainsSection() {
         set_purchased_load_failed(true);
       })
       .catch((caught) => {
+        if (cancelled) return;
         set_purchased_load_failed(true);
         ignore_error(
           "components/settings/domains_section:load_purchased_orders",
           caught,
         );
       })
-      .finally(() => set_purchased_loading(false));
+      .finally(() => {
+        if (!cancelled) set_purchased_loaded(true);
+      });
+
+    return () => {
+      cancelled = true;
+    };
   }, [purchase_open, purchased_reload]);
 
   useEffect(() => {
@@ -488,7 +532,11 @@ export function DomainsSection() {
                   title={t("settings.no_matching_domains")}
                 />
               ) : hook.domains_loading ? (
-                <div />
+                <IslandEmptyLoading
+                  icon={<GlobeAltIcon />}
+                  label={t("common.loading")}
+                  title={t("settings.no_domains_yet")}
+                />
               ) : visible_domains.length === 0 && !normalized_query ? (
                 <IslandEmpty
                   icon={<GlobeAltIcon />}
@@ -541,10 +589,12 @@ export function DomainsSection() {
             >
               {t("settings.buy_new_domain")}
             </PillButton>
-            {purchased_loading && purchased_orders.length === 0 ? (
-              <div className="flex justify-center py-6">
-                <Spinner className="text-txt-muted" size="sm" />
-              </div>
+            {!purchased_loaded ? (
+              <IslandEmptyLoading
+                icon={<ShoppingBagIcon />}
+                label={t("common.loading")}
+                title={t("settings.domain_purchase_purchased_empty")}
+              />
             ) : purchased_load_failed && purchased_orders.length === 0 ? (
               <LoadFailedNotice
                 on_retry={() => set_purchased_reload((value) => value + 1)}
