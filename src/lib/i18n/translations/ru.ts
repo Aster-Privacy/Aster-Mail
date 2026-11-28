@@ -10563,6 +10563,11 @@ export const ru = {
     manual_unsubscribe_link: "Ссылка для ручной отписки:",
     empty_snoozed_title: "Ничего не отложено",
     empty_snoozed_subtitle: "Отложенные письма появятся здесь",
+    empty_scheduled_title: "Нет запланированных писем",
+    empty_scheduled_subtitle: "Письма, отправку которых вы запланировали, появляются здесь",
+    empty_alias_title: "Писем для этого псевдонима пока нет",
+    empty_alias_subtitle: "Письма, отправленные на этот псевдоним или с него, появляются здесь",
+    list_load_failed_title: "Почта не загрузилась",
     block_sender_spam_warning:
       "С этого момента новые письма от этого отправителя будут попадать сразу в спам. В списке блокировки есть возможность снять блокировку позже.",
     block_sender_confirm_message:

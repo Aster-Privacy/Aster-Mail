@@ -16,8 +16,11 @@
 // AGPLv3 for more details.
 //
 // You should have received a copy of the AGPLv3
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+//
 import { FunnelIcon } from "@heroicons/react/24/outline";
 
+import { ListEmptyState } from "@/components/common/list_empty_state";
 import { use_i18n } from "@/lib/i18n/context";
 
 interface FilterEmptyStateProps {
@@ -30,22 +33,18 @@ export function FilterEmptyState({
   const { t } = use_i18n();
 
   return (
-    <div
-      className="flex flex-col items-center justify-center px-6 py-24 text-center"
-      data-testid="filter-empty-state"
-    >
-      <FunnelIcon className="mb-4 h-12 w-12 text-txt-muted" strokeWidth={1.25} />
-      <h3 className="text-base font-semibold text-txt-primary">
-        {t("mail.filter_empty_title")}
-      </h3>
-      <button
-        className="mt-3 rounded-lg border border-[var(--border-primary)] px-4 py-1.5 text-[13px] font-medium text-[var(--text-primary)]"
-        data-testid="filter-empty-clear"
-        type="button"
-        onClick={on_clear}
-      >
-        {t("mail.filter_empty_clear")}
-      </button>
-    </div>
+    <ListEmptyState
+      actions={[
+        {
+          label: t("mail.filter_empty_clear"),
+          on_click: on_clear,
+          testid: "filter-empty-clear",
+        },
+      ]}
+      description={t("mail.search_filters_active")}
+      icon={FunnelIcon}
+      testid="filter-empty-state"
+      title={t("mail.filter_empty_title")}
+    />
   );
 }

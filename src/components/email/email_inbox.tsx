@@ -245,7 +245,7 @@ export function EmailInbox(props: EmailInboxProps): React.ReactElement {
         />
       ) : empty_state_visible ? (
         <div className="flex flex-col h-full">
-          <div className="flex-1 min-h-0">
+          <div className="flex flex-1 min-h-0 flex-col">
             {active_filter !== "all" && !email_state.has_load_error ? (
               <FilterEmptyState on_clear={() => handle_filter_change("all")} />
             ) : categories.enabled && !email_state.has_load_error ? (

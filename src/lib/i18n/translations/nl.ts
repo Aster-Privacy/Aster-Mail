@@ -10356,6 +10356,11 @@ export const nl = {
       "Markeer belangrijke e-mails met een ster om ze snel terug te vinden",
     empty_snoozed_title: "Er slaapt nu niets",
     empty_snoozed_subtitle: "Uitgestelde e-mails worden hier weer wakker",
+    empty_scheduled_title: "Niets ingepland",
+    empty_scheduled_subtitle: "E-mails die je voor later inplant, verschijnen hier",
+    empty_alias_title: "Nog geen mail voor deze alias",
+    empty_alias_subtitle: "Mail die naar of vanaf deze alias is verzonden, verschijnt hier",
+    list_load_failed_title: "Je mail is niet geladen",
     enter_password_to_access: 'Je wachtwoord opent "{{folder}}".',
     use_arrows_to_navigate:
       "Gebruik de pijlen hierboven om tussen pagina's te navigeren",

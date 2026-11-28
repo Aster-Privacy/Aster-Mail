@@ -10487,6 +10487,11 @@ export const fr = {
     manual_unsubscribe_link: "Lien de désabonnement manuel :",
     empty_snoozed_title: "Rien en veille pour le moment",
     empty_snoozed_subtitle: "Les e-mails en veille se réveilleront ici",
+    empty_scheduled_title: "Aucun envoi programmé",
+    empty_scheduled_subtitle: "Les e-mails que vous programmez pour plus tard apparaissent ici",
+    empty_alias_title: "Aucun e-mail pour cet alias",
+    empty_alias_subtitle: "Les e-mails envoyés à cet alias ou depuis celui-ci apparaissent ici",
+    list_load_failed_title: "Vos e-mails ne se sont pas chargés",
     block_sender_spam_warning:
       "Désormais, les nouveaux messages de cet expéditeur iront directement dans les indésirables. Votre liste de blocage propose l'option de les débloquer plus tard.",
     block_sender_confirm_message:

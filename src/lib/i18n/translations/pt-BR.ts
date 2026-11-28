@@ -10371,6 +10371,11 @@ export const pt_br = {
     manual_unsubscribe_link: "Link para cancelar inscrição manualmente:",
     empty_snoozed_title: "Nada adiado no momento",
     empty_snoozed_subtitle: "Os e-mails adiados reaparecerão aqui",
+    empty_scheduled_title: "Nada agendado",
+    empty_scheduled_subtitle: "Os e-mails que você agendar para depois aparecem aqui",
+    empty_alias_title: "Ainda não há e-mails para este alias",
+    empty_alias_subtitle: "Os e-mails enviados para este alias ou a partir dele aparecem aqui",
+    list_load_failed_title: "Seus e-mails não carregaram",
     block_sender_spam_warning:
       "A partir de agora, novos e-mails deste remetente vão direto para o spam. Você pode desbloqueá-lo mais tarde na sua lista de bloqueios.",
     block_sender_confirm_message:

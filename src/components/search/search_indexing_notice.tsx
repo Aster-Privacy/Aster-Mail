@@ -30,6 +30,11 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import {
+  ListEmptyActions,
+  ListEmptyState,
+  type ListEmptyAction,
+} from "@/components/common/list_empty_state";
 import { use_auth } from "@/contexts/auth_context";
 import { use_i18n } from "@/lib/i18n/context";
 import {
@@ -654,43 +659,7 @@ function use_index_controls(
   };
 }
 
-export interface SearchEmptyAction {
-  label: string;
-  on_click: () => void;
-  primary?: boolean;
-  testid?: string;
-}
-
-function ActionPills({ actions }: { actions: SearchEmptyAction[] }) {
-  if (actions.length === 0) return null;
-
-  return (
-    <div className="mt-5 flex flex-wrap items-center justify-center gap-2">
-      {actions.map((action) => (
-        <button
-          key={action.label}
-          className="flex h-8 items-center rounded-full px-3.5 text-[13px] font-medium transition-opacity hover:opacity-85"
-          data-testid={action.testid}
-          style={
-            action.primary
-              ? {
-                  backgroundColor: "var(--accent-blue)",
-                  color: "var(--accent-fg, #ffffff)",
-                }
-              : {
-                  backgroundColor: "var(--aster-hover)",
-                  color: "var(--text-secondary)",
-                }
-          }
-          type="button"
-          onClick={action.on_click}
-        >
-          {action.label}
-        </button>
-      ))}
-    </div>
-  );
-}
+export type SearchEmptyAction = ListEmptyAction;
 
 interface SearchIndexingStateProps {
   status: SearchIndexStatus;
@@ -759,7 +728,7 @@ export function SearchIndexingState({
           {hint}
         </p>
       )}
-      <ActionPills actions={[control, ...actions]} />
+      <ListEmptyActions actions={[control, ...actions]} />
     </div>
   );
 }
@@ -827,7 +796,7 @@ interface SearchEmptyStateProps {
 }
 
 export function SearchEmptyState({
-  icon: Icon,
+  icon,
   title,
   body,
   actions = [],
@@ -835,33 +804,14 @@ export function SearchEmptyState({
   testid = "search-empty-state",
 }: SearchEmptyStateProps) {
   return (
-    <div
-      aria-live="polite"
-      className="flex min-h-full flex-col items-center justify-center px-6 pb-24 pt-12 text-center"
-      data-testid={testid}
-      role="status"
+    <ListEmptyState
+      actions={actions}
+      description={body}
+      icon={icon}
+      testid={testid}
+      title={title}
     >
-      <Icon
-        aria-hidden="true"
-        className="mb-3 h-7 w-7"
-        style={{ color: "var(--text-muted)" }}
-      />
-      <p
-        className="max-w-[360px] break-words text-[15px] font-semibold"
-        style={{ color: "var(--text-primary)" }}
-      >
-        {title}
-      </p>
-      {body && (
-        <p
-          className="mt-1 max-w-[340px] text-[13px] leading-5"
-          style={{ color: "var(--text-muted)" }}
-        >
-          {body}
-        </p>
-      )}
-      <ActionPills actions={actions} />
       {footer}
-    </div>
+    </ListEmptyState>
   );
 }

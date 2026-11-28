@@ -56,11 +56,12 @@ import {
   EnvelopeIcon,
 } from "@heroicons/react/24/outline";
 import { StarIcon as StarIconSolid } from "@heroicons/react/24/solid";
-import { Button, Checkbox, PillButton, Switch, Tooltip } from "@aster/ui";
+import { Button, Checkbox, Switch, Tooltip } from "@aster/ui";
 import { useCallback, useEffect, useId, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 
 import { ContactListSkeleton } from "@/components/common/contacts/contact_list_skeleton";
+import { ListEmptyState } from "@/components/common/list_empty_state";
 import {
   ContactGroupsPane,
   type ContactsLoadStatus,
@@ -924,48 +925,33 @@ export function ContactList({
               <div aria-busy="true" />
             )
           ) : tab === "contacts" && contacts.length === 0 ? (
-            <div className="contact_empty_state">
-              <span className="contact_empty_state_glyph">
-                <UserPlusIcon strokeWidth={1.25} />
-              </span>
-              <p className="contact_empty_state_title">
-                {t("common.no_contacts")}
-              </p>
-              <p className="contact_empty_state_text">
-                {t("common.add_contacts_hint")}
-              </p>
-              <PillButton
-                className="contact_empty_state_action"
-                leading={<PlusIcon />}
-                size="sm"
-                variant="filled"
-                onClick={on_add_click}
-              >
-                {t("common.add_contact")}
-              </PillButton>
-            </div>
+            <ListEmptyState
+              actions={[
+                {
+                  label: t("common.add_contact"),
+                  on_click: on_add_click,
+                  icon: PlusIcon,
+                  primary: true,
+                },
+              ]}
+              description={t("common.add_contacts_hint")}
+              icon={UserPlusIcon}
+              title={t("common.no_contacts")}
+            />
           ) : visible_contacts.length === 0 ? (
-            <div className="contact_empty_state">
-              <span className="contact_empty_state_glyph">
-                {search_query.trim() ? (
-                  <MagnifyingGlassIcon strokeWidth={1.25} />
-                ) : tab === "frequent" ? (
-                  <SparklesIcon strokeWidth={1.25} />
-                ) : (
-                  <UserCircleIcon strokeWidth={1.25} />
-                )}
-              </span>
-              <p className="contact_empty_state_title">
-                {search_query.trim() || filter_by !== "all"
-                  ? t("common.no_results")
-                  : tab === "frequent"
-                    ? t("common.no_frequent_contacts")
-                    : tab === "other"
-                      ? t("common.no_other_contacts")
-                      : t("common.no_results")}
-              </p>
-              <p className="contact_empty_state_text">
-                {search_query.trim()
+            <ListEmptyState
+              actions={
+                filter_by !== "all"
+                  ? [
+                      {
+                        label: t("mail.filter_empty_clear"),
+                        on_click: () => set_filter_by("all"),
+                      },
+                    ]
+                  : []
+              }
+              description={
+                search_query.trim()
                   ? t("settings.try_different_search")
                   : filter_by !== "all"
                     ? t("mail.search_filters_active")
@@ -973,19 +959,25 @@ export function ContactList({
                       ? t("common.frequent_contacts_hint")
                       : tab === "other"
                         ? t("common.other_contacts_hint")
-                        : t("settings.try_different_search")}
-              </p>
-              {filter_by !== "all" && (
-                <PillButton
-                  className="contact_empty_state_action"
-                  size="sm"
-                  variant="filled"
-                  onClick={() => set_filter_by("all")}
-                >
-                  {t("mail.filter_empty_clear")}
-                </PillButton>
-              )}
-            </div>
+                        : t("settings.try_different_search")
+              }
+              icon={
+                search_query.trim()
+                  ? MagnifyingGlassIcon
+                  : tab === "frequent"
+                    ? SparklesIcon
+                    : UserCircleIcon
+              }
+              title={
+                search_query.trim() || filter_by !== "all"
+                  ? t("common.no_results")
+                  : tab === "frequent"
+                    ? t("common.no_frequent_contacts")
+                    : tab === "other"
+                      ? t("common.no_other_contacts")
+                      : t("common.no_results")
+              }
+            />
           ) : (
             visible_contacts.map((contact) => {
               const name = `${contact.first_name} ${contact.last_name}`.trim();

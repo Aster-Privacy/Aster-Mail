@@ -22,20 +22,23 @@ import type { InboxEmail, EmailCategory } from "@/types/email";
 
 import { useState, useRef, useEffect, useMemo, useCallback } from "react";
 import {
-  FolderIcon,
-  LockClosedIcon,
-  InboxIcon,
-  PaperAirplaneIcon,
-  PencilSquareIcon,
-  StarIcon,
-  ArchiveBoxArrowDownIcon,
-  ShieldExclamationIcon,
-  TrashIcon as TrashIconOutline,
+  ArchiveBoxIcon,
+  ArrowPathIcon,
+  AtSymbolIcon,
+  BellSnoozeIcon,
   ClockIcon,
-  TagIcon,
+  DocumentTextIcon,
   EnvelopeIcon,
+  ExclamationTriangleIcon,
+  FolderIcon,
+  InboxIcon,
+  LockClosedIcon,
+  PaperAirplaneIcon,
+  StarIcon,
+  TagIcon,
+  TrashIcon,
+  WifiIcon,
 } from "@heroicons/react/24/outline";
-import { Button } from "@aster/ui";
 
 import {
   InboxEmailListItem,
@@ -44,6 +47,12 @@ import {
 import { EmailContextMenuContent } from "@/components/email/email_context_menu";
 import { ContextMenu, ContextMenuTrigger } from "@/components/ui/context_menu";
 import { FolderPasswordModal } from "@/components/folders/folder_password_modal";
+import type { TranslationKey } from "@/lib/i18n/types";
+
+import {
+  ListEmptyState,
+  type ListEmptyIcon,
+} from "@/components/common/list_empty_state";
 import { use_i18n } from "@/lib/i18n/context";
 import {
   preload_email_detail,
@@ -859,6 +868,63 @@ interface EmptyStateProps {
   on_retry?: () => void;
 }
 
+type EmptyCopy = [ListEmptyIcon, TranslationKey, TranslationKey];
+
+const VIEW_EMPTY_COPY: Readonly<Record<string, EmptyCopy>> = {
+  inbox: [InboxIcon, "mail.empty_inbox_title", "mail.empty_inbox_subtitle"],
+  sent: [PaperAirplaneIcon, "mail.empty_sent_title", "mail.empty_sent_subtitle"],
+  scheduled: [
+    ClockIcon,
+    "mail.empty_scheduled_title",
+    "mail.empty_scheduled_subtitle",
+  ],
+  drafts: [
+    DocumentTextIcon,
+    "mail.empty_drafts_title",
+    "mail.empty_drafts_subtitle",
+  ],
+  starred: [StarIcon, "mail.empty_starred_title", "mail.empty_starred_subtitle"],
+  archive: [ArchiveBoxIcon, "mail.empty_archive_title", "mail.archive_subtitle"],
+  spam: [
+    ExclamationTriangleIcon,
+    "mail.empty_spam_title",
+    "mail.empty_spam_subtitle",
+  ],
+  trash: [TrashIcon, "mail.empty_trash_title", "mail.trash_subtitle"],
+  snoozed: [
+    BellSnoozeIcon,
+    "mail.empty_snoozed_title",
+    "mail.empty_snoozed_subtitle",
+  ],
+  all: [EnvelopeIcon, "mail.empty_all_title", "mail.empty_all_subtitle"],
+};
+
+const PREFIX_EMPTY_COPY: ReadonlyArray<[string, EmptyCopy]> = [
+  [
+    "folder-",
+    [FolderIcon, "mail.empty_folder_title", "mail.empty_folder_subtitle"],
+  ],
+  ["tag-", [TagIcon, "mail.empty_tag_title", "mail.empty_tag_subtitle"]],
+  [
+    "alias-",
+    [AtSymbolIcon, "mail.empty_alias_title", "mail.empty_alias_subtitle"],
+  ],
+];
+
+const DEFAULT_EMPTY_COPY: EmptyCopy = [
+  EnvelopeIcon,
+  "mail.no_messages",
+  "mail.empty_default_subtitle",
+];
+
+function empty_copy_for(view: string): EmptyCopy {
+  return (
+    VIEW_EMPTY_COPY[view || "inbox"] ??
+    PREFIX_EMPTY_COPY.find(([prefix]) => view.startsWith(prefix))?.[1] ??
+    DEFAULT_EMPTY_COPY
+  );
+}
+
 export function EmptyState({
   current_view,
   user_email,
@@ -866,155 +932,39 @@ export function EmptyState({
   on_retry,
 }: EmptyStateProps): React.ReactElement {
   const { t } = use_i18n();
-  const is_inbox = current_view === "inbox" || current_view === "";
 
   if (has_load_error) {
     return (
-      <div className="relative flex flex-col items-center justify-center h-full px-4">
-        <ShieldExclamationIcon
-          className="w-12 h-12 sm:w-14 sm:h-14 mb-4 text-txt-muted"
-          strokeWidth={1}
-        />
-        <div className="text-center">
-          <p className="text-sm sm:text-base font-medium text-txt-primary mb-1">
-            {t("errors.connection_failed")}
-          </p>
-          {on_retry && (
-            <Button
-              className="mt-3"
-              size="sm"
-              variant="outline"
-              onClick={on_retry}
-            >
-              {t("common.retry")}
-            </Button>
-          )}
-        </div>
-      </div>
+      <ListEmptyState
+        actions={
+          on_retry
+            ? [
+                {
+                  label: t("common.retry"),
+                  on_click: on_retry,
+                  icon: ArrowPathIcon,
+                },
+              ]
+            : []
+        }
+        description={t("errors.connection_failed")}
+        icon={WifiIcon}
+        testid="list-error-state"
+        title={t("mail.list_load_failed_title")}
+      />
     );
   }
 
-  const get_empty_config = () => {
-    if (current_view === "inbox" || current_view === "") {
-      return {
-        icon: InboxIcon,
-        icon_color: "text-txt-muted",
-        title: t("mail.empty_inbox_title"),
-        subtitle: t("mail.empty_inbox_subtitle"),
-      };
-    }
-    if (current_view === "sent") {
-      return {
-        icon: PaperAirplaneIcon,
-        icon_color: "text-txt-muted",
-        title: t("mail.empty_sent_title"),
-        subtitle: t("mail.empty_sent_subtitle"),
-      };
-    }
-    if (current_view === "drafts") {
-      return {
-        icon: PencilSquareIcon,
-        icon_color: "text-txt-muted",
-        title: t("mail.empty_drafts_title"),
-        subtitle: t("mail.empty_drafts_subtitle"),
-      };
-    }
-    if (current_view === "starred") {
-      return {
-        icon: StarIcon,
-        icon_color: "text-amber-400",
-        title: t("mail.empty_starred_title"),
-        subtitle: t("mail.empty_starred_subtitle"),
-      };
-    }
-    if (current_view === "archive") {
-      return {
-        icon: ArchiveBoxArrowDownIcon,
-        icon_color: "text-txt-muted",
-        title: t("mail.empty_archive_title"),
-        subtitle: t("mail.archive_subtitle"),
-      };
-    }
-    if (current_view === "spam") {
-      return {
-        icon: ShieldExclamationIcon,
-        icon_color: "text-txt-muted",
-        title: t("mail.empty_spam_title"),
-        subtitle: t("mail.empty_spam_subtitle"),
-      };
-    }
-    if (current_view === "trash") {
-      return {
-        icon: TrashIconOutline,
-        icon_color: "text-txt-muted",
-        title: t("mail.empty_trash_title"),
-        subtitle: t("mail.trash_subtitle"),
-      };
-    }
-    if (current_view === "snoozed") {
-      return {
-        icon: ClockIcon,
-        icon_color: "text-txt-muted",
-        title: t("mail.empty_snoozed_title"),
-        subtitle: t("mail.empty_snoozed_subtitle"),
-      };
-    }
-    if (current_view === "all") {
-      return {
-        icon: EnvelopeIcon,
-        icon_color: "text-txt-muted",
-        title: t("mail.empty_all_title"),
-        subtitle: t("mail.empty_all_subtitle"),
-      };
-    }
-    if (current_view.startsWith("folder-")) {
-      return {
-        icon: FolderIcon,
-        icon_color: "text-txt-muted",
-        title: t("mail.empty_folder_title"),
-        subtitle: t("mail.empty_folder_subtitle"),
-      };
-    }
-    if (current_view.startsWith("tag-")) {
-      return {
-        icon: TagIcon,
-        icon_color: "text-txt-muted",
-        title: t("mail.empty_tag_title"),
-        subtitle: t("mail.empty_tag_subtitle"),
-      };
-    }
-
-    return {
-      icon: EnvelopeIcon,
-      icon_color: "text-txt-muted",
-      title: t("mail.no_messages"),
-      subtitle: t("mail.empty_default_subtitle"),
-    };
-  };
-
-  const config = get_empty_config();
-  const IconComponent = config.icon;
+  const [icon, title_key, subtitle_key] = empty_copy_for(current_view);
+  const is_inbox = current_view === "inbox" || current_view === "";
 
   return (
-    <div className="relative flex flex-col items-center justify-center h-full px-4">
-      <IconComponent
-        className={`w-12 h-12 sm:w-14 sm:h-14 mb-4 ${config.icon_color}`}
-        strokeWidth={1}
-      />
-      <div className="text-center">
-        <p className="text-sm sm:text-base font-medium text-txt-primary mb-1">
-          {config.title}
-        </p>
-        <p className="text-xs sm:text-sm text-txt-muted max-w-[260px]">
-          {config.subtitle}
-        </p>
-        {is_inbox && user_email && (
-          <p className="text-[10px] sm:text-xs mt-3 text-txt-muted opacity-60 truncate max-w-full">
-            {user_email}
-          </p>
-        )}
-      </div>
-    </div>
+    <ListEmptyState
+      caption={is_inbox ? user_email : undefined}
+      description={t(subtitle_key)}
+      icon={icon}
+      title={t(title_key)}
+    />
   );
 }
 
@@ -1027,20 +977,11 @@ export function FolderNotFoundState(): React.ReactElement {
   const { t } = use_i18n();
 
   return (
-    <div className="flex flex-col items-center justify-center h-full px-4">
-      <FolderIcon
-        className="w-12 h-12 sm:w-14 sm:h-14 mb-4 text-txt-muted"
-        strokeWidth={1}
-      />
-      <div className="text-center">
-        <p className="text-sm sm:text-base font-medium text-txt-primary mb-1">
-          {t("mail.folder_not_found_title")}
-        </p>
-        <p className="text-xs sm:text-sm text-txt-muted">
-          {t("mail.folder_not_found_subtitle")}
-        </p>
-      </div>
-    </div>
+    <ListEmptyState
+      description={t("mail.folder_not_found_subtitle")}
+      icon={FolderIcon}
+      title={t("mail.folder_not_found_title")}
+    />
   );
 }
 
@@ -1048,20 +989,11 @@ export function TagNotFoundState(): React.ReactElement {
   const { t } = use_i18n();
 
   return (
-    <div className="flex flex-col items-center justify-center h-full px-4">
-      <TagIcon
-        className="w-12 h-12 sm:w-14 sm:h-14 mb-4 text-txt-muted"
-        strokeWidth={1}
-      />
-      <div className="text-center">
-        <p className="text-sm sm:text-base font-medium text-txt-primary mb-1">
-          {t("mail.tag_not_found_title")}
-        </p>
-        <p className="text-xs sm:text-sm text-txt-muted">
-          {t("mail.tag_not_found_subtitle")}
-        </p>
-      </div>
-    </div>
+    <ListEmptyState
+      description={t("mail.tag_not_found_subtitle")}
+      icon={TagIcon}
+      title={t("mail.tag_not_found_title")}
+    />
   );
 }
 
@@ -1073,24 +1005,19 @@ export function LockedFolderState({
   const [show_unlock_modal, set_show_unlock_modal] = useState(false);
 
   return (
-    <div className="flex flex-col items-center justify-center h-full px-4">
-      <LockClosedIcon
-        className="w-12 h-12 sm:w-14 sm:h-14 mb-4 text-txt-muted"
-        strokeWidth={1}
-      />
-      <div className="text-center">
-        <p className="text-sm sm:text-base font-medium text-txt-primary mb-1">
-          {t("mail.folder_locked_title")}
-        </p>
-        <p className="text-xs sm:text-sm text-txt-muted mb-4">
-          {t("mail.enter_password_to_access", { folder: folder_name })}
-        </p>
-        <Button variant="depth" onClick={() => set_show_unlock_modal(true)}>
-          <LockClosedIcon className="w-4 h-4 me-2" />
-          {t("settings.unlock_folder")}
-        </Button>
-      </div>
-
+    <ListEmptyState
+      actions={[
+        {
+          label: t("settings.unlock_folder"),
+          on_click: () => set_show_unlock_modal(true),
+          icon: LockClosedIcon,
+          primary: true,
+        },
+      ]}
+      description={t("mail.enter_password_to_access", { folder: folder_name })}
+      icon={LockClosedIcon}
+      title={t("mail.folder_locked_title")}
+    >
       <FolderPasswordModal
         folder_id={folder_id}
         folder_name={folder_name}
@@ -1098,6 +1025,6 @@ export function LockedFolderState({
         mode="unlock"
         on_close={() => set_show_unlock_modal(false)}
       />
-    </div>
+    </ListEmptyState>
   );
 }

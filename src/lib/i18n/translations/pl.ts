@@ -10610,6 +10610,11 @@ export const pl = {
     manual_unsubscribe_link: "Ręczny link do wypisania:",
     empty_snoozed_title: "Nic odłożonego",
     empty_snoozed_subtitle: "Odłożone e-maile pojawią się tutaj",
+    empty_scheduled_title: "Nic nie zaplanowano",
+    empty_scheduled_subtitle: "Tutaj pojawiają się e-maile zaplanowane do późniejszej wysyłki",
+    empty_alias_title: "Brak poczty dla tego aliasu",
+    empty_alias_subtitle: "Tutaj pojawia się poczta wysłana na ten alias lub z niego",
+    list_load_failed_title: "Nie udało się wczytać poczty",
     all_on_page_selected: "Wybrano wszystkie {{count}} rozmów na tej stronie.",
     all_on_page_selected_one: "Wybrano {{count}} rozmowę na tej stronie.",
     all_on_page_selected_few:

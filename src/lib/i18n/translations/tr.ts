@@ -10258,6 +10258,11 @@ export const tr = {
     manual_unsubscribe_link: "Manuel abonelik iptal bağlantısı:",
     empty_snoozed_title: "Şu anda uyuyan bir şey yok",
     empty_snoozed_subtitle: "Ertelenen e-postalar burada uyanacak",
+    empty_scheduled_title: "Planlanmış e-posta yok",
+    empty_scheduled_subtitle: "Daha sonra gönderilmek üzere planladığınız e-postalar burada görünür",
+    empty_alias_title: "Bu takma ad için henüz e-posta yok",
+    empty_alias_subtitle: "Bu takma ada gelen veya bu takma addan gönderilen e-postalar burada görünür",
+    list_load_failed_title: "E-postalarınız yüklenmedi",
     block_sender_confirm_message:
       "{{email}} engellensin mi? Bu gönderenden artık e-posta almayacaksınız.",
     block_sender_spam_warning:

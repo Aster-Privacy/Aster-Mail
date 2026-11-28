@@ -9945,6 +9945,11 @@ export const ko = {
       "이 이메일은 타이머가 만료된 후 영구적으로 삭제됩니다",
     empty_snoozed_title: "다시 알림 설정된 이메일 없음",
     empty_snoozed_subtitle: "다시 알림 설정된 이메일이 여기에 표시됩니다",
+    empty_scheduled_title: "예약된 메일 없음",
+    empty_scheduled_subtitle: "나중에 보내도록 예약한 이메일이 여기에 표시됩니다",
+    empty_alias_title: "이 별칭의 메일이 아직 없습니다",
+    empty_alias_subtitle: "이 별칭으로 받거나 보낸 메일이 여기에 표시됩니다",
+    list_load_failed_title: "메일을 불러오지 못했습니다",
     all_on_page_selected:
       "이 페이지의 모든 {{ count }}개 대화가 선택되었습니다.",
     select_all_in_folder: "{{ folder }}의 모든 {{ count }}개 대화 선택",
