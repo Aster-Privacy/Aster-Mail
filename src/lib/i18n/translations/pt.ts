@@ -1135,7 +1135,7 @@ export const pt = {
     undo_failed: "Não foi possível desfazer. Tente novamente.",
     expired: "Expirado",
     expires_in: "Expira em ",
-    report_phishing: "Denunciar spam",
+    report_phishing: "Reportar phishing",
     suspicious: "Suspeito",
     dangerous: "Perigoso",
     click_to_edit: "Clique para editar",
@@ -9903,7 +9903,7 @@ export const pt = {
     mark_all_read: "Marcar todos como lidos",
     empty_trash: "Esvaziar Lixo",
     empty_spam: "Esvaziar spam",
-    report_phishing: "Reportar spam",
+    report_phishing: "Reportar phishing",
     not_spam: "Não é spam",
     pending_send_failed: "Não foi possível enviar esta mensagem.",
     pending_send_offline:

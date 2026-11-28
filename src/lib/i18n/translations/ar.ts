@@ -1202,7 +1202,7 @@ export const ar = {
     undo_failed: "حاول مجددًا.",
     expired: "منتهي الصلاحية",
     expires_in: "ينتهي خلال ",
-    report_phishing: "الإبلاغ عن بريد مزعج",
+    report_phishing: "الإبلاغ عن تصيد احتيالي",
     suspicious: "مشبوه",
     dangerous: "خطير",
     click_to_edit: "انقر للتعديل",
@@ -9637,7 +9637,7 @@ export const ar = {
     mark_all_read: "تعليم الكل كمقروء",
     empty_trash: "تفريغ سلة المهملات",
     empty_spam: "تفريغ الرسائل المزعجة",
-    report_phishing: "الإبلاغ عن بريد مزعج",
+    report_phishing: "الإبلاغ عن تصيد احتيالي",
     not_spam: "ليس مزعجًا",
     pending_send_failed: "تعذّر إرسال هذه الرسالة.",
     pending_send_offline:

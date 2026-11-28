@@ -1224,7 +1224,7 @@ export const nl = {
     undo_failed: "Probeer het opnieuw.",
     expired: "Verlopen",
     expires_in: "Verloopt over ",
-    report_phishing: "Spam melden",
+    report_phishing: "Phishing melden",
     suspicious: "Verdacht",
     dangerous: "Gevaarlijk",
     click_to_edit: "Klik om te bewerken",
@@ -9792,7 +9792,7 @@ export const nl = {
     mark_all_read: "Alles als gelezen markeren",
     empty_trash: "Prullenbak legen",
     empty_spam: "Spam legen",
-    report_phishing: "Spam melden",
+    report_phishing: "Phishing melden",
     not_spam: "Geen spam",
     pending_send_failed: "Dit bericht kan niet worden verstuurd.",
     pending_send_offline:

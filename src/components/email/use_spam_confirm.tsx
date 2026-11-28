@@ -25,7 +25,10 @@ import { use_i18n } from "@/lib/i18n/context";
 import { use_preferences } from "@/contexts/preferences_context";
 
 interface SpamConfirmResult {
-  request_spam: (perform: () => void | Promise<void>) => void;
+  request_spam: (
+    perform: () => void | Promise<void>,
+    skip_confirm?: boolean,
+  ) => void;
   spam_confirm_dialog: React.ReactElement | null;
 }
 
@@ -37,8 +40,8 @@ export function use_spam_confirm(): SpamConfirmResult {
   const pending_ref = useRef<(() => void | Promise<void>) | null>(null);
 
   const request_spam = useCallback(
-    (perform: () => void | Promise<void>) => {
-      if (!preferences.confirm_before_spam) {
+    (perform: () => void | Promise<void>, skip_confirm = false) => {
+      if (skip_confirm || !preferences.confirm_before_spam) {
         void perform();
 
         return;

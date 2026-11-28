@@ -1262,7 +1262,7 @@ export const it = {
     undo_failed: "Riprova.",
     expired: "Scaduto",
     expires_in: "Scade tra ",
-    report_phishing: "Segnala spam",
+    report_phishing: "Segnala phishing",
     suspicious: "Sospetto",
     dangerous: "Pericoloso",
     click_to_edit: "Clicca per modificare",
@@ -9857,7 +9857,7 @@ export const it = {
     mark_all_read: "Segna tutti come letti",
     empty_trash: "Svuota cestino",
     empty_spam: "Svuota spam",
-    report_phishing: "Segnala spam",
+    report_phishing: "Segnala phishing",
     not_spam: "Non è spam",
     pending_send_failed: "Impossibile inviare questo messaggio.",
     pending_send_offline:

@@ -45,6 +45,8 @@ import { EmailContextMenuContent } from "@/components/email/email_context_menu";
 import { ContextMenu, ContextMenuTrigger } from "@/components/ui/context_menu";
 import { FolderPasswordModal } from "@/components/folders/folder_password_modal";
 import { use_i18n } from "@/lib/i18n/context";
+import { use_spam_confirm } from "@/components/email/use_spam_confirm";
+import { report_phishing_for_emails } from "@/components/email/viewer_shared/report_phishing";
 import {
   preload_email_detail,
   is_preload_busy,
@@ -110,6 +112,7 @@ export interface SelectionMenuScope {
   on_mark_unread: () => void;
   on_restore: () => void;
   on_mark_not_spam: () => void;
+  on_report_phishing?: () => void;
   on_move_to_inbox: () => void;
   on_snooze: (snooze_until: Date) => Promise<boolean | void>;
   on_custom_snooze: () => void;
@@ -200,6 +203,8 @@ export function EmailList({
   selected_email_id,
 }: EmailListProps): React.ReactElement {
   const { user } = use_auth();
+  const { t: translate } = use_i18n();
+  const { request_spam, spam_confirm_dialog } = use_spam_confirm();
   const { preferences } = use_preferences();
   const hover_timer_ref = useRef<number | null>(null);
   const last_pointer_move_ref = useRef(0);
@@ -685,166 +690,200 @@ export function EmailList({
     />
   );
 
+  const request_phishing_report = (perform: () => void, in_spam: boolean) =>
+    request_spam(perform, in_spam);
+
   return (
-    <ContextMenu modal={false} onOpenChange={handle_menu_open_change}>
-      <ContextMenuTrigger asChild onContextMenu={handle_trigger_context_menu}>
-        <div
-          style={{ display: "contents" }}
-          onBlur={handle_list_blur}
-          onClickCapture={handle_row_click_capture}
-          onContextMenu={handle_list_context_menu}
-          onFocus={handle_list_focus}
-          onMouseOut={handle_list_mouse_out}
-          onMouseOver={handle_list_mouse_over}
-          onPointerCancel={press_prefetch.onPointerCancel}
-          onPointerDown={press_prefetch.onPointerDown}
-          onPointerMove={handle_list_pointer_move}
-          onPointerUp={press_prefetch.onPointerUp}
-        >
-          {pinned_emails.length > 0 && (
-            <>
-              {pinned_emails.map((email) => (
-                <div
-                  key={email.id}
-                  data-row-email-id={email.id}
-                  style={{
-                    contentVisibility: "auto",
-                    containIntrinsicSize: `auto ${list_row_intrinsic_height(density, preferences.compact_mode ?? false, email.has_attachment)}px`,
-                  }}
-                >
-                  {render_email_item(email)}
-                </div>
-              ))}
-            </>
-          )}
+    <>
+      <ContextMenu modal={false} onOpenChange={handle_menu_open_change}>
+        <ContextMenuTrigger asChild onContextMenu={handle_trigger_context_menu}>
+          <div
+            style={{ display: "contents" }}
+            onBlur={handle_list_blur}
+            onClickCapture={handle_row_click_capture}
+            onContextMenu={handle_list_context_menu}
+            onFocus={handle_list_focus}
+            onMouseOut={handle_list_mouse_out}
+            onMouseOver={handle_list_mouse_over}
+            onPointerCancel={press_prefetch.onPointerCancel}
+            onPointerDown={press_prefetch.onPointerDown}
+            onPointerMove={handle_list_pointer_move}
+            onPointerUp={press_prefetch.onPointerUp}
+          >
+            {pinned_emails.length > 0 && (
+              <>
+                {pinned_emails.map((email) => (
+                  <div
+                    key={email.id}
+                    data-row-email-id={email.id}
+                    style={{
+                      contentVisibility: "auto",
+                      containIntrinsicSize: `auto ${list_row_intrinsic_height(density, preferences.compact_mode ?? false, email.has_attachment)}px`,
+                    }}
+                  >
+                    {render_email_item(email)}
+                  </div>
+                ))}
+              </>
+            )}
 
-          {primary_emails.length > 0 && (
-            <>
-              {primary_emails.map((email) => (
-                <div
-                  key={email.id}
-                  data-row-email-id={email.id}
-                  style={{
-                    contentVisibility: "auto",
-                    containIntrinsicSize: `auto ${list_row_intrinsic_height(density, preferences.compact_mode ?? false, email.has_attachment)}px`,
-                  }}
-                >
-                  {render_email_item(email)}
-                </div>
-              ))}
-            </>
-          )}
-        </div>
-      </ContextMenuTrigger>
+            {primary_emails.length > 0 && (
+              <>
+                {primary_emails.map((email) => (
+                  <div
+                    key={email.id}
+                    data-row-email-id={email.id}
+                    style={{
+                      contentVisibility: "auto",
+                      containIntrinsicSize: `auto ${list_row_intrinsic_height(density, preferences.compact_mode ?? false, email.has_attachment)}px`,
+                    }}
+                  >
+                    {render_email_item(email)}
+                  </div>
+                ))}
+              </>
+            )}
+          </div>
+        </ContextMenuTrigger>
 
-      {live_menu_email && (
-        <EmailContextMenuContent
-          key={live_menu_email.id}
-          categories_enabled={categories_enabled}
-          current_view={current_view}
-          email={live_menu_email}
-          folders={menu_folders}
-          on_archive={run_menu_action(() =>
-            menu_uses_selection && selection_menu
-              ? selection_menu.on_archive()
-              : on_archive(live_menu_email),
-          )}
-          on_category_change={
-            menu_uses_selection && selection_menu
-              ? selection_menu.on_category_change
-                ? run_menu_action((category: EmailCategory) =>
-                    selection_menu.on_category_change?.(category),
-                  )
+        {live_menu_email && (
+          <EmailContextMenuContent
+            key={live_menu_email.id}
+            categories_enabled={categories_enabled}
+            current_view={current_view}
+            email={live_menu_email}
+            folders={menu_folders}
+            on_archive={run_menu_action(() =>
+              menu_uses_selection && selection_menu
+                ? selection_menu.on_archive()
+                : on_archive(live_menu_email),
+            )}
+            on_category_change={
+              menu_uses_selection && selection_menu
+                ? selection_menu.on_category_change
+                  ? run_menu_action((category: EmailCategory) =>
+                      selection_menu.on_category_change?.(category),
+                    )
+                  : undefined
+                : on_category_change
+                  ? run_menu_action((category: EmailCategory) =>
+                      on_category_change(live_menu_email, category),
+                    )
+                  : undefined
+            }
+            on_custom_snooze={run_menu_action(() =>
+              menu_uses_selection && selection_menu
+                ? selection_menu.on_custom_snooze()
+                : on_custom_snooze(live_menu_email),
+            )}
+            on_delete={run_menu_action(() =>
+              menu_uses_selection && selection_menu
+                ? selection_menu.on_delete()
+                : on_delete(live_menu_email),
+            )}
+            on_find_from_sender={
+              on_find_from_sender
+                ? run_menu_action(() => on_find_from_sender(live_menu_email))
                 : undefined
-              : on_category_change
-                ? run_menu_action((category: EmailCategory) =>
-                    on_category_change(live_menu_email, category),
-                  )
+            }
+            on_folder_toggle={run_menu_action(stable_on_folder_toggle)}
+            on_forward={run_menu_action(() => on_forward(live_menu_email))}
+            on_mark_not_spam={run_menu_action(() =>
+              menu_uses_selection && selection_menu
+                ? selection_menu.on_mark_not_spam()
+                : on_mark_not_spam(live_menu_email),
+            )}
+            on_mark_read={
+              menu_uses_selection && selection_menu
+                ? run_menu_action(() => selection_menu.on_mark_read())
                 : undefined
-          }
-          on_custom_snooze={run_menu_action(() =>
-            menu_uses_selection && selection_menu
-              ? selection_menu.on_custom_snooze()
-              : on_custom_snooze(live_menu_email),
-          )}
-          on_delete={run_menu_action(() =>
-            menu_uses_selection && selection_menu
-              ? selection_menu.on_delete()
-              : on_delete(live_menu_email),
-          )}
-          on_find_from_sender={
-            on_find_from_sender
-              ? run_menu_action(() => on_find_from_sender(live_menu_email))
-              : undefined
-          }
-          on_folder_toggle={run_menu_action(stable_on_folder_toggle)}
-          on_forward={run_menu_action(() => on_forward(live_menu_email))}
-          on_mark_not_spam={run_menu_action(() =>
-            menu_uses_selection && selection_menu
-              ? selection_menu.on_mark_not_spam()
-              : on_mark_not_spam(live_menu_email),
-          )}
-          on_mark_read={
-            menu_uses_selection && selection_menu
-              ? run_menu_action(() => selection_menu.on_mark_read())
-              : undefined
-          }
-          on_mark_unread={
-            menu_uses_selection && selection_menu
-              ? run_menu_action(() => selection_menu.on_mark_unread())
-              : undefined
-          }
-          on_move_to_inbox={run_menu_action(() =>
-            menu_uses_selection && selection_menu
-              ? selection_menu.on_move_to_inbox()
-              : on_move_to_inbox(live_menu_email),
-          )}
-          on_open_in_new_window={
-            on_open_in_new_window
-              ? run_menu_action(() => on_open_in_new_window(live_menu_email))
-              : undefined
-          }
-          on_reply={run_menu_action(() => on_reply(live_menu_email))}
-          on_reply_all={
-            on_reply_all
-              ? run_menu_action(() => on_reply_all(live_menu_email))
-              : undefined
-          }
-          on_restore={run_menu_action(() =>
-            menu_uses_selection && selection_menu
-              ? selection_menu.on_restore()
-              : on_restore(live_menu_email),
-          )}
-          on_snooze={run_menu_action((snooze_until: Date) =>
-            menu_uses_selection && selection_menu
-              ? selection_menu.on_snooze(snooze_until)
-              : on_snooze(live_menu_email, snooze_until),
-          )}
-          on_spam={run_menu_action(() =>
-            menu_uses_selection && selection_menu
-              ? selection_menu.on_spam()
-              : on_spam(live_menu_email),
-          )}
-          on_tag_toggle={run_menu_action(stable_on_tag_toggle)}
-          on_toggle_pin={run_menu_action(() => on_toggle_pin(live_menu_email))}
-          on_toggle_read={run_menu_action(() =>
-            on_toggle_read(live_menu_email),
-          )}
-          on_unsnooze={run_menu_action(() => on_unsnooze(live_menu_email))}
-          selection={
-            menu_uses_selection && selection_menu
-              ? {
-                  count: selection_menu.count,
-                  is_all_mode: selection_menu.is_all_mode,
-                  has_unread: selection_menu.has_unread,
-                  has_read: selection_menu.has_read,
-                }
-              : undefined
-          }
-          tags={menu_tags}
-        />
-      )}
-    </ContextMenu>
+            }
+            on_mark_unread={
+              menu_uses_selection && selection_menu
+                ? run_menu_action(() => selection_menu.on_mark_unread())
+                : undefined
+            }
+            on_move_to_inbox={run_menu_action(() =>
+              menu_uses_selection && selection_menu
+                ? selection_menu.on_move_to_inbox()
+                : on_move_to_inbox(live_menu_email),
+            )}
+            on_open_in_new_window={
+              on_open_in_new_window
+                ? run_menu_action(() => on_open_in_new_window(live_menu_email))
+                : undefined
+            }
+            on_reply={run_menu_action(() => on_reply(live_menu_email))}
+            on_reply_all={
+              on_reply_all
+                ? run_menu_action(() => on_reply_all(live_menu_email))
+                : undefined
+            }
+            on_restore={run_menu_action(() =>
+              menu_uses_selection && selection_menu
+                ? selection_menu.on_restore()
+                : on_restore(live_menu_email),
+            )}
+            on_snooze={run_menu_action((snooze_until: Date) =>
+              menu_uses_selection && selection_menu
+                ? selection_menu.on_snooze(snooze_until)
+                : on_snooze(live_menu_email, snooze_until),
+            )}
+            on_spam={run_menu_action(() =>
+              menu_uses_selection && selection_menu
+                ? selection_menu.on_spam()
+                : on_spam(live_menu_email),
+            )}
+            on_report_phishing={
+              menu_uses_selection && selection_menu
+                ? selection_menu.on_report_phishing
+                  ? run_menu_action(() =>
+                      request_phishing_report(
+                        () => selection_menu.on_report_phishing?.(),
+                        current_view === "spam",
+                      ),
+                    )
+                  : undefined
+                : run_menu_action(() => {
+                    const in_spam =
+                      current_view === "spam" ||
+                      live_menu_email.is_spam === true;
+
+                    request_phishing_report(
+                      () =>
+                        void report_phishing_for_emails(
+                          [live_menu_email],
+                          in_spam,
+                          translate,
+                        ),
+                      in_spam,
+                    );
+                  })
+            }
+            on_tag_toggle={run_menu_action(stable_on_tag_toggle)}
+            on_toggle_pin={run_menu_action(() =>
+              on_toggle_pin(live_menu_email),
+            )}
+            on_toggle_read={run_menu_action(() =>
+              on_toggle_read(live_menu_email),
+            )}
+            on_unsnooze={run_menu_action(() => on_unsnooze(live_menu_email))}
+            selection={
+              menu_uses_selection && selection_menu
+                ? {
+                    count: selection_menu.count,
+                    is_all_mode: selection_menu.is_all_mode,
+                    has_unread: selection_menu.has_unread,
+                    has_read: selection_menu.has_read,
+                  }
+                : undefined
+            }
+            tags={menu_tags}
+          />
+        )}
+      </ContextMenu>
+      {spam_confirm_dialog}
+    </>
   );
 }
 

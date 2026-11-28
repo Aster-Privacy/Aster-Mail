@@ -1345,7 +1345,7 @@ export const hi = {
     action_undone: "कार्रवाई पहले जैसी कर दी गई",
     expired: "समाप्त हो गया",
     expires_in: "समाप्त होने में ",
-    report_phishing: "स्पैम की शिकायत करें",
+    report_phishing: "फ़िशिंग की शिकायत करें",
     suspicious: "संदिग्ध",
     dangerous: "खतरनाक",
     click_to_edit: "संपादित करने के लिए क्लिक करें",
@@ -9660,7 +9660,7 @@ export const hi = {
     mark_all_read: "सभी को पढ़ा हुआ बनाएं",
     empty_trash: "ट्रैश खाली करें",
     empty_spam: "स्पैम खाली करें",
-    report_phishing: "स्पैम की शिकायत करें",
+    report_phishing: "फ़िशिंग की शिकायत करें",
     not_spam: "स्पैम नहीं",
     pending_send_failed: "यह संदेश भेजा नहीं जा सका.",
     pending_send_offline:

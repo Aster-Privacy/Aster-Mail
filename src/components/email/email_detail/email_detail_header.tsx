@@ -70,6 +70,8 @@ interface EmailDetailHeaderProps {
   is_popup?: boolean;
   handle_view_source?: () => void;
   handle_report_spam?: () => void;
+  handle_report_phishing?: () => void;
+  is_phishing_reported?: boolean;
 }
 
 export function EmailDetailHeader({
@@ -94,6 +96,8 @@ export function EmailDetailHeader({
   is_popup = false,
   handle_view_source,
   handle_report_spam,
+  handle_report_phishing,
+  is_phishing_reported = false,
 }: EmailDetailHeaderProps) {
   return (
     <div className="flex items-center gap-1 px-2 sm:px-3 lg:px-5 py-2 border-b flex-shrink-0 border-edge-secondary">
@@ -233,6 +237,19 @@ export function EmailDetailHeader({
               <DropdownMenuItem onClick={handle_report_spam}>
                 <ReportSpamIcon className="w-4 h-4 me-2" />
                 {t("mail.report_spam")}
+              </DropdownMenuItem>
+            )}
+            {handle_report_phishing && (
+              <DropdownMenuItem
+                disabled={is_phishing_reported}
+                onClick={handle_report_phishing}
+              >
+                <ReportSpamIcon className="w-4 h-4 me-2 text-amber-500" />
+                <span className="text-amber-500">
+                  {is_phishing_reported
+                    ? t("common.reported_as_phishing")
+                    : t("common.report_phishing")}
+                </span>
               </DropdownMenuItem>
             )}
             <DropdownMenuSeparator />

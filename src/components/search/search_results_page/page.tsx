@@ -109,6 +109,7 @@ import { bulk_add_tag, bulk_remove_tag } from "@/services/api/tags";
 import { open_email_in_new_window } from "@/utils/open_email_window";
 import { search_view_for_path, set_search_scope } from "@/utils/search_query";
 import { clear_filter_operators } from "@/utils/search_operators";
+import { report_phishing_for_emails } from "@/components/email/viewer_shared/report_phishing";
 
 export const SEARCH_NOTICE_DIVIDER =
   "border-b border-[var(--aster-island-divider,var(--aster-floating-divider,var(--border-secondary)))]";
@@ -771,6 +772,23 @@ export function SearchResultsPage(props: SearchResultsPageProps) {
               : void run_single((emails) => delete_emails(emails), false)
           }
           on_find_from_sender={() => handle_find_from_sender(menu_email)}
+          on_report_phishing={
+            menu_selection
+              ? undefined
+              : () =>
+                  void report_phishing_for_emails(
+                    [menu_email],
+                    menu_email.is_spam === true,
+                    t,
+                  ).then((outcome) => {
+                    if (outcome === "moved") {
+                      apply_flag_patch([menu_email.id], {
+                        is_spam: true,
+                        is_trashed: false,
+                      });
+                    }
+                  })
+          }
           on_folder_toggle={
             menu_selection
               ? (folder_token: string) =>

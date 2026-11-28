@@ -1273,7 +1273,7 @@ export const fr = {
     undo_failed: "Réessayez.",
     expired: "Expiré",
     expires_in: "Expire dans ",
-    report_phishing: "Signaler comme indésirable",
+    report_phishing: "Signaler l'hameçonnage",
     suspicious: "Suspect",
     dangerous: "Dangereux",
     click_to_edit: "Cliquez pour modifier",
@@ -9920,7 +9920,7 @@ export const fr = {
     mark_all_read: "Tout marquer comme lu",
     empty_trash: "Vider la corbeille",
     empty_spam: "Vider les indésirables",
-    report_phishing: "Signaler le spam",
+    report_phishing: "Signaler l'hameçonnage",
     not_spam: "Non indésirable",
     pending_send_failed: "Impossible d’envoyer ce message.",
     pending_send_offline:

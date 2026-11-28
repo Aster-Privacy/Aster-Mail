@@ -1240,7 +1240,7 @@ export const tr = {
     undo_failed: "Tekrar deneyin.",
     expired: "Süresi doldu",
     expires_in: "Kalan süre: ",
-    report_phishing: "Spam bildir",
+    report_phishing: "Kimlik avı bildir",
     suspicious: "Şüpheli",
     dangerous: "Tehlikeli",
     click_to_edit: "Düzenlemek için tıklayın",
@@ -9713,7 +9713,7 @@ export const tr = {
     mark_all_read: "Tümünü okundu olarak işaretle",
     empty_trash: "Çöp kutusunu boşalt",
     empty_spam: "Spam'i boşalt",
-    report_phishing: "Spam bildir",
+    report_phishing: "Kimlik avı bildir",
     not_spam: "Spam değil",
     pending_send_failed: "Bu ileti gönderilemedi.",
     pending_send_offline:

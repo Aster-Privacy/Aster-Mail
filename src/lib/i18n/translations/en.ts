@@ -1336,7 +1336,7 @@ export const en: Translations = {
     action_undone: "Action undone",
     expired: "Expired",
     expires_in: "Expires in ",
-    report_phishing: "Report spam",
+    report_phishing: "Report phishing",
     suspicious: "Suspicious",
     dangerous: "Dangerous",
     click_to_edit: "Click to edit",
@@ -9597,7 +9597,7 @@ export const en: Translations = {
     mark_all_read: "Mark all as read",
     empty_trash: "Empty trash",
     empty_spam: "Empty spam",
-    report_phishing: "Report spam",
+    report_phishing: "Report phishing",
     not_spam: "Not spam",
     pending_send_failed: "Couldn’t send this message.",
     pending_send_offline:
