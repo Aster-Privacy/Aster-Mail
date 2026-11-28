@@ -251,16 +251,16 @@ describe("plural selection", () => {
 
   it("does not count a single trashed message or day as plural", () => {
     expect(translate("mail.empty_trash_description", { count: 1 })).toBe(
-      "1 message in trash will be removed for good and you cannot undo it.",
+      "This permanently deletes 1 message in Trash. This can't be undone.",
     );
     expect(translate("mail.empty_spam_description", { count: 1 })).toBe(
-      "1 message in spam will be removed for good and you cannot undo it.",
+      "This permanently deletes 1 message in Spam. This can't be undone.",
     );
     expect(translate("common.trash_days_left", { count: 1 })).toBe(
       "1 day left",
     );
     expect(translate("mail.empty_trash_description", { count: 3 })).toBe(
-      "All 3 messages in trash will be removed for good and you cannot undo it.",
+      "This permanently deletes all 3 messages in Trash. This can't be undone.",
     );
     expect(translate("common.trash_days_left", { count: 0 })).toBe(
       "0 days left",

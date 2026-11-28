@@ -46,6 +46,7 @@ import { use_i18n } from "@/lib/i18n/context";
 import { format_number } from "@/lib/utils";
 import { ButtonSpinner, Spinner } from "@/components/ui/spinner";
 import { ConfirmationModal } from "@/components/modals/confirmation_modal";
+import { show_upgrade_plans } from "@/stores/upgrade_store";
 import { show_toast } from "@/components/toast/simple_toast";
 import { use_aliases } from "@/components/settings/hooks/use_aliases";
 import { BottomPagination } from "@/components/email/inbox/inbox_bottom_pagination";
@@ -1253,7 +1254,8 @@ export function AliasesSection({
       />
 
       <ConfirmationModal
-        confirm_text={null}
+        cancel_text={t("common.close")}
+        confirm_text={t("common.upgrade")}
         is_open={hook.alias_too_new_info.is_open}
         message={t("settings.alias_too_new_message", {
           date: hook.alias_too_new_info.eligible_date ?? "",
@@ -1261,9 +1263,10 @@ export function AliasesSection({
         on_cancel={() =>
           hook.set_alias_too_new_info({ is_open: false, eligible_date: null })
         }
-        on_confirm={() =>
-          hook.set_alias_too_new_info({ is_open: false, eligible_date: null })
-        }
+        on_confirm={() => {
+          hook.set_alias_too_new_info({ is_open: false, eligible_date: null });
+          show_upgrade_plans();
+        }}
         title={t("settings.alias_too_new_title")}
         variant="info"
       />

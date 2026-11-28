@@ -75,7 +75,7 @@ export const ko = {
     days_remaining_one: "{{count}}일 남음",
     delete_contacts: "연락처 삭제",
     delete_contacts_confirmation_one:
-      "연락처 {{count}}개를 삭제하시겠습니까? 이 작업은 취소할 수 없습니다.",
+      "연락처 {{count}}개를 삭제할까요? 이 작업은 되돌릴 수 없습니다.",
     delete_group: "그룹 삭제",
     deselect_contact: "연락처 선택 해제",
     drafts_deleted_one: "{{count}}개의 임시보관 메일을 영구 삭제했습니다",
@@ -250,7 +250,7 @@ export const ko = {
     unsupported_image_type:
       "이 파일 형식은 지원하지 않습니다. 이미지를 PNG, JPEG, WebP 또는 GIF로 저장한 뒤 다시 시도하세요.",
     csv_too_large:
-      "이 CSV는 10,000행을 넘습니다. 작은 파일로 나눠 각각 가져오면 모두 들어갑니다.",
+      "이 CSV는 10,000행을 넘습니다. 모든 행을 가져오려면 작은 파일로 나눠 각각 가져오세요.",
     export: "내보내기",
     import: "가져오기",
     select_all: "모두 선택",
@@ -300,7 +300,7 @@ export const ko = {
     reset_all_settings: "모든 설정 초기화",
     restore_defaults_description: "모든 환경설정을 기본값으로 복원합니다",
     reset_confirm_message:
-      "모든 설정을 초기화하시겠습니까? 모든 환경설정이 기본값으로 복원됩니다.",
+      "모든 설정을 초기화할까요? 모든 환경설정이 기본값으로 복원됩니다.",
     all_settings_reset: "모든 설정이 기본값으로 초기화되었습니다",
     delete_account: "계정 삭제",
     erase_all_data: "모든 콘텐츠와 데이터를 영구적으로 삭제합니다",
@@ -310,7 +310,7 @@ export const ko = {
       "이 개월 수 동안 사용하지 않은 무료 계정은 영구 삭제됩니다. 경고는 Aster 받은편지함과 복구 이메일로 전송됩니다.",
     inactivity_window_info_title: "미사용 정책 작동 방식",
     inactivity_window_info_description:
-      "If your account has no activity for the duration you set, it will be permanently deleted. Activity includes signing in from any client - web, desktop, mobile, or the bridge. You will receive warning emails after {{first}}, {{second}}, and {{final}} of inactivity.",
+      "설정한 기간 동안 계정에 활동이 없으면 계정과 모든 데이터가 영구적으로 삭제됩니다. 활동에는 웹, 데스크톱, 모바일, Bridge 등 모든 클라이언트에서의 로그인이 포함됩니다. 비활성 기간이 {{first}}, {{second}}, {{final}}에 이르면 Aster 받은편지함과 복구 이메일로 경고 이메일이 발송됩니다. 유료 구독자는 이 정책에서 제외됩니다.",
     inactivity_window_step_up_description:
       "보안을 위해 비밀번호를 확인해야 미사용 기간을 변경할 수 있습니다.",
     inactivity_window_months: "{{n}}개월",
@@ -322,20 +322,20 @@ export const ko = {
     enter_recovery_email: "복구 이메일 입력",
     enter_valid_email: "유효한 이메일을 입력하세요",
     failed_to_save:
-      "변경 사항이 저장되지 않았습니다. 연결을 확인하고 다시 시도하면 보통 해결됩니다. 이전 버전은 그대로 있습니다.",
+      "변경 사항이 저장되지 않았습니다. 연결을 확인하고 다시 시도하세요. 이전 버전은 그대로 있습니다.",
     verification_sent:
       "인증 이메일이 {{email}}로 전송되었습니다. 받은 편지함을 확인하고 링크를 클릭하여 인증하세요.",
     verification_email_sent: "인증 이메일 전송됨",
     failed_verification_email:
-      "지금은 인증 이메일을 보낼 수 없었습니다. 잠시 뒤 다시 시도하면 보통 해결됩니다. 계정은 그대로입니다.",
+      "인증 이메일을 보낼 수 없습니다. 잠시 후 다시 시도하세요. 계정은 변경되지 않았습니다.",
     profile_picture_updated: "프로필 사진이 업데이트되었습니다",
     failed_save_profile_picture:
       "새 프로필 사진을 저장하지 못했습니다. 다시 시도하세요. 이전 사진이 계속 표시됩니다.",
     failed_upload_image: "다시 시도하세요.",
     valid_image_error:
-      "이 파일은 지원되는 이미지가 아닙니다. JPEG, PNG 또는 WebP면 됩니다.",
+      "이 파일은 지원되는 이미지가 아닙니다. JPEG, PNG 또는 WebP 파일을 사용하세요.",
     image_size_error:
-      "이 이미지는 5 MB 제한을 넘습니다. 더 작은 이미지나 압축된 버전이면 됩니다.",
+      "이 이미지는 5 MB 제한을 넘습니다. 더 작거나 압축된 이미지를 사용하세요.",
     recovery_conflict:
       "이 주소는 이미 최대 20개의 Aster 계정에 사용되고 있습니다. 다른 주소를 사용하세요.",
     copied_to_clipboard: "클립보드에 복사됨",
@@ -381,7 +381,7 @@ export const ko = {
     lock_folder: "폴더 잠금",
     extra_protection_layer: "추가 보호 계층",
     lock_folder_description:
-      "데이터는 이미 암호화되어 있습니다. 이 폴더를 잠그면 추가 암호화 계층이 생겨 내용에 접근하려면 추가 인증이 필요합니다.",
+      "데이터는 이미 암호화되어 있습니다. 이 폴더를 잠그면 암호화 계층이 하나 더 추가되어, 폴더를 열 때 추가 인증이 필요합니다.",
     unlock_folder_description:
       "폴더 잠금을 해제하면 추가 보호 계층이 제거됩니다. 데이터는 표준 암호화로 계속 보호됩니다.",
     lock_extra_security:
@@ -418,25 +418,25 @@ export const ko = {
     change_folder_color: "폴더 색상 변경",
     select_a_color: "색상 선택",
     delete_folder_warning:
-      "이 폴더는 제거되며 되돌릴 수 없습니다. 안에 있던 이메일은 계정에 그대로 남고, 단지 이 폴더에 묶여 있지 않게 됩니다.",
+      "폴더가 삭제됩니다. 이 작업은 되돌릴 수 없습니다. 안에 있던 이메일은 계정에 그대로 남지만 더 이상 이 폴더에 분류되지 않습니다.",
     delete_folder_subfolders: " 하위 폴더는 최상위로 이동됩니다.",
     delete_folder_confirm: "정말로 폴더를 삭제하시겠습니까",
     collapse_all: "모두 접기",
     expand_all: "모두 펼치기",
     unsubscribed_successfully: "구독을 해제했습니다",
     unsubscribe_error_manual:
-      "자동으로 구독 해지를 할 수 없었습니다. 링크 열기를 누르면 발신자 사이트에서 직접 구독을 해지할 수 있습니다.",
+      "자동으로 구독을 해지할 수 없습니다. 발신자 사이트에서 구독을 해지하려면 링크 열기를 선택하세요.",
     one_click_unsubscribe_available: "원클릭 구독 해제 가능",
     email_unsubscribe_available: "이메일 구독 해제 가능",
     unsubscribe_link_available: "구독 해제 링크 사용 가능",
     folder_name_too_long:
-      "폴더 이름은 {{max}}자까지 가능합니다. 더 짧은 이름이면 저장됩니다.",
+      "폴더 이름은 {{max}}자까지 가능합니다. 더 짧은 이름을 사용하세요.",
     folder_already_exists:
-      "같은 이름의 폴더가 이미 있습니다. 다른 이름이면 됩니다.",
+      "같은 이름의 폴더가 이미 있습니다. 다른 이름을 선택하세요.",
     label_name_too_long:
-      "라벨 이름은 {{max}}자까지 가능합니다. 더 짧은 이름이면 저장됩니다.",
+      "라벨 이름은 {{max}}자까지 가능합니다. 더 짧은 이름을 사용하세요.",
     label_already_exists:
-      "같은 이름의 라벨이 이미 있습니다. 다른 이름이면 됩니다.",
+      "같은 이름의 라벨이 이미 있습니다. 다른 이름을 선택하세요.",
     saved_at_time: "{{ time }}에 저장됨",
     saved_on_date: "{{ date }}에 저장됨",
     now: "지금",
@@ -449,7 +449,7 @@ export const ko = {
     delete_draft: "임시 저장 삭제",
     remove_formatting: "서식 제거",
     remove_formatting_warning:
-      "일반 텍스트로 전환하면 이 임시 저장 메일의 모든 서식이 제거되며, 작성기는 되돌릴 수 없습니다. 다른 임시 저장 메일에는 영향이 없습니다.",
+      "일반 텍스트로 전환하면 이 임시 저장 메일의 모든 서식이 제거되며, 복원할 수 없습니다. 다른 임시 저장 메일에는 영향이 없습니다.",
     seconds: "초",
     password_protected: "비밀번호로 보호됨",
     open_menu: "메뉴 열기",
@@ -461,7 +461,7 @@ export const ko = {
     main_navigation: "기본 탐색",
     enable_shortcuts: "단축키 활성화",
     shortcuts_disabled_message:
-      "키보드 단축키가 현재 비활성화되어 있습니다. 설정 > 접근성에서 활성화하여 단축키를 사용하세요.",
+      "키보드 단축키가 꺼져 있습니다. 사용하려면 설정 > 접근성에서 켜세요.",
     navigation: "탐색",
     actions: "작업",
     global: "전역",
@@ -657,7 +657,7 @@ export const ko = {
     country_placeholder: "대한민국",
     website_placeholder: "https://example.com",
     delete_contact_confirmation:
-      "{{name}}을(를) 삭제하시겠습니까? 이 작업은 취소할 수 없습니다.",
+      "{{name}}을(를) 삭제할까요? 이 작업은 되돌릴 수 없습니다.",
     delete_contacts_confirmation:
       "{{count}}개의 연락처를 삭제하시겠습니까? 이 작업은 취소할 수 없습니다.",
     add_new_field_type: "새 필드 유형 추가",
@@ -790,7 +790,7 @@ export const ko = {
     no_commands_found: "명령을 찾을 수 없습니다",
     type_command_or_search: "명령어를 입력하거나 검색하세요...",
     failed_to_load_emails:
-      "받은편지함이 불러와지지 않았습니다. 새로고침을 당기거나 다시 시도하면 보통 해결됩니다. 서버의 메일은 안전합니다.",
+      "받은편지함을 불러오지 못했습니다. 당겨서 새로고침하거나 다시 시도하세요. 서버의 메일은 안전합니다.",
     no_emails_match_criteria: "이 조건에 맞는 이메일이 없습니다",
     failed_to_update_emails:
       "변경 사항을 저장하지 못했습니다. 다시 시도하세요. 이메일 자체는 변경되지 않았습니다.",
@@ -800,21 +800,21 @@ export const ko = {
       "받은편지함으로 이동하지 못했습니다. 다시 시도하세요. 이메일은 아직 보관함에 있습니다.",
     keyboard_shortcut_label: "키보드 단축키: {shortcut}",
     something_went_wrong_try_again:
-      "동작이 완료되지 않았습니다. 잠시 뒤 다시 시도하면 보통 해결됩니다.",
+      "문제가 발생했습니다. 잠시 후 다시 시도하세요.",
     something_went_wrong: "오류가 발생했습니다.",
     unexpected_error_refresh:
-      "문제가 발생했으니 페이지를 새로고침해 계속해 주세요.",
+      "문제가 발생했습니다. 계속하려면 페이지를 새로고침하세요.",
     unsupported_browser: "지원하지 않는 브라우저입니다.",
-    unsupported_browser_detail: "다른 브라우저를 사용해 주세요.",
+    unsupported_browser_detail: "다른 브라우저를 사용해 보세요.",
     try_again: "다시 시도",
     view_status: "상태 보기",
     error_details: "오류 세부 정보",
-    unable_to_display_email: "지금은 이 이메일을 보여드릴 수 없습니다.",
+    unable_to_display_email: "지금은 이 이메일을 표시할 수 없습니다.",
     email_render_error:
-      "이 기기에서 이 이메일을 렌더링할 수 없었습니다. 다시 열거나 원본을 보면 보통 해결됩니다. 받은편지함에는 영향이 없습니다.",
+      "이 기기에서 이 이메일을 표시할 수 없습니다. 다시 열거나 원본을 확인해 보세요. 받은편지함에는 영향이 없습니다.",
     unable_to_load_composer: "작성기가 불러와지지 않았습니다.",
     composer_load_error:
-      "작성기가 불러와지지 않았습니다. 이 창을 닫고 다시 열면 보통 해결됩니다. 임시 저장 메일은 보관됩니다.",
+      "작성기를 불러오지 못했습니다. 이 창을 닫고 다시 여세요. 임시 저장 메일은 저장되어 있습니다.",
     enter_field_value: "{{field}} 입력...",
     no_matching_labels: "일치하는 라벨이 없습니다",
     and: "그리고",
@@ -855,7 +855,7 @@ export const ko = {
       "DNS 변경 사항이 전파되는 데 최대 48시간이 걸릴 수 있습니다",
     post: "게시",
     link_copied: "링크가 클립보드에 복사됨",
-    invite_sent: "초대가 전송되었습니다!",
+    invite_sent: "초대를 보냈습니다",
     email_sent: "이메일 전송됨.",
     undo_send_already_sent: "실행 취소하지 못했습니다. 이미 전송되었습니다.",
     undo_send_failed: "실행 취소하지 못했습니다. 다시 시도하세요.",
@@ -946,7 +946,7 @@ export const ko = {
     failed_to_delete_contacts: "연락처를 삭제하지 못했습니다. 다시 시도하세요.",
     failed_to_update_favorites:
       "즐겨찾기를 업데이트하지 못했습니다. 다시 시도하세요.",
-    failed_to_read_file: "이 파일을 읽을 수 없었습니다. 다른 파일이면 됩니다.",
+    failed_to_read_file: "이 파일을 읽을 수 없습니다. 다른 파일을 사용해 보세요.",
     import_failed:
       "가져오기가 완료되지 않았습니다. 다시 시도하세요. 기존 데이터는 변경되지 않았습니다.",
     scan_failed: "다시 시도하세요.",
@@ -964,13 +964,13 @@ export const ko = {
     never_synced: "동기화된 적 없음",
     last_sync_successful: "마지막 동기화 성공",
     last_sync_failed:
-      "최근 동기화가 완료되지 않았습니다. 자동으로 다시 시도합니다.",
+      "최근 동기화가 완료되지 않았습니다. Aster가 자동으로 다시 시도합니다.",
     failed_to_forward:
       "전달 메일을 보내지 못했습니다. 다시 시도하세요. 임시 보관함에 저장되었습니다.",
     failed_to_schedule:
       "예약을 저장하지 못했습니다. 다시 시도하세요. 임시 보관함의 메일은 안전합니다.",
     sync_failed:
-      "동기화가 완료되지 않았습니다. 자동으로 다시 시도합니다. 양쪽의 메일은 안전합니다.",
+      "동기화가 완료되지 않았습니다. Aster가 자동으로 다시 시도합니다. 양쪽의 메일은 안전합니다.",
     clearing: "지우는 중...",
     clear: "지우기",
     clear_all: "모두 지우기",
@@ -984,7 +984,7 @@ export const ko = {
     spam_emails_permanently_deleted: "{{count}}개의 스팸 이메일이 영구 삭제됨",
     trash_emptied: "휴지통이 비워졌습니다",
     spam_empty_failed:
-      "스팸을 비울 수 없습니다. 잠시 후 다시 시도하면 보통 해결됩니다. 삭제된 항목은 없습니다.",
+      "스팸을 비울 수 없습니다. 잠시 후 다시 시도하세요. 아무것도 제거되지 않았습니다.",
     conversations_marked_as_spam_bulk: "{{count}}개의 대화가 스팸으로 표시됨",
     conversations_restored_bulk: "{{count}}개의 대화가 복원됨",
     failed_to_restore_conversations:
@@ -1071,10 +1071,10 @@ export const ko = {
     enter_contact_details: "연락처 세부 정보 입력",
     select_valid_image: "JPEG, PNG, WebP 또는 GIF 이미지를 선택하세요",
     image_too_large:
-      "이 이미지는 10 MB 제한을 넘습니다. 더 작은 이미지나 압축된 버전이면 됩니다.",
+      "이 이미지는 10 MB 제한을 넘습니다. 더 작거나 압축된 이미지를 사용하세요.",
     failed_to_upload_photo: "다시 시도하세요.",
     contact_photo: "연락처 사진",
-    failed_to_delete_account: "계정 삭제 실패. 다시 시도해 주세요.",
+    failed_to_delete_account: "계정을 삭제할 수 없습니다. 다시 시도하세요.",
     no_emails_older_than_30_days: "30일 이상 된 이메일이 없습니다",
     no_newsletters_found: "보관할 뉴스레터를 찾을 수 없습니다",
     newsletters_archived: "{{count}}개의 뉴스레터가 보관됨",
@@ -1123,13 +1123,13 @@ export const ko = {
     failed_to_update_rule:
       "이 규칙을 저장하지 못했습니다. 다시 시도하세요. 이전 버전이 계속 적용됩니다.",
     failed_to_send_verification:
-      "인증 이메일을 보낼 수 없었습니다. 잠시 뒤 다시 시도하면 보통 해결됩니다.",
+      "인증 이메일을 보낼 수 없습니다. 잠시 후 다시 시도하세요.",
     failed_to_load_email:
-      "이 이메일이 불러와지지 않았습니다. 새로고침하면 보통 해결됩니다. 서버의 이메일은 안전합니다.",
+      "이 이메일을 불러오지 못했습니다. 페이지를 새로고침해 보세요. 이메일은 서버에 안전하게 있습니다.",
     failed_to_decrypt_email:
-      "이 기기에서 이 이메일을 열 수 없었습니다. 새로고침하면 보통 해결되며, 계속 실패하면 로그아웃 후 다시 로그인하는 것이 대안입니다.",
+      "이 기기에서 이 이메일을 열 수 없습니다. 페이지를 새로고침하세요. 계속 실패하면 로그아웃한 후 다시 로그인하세요.",
     failed_to_disable_2fa:
-      "2단계 인증이 계속 켜져 있습니다. 다시 시도하세요. 계정은 여전히 보호됩니다.",
+      "2단계 인증을 끌 수 없습니다. 다시 시도하세요. 계정은 여전히 보호됩니다.",
     removed_from_contacts: "연락처에서 제거됨",
     added_to_contacts: "연락처에 추가됨",
     senders_emails_count: "{{senders}} ({{emails}})",
@@ -1144,13 +1144,13 @@ export const ko = {
     session_expired_login:
       "세션이 종료되었습니다. 계속하려면 다시 로그인하세요. 데이터와 임시 저장 메일은 서버에 저장되어 있습니다.",
     session_expired_refresh:
-      "세션이 종료되었습니다. 페이지를 새로고침하면 다시 로그인할 수 있습니다. 데이터는 안전합니다.",
+      "세션이 종료되었습니다. 다시 로그인하려면 페이지를 새로고침하세요. 데이터는 안전합니다.",
     email_in_locked_folder:
-      "이 이메일은 잠가둔 폴더에 있습니다. 폴더의 잠금을 풀면 열립니다.",
+      "이 이메일은 잠근 폴더에 있습니다. 열려면 폴더의 잠금을 해제하세요.",
     no_vault_available:
-      "이 기기에 비공개 키가 불러와져 있지 않습니다. 다시 로그인하면 키가 풀립니다. 서버의 키는 그대로입니다.",
+      "이 기기에 비공개 키가 불러와져 있지 않습니다. 키의 잠금을 해제하려면 다시 로그인하세요. 서버의 키는 그대로입니다.",
     offline_action_queued:
-      "지금은 오프라인 상태입니다. 이 작업은 대기 중이며 다시 연결되는 즉시 완료됩니다.",
+      "오프라인 상태입니다. 이 작업은 대기열에 추가되었으며 다시 연결되면 완료됩니다.",
     failed_to_update: "다시 시도하세요.",
     failed_to_fetch_tags: "다시 시도하세요.",
     failed_to_fetch_folders: "다시 시도하세요.",
@@ -1161,48 +1161,48 @@ export const ko = {
     folder_no_password_protection:
       "이 폴더에는 현재 비밀번호가 설정되어 있지 않아, 바꿀 것이 없습니다.",
     password_already_set:
-      "이 폴더에는 이미 비밀번호가 있습니다. 비밀번호 변경 옵션으로 업데이트하면 됩니다.",
+      "이 폴더에는 이미 비밀번호가 있습니다. 변경하려면 비밀번호 변경을 사용하세요.",
     folder_must_be_unlocked:
-      "폴더의 잠금을 먼저 풀면 이 설정을 바꿀 수 있습니다.",
+      "이 설정을 변경하려면 먼저 폴더의 잠금을 해제하세요.",
     cannot_remove_vault_password:
       "보관함 폴더는 항상 자체 비밀번호가 필요하며, 이 보호는 제거할 수 없습니다.",
     failed_to_load_snoozed_emails:
       "다시 알림 설정된 이메일을 불러오지 못했습니다. 다시 시도하세요. 서버에 안전하게 있습니다.",
-    unexpected_error: "예상대로 작동하지 않았습니다. 다시 시도하세요.",
+    unexpected_error: "문제가 발생했습니다. 다시 시도하세요.",
     failed_to_load_drafts:
       "임시 보관함을 불러오지 못했습니다. 다시 시도하세요. 저장된 임시 메일은 안전합니다.",
     failed_to_load_scheduled_emails:
-      "예약된 이메일을 불러오지 못했습니다. 다시 시도하세요. 예정대로 전송됩니다.",
-    value_too_long: "이 값은 길이 제한을 넘습니다. 더 짧은 형태면 됩니다.",
+      "예약된 이메일을 불러오지 못했습니다. 다시 시도하세요. 예약대로 전송됩니다.",
+    value_too_long: "이 값은 길이 제한을 넘습니다. 더 짧은 값을 사용하세요.",
     please_enter_valid_domain:
-      "이 주소는 유효한 도메인이 아닙니다. example.com 같은 형식이면 됩니다.",
+      "유효한 도메인이 아닙니다. example.com과 같은 도메인을 입력하세요.",
     please_enter_valid_email:
-      "이 주소는 유효한 이메일이 아닌 것 같습니다. name@example.com 같은 형식이면 됩니다.",
-    email_local_part_too_long: "@ 앞부분이 너무 깁니다. 더 짧은 형태면 됩니다.",
+      "유효한 이메일 주소가 아닙니다. name@example.com과 같은 주소를 입력하세요.",
+    email_local_part_too_long: "@ 앞부분이 너무 깁니다. 더 짧은 주소를 사용하세요.",
     forwarding_rule_updated: "전달 규칙이 업데이트되었습니다",
     forwarding_rule_created: "전달 규칙이 생성되었습니다",
     email_sent_via_external: "외부 계정을 통해 이메일이 전송되었습니다.",
-    encryption_keys_rotated: "암호화 키가 성공적으로 교체되었습니다",
-    failed_to_retrieve_key: "서버에서 현재 키를 검색하는 데 실패했습니다",
+    encryption_keys_rotated: "암호화 키가 교체되었습니다",
+    failed_to_retrieve_key: "서버에서 현재 키를 가져오지 못했습니다. 다시 시도하세요.",
     sending: "전송 중...",
     in_one_minute: "1분 후",
     marketing: "마케팅",
     operation: "운영",
     folder_label: "폴더",
     please_enter_valid_url:
-      "이 주소는 유효한 웹 주소가 아닙니다. https://example.com 같은 전체 링크면 됩니다.",
-    csv_file_empty: "이 CSV에는 데이터 행이 없습니다. 다른 파일이면 됩니다.",
-    label_name_cannot_be_empty: "이 라벨이 저장되려면 이름이 필요합니다.",
-    folder_name_cannot_be_empty: "이 폴더가 저장되려면 이름이 필요합니다.",
-    please_enter_password: "계속하려면 비밀번호가 필요합니다.",
+      "유효한 웹 주소가 아닙니다. https://example.com과 같은 전체 링크를 입력하세요.",
+    csv_file_empty: "이 CSV에는 행이 없습니다. 다른 파일을 사용해 보세요.",
+    label_name_cannot_be_empty: "이 라벨의 이름을 입력하세요.",
+    folder_name_cannot_be_empty: "이 폴더의 이름을 입력하세요.",
+    please_enter_password: "계속하려면 비밀번호를 입력하세요.",
     rotation_failed:
       "키 갱신이 완료되지 않았습니다. 비밀번호를 확인하고 다시 시도하세요. 기존 키는 계속 작동하며 데이터는 안전합니다.",
     delete_account_error:
-      "지금은 계정을 삭제할 수 없습니다. 잠시 후 다시 시도하세요. 문제가 계속되면 hello@astermail.org로 문의하세요.",
+      "계정을 삭제할 수 없습니다. 잠시 후 다시 시도하세요. 문제가 계속되면 hello@astermail.org로 문의하세요.",
     encryption_vault_not_available:
-      "이 기기에서 비공개 키가 잠겨 있습니다. 다시 로그인하면 풀립니다. 서버의 키는 그대로입니다.",
+      "이 기기에서 비공개 키가 잠겨 있습니다. 잠금을 해제하려면 다시 로그인하세요. 서버의 키는 변경되지 않았습니다.",
     email_data_missing:
-      "이 이메일의 내용을 불러올 수 없었습니다. 받은편지함에서 다시 열면 돌아옵니다. 받은편지함은 그대로입니다.",
+      "이 이메일의 내용을 불러올 수 없습니다. 받은편지함에서 다시 여세요. 받은편지함은 변경되지 않았습니다.",
     message_temporarily_unavailable:
       "이 메시지를 일시적으로 사용할 수 없습니다. 잠시 후 다시 시도하세요.",
     attachment_temporarily_unavailable:
@@ -1213,7 +1213,7 @@ export const ko = {
     purchase_thank_you: "구매해 주셔서 감사합니다. 구독이 활성화되었습니다.",
     view_billing_settings: "결제 설정 보기",
     welcome_description:
-      "이 둘러보기는 약 1분 걸립니다. 첫날에 도움이 되는 네 가지를 안내합니다.",
+      "이 둘러보기는 약 1분 걸리며, 시작하는 데 도움이 되는 네 가지 기능을 안내합니다.",
     organize_with_folders: "폴더로 정리하기",
     organize_folders_description:
       "메일을 폴더로 끌어다 놓아 정리하거나, 여러 개를 선택해 한 번에 옮길 수 있습니다. 폴더를 추가하려면 폴더 옆의 +를 클릭하세요.",
@@ -1233,7 +1233,7 @@ export const ko = {
     click_to_disable_encryption: "암호화됨 - 클릭하면 이 메시지에서 해제됩니다",
     encryption_status_unknown: "암호화 상태를 확인할 수 없음",
     encryption_status_unknown_desc:
-      "이 수신자의 키를 확인하지 못했습니다. 다시 시도하면 이 메시지를 종단 간 암호화할 수 있는지 알 수 있습니다.",
+      "이 수신자의 키를 확인하지 못했습니다. 이 메시지를 종단 간 암호화할 수 있는지 확인하려면 다시 시도하세요.",
     end_to_end_encrypted_label: "종단간 암호화됨",
     encrypted_in_transit_stored: "전송 및 저장 시 암호화됩니다.",
     only_you_and_sender: "나와 발신자만 이 내용을 읽을 수 있습니다.",
@@ -1248,29 +1248,29 @@ export const ko = {
     failed_to_send_external_email:
       "연결된 외부 계정으로 이 이메일을 보내지 못했습니다. 다시 시도하세요. 임시 보관함에 저장되었습니다.",
     external_account_token_missing:
-      "연결한 외부 계정은 이 계정으로 발송하기 전에 다시 연결해야 합니다. 설정의 연결된 계정에서 찾을 수 있습니다.",
+      "연결된 외부 계정으로 보내려면 먼저 다시 연결해야 합니다. 다시 연결하려면 설정 > 연결된 계정으로 이동하세요.",
     failed_to_send_via_external:
-      "연결된 외부 계정으로 보내지 못했습니다. 다시 시도하세요. 임시 보관함에 저장되었습니다.",
+      "연결된 외부 계정으로 보낼 수 없습니다. 다시 시도하세요. 임시 저장 메일은 저장되어 있습니다.",
     offline_change_failed:
       "오프라인 상태에서 변경한 내용을 저장하지 못했습니다.",
     storage_key_update_pending:
       "Aster Mail에서 저장된 데이터를 보호하는 키의 업데이트를 완료하지 못했습니다. 변경 사항은 계속 저장되며, Aster Mail은 백그라운드에서 계속 재시도합니다.",
     offline_send_failed: "오프라인 상태에서 작성한 이메일을 보내지 못했습니다.",
     offline_email_queued:
-      "지금은 오프라인 상태입니다. 이 이메일은 다시 연결되는 즉시 발송됩니다.",
+      "오프라인 상태입니다. 이 이메일은 다시 연결되면 발송됩니다.",
     failed_to_queue_offline:
-      "이 이메일을 나중에 보내도록 대기열에 추가하지 못했습니다. 다시 시도하세요. 임시 보관함에 저장되었습니다.",
+      "이 이메일을 나중에 보내도록 대기열에 추가할 수 없습니다. 다시 시도하세요. 임시 저장 메일은 저장되어 있습니다.",
     password_needs_outside_recipients_only:
       "비밀번호 보호는 모든 수신자가 다른 이메일 서비스를 사용할 때만 작동합니다. Aster 사용자를 포함하려면 비밀번호 보호를 끄거나 별도의 메시지를 보내세요.",
     failed_to_schedule_email:
       "예약을 저장하지 못했습니다. 다시 시도하세요. 임시 보관함에 저장되었습니다.",
     failed_to_restore_draft:
-      "이 임시 저장 메일을 다시 불러올 수 없었습니다. 다시 열면 보통 해결됩니다. 다른 임시 저장 메일은 영향이 없습니다.",
+      "이 임시 저장 메일을 복원할 수 없습니다. 다시 열어 보세요. 다른 임시 저장 메일에는 영향이 없습니다.",
     failed_to_undo_spam:
-      "되돌릴 수 없었습니다. 직접 원래 위치로 옮기는 것이 대안입니다.",
+      "되돌릴 수 없습니다. 직접 원래 위치로 옮기세요.",
     conversation_moved_to_trash_toast: "대화가 휴지통으로 이동됨",
     failed_to_undo_trash:
-      "되돌릴 수 없었습니다. 직접 원래 위치로 옮기는 것이 대안입니다.",
+      "되돌릴 수 없습니다. 직접 원래 위치로 옮기세요.",
     message_archived: "메시지 보관됨",
     message_moved_to_trash: "메시지가 휴지통으로 이동됨",
     message_marked_as_spam: "메시지가 스팸으로 표시됨",
@@ -1337,7 +1337,7 @@ export const ko = {
     read: "읽음",
     or_conjunction: "또는",
     press_label: "누르기",
-    anywhere_to_open_shortcuts: "아무 곳에서나 이 모달을 열 수 있습니다",
+    anywhere_to_open_shortcuts: "아무 곳에서나 이 창을 열 수 있습니다",
     showing_shortcuts_for: "단축키 표시 대상",
     emoji_smileys: "스마일리",
     emoji_gestures: "제스처",
@@ -1402,7 +1402,7 @@ export const ko = {
     contact_sync: "연락처 동기화",
     sync_confirm_title: "연락처 동기화",
     sync_confirm_message:
-      "모바일 연락처를 Aster에 동기화하시겠습니까? 기기의 새 연락처가 가져와집니다.",
+      "모바일 연락처를 Aster에 동기화할까요? 기기의 새 연락처를 가져옵니다.",
     sync_button: "동기화",
     server_url: "서버 URL",
     from_label: "보낸 사람:",
@@ -1469,7 +1469,7 @@ export const ko = {
     tracking_pixels_count: "추적 픽셀 {{count}}개",
     me: "나",
     notification_banner_message:
-      "새 이메일 알림을 받으려면 데스크톱 알림을 활성화하세요",
+      "새 이메일 알림을 받으려면 데스크톱 알림을 켜세요",
     notification_banner_allow: "허용",
     subscriptions: "구독",
     unsubscribed_count: "구독 취소됨 ({{count}})",
@@ -1479,7 +1479,7 @@ export const ko = {
     learn_more: "자세히 알아보기",
     buy_more_storage: "저장 공간 추가 구매",
     save_failed:
-      "변경 사항이 저장되지 않았습니다. 연결을 확인하고 다시 시도하면 보통 해결됩니다. 이전 버전은 그대로 있습니다.",
+      "변경 사항이 저장되지 않았습니다. 연결을 확인하고 다시 시도하세요. 이전 버전은 그대로 있습니다.",
     block: "차단",
     state_province: "시/도",
     files_end_to_end_encrypted: "이 파일은 종단간 암호화되어 있습니다.",
@@ -1490,9 +1490,9 @@ export const ko = {
       "이 파일은 암호화된 메시지에 포함되어 있지 않습니다. 보낸 사람을 신뢰하는 경우에만 여세요.",
     duplicate_send_blocked:
       "이 메일은 방금 발송되었습니다. 다시 보내기 전에 보낸편지함을 확인하세요.",
-    empty_body_error: "이 메일이 발송되려면 제목이나 본문이 필요합니다.",
+    empty_body_error: "보내기 전에 제목이나 본문을 추가하세요.",
     subject_too_long:
-      "제목이 998자 제한을 넘습니다. 더 짧은 형태면 발송됩니다.",
+      "제목이 998자 제한을 넘습니다. 더 짧은 제목을 사용하세요.",
     notification_banner_no_thanks: "괜찮습니다",
     locked_data_banner_message: "이전에 암호화된 데이터 일부가 잠겨 있습니다.",
     locked_data_banner_action: "데이터 복구",
@@ -1557,7 +1557,7 @@ export const ko = {
     blind_carbon_copy: "숨은 참조",
     terms_of_service: "서비스 이용약관",
     privacy_policy: "개인정보 처리방침",
-    invite_encrypted_email: "친구를 초대하여 암호화된 이메일을 경험하세요",
+    invite_encrypted_email: "친구를 초대해 암호화된 이메일을 사용해 보게 하세요",
     password_set: "비밀번호 설정됨",
     sending_as: "다음으로 전송 중",
     auto_expire_after: "자동 만료",
@@ -1625,7 +1625,7 @@ export const ko = {
     legal_agree_prefix: "계정을 만들면 다음에 동의하는 것입니다:",
     and_word: "및",
     external_link_warning:
-      "Aster를 떠나 외부 사이트로 이동하려고 합니다. 신뢰하는 사이트라면 그대로 열어도 괜찮습니다.",
+      "Aster를 떠나 외부 사이트로 이동하려고 합니다. 신뢰할 수 있는 사이트인 경우에만 이 링크를 여세요.",
     dont_show_warning_again: "이 경고를 다시 표시하지 않기",
     unknown_label: "알 수 없음",
     n_hours: "{{ count }}시간",
@@ -1633,9 +1633,9 @@ export const ko = {
     vault_locked: "보관함 잠김",
     unlock_vault_to_view: "연락처를 보려면 보관함 잠금을 해제하세요",
     delete_contact_confirm:
-      "이 연락처를 영구히 삭제합니다. 되돌릴 수 없습니다.",
+      "이 연락처를 영구적으로 삭제할까요? 이 작업은 되돌릴 수 없습니다.",
     delete_contacts_confirm:
-      "이 연락처를 영구히 삭제합니다. 되돌릴 수 없습니다.",
+      "이 연락처를 영구적으로 삭제할까요? 이 작업은 되돌릴 수 없습니다.",
     this_contact: "이 연락처",
     all_done: "모두 완료",
     continue_label: "계속",
@@ -1643,14 +1643,14 @@ export const ko = {
     copy_invite_link: "초대 링크 복사",
     share_on_social: "소셜에 공유",
     check_out_aster_mail:
-      "Aster Mail을 사용해 보세요. 이메일을 더 잘 관리하는 방법입니다!",
+      "Aster Mail을 사용해 보세요. 이메일을 더 잘 관리하는 방법입니다.",
     n_lines: "{{ count }}줄",
     hide_details: "세부정보 숨기기",
     show_details: "세부정보 표시",
     not_phishing: "피싱이 아님",
     auth_fail_banner_title: "보낸 사람을 확인할 수 없습니다.",
     auth_fail_banner_body:
-      "이 이메일이 표시된 주소에서 실제로 발송되었는지 확인할 수 없으며, 위장되었을 가능성이 있습니다. 링크나 첨부 파일을 열기 전에 다른 경로로 보낸 사람을 확인하면 더 안전합니다. 계정에는 영향이 없습니다.",
+      "Aster가 이 이메일이 표시된 주소에서 발송되었는지 확인할 수 없으며, 위장되었을 수 있습니다. 링크나 첨부 파일을 열기 전에 다른 경로로 보낸 사람을 확인하세요. 계정에는 영향이 없습니다.",
     shipment_update: "배송 업데이트",
     track_package: "배송 추적",
     tracking_number: "송장 번호",
@@ -1664,7 +1664,7 @@ export const ko = {
     viewport_label: "뷰포트",
     screen_label: "화면",
     user_agent_label: "사용자 에이전트",
-    cc_bcc_label: "참조/숨은참조",
+    cc_bcc_label: "참조/숨은 참조",
     secured_by_aster_mail: "보안 제공:",
     press_shortcut_to_send: "⌘+Enter로 보내기",
     session_expired_sign_in:
@@ -1695,7 +1695,7 @@ export const ko = {
     suspended_limited_access:
       "이 계정이 정지된 동안에는 이의 신청, 데이터 다운로드, 로그아웃만 할 수 있습니다.",
     settings_disabled_suspended:
-      "계정이 정지된 동안 설정은 사용할 수 없습니다. 이의 신청이나 자세한 안내는 hello@astermail.org에서 도움을 받을 수 있습니다.",
+      "계정이 정지된 동안에는 설정이 꺼져 있습니다. 이의를 신청하거나 자세한 내용을 확인하려면 hello@astermail.org로 문의하세요.",
     new_email_body: "새 이메일이 도착했습니다",
     new_emails_body_one: "새 이메일 {{count}}통이 도착했습니다",
     new_emails_body: "새 이메일 {{count}}통이 도착했습니다",
@@ -1722,7 +1722,7 @@ export const ko = {
     export_filtered_count: "필터링된 항목 내보내기 ({{ count }})",
     no_contacts_yet: "아직 연락처가 없습니다",
     add_contacts_quick_email_hint:
-      "자주 연락하는 사람에게 빠르게 이메일을 보내려면 연락처를 추가하세요.",
+      "자주 연락하는 사람에게 이메일을 보내려면 연락처를 추가하세요",
     no_contacts_match: '"{{ query }}"와 일치하는 연락처가 없습니다.',
     contact_count_one: "연락처 {{ count }}개",
     contact_count_other: "연락처 {{count}}개",
@@ -1762,15 +1762,15 @@ export const ko = {
     select_an_icon: "아이콘 선택",
     delete_label: "라벨 삭제",
     label_permanently_deleted_warning:
-      "이 라벨은 이 라벨이 달린 모든 이메일에서 제거되며 되돌릴 수 없습니다. 이메일 자체는 계정에 그대로 남습니다.",
+      "이 라벨이 달린 모든 이메일에서 라벨이 제거됩니다. 이 작업은 되돌릴 수 없습니다. 이메일 자체는 계정에 그대로 남습니다.",
     confirm_delete_label: "정말로 라벨을 삭제하시겠습니까",
     add_another_email_count: "이메일 추가 ({{current}}/{{max}})",
     n_messages_count: "메시지 {{count}}개",
-    unable_to_decrypt: "이 메시지를 열 수 없었습니다",
+    unable_to_decrypt: "이 메시지를 열 수 없습니다",
     decrypt_session_expired_message:
-      "이 기기에서 이 메시지를 열 수 없었습니다. 세션이 종료된 경우가 많습니다. 서버의 메시지와 키는 그대로입니다.",
+      "이 기기에서 이 메시지를 열 수 없습니다. 세션이 종료된 경우 흔히 발생합니다. 서버의 메시지와 키는 변경되지 않았습니다.",
     decrypt_try_sign_out:
-      "로그아웃 후 다시 로그인하면 키가 다시 불러와집니다. 그래도 메시지가 열리지 않으면 hello@astermail.org에서 도움을 받을 수 있습니다.",
+      "키를 다시 불러오려면 로그아웃한 후 다시 로그인하세요. 그래도 메시지가 열리지 않으면 hello@astermail.org로 문의하세요.",
     pin_preferred_sender: "선호 발신자로 고정",
     unpin_preferred_sender: "선호 발신자 고정 해제",
     pending_deletion_title: "계정 삭제 예약됨",
@@ -1789,10 +1789,10 @@ export const ko = {
     family_2fa_sign_out: "로그아웃",
     n_more_recipients: "+{{count}}명 더",
     unknown_error:
-      "예상대로 작동하지 않았습니다. 다시 시도하세요. 원인을 파악하지 못했습니다.",
+      "문제가 발생했습니다. 다시 시도하세요.",
     unsaved_changes_title: "변경 사항을 버릴까요?",
     unsaved_changes_body:
-      "입력한 내용은 저장되지 않았습니다. 지금 이 양식을 닫으면 삭제됩니다.",
+      "입력한 내용이 저장되지 않았습니다. 지금 이 양식을 닫으면 내용이 사라집니다.",
     unknown_sender: "알 수 없음",
     unknown_merchant: "알 수 없는 판매자",
     uncategorized: "분류 없음",
@@ -1820,7 +1820,7 @@ export const ko = {
     recovery_pdf_your_codes: "복구 코드",
     recovery_pdf_used: "사용됨",
     recovery_pdf_footer: "Aster Mail - 종단간 암호화 이메일",
-    recovery_text_title: "ASTERMAIL 복구 코드",
+    recovery_text_title: "ASTER MAIL 복구 코드",
     recovery_text_keep_safe: "이 파일을 안전하게 보관하세요",
     recovery_text_store_secure: "안전한 장소에 이 파일을 보관하세요",
     recovery_text_no_share: "다른 사람과 공유하지 마세요",
@@ -1849,7 +1849,7 @@ export const ko = {
     folder_fallback: "폴더",
     label_fallback: "라벨",
     permission_denied:
-      "해당 작업을 할 수 있는 권한이 없습니다. 잘못된 표시로 보이면 관리자가 도움을 줄 수 있습니다.",
+      "해당 작업을 할 권한이 없습니다. 잘못된 것 같으면 관리자에게 문의하세요.",
     n_contacts_imported: "{{ count }}개 연락처 가져옴",
     yourname_placeholder: "yourname",
     contacts_deleted: "{{ count }}개 연락처 삭제됨",
@@ -1859,7 +1859,7 @@ export const ko = {
     auth_fail_tooltip_spf:
       "이 메시지를 보낸 서버는 보낸 사람 줄 도메인의 승인된 발신자가 아닙니다.",
     auth_fail_tooltip_dkim:
-      "발신자 서명이 없거나 일치하지 않아 전송 중 변경되지 않았음을 확인할 수 없습니다.",
+      "발신자 서명이 없거나 일치하지 않아 Aster가 전송 중 메시지가 변경되지 않았는지 확인할 수 없습니다.",
     auth_fail_tooltip_dmarc:
       "이 도메인 자체의 정책은 이 같은 메시지를 거부해야 한다고 명시합니다.",
     label_system_inbox: "받은 편지함",
@@ -1954,9 +1954,9 @@ export const ko = {
     failed_save_profile_color:
       "색상 선택을 저장하지 못했습니다. 다시 시도하세요.",
     image_load_failed:
-      "이 이미지가 불러와지지 않았습니다. 새로고침하면 보통 해결됩니다.",
+      "이 이미지를 불러오지 못했습니다. 페이지를 새로고침해 보세요.",
     image_processing_failed:
-      "이 이미지를 준비할 수 없었습니다. 다른 파일이면 됩니다.",
+      "이 이미지를 준비할 수 없습니다. 다른 파일을 사용해 보세요.",
     alias_avatar_updated: "별칭 아바타가 업데이트되었습니다",
     alias_avatar_removed: "별칭 아바타가 제거되었습니다",
     failed_update_alias_avatar:
@@ -1965,7 +1965,7 @@ export const ko = {
     failed_update_alias_display_name:
       "표시 이름을 업데이트하지 못했습니다. 다시 시도하세요.",
     display_name_too_long:
-      "이 표시 이름은 길이 제한을 넘습니다. 더 짧은 이름이면 됩니다.",
+      "이 표시 이름은 길이 제한을 넘습니다. 더 짧은 이름을 사용하세요.",
     add_display_name_placeholder: "표시 이름 추가",
     edit_display_name: "표시 이름 편집",
     alias_note_updated: "메모가 업데이트되었습니다",
@@ -1982,19 +1982,19 @@ export const ko = {
     alias_websites_count: "웹사이트 {{count}}개",
     remove_alias_website: "웹사이트 제거",
     failed_update_alias_note: "다시 시도하세요.",
-    alias_note_too_long: "이 메모는 길이 제한을 넘습니다. 더 짧게 하면 됩니다.",
+    alias_note_too_long: "이 메모는 길이 제한을 넘습니다. 더 짧은 메모를 사용하세요.",
     add_alias_note_placeholder: "메모 추가",
     edit_alias_note: "메모 편집",
     change_alias_avatar: "프로필 사진 변경",
     remove_alias_avatar: "프로필 사진 제거",
     alias_avatars_locked:
-      "맞춤 아바타는 유료 플랜에 포함됩니다. 업그레이드하면 이용할 수 있습니다.",
+      "맞춤 아바타는 유료 플랜에서 사용할 수 있습니다. 사용하려면 업그레이드하세요.",
     not_now: "나중에",
     scanning_mailbox: "메일함 검색 중...",
     marking_as_read_count:
       "{{total}}개 중 {{completed}}개를 읽음으로 표시 중...",
     trash_empty_failed:
-      "휴지통을 비울 수 없었습니다. 잠시 뒤 다시 시도하면 보통 해결됩니다. 아무것도 제거되지 않았습니다.",
+      "휴지통을 비울 수 없습니다. 잠시 후 다시 시도하세요. 아무것도 제거되지 않았습니다.",
     conversations_starred_bulk: "{{count}}개의 대화에 별표 표시됨",
     conversations_unstarred_bulk: "{{count}}개의 대화에서 별표 해제됨",
     conversations_moved_to_inbox_bulk:
@@ -2020,7 +2020,7 @@ export const ko = {
     star_selected: "별표",
     all_short: "전체",
     search_failed_try_again:
-      "검색이 완료되지 않았습니다. 잠시 뒤 다시 시도하면 보통 해결됩니다.",
+      "검색이 완료되지 않았습니다. 잠시 후 다시 시도하세요.",
     search_load_failed_try_again:
       "검색할 이메일을 불러오지 못했습니다. 다시 시도하세요. 메일은 안전합니다.",
     failed_to_set_folder_password:
@@ -2028,36 +2028,36 @@ export const ko = {
     failed_to_change_folder_password:
       "폴더 비밀번호가 변경되지 않았습니다. 다시 시도하세요. 기존 비밀번호를 계속 사용할 수 있습니다.",
     failed_to_remove_folder_password:
-      "폴더 비밀번호를 제거하지 못했습니다. 다시 시도하세요. 폴더는 이전처럼 잠겨 있습니다.",
+      "폴더 비밀번호를 제거하지 못했습니다. 다시 시도하세요. 폴더는 잠긴 상태로 유지됩니다.",
     wkd_encrypted_description: "수신자의 공개된 공개 키로 암호화됩니다.",
     sender_verified: "발신자 인증됨",
     sender_verified_desc: "이 메시지의 서명이 발신자의 공개된 키와 일치합니다.",
     sender_invalid: "발신자 서명이 일치하지 않음",
     sender_invalid_desc:
-      "이 메시지는 서명되어 있지만 서명이 발신자의 공개된 신원과 일치하지 않습니다. 변조되었거나 다른 사람이 보냈을 가능성이 있습니다. 행동하기 전에 다른 경로로 확인하는 것이 더 안전합니다.",
+      "이 메시지는 서명되어 있지만 서명이 발신자가 공개한 신원과 일치하지 않습니다. 변조되었거나 다른 사람이 보냈을 수 있습니다. 중요한 내용에 따라 행동하기 전에 다른 경로로 확인하세요.",
     sender_invalid_short: "서명 불일치",
     sender_no_keys: "이 발신자의 신원을 확인할 수 없었습니다",
     sender_no_keys_desc:
-      "이 발신자의 신원을 조회할 수 없어 메시지가 실제로 해당 사람에게서 온 것인지 확인할 수 없습니다. 민감한 내용은 신중하게 다루면 됩니다.",
+      "이 발신자의 신원을 조회할 수 없어 Aster가 메시지가 이 발신자에게서 왔는지 확인할 수 없습니다. 메시지에 포함된 민감한 내용에 주의하세요.",
     sender_unsigned: "발신자가 이 이메일에 서명하지 않음",
     sender_unsigned_desc:
-      "이 메시지는 서명되지 않아 실제로 이 발신자에게서 온 것인지 확인할 수 없습니다. 민감한 내용은 신중하게 다루면 됩니다.",
+      "이 메시지는 서명되지 않아 Aster가 이 발신자에게서 왔는지 확인할 수 없습니다. 메시지에 포함된 민감한 내용에 주의하세요.",
     action_undone: "작업이 취소되었습니다",
     file_exceeds_max_size:
-      '"{{name}}"은(는) {{size}} 단일 파일 제한을 넘습니다. 더 작은 버전이나 공유 링크로 보내면 됩니다.',
+      "\"{{name}}\"은(는) {{size}} 단일 파일 제한을 넘습니다. 더 작은 파일을 사용하거나 대신 링크를 공유하세요.",
     file_exceeds_max_size_upgradable:
       '"{{name}}"은(는) 현재 요금제의 {{size}} 제한을 넘습니다. 업그레이드하면 {{max_size}}까지 늘어납니다.',
     adding_file_would_exceed_limit:
-      '"{{name}}"를 추가하면 첨부 파일이 {{size}} 제한을 초과합니다. 먼저 파일을 제거하거나 별도의 이메일로 보내면 됩니다.',
+      "\"{{name}}\"을(를) 추가하면 첨부 파일이 {{size}} 제한을 넘습니다. 먼저 파일을 제거하거나 별도의 이메일로 보내세요.",
     file_already_attached:
-      '"{{name}}"은(는) 이미 이 이메일에 첨부되어 있습니다. 다시 첨부할 필요가 없습니다.',
+      "\"{{name}}\"은(는) 이미 이 이메일에 첨부되어 있습니다.",
     metadata_not_removed:
       "{{names}}에서 숨겨진 메타데이터를 제거하지 못했습니다. 파일이 변경되지 않은 상태로 첨부되었습니다.",
     failed_to_read_named_file:
-      '"{{name}}"을(를) 읽을 수 없었습니다. 다른 파일이면 됩니다.',
+      "\"{{name}}\"을(를) 읽을 수 없습니다. 다른 파일을 사용해 보세요.",
     account_suspended: "계정이 정지된 상태입니다.",
     account_limit_reached:
-      "이 네트워크의 계정 제한에 도달했습니다. 잘못된 표시로 보이면 hello@astermail.org에서 도움을 받을 수 있습니다.",
+      "이 네트워크의 계정 제한에 도달했습니다. 잘못된 것 같으면 hello@astermail.org로 문의하세요.",
     save_recovery_codes_title: "Aster Mail 복구 코드",
     save_recovery_codes_dialog: "복구 코드 저장",
     click_to_add_value: "값을 추가하려면 클릭...",
@@ -2167,7 +2167,7 @@ export const ko = {
     contacts_unstarred_other: "연락처 {{count}}개의 별표를 해제했습니다",
     taps_to_developer_mode_other: "개발자 모드까지 {{count}}번 남았습니다",
     delete_contacts_confirmation_other:
-      "연락처 {{count}}개를 삭제하시겠습니까? 이 작업은 취소할 수 없습니다.",
+      "연락처 {{count}}개를 삭제할까요? 이 작업은 되돌릴 수 없습니다.",
     sender_count_other: "발신자 {{count}}명",
     email_count_other: "메일 {{count}}개",
     file_count_other: "파일 {{count}}개",
@@ -2190,9 +2190,9 @@ export const ko = {
     push_new_message: "새 메시지가 있습니다",
     new_reaction_body: "새 반응이 있습니다",
     too_many_recipients_in_field:
-      "받는 사람, 참조, 숨은 참조 각 항목에는 최대 {{max}}개의 주소가 들어갑니다. 일부를 두 번째 메시지로 옮기면 이 메시지를 보낼 수 있습니다.",
+      "받는 사람, 참조, 숨은 참조 각 항목에는 최대 {{max}}개의 주소를 넣을 수 있습니다. 이 메시지를 보내려면 일부 주소를 두 번째 메시지로 옮기세요.",
     too_many_recipients_in_message:
-      "메시지 한 통은 받는 사람, 참조, 숨은 참조를 합쳐 최대 {{max}}개의 주소에 도달합니다. 목록을 여러 메시지로 나누면 전송됩니다.",
+      "메시지 한 통에는 받는 사람, 참조, 숨은 참조를 합쳐 최대 {{max}}개의 주소를 넣을 수 있습니다. 목록을 더 작은 메시지로 나누세요.",
     credit_balance_changed:
       "결제 화면이 열려 있는 동안 크레딧 잔액이 변경되었습니다. 결제를 닫고 다시 시작하면 현재 잔액을 적용할 수 있습니다.",
     add_birthdays: "생일 추가",
@@ -2258,10 +2258,10 @@ export const ko = {
       "이 창은 샌드박스 없이 실행 중입니다. 샌드박스를 켜려면 bubblewrap을 설치한 다음 Aster Mail을(를) 다시 시작하세요.",
     bill_thanks_title: "Aster를 지원해 주셔서 감사합니다",
     bill_thanks_body:
-      "여러분의 지원은 저희에게 큰 힘이 됩니다. 덕분에 작은 팀이 매일 정성껏 Aster를 계속 만들어 갈 수 있습니다.",
+      "여러분의 지원 덕분에 작은 팀이 Aster를 계속 만들어 갈 수 있습니다.",
     bill_thanks_free_title: "Aster를 사용해 주셔서 감사합니다",
     bill_thanks_free_body:
-      "작은 팀이 정성껏 Aster를 만들고 있으며, 메일을 맡겨 주시는 모든 분이 저희의 원동력입니다. 더 많은 저장 공간, 별칭, 사용자 지정 도메인이 필요할 때 언제든 업그레이드하세요.",
+      "작은 팀이 정성껏 Aster를 만들고 있습니다. 더 많은 저장 공간, 별칭, 사용자 지정 도메인이 필요할 때 언제든 업그레이드하세요.",
     bill_attachments: "첨부파일",
     bill_dedicated_support: "전담 지원",
     bill_early_access: "새 기능 우선 이용",
@@ -2377,7 +2377,7 @@ export const ko = {
     not_synced_tooltip: "이 계정은 아직 동기화되지 않았습니다.",
     plan_domains_count_one: "도메인 {{count}}개",
     purge_confirm_message_one:
-      "{{email}}에서 가져온 메일 {{count}}개를 영구 삭제합니다. 이 작업은 취소할 수 없습니다.",
+      "{{email}}에서 가져온 메일 {{count}}개를 영구 삭제합니다. 이 작업은 되돌릴 수 없습니다.",
     remove_account_tooltip: "계정 제거",
     show_side_panel: "사이드 패널 표시",
     sign_out_everywhere_success_one:
@@ -2408,11 +2408,11 @@ export const ko = {
       "메일을 보내는 회사의 로고를 표시합니다. Aster Mail은 보낸사람의 도메인으로 서버를 통해 각 로고를 가져옵니다.",
     fam_welcome_step1_title: "가족 요금제에 오신 것을 환영합니다",
     fam_welcome_step1_desc:
-      "가족 구성원 모두가 내 것과 완전히 분리된 자신만의 비공개 암호화 받은편지함을 갖게 됩니다.",
+      "가족 구성원 모두가 내 받은편지함과 분리된 자신만의 비공개 암호화 받은편지함을 갖게 됩니다.",
     fam_welcome_step1_point1:
       "각 구성원이 자신만의 @astermail.org 주소를 받습니다",
     fam_welcome_step1_point2:
-      "완전한 프라이버시 - 구성원끼리 서로의 이메일을 볼 수 없습니다",
+      "구성원끼리 서로의 이메일을 볼 수 없습니다",
     fam_welcome_step1_point3: "Aster 계정 간 양자 내성 암호화",
     fam_welcome_step2_title: "하나의 저장 공간, 직접 관리",
     fam_welcome_step2_desc:
@@ -2422,7 +2422,7 @@ export const ko = {
     fam_welcome_step2_point3: "구성원은 자신의 사용량만 볼 수 있습니다",
     fam_welcome_step3_title: "온 가족을 위한 보안",
     fam_welcome_step3_desc:
-      "모든 구성원에게 적용되는 정책 설정 - 2FA 강제, 세션 제한, 접근 제어.",
+      "모든 구성원에게 적용되는 정책을 설정하세요. 2FA 강제, 세션 제한, 접근 제어가 가능합니다.",
     fam_welcome_step3_point1: "모든 구성원에게 2단계 인증 요구",
     fam_welcome_step3_point2: "가족 전체에 세션 시간 제한과 기기 제한 설정",
     fam_welcome_step3_point3: "활동 로그와 준수 현황을 한눈에 확인",
@@ -2459,7 +2459,7 @@ export const ko = {
       "이 주소에 대한 활성 토큰이 이미 존재합니다. 새 토큰을 생성하려면 먼저 폐기하세요.",
     smtp_token_ready_title: "토큰이 생성되었습니다",
     smtp_token_ready_description:
-      "지금 이 설정을 메일 클라이언트나 앱에 복사하세요. 비밀번호는 한 번만 표시되며 다시 확인할 수 없습니다.",
+      "지금 이 설정을 메일 클라이언트나 앱에 복사하세요. 비밀번호는 한 번만 표시되며 나중에 다시 확인할 수 없습니다.",
     smtp_token_host: "호스트",
     smtp_token_port: "포트",
     smtp_token_security: "보안",
@@ -2484,7 +2484,7 @@ export const ko = {
       "{{ name }}이(가) 영구적으로 폐기됩니다. 이를 사용하는 모든 앱은 더 이상 메일을 보낼 수 없게 됩니다.",
     smtp_token_revoked_toast: "SMTP 토큰이 폐기되었습니다",
     smtp_token_revoke_failed_toast:
-      "SMTP 토큰을 폐기할 수 없습니다. 다시 시도해 주세요.",
+      "SMTP 토큰을 폐기할 수 없습니다. 다시 시도하세요.",
     smtp_token_not_e2e_title:
       "SMTP 토큰으로 보낸 메시지는 종단간 암호화되지 않습니다",
     smtp_token_not_e2e_body:
@@ -2510,8 +2510,8 @@ export const ko = {
     fam_org_invite_summary:
       "이 구성원에게 {{member}}가 할당됩니다. {{pool}} 가족 풀 중 {{free}}가 다른 구성원을 위해 남습니다.",
     fam_org_invite_summary_over:
-      "{{member}}는 가족 풀 용량을 초과합니다. {{avail}}만 사용할 수 있습니다. 더 작은 값을 선택하세요.",
-    fam_org_action_failed: "문제가 발생했습니다. 다시 시도해 주세요.",
+      "{{member}}는 가족 풀 용량을 초과합니다. {{avail}}만 사용할 수 있으므로 더 작은 값을 선택하세요.",
+    fam_org_action_failed: "문제가 발생했습니다. 다시 시도하세요.",
     fam_org_invite_exists: "이 이메일 주소로 보낸 초대가 이미 대기 중입니다.",
     plan_desc_ghost_aliases: "신원을 감추는 임의 주소로 보냅니다",
     plan_desc_advanced_aliases: "아바타, 발신자 고정, 별칭별 규칙",
@@ -2595,7 +2595,7 @@ export const ko = {
       "비밀번호 또는 인증 코드가 올바르지 않습니다",
     duress_pin_how_it_works: "강제 상황용 PIN 작동 방식",
     duress_pin_how_it_works_body:
-      "잠금 화면에서 이 PIN을 입력하면 Aster Mail이 이 기기에 저장된 모든 데이터를 즉시 지우고 로그아웃합니다. 계정은 삭제되지 않습니다. 암호화된 메일과 데이터는 Aster 서버에 남아 있으며 다시 로그인하면 복원됩니다.",
+      "잠금 화면에서 이 PIN을 입력하면 Aster Mail이 이 기기에 저장된 모든 데이터를 즉시 지우고 로그아웃합니다. 계정은 삭제되지 않습니다. 암호화된 메일과 데이터는 Aster 서버에 남아 있으며, 다시 로그인하면 복원할 수 있습니다.",
     duress_pin_confirm_setup: "강제 상황용 PIN 설정",
     inbox_categories: "받은편지함 카테고리",
     inbox_categories_short: "받은편지함을 탭으로 분류",
@@ -2651,7 +2651,7 @@ export const ko = {
     category_collapse: "축소",
     delete_category_title: "카테고리를 삭제하시겠습니까?",
     delete_category_description:
-      "“{{name}}”을(를) 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.",
+      "“{{name}}”이(가) 영구적으로 삭제됩니다. 이 작업은 되돌릴 수 없습니다.",
     custom_categories_locked:
       "사용자 지정 카테고리는 현재 요금제에서 사용할 수 없습니다.",
     custom_categories_limit_reached:
@@ -2718,11 +2718,11 @@ export const ko = {
     family_member_member: "구성원",
     family_member_grace: "유예 기간",
     family_member_storage: "{{limit}} 중 {{used}} 사용됨",
-    family_remove_member: "구성원 삭제",
+    family_remove_member: "구성원 제거",
     family_remove_confirm_title: "{{name}} 님을 삭제하시겠어요?",
     family_remove_confirm_body:
       "{{name}} 님은 요금제가 무료로 전환되기 전까지 30일간 이용할 수 있습니다. 메일과 데이터는 그대로 유지됩니다.",
-    family_remove_confirm_action: "구성원 삭제",
+    family_remove_confirm_action: "구성원 제거",
     family_transfer_admin: "관리자 이전",
     family_transfer_confirm_title: "{{name}} 님에게 관리자를 이전하시겠어요?",
     family_transfer_confirm_body:
@@ -2766,10 +2766,10 @@ export const ko = {
     family_join_benefit_no_tracking: "광고 없음, 추적 없음",
     family_join_2fa_title: "보안 요구사항",
     family_join_2fa_body:
-      "이 가족은 2단계 인증이 필요합니다. 참여 후 2FA를 활성화해야 합니다.",
+      "이 가족은 2단계 인증이 필요합니다. 참여한 후 2FA를 활성화해야 합니다.",
     family_join_accept: "수락하고 참여하기",
     family_join_joining: "참여하는 중...",
-    family_join_success_title: "참여 완료!",
+    family_join_success_title: "가족 요금제에 오신 것을 환영합니다",
     family_join_success_body:
       "저장공간 {{ size }}의 가족 요금제에 참여했습니다.",
     family_join_redirecting: "받은편지함으로 이동 중...",
@@ -2825,15 +2825,15 @@ export const ko = {
     family_groups_deleted: "그룹이 삭제되었습니다",
     family_groups_member_added: "구성원이 추가되었습니다",
     family_groups_member_removed: "구성원이 삭제되었습니다",
-    family_groups_load_failed: "그룹을 불러오지 못했습니다",
-    family_groups_create_failed: "그룹을 만들지 못했습니다",
-    family_groups_delete_failed: "그룹을 삭제하지 못했습니다",
+    family_groups_load_failed: "그룹을 불러오지 못했습니다. 다시 시도하세요.",
+    family_groups_create_failed: "그룹을 만들지 못했습니다. 다시 시도하세요.",
+    family_groups_delete_failed: "그룹을 삭제하지 못했습니다. 다시 시도하세요.",
     family_activity_events: "이벤트 {{count}}개",
     family_activity_events_plural: "이벤트 {{count}}건",
     family_activity_all_events: "모든 이벤트",
     family_activity_empty: "아직 활동이 없습니다.",
     family_activity_load_more: "더 보기",
-    family_activity_load_failed: "활동을 불러오지 못했습니다",
+    family_activity_load_failed: "활동을 불러오지 못했습니다. 다시 시도하세요.",
     family_filters_subtitle:
       "필터는 모든 가족 구성원의 받은편지함에 적용됩니다.",
     family_filters_new: "새 필터",
@@ -2851,16 +2851,16 @@ export const ko = {
     family_filters_empty: "아직 조직 필터가 없습니다.",
     family_filters_created: "필터가 생성되었습니다",
     family_filters_deleted: "필터가 삭제되었습니다",
-    family_filters_load_failed: "필터를 불러오지 못했습니다",
-    family_filters_create_failed: "필터를 만들지 못했습니다",
+    family_filters_load_failed: "필터를 불러오지 못했습니다. 다시 시도하세요.",
+    family_filters_create_failed: "필터를 만들지 못했습니다. 다시 시도하세요.",
     family_domains_subtitle:
       "사용자 지정 도메인을 공유하여 가족 구성원이 해당 도메인에서 별칭을 만들 수 있도록 하세요.",
     family_domains_empty:
       "사용자 지정 도메인을 찾을 수 없습니다. 구성원은 별칭 및 도메인 설정에서 도메인을 추가할 수 있습니다.",
     family_domains_share: "공유",
     family_domains_shared: "도메인이 공유되었습니다",
-    family_domains_share_failed: "도메인을 공유하지 못했습니다",
-    family_domains_load_failed: "도메인을 불러오지 못했습니다",
+    family_domains_share_failed: "도메인을 공유하지 못했습니다. 다시 시도하세요.",
+    family_domains_load_failed: "도메인을 불러오지 못했습니다. 다시 시도하세요.",
     family_domains_select_member: "구성원 선택...",
     family_security_require_2fa: "2단계 인증 필수",
     family_security_require_2fa_hint:
@@ -2881,8 +2881,8 @@ export const ko = {
       "구성원을 N시간 동안 활동이 없으면 로그아웃합니다.",
     family_security_save: "보안 정책 저장",
     family_security_saved: "보안 정책이 저장되었습니다",
-    family_security_save_failed: "보안 정책을 저장하지 못했습니다",
-    family_security_load_failed: "보안 설정을 불러오지 못했습니다",
+    family_security_save_failed: "보안 정책을 저장하지 못했습니다. 다시 시도하세요.",
+    family_security_load_failed: "보안 설정을 불러오지 못했습니다. 다시 시도하세요.",
     family_security_compliance: "구성원 준수 현황",
     family_security_warning_2fa:
       "구성원 {{count}}명이 2단계 인증을 사용하지 않습니다",
@@ -2902,8 +2902,8 @@ export const ko = {
     family_retention_enforce_hint: "이 정책을 이 가족의 모든 계정에 적용합니다",
     family_retention_save: "보존 정책 저장",
     family_retention_saved: "보존 정책이 저장되었습니다",
-    family_retention_save_failed: "보존 정책을 저장하지 못했습니다",
-    family_retention_load_failed: "보존 설정을 불러오지 못했습니다",
+    family_retention_save_failed: "보존 정책을 저장하지 못했습니다. 다시 시도하세요.",
+    family_retention_load_failed: "보존 설정을 불러오지 못했습니다. 다시 시도하세요.",
     family_per_member: "구성원당",
     family_seat_upgrade_msg:
       "{{count}}석을 모두 사용했습니다. 최대 6명까지 가능한 가족 요금제로 업그레이드하세요.",
@@ -2938,7 +2938,7 @@ export const ko = {
     alias_availability_on_save: "사용 가능 여부는 저장할 때 확인됩니다.",
     alias_decrypt_failed_title: "이 별칭을 복호화할 수 없습니다",
     alias_decrypt_failed_hint:
-      "이 기기에서는 세부 정보를 사용할 수 없습니다. 다시 로그인하거나 키를 복원하면 보통 해결됩니다.",
+      "이 기기에서는 세부 정보를 사용할 수 없습니다. 문제를 해결하려면 다시 로그인하거나 키를 복원하세요.",
     alias_orphaned_title: "이 별칭은 계속 메일을 받습니다",
     alias_orphaned_hint:
       "라벨이 이전 비밀번호로 암호화되어 있어 이 기기에서는 읽을 수 없습니다. 주소를 기억한다면 라벨을 복원할 수 있습니다. 이 주소로 보낸 메일은 계속 도착하며, 도착한 메시지의 헤더에서 전체 주소를 확인할 수 있습니다.",
@@ -2949,11 +2949,11 @@ export const ko = {
     alias_restore_confirm: "복원",
     alias_restore_mismatch:
       "이 주소는 별칭과 일치하지 않습니다. 도착한 메시지의 헤더를 확인하세요.",
-    alias_restore_failed: "다시 시도하세요.",
+    alias_restore_failed: "별칭을 복원하지 못했습니다. 다시 시도하세요.",
     recently_deleted_load_failed:
       "최근 삭제한 별칭을 불러오지 못했습니다. 다시 시도하세요.",
     ghost_aliases_info:
-      "고스트 별칭은 임시이며 자동으로 만료됩니다. 일회성 가입이나 영구 주소를 원하지 않는 곳에 사용하세요. 별도의 정리 없이 저절로 사라집니다.",
+      "고스트 별칭은 임시 주소이며 자동으로 만료되므로 따로 정리할 필요가 없습니다. 일회성 가입이나 영구 주소를 원하지 않는 곳에 사용하세요.",
     recently_deleted_aliases_title: "최근에 삭제됨",
     recently_deleted_aliases_description:
       "삭제한 별칭을 복원하세요. 삭제된 별칭은 제한된 기간 동안 보관됩니다.",
@@ -2961,19 +2961,19 @@ export const ko = {
     alias_deleted_at: "{{ date }}에 삭제됨",
     restore_alias_action: "복원",
     alias_restored: "별칭이 복원되었습니다",
-    failed_restore_alias: "다시 시도하세요.",
+    failed_restore_alias: "이 별칭을 복원하지 못했습니다. 다시 시도하세요.",
     recently_deleted_empty_trash: "휴지통 비우기",
     delete_alias_permanently_action: "영구 삭제",
     purge_alias_confirm_title: "별칭을 영구적으로 삭제하시겠습니까?",
     purge_alias_confirm_message:
       "{{ address }}을(를) 영구적으로 삭제하시겠습니까? 이 작업은 취소할 수 없습니다. 주소는 계정에 예약된 상태로 유지되므로 다른 사람이 절대 사용할 수 없습니다.",
     alias_purged: "별칭이 영구적으로 삭제되었습니다",
-    failed_purge_alias: "이 별칭이 삭제되지 않았습니다. 다시 시도해 주세요.",
+    failed_purge_alias: "이 별칭을 삭제하지 못했습니다. 다시 시도하세요.",
     empty_trash_confirm_title: "최근 삭제된 항목을 비우시겠습니까?",
     empty_trash_confirm_message:
       "최근 삭제됨에 있는 {{ count }}개의 별칭을 모두 영구적으로 삭제하시겠습니까? 이 작업은 취소할 수 없습니다. 주소는 계정에 예약된 상태로 유지되므로 다른 사람이 사용할 수 없습니다.",
     trash_emptied: "최근 삭제된 항목을 비웠습니다",
-    failed_empty_trash: "최근 삭제됨을 비울 수 없습니다. 다시 시도해 주세요.",
+    failed_empty_trash: "최근 삭제됨을 비우지 못했습니다. 다시 시도하세요.",
     recently_deleted_directories_title: "최근 삭제됨",
     recently_deleted_directories_description:
       "삭제한 디렉터리를 복원하세요. 삭제된 디렉터리는 복원될 때까지 새 메일을 받지 않습니다.",
@@ -2985,7 +2985,7 @@ export const ko = {
       "{{ key }}@{{ domain }}을(를) 영구 삭제할까요? 이 작업은 되돌릴 수 없습니다. 디렉터리는 계정에 예약된 상태로 유지되어 다른 사람이 가져갈 수 없습니다.",
     directory_purged: "디렉터리가 영구 삭제되었습니다",
     failed_purge_directory:
-      "디렉터리가 삭제되지 않았습니다. 다시 시도해 주세요.",
+      "이 디렉터리를 삭제하지 못했습니다. 다시 시도하세요.",
     empty_directory_trash_confirm_message:
       "최근 삭제됨의 디렉터리 {{ count }}개를 모두 영구 삭제할까요? 이 작업은 되돌릴 수 없습니다. 디렉터리는 계정에 예약된 상태로 유지되어 다른 사람이 가져갈 수 없습니다.",
     alias_stats_title: "통계",
@@ -3027,14 +3027,14 @@ export const ko = {
     alias_field_websites_label: "웹사이트",
     alias_sender_pinning_title: "발신자 고정",
     alias_sender_pinning_info:
-      "이 별칭으로 메일을 보낼 수 있는 사람을 정하세요. 사용 안 함은 모든 사람이 통과합니다. 첫 발신자로 잠금은 처음 메일을 보낸 사람으로 잠가 일회성 가입에 유용합니다. 허용 목록은 추가한 사람만 회원님에게 연락할 수 있습니다.",
+      "이 별칭으로 메일을 보낼 수 있는 사람을 선택하세요. 사용 안 함을 선택하면 누구나 연락할 수 있습니다. 첫 발신자로 잠금은 이 별칭에 처음 메일을 보낸 사람의 메일만 받으므로 일회성 가입에 적합합니다. 허용 목록은 추가한 사람의 메일만 받습니다.",
     alias_sender_pinning_description:
       "이 별칭에 도달할 수 있는 발신자를 제어합니다.",
     alias_sender_pin_mode_off: "사용 안 함",
     alias_sender_pin_mode_off_hint: "누구에게서나 메일을 수신합니다.",
     alias_sender_pin_mode_lock_first: "첫 발신자로 잠금",
     alias_sender_pin_mode_lock_first_hint:
-      "이 별칭에 처음 메일을 보낸 발신자만 이후에 수신됩니다.",
+      "첫 발신자가 이 별칭에 메일을 보낸 후에는 해당 발신자의 메일만 수신됩니다.",
     alias_sender_pin_mode_allowlist: "허용 목록",
     alias_sender_pin_mode_allowlist_hint: "아래에 추가한 발신자만 수신됩니다.",
     alias_sender_add: "발신자 추가",
@@ -3060,19 +3060,19 @@ export const ko = {
     alias_sender_added: "발신자가 추가되었습니다",
     alias_sender_removed: "발신자가 삭제되었습니다",
     alias_sender_add_failed:
-      "이 발신자가 추가되지 않았습니다. 다시 시도하세요.",
+      "이 발신자를 추가하지 못했습니다. 다시 시도하세요.",
     alias_sender_invalid: "유효한 이메일 주소를 입력하세요.",
     alias_pin_mode_updated: "발신자 고정이 업데이트되었습니다",
-    alias_toggle_failed: "별칭을 업데이트할 수 없습니다. 다시 시도하세요.",
+    alias_toggle_failed: "별칭을 업데이트하지 못했습니다. 다시 시도하세요.",
     alias_enabled_toast: "별칭이 활성화되었습니다",
     alias_disabled_toast: "별칭이 비활성화되었습니다",
-    alias_delete_failed: "별칭을 삭제할 수 없습니다. 다시 시도하세요.",
-    domain_address_delete_failed: "주소를 삭제할 수 없습니다. 다시 시도하세요.",
-    domain_delete_failed: "도메인을 삭제할 수 없습니다. 다시 시도하세요.",
-    aliases_load_failed: "별칭을 불러올 수 없습니다. 다시 시도하세요.",
+    alias_delete_failed: "별칭을 삭제하지 못했습니다. 다시 시도하세요.",
+    domain_address_delete_failed: "주소를 삭제하지 못했습니다. 다시 시도하세요.",
+    domain_delete_failed: "도메인을 삭제하지 못했습니다. 다시 시도하세요.",
+    aliases_load_failed: "별칭을 불러오지 못했습니다. 다시 시도하세요.",
     alias_rules_title: "규칙",
     alias_rules_info:
-      "메일이 받은편지함에 도착하기 전에 자동으로 처리합니다. 발신자, 또는 제목 줄 내용에 따라 발신자의 이메일을 차단하거나 휴지통으로 옮기거나 라벨을 지정할 수 있습니다.",
+      "규칙은 메일이 받은편지함에 도착하기 전에 처리합니다. 발신자나 제목에 따라 메시지를 차단하거나, 휴지통으로 옮기거나, 라벨을 적용할 수 있습니다.",
     alias_rules_description:
       "조건에 일치하는 수신 메일에 대해 작업을 실행합니다.",
     alias_rules_empty: "아직 규칙이 없습니다.",
@@ -3081,7 +3081,7 @@ export const ko = {
     alias_rule_added: "규칙이 추가되었습니다",
     alias_rule_removed: "규칙이 삭제되었습니다",
     alias_rule_updated: "규칙이 업데이트되었습니다",
-    alias_rule_save_failed: "이 규칙이 저장되지 않았습니다. 다시 시도하세요.",
+    alias_rule_save_failed: "이 규칙을 저장하지 못했습니다. 다시 시도하세요.",
     alias_rule_when: "조건",
     alias_rule_then: "작업",
     alias_rule_add_condition: "조건 추가",
@@ -3118,13 +3118,13 @@ export const ko = {
     alias_contact_added: "연락처가 추가되었습니다",
     alias_contact_removed: "연락처가 삭제되었습니다",
     alias_contact_add_failed:
-      "이 연락처가 추가되지 않았습니다. 다시 시도하세요.",
+      "이 연락처를 추가하지 못했습니다. 다시 시도하세요.",
     alias_contact_block: "차단",
     alias_contact_unblock: "차단 해제",
     alias_contact_blocked: "차단됨",
     alias_delivery_log_title: "차단된 메일 로그",
     alias_delivery_log_info:
-      "받은편지함에 도달하기 전에 차단된 이메일입니다. 로그는 30일간 보관됩니다.",
+      "받은편지함에 도달하기 전에 차단된 이메일입니다. 항목은 30일간 보관됩니다.",
     alias_delivery_log_empty: "지난 30일 동안 차단된 이메일이 없습니다.",
     alias_delivery_log_reason_sender_pin: "발신자 필터에 의해 차단됨",
     alias_delivery_log_reason_alias_rule: "규칙에 의해 삭제됨",
@@ -3135,14 +3135,14 @@ export const ko = {
     alias_delivery_folder_desc:
       "이 별칭으로 보낸 메일은 선택한 폴더로 이동합니다. 기본값은 받은편지함입니다.",
     alias_delivery_folder_info:
-      "규칙 없이도 선택한 폴더로 바로 들어옵니다. 일치하는 규칙이 있으면 규칙이 우선합니다.",
-    alias_delivery_folder_error: "다시 시도하세요.",
+      "이 별칭으로 오는 메일은 규칙 없이도 선택한 폴더로 들어갑니다. 메시지와 일치하는 메일 규칙이 있으면 규칙의 폴더가 우선합니다.",
+    alias_delivery_folder_error: "설정을 저장하지 못했습니다. 다시 시도하세요.",
     alias_delivery_folder_missing: "삭제된 폴더",
     alias_delivery_label: "라벨",
     alias_delivery_label_desc:
       "이 별칭으로 도착하는 모든 메일에 라벨을 지정합니다.",
     alias_delivery_label_info:
-      "이 별칭으로 오는 메일에는 규칙 없이 자동으로 라벨이 붙습니다. 라벨은 배달 폴더와 별개로 적용됩니다.",
+      "이 별칭으로 오는 메일에는 규칙 없이 자동으로 라벨이 붙습니다. 메시지가 어느 폴더에 도착하든 라벨이 적용됩니다.",
     alias_delivery_label_none: "라벨 없음",
     alias_delivery_label_missing: "삭제된 라벨",
     alias_apply_existing: "기존 메일에 실행",
@@ -3151,8 +3151,8 @@ export const ko = {
     alias_apply_existing_cancel: "중지",
     alias_apply_existing_started:
       "배달 설정을 기존 메일에 적용하고 있습니다. 백그라운드에서 실행됩니다.",
-    alias_apply_existing_failed: "이 설정을 적용할 수 없습니다.",
-    alias_apply_existing_cancel_failed: "이 작업을 중지할 수 없습니다.",
+    alias_apply_existing_failed: "이 설정 적용을 시작하지 못했습니다. 다시 시도하세요.",
+    alias_apply_existing_cancel_failed: "이 작업을 중지하지 못했습니다. 다시 시도하세요.",
     alias_apply_existing_queued: "대기 중...",
     alias_apply_existing_progress:
       "적용 중: {{scanned}}개 검사, {{applied}}개 업데이트",
@@ -3162,7 +3162,7 @@ export const ko = {
       "완료: {{scanned}}개 검사, {{applied}}개 업데이트",
     alias_apply_existing_canceled: "중지됨: {{applied}}개 업데이트",
     alias_apply_existing_error:
-      "기존 메일에 적용하지 못했습니다. 다시 시도하세요.",
+      "기존 메일에 이 설정을 적용하지 못했습니다. 다시 시도하세요.",
     alias_apply_existing_unavailable:
       "계정에 이미 있는 메일은 스팸으로 옮길 수 없습니다.",
     alias_apply_existing_confirm_folder_label:
@@ -3171,7 +3171,7 @@ export const ko = {
       "이 별칭이 이미 받은 메일이 {{folder}}(으)로 이동합니다. 휴지통과 스팸에 있는 메일은 그대로 유지됩니다.",
     alias_apply_existing_confirm_label:
       "이 별칭이 이미 받은 메일에 {{label}} 라벨이 붙습니다. 휴지통과 스팸에 있는 메일은 그대로 유지됩니다.",
-    alias_delivery_label_error: "다시 시도하세요.",
+    alias_delivery_label_error: "설정을 저장하지 못했습니다. 다시 시도하세요.",
     alias_delivery_rule_note:
       '메일 규칙 "{{ rule }}"이(가) 이미 이 별칭의 메일을 {{ target }}(으)로 옮깁니다.',
     alias_delivery_rule_conflict:
@@ -3198,7 +3198,7 @@ export const ko = {
     alias_relay_destination_added: "대상이 추가되었습니다",
     alias_relay_destination_removed: "대상이 삭제되었습니다",
     alias_relay_destination_add_failed:
-      "이 대상이 추가되지 않았습니다. 다시 시도하세요.",
+      "이 대상을 추가하지 못했습니다. 다시 시도하세요.",
     alias_relay_pgp_key: "PGP 공개 키 (선택 사항)",
     alias_relay_pgp_key_placeholder: "-----BEGIN PGP PUBLIC KEY BLOCK-----",
     alias_relay_strip_trackers: "추적기 제거",
@@ -3206,7 +3206,7 @@ export const ko = {
     alias_relay_mode_updated: "전송 모드가 업데이트되었습니다",
     alias_directories_title: "디렉터리",
     alias_directories_info:
-      "키워드를 선택하면 anything.keyword@astermail.org로 오는 메일이 그 자리에서 새 별칭을 자동 생성합니다 - 앱이 필요 없습니다. 매번 새 주소를 떠올리지 않고도 무언가에 가입하기에 좋습니다.",
+      "키워드를 선택하면 anything.keyword@astermail.org로 오는 메일이 앱을 열지 않아도 새 별칭을 자동으로 만듭니다. 매번 새 주소를 만들지 않고 서비스에 가입할 때 사용하세요.",
     alias_directories_description:
       "anything.<key>@astermail.org로 오는 메일이 자동으로 별칭을 생성합니다.",
     alias_directories_empty: "아직 디렉터리가 없습니다.",
@@ -3226,7 +3226,7 @@ export const ko = {
     alias_bulk_delete_partial_failed:
       "별칭 {{total}}개 중 {{count}}개를 삭제하지 못했습니다. 별칭은 만든 지 30일 후에 삭제할 수 있습니다.",
     alias_directory_create_failed:
-      "이 디렉터리가 생성되지 않았습니다. 다시 시도하세요.",
+      "이 디렉터리를 만들지 못했습니다. 다시 시도하세요.",
     alias_directory_auto_create: "별칭 자동 생성",
     alias_directory_pattern_hint:
       "anything.{{ key }}@{{ domain }}로 보내 새 별칭을 만드세요.",
@@ -3340,7 +3340,7 @@ export const ko = {
     alias_export_load_failed:
       "디렉터리 또는 고스트 별칭을 불러오지 못했습니다.",
     alias_export_failed:
-      "내보내기에 실패했습니다. 아무것도 다운로드되지 않았습니다.",
+      "별칭을 내보내지 못했습니다. 아무것도 다운로드되지 않았습니다.",
     alias_import_csv: "별칭 가져오기",
     alias_import_progress: "{{total}}개 중 {{current}}개 가져오는 중...",
     alias_import_done: "별칭 {{count}}개를 가져왔습니다.",
@@ -3425,18 +3425,18 @@ export const ko = {
     alias_transfer_recipient_label: "받는 사람 이메일",
     alias_transfer_recipient_placeholder: "user@astermail.org",
     alias_transfer_confirm: "이전",
-    alias_transfer_success: "별칭이 성공적으로 이전되었습니다.",
+    alias_transfer_success: "별칭이 이전되었습니다.",
     low_network_mode_section_title: "성능",
     low_network_mode_label: "저속 네트워크 모드",
     low_network_mode_description:
-      "프로필 사진, 파비콘, 외부 이미지, 이메일 미리 불러오기를 건너뜁니다. 모든 이메일이 일반 텍스트로 표시됩니다. 느리거나 데이터 제한이 있는 연결에서 유용합니다.",
+      "프로필 사진, 파비콘, 외부 이미지, 이메일 미리 불러오기를 건너뛰고 모든 이메일을 일반 텍스트로 표시합니다. 느리거나 데이터 제한이 있는 연결에서 유용합니다.",
     low_network_mode_active_banner: "저속 네트워크 모드 활성화됨",
     info_saved_images_title: "저장된 이미지란 무엇인가요?",
     info_saved_images_description:
       "메시지를 열면 Aster가 이미지를 암호화하여 이 기기에 저장하므로, 메시지를 다시 열어도 발신자에게 연결되지 않습니다. 지우면 이 기기의 공간이 확보되며 메일은 삭제되지 않습니다. 이미지가 포함된 메시지를 다음에 열 때 이미지가 다시 다운로드됩니다.",
     info_low_network_mode_title: "저속 네트워크 모드는 무엇을 하나요?",
     info_low_network_mode_description:
-      "느리거나 데이터 제한이 있는 연결에서 Aster를 사용할 수 있도록 모든 비필수 네트워크 요청을 차단합니다. 프로필 사진, 발신자 로고, 도메인 파비콘, 이메일 내 외부 이미지, 이메일 미리 불러오기, 사용자 지정 글꼴, 첨부 파일 미리보기, 알림 소리를 비활성화합니다. 모든 이메일이 일반 텍스트로 렌더링됩니다. 이메일 스레드는 메시지 4개로 제한됩니다. 2G 또는 데이터 절약 연결에서 자동으로 활성화됩니다. URL에 ?low_bandwidth=1을 사용하여 활성화할 수도 있습니다.",
+      "느리거나 데이터 제한이 있는 연결에서 Aster를 사용할 수 있도록 모든 비필수 네트워크 요청을 차단합니다. 프로필 사진, 발신자 로고, 도메인 파비콘, 이메일 내 외부 이미지, 이메일 미리 불러오기, 사용자 지정 글꼴, 첨부 파일 미리보기, 알림 소리를 끕니다. 모든 이메일은 일반 텍스트로 표시되며, 이메일 스레드는 메시지 4개로 제한됩니다. 2G 또는 데이터 절약 연결에서는 이 모드가 자동으로 켜집니다. URL에 ?low_bandwidth=1을 추가하여 켤 수도 있습니다.",
     fam_org_tab_overview: "개요",
     fam_org_tab_members: "구성원",
     fam_org_tab_groups: "그룹",
@@ -3475,7 +3475,7 @@ export const ko = {
     fam_org_groups_add_member: "구성원 추가",
     fam_org_groups_delete_title: "그룹을 삭제하시겠습니까?",
     fam_org_groups_delete_body:
-      "이 그룹과 모든 구성원이 영구적으로 삭제됩니다. 이 작업은 취소할 수 없습니다.",
+      "그룹이 영구적으로 삭제되고 모든 구성원이 제거됩니다. 이 작업은 되돌릴 수 없습니다.",
     fam_org_groups_delete_confirm: "그룹 삭제",
     fam_org_groups_created: "그룹이 생성되었습니다",
     fam_org_groups_deleted: "그룹이 삭제되었습니다",
@@ -3688,7 +3688,7 @@ export const ko = {
     fam_org_sec_last_seen: "마지막 접속 {{time}}",
     fam_org_sec_never_signed_in: "로그인한 적 없음",
     fam_org_sec_load_failed: "보안 설정을 불러오지 못했습니다",
-    fam_org_sec_save_failed: "저장하지 못했습니다",
+    fam_org_sec_save_failed: "변경 사항을 저장하지 못했습니다",
     fam_org_ret_intro:
       '오래된 메시지를 자동 삭제하도록 한도를 설정하세요. 변경 사항은 자동으로 저장됩니다. 영구 보관하려면 비워 두세요. "모든 구성원에게 적용"이 켜져 있으면 모든 구성원에게 적용됩니다.',
     fam_org_ret_loading: "불러오는 중...",
@@ -3715,7 +3715,7 @@ export const ko = {
     fam_org_ret_enforce_info_desc:
       "켜면 이 보존 한도가 모든 구성원 계정에 적용되며 구성원은 이를 변경할 수 없습니다. 꺼면 한도는 본인 계정에만 적용됩니다.",
     fam_org_ret_enforce_on_desc:
-      "모든 구성원에게 적용됨 - 구성원은 재정의할 수 없습니다",
+      "모든 구성원에게 적용됩니다. 구성원은 이를 재정의할 수 없습니다.",
     fam_org_ret_enforce_off_desc:
       "활성화하면 이 한도가 모든 구성원 계정에 적용됩니다. 구성원은 재정의할 수 없습니다.",
     fam_org_ret_saving: "저장 중...",
@@ -3725,7 +3725,7 @@ export const ko = {
     fam_org_ret_confirm_cancel: "취소",
     fam_org_ret_confirm_action: "모든 구성원에게 적용",
     fam_org_ret_load_failed: "보존 설정을 불러오지 못했습니다",
-    fam_org_ret_save_failed: "저장하지 못했습니다",
+    fam_org_ret_save_failed: "변경 사항을 저장하지 못했습니다",
     controlled_by_family_admin: "가족 관리자가 관리",
     fam_consent_title: "구성원 동의 필요",
     fam_consent_body:
@@ -3733,7 +3733,7 @@ export const ko = {
     fam_consent_cancel: "취소",
     fam_consent_send: "동의 요청 전송",
     fam_consent_sent_toast: "모든 구성원에게 동의 요청이 전송되었습니다",
-    fam_consent_send_failed: "동의 요청 전송에 실패했습니다",
+    fam_consent_send_failed: "동의 요청을 보내지 못했습니다",
     fam_consent_member_title: "관리자 동의 요청",
     fam_consent_member_from: "{{name}}이(가) 요청",
     fam_consent_member_accept: "수락",
@@ -3770,13 +3770,13 @@ export const ko = {
     fam_org_time_today: "오늘",
     fam_org_time_one_day_ago: "1일 전",
     fam_org_grace_banner:
-      "가족 요금제가 {{date}}에 만료됩니다 - 계속 이용하려면 갱신하세요",
+      "가족 요금제가 {{date}}에 만료됩니다. 계속 이용하려면 갱신하세요.",
     fam_org_grace_banner_expired:
-      "가족 요금제가 {{date}}에 만료되었습니다 - 다시 이용하려면 갱신하세요",
+      "가족 요금제가 {{date}}에 만료되었습니다. 다시 이용하려면 갱신하세요.",
     fam_org_grace_banner_soon:
-      "가족 요금제가 곧 만료됩니다 - 계속 이용하려면 갱신하세요",
+      "가족 요금제가 곧 만료됩니다. 계속 이용하려면 갱신하세요.",
     fam_org_cancelled_banner:
-      "가족 요금제가 취소되었습니다 - 구성원이 접근 권한을 잃게 됩니다",
+      "가족 요금제가 취소되었습니다. 구성원이 접근 권한을 잃게 됩니다.",
     fam_org_manage_billing: "결제 관리",
     fam_org_heading: "가족",
     fam_org_status_active: "활성",
@@ -3882,7 +3882,7 @@ export const ko = {
     fam_org_wizard_back: "뒤로",
     fam_org_wizard_skip: "지금은 건너뛰기",
     fam_org_wizard_send_invite: "초대 보내기",
-    fam_org_wizard_done_title_sent: "초대를 보냈습니다 - 요금제를 살펴보세요",
+    fam_org_wizard_done_title_sent: "초대를 보냈습니다. 요금제를 살펴보세요.",
     fam_org_wizard_done_title: "가족 요금제 살펴보기",
     fam_org_wizard_done_desc_sent:
       "{{email}}에게 초대를 보냈습니다. 수락까지 7일이 주어집니다.",
@@ -3977,7 +3977,7 @@ export const ko = {
     trusted_devices_last_seen: "마지막 확인",
     trusted_devices_revoke_confirm: "{{ name }}을(를) 취소하시겠습니까?",
     trusted_devices_revoke_all: "모두 취소",
-    trusted_devices_revoke_all_confirm: "모든 기기를 취소하시겠습니까?",
+    trusted_devices_revoke_all_confirm: "모든 기기의 신뢰를 취소할까요?",
     trusted_devices_revoked_all_toast: "모든 기기가 해지되었습니다",
     bridge: "Bridge",
     bridge_description: "Aster를 모든 IMAP 또는 SMTP 메일 앱에 연결하세요",
@@ -4112,7 +4112,7 @@ export const ko = {
     color_theme_fuchsia: "푸크시아",
     custom_theme_title: "커스텀 테마",
     custom_theme_description:
-      "하나의 색상으로 나만의 색상 팔레트를 만들어 보세요. 기기에서 안전하게 생성됩니다",
+      "나만의 색상 팔레트를 만들어 기기에 저장하세요",
     custom_theme_colors_title: "테마 색상",
     custom_theme_color_label: "기본 색상",
     language_format_title: "언어 및 형식",
@@ -4161,7 +4161,7 @@ export const ko = {
     density_description: "항목 간격 조정",
     density_comfortable: "편안함",
     density_compact: "컴팩트",
-    auto_save_drafts: "자동 저장 임시 편지함",
+    auto_save_drafts: "임시 저장 메일 자동 저장",
     auto_save_drafts_description: "작성 중 자동으로 임시 저장합니다",
     desktop_notifications: "데스크톱 알림",
     desktop_notifications_description: "새 이메일에 대한 알림을 받습니다",
@@ -4169,7 +4169,7 @@ export const ko = {
     email_notifications_description: "이메일 요약을 받습니다",
     sound: "소리",
     sound_description: "새 이메일에 대해 소리를 재생합니다",
-    two_factor_auth: "이중 인증",
+    two_factor_auth: "2단계 인증",
     two_factor_auth_description: "추가 보안 계층을 추가합니다",
     encryption_keys: "암호화 키",
     encryption_keys_description: "암호화 키는 메모리에 안전하게 저장됩니다",
@@ -4273,7 +4273,7 @@ export const ko = {
     copy_public_key: "공개 키 복사",
     view_public_key: "공개 키 보기",
     failed_download_codes:
-      "복구 코드를 다운로드할 수 없습니다. 다시 시도해 주세요.",
+      "복구 코드를 다운로드할 수 없습니다. 다시 시도하세요.",
     export_keys: "키 및 복구 코드 내보내기",
     recovery_codes: "복구 코드",
     changes_saved_automatically: "변경 사항이 자동으로 저장됩니다",
@@ -4290,7 +4290,7 @@ export const ko = {
     updates_check_failed:
       "업데이트를 확인하지 못했습니다. 잠시 후에 다시 시도하세요.",
     updates_install_failed:
-      "업데이트가 설치되지 않았습니다. 다시 시도하거나 astermail.org/download에서 최신 버전을 다운로드하세요.",
+      "업데이트를 설치할 수 없습니다. 다시 시도하거나 astermail.org/download에서 최신 버전을 다운로드하세요.",
     updates_available: "업데이트 가능: {{version}}",
     updates_current_version: "현재 버전: {{version}}",
     updates_install_and_restart: "설치 후 재시작",
@@ -4324,7 +4324,7 @@ export const ko = {
     billing: "결제",
     billing_description: "구독 및 결제 방법을 관리합니다",
     undo_send: "보내기 취소",
-    undo_send_description: "취소 기능을 위한 이메일 전송 지연 설정",
+    undo_send_description: "이메일이 발송되기 전에 지연 시간을 설정해 보내기를 취소할 수 있습니다",
     blocked: "차단됨",
     blocked_description: "차단된 발신자를 관리합니다",
     accessibility: "접근성",
@@ -4341,7 +4341,7 @@ export const ko = {
     session_timeout_disabled: "세션 시간 초과가 비활성화되어 있습니다",
     timeout_duration: "시간 초과 기간",
     timeout_logout_description:
-      "비활성 기간이 지나면 로그아웃됩니다. 다시 로그인해야 합니다.",
+      "이 기간 동안 활동이 없으면 로그아웃되며 다시 로그인해야 합니다.",
     login_alerts: "로그인 알림",
     login_alerts_description: "계정에 새로운 로그인이 있으면 알림을 받습니다",
     recent_sign_ins: "최근 로그인",
@@ -4396,18 +4396,18 @@ export const ko = {
     password_min_length: "비밀번호는 최소 8자 이상이어야 합니다",
     password_max_length: "비밀번호는 128자 미만이어야 합니다",
     user_not_found: "사용자를 찾을 수 없습니다",
-    session_expired_sign_in: "세션이 만료되었습니다. 다시 로그인해 주세요.",
+    session_expired_sign_in: "세션이 만료되었습니다. 다시 로그인하세요.",
     current_password_incorrect: "현재 비밀번호가 올바르지 않습니다",
-    failed_change_password: "비밀번호 변경 실패",
+    failed_change_password: "비밀번호를 변경할 수 없습니다. 다시 시도하세요.",
     plan_badge_star: "Star",
     plan_badge_nova: "Nova",
     plan_badge_supernova: "Supernova",
     plan_badge_aria: "{{plan}} 구독자",
     plan_badge_thanks: "{{plan}} 구독자가 되어 주셔서 감사합니다.",
     alias_reencrypt_failed:
-      "별칭 중 하나를 안전하게 재암호화할 수 없습니다. 비밀번호가 변경되지 않았습니다. 지원팀에 문의하시거나 해당 별칭을 제거한 후 다시 시도해 주세요.",
+      "별칭 중 하나를 안전하게 재암호화할 수 없어 비밀번호가 변경되지 않았습니다. 해당 별칭을 제거한 후 다시 시도하거나 지원팀에 문의하세요.",
     contact_reencrypt_failed:
-      "연락처 중 하나를 안전하게 재암호화할 수 없습니다. 비밀번호가 변경되지 않았습니다. 지원팀에 문의하시거나 해당 연락처를 제거한 후 다시 시도해 주세요.",
+      "연락처 중 하나를 안전하게 재암호화할 수 없어 비밀번호가 변경되지 않았습니다. 해당 연락처를 제거한 후 다시 시도하거나 지원팀에 문의하세요.",
     password_change_client_upgrade_required:
       "이 버전의 Aster Mail에서는 비밀번호를 변경할 수 없습니다. 최신 버전으로 업데이트한 다음 다싈 시도해 주세요.",
     password_change_reencryption_incomplete:
@@ -4432,7 +4432,7 @@ export const ko = {
     password_change_sent_mail_locked:
       "비밀번호가 변경되었습니다. 보낸 이메일 {{count}}개가 이전 비밀번호로 암호화되어 있어 업데이트되지 않았습니다. 잠금 해제하려면 받은편지함 상단 배너에서 데이터 복구를 선택하세요.",
     password_changed_signing_out:
-      "비밀번호가 성공적으로 변경되었습니다. 로그아웃 중...",
+      "비밀번호가 변경되었습니다. 로그아웃 중...",
     password_changed_success: "비밀번호를 변경했습니다",
     session_security: "세션 보안",
     browsers_and_devices: "브라우저 및 기기",
@@ -4442,9 +4442,9 @@ export const ko = {
     signing_out: "로그아웃 중...",
     sign_out_description: "다른 모든 기기와 브라우저에서 로그아웃됩니다",
     sign_out_everywhere_confirm:
-      "모든 곳에서 로그아웃하시겠습니까? 다른 모든 활성 세션이 종료됩니다.",
+      "다른 모든 곳에서 로그아웃할까요? 다른 모든 활성 세션이 종료됩니다.",
     sign_out_everywhere_success: "다른 세션 {{count}}개에서 로그아웃됨",
-    failed_sign_out: "다른 세션 로그아웃 실패",
+    failed_sign_out: "다른 세션을 로그아웃할 수 없습니다. 다시 시도하세요.",
     active_now: "현재 활성",
     minutes_ago: "{{count}}분 전",
     hours_ago: "{{count}}시간 전",
@@ -4453,9 +4453,9 @@ export const ko = {
     signed_in_date: "{{date}}에 로그인",
     sign_out: "로그아웃",
     sign_out_all_other: "다른 모든 세션 로그아웃",
-    sign_out_session_confirm: "이 세션을 로그아웃하시겠습니까?",
+    sign_out_session_confirm: "이 세션을 로그아웃할까요?",
     no_active_sessions: "활성 세션이 없습니다",
-    failed_load_sessions: "세션을 불러오지 못했습니다",
+    failed_load_sessions: "세션을 불러오지 못했습니다. 다시 시도하세요.",
     failed_load_security_status:
       "보안 설정을 불러오지 못했습니다. 다시 시도하세요.",
     load_more_sessions: "{{count}}개 세션 더 불러오기",
@@ -4781,17 +4781,17 @@ export const ko = {
     billing_addon_ending: "종료 예정",
     billing_addon_ends: "{{date}}에 종료",
     billing_add_storage_summary: "{{size}} 저장 공간 추가",
-    billing_storage_status_ok: "모두 정상",
+    billing_storage_status_ok: "공간 충분",
     billing_storage_status_near: "거의 가득 참",
     billing_storage_status_full: "조치 필요",
     billing_upgrade_note:
       "언제든 해지할 수 있습니다. 메일은 계속 여러분의 것입니다.",
     billing_thanks_title: "Aster를 후원해 주셔서 감사합니다",
     billing_thanks_body:
-      "여러분의 후원은 저희에게 전부입니다. 덕분에 작은 팀이 매일 정성껏 Aster를 만들어 갈 수 있습니다.",
+      "여러분의 후원 덕분에 작은 팀이 Aster를 계속 만들어 갈 수 있습니다.",
     billing_thanks_free_title: "Aster를 사용해 주셔서 감사합니다",
     billing_thanks_free_body:
-      "작은 팀이 정성껏 Aster를 만들고 있으며, 메일을 맡겨 주시는 한 분 한 분이 저희의 원동력입니다. 더 많은 저장 공간, 별칭, 사용자 지정 도메인이 필요하면 언제든 업그레이드하세요.",
+      "작은 팀이 정성껏 Aster를 만들고 있습니다. 더 많은 저장 공간, 별칭, 사용자 지정 도메인이 필요하면 언제든 업그레이드하세요.",
     billing_addons_subtitle: "공간 추가, 플랜은 그대로",
     billing_support_subtitle: "팀에 메시지 보내기",
     billing_upsell_title: "{{name}}로 더 많은 기능 이용",
@@ -4845,10 +4845,10 @@ export const ko = {
     credit_desc_crypto_overpayment: "{{chain}}의 {{currency}} 초과 결제 크레딧",
     storage_limit_exceeded: "저장 공간이 가득 찼습니다.",
     storage_limit_description:
-      "공간을 비울 때까지 새 메일 수신이 잠시 멈춥니다. 이메일 일부를 정리하거나 요금제를 업그레이드하면 다시 흐릅니다. 기존 메일은 안전합니다.",
+      "공간을 비울 때까지 새 메일 수신이 일시 중지됩니다. 메일을 다시 받으려면 이메일 일부를 삭제하거나 요금제를 업그레이드하세요. 기존 메일은 안전합니다.",
     cancel_subscription: "구독 취소",
     cancel_subscription_description:
-      "현재 결제 기간이 끝날 때까지 구독이 유지됩니다. 이후 무료 플랜으로 전환됩니다.",
+      "현재 결제 기간이 끝날 때까지 구독이 유지됩니다. 이후 계정이 무료 플랜으로 전환됩니다.",
     keep_plan: "플랜 유지",
     cancelling: "취소 중...",
     continue_to_checkout: "결제 진행",
@@ -4885,14 +4885,14 @@ export const ko = {
     checkout_collection_failed:
       "결제를 처리하지 못했습니다. 설정의 결제에서 결제 수단을 업데이트한 후 다시 시도하세요.",
     plan_not_available:
-      "이 요금제는 지금 구매할 수 없습니다. 다른 요금제나 잠시 뒤에 다시 확인하면 됩니다.",
+      "이 요금제는 지금 구매할 수 없습니다. 다른 요금제를 선택하거나 나중에 다시 확인하세요.",
     failed_checkout:
-      "지금은 결제 페이지를 열지 못했습니다. 다시 시도하세요. 결제 정보는 변경되지 않았습니다.",
+      "결제 페이지를 열 수 없습니다. 다시 시도하세요. 결제 정보는 변경되지 않았습니다.",
     failed_billing_portal:
       "결제 포털을 열지 못했습니다. 다시 시도하세요. 요금제는 변경되지 않았습니다.",
-    subscription_cancelled: "결제 기간이 끝나면 구독이 취소됩니다",
+    subscription_cancelled: "구독이 취소되었습니다. 결제 기간이 끝날 때까지 계속 이용할 수 있습니다.",
     failed_cancel_subscription:
-      "취소가 처리되지 않았습니다. 다시 시도하세요. 요금제는 계속 활성 상태입니다.",
+      "구독을 취소할 수 없습니다. 다시 시도하세요. 요금제는 계속 활성 상태입니다.",
     subscription_reactivated: "구독이 재활성화되었습니다",
     failed_reactivate: "요금제를 다시 활성화하지 못했습니다. 다시 시도하세요.",
     daily: "매일",
@@ -4949,8 +4949,8 @@ export const ko = {
     feedback_category_bug: "버그",
     too_many_requests:
       "너무 빠르게 시도하고 있습니다. 잠시 후 다시 시도하세요.",
-    please_log_in_feedback: "로그인하면 피드백을 보낼 수 있습니다.",
-    failed_send_feedback: "다시 시도하세요.",
+    please_log_in_feedback: "피드백을 보내려면 로그인하세요.",
+    failed_send_feedback: "피드백을 보내지 못했습니다. 다시 시도하세요.",
     other_ways_to_reach: "지원팀에 문의",
     reset_to_defaults: "기본값으로 초기화",
     section_reset: "섹션이 기본값으로 초기화되었습니다",
@@ -4961,7 +4961,7 @@ export const ko = {
     type_to_confirm: "확인하려면 {{text}}을(를) 입력하세요.",
     confirm_reset: "초기화 확인",
     delete_account_title: "계정 삭제",
-    delete_account_permanent: "이 작업은 영구적이며 취소할 수 없습니다",
+    delete_account_permanent: "이 작업은 영구적이며 되돌릴 수 없습니다",
     delete_account_description:
       "모든 이메일, 폴더, 연락처 및 암호화 키가 영구적으로 삭제됩니다. 이 계정과 관련된 데이터를 복구할 수 없습니다.",
     type_delete_confirm: "삭제를 확인하려면 다음을 입력하세요",
@@ -4974,20 +4974,20 @@ export const ko = {
     failed_delete_account:
       "계정을 삭제할 수 없습니다. 비밀번호를 확인하고 다시 시도하세요. 계정은 변경되지 않았습니다.",
     error_deleting_account:
-      "지금은 계정을 삭제할 수 없습니다. 잠시 후 다시 시도하세요. 문제가 계속되면 hello@astermail.org로 문의하세요.",
+      "계정을 삭제할 수 없습니다. 잠시 후 다시 시도하세요. 문제가 계속되면 hello@astermail.org로 문의하세요.",
     "connection.title": "연결",
     "connection.description": "Aster 서비스에 연결하는 방법을 선택하세요",
     "connection.title_info":
       "Aster 는 서버로 가는 여러 경로를 지원합니다. 선택한 경로에 따라 누가 IP 주소를 볼 수 있는지, 요청이 어떻게 도달하는지가 달라집니다. 어느 쪽이든 메시지는 종단 간 암호화된 상태로 유지됩니다.",
     "connection.direct": "직접 연결",
     "connection.direct_description":
-      "기기가 Aster 서버에 직접 연결됩니다. 가장 빠른 경로이며 지연 시간이 가장 짧지만, IP 주소가 Aster에 표시됩니다.",
+      "기기가 Aster 서버에 직접 연결됩니다. 가장 빠른 옵션이지만 Aster가 IP 주소를 볼 수 있습니다.",
     "connection.tor": "Tor",
     "connection.tor_description": "Tor 네트워크를 통해 트래픽을 라우팅합니다",
     "connection.tor_snowflake": "Snowflake를 사용하는 Tor",
     "connection.tor_snowflake_description":
       "검열 저항을 위해 Snowflake 브리지를 사용합니다",
-    "connection.cdn_relay": "CDN Relay",
+    "connection.cdn_relay": "CDN 릴레이",
     "connection.cdn_relay_description":
       "요청이 Aster 서버에 도달하기 전에 Aster가 Cloudflare에서 운영하는 릴레이를 거칩니다. 사용 중인 네트워크에서는 이 트래픽이 일반 CDN 트래픽처럼 보이므로 Aster가 차단된 곳에서 도움이 될 수 있습니다. Aster는 여전히 IP 주소를 볼 수 있습니다. Aster에 IP 주소를 숨기려면 Tor를 사용하세요.",
     "connection.status_connected": "연결됨",
@@ -4998,9 +4998,9 @@ export const ko = {
     "connection.tor_unavailable_fallback":
       "Aster Mail에서는 Tor를 사용할 수 없어 현재 직접 연결되어 있습니다. Tor를 사용하려면 Tor Browser에서 Aster Mail을 여세요.",
     "connection.tor_blocked":
-      "Tor가 활성화되지 않았습니다. 익명성 보호를 위해 요청이 차단되었습니다.",
+      "Tor가 꺼져 있어 트래픽 유출을 막기 위해 Aster가 이 요청을 차단했습니다. 요청을 허용하려면 Tor를 켜세요.",
     "connection.tor_blocked_connecting":
-      "Tor가 아직 연결 중입니다. 익명성 보호를 위해 요청이 차단되었습니다.",
+      "Tor가 아직 연결 중이어서 트래픽 유출을 막기 위해 Aster가 이 요청을 차단했습니다. Tor가 연결될 때까지 기다린 후 다시 시도하세요.",
     "connection.tor_warning":
       "모든 트래픽이 Tor 네트워크를 통해 전달됩니다. 성능이 느려질 수 있습니다.",
     "connection.requires_native_app": "데스크톱 및 모바일 앱에서 사용 가능",
@@ -5071,20 +5071,20 @@ export const ko = {
     backup_code_security_note:
       "각 백업 코드는 한 번만 사용할 수 있습니다. 안전하게 보관하세요.",
     delete_alias_confirmation:
-      "이 별칭을 삭제하시겠습니까? 이 작업은 취소할 수 없습니다.",
-    alias_too_new_title: "이 별칭은 삭제하기에 너무 최근에 만들어졌습니다",
+      "이 별칭을 삭제할까요? 이 작업은 되돌릴 수 없습니다.",
+    alias_too_new_title: "이 별칭은 아직 삭제할 수 없습니다",
     alias_too_new_message:
-      "새로 만든 별칭은 30일이 지나야 삭제할 수 있습니다. 이 별칭은 {{date}}부터 제거할 수 있습니다. Supernova로 업그레이드하면 별칭을 즉시 삭제할 수 있습니다.",
+      "새 별칭은 30일 동안 활성 상태로 유지됩니다. 이 별칭은 {{date}}부터 삭제할 수 있으며, Supernova로 업그레이드하면 별칭을 바로 삭제할 수 있습니다.",
     ghost_alias_too_new_title:
-      "이 고스트 별칭은 만료시키기에 너무 최근에 만들어졌습니다",
+      "이 고스트 별칭은 아직 만료시킬 수 없습니다",
     ghost_alias_too_new_message:
-      "새로 만든 고스트 별칭은 30일이 지나야 만료시킬 수 있습니다. 이 별칭은 {{date}}부터 만료시킬 수 있습니다. Supernova로 업그레이드하면 고스트 별칭을 즉시 만료할 수 있습니다.",
+      "새 고스트 별칭은 30일 동안 활성 상태로 유지됩니다. 이 고스트 별칭은 {{date}}부터 만료시킬 수 있으며, Supernova로 업그레이드하면 고스트 별칭을 바로 만료시킬 수 있습니다.",
     delete_signature_confirmation:
-      "이 서명을 삭제하시겠습니까? 이 작업은 취소할 수 없습니다.",
+      "이 서명을 삭제할까요? 이 작업은 되돌릴 수 없습니다.",
     delete_domain_confirmation:
-      "이 도메인을 삭제하시겠습니까? 이 작업은 취소할 수 없습니다.",
+      "이 도메인을 삭제할까요? 이 작업은 되돌릴 수 없습니다.",
     delete_address_confirmation:
-      "이 주소를 삭제하시겠습니까? 이 작업은 취소할 수 없습니다.",
+      "이 주소를 삭제할까요? 이 작업은 되돌릴 수 없습니다.",
     colorblind_protanopia: "적색맹",
     enable_undo_send_label: "보내기 취소 활성화",
     cancellation_period_label: "취소 기간 (초)",
@@ -5117,13 +5117,13 @@ export const ko = {
       "암호화 키가 얼마나 자주 교체되는지입니다. 더 자주 교체할수록 안전하지만 오버헤드가 약간 증가합니다. 대부분에게 1주일이 좋은 기본값입니다.",
     info_key_history_limit_title: "키 기록 제한",
     info_key_history_limit_description:
-      "이전 이메일을 복호화하기 위해 Aster가 보관하는 이전 키의 수. 너무 낮게 설정하면 오래된 메시지가 읽을 수 없게 될 수 있습니다.",
+      "이전 이메일을 계속 복호화할 수 있도록 Aster가 보관하는 이전 키의 수입니다. 너무 낮게 설정하면 마지막 키 교체 이전의 메시지를 읽지 못할 수 있습니다.",
     info_wkd_title: "WKD란?",
     info_wkd_description:
       "Thunderbird나 Proton 같은 이메일 앱이 공개 키를 자동으로 찾을 수 있게 하는 표준입니다. 수동 키 교환 없이 암호화 메일을 받을 수 있습니다.",
     info_keyservers_title: "키 서버란?",
     info_keyservers_description:
-      "이메일 주소로 PGP 키를 검색할 수 있는 공개 디렉터리입니다. 주의: 대부분의 키 서버에서는 게시 후 키를 완전히 삭제할 수 없습니다.",
+      "이메일 주소로 PGP 키를 검색할 수 있는 공개 디렉터리입니다. 여기에 게시하면 누구나 내 키를 찾을 수 있습니다. 대부분의 키 서버에서는 게시한 키를 완전히 삭제할 수 없습니다.",
     keyserver_urls_title: "키 서버 URL",
     keyserver_urls_description:
       "기본 서버(keys.openpgp.org) 외에 검색하고 게시할 추가 키 서버",
@@ -5181,7 +5181,7 @@ export const ko = {
       "안 함: 항상 차단. 묻기: 매번 프롬프트 표시. 항상: 묻지 않고 로드. 이미지 차단 설정의 예외를 관리합니다.",
     info_tracking_protection_title: "추적 차단",
     info_tracking_protection_description:
-      "이메일을 열 때 외부 연결을 차단합니다. 발신자는 픽셀, 폰트, CSS를 사용하여 누가 언제 이메일을 열었는지 기록합니다.",
+      "이메일을 열 때 발신자에게 정보가 전송되지 않도록 막습니다. 발신자는 추적 픽셀, 폰트, CSS를 사용하여 누가 언제 이메일을 열었는지 기록합니다.",
     info_block_tracking_links_title: "추적 링크란?",
     info_block_tracking_links_description:
       "마케팅 이메일은 링크에 utm_source, fbclid, gclid 같은 숨겨진 태그를 붙입니다. 이 태그는 어떤 캠페인에서 왔는지 발신자에게 알려 주고 링크를 클릭했다는 사실도 알립니다. Aster는 메일의 모든 링크에서 이런 태그를 제거하므로 링크는 같은 페이지를 열면서도 아무것도 알리지 않습니다.",
@@ -5205,16 +5205,16 @@ export const ko = {
       "수신자의 키가 WKD 또는 DANE를 통해 수신자 자신의 도메인에서 오거나 Autocrypt에서 오면 보내는 메일을 자동으로 암호화합니다. 공개 키 서버에만 있는 키는 Aster가 검증할 수 없으므로, 그런 키를 사용하려면 메시지에서 자물쇠를 클릭하세요.",
     info_show_encryption_indicators_title: "암호화 표시",
     info_show_encryption_indicators_description:
-      "이메일에 자물쇠 아이콘을 표시하여 메시지가 암호화, 서명 또는 둘 다 아닌지 알려줍니다.",
+      "이메일에 자물쇠 아이콘을 표시하여 메시지가 암호화되었는지, 서명되었는지, 둘 다 아닌지 알려주므로 보호 여부를 한눈에 확인할 수 있습니다.",
     info_force_dark_mode_title: "이메일 강제 다크 모드",
     info_force_dark_mode_description:
       "Aster가 다크 테마를 사용하는 동안 이메일 스타일을 어두운 배경과 밝은 텍스트로 재작성합니다. 밝은 흰색 이메일이 눈에 부담될 때 유용합니다.",
     info_undo_send_title: "보내기 취소",
     info_undo_send_description:
-      "보내기 클릭 후 이메일을 취소할 수 있는 짧은 시간을 줍니다. 타이머가 끝날 때까지 실제로 전송되지 않습니다.",
+      "이메일을 보낸 후 취소할 수 있는 짧은 시간을 제공합니다. 타이머가 끝날 때까지 실제로 전송되지 않습니다.",
     info_spam_sensitivity_title: "스팸 민감도",
     info_spam_sensitivity_description:
-      "높음은 스팸을 더 많이 잡지만 가끔 정상 이메일을 표시할 수 있습니다. 낮음은 더 많이 통과시킵니다. 중간이 대부분에게 적합한 균형입니다.",
+      "높음은 스팸을 더 많이 잡지만 가끔 정상 이메일을 스팸으로 표시할 수 있습니다. 낮음은 오탐이 적은 대신 더 많은 메일을 통과시킵니다. 대부분의 사용자에게는 중간이 적합합니다.",
     info_conversation_grouping_title: "대화 그룹화",
     info_conversation_grouping_description:
       "같은 제목의 이메일을 하나의 스레드로 묶습니다. 개별 메시지를 스크롤하지 않고도 대화를 쉽게 따라갈 수 있습니다.",
@@ -5298,7 +5298,7 @@ export const ko = {
     address_change_unavailable: "{{email}}은 사용할 수 없습니다",
     address_change_same_as_current: "이미 사용 중인 주소입니다",
     address_change_check_failed:
-      "Aster Mail이 이 주소를 확인하지 못했습니다. 잠시 후 다시 시도하세요.",
+      "주소를 확인하지 못했습니다. 잠시 후 다시 시도하세요.",
     address_change_review_title: "변경 내용 확인",
     address_change_from: "현재",
     address_change_to: "변경 후",
@@ -5311,7 +5311,7 @@ export const ko = {
     address_change_type_to_confirm: "확인하려면 {{email}}을 입력하세요",
     address_change_password_title: "본인 확인",
     address_change_password_body: "계속하려면 비밀번호를 입력하세요.",
-    address_change_code_resent: "Aster Mail에서 새 코드를 보냈습니다.",
+    address_change_code_resent: "새 코드를 보냈습니다.",
     address_change_code_title: "확인 코드 입력",
     address_change_code_body:
       "{{email}}에서 6자리 코드를 확인하세요. 15분 후에 만료됩니다.",
@@ -5322,7 +5322,7 @@ export const ko = {
     address_change_done_partial:
       "주소는 변경되었지만 암호화 키 업데이트가 끝나지 않았습니다. 그때까지 새 주소는 키에 포함되지 않습니다.",
     address_change_updating_key: "암호화 키를 업데이트하는 중",
-    address_change_failed: "주소 변경이 완료되지 않았습니다. 다시 시도하세요.",
+    address_change_failed: "주소를 변경하지 못했습니다. 다시 시도하세요.",
     address_change_code_too_many:
       "잘못된 코드를 너무 여러 번 입력했습니다. 새 코드를 받으려면 변경을 다시 시작하세요.",
     address_change_code_expired:
@@ -5344,7 +5344,7 @@ export const ko = {
     address_change_resend_too_soon:
       "다른 코드를 요청하기 전에 잠시 기다리세요.",
     address_change_send_failed:
-      "Aster Mail에서 코드를 보내지 못했습니다. 몇 분 후에 다시 시도하세요.",
+      "코드를 보내지 못했습니다. 몇 분 후에 다시 시도하세요.",
     address_change_invalid_address:
       "사용할 수 없는 주소입니다. 다른 주소를 선택하세요.",
     address_change_locked_account_kind:
@@ -5353,7 +5353,7 @@ export const ko = {
       "직접 소유한 도메인의 주소는 여기서 변경할 수 없습니다.",
     address_change_locked_unavailable: "지금은 주소 변경을 사용할 수 없습니다.",
     address_change_eligibility_failed:
-      "Aster Mail에서 주소를 변경할 수 있는지 확인하지 못했습니다.",
+      "주소를 변경할 수 있는지 확인하지 못했습니다.",
     address_change_domain_label: "도메인",
     primary_address_set: "기본 주소가 업데이트되었습니다",
     primary_address_reset: "기본 주소로 재설정",
@@ -5369,16 +5369,16 @@ export const ko = {
     alias_grace_upgrade_hint: "이 별칭을 유지하려면 업그레이드하세요",
     alias_reserved_upgrade_hint: "이 별칭을 다시 활성화하려면 업그레이드하세요",
     invalid_address: "유효한 이메일 주소를 입력하세요.",
-    alias_already_taken: "이 별칭은 이미 사용 중입니다. 다른 별칭이면 됩니다.",
+    alias_already_taken: "이 별칭은 이미 사용 중입니다. 다른 별칭을 사용해 보세요.",
     alias_create_failed:
-      "이 별칭을 저장하지 못했습니다. 다시 시도하세요. 다른 별칭은 변경되지 않았습니다.",
+      "이 별칭을 만들지 못했습니다. 다시 시도하세요. 다른 별칭은 변경되지 않았습니다.",
     alias_generate_failed:
-      "지금은 별칭을 생성하지 못했습니다. 다시 시도하세요.",
+      "별칭을 생성하지 못했습니다. 다시 시도하세요.",
     alias_invalid:
-      "이 별칭은 유효하지 않습니다. 사용 가능한 문자는 영문자, 숫자, 점, 밑줄, 하이픈입니다.",
+      "이 별칭은 유효하지 않습니다. 영문자, 숫자, 점, 밑줄, 하이픈만 사용하세요.",
     domain_not_available:
-      "이 도메인은 지금 사용할 수 없습니다. 다른 도메인이면 됩니다.",
-    failed_create_address: "다시 시도하세요.",
+      "이 도메인은 지금 사용할 수 없습니다. 다른 도메인을 사용해 보세요.",
+    failed_create_address: "이 주소를 저장하지 못했습니다. 다시 시도하세요.",
     domain_limit_reached: "도메인 제한에 도달했습니다",
     add_custom_domain: "사용자 정의 도메인 추가",
     domain_name_label: "도메인 이름",
@@ -5412,32 +5412,32 @@ export const ko = {
     security_auto: "자동",
     security_implicit: "암묵적",
     security_none: "없음",
-    email_required: "여기에는 이메일 주소가 필요합니다.",
+    email_required: "이메일 주소를 입력하세요.",
     valid_email_required:
-      "이 주소는 유효한 이메일이 아닌 것 같습니다. name@example.com 같은 형식이면 됩니다.",
-    incoming_server_required: "여기에는 수신 메일 서버가 필요합니다.",
+      "name@example.com과 같은 유효한 이메일 주소를 입력하세요.",
+    incoming_server_required: "수신 메일 서버를 입력하세요.",
     private_address_error:
-      "여기에는 로컬이나 사설 주소가 아닌 공개 메일 서버가 필요합니다. 공급자가 알려준 공개 호스트 이름이면 됩니다.",
-    username_required: "이 계정에는 사용자 이름이 필요합니다.",
-    password_required: "이 계정에는 비밀번호가 필요합니다.",
+      "로컬이나 사설 주소가 아닌 공개 메일 서버를 입력하세요. 제공업체가 알려준 공개 호스트 이름을 사용하세요.",
+    username_required: "이 계정의 사용자 이름을 입력하세요.",
+    password_required: "이 계정의 비밀번호를 입력하세요.",
     connection_timeout_error: "5초에서 120초 사이의 시간 제한을 입력하세요.",
     fill_server_first:
-      "연결을 시험하려면 먼저 서버, 사용자 이름, 비밀번호가 필요합니다.",
-    fill_smtp_first: "시험하려면 먼저 발신 서버 정보가 필요합니다.",
-    fill_connection_first: "시험하려면 먼저 연결 정보가 필요합니다.",
+      "연결을 테스트하려면 먼저 서버, 사용자 이름, 비밀번호를 입력하세요.",
+    fill_smtp_first: "발신 서버를 테스트하려면 먼저 서버 정보를 입력하세요.",
+    fill_connection_first: "연결을 테스트하려면 먼저 연결 정보를 입력하세요.",
     connection_test_failed:
-      "연결 시험이 통과하지 않았습니다. 아래의 서버, 포트, 비밀번호가 확인할 부분입니다. 저장된 연결은 그대로입니다.",
-    account_updated: "계정이 성공적으로 업데이트되었습니다",
-    account_added: "계정이 성공적으로 추가되었습니다",
+      "연결 테스트에 실패했습니다. 아래의 서버, 포트, 비밀번호를 확인하세요. 저장된 연결은 변경되지 않았습니다.",
+    account_updated: "계정이 업데이트되었습니다",
+    account_added: "계정이 추가되었습니다",
     account_settings_not_saved:
       "계정은 저장됐지만 동기화 및 고급 설정은 저장되지 않았습니다",
     failed_update_account:
       "이 계정을 업데이트하지 못했습니다. 다시 시도하세요. 이전 설정이 계속 적용됩니다.",
-    failed_add_account: "다시 시도하세요.",
+    failed_add_account: "이 계정을 추가하지 못했습니다. 다시 시도하세요.",
     switch_failed: "계정을 전환하지 못했습니다. 다시 시도하세요.",
-    unexpected_error: "예상대로 작동하지 않았습니다. 다시 시도하세요.",
+    unexpected_error: "문제가 발생했습니다. 다시 시도하세요.",
     failed_sync:
-      "동기화가 완료되지 않았습니다. 자동으로 다시 시도합니다. 양쪽의 메일은 안전합니다.",
+      "동기화가 완료되지 않았습니다. Aster Mail이 자동으로 다시 시도하며, 양쪽의 메일은 안전합니다.",
     failed_delete_emails_external:
       "연결된 계정에서 이메일을 삭제하지 못했습니다. 다시 시도하세요.",
     failed_fetch_folders_external:
@@ -5463,20 +5463,20 @@ export const ko = {
     hide_password_toggle: "비밀번호 숨기기",
     hide_smtp_password: "SMTP 비밀번호 숨기기",
     show_smtp_password: "SMTP 비밀번호 표시",
-    please_enter_password: "계속하려면 비밀번호가 필요합니다.",
-    please_enter_2fa_code: "여기에는 인증 앱의 현재 코드가 필요합니다.",
-    invalid_2fa_code: "코드가 일치하지 않습니다. 인증 앱의 현재 코드면 됩니다.",
+    please_enter_password: "계속하려면 비밀번호를 입력하세요.",
+    please_enter_2fa_code: "인증 앱의 현재 코드를 입력하세요.",
+    invalid_2fa_code: "코드가 일치하지 않습니다. 인증 앱의 현재 코드를 입력하세요.",
     incorrect_password_error:
       "비밀번호가 올바르지 않습니다. 다시 시도하세요. 계정은 잠기지 않았습니다.",
     failed_retrieve_auth: "로그인 정보를 불러오지 못했습니다. 다시 시도하세요.",
     failed_verify_password: "비밀번호가 올바르지 않습니다. 다시 시도하세요.",
     failed_export_private_key:
-      "지금은 키를 내보내지 못했습니다. 다시 시도하세요. 키는 변경되지 않았습니다.",
+      "키를 내보내지 못했습니다. 다시 시도하세요. 키는 변경되지 않았습니다.",
     type_regenerate: "regenerate를 입력하세요",
     client_side_encryption: "클라이언트 측 암호화",
     client_side_encryption_description:
       "모든 암호화는 데이터가 기기를 떠나기 전에 브라우저에서 수행됩니다",
-    zero_knowledge_storage: "제로 지식 저장소",
+    zero_knowledge_storage: "제로 액세스 저장소",
     zero_knowledge_storage_description:
       "우리는 저장된 당신의 데이터를 읽을 수 없습니다. 키는 오직 당신만 보유합니다.",
     email_content_attachments: "이메일 내용 및 첨부 파일",
@@ -5497,9 +5497,9 @@ export const ko = {
       "공개 키를 키 서버에 게시하지 못했습니다. 다시 시도하세요.",
     mailto_unregister_manual:
       "Aster Mail이 mailto 링크를 열지 않도록 하려면 브라우저 설정에서 처리기를 제거하세요.",
-    failed_save_setting: "설정을 저장할 수 없습니다. 다시 시도하세요.",
+    failed_save_setting: "이 설정을 저장하지 못했습니다. 다시 시도하세요.",
     keys_cannot_remove_keyservers:
-      "공개 키 서버에 한 번 게시된 키는 내릴 수 없습니다. 게시 전에 잘 생각해두면 좋습니다.",
+      "공개 키 서버에 게시된 키는 삭제할 수 없습니다. 게시하기 전에 신중하게 고려하세요.",
     copied_to_clipboard: "클립보드에 복사됨",
     category_storage_limits: "저장 공간 및 제한",
     category_email_features: "이메일 기능",
@@ -5608,25 +5608,25 @@ export const ko = {
     enter_password_to_confirm: "확인을 위해 비밀번호를 입력하세요",
     password_min_8: "8자 이상 입력하세요.",
     passwords_do_not_match_folder:
-      "두 비밀번호가 일치하지 않습니다. 다시 입력하면 해결됩니다.",
+      "비밀번호가 일치하지 않습니다. 다시 입력하세요.",
     choose_stronger_password:
-      "이 비밀번호는 추측하기 쉽습니다. 더 길거나 더 다양한 형태가 더 잘 버텨줍니다.",
-    enter_password_required: "계속하려면 비밀번호가 필요합니다.",
-    enter_current_password_required: "현재 비밀번호를 입력하세요",
+      "이 비밀번호는 약합니다. 더 길거나 다양한 문자를 조합한 비밀번호를 사용하세요.",
+    enter_password_required: "계속하려면 비밀번호를 입력하세요.",
+    enter_current_password_required: "현재 비밀번호를 입력하세요.",
     new_password_min_8: "8자 이상 입력하세요.",
     new_passwords_do_not_match:
-      "두 비밀번호가 일치하지 않습니다. 다시 입력하면 해결됩니다.",
+      "비밀번호가 일치하지 않습니다. 다시 입력하세요.",
     choose_stronger_new_password:
-      "이 비밀번호는 추측하기 쉽습니다. 더 길거나 더 다양한 형태가 더 잘 버텨줍니다.",
-    enter_password_confirm_required: "계속하려면 비밀번호가 필요합니다.",
+      "이 비밀번호는 약합니다. 더 길거나 다양한 문자를 조합한 비밀번호를 사용하세요.",
+    enter_password_confirm_required: "계속하려면 비밀번호를 입력하세요.",
     no_password_recovery_title: "이 비밀번호는 복구할 수 없습니다.",
     no_password_recovery_desc:
-      "이 비밀번호를 잊으면 아무도 이 폴더를 복구해줄 수 없습니다. 잃어버리지 않을 곳에 저장해두면 안전합니다.",
+      "이 비밀번호를 잊으면 아무도 이 폴더를 복구해 줄 수 없습니다. 안전한 곳에 보관하세요.",
     folder_protected_desc:
       "이 폴더는 보호되어 있습니다. 내용에 접근하려면 비밀번호를 입력하세요.",
     remove_protection_warning_title: "이 폴더의 비밀번호 제거",
     remove_protection_warning_desc:
-      "이후로는 계정에 로그인한 사람이라면 별도의 비밀번호 없이 이 폴더를 읽을 수 있게 됩니다. 이 보호가 꺼진 뒤에는 계정 자체가 잘 보호되어 있는지가 더 중요해집니다.",
+      "이후에는 계정에 로그인한 누구나 별도의 비밀번호 없이 이 폴더를 읽을 수 있습니다. 계정 자체가 잘 보호되어 있는지 확인하세요.",
     password_strength_label: "비밀번호 강도",
     all_emails_conversations: "모든 이메일 및 대화",
     drafts_templates: "임시 저장 및 템플릿",
@@ -5654,7 +5654,7 @@ export const ko = {
     vision_description: "가시성과 대비 개선을 위한 설정",
     color_vision_description:
       "색각 결함에 맞게 인터페이스를 조정하기 위한 색상 필터를 적용합니다",
-    reading_description: "더 쉬운 읽기를 위해 글꼴과 간격을 조정합니다",
+    reading_description: "가독성을 높이도록 글꼴과 간격을 조정합니다",
     motion_layout_description: "애니메이션과 인터페이스 밀도를 제어합니다",
     keyboard_shortcuts_description:
       "일반적인 작업에 키보드 단축키를 사용합니다",
@@ -5673,11 +5673,11 @@ export const ko = {
     codes_remaining_count: "{{total}}개 중 {{remaining}}개 남음",
     codes_used_count: "{{used}}개 사용됨",
     running_low_warning:
-      "복구 코드가 얼마 남지 않았습니다. 새 코드를 생성해 안전한 곳에 저장해두면 계속 안전하게 사용할 수 있습니다.",
+      "복구 코드가 얼마 남지 않았습니다. 새 코드를 생성하여 안전한 곳에 보관하세요.",
     download_pdf: "PDF 다운로드",
     regenerate_codes_label: "코드 재생성",
     regenerate_codes_warning:
-      "새 코드를 생성하는 즉시 현재 복구 코드는 작동을 멈춥니다. 이 창을 닫기 전에 새 코드를 안전한 곳에 저장해두면 계속 안전하게 사용할 수 있습니다. 입력란에",
+      "새 코드를 생성하는 즉시 현재 복구 코드는 작동하지 않습니다. 이 창을 닫기 전에 새 코드를 안전한 곳에 저장하세요. 입력란에",
     end_to_end_encrypted: "종단간 암호화됨",
     all_data_protected: "모든 데이터는 제로 액세스 암호화로 보호됩니다",
     pgp_compatible: "PGP 호환",
@@ -5712,9 +5712,9 @@ export const ko = {
     alias_taken_try_different:
       "이 별칭은 이미 사용 중입니다. 다른 이름을 시도하세요.",
     upgrade_plan_more_aliases:
-      "더 많은 별칭을 만들고 추가 기능을 잠금 해제하려면 플랜을 업그레이드하세요.",
+      "더 많은 별칭을 만들고 더 많은 기능을 사용하려면 플랜을 업그레이드하세요.",
     upgrade_plan_more_domains:
-      "더 많은 도메인을 추가하고 추가 기능을 잠금 해제하려면 플랜을 업그레이드하세요.",
+      "더 많은 도메인을 추가하고 더 많은 기능을 사용하려면 플랜을 업그레이드하세요.",
     custom_domains_not_available: "사용자 정의 도메인을 사용할 수 없습니다",
     no_aliases_yet:
       "아직 추가 별칭이 없습니다. 개인정보를 보호하기 위해 하나를 만드세요.",
@@ -5742,7 +5742,7 @@ export const ko = {
     special_offer_unavailable:
       "이 혜택은 더 이상 제공되지 않습니다. 일반 가격으로 업그레이드할 수 있습니다.",
     special_offer_checkout_error:
-      "결제를 시작하는 중 문제가 발생했습니다. 다시 시도하세요.",
+      "결제를 시작하지 못했습니다. 다시 시도하세요.",
     special_offer_was_price: "이전 가격 월 {{price}}",
     special_offer_original_price: "정가: {{price}}",
     special_offer_cta: "{{percent}}% 할인 받기",
@@ -5798,13 +5798,13 @@ export const ko = {
     no_matching_domains: "검색과 일치하는 도메인이 없습니다.",
     domains_send_receive_description:
       "이메일을 보내고 받기 위해 자신의 도메인을 추가하세요. 인증을 완료하려면 도메인의 DNS 설정에 접근해야 합니다.",
-    verification_failed_retry: "인증 실패. 다시 시도해 주세요.",
+    verification_failed_retry: "인증에 실패했습니다. 다시 시도하세요.",
     dns_propagation_close_note:
       "DNS 변경 사항이 전파되는 데 최대 48시간이 걸릴 수 있습니다. 이 마법사를 닫고 나중에 인증할 수 있습니다.",
     configure_dns_description:
       "각 단계를 따라 도메인을 설정하세요. Aster는 DNS를 통해 직접 레코드를 확인합니다.",
     domain_input_description:
-      "도메인 이름을 입력하세요. 추가한 후 DNS 설정 안내를 받게 됩니다.",
+      "도메인 이름을 입력하세요. 추가하면 Aster가 DNS 설정을 안내합니다.",
     domain_limit_all_used:
       "현재 플랜의 {{count}}개 도메인을 모두 사용했습니다.",
     domain_without_www_note: "www 또는 https:// 없이 도메인을 입력하세요",
@@ -6016,7 +6016,7 @@ export const ko = {
       "일부 받은편지함은 인증된 마크 인증서가 있는 도메인에만 브랜드 로고를 표시합니다.",
     catch_all_description: "이 도메인의 모든 주소로 보낸 이메일을 수신합니다",
     set_host_root:
-      "호스트를 @로 설정하세요 (도메인을 입력하지 마세요. 제공업체가 자동으로 추가합니다)",
+      "호스트를 @로 설정하세요. 제공업체가 도메인 이름을 자동으로 추가하므로 도메인 이름은 입력하지 마세요.",
     use_exact_host:
       "아래 표시된 정확한 호스트/이름을 사용하세요 (선택자 접두사 포함)",
     verification_description:
@@ -6032,38 +6032,38 @@ export const ko = {
     verification_help:
       '대부분의 등록 기관에는 DNS 또는 영역 편집기 섹션이 있습니다. "레코드 추가" 또는 "DNS 관리"와 같은 옵션을 찾으세요. 레코드 유형으로 TXT를 선택하세요.',
     mx_help:
-      "MX 레코드는 다른 메일 서버에 도메인의 이메일을 어디로 배달할지 알려줍니다. 우선 순위 번호는 서버를 시도하는 순서를 결정합니다 (낮을수록 먼저).",
+      "MX 레코드는 다른 메일 서버에 도메인의 이메일을 어디로 배달할지 알려줍니다. 우선순위 번호는 서버를 시도하는 순서를 정하며, 낮은 번호부터 시도합니다.",
     spf_help:
       "SPF 레코드는 도메인에 대한 이메일 전송이 승인된 메일 서버를 지정하는 TXT 레코드입니다. 도메인당 하나의 SPF 레코드만 있어야 합니다.",
     dkim_help:
       "DKIM은 Ed25519 암호화 서명을 사용합니다. Aster를 통해 보낸 각 이메일은 개인 키로 서명되며, 수신 서버는 DNS의 이 공개 키를 사용하여 서명을 확인합니다.",
     dmarc_help:
       'DMARC는 SPF와 DKIM을 기반으로 인증되지 않은 이메일이 처리되는 방식을 제어합니다. "quarantine" 정책은 수신자에게 의심스러운 이메일을 스팸으로 표시하도록 지시합니다.',
-    host_required: "{{label}} 호스트가 필요합니다",
+    host_required: "{{label}} 호스트를 입력하세요.",
     host_invalid_characters:
-      "{{label}} 서버에 사용할 수 없는 문자가 있습니다. mail.example.com 같은 호스트 이름 그대로면 됩니다.",
+      "{{label}} 서버 이름에 사용할 수 없는 문자가 있습니다. mail.example.com과 같이 호스트 이름만 입력하세요.",
     host_private_address:
-      "로컬 또는 사설 주소가 아닌 공개 메일 서버여야 합니다. 제공업체가 알려준 공개 호스트 이름을 사용하세요.",
+      "로컬이나 사설 주소가 아닌 공개 메일 서버를 입력하세요. 제공업체가 알려준 공개 호스트 이름을 사용하세요.",
     incoming_server_invalid:
-      "유효한 서버 주소가 아닙니다. imap.example.com 같은 호스트 이름 그대로면 됩니다.",
+      "유효한 서버 주소가 아닙니다. imap.example.com과 같이 호스트 이름만 입력하세요.",
     incoming_port_error: "1에서 65535 사이의 포트 번호를 입력하세요.",
     incoming_mail_server: "수신 메일 서버",
     smtp_server: "SMTP 서버",
-    smtp_server_required: "SMTP 서버 호스트가 필요합니다",
+    smtp_server_required: "SMTP 서버 호스트를 입력하세요.",
     smtp_server_invalid:
-      "유효한 발신 서버가 아닙니다. smtp.example.com 같은 호스트 이름 그대로면 됩니다.",
+      "유효한 발신 서버가 아닙니다. smtp.example.com과 같이 호스트 이름만 입력하세요.",
     smtp_private_address_error:
-      "로컬 또는 사설 주소가 아닌 공개 메일 서버여야 합니다. 제공업체가 알려준 공개 호스트 이름을 사용하세요.",
+      "로컬이나 사설 주소가 아닌 공개 메일 서버를 입력하세요. 제공업체가 알려준 공개 호스트 이름을 사용하세요.",
     smtp_port_error: "1에서 65535 사이의 포트 번호를 입력하세요.",
-    smtp_username_required: "SMTP 사용자 이름이 필요합니다",
-    smtp_password_required: "SMTP 비밀번호가 필요합니다",
+    smtp_username_required: "SMTP 사용자 이름을 입력하세요.",
+    smtp_password_required: "SMTP 비밀번호를 입력하세요.",
     label_color_invalid:
-      "이 색상은 사용할 수 없는 선택입니다. 팔레트에 있는 색상이면 됩니다.",
+      "이 색상은 사용할 수 없습니다. 팔레트에서 색상을 선택하세요.",
     smtp_test_failed:
-      "발신 서버 시험이 통과하지 않았습니다. 아래의 서버, 포트, 비밀번호가 확인할 부분입니다.",
+      "발신 서버 테스트에 실패했습니다. 아래의 서버, 포트, 비밀번호를 확인하세요.",
     deleted_emails_count: "{{count}}개의 이메일이 삭제됨",
     edit_external_account_description:
-      "외부 계정 설정을 업데이트합니다. 자격 증명을 업데이트하려면 다시 입력하세요.",
+      "외부 계정 설정을 업데이트합니다. 자격 증명을 변경하려면 다시 입력하세요.",
     add_external_account_description:
       "이메일을 가져오기 위해 외부 POP3 또는 IMAP 계정을 연결합니다.",
     account_info: "계정 정보",
@@ -6102,10 +6102,10 @@ export const ko = {
     syncing_progress: "동기화 중 ({{processed}}/{{total}})",
     fetching_emails: "이메일 가져오는 중...",
     sync_failed:
-      "동기화가 완료되지 않았습니다. 자동으로 다시 시도합니다. 양쪽의 메일은 안전합니다.",
+      "동기화가 완료되지 않았습니다. Aster Mail이 자동으로 다시 시도하며, 양쪽의 메일은 안전합니다.",
     not_synced: "동기화되지 않음",
     sync_failed_detail:
-      "{{time}}의 최근 동기화가 완료되지 않았습니다. 다시 시도하거나 계정 비밀번호를 확인하면 보통 해결됩니다.",
+      "{{time}}의 최근 동기화가 완료되지 않았습니다. 다시 시도하거나 계정 비밀번호를 확인하세요.",
     external_accounts: "외부 계정",
     external_accounts_description:
       "외부 이메일 계정을 연결하여 다른 제공업체에서 이메일을 가져오고 보내세요.",
@@ -6382,12 +6382,12 @@ export const ko = {
     import_labels_skipped:
       "라벨 {{count}}개를 만들지 못해 해당 메일은 라벨 없이 가져옵니다.",
     storage_quota_reached:
-      "저장 공간이 가득 찼습니다. 요금제를 업그레이드하거나 이메일을 일부 제거하면 더 가져올 공간이 생깁니다.",
+      "저장 공간이 가득 찼습니다. 더 가져올 공간을 확보하려면 요금제를 업그레이드하거나 이메일을 일부 삭제하세요.",
     no_emails_in_file:
       "선택한 파일에서 메일을 찾지 못했습니다. 각 파일이 지원되는 형식(MBOX, EML, CSV, PST)인지 확인하세요.",
     import_failed:
       "가져오기가 완료되지 않았습니다. 다시 시도하세요. 기존 데이터는 변경되지 않았습니다.",
-    failed_to_parse_file: "이 파일을 읽을 수 없었습니다. 다른 파일이면 됩니다.",
+    failed_to_parse_file: "이 파일을 읽지 못했습니다. 다른 파일을 사용해 보세요.",
     plan_storage_value: "{{value}} 저장 공간",
     plan_aliases_count: "{{count}}개 별칭",
     plan_domains_count: "{{count}}개 도메인",
@@ -6395,7 +6395,7 @@ export const ko = {
     keeps_copy: "사본 보관",
     vacation_reply_title: "부재중 자동 응답",
     vacation_reply_description:
-      "부재 시 수신 이메일에 대한 자동 응답을 설정합니다. 발신자/수신자 메타데이터만 사용하며 이메일 내용에는 접근하지 않습니다.",
+      "부재 시 수신 이메일에 대한 자동 응답을 설정합니다. 발신자 및 수신자 메타데이터만 사용하며 이메일 내용에는 접근하지 않습니다.",
     vacation_reply_subject: "제목",
     vacation_reply_body: "메시지",
     vacation_reply_start_date: "시작 날짜",
@@ -6413,8 +6413,8 @@ export const ko = {
     vacation_reply_empty: "자동 응답이 설정되지 않았습니다",
     vacation_reply_saved: "자동 응답이 저장되었습니다",
     vacation_reply_deleted: "자동 응답이 삭제되었습니다",
-    vacation_reply_toggled_on: "자동 응답이 활성화되었습니다",
-    vacation_reply_toggled_off: "자동 응답이 비활성화되었습니다",
+    vacation_reply_toggled_on: "자동 응답을 켰습니다",
+    vacation_reply_toggled_off: "자동 응답을 껐습니다",
     blocked_senders_title: "차단된 발신자",
     blocked_senders_description:
       "차단된 발신자의 이메일은 자동으로 받은 편지함에서 필터링됩니다.",
@@ -6424,7 +6424,7 @@ export const ko = {
     blocked_senders_count: "{{count}}명의 차단된 발신자",
     blocked_date: "{{date}} 차단됨",
     snooze_description:
-      "원치 않는 구독을 일시 중지하세요. 다시 알림 설정된 발신자는 자동으로 받은 편지함에서 필터링됩니다.",
+      "원치 않는 구독을 일시 중지하세요. Aster가 다시 알림 설정된 발신자를 받은 편지함에서 자동으로 걸러냅니다.",
     active_count: "활성 ({{count}})",
     snoozed_count: "다시 알림 ({{count}})",
     snooze_count: "다시 알림 ({{count}})",
@@ -6447,10 +6447,10 @@ export const ko = {
     bulk_unsubscribe_summary_failed: "해지할 수 없음",
     bulk_unsubscribe_summary_note: "건너뛰었거나 해지할 수 없었던 발신자는 활성 목록에 남아 있습니다.",
     subscriptions_deleted: "구독 {{count}}개를 삭제했습니다",
-    delete_subscriptions_failed: "선택한 구독을 삭제할 수 없습니다",
+    delete_subscriptions_failed: "선택한 구독을 삭제하지 못했습니다. 다시 시도하세요.",
     snoozed_appear_here: "다시 알림 설정한 발신자가 여기에 표시됩니다",
     scan_inbox_description:
-      "'받은 편지함 스캔'을 클릭하여 뉴스레터 및 마케팅 이메일을 감지하세요",
+      "뉴스레터 및 마케팅 이메일을 감지하려면 받은 편지함 스캔을 클릭하세요",
     emails_count: "{{count}}개의 이메일",
     newsletter: "뉴스레터",
     social: "소셜",
@@ -6466,7 +6466,7 @@ export const ko = {
     signature_off_description: "서명이 이메일에 추가되지 않습니다.",
     signature_auto_description: "기본 서명이 새 이메일에 자동으로 추가됩니다.",
     signature_manual_description:
-      "이메일 작성 시 수동으로 서명을 삽입할 수 있습니다.",
+      "이메일을 작성할 때 수동으로 서명을 삽입할 수 있습니다.",
     your_signatures: "내 서명 ({{count}})",
     add_signature: "서명 추가",
     signature_name: "서명 이름",
@@ -6482,7 +6482,7 @@ export const ko = {
     signature_image_invalid:
       "PNG, JPEG, GIF, WebP 이미지만 추가할 수 있습니다.",
     signature_image_failed:
-      "이 이미지를 추가할 수 없습니다. 다른 파일을 사용해 보세요.",
+      "이미지를 추가하지 못했습니다. 다른 파일을 사용해 보세요.",
     signature_divider_limit:
       "서명에는 최대 {{count}}개의 구분선을 넣을 수 있습니다.",
     plain_text_hint:
@@ -6503,10 +6503,10 @@ export const ko = {
     signature_alias: "적용 대상",
     signature_alias_default: "모든 별칭 (기본값)",
     signature_alias_in_use:
-      "이 별칭은 이미 다른 서명에 사용되고 있습니다. 다른 별칭이면 됩니다.",
+      "이 별칭은 이미 다른 서명에 사용되고 있습니다. 다른 별칭을 선택하세요.",
     signature_placement_inherit: "전역 설정 사용",
     signature_alias_conflict_error:
-      "이 별칭은 이미 다른 서명에 사용되고 있습니다. 여기에 다른 별칭이면 됩니다.",
+      "이 별칭은 이미 다른 서명에 사용되고 있습니다. 다른 별칭을 선택하세요.",
     email_templates_title: "이메일 템플릿",
     email_templates_description:
       "재사용 가능한 이메일 템플릿을 만들고 관리하세요. 모든 템플릿은 종단간 암호화됩니다.",
@@ -6520,7 +6520,7 @@ export const ko = {
     template_content_placeholder:
       "안녕하세요 [이름]님,\n\n회의 일정을 잡고 싶습니다...\n\n감사합니다",
     placeholders_hint:
-      "사용 시 맞춤화를 위해 [이름], [날짜] 등의 자리 표시자를 사용하세요.",
+      "[이름], [날짜]와 같은 자리 표시자를 사용해 이메일마다 내용을 맞춤 설정하세요.",
     update_template: "템플릿 업데이트",
     create_template: "템플릿 만들기",
     no_templates_yet: "아직 템플릿이 없습니다",
@@ -6577,8 +6577,8 @@ export const ko = {
     export_settings: "설정 내보내기",
     import_settings_button: "설정 가져오기",
     invalid_settings_format:
-      "이 파일은 예상한 설정 형식과 일치하지 않습니다. 다른 내보내기 파일이면 됩니다. 현재 설정은 그대로입니다.",
-    settings_imported: "설정을 성공적으로 가져왔습니다",
+      "이 파일은 예상한 설정 형식과 일치하지 않습니다. 다른 내보내기 파일을 사용해 보세요. 현재 설정은 변경되지 않았습니다.",
+    settings_imported: "설정을 가져왔습니다",
     rule_name_optional: "규칙 이름 (선택사항)",
     rule_name_placeholder: "예: 업무 이메일, 뉴스레터 백업...",
     conditions: "조건",
@@ -6610,7 +6610,7 @@ export const ko = {
     tls_information: "TLS 정보",
     run_health_check: "상태 확인 실행",
     connection_failed:
-      "연결할 수 없었습니다. 설정을 한 번 더 살펴보고 다시 시도하면 보통 해결됩니다.",
+      "연결하지 못했습니다. 설정을 확인하고 다시 시도하세요.",
     removed_forwarding_rule: '"{{ name }}" 전달 규칙이 제거되었습니다',
     removed_forwarding_rules_count:
       "{{ count }}개의 전달 규칙이 제거되었습니다",
@@ -6655,9 +6655,9 @@ export const ko = {
       "방해 금지 시간의 시작 및 종료 시간을 설정하세요",
     conversation_grouping: "대화 그룹화",
     conversation_grouping_description: "같은 대화의 이메일을 함께 그룹화합니다",
-    conversation_grouping_confirm_title: "정말로 하시겠습니까?",
+    conversation_grouping_confirm_title: "대화 그룹화를 끌까요?",
     conversation_grouping_confirm_description:
-      "대화 그룹화를 끄면 답장을 그룹으로 묶는 대신 각 이메일이 받은 편지함에 별도 항목으로 표시됩니다. 이메일 스레드를 따라가기 어려울 수 있습니다.",
+      "각 이메일이 답장과 함께 묶이지 않고 받은편지함에 별도 항목으로 표시됩니다. 스레드를 따라가기 어려울 수 있습니다.",
     show_message_size: "메시지 크기 표시",
     relative_dates: "상대 날짜",
     relative_dates_description:
@@ -6685,7 +6685,7 @@ export const ko = {
       "빠른 작성을 위해 보낸 이메일 주소를 자동으로 기억합니다",
     disable_recent_recipients_title: "최근 수신자를 비활성화하시겠습니까?",
     disable_recent_recipients_description:
-      "저장된 모든 최근 수신자 데이터가 영구적으로 삭제됩니다. 이 작업은 취소할 수 없습니다.",
+      "저장된 모든 최근 수신자가 영구적으로 삭제됩니다. 이 작업은 되돌릴 수 없습니다.",
     disable_and_clear: "비활성화 및 데이터 삭제",
     default_email_app: "기본 이메일 앱",
     default_email_app_description:
@@ -6699,9 +6699,9 @@ export const ko = {
     change_plan: "플랜 변경",
     change_plan_description:
       "결제 포털을 통해 구독을 업그레이드하거나 다운그레이드하세요",
-    checkout_welcome: "Aster에 오신 것을 환영합니다! 구독이 활성화되었습니다.",
+    checkout_welcome: "Aster에 오신 것을 환영합니다. 구독이 활성화되었습니다.",
     payment_failed_warning:
-      "결제 수단에 대한 마지막 결제가 통과되지 않았습니다. 설정의 결제에서 업데이트하면 요금제가 계속 유지됩니다. 메일에는 영향이 없습니다.",
+      "결제 수단에 대한 마지막 결제가 처리되지 않았습니다. 요금제를 유지하려면 설정의 결제에서 결제 수단을 업데이트하세요. 메일에는 영향이 없습니다.",
     grace_period_remaining:
       "요금제가 무료로 전환되기까지 결제 수단을 업데이트할 수 있는 기간이 {{days}}일 남았습니다.",
     update_payment_method: "결제 수단 업데이트",
@@ -6723,7 +6723,7 @@ export const ko = {
     plan_change_credit: "현재 플랜 크레딧",
     plan_change_due_today: "오늘 결제 금액",
     plan_change_preview_failed:
-      "요금 내역을 불러오지 못했습니다. 다시 시도해 주세요.",
+      "요금 내역을 불러오지 못했습니다. 다시 시도하세요.",
     plan_change_confirm_button: "확인 및 결제",
     plan_change_confirming: "처리 중...",
     promo_error_invalid:
@@ -6758,12 +6758,12 @@ export const ko = {
     plan_change_promo_applied:
       "{{code}} 코드가 적용되었습니다. 오늘 {{amount}}을(를) 절약합니다.",
     plan_change_promo_remove: "삭제",
-    billing_switched: "결제 주기가 성공적으로 전환되었습니다",
+    billing_switched: "결제 주기가 전환되었습니다",
     failed_switch_billing:
-      "결제 주기를 변경하지 못했습니다. 다시 시도하세요. 현재 주기가 계속 적용됩니다.",
+      "결제 주기를 전환할 수 없습니다. 다시 시도하세요. 현재 주기가 계속 적용됩니다.",
     current_billing_interval: "{{interval}} 결제",
     switching_billing: "전환 중...",
-    billing_banner_title: "Aster로 더 많은 기능 잠금 해제",
+    billing_banner_title: "Aster로 더 많은 기능 이용하기",
     billing_banner_subtitle:
       "플랜을 업그레이드하거나 추가 저장 공간을 구매하여 개인정보를 보호하세요.",
     billing_banner_cta: "옵션 살펴보기",
@@ -6782,21 +6782,21 @@ export const ko = {
     bill_addon_summary: "추가 저장 공간 {size}",
     bill_addon_pick_size: "추가할 용량을 선택하세요",
     storage_addons_description:
-      "더 많은 공간이 필요하세요? 계정에 추가 암호화된 저장 공간을 구매하세요.",
+      "더 많은 공간이 필요하면 계정에 암호화된 저장 공간을 추가하세요.",
     per_month_short: "/월",
     add_storage: "저장 공간 추가",
     popular: "인기",
     best_value: "최고 가치",
-    storage_purchase_coming_soon: "저장 공간 추가 기능이 곧 제공됩니다!",
+    storage_purchase_coming_soon: "저장 공간 추가 기능이 곧 제공됩니다.",
     purchase_addon: "추가 기능 구매",
-    addon_purchased: "저장 공간 추가 기능이 성공적으로 구매되었습니다.",
+    addon_purchased: "저장 공간 추가 기능을 구매했습니다.",
     cancel_addon: "취소",
-    addon_cancelled: "저장 공간 추가 기능이 성공적으로 취소되었습니다.",
+    addon_cancelled: "저장 공간 추가 기능이 취소되었습니다.",
     active_addons: "활성 추가 기능",
     no_active_addons: "활성 저장 공간 추가 기능이 없습니다.",
     confirm_cancel_addon: "저장 공간 추가 기능 취소",
     confirm_cancel_addon_description:
-      "이 저장 공간 추가 기능을 취소하시겠습니까? 현재 결제 기간이 끝날 때까지 추가 저장 공간을 사용할 수 있습니다.",
+      "이 저장 공간 추가 기능을 취소할까요? 현재 결제 기간이 끝날 때까지 추가 저장 공간을 사용할 수 있습니다.",
     addon_purchase_failed:
       "추가 기능 구매를 시작하지 못했습니다. 다시 시도하세요. 결제 정보는 변경되지 않았습니다.",
     addon_cancel_failed:
@@ -6822,11 +6822,11 @@ export const ko = {
     subscribe: "구독",
     free_plan_includes: "별칭 3개 · 사용자 정의 도메인 1개",
     upgrade_for_more:
-      "업그레이드하여 더 많은 저장 공간, 별칭 및 기능을 잠금 해제하세요",
+      "업그레이드하고 더 많은 저장 공간, 별칭, 기능을 이용하세요",
     free_upgrade_title: "{{plan}}(으)로 더 많은 기능 사용",
     free_upgrade_price_note: "요금제는 월 {{price}}부터 시작합니다.",
-    upgrade_for_more_short: "잠금 해제하여 더 많은 기능",
-    plans_coming_soon: "플랜 구독이 곧 제공됩니다!",
+    upgrade_for_more_short: "업그레이드하고 더 많이 이용하기",
+    plans_coming_soon: "플랜 구독이 곧 제공됩니다.",
     free_plan_description:
       "현재 무료 플랜을 사용 중입니다. 아래에서 더 많은 저장 공간, 별칭 및 기능을 위한 유료 플랜을 살펴보세요.",
     free_plan_banner_title: "무료 플랜을 사용 중입니다",
@@ -6858,7 +6858,7 @@ export const ko = {
     plan_tip_alias_directory:
       "anything.key@astermail.org로 온 메일은 새 별칭을 자동으로 만듭니다.",
     plan_tip_instant_alias_delete:
-      "별칭을 삭제하고 고스트 별칭을 바로 만료시키세요. Supernova는 30일 삭제 대기를 건너뜁니다.",
+      "별칭을 삭제하고 고스트 별칭을 바로 만료시키세요. Supernova는 30일 대기를 건너뜁니다.",
     plan_tip_zero_knowledge:
       "강요를 받더라도 저희는 저장된 메일을 읽을 수 없습니다. 키는 저장되기 전에 비밀번호로 암호화되므로 저희는 암호화되지 않은 키를 볼 수 없습니다.",
     plan_tip_tracker_protection:
@@ -6872,7 +6872,7 @@ export const ko = {
     plan_tip_carddav:
       "연락처를 macOS 및 iOS의 연락처, Android의 DAVx5 또는 모든 CardDAV 클라이언트와 동기화하세요. 기기에서 실행되는 Aster Bridge 보조 앱으로 작동합니다.",
     plan_tip_alias_avatars:
-      "각 별칭 및 맞춤 도메인 주소에 고유한 프로필 사진을 설정하십시오",
+      "각 별칭 및 맞춤 도메인 주소에 고유한 프로필 사진을 설정하세요.",
     plan_f_custom_themes: "커스텀 테마",
     plan_f_smart_folders: "스마트 폴더",
     plan_f_imap_smtp: "IMAP 및 SMTP 접근",
@@ -6911,10 +6911,10 @@ export const ko = {
     plan_f_quiet_hours: "방해 금지 시간",
     storage_approaching_title: "저장 공간이 차오르고 있습니다.",
     storage_approaching_description:
-      "저장 공간의 75%를 넘게 사용했습니다. 오래된 이메일을 일부 정리하거나 요금제를 업그레이드하면 공간이 다 차기 전에 여유가 생깁니다.",
+      "저장 공간의 75%를 넘게 사용했습니다. 공간이 부족해지지 않도록 오래된 이메일 일부를 삭제하거나 요금제를 업그레이드하세요.",
     storage_warning_title: "저장 공간이 얼마 남지 않았습니다.",
     storage_warning_description:
-      "저장 공간의 90%를 넘게 사용했습니다. 이메일 일부를 정리하거나 요금제를 업그레이드하면 새 메일이 계속 흐릅니다.",
+      "저장 공간의 90%를 넘게 사용했습니다. 메일을 계속 받으려면 이메일 일부를 삭제하거나 요금제를 업그레이드하세요.",
     storage_overview_description:
       "무엇이 저장 공간을 차지하는지 확인하고 필요 없는 항목을 정리하세요.",
     storage_promo_title: "추가 저장 공간 할인",
@@ -6964,14 +6964,14 @@ export const ko = {
       "{{count}}개 항목을 영구히 삭제하고 {{size}}를 확보합니다. 되돌릴 수 없습니다.",
     storage_locked_title: "저장 공간이 가득 찼습니다.",
     storage_locked_description:
-      "공간을 비울 때까지 새 메일이 잠시 멈춰 있습니다. 이메일 일부를 정리하거나 요금제를 업그레이드하면 다시 흐릅니다. 기존 메일은 안전합니다.",
+      "공간을 비울 때까지 새 메일 수신이 일시 중지됩니다. 메일을 다시 받으려면 이메일 일부를 삭제하거나 요금제를 업그레이드하세요. 기존 메일은 안전합니다.",
     storage_locked_bounce_warning:
-      "공간이 비지 않으면 수신 메일이 {{days}}일 뒤부터 반송됩니다. 머지않아 이메일을 정리하거나 업그레이드하면 메일이 계속 들어옵니다.",
+      "공간을 비우지 않으면 {{days}}일 후부터 수신 메일이 반송됩니다. 메일을 계속 받으려면 이메일 일부를 삭제하거나 요금제를 업그레이드하세요.",
     storage_full:
       "저장 공간이 가득 찼습니다. 공간을 만들려면 요금제를 업그레이드하거나 이메일을 일부 제거하세요.",
     plan_limit_reached:
       "현재 요금제의 한도에 도달했습니다. 요금제를 업그레이드하거나 일부 항목을 삭제해 공간을 확보하세요.",
-    upgrade_to_unlock: "업그레이드하여 더 많은 기능 잠금 해제",
+    upgrade_to_unlock: "업그레이드하고 더 많이 이용하기",
     usage_overview: "사용량 개요",
     usage_overview_description: "플랜 기능 전반의 현재 사용량을 추적합니다.",
     usage_aliases: "이메일 별칭",
@@ -6982,7 +6982,7 @@ export const ko = {
     usage_storage: "저장 공간",
     usage_linked_accounts: "로그인된 계정",
     upgrade_linked_accounts_note:
-      "모든 계정은 안전합니다. 이 기기가 동시에 로그인 상태로 유지하는 계정 수입니다.",
+      "계정에는 영향이 없습니다. 이 한도는 이 기기에서 동시에 로그인 상태로 유지할 수 있는 계정 수입니다.",
     upgrade_linked_accounts_link: "여러 계정이 작동하는 방식 알아보기",
     usage_of: "{{limit}} 중 {{current}}",
     usage_unlimited: "무제한",
@@ -6991,7 +6991,7 @@ export const ko = {
     promo_code: "프로모션 코드",
     promo_code_placeholder: "프로모션 코드 입력",
     apply_promo: "적용",
-    promo_applied: "프로모션 코드가 성공적으로 적용되었습니다!",
+    promo_applied: "프로모션 코드가 적용되었습니다",
     promo_invalid:
       "이 프로모션 코드는 유효하지 않습니다. 코드를 확인하고 다시 시도하세요.",
     promo_expired: "이 프로모션 코드는 더 이상 유효하지 않습니다.",
@@ -7022,7 +7022,7 @@ export const ko = {
     autorenew_notice_short:
       "카드로 결제하면 요금제가 자동으로 갱신됩니다. 다음 결제를 방지하려면 갱신일 전에 설정에서 해지하세요.",
     payment_complete: "결제 완료",
-    payment_success: "결제 성공!",
+    payment_success: "결제 성공",
     payment_failed:
       "결제 수단으로 결제할 수 없습니다. 다시 시도하거나 설정 > 결제에서 결제 수단을 업데이트하세요.",
     payment_activation_pending:
@@ -7092,7 +7092,7 @@ export const ko = {
     cancel_impact_description_nodate: "현재 결제 주기가 끝나면:",
     cancel_impact_loading: "계정에 어떤 변화가 있는지 확인하는 중...",
     cancel_impact_unavailable:
-      "지금은 세부 정보를 불러오지 못했습니다. 그대로 계속할 수 있습니다.",
+      "세부 정보를 불러오지 못했습니다. 그래도 취소할 수 있습니다.",
     cancel_impact_storage:
       "저장 용량이 {{current}}에서 {{after}}로 줄어듭니다.",
     cancel_impact_storage_over:
@@ -7193,7 +7193,7 @@ export const ko = {
     cancel_final_confirm: "내 플랜 취소",
     cancel_confirm_title: "구독 취소",
     cancel_confirm_description:
-      "구독을 취소하시겠습니까? 현재 결제 기간이 끝날 때까지 플랜이 활성 상태로 유지됩니다.",
+      "구독을 취소할까요? 현재 결제 기간이 끝날 때까지 플랜이 활성 상태로 유지됩니다.",
     cancel_enter_password: "취소를 확인하려면 비밀번호를 입력하세요:",
     cancel_password_placeholder: "비밀번호를 입력하세요",
     cancel_confirm_button: "구독 취소",
@@ -7214,7 +7214,7 @@ export const ko = {
     recent_transactions: "최근 거래",
     view_all_transactions: "모두 보기",
     no_credits_yet:
-      "아직 크레딧이 없습니다. 추천이나 기프트 카드를 통해 크레딧을 적립하세요!",
+      "아직 크레딧이 없습니다. 추천이나 기프트 카드를 통해 크레딧을 적립하세요.",
     credit_type_referral_reward: "추천",
     credit_type_referral_commission: "수수료",
     credit_type_admin_grant: "보너스",
@@ -7311,7 +7311,7 @@ export const ko = {
       "별칭을 본인의 다른 Aster 계정으로 옮길 수 있습니다.",
     plan_tip_allowlist: "필터가 막을 발신자라도 지정하면 메일이 도착합니다.",
     plan_tip_contact_sync:
-      "macOS와 iOS의 연락처, Android의 DAVx5, 그 밖의 CardDAV 클라이언트와 연락처를 동기화합니다. 기기에서 실행되는 Aster Bridge 앱을 통해 작동합니다.",
+      "macOS와 iOS의 연락처, Android의 DAVx5, 그 밖의 CardDAV 클라이언트와 연락처를 동기화합니다. 기기에 Aster Bridge 앱이 필요합니다.",
     plan_tip_custom_categories:
       "받은편지함 탭을 직접 만들고 각 탭에 어떤 메일이 들어올지 정할 수 있습니다.",
     plan_tip_email_export:
@@ -7362,7 +7362,7 @@ export const ko = {
     completed_referrals: "완료됨",
     credits_earned: "적립된 크레딧",
     referral_not_eligible: "현재 추천을 사용할 수 없습니다.",
-    referral_not_eligible_description: "나중에 다시 시도해 주세요.",
+    referral_not_eligible_description: "나중에 다시 시도하세요.",
     referral_loading: "추천 정보 로드 중...",
     referral_history: "추천 기록",
     no_referrals_yet: "아직 초대가 없습니다. 링크를 공유해 시작하세요.",
@@ -7424,7 +7424,7 @@ export const ko = {
       "안녕하세요,\n\n제휴 지급을 요청하고 싶습니다.\n\n요청 ID: {{ request_id }}\n커미션 비율: {{ commission_percent }}%\n총 적립액: {{ total_earned }}\n이미 지급됨: {{ total_paid_out }}\n지급 예정 금액: {{ outstanding }}\n\n다음 단계를 알려주세요.\n\n감사합니다",
     affiliate_nothing_owed: "아직 요청할 수 있는 미지급 금액이 없습니다.",
     affiliate_payout_request_failed:
-      "지급 요청을 생성할 수 없습니다. 다시 시도해 주세요.",
+      "지급 요청을 만들지 못했습니다. 다시 시도하세요.",
     affiliate_email_link_button: "이메일 링크",
     affiliate_payout_amount_label: "요청 금액",
     affiliate_payout_amount_max: "최대",
@@ -7483,10 +7483,10 @@ export const ko = {
     eml_import: "EML",
     delete_signature_title: "서명 삭제",
     delete_signature_message:
-      "이 서명을 삭제하시겠습니까? 이 작업은 취소할 수 없습니다.",
+      "이 서명을 삭제할까요? 이 작업은 되돌릴 수 없습니다.",
     delete_template_title: "템플릿 삭제",
     delete_template_message:
-      "이 템플릿을 삭제하시겠습니까? 이 작업은 취소할 수 없습니다.",
+      "이 템플릿을 삭제할까요? 이 작업은 되돌릴 수 없습니다.",
     all_info_permanently_deleted: "모든 정보가 영구적으로 삭제됩니다.",
     password_label: "비밀번호",
     two_factor_code_label: "이중 인증 코드",
@@ -7518,7 +7518,7 @@ export const ko = {
     domain_purchase_pay_with: "결제 수단",
     domain_purchase_pay_card: "카드",
     domain_purchase_buy: "{{price}}에 구매",
-    domain_purchase_error: "구매에 실패했습니다. 다시 시도해 주세요.",
+    domain_purchase_error: "구매를 완료하지 못했습니다. 다시 시도해 주세요.",
     domain_purchase_error_taken:
       "방금 다른 사용자가 이 도메인을 등록했습니다. 다른 도메인을 선택해 주세요.",
     domain_purchase_error_limit:
@@ -7544,17 +7544,17 @@ export const ko = {
       "모든 도메인에 자동 설정된 DNS와 무제한 주소가 포함되며, 레지스트리가 허용하는 경우 WHOIS 비공개도 포함됩니다.",
     domain_purchase_terms_inline:
       "도메인은 NameSilo를 통해 등록됩니다. 구매하면 {{aster}}, {{registrar}} 및 {{icann}}에 동의하게 됩니다. 도메인이 생성되면 등록은 취소할 수 없습니다.",
-    domain_purchase_empty_title: "무엇이든 입력해 시작하세요",
-    domain_purchase_search_failed: "검색에 실패했습니다. 다시 시도해 주세요.",
+    domain_purchase_empty_title: "검색할 이름을 입력하세요",
+    domain_purchase_search_failed: "검색을 완료하지 못했습니다. 다시 시도해 주세요.",
     domain_purchase_search_rate_limited:
       "검색 횟수가 너무 많습니다. 1분 후에 다시 시도해 주세요.",
     domain_purchase_retry: "다시 시도",
     domain_purchase_step_choose: "이름 선택",
     domain_purchase_step_checkout: "결제",
     domain_purchase_step_activate: "사용 시작",
-    domain_purchase_intro_title: "나만의 이메일 도메인을 찾아보세요",
+    domain_purchase_intro_title: "이메일 도메인 찾기",
     domain_purchase_intro_sub:
-      "간단한 두 가지 질문에 답하면 사용 가능한 도메인을 보여드립니다.",
+      "두 가지 질문에 답하면 사용 가능한 도메인을 확인할 수 있습니다.",
     domain_purchase_intro_name_q:
       "어떤 이름을 원하시나요? 비즈니스, 프로젝트 또는 본인 이름도 좋습니다.",
     domain_purchase_intro_name_ph:
@@ -7566,10 +7566,10 @@ export const ko = {
     domain_purchase_intro_examples: "또는 예시로 시작하기",
     domain_purchase_intro_tld_title: "이제 도메인 확장자를 선택하세요",
     domain_purchase_intro_tld_sub:
-      "확장자에 따라 가격과 주소의 느낌이 달라집니다. 잘 모르겠다면 전체를 그대로 두세요. 조건에 맞는 것을 모두 보여드립니다.",
-    domain_purchase_results_for: "{{name}} 검색 결과입니다",
+      "확장자에 따라 가격과 주소의 느낌이 달라집니다. 잘 모르겠다면 전체로 두고 조건에 맞는 모든 항목을 확인하세요.",
+    domain_purchase_results_for: "{{name}} 검색 결과",
     domain_purchase_results_for_sub:
-      "마음에 드는 것을 선택하세요. 결제는 1분이면 끝나고, 완료하는 순간부터 새 주소로 메일을 받을 수 있습니다.",
+      "도메인을 선택하세요. 결제는 1분 정도 걸리며, 완료하는 즉시 새 주소로 메일을 받을 수 있습니다.",
     domain_purchase_change_name: "이름 변경",
     domain_purchase_purchased_desc:
       "Aster를 통해 구매한 도메인은 여기에 표시되며 자동으로 커스텀 도메인으로 작동합니다. 이름을 고르고 결제하면 바로 사용할 수 있습니다.",
@@ -7741,7 +7741,7 @@ export const ko = {
       "등록기관의 첫해 할인 가격입니다. 이후에는 연 {{price}}에 갱신됩니다.",
     domain_purchase_purchased_info:
       "Aster를 통해 구매한 도메인이 여기에 표시됩니다. 레지스트리가 허용하는 경우 WHOIS 개인정보 보호와 함께 등록해 드리고 메일 DNS를 모두 자동으로 설정하므로 바로 주소를 만들 수 있습니다. 각 도메인은 회원님이 승인할 때만 갱신됩니다. 나중에 도메인을 다른 등록기관으로 이전하고 싶다면 지원팀이 이전을 처리해 드립니다. ICANN 규정에 따라 신규 등록은 첫 60일 동안 이전이 잠깁니다.",
-    domain_purchase_dont_have: "도메인이 없으신가요? 여기를 클릭해 구매하세요.",
+    domain_purchase_dont_have: "도메인이 없으신가요? 여기에서 구매하세요.",
     domain_purchase_sort_price: "낮은 가격순",
     domain_purchase_leave_title: "Aster Mail을 떠나시겠어요?",
     domain_purchase_leave_message: "이 링크는 새 탭에서 {{host}}을(를) 엽니다.",
@@ -7753,10 +7753,10 @@ export const ko = {
     domain_purchase_awaiting_note:
       "아직 결제가 확인되지 않았습니다. 결제를 완료해 주문을 마치거나, 이 창을 닫고 나중에 구매한 도메인에서 결제할 수 있습니다.",
     domain_purchase_done_warmup:
-      "참고: 도메인의 DNS가 인터넷에 전파되는 데 최대 1시간이 걸릴 수 있으며, 대형 메일 제공업체는 갓 만들어진 도메인을 처음에는 신중하게 다룹니다. 도메인 이력이 쌓일수록 전달률이 좋아집니다.",
+      "도메인의 DNS가 인터넷에 전파되는 데 최대 1시간이 걸릴 수 있으며, 대형 메일 제공업체는 새 도메인을 처음에는 신중하게 다룹니다. 도메인 이력이 쌓일수록 전달률이 좋아집니다.",
     domain_purchase_create_first_address: "첫 주소 만들기",
     domain_purchase_progress_note:
-      "도메인을 등록하고 메일함을 설정하는 동안 잠시 기다려 주세요. 보통 1분 정도 걸립니다.",
+      "Aster가 도메인을 등록하고 메일함을 설정하고 있습니다. 보통 1분 정도 걸립니다.",
     domain_purchase_complete_cta: "구매 완료하기",
     domain_purchase_open_checkout: "결제 페이지 다시 열기",
     domain_purchase_cancel_payment_title: "이 결제를 취소할까요?",
@@ -7832,22 +7832,22 @@ export const ko = {
     connected_accounts_sync_now: "지금 동기화",
     connected_accounts_disconnect: "연결 끊기",
     connected_accounts_error:
-      "이 연결한 계정의 동기화에 문제가 있어, 자동으로 다시 시도합니다.",
+      "이 연결된 계정의 동기화에 문제가 있습니다. Aster Mail이 자동으로 다시 시도합니다.",
     connected_accounts_app_password_needed:
       "로그인하지 못했습니다. 이 계정에는 일반 비밀번호가 아니라 앱 비밀번호가 필요합니다.",
     connected_accounts_password_reauth_needed:
       "로그인하지 못했습니다. 계정을 편집해 비밀번호를 업데이트하세요.",
     connected_accounts_reauth_needed:
-      "다시 인증해야 합니다. 다시 연결을 눌러 해결하세요.",
+      "동기화를 계속하려면 다시 연결을 클릭하고 다시 로그인하세요.",
     connected_accounts_reconnect: "다시 연결",
     connected_accounts_enabled: "활성화됨",
     connected_accounts_disabled: "비활성화됨",
-    oauth_import_success: "{{ provider }} 계정이 성공적으로 연결되었습니다",
+    oauth_import_success: "{{ provider }} 계정이 연결되었습니다",
     oauth_import_error:
-      "계정 연결이 작동하지 않았습니다: {{reason}}. 다시 시도하거나 다른 공급자면 됩니다.",
+      "계정을 연결하지 못했습니다: {{reason}}. 다시 시도하거나 다른 제공업체를 선택하세요.",
     oauth_import_loading: "{{ provider }}에 연결 중...",
     feature_locked:
-      "이 기능은 {{plan}} 요금제에 포함됩니다. 업그레이드하면 켜집니다.",
+      "이 기능은 {{plan}} 요금제에 포함됩니다. 사용하려면 업그레이드하세요.",
     available_on_plan: "{{plan}} 이상에서 사용 가능",
     vacation_reply_locked:
       "부재중 자동 응답으로 자리를 비울 때 자동 답장을 보낼 수 있습니다",
@@ -7857,7 +7857,7 @@ export const ko = {
       "뉴스레터 구독을 관리하고 일괄 구독 취소합니다",
     quiet_hours_locked: "집중을 위해 특정 시간에 알림을 음소거합니다",
     carddav_locked: "CardDAV 호환 서비스에서 연락처를 가져옵니다",
-    contact_merge_locked: "중복 연락처를 지능적으로 병합합니다",
+    contact_merge_locked: "중복 연락처를 병합합니다",
     encrypted_export_locked: "종단간 암호화로 데이터를 내보냅니다",
     folder_lock_locked: "추가 비밀번호로 민감한 폴더를 보호합니다",
     key_rotation_locked: "자동 암호화 키 교체의 사용자 정의 주기를 설정합니다",
@@ -7884,7 +7884,7 @@ export const ko = {
     rotate_encryption_keys: "암호화 키 교체",
     key_rotation_required: "키 교체 필요",
     forward_secrecy_protection: "순방향 비밀성 보호",
-    keys_rotated_successfully: "키가 성공적으로 교체되었습니다",
+    keys_rotated_successfully: "키가 교체되었습니다",
     encryption_keys_updated: "암호화 키가 업데이트되었습니다",
     current_key_age: "현재 키 사용 기간",
     rotate_keys_description_manual:
@@ -7907,7 +7907,7 @@ export const ko = {
     all_clear: "모두 완료",
     no_subscriptions_found: "구독을 찾을 수 없습니다",
     security_keys: "보안 키",
-    security_keys_description: "로그인에 하드웨어 보안 키 또는 패스키 사용",
+    security_keys_description: "하드웨어 보안 키 또는 패스키로 로그인",
     add_security_key: "보안 키 추가",
     no_security_keys: "등록된 보안 키 없음",
     security_keys_desktop_note:
@@ -7915,7 +7915,7 @@ export const ko = {
     passkeys_desktop_note:
       "패스키는 app.astermail.org의 Aster 웹 앱에서 추가할 수 있습니다. 여기에서는 기존 패스키를 보고 삭제할 수 있습니다.",
     passkeys_open_in_browser: "브라우저에서 열기",
-    app_lock_pin: "PIN 잠금",
+    app_lock_pin: "PIN 앱 잠금",
     app_lock_pin_description:
       "이 브라우저에서 Aster Mail을 표시하기 전에 PIN을 요청합니다. 이 기기를 사용하는 다른 사람에게서 메일을 숨기지만, 여기에 저장된 데이터를 암호화하지는 않습니다.",
     app_lock_choose_digits: "PIN 자릿수 선택",
@@ -7931,7 +7931,7 @@ export const ko = {
     app_lock_enter_to_disable: "잠금을 비활성화하려면 PIN을 입력하세요",
     app_lock_enter_to_change: "계속하려면 현재 PIN을 입력하세요",
     app_lock_wrong_pin: "PIN이 올바르지 않습니다",
-    app_lock_locked_out_for: "시도 횟수 초과 - {{s}}초 후 재시도",
+    app_lock_locked_out_for: "시도 횟수를 초과했습니다. {{s}}초 후에 다시 시도하세요.",
     vanguard_title: "Aster Vanguard",
     vanguard_description:
       "기자, 활동가 및 고위험 계정을 위한 고급 보호 기능입니다. Nova+ 전용입니다.",
@@ -7972,7 +7972,7 @@ export const ko = {
       "차단 모드는 읽고 있는 메일이 다른 서버에 연결하지 못하게 합니다. 외부 이미지, 글꼴, 스타일이 로드되지 않고, 알림에 메시지 내용이 표시되지 않으며, 실시간 동기화가 일시 중지됩니다. 링크는 열리지 않지만 복사할 수 있습니다.",
     lockdown_badge: "차단",
     lockdown_must_disable_first: "Vanguard를 끄려면 먼저 차단 모드를 끄세요.",
-    security_key_registered: "보안 키가 성공적으로 등록되었습니다",
+    security_key_registered: "보안 키가 등록되었습니다",
     security_key_removed: "보안 키가 제거되었습니다",
     name_your_key: "보안 키 이름 입력",
     key_name_placeholder: "예: YubiKey 5, MacBook Touch ID",
@@ -7980,7 +7980,7 @@ export const ko = {
     last_used: "마지막 사용",
     never_used: "사용된 적 없음",
     remove_key: "키 제거",
-    confirm_remove_key: "이 보안 키를 제거하시겠습니까?",
+    confirm_remove_key: "이 보안 키를 제거할까요?",
     storage_format_ipfs_hint:
       "비공개 IPFS는 암호화된 파일을 콘텐츠 해시 기준으로 Aster 자체 서버에 저장합니다. 공개 IPFS 네트워크에 연결되어 있지 않으며, 파일은 사용자의 키로만 복호화할 수 있습니다.",
     trusted_2fa_title: "신뢰할 수 있는 2FA 기기",
@@ -8142,7 +8142,7 @@ export const ko = {
     crypto_modal_price: "{{amount}}",
     crypto_modal_confirm: "결제로 진행",
     crypto_price_unavailable:
-      "이 요금제는 암호화폐 가격을 사용할 수 없습니다. 고객 지원에 문의해 주세요.",
+      "이 요금제는 암호화폐 가격을 사용할 수 없습니다. 고객 지원에 문의하세요.",
     crypto_charged_in_usd: "USD로 청구됩니다.",
     crypto_native_continue: "계속",
     crypto_native_choose_method: "결제 방법 선택",
@@ -8158,7 +8158,7 @@ export const ko = {
     crypto_native_too_many_open:
       "완료되지 않은 암호화폐 인보이스가 너무 많습니다. 먼저 하나를 완료하거나 취소하세요.",
     crypto_native_daily_limit:
-      "오늘 생성한 암호화폐 인보이스가 너무 많습니다. 나중에 다시 시도해 주세요.",
+      "오늘 생성한 암호화폐 인보이스가 너무 많습니다. 나중에 다시 시도하세요.",
     crypto_native_invoice_title: "{{coin}}(으)로 결제",
     crypto_native_awaiting_body:
       "아래 주소로 정확한 금액을 보내세요. 이 페이지는 자동으로 업데이트됩니다.",
@@ -8191,18 +8191,18 @@ export const ko = {
       "{{expected}} {{coin}} 중 {{received}}을(를) 받았습니다. 이 청구서를 완료하려면 남은 {{remaining}} {{coin}}을(를) 같은 주소로 보내세요.",
     crypto_native_manual_review: "검토 중",
     crypto_native_manual_review_body:
-      "결제에 대한 간단한 수동 확인이 필요합니다. 곧 계정에 반영해 드리겠습니다.",
+      "결제에 수동 확인이 필요합니다. 곧 계정에 반영해 드리겠습니다.",
     crypto_native_transaction: "트랜잭션",
     crypto_native_refund_notice:
       "청구 금액보다 많이 보내면 초과분은 미국 달러로 Aster 계정 잔액에 적립됩니다.",
     crypto_native_cancel_invoice: "이 청구서 취소",
-    crypto_native_cancel_failed: "이 청구서를 취소하지 못했습니다.",
+    crypto_native_cancel_failed: "이 청구서를 취소하지 못했습니다. 다시 시도하세요.",
     crypto_native_cancel_has_payment:
       "이 청구서는 이미 결제가 접수되어 더 이상 취소할 수 없습니다.",
-    crypto_native_paid_title: "모두 완료되었습니다",
-    crypto_native_paid_body: "요금제가 활성화되었습니다. 감사합니다!",
+    crypto_native_paid_title: "결제 완료",
+    crypto_native_paid_body: "요금제가 활성화되었습니다. 감사합니다.",
     crypto_native_paid_body_addon:
-      "스토리지 추가 용량이 활성화되었습니다. 감사합니다!",
+      "스토리지 추가 용량이 활성화되었습니다. 감사합니다.",
     crypto_native_go_to_inbox: "받은편지함으로 이동",
     crypto_native_view_billing: "결제 정보로 돌아가기",
     crypto_native_invoice_cancelled: "청구서가 취소되었습니다",
@@ -8210,7 +8210,7 @@ export const ko = {
     crypto_native_expired_body:
       "환율이 변동하므로 이 결제 창은 마감되었습니다. 계속하려면 새 결제를 시작하세요.",
     crypto_native_cancelled_body:
-      "이 결제는 취소되었습니다. 청구된 금액은 없습니다. 언제든지 새 결제를 시작할 수 있습니다.",
+      "이 결제는 취소되었습니다. 청구된 금액은 없습니다. 준비되면 언제든지 새 결제를 시작할 수 있습니다.",
     crypto_native_start_new_payment: "새 결제 시작",
     crypto_native_check_now: "지금 확인",
     crypto_native_checking: "확인 중",
@@ -8309,9 +8309,9 @@ export const ko = {
     f_folder_lock: "폴더 잠금",
     usage_filters: "맞춤 필터",
     usage_custom_categories: "맞춤 카테고리",
-    upgrade_modal_title: "계속하려면 업그레이드하세요",
+    upgrade_modal_title: "플랜 한도에 도달했습니다",
     upgrade_modal_description_specific:
-      "{{plan}} 플랜의 {{resource}} 한도에 도달했습니다. 업그레이드하면 더 많이 이용할 수 있습니다.",
+      "{{plan}} 플랜의 {{resource}} 한도에 도달했습니다. 더 많이 이용하려면 업그레이드하세요.",
     upgrade_modal_description_generic:
       "현재 플랜의 한도에 도달했습니다. 업그레이드하면 더 많이 이용할 수 있습니다.",
     upgrade_generic_resource: "플랜 한도",
@@ -8323,7 +8323,7 @@ export const ko = {
     upgrade_buy_storage: "저장 공간 구매",
     upgrade_inline_card_title: "플랜 한도에 도달했습니다",
     upgrade_inline_card_description:
-      "업그레이드하여 더 추가하거나 항목을 제거하여 공간을 확보하세요.",
+      "공간을 확보하려면 플랜을 업그레이드하거나 일부 항목을 제거하세요.",
     promo_then_reverts: "{{months}}개월 후 {{price}}{{interval}}로 돌아갑니다",
     promo_once_reverts:
       "{{period}}에만 적용되며, 이후 {{price}}{{interval}}로 돌아갑니다",
@@ -8359,7 +8359,7 @@ export const ko = {
     checkout_method_crypto: "암호화폐",
     crypto_pay_now: "암호화폐로 결제",
     crypto_select_term:
-      "기간을 선택하세요. USDC로 한 번 청구되며 기간이 끝날 때까지 플랜이 활성화됩니다. 자동 갱신 없음.",
+      "기간을 선택하세요. USDC로 한 번 청구되며, 기간이 끝날 때까지 플랜이 활성 상태로 유지됩니다. 자동으로 갱신되지 않습니다.",
     cashapp_redirect_notice:
       "이 결제를 승인하기 위해 Cash App으로 리디렉션됩니다. 승인 후 여기로 돌아오면 완료됩니다.",
     checkout_card_number: "카드 번호",
@@ -8402,13 +8402,13 @@ export const ko = {
     academic_verified_toast:
       "학교 이메일이 인증되었습니다. 할인 코드가 준비되었습니다.",
     academic_failed_toast:
-      "인증에 실패했습니다. 링크가 만료되었을 수 있으니 새 링크를 요청하세요.",
+      "이메일을 인증하지 못했습니다. 링크가 만료되었을 수 있습니다. 새 링크를 요청하세요.",
     academic_invalid_email:
       "학교 이메일 주소(예: .edu, .ac.kr)를 사용하세요. 다른 도메인을 쓰는 학교라면 지원팀에 문의하세요.",
     academic_email_in_use: "이 학교 이메일은 이미 할인에 사용되었습니다.",
     academic_request_failed: "인증 메일을 보낼 수 없었습니다. 다시 시도하세요.",
     academic_copy_failed: "코드를 복사할 수 없었습니다.",
-    academic_captcha_required: "캡차 인증을 완료해 주세요.",
+    academic_captcha_required: "캡차 인증을 완료하세요.",
     academic_captcha_unavailable:
       "Aster Mail에서 지금 요청을 확인할 수 없습니다. 나중에 다시 시도하거나 웹에서 할인을 요청하세요.",
     academic_too_many_attempts: "인증 요청을 너무 많이 보냈습니다. 나중에 다시 시도하세요.",
@@ -8439,14 +8439,14 @@ export const ko = {
     referral_email_subject: "Aster Mail을 사용해 보세요",
     referral_email_body:
       "안녕하세요.\n\n한동안 Aster Mail을 쓰고 있는데 아주 마음에 듭니다. 메일이 본인만 가진 키로 암호화되어 저장되기 때문에 서비스를 운영하는 쪽도 메일함을 읽을 수 없습니다.\n\n한번 써보고 싶다면 제 초대 링크입니다.\n\n{{ referral_link }}\n\n사용을 시작하면 두 사람 모두 저장 공간 {{ amount }}을(를) 받으니 그쪽에도 이득입니다.\n\n감사합니다",
-    referral_no_contacts: "연락처가 없습니다. 먼저 연락처를 추가하세요!",
+    referral_no_contacts: "연락처가 없습니다. 먼저 연락처를 추가하세요.",
     referral_loading_contacts: "연락처 불러오는 중...",
     two_factor_auth_disabled: "이중 인증이 비활성화되었습니다",
     feature_tracker_protection: "추적기 방지",
     domain_pending_hint:
-      "설정 계속을 클릭하여 DNS 레코드를 구성하고 도메인을 확인하세요.",
-    failed_to_load_allowlist: "다시 시도하세요.",
-    failed_to_load_blocklist: "다시 시도하세요.",
+      "DNS 레코드를 구성하고 도메인을 확인하려면 설정 계속을 클릭하세요.",
+    failed_to_load_allowlist: "허용 목록을 불러오지 못했습니다. 다시 시도하세요.",
+    failed_to_load_blocklist: "차단 목록을 불러오지 못했습니다. 다시 시도하세요.",
     show_signature_separator: "서명 구분선",
     show_signature_separator_description:
       "발신 이메일의 서명 위에 '--' 구분선을 추가합니다.",
@@ -8454,7 +8454,7 @@ export const ko = {
     show_aster_branding_description:
       "발신 이메일에 'Secured by Aster Mail' 서명을 포함합니다",
     show_aster_branding_free_note: "무료 플랜에서는 항상 표시됩니다",
-    spam_filter_enabled: "스팸 필터 활성화",
+    spam_filter_enabled: "스팸 필터 켜기",
     spam_filter_enabled_description:
       "스팸을 자동으로 감지해 스팸 폴더로 분류합니다. 스팸을 직접 관리하려면 이 기능을 끄세요.",
     spam_settings_load_failed:
@@ -8471,13 +8471,13 @@ export const ko = {
     sync_progress_preparing: "준비 중...",
     sync_checking_new: "새 메일 확인 중…",
     sync_result_imported: "새 이메일 {{ count }}개를 가져왔습니다",
-    sync_result_up_to_date: "이미 최신 상태입니다 - 새 이메일 없음",
+    sync_result_up_to_date: "최신 상태입니다. 새 이메일이 없습니다.",
     sync_stopped: "동기화가 중지되었습니다",
     purging_progress: "가져온 이메일 삭제 중… {{ total }}개 중 {{ current }}개",
     purging_simple: "가져온 이메일 삭제 중…",
     disconnect_title: "계정 연결 해제",
     disconnect_confirm:
-      "이 계정의 연결을 해제하시겠습니까? Aster Mail에서 이 계정의 이메일을 더 이상 볼 수 없습니다.",
+      "이 계정의 연결을 해제하시겠습니까? 삭제를 선택하지 않으면 이 계정에서 동기화된 이메일은 받은 편지함에 그대로 남습니다.",
     disconnect_button: "연결 해제",
     disconnect_delete_messages_label: "가져온 메시지 삭제",
     disconnect_delete_messages_label_count:
@@ -8485,7 +8485,7 @@ export const ko = {
     disconnect_success: "계정이 연결 해제되었습니다",
     disconnect_deleted_success: "계정 연결 해제됨, 이메일 {{ count }}개 삭제됨",
     stop_sync_title: "동기화 중지",
-    stop_sync_description: "이 계정의 이메일 동기화를 중지하시겠습니까?",
+    stop_sync_description: "동기화를 중지하시겠습니까? 이미 가져온 이메일은 메일함에 그대로 남습니다.",
     connect_modal_title: "{{provider}}를 Aster에 연결",
     connect_modal_description:
       "{{ provider }}에 로그인하여 메일을 Aster로 가져옵니다. Aster 서버가 {{ provider }}에서 메시지를 다운로드하고 저장하기 전에 암호화합니다.",
@@ -8502,32 +8502,32 @@ export const ko = {
     oauth_reason_missing_code:
       "제공업체 측에서 로그인이 완료되지 않았습니다. 다시 시도하세요.",
     oauth_reason_missing_state:
-      "연결 요청이 예상과 일치하지 않았습니다. 처음부터 다시 시도하면 대부분 해결됩니다.",
+      "연결 요청을 확인하지 못했습니다. 처음부터 다시 시도하세요.",
     oauth_reason_internal_error:
-      "서버에 문제가 발생했습니다. 잠시 후 다시 시도하면 대부분 해결됩니다.",
+      "서버에 문제가 발생했습니다. 잠시 후 다시 시도하세요.",
     oauth_reason_invalid_state:
       "연결 세션이 더 이상 유효하지 않습니다. 처음부터 다시 연결하세요.",
     oauth_reason_expired_state:
       "연결 링크가 만료되었습니다. 처음부터 다시 연결하세요.",
-    oauth_reason_invalid_provider: "유효하지 않은 이메일 제공자입니다.",
+    oauth_reason_invalid_provider: "인식할 수 없는 제공업체입니다. 목록에서 지원되는 제공업체를 선택하세요.",
     oauth_reason_provider_not_configured:
       "이 제공업체는 아직 Aster에 설정되어 있지 않습니다. 도움이 필요하면 hello@astermail.org로 문의하세요.",
     oauth_reason_token_exchange_failed:
       "연결이 완료되지 않았습니다. 다시 시도하세요. 다른 계정은 변경되지 않았습니다.",
     oauth_reason_encryption_error:
-      "연결을 보호할 수 없습니다. 다시 시도하세요. 문제가 계속되면 hello@astermail.org로 문의하세요.",
+      "연결을 보호하지 못했습니다. 다시 시도하세요. 문제가 계속되면 hello@astermail.org로 문의하세요.",
     oauth_reason_account_creation_failed:
       "연결된 계정 설정을 완료하지 못했습니다. 다시 시도하세요.",
     oauth_reason_email_not_found:
-      "제공업체에서 이메일 주소를 가져오지 못했습니다. 다시 시도하고, 계속 실패하면 수동 IMAP 옵션을 사용하세요.",
+      "제공업체에서 이메일 주소를 가져오지 못했습니다. 다시 시도하세요. 계속 실패하면 수동 IMAP 옵션을 사용하세요.",
     oauth_reason_session_expired:
       "로그인 세션이 만료되었습니다. 다시 시도하세요.",
     oauth_reason_unknown:
-      "예상대로 작동하지 않았습니다. 다시 시도하세요. 원인을 파악하지 못했습니다.",
+      "문제가 발생했습니다. 다시 시도하세요.",
     oauth_reason_wrong_account:
       "이 연결은 다른 Aster Mail 계정에서 시작되었습니다. 해당 계정으로 로그인한 후 다시 시도하세요.",
     oauth_setting_up_folders: "폴더 설정 중...",
-    oauth_folders_ready: "폴더가 준비되었습니다",
+    oauth_folders_ready: "폴더가 동기화되었습니다",
     oauth_folders_error: "폴더 설정을 완료하지 못했습니다. 다시 시도하세요.",
     oauth_folders_partial:
       "{{count}}개 폴더 설정이 완료되지 않았으며, 나머지는 사용 준비가 됩니다.",
@@ -8542,13 +8542,13 @@ export const ko = {
     error_tip_spf:
       "SPF 레코드가 이미 있다면 위의 레코드와 병합하세요. SPF 레코드가 두 개 있으면 서로 무효화됩니다.",
     error_tip_dkim:
-      "서명 레코드가 깁니다. 값 전체가 잘리지 않고 붙여넣어졌는지 확인하세요.",
+      "서명 레코드가 깁니다. 값 전체를 잘리지 않게 붙여넣었는지 확인하세요.",
     error_tip_dmarc:
       "일부 DNS 제공업체는 도메인을 자동으로 붙입니다. 호스트에는 _dmarc.yourdomain.com이 아니라 _dmarc만 입력하세요.",
     verify_all_records: "모든 레코드 확인",
     need_help_link: "도움이 필요하신가요?",
-    catch_all_enabled_toast: "수신 전체 주소가 활성화되었습니다",
-    catch_all_disabled: "수신 전체 주소가 비활성화되었습니다",
+    catch_all_enabled_toast: "수신 전체 주소를 켰습니다",
+    catch_all_disabled: "수신 전체 주소를 껐습니다",
     rotate_dkim_key: "DKIM 키 교체",
     rotate_dkim_description:
       "DKIM 서명 키를 교체합니다. DNS 레코드를 업데이트해야 합니다.",
@@ -8569,9 +8569,9 @@ export const ko = {
       "새 DKIM 키가 생성되었습니다. 이메일 서명이 작동하려면 도메인 DNS에서 DKIM 레코드를 업데이트해야 합니다.",
     view_dns_records: "DNS 레코드 보기",
     delete_domain_warning:
-      "이 도메인을 삭제하면 이 도메인의 모든 별칭과 주소가 제거됩니다.",
+      "도메인을 삭제하는 즉시 이 도메인의 모든 주소가 메일을 받지 못하게 됩니다. 이 작업은 되돌릴 수 없습니다.",
     delete_domain_cooldown:
-      "삭제 후 이 도메인은 30일간 다시 추가할 수 없습니다.",
+      "이 도메인을 삭제하면 30일 동안 다시 추가할 수 없습니다.",
     provider_cf_login: "Cloudflare에 로그인하세요",
     provider_cf_select_domain:
       "도메인을 선택한 다음 DNS > Records로 이동하세요",
@@ -8643,7 +8643,7 @@ export const ko = {
     ghost_alias_expire_now: "지금 만료",
     ghost_alias_expire_confirm_title: "이 고스트 별칭을 만료할까요?",
     ghost_alias_expire_confirm_message_named:
-      "{{address}}을(를) 만료하시겠습니까? 복구할 수 없습니다. 유예 기간은 {{date}}까지입니다.",
+      "{{address}}이(가) 만료되면 복구할 수 없습니다. 유예 기간은 {{date}}까지입니다.",
     delete_aliases_confirmation_count:
       "별칭 {{count}}개를 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.",
     delete_alias_confirmation_named:
@@ -8654,7 +8654,7 @@ export const ko = {
     alias_directory_delete_message:
       "{{address}} 디렉터리를 삭제하시겠습니까? 이 패턴의 새 주소로 오는 메일은 더 이상 도착하지 않습니다. 이미 만들어진 별칭은 계속 작동합니다.",
     ghost_alias_expire_confirm_message:
-      "이 별칭을 만료시키시겠습니까? 복구할 수 없습니다. 유예 기간은 {{date}}까지 계속됩니다.",
+      "이 별칭이 만료되면 복구할 수 없습니다. 유예 기간은 {{date}}까지입니다.",
     ghost_alias_max_extension_toast:
       "이 고스트 별칭은 이미 최대 수명인 90일에 도달하여 더 이상 연장할 수 없습니다.",
     ghost_alias_expired_grace: "만료됨 (유예 기간)",
@@ -8663,10 +8663,10 @@ export const ko = {
     blocked_tab: "차단됨",
     allowlist_tab: "허용 목록",
     auto_forward_tab_label: "자동 전달",
-    vacation_reply_tab_label: "휴가 답장",
+    vacation_reply_tab_label: "부재중 자동 응답",
     per_two_years: "/2년",
     password_breach_warning:
-      "이 비밀번호는 데이터 유출에 노출된 것으로 알려져 있습니다. 더 강력한 비밀번호를 사용하면 계정이 더 안전합니다.",
+      "이 비밀번호는 알려진 데이터 유출에서 발견되었습니다. 계정을 안전하게 보호하려면 다른 비밀번호를 선택하세요.",
     browser_on_os: "{{os}}의 {{browser}}",
     n_skipped: "{{count}}개 건너뜀",
     sync_5_min: "5분마다",
@@ -8686,7 +8686,7 @@ export const ko = {
     status_dns_pending: "DNS 대기 중",
     status_suspended: "정지됨",
     key_source_wkd: "WKD",
-    key_source_keyserver: "키 서버",
+    key_source_keyserver: "공개 키 서버",
     key_source_autocrypt: "Autocrypt",
     key_source_dane: "DANE",
     key_source_cached: "캐시됨",
@@ -8711,7 +8711,7 @@ export const ko = {
     import_status_cancelled: "취소됨",
     import_delete_confirm_title: "가져온 이메일 삭제",
     import_delete_confirm_description:
-      "이 가져오기의 모든 이메일을 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.",
+      "이 가져오기 작업으로 가져온 모든 이메일을 삭제합니다. 나중에 빠짐없이 다시 가져올 수 있습니다. 이 작업은 되돌릴 수 없습니다.",
     import_source_gmail: "Gmail",
     import_source_outlook: "Outlook",
     import_source_mbox: "MBOX",
@@ -8744,14 +8744,14 @@ export const ko = {
     export_security_vault_row_help:
       "이 확인은 이 기기에서만 이루어집니다. 로그인할 때 사용하는 비밀번호와 같으며, 이 기기에서 암호화 키의 잠금도 해제합니다.",
     export_security_required_badge: "필수",
-    export_warning_title: "내보내기 전 확인",
+    export_warning_title: "계속하기 전에",
     export_warning_body:
       "내보낸 파일에는 메시지가 암호화되지 않은 상태로 포함됩니다. 클라우드 동기화(OneDrive, iCloud, Dropbox)를 포함해 이 컴퓨터의 파일을 읽을 수 있는 모든 프로그램이 이 파일을 읽을 수 있습니다. 동기화되지 않는 위치에 저장하세요.",
     export_warning_confirm: "이해했습니다, 계속하기",
     export_step_scope_title: "내보낼 내용 선택",
     export_scope_mail_title: "이메일",
     export_scope_mail_body:
-      "표준 mbox 또는 .eml 형식의 모든 메시지와 첨부 파일입니다.",
+      "표준 MBOX 또는 .eml 형식의 모든 메시지와 첨부 파일입니다.",
     export_scope_mail_help:
       "MBOX는 모든 메시지를 하나의 파일로 묶고, .EML은 메시지를 개별 파일로 저장합니다. 두 형식 모두 대부분의 데스크톱 메일 클라이언트에서 사용할 수 있습니다.",
     export_scope_contacts_title: "연락처",
@@ -8759,7 +8759,7 @@ export const ko = {
       "주소록을 vCard 4.0(Apple, Google, Thunderbird 등에서 가져오기 가능)과 전체 JSON으로 내보냅니다.",
     export_scope_contacts_help:
       "vCard 4.0은 대부분의 앱이 직접 가져올 수 있는 범용 연락처 형식입니다. 추가 JSON 파일에는 vCard가 저장할 수 없는 필드가 보존됩니다.",
-    export_scope_settings_title: "설정",
+    export_scope_settings_title: "설정 및 규칙",
     export_scope_settings_body:
       "별칭, 서명, 템플릿, 메일 규칙, 차단 및 허용된 발신자, 폴더와 기타 계정 데이터입니다.",
     export_scope_preset_all: "모두",
@@ -8780,7 +8780,7 @@ export const ko = {
     export_destination_pick_file: "파일 선택",
     export_destination_pick_folder: "폴더 선택",
     export_destination_fallback_notice:
-      "파일 선택기를 사용할 수 없습니다. 다운로드 폴더에 저장됩니다.",
+      "이 브라우저는 디스크에 직접 저장할 수 없으므로, 내보내기가 완료되면 단일 파일로 다운로드됩니다.",
     export_destination_chosen: "저장 위치: {{ location }}",
     export_step_progress_title: "내보내는 중...",
     export_progress_messages: "{{ processed }} / {{ total }} 메시지",
@@ -8790,7 +8790,7 @@ export const ko = {
     export_progress_eta: "남은 시간 약 {{ duration }}",
     export_cancel: "내보내기 취소",
     export_cancelled_partial_saved:
-      "내보내기 취소됨. 진행 상황이 {{location}}에 저장되었습니다.",
+      "내보내기가 취소되었습니다. 일부 파일이 {{ location }}에 보관되었습니다.",
     export_step_complete_title: "내보내기 완료",
     export_step_incomplete_title: "내보내기가 완료되지 않았습니다",
     export_incomplete_summary:
@@ -8817,9 +8817,9 @@ export const ko = {
     export_error_write_partial:
       "내보내기가 도중에 중단되었습니다. 파일에는 지금까지 내보낸 메시지가 들어 있습니다.",
     export_error_write_fatal:
-      "디스크에 쓰는 중 치명적인 오류가 발생했습니다. 공간이 충분한지 확인하고 다시 시도하세요.",
+      "선택한 위치에 쓰지 못해 내보내기가 중지되었습니다.",
     export_error_no_vault:
-      "내보내려면 개인 키가 필요합니다. 로그아웃 후 다시 로그인하면 됩니다.",
+      "암호화 보관함이 잠겨 있습니다. 내보내려면 다시 로그인하세요.",
     export_error_no_messages_match: "선택한 조건에 맞는 메시지가 없습니다.",
     export_rate_limited_paused:
       "내보내기가 일시 중지되었습니다. 잠시 후 자동으로 재개됩니다.",
@@ -8865,7 +8865,7 @@ export const ko = {
     billed_annually: "연간 청구",
     save_annually_hint: "연간 결제로 20% 절약",
     billing_checkout_cancelled:
-      "결제를 취소했습니다. 계정은 그대로이며 아무것도 청구되지 않았습니다. 설정에서 언제든 다시 시도할 수 있습니다.",
+      "결제를 취소했습니다. 청구된 금액은 없습니다. 설정에서 언제든 다시 시도할 수 있습니다.",
     upgrade_resume_title: "업그레이드를 완료하세요",
     upgrade_resume_description:
       "결제를 완료하기 전에 결제 페이지를 나갔습니다. 중단한 부분부터 이어서 진행할 수 있습니다.",
@@ -8927,7 +8927,7 @@ export const ko = {
     referral_claim_already: "이 계정에는 이미 초대가 등록되어 있습니다.",
     referral_claim_self: "자신의 초대 코드는 사용할 수 없습니다.",
     domain_purchase_not_released:
-      "도메인 구매는 아직 제공되지 않습니다. 다음 업데이트에서 지원할 예정입니다.",
+      "도메인 구매는 아직 제공되지 않습니다. 향후 업데이트에서 제공될 예정입니다.",
     domain_step_ownership_title: "이 도메인의 소유자임을 증명하세요",
     domain_step_mx_title: "내 도메인으로 메일 받기",
     domain_step_spf_title: "Aster가 나를 대신해 메일을 보내도록 허용",
@@ -8946,7 +8946,7 @@ export const ko = {
       "이 도메인으로 보낸 메일이 Aster에 도착하지 않습니다. 아래 항목을 고치면 몇 분 안에 수신이 재개됩니다.",
     domain_health_unknown_title: "DNS를 읽지 못했습니다",
     domain_health_unknown_body:
-      "보통 레코드를 방금 변경해 아직 전파되지 않았다는 뜻입니다. 계속 확인하겠습니다.",
+      "보통 레코드가 최근에 변경되어 아직 전파되지 않았다는 뜻입니다. Aster가 계속 확인합니다.",
     domain_health_recheck: "지금 확인",
     domain_health_checking: "확인 중",
     domain_health_last_checked: "마지막 확인: {{when}}",
@@ -9026,7 +9026,7 @@ export const ko = {
     fam_kids_username_ph: "자녀의 사용자 이름",
     fam_kids_info_title: "예약한 자녀 주소",
     fam_kids_info_desc:
-      "주소는 자녀를 위해 확보되며 다른 사람은 사용할 수 없습니다. 나중에 자녀(또는 보호자)가 비공개 비밀번호로 설정을 마치면, 가족에 자동으로 참여하는 실제 제로 액세스 계정이 만들어집니다.",
+      "주소는 자녀를 위해 확보되며 다른 사람은 사용할 수 없습니다. 나중에 자녀 또는 보호자가 비공개 비밀번호로 설정을 마칩니다. 그러면 가족에 자동으로 참여하는 실제 제로 액세스 계정이 만들어집니다.",
     fam_kids_nickname_label: "별명(선택)",
     fam_kids_nickname_ph: "예: 민준",
     fam_kids_storage_label: "이 주소의 저장 공간",
@@ -9045,7 +9045,7 @@ export const ko = {
     fam_kids_cancel: "취소",
     fam_kids_created: "주소를 예약했습니다 · 링크를 복사했습니다",
     fam_kids_address_reserved: "주소를 예약했습니다",
-    fam_kids_create_failed: "해당 주소를 예약하지 못했습니다",
+    fam_kids_create_failed: "해당 주소를 예약하지 못했습니다. 다시 시도하세요.",
     fam_kids_copy_link: "설정 링크 복사",
     fam_kids_link_copied: "설정 링크를 복사했습니다",
     fam_kids_regenerate: "링크 다시 만들기",
@@ -9058,7 +9058,7 @@ export const ko = {
     fam_kids_status_reserved: "예약됨",
     fam_kids_status_claimed: "활성",
     fam_kids_claimed_active: "계정을 설정하고 가족에 참여했습니다",
-    fam_kids_load_failed: "예약을 불러오지 못했습니다",
+    fam_kids_load_failed: "예약을 불러오지 못했습니다. 다시 시도하세요.",
     fam_kids_claim_setup_for: "{{address}} 설정 중",
     fam_kids_claim_intro: "비밀번호를 정해 이 가족 주소 설정을 마치세요.",
     fam_kids_claim_invalid_title: "이 링크는 더 이상 유효하지 않습니다",
@@ -9127,7 +9127,7 @@ export const ko = {
     fam_consent_body_other:
       "이 변경은 모든 가족 구성원의 데이터에 영향을 줍니다. 구성원 {{count}}명에게 동의 요청이 전송됩니다. 모든 구성원이 수락해야 변경이 적용됩니다.",
     purge_confirm_message_other:
-      "{{email}}에서 가져온 메일 {{count}}개를 영구 삭제합니다. 이 작업은 취소할 수 없습니다.",
+      "{{email}}에서 가져온 메일 {{count}}개를 모두 영구 삭제합니다. 이 작업은 되돌릴 수 없습니다.",
     alias_export_summary_other: "{{files}}에 걸쳐 항목 {{count}}개.",
     app_lock_attempts_remaining_other: "{{count}}회 남음",
     vacation_reply_count: "답장 {{count}}개를 보냈습니다",
@@ -9186,7 +9186,7 @@ export const ko = {
     protocol_tooltip_pop3:
       "Aster는 이 계정의 받은편지함에서 새 메일만 가져옵니다. 삭제 등의 변경 사항은 어느 쪽으로도 반영되지 않습니다.",
     show_side_panel_description:
-      "연락처와 다른 빠른 도구를 메일 옆 패널에 표시합니다.",
+      "연락처와 기타 도구를 메일 옆 패널에 표시합니다.",
     sidebar_layout: "사이드바 레이아웃",
     sidebar_layout_description: "사이드바 섹션의 순서와 표시할 섹션을 선택합니다.",
     reset_sidebar_layout: "레이아웃 재설정",
@@ -9290,11 +9290,11 @@ export const ko = {
     block_sender_on_alias_success:
       "{{alias}}에서 {{sender}}을(를) 차단했습니다",
     block_sender_on_alias_failed:
-      "발신자를 차단할 수 없습니다. 다시 시도하세요.",
+      "이 발신자를 차단하지 못했습니다. 다시 시도하세요.",
     block_sender_on_alias_tooltip:
       "이 발신자가 {{alias}}에 도달하지 못하도록 차단",
     encrypted_message_unavailable:
-      "이 메시지를 복호화할 수 없었습니다. 발신자가 오래된 키를 사용했을 수 있습니다.",
+      "이 메시지를 복호화하지 못했습니다. 발신자가 오래된 키를 사용했을 수 있습니다.",
     pgp_password_protected_title: "비밀번호로 보호된 메일",
     pgp_password_protected_description:
       "보낸 사람이 이 메일을 비밀번호로 암호화했습니다. 전달받은 비밀번호를 입력하면 내용을 볼 수 있습니다.",
@@ -9347,7 +9347,7 @@ export const ko = {
     translation_show_original: "원문 보기",
     translation_show_translation: "번역 보기",
     translation_showing_original: "원본 메시지를 표시하고 있습니다.",
-    translation_unavailable: "이 메시지를 번역할 수 없습니다.",
+    translation_unavailable: "이 메시지를 번역하지 못했습니다.",
 
     no_subject: "(제목 없음)",
     no_messages: "메시지 없음",
@@ -9504,7 +9504,7 @@ export const ko = {
       "선택한 메시지는 휴지통으로 이동하며 거기에서 복원할 수 있습니다.",
     delete_messages_title: "메시지 삭제",
     delete_messages_confirmation:
-      "선택한 메시지는 영구히 제거되며 되돌릴 수 없습니다.",
+      "선택한 메시지가 영구적으로 삭제됩니다. 이 작업은 되돌릴 수 없습니다.",
     confirm_bulk_action_scope_description_one:
       "{{scope}}에 있는 메일 1개에 적용됩니다.",
     confirm_bulk_action_count_description_one: "메일 1개에 적용됩니다.",
@@ -9523,14 +9523,14 @@ export const ko = {
     mark_spam_confirmation: "선택한 메시지를 스팸으로 표시하시겠습니까?",
     archive_email_title: "이메일을 보관하시겠습니까?",
     delete_email_confirmation:
-      "이 이메일은 영구히 제거되며 되돌릴 수 없습니다.",
+      "이 이메일이 영구적으로 삭제됩니다. 이 작업은 되돌릴 수 없습니다.",
     empty_trash_confirmation:
-      "휴지통의 모든 항목이 영구히 제거되며 되돌릴 수 없습니다.",
+      "휴지통의 모든 항목이 영구적으로 삭제됩니다. 이 작업은 되돌릴 수 없습니다.",
     empty_tag_subtitle: "이 태그가 붙은 이메일이 여기에 표시됩니다",
     self_destructs_in: "{{time}} 후에 자동 삭제됩니다",
     expires_in_time: "{{time}} 후 만료",
     cancel_scheduled_confirmation:
-      "이 예약 이메일을 취소합니다. 발송되지 않으며 되돌릴 수 없지만, 임시 저장 메일은 보관됩니다.",
+      "예약된 이메일을 취소합니다. 이 작업은 되돌릴 수 없지만 임시 저장 메일은 보관됩니다.",
     shipping_label_created: "라벨 생성됨",
     shipping_shipped: "발송됨",
     shipping_in_transit: "배송 중",
@@ -9566,11 +9566,11 @@ export const ko = {
     self_destruct: "자동 삭제",
     self_destruct_after: "자동 삭제 시간",
     search_history: "검색 기록",
-    search_error: "다시 시도하세요.",
+    search_error: "검색을 완료하지 못했습니다. 다시 시도하세요.",
     delete_draft_confirmation:
-      "이 임시 저장 메일과 저장되지 않은 변경 사항이 영구히 제거됩니다.",
+      "이 임시 저장 메일과 저장되지 않은 변경 사항이 영구적으로 삭제됩니다.",
     plain_text_warning:
-      "일반 텍스트로 전환하면 이 임시 저장 메일의 모든 서식이 제거되며, 작성기는 되돌릴 수 없습니다. 다른 임시 저장 메일에는 영향이 없습니다.",
+      "일반 텍스트로 전환하면 이 임시 저장 메일의 모든 서식이 제거되며 복원할 수 없습니다. 다른 임시 저장 메일에는 영향이 없습니다.",
     remove_formatting: "서식 제거",
     font_color: "글자 색상",
     highlight_color: "강조 색상",
@@ -9728,18 +9728,18 @@ export const ko = {
     delete_permanently_question: "영구 삭제하시겠습니까?",
     empty_spam_folder_question: "스팸 폴더를 비우시겠습니까?",
     empty_spam_description:
-      "스팸의 모든 {{count}}개 메시지가 영구히 제거되며 되돌릴 수 없습니다.",
+      "스팸의 메시지 {{count}}개가 모두 영구적으로 삭제됩니다. 이 작업은 되돌릴 수 없습니다.",
     empty_trash_question: "휴지통을 비우시겠습니까?",
     empty_trash_description:
-      "휴지통의 모든 {{count}}개 메시지가 영구히 제거되며 되돌릴 수 없습니다.",
-    folder_not_found_title: "이 폴더를 찾을 수 없었습니다.",
+      "휴지통의 메시지 {{count}}개가 모두 영구적으로 삭제됩니다. 이 작업은 되돌릴 수 없습니다.",
+    folder_not_found_title: "이 폴더를 찾지 못했습니다",
     folder_not_found_subtitle:
-      "이 폴더는 제거되었거나 존재한 적이 없을 수 있습니다. 사이드바에서 다른 폴더를 선택하면 됩니다.",
-    tag_not_found_title: "이 라벨을 찾을 수 없었습니다.",
+      "이 폴더는 삭제되었거나 처음부터 없었을 수 있습니다. 사이드바에서 다른 폴더를 선택하세요.",
+    tag_not_found_title: "이 라벨을 찾지 못했습니다",
     tag_not_found_subtitle:
-      "이 라벨은 제거되었거나 존재한 적이 없을 수 있습니다. 사이드바에서 다른 라벨을 선택하면 됩니다.",
+      "이 라벨은 삭제되었거나 처음부터 없었을 수 있습니다. 사이드바에서 다른 라벨을 선택하세요.",
     folder_locked_title: "이 폴더는 잠겨 있습니다.",
-    enter_password_to_access: '비밀번호로 "{{folder}}"을(를) 열 수 있습니다.',
+    enter_password_to_access: "\"{{folder}}\"을(를) 열려면 비밀번호를 입력하세요.",
     shortcut_next_email: "다음 이메일",
     shortcut_previous_email: "이전 이메일",
     shortcut_open_email: "이메일 열기",
@@ -9763,7 +9763,7 @@ export const ko = {
     password_description: "수신자가 이메일을 보려면 이 비밀번호가 필요합니다",
     no_password: "비밀번호 없음",
     replying_to: "{{name}}에게 답장 중",
-    reply_sent_successfully: "답장이 성공적으로 전송되었습니다",
+    reply_sent_successfully: "답장을 보냈습니다",
     successfully_unsubscribed: "구독 취소됨",
     unsubscribe_failed: "구독을 취소하지 못했습니다. 나중에 다시 시도하세요.",
     unsubscribe_on_website: "보낸 사람의 웹사이트에서 구독을 취소하세요.",
@@ -9914,7 +9914,7 @@ export const ko = {
     page_jump_invalid: "1에서 {{total}} 사이의 페이지를 입력하세요",
     total_pages_label: "{{count}} 페이지",
     loading_preview: "미리보기 로드 중…",
-    preview_failed: "미리보기가 불러와지지 않았습니다. 이메일을 열면 보입니다.",
+    preview_failed: "미리보기를 불러오지 못했습니다. 이메일을 열어 확인하세요.",
     pdf_preview_failed:
       "이 PDF는 여기에 표시할 수 없습니다. 열려면 다운로드하세요.",
     pdf_password_title: "이 PDF는 암호로 보호되어 있습니다",
@@ -9929,7 +9929,7 @@ export const ko = {
     view_message: "메시지 보기",
     open_full_view: "전체 보기로 열기",
     block_sender_spam_warning:
-      "지금부터 이 보낸 사람의 새 이메일은 곧바로 스팸으로 이동합니다. 차단 목록에서 차단을 해제할 수 있습니다.",
+      "이 보낸 사람의 새 이메일은 스팸으로 이동합니다. 나중에 차단 목록에서 차단을 해제할 수 있습니다.",
     block_sender_confirm_message:
       "{{email}}을(를) 차단하시겠습니까? 더 이상 이메일을 받지 않습니다.",
     blocking: "차단 중...",
@@ -9945,7 +9945,7 @@ export const ko = {
     unsubscribe_confirm_message: "이 메일링 리스트의 구독을 취소하시겠습니까?",
     manual_unsubscribe_link: "수동 구독 취소 링크:",
     max_composers_warning:
-      "작성기는 최대 세 개까지 동시에 열 수 있습니다. 하나를 닫으면 다른 작성기를 시작할 수 있습니다. 임시 저장 메일은 보관됩니다.",
+      "작성 창은 최대 세 개까지 동시에 열 수 있습니다. 새 창을 열려면 하나를 닫으세요. 임시 저장 메일은 보관됩니다.",
     self_destruct_tooltip:
       "이 이메일은 타이머가 만료된 후 영구적으로 삭제됩니다",
     empty_snoozed_title: "다시 알림 설정된 이메일 없음",
@@ -10147,7 +10147,7 @@ export const ko = {
     tracking_protection: "추적 방지",
     spy_pixels_blocked: "스파이 픽셀 차단됨",
     links_cleaned: "링크 정리됨",
-    email_is_clean: "이 이메일에는 추적기가 없습니다",
+    email_is_clean: "이 이메일에서 추적 요소가 감지되지 않았습니다.",
     param_removed_from_n_links: "{{count}}개 링크에서 {{param}} 제거됨",
     n_blocked: "{{count}}개 차단됨",
     official_sender: "Aster 공식 주소",
@@ -10225,7 +10225,7 @@ export const ko = {
     translation_unsupported_info_body_list:
       "번역은 전적으로 기기에서 이뤄지므로 Aster가 제공하는 언어 팩에서만 작동합니다. {{language}} 팩은 아직 없습니다. 지금 사용할 수 있는 언어: {{languages}}. 서버로 전송된 내용은 없습니다.",
     translation_unavailable_info_body:
-      "기기 내 번역기가 이 메일을 끝까지 처리하지 못했습니다. 보통은 언어 팩을 아직 내려받는 중이거나, 메일에 여러 언어가 섞여 있거나, 대부분 이름과 숫자, 링크로 이뤄진 경우입니다. 서버로 전송된 내용은 없습니다.",
+      "기기 내 번역기가 이 메일을 끝까지 처리하지 못했습니다. 언어 팩을 아직 내려받는 중이거나, 메일에 여러 언어가 섞여 있거나, 대부분 이름, 숫자, 링크로 이뤄진 경우에 이런 일이 생길 수 있습니다. 서버로 전송된 내용은 없습니다.",
     more_folders_count_other: "폴더 {{count}}개 더",
     more_messages_count: "메시지 {{count}}개 더",
     more_messages_count_one: "메시지 {{count}}개 더",
@@ -10370,7 +10370,7 @@ export const ko = {
       "이 코드를 안전하게 보관하세요. 비밀번호를 잊어버린 경우 계정을 복구할 수 있는 유일한 방법입니다.",
     download_key: "키 다운로드",
     download_as_text: "텍스트로 다운로드",
-    recovery_download_failed: "다운로드에 실패했습니다. 다시 시도해 주세요.",
+    recovery_download_failed: "파일을 다운로드하지 못했습니다. 다시 시도해 주세요.",
     add_backup_email: "백업 이메일 추가",
     skip_for_now: "지금은 건너뛰기",
     create_your_account: "계정 만들기",
@@ -10435,7 +10435,7 @@ export const ko = {
     password_req_lowercase: "소문자 하나",
     password_req_number: "숫자 하나",
     password_max_length_register: "128자 미만으로 입력하세요.",
-    password_invalid_chars: "사용 가능한 문자는 표준 키보드 문자입니다.",
+    password_invalid_chars: "표준 키보드 문자만 사용하세요.",
     password_error_length: "비밀번호는 8자 이상이어야 합니다.",
     complete_captcha_first: "계속하려면 보안 확인을 완료하세요.",
     password_error_uppercase: "대문자를 하나 이상 포함하세요.",
@@ -10447,17 +10447,17 @@ export const ko = {
     passwords_match: "비밀번호가 일치합니다",
     download_codes_pdf: "PDF로 다운로드",
     passwords_do_not_match_register:
-      "두 비밀번호가 일치하지 않습니다. 다시 입력하면 해결됩니다.",
+      "비밀번호가 일치하지 않습니다. 다시 입력하세요.",
     registration_failed:
-      "가입이 완료되지 않았습니다. 처음부터 다시 시도하면 보통 해결됩니다. 계정은 생성되지 않았습니다.",
+      "가입이 완료되지 않아 계정이 생성되지 않았습니다. 처음부터 다시 시도하세요.",
     recovery_codes_copied: "복구 코드가 복사되었습니다",
     recovery_code_copied: "복구 코드가 복사되었습니다",
     click_eye_reveal: "먼저 눈 아이콘을 클릭하여 코드를 표시하세요",
     continue_without_download: "다운로드 없이 계속",
     please_enter_recovery_email:
-      "복구 이메일은 비밀번호를 잊었을 때 다시 들어올 수 있는 길입니다.",
+      "복구 이메일을 입력하세요. 비밀번호를 잊었을 때 이 이메일로 계정에 다시 접근할 수 있습니다.",
     please_enter_valid_email:
-      "이 주소는 유효한 이메일이 아닌 것 같습니다. name@example.com 같은 형식이면 됩니다.",
+      "name@example.com과 같은 유효한 이메일 주소를 입력하세요.",
     recovery_email_conflict:
       "이 주소는 이미 최대 20개의 Aster 계정에 사용되고 있습니다. 다른 주소를 사용하세요.",
     failed_save_recovery_email:
@@ -10508,8 +10508,8 @@ export const ko = {
     password_fair: "보통",
     password_good: "좋음",
     password_strong: "강함",
-    please_enter_email_address: "여기에는 이메일이 필요합니다.",
-    please_enter_recovery_code: "여기에는 복구 코드 중 하나가 필요합니다.",
+    please_enter_email_address: "이메일 주소를 입력하세요.",
+    please_enter_recovery_code: "복구 코드 중 하나를 입력하세요.",
     invalid_recovery_code:
       "이 코드는 이 계정과 일치하지 않습니다. 저장한 목록과 비교해 다시 입력하세요. 띄어쓰기와 대소문자는 구분하지 않습니다.",
     recovery_locked_out:
@@ -10520,13 +10520,13 @@ export const ko = {
     confirm_password_placeholder: "비밀번호 확인",
     email_address_placeholder: "이메일 주소",
     recovery_failed:
-      "복구가 완료되지 않았습니다. 처음부터 다시 시도하면 보통 해결됩니다. 계정은 그대로입니다.",
+      "계정 복구를 완료하지 못했습니다. 처음부터 다시 시도하세요. 계정은 변경되지 않았습니다.",
     add_special_characters: "특수 문자를 추가하세요 (!@#$%)",
     recovery_codes_start_with_aster:
       "복구 코드는 ASTER-XXXX-XXXX-XXXX-XXXX 형식입니다. 코드를 확인하고 다시 입력하세요.",
     verifying_recovery_code: "복구 코드 확인 중...",
     recovery_session_expired:
-      "이 복구 세션은 종료되었습니다. 복구 흐름을 다시 시작하면 이어집니다. 계정은 그대로입니다.",
+      "이 복구 세션은 종료되었습니다. 복구를 다시 시작하세요. 계정은 변경되지 않았습니다.",
     recovering_account_data: "계정 데이터 복구 중...",
     generating_new_encryption_keys: "새 암호화 키 생성 중...",
     creating_new_recovery_codes: "새 복구 코드 생성 중...",
@@ -10580,10 +10580,10 @@ export const ko = {
     create_new_password: "새 비밀번호 만들기",
     choose_strong_password: "계정을 위한 강력한 비밀번호를 선택하세요",
     recovering_your_account: "계정 복구 중",
-    please_dont_close: "계정을 복구하는 동안 이 창을 닫지 마세요.",
+    please_dont_close: "Aster가 계정을 복구하는 동안 이 창을 열어 두세요.",
     save_new_recovery_codes: "새 복구 코드 저장",
     old_codes_invalidated:
-      "기존 복구 코드는 더 이상 작동하지 않습니다. 이 창을 닫기 전에 새 코드를 안전한 곳에 저장해두면 계속 안전하게 사용할 수 있습니다.",
+      "기존 복구 코드는 더 이상 작동하지 않습니다. 이 창을 닫기 전에 새 코드를 안전한 곳에 저장하세요.",
     n_recovery_codes: "{{count}}개의 복구 코드",
     recovery_code_already_used:
       "이 코드는 이미 사용되었습니다. 각 코드는 한 번만 사용할 수 있으므로 저장한 목록에서 다른 코드를 입력하세요.",
@@ -10682,13 +10682,13 @@ export const ko = {
     recovery_email_required_notice:
       "스팸 방지를 위해 복구 이메일이 필요합니다.",
     abuse_flagged_message:
-      "보안 시스템이 당분간 이 네트워크에서의 신규 가입을 중단했습니다. 잘못된 표시로 보이면 hello@astermail.org에서 도움을 받을 수 있습니다.",
+      "보안 시스템이 당분간 이 네트워크에서의 신규 가입을 중단했습니다. 잘못되었다고 생각되면 hello@astermail.org로 문의하세요.",
     abuse_blocked_device:
       "이 기기에서 만들 수 있는 Aster 계정 수가 이미 최대치에 도달했습니다. 오류라고 생각되면 참조 번호와 함께 hello@astermail.org로 문의하세요.",
     abuse_blocked_network:
-      "보안 시스템이 이 네트워크에서의 신규 가입을 일시적으로 중지했습니다. 나중에 다시 시도하거나, 다른 네트워크로 전환하거나, VPN을 끄세요. 오류라고 생각되면 hello@astermail.org에서 도움을 받을 수 있습니다.",
+      "보안 시스템이 이 네트워크에서의 신규 가입을 일시적으로 중지했습니다. 나중에 다시 시도하거나, 다른 네트워크로 전환하거나, VPN을 끄세요. 잘못되었다고 생각되면 hello@astermail.org로 문의하세요.",
     abuse_blocked_proof:
-      "브라우저가 보안 확인을 완료하지 못했습니다. 앱을 업데이트하거나 페이지를 새로 고친 뒤 다시 시도하세요. 계속 반복되면 hello@astermail.org에서 도움을 받을 수 있습니다.",
+      "브라우저가 보안 확인을 완료하지 못했습니다. 앱을 업데이트하거나 페이지를 새로 고친 뒤 다시 시도하세요. 계속 반복되면 hello@astermail.org로 문의하세요.",
     abuse_blocked_risk:
       "보안 시스템이 이 가입을 확인하지 못했습니다. 검토를 요청하려면 참조 번호와 함께 hello@astermail.org로 문의하세요.",
     abuse_block_reference: "참조 번호: {{reference}}",
@@ -10704,10 +10704,10 @@ export const ko = {
     contact_support: "지원팀에 문의하세요",
     recovery_email_verified: "복구 이메일이 인증되었습니다",
     recovery_email_verified_desc:
-      "복구 이메일이 성공적으로 인증되어 계정에 연결되었습니다.",
-    verification_failed: "인증이 완료되지 않았습니다.",
+      "복구 이메일이 인증되어 계정에 연결되었습니다.",
+    verification_failed: "이메일을 인증하지 못했습니다.",
     verification_failed_desc:
-      "이 링크는 만료되었거나 더 이상 일치하지 않습니다. 계정 설정에서 새 인증 이메일을 받으면 됩니다.",
+      "이 링크는 만료되었거나 더 이상 유효하지 않습니다. 계정 설정에서 새 인증 이메일을 보내세요.",
     go_to_inbox: "받은 편지함으로 이동",
     end_to_end_encrypted: "종단간 암호화됨",
     browser_login_title: "브라우저로 로그인",
@@ -10720,7 +10720,7 @@ export const ko = {
     welcome_subtitle:
       "현대적인 이메일, 나를 위해 암호화되어 다른 누구도 읽을 수 없습니다.",
     pair_device_cancel: "취소",
-    pair_device_failed: "기기 페어링에 실패했습니다. 다시 시도하면 됩니다.",
+    pair_device_failed: "페어링을 완료하지 못했습니다. 데스크톱 앱에서 처음부터 다시 시작하세요. 계정은 변경되지 않았습니다.",
     device_code_title: "기기 코드",
     device_code_instruction:
       "브라우저에서 Aster Mail을 열고 설정으로 이동한 뒤 이 코드를 입력하여 기기를 페어링하세요.",
@@ -10728,9 +10728,9 @@ export const ko = {
     device_code_open_browser: "브라우저에서 열기",
     device_code_expired: "코드가 만료되었습니다",
     device_code_expired_description:
-      "페어링 코드가 만료되었습니다. 새 코드를 생성하세요.",
+      "이 코드가 만료되었습니다. 데스크톱 앱에서 새 코드를 받으세요.",
     device_code_get_new: "새 코드 받기",
-    device_code_waiting: "페어링 대기 중...",
+    device_code_waiting: "확인 대기 중",
     device_code_expires_in: "만료까지",
     link_device_title: "기기 연결",
     link_device_enter_code: "연결하려는 앱에 표시된 연결 코드를 입력하세요.",
@@ -10783,8 +10783,8 @@ export const ko = {
     link_device_invalid_code:
       "연결 코드는 8자입니다. 코드를 확인하고 다시 시도하세요.",
     link_device_expired_code:
-      "이 코드는 만료되었거나 일치하지 않습니다. 연결하려는 앱에 현재 코드가 표시되어 있습니다.",
-    link_device_failed: "기기 연결에 실패했습니다. 다시 시도하면 됩니다.",
+      "이 코드는 만료되었거나 일치하지 않습니다. 연결하려는 앱에 표시된 현재 코드를 사용하세요.",
+    link_device_failed: "기기를 연결하지 못했습니다. 처음부터 다시 시도하세요. 계정은 변경되지 않았습니다.",
     link_keys_locked_title: "키링이 잠겨 있습니다",
     link_keys_locked_description:
       "Aster Mail은 이 기기의 키를 시스템 키링에 보관하지만 키링을 열 수 없습니다. 키링 잠금을 해제한 후 다시 시도하세요.",
@@ -10803,14 +10803,14 @@ export const ko = {
     link_code_failed_description:
       "Aster Mail이 지금 이 기기의 코드를 만들 수 없습니다. 다시 시도하고, 계속 발생하면 아래 참조 코드와 함께 지원팀에 문의하세요.",
     link_device_try_again:
-      "작동하지 않았습니다. 처음부터 다시 시작하면 대부분 해결됩니다.",
+      "작동하지 않았습니다. 처음부터 다시 시도하세요.",
     trust_this_device_30_days: "이 기기를 30일간 신뢰",
     passkey_sign_in: "패스키로 로그인",
     use_another_method: "다른 방법 사용",
     webauthn_not_supported:
       "이 브라우저는 보안 키를 지원하지 않습니다. 다른 브라우저를 사용하거나 비밀번호로 로그인하세요.",
     account_flagged_notice:
-      "보안 시스템이 이 계정을 표시했습니다. 문의가 필요하면 hello@astermail.org로 연락하세요.",
+      "자동 보안 시스템이 당분간 계정에 제한을 적용하여 일부 기능을 사용하지 못할 수 있습니다. 나머지 기능은 정상적으로 작동합니다. 잘못되었다고 생각되면 hello@astermail.org로 문의하세요.",
     username_in_use:
       "이 사용자 이름은 이미 사용 중입니다. 다른 이름을 선택하세요.",
     password_breach_warning:
@@ -10867,13 +10867,13 @@ export const ko = {
       "Bridge 기기를 연결하려면 Star 이상 요금제가 필요합니다. 업그레이드한 뒤 계속하세요.",
     link_device_upgrade_title: "이 기기를 연결하려면 업그레이드하세요",
     link_device_upgrade_description:
-      "데스크톱 Bridge를 계정에 연결하려면 Star 이상 요금제가 필요합니다. 아래에서 요금제를 고르면 결제 직후 기기가 연결됩니다.",
+      "데스크톱 Bridge를 계정에 연결하려면 Star 이상 요금제가 필요합니다. 아래에서 요금제를 선택하면 결제 후 기기가 연결됩니다.",
     link_device_already_linked:
       "이 기기는 다른 계정에 이미 연결되어 있습니다. 해당 계정에서 연결을 해제한 뒤 다시 시도하세요.",
     link_device_rate_limited:
       "시도 횟수가 너무 많습니다. 1분 정도 기다린 뒤 다시 시도하세요.",
     link_device_account_suspended:
-      "이 계정은 정지된 상태여서 지금은 새 기기를 연결할 수 없습니다. 지원팀에 문의해 해결하세요.",
+      "이 계정은 정지된 상태여서 지금은 새 기기를 연결할 수 없습니다. 이 문제를 해결하려면 지원팀에 문의하세요.",
     plan_academic_discount_note:
       "이메일 인증이 끝나면 결제 시 30% 할인이 자동으로 적용됩니다.",
     plan_referral_discount_note: "추천 할인은 결제 시 자동으로 적용됩니다.",
@@ -10897,7 +10897,7 @@ export const ko = {
   passkeys: {
     passkey_setup_cancelled: "패스키 설정이 취소되었습니다.",
     security_key_not_found:
-      "인증이 취소되었거나 기기 인증 수단을 사용할 수 없습니다.",
+      "인증이 취소되었거나 이 기기에서 사용할 수 있는 인증 수단이 없습니다.",
     no_platform_authenticator:
       "이 장치에 Windows Hello가 설정되어 있지 않습니다. Windows 설정 > 계정 > 로그인 옵션으로 이동하여 PIN, 지문 또는 얼굴 인식을 추가하세요.",
     saved_to_password_manager:
@@ -10944,14 +10944,14 @@ export const ko = {
     rename_saved: "이름이 업데이트되었습니다",
   },
   errors: {
-    alias_sending_disabled: "이 별칭에서 보내기가 비활성화되어 있습니다. 먼저 활성화하세요.",
+    alias_sending_disabled: "이 별칭에서 보내기가 꺼져 있습니다. 이 별칭으로 보내려면 먼저 보내기를 켜세요.",
     auth_salt_collision:
       "서버가 안전하지 않은 값을 보내 로그인이 중단되었으며 아무것도 잠금 해제되지 않았습니다. 다시 시도하기 전에 지원팀에 문의하세요.",
     legacy_login_salt_new_device:
       "계정의 보안 업데이트를 완료하려면 이전에 Aster를 사용한 기기에서 로그인하세요. 그럴 수 없다면 복구 키로 비밀번호를 재설정하세요.",
     upload_too_large:
       "업로드 용량이 너무 큽니다. 계속하려면 파일을 삭제하거나 크기를 줄인 다음 다시 시도하세요.",
-    failed_remove_reaction: "반응을 삭제하지 못했습니다. 다시 시도해 주세요.",
+    failed_remove_reaction: "반응을 삭제하지 못했습니다. 다시 시도하세요.",
     cannot_react_own_message: "자신의 메시지에는 반응할 수 없습니다.",
     cannot_react_draft: "임시 보관 또는 예약된 메시지에는 반응할 수 없습니다.",
     cannot_react_spam_or_trash:
@@ -10971,19 +10971,19 @@ export const ko = {
     reactions_disabled: "설정에서 반응이 꺼져 있습니다.",
     pending_email_verification:
       "이메일을 확인하고 인증 링크를 클릭하여 이 계정을 활성화하세요.",
-    generic: "다시 시도하세요.",
+    generic: "문제가 발생했습니다. 다시 시도하세요.",
     network:
-      "서버에 닿을 수 없었습니다. 연결을 확인하고 다시 시도하면 보통 해결됩니다.",
+      "서버에 연결하지 못했습니다. 연결을 확인하고 다시 시도하세요.",
     unauthorized:
-      "이 작업을 할 수 있는 권한이 없습니다. 잘못된 표시로 보이면 관리자가 도움을 줄 수 있습니다.",
+      "이 작업을 수행할 권한이 없습니다. 오류라고 생각되면 관리자에게 문의하세요.",
     not_found:
-      "그 항목을 찾을 수 없었습니다. 이동되었거나 제거되었을 수 있습니다.",
-    validation: "강조 표시된 항목을 한 번 더 살펴보면 됩니다.",
+      "해당 항목을 찾지 못했습니다. 이동되었거나 삭제되었을 수 있습니다.",
+    validation: "강조 표시된 항목을 확인하고 다시 시도하세요.",
     server:
-      "서버 쪽에서 문제가 생겼습니다. 잠시 뒤 다시 시도하면 보통 해결됩니다. 살펴보고 있습니다.",
+      "서버에 문제가 발생했습니다. 잠시 후 다시 시도하세요.",
     timeout:
-      "요청이 완료되기까지 시간이 너무 오래 걸렸습니다. 연결을 확인하고 다시 시도하면 보통 해결됩니다.",
-    rate_limit: "너무 빠르게 시도했습니다. 잠시 후 다시 시도하세요.",
+      "요청 시간이 초과되었습니다. 연결을 확인하고 다시 시도하세요.",
+    rate_limit: "너무 자주 시도했습니다. 잠시 후 다시 시도하세요.",
     invalid_credentials:
       "이메일 또는 비밀번호가 올바르지 않습니다. 다시 시도하거나 astermail.org/reset에서 비밀번호를 재설정하세요.",
     session_expired:
@@ -10992,61 +10992,61 @@ export const ko = {
     sign_in_domain_unsupported:
       "가입할 때 사용한 astermail.org 또는 aster.cx 주소로 로그인하세요. 직접 보유한 도메인의 주소도 같은 계정으로 연결됩니다.",
     invalid_username: "3자에서 40자 사이의 사용자 이름을 입력하세요.",
-    enter_password: "계속하려면 비밀번호가 필요합니다.",
+    enter_password: "계속하려면 비밀번호를 입력하세요.",
     password_too_long:
-      "이 비밀번호는 길이 제한을 넘습니다. 더 짧은 비밀번호면 됩니다.",
+      "이 비밀번호는 너무 깁니다. 더 짧은 비밀번호를 사용하세요.",
     account_not_found:
       "해당 이름의 계정을 찾을 수 없습니다. 철자를 확인하거나 astermail.org/reset에서 비밀번호를 재설정하세요.",
     login_failed:
-      "로그인이 완료되지 않았습니다. 다시 시도하세요. 계정은 잠기지 않았습니다.",
+      "로그인하지 못했습니다. 다시 시도하세요. 계정은 잠기지 않았습니다.",
     decrypt_failed:
-      "이 기기에서 그 비밀번호로 키를 열 수 없었습니다. 다시 시도하면 풀리며, 계속 실패하면 astermail.org/reset의 복구 코드가 대안입니다. 서버의 데이터는 그대로입니다.",
+      "이 비밀번호로 이 기기의 키를 잠금 해제하지 못했습니다. 다시 시도하세요. 계속 실패하면 astermail.org/reset에서 복구 코드를 사용하세요. 서버의 데이터는 변경되지 않았습니다.",
     send_limit_reached:
-      "일일 발송 한도에 도달했습니다. {{time}} 뒤에 다시 시도하면 됩니다. 임시 저장 메일은 보관됩니다.",
+      "일일 발송 한도에 도달했습니다. {{time}} 후에 다시 시도하세요. 임시 저장 메일은 보관됩니다.",
     ip_blocked:
       "로그인 실패 횟수가 너무 많습니다. {{time}} 기다린 뒤 다시 시도하세요. 계정은 잠기지 않았습니다.",
-    an_error_occurred: "다시 시도하세요.",
+    an_error_occurred: "문제가 발생했습니다. 다시 시도하세요.",
     failed_to_block_sender: "이 발신자를 차단하지 못했습니다. 다시 시도하세요.",
     failed_to_snooze:
       "이 이메일에 다시 알림을 설정하지 못했습니다. 다시 시도하세요. 이메일은 아직 받은편지함에 있습니다.",
     ghost_alias_not_found:
-      "이 스레드에 연결된 고스트 주소를 찾을 수 없었습니다.",
+      "이 스레드의 고스트 별칭을 찾지 못했습니다.",
     failed_to_resolve_ghost_alias:
-      "이 대화의 고스트 주소를 불러오지 못했습니다. 다시 시도하세요.",
+      "이 스레드의 고스트 별칭을 불러오지 못했습니다. 다시 시도하세요.",
     ghost_alias_rate_limit:
-      "이번 달 고스트 별칭을 모두 사용했습니다. 요금제를 업그레이드하거나 다음 달 초기화를 기다리면 더 사용할 수 있습니다.",
+      "이번 달 고스트 별칭을 모두 사용했습니다. 더 사용하려면 요금제를 업그레이드하거나 매월 초기화를 기다리세요.",
     ghost_alias_already_exists: "이 고스트 별칭은 이미 계정에 있습니다.",
     failed_to_create_ghost_alias:
       "이 고스트 별칭을 저장하지 못했습니다. 다시 시도하세요. 다른 별칭은 변경되지 않았습니다.",
     ghost_expiry_extend_only:
-      "고스트 주소는 기간을 늘릴 수만 있고 줄일 수는 없습니다.",
+      "고스트 별칭의 만료 기간은 늘릴 수만 있고 줄일 수는 없습니다.",
     ghost_expiry_update_failed:
-      "만료 기간이 업데이트되지 않았습니다. 다시 시도하세요.",
-    failed_to_activate_ghost_mode: "다시 시도하세요.",
+      "만료 기간을 업데이트하지 못했습니다. 다시 시도하세요.",
+    failed_to_activate_ghost_mode: "고스트 모드를 켜지 못했습니다. 다시 시도하세요.",
     wrong_vault_password:
       "그 비밀번호로는 이 기기의 키를 잠금 해제할 수 없습니다. 다시 시도하세요. 계속 실패하면 astermail.org/reset에서 복구 코드를 사용하세요. 서버의 데이터는 변경되지 않았습니다.",
     vault_tampered:
-      "이 기기의 암호화된 데이터가 예상과 다릅니다. 변조의 가능성이 있습니다. 설정의 보안에서 확인할 수 있고, 경고가 계속되면 hello@astermail.org으로 문의하면 됩니다. 서버의 데이터는 그대로입니다.",
+      "이 기기의 암호화된 데이터가 Aster가 예상한 것과 일치하지 않으며, 이는 변조의 징후일 수 있습니다. 확인하려면 설정 > 보안으로 이동하세요. 경고가 다시 나타나면 hello@astermail.org로 문의하세요. 서버의 데이터는 변경되지 않았습니다.",
     vault_version_drift:
-      "암호화 저장소가 이전 버전의 Aster에서 만들어졌고, 지금 업그레이드하고 있습니다. 데이터는 안전하며 이 과정은 한 번만 진행됩니다.",
+      "Aster가 이전 버전의 암호화 저장소를 업그레이드하고 있습니다. 데이터는 안전하며, 이 과정은 한 번만 진행됩니다.",
     vault_missing_key:
-      "이 저장소를 읽는 데 필요한 기기 키를 찾지 못했습니다. 로그아웃 후 다시 로그인하면 이 기기가 다시 연결됩니다. 서버의 데이터는 그대로입니다.",
+      "이 저장소를 읽는 데 필요한 기기 키를 찾지 못했습니다. 이 기기를 다시 연결하려면 로그아웃한 뒤 다시 로그인하세요. 서버의 데이터는 변경되지 않았습니다.",
     wrong_folder_password:
       "폴더 비밀번호가 올바르지 않습니다. 다시 시도하세요. 폴더는 잠긴 상태로 유지됩니다.",
     wrong_external_account_password:
-      "외부 계정 비밀번호가 일치하지 않았습니다. 설정에서 확인한 뒤 다시 시도하면 됩니다. 저장된 연결은 그대로입니다.",
+      "외부 계정의 비밀번호가 일치하지 않습니다. 설정에서 확인한 뒤 다시 시도하세요. 저장된 연결은 변경되지 않았습니다.",
     decrypt_wrong_key:
-      "이 기기에는 이 이메일을 읽을 올바른 키가 없습니다. 로그아웃 후 다시 로그인하면 해결됩니다. 이메일은 서버에 안전하게 있습니다.",
+      "이 기기에는 이 이메일을 읽을 올바른 키가 없습니다. 로그아웃한 뒤 다시 로그인하세요. 이메일은 서버에 안전하게 있습니다.",
     decrypt_corrupt_ciphertext:
-      "이 이메일은 서버에 있지만 전송 중 손상된 것으로 보입니다. 새로 고침 후 다시 시도하면 해결됩니다. 계속 실패한다면 hello@astermail.org이 도와드릴 수 있습니다.",
+      "이 이메일은 서버에 있지만 다운로드 중에 손상되었습니다. 새로 고친 뒤 다시 시도하세요. 계속 실패하면 hello@astermail.org로 문의하세요.",
     decrypt_sender_error:
-      "발신자가 이 이메일을 읽을 수 없는 방식으로 암호화했습니다. 발신자에게 다시 보내 달라고 요청하세요. 다른 이메일에는 영향이 없습니다.",
+      "발신자가 이 이메일을 Aster에서 읽을 수 없는 형식으로 암호화했습니다. 발신자에게 다시 보내 달라고 요청하세요. 다른 이메일에는 영향이 없습니다.",
     metadata_undecryptable_change:
       "이 기기에서는 이 메시지의 세부 정보를 열 수 없어 변경사항이 저장되지 않습니다. 키를 다시 불러오려면 로그아웃한 다음 다시 로그인하세요. 서버의 메시지는 그대로입니다.",
     no_unsubscribe_method:
-      "이 발신자는 수신거부 헤더를 포함하지 않았습니다. 이메일 본문의 링크를 사용하거나 스팸으로 표시해도 같은 결과를 얻을 수 있습니다.",
+      "이 발신자는 수신거부 헤더를 포함하지 않았습니다. 수신거부하려면 이메일 본문의 링크를 사용하거나 스팸으로 표시하세요.",
     invalid_unsubscribe_address:
-      "발신자의 수신거부 주소가 잘못된 형식으로 보입니다. 이메일 본문의 링크로 발신자 사이트에서 수신거부할 수 있습니다.",
+      "이 발신자의 수신거부 주소가 유효하지 않습니다. 수신거부하려면 이메일 본문의 링크를 사용하세요.",
     tor_unsupported_platform:
       "Aster Mail에서는 Tor를 사용할 수 없습니다. Tor를 사용하려면 Tor Browser에서 Aster Mail을 여세요.",
     tor_native_only:
@@ -11060,15 +11060,15 @@ export const ko = {
     device_challenge_mismatch:
       "이 기기의 신원 확인이 일치하지 않았습니다. 변조의 가능성이 있습니다. 데스크톱 앱에서 다시 페어링하면 되고, 경고가 계속되면 hello@astermail.org으로 문의하면 됩니다.",
     metadata_migration_stalled:
-      "여러 차례 시도했지만 로컬 저장소 업그레이드를 마치지 못했습니다. 연결을 확인하고 Aster를 다시 열면 해결됩니다. 서버의 메일은 안전합니다.",
+      "여러 차례 시도했지만 로컬 저장소 업그레이드를 마치지 못했습니다. 연결을 확인하고 Aster를 다시 여세요. 서버의 메일은 안전합니다.",
     failed_to_queue_email:
-      "이 이메일을 나중에 보내도록 저장하지 못했습니다. 다시 시도하세요. 임시 보관함에 저장되었습니다.",
+      "이 이메일을 전송 대기열에 추가하지 못했습니다. 다시 시도하세요. 임시 보관함에 저장되었습니다.",
     failed_to_send_queued:
       "이 이메일을 보내지 못했습니다. 다시 시도하세요. 임시 보관함에 저장되었습니다.",
     failed_to_send_external_queued:
       "연결된 외부 계정으로 이 이메일을 보내지 못했습니다. 다시 시도하세요. 임시 보관함에 저장되었습니다.",
     authentication_failed:
-      "로그인이 완료되지 않았습니다. 다시 시도하세요. 계정은 잠기지 않았습니다.",
+      "로그인하지 못했습니다. 다시 시도하세요. 계정은 잠기지 않았습니다.",
     failed_to_snooze_email:
       "이 이메일에 다시 알림을 설정하지 못했습니다. 다시 시도하세요. 이메일은 아직 받은편지함에 있습니다.",
     failed_to_unsnooze_email:
@@ -11076,26 +11076,26 @@ export const ko = {
     failed_to_list_snoozed:
       "다시 알림 설정된 이메일을 불러오지 못했습니다. 다시 시도하세요. 서버에 안전하게 있습니다.",
     auth_required: "계속하려면 로그인하세요.",
-    no_permission: "해당 작업을 수행할 권한이 없습니다.",
+    no_permission: "이 작업을 수행할 권한이 없습니다. 오류라고 생각되면 관리자에게 문의하세요.",
     invalid_request:
       "요청을 처리할 수 없습니다. 페이지를 새로고침하고 다시 시도하세요.",
-    conflict: "이 작업이 충돌을 일으킵니다. 새로고침 후 다시 시도하면 됩니다.",
-    rate_limited: "너무 빠르게 시도했습니다. 잠시 후 다시 시도하세요.",
-    internal_error: "내부 오류가 발생했습니다. 잠시 후 다시 시도하세요.",
+    conflict: "다른 곳에서 먼저 변경되었습니다. 최신 버전을 보려면 새로고침하세요.",
+    rate_limited: "너무 자주 시도했습니다. 잠시 후 다시 시도하세요.",
+    internal_error: "서버에 문제가 발생했습니다. 잠시 후 다시 시도하세요.",
     request_timeout:
       "요청 시간이 초과되었습니다. 연결을 확인하고 다시 시도하세요.",
     encryption_keys_not_loaded:
-      "이 기기에 암호화 키가 불러와져 있지 않습니다. 로그아웃 후 다시 로그인하면 됩니다.",
+      "이 기기에서 개인 키가 잠겨 있습니다. 잠금을 해제하려면 비밀번호를 입력하세요. 서버의 키는 변경되지 않았습니다.",
     session_expired_reenter:
-      "세션이 종료되었습니다. 다시 로그인하면 이어서 사용할 수 있습니다.",
+      "세션이 종료되었습니다. 계속하려면 비밀번호를 입력하세요. 작업 내용은 저장되었습니다.",
     encryption_keys_unavailable:
-      "암호화 키를 사용할 수 없습니다. 로그아웃 후 다시 로그인하면 됩니다.",
+      "이 기기에서 개인 키가 잠겨 있습니다. 잠금을 해제하려면 비밀번호를 입력하세요. 서버의 키는 변경되지 않았습니다.",
     crypto_module_unavailable:
-      "이 기기에서 암호화를 불러오지 못했습니다. 페이지를 새로고침하면 대개 해결됩니다. 계속 발생하면 연결을 확인하세요.",
+      "이 기기에서 암호화를 불러오지 못했습니다. 페이지를 새로고침하세요. 계속 발생하면 연결을 확인하세요.",
     ratchet_key_generation_failed:
       "이 기기에서 암호화 키를 만들지 못해 계정이 생성되지 않았습니다. 다시 시도하고, 계속 발생하면 페이지를 새로고침하세요.",
     session_expired_send:
-      "세션이 종료되어 이메일을 보낼 수 없습니다. 다시 로그인하면 됩니다.",
+      "이메일을 보내기 전에 세션이 종료되었습니다. 보내려면 다시 로그인하세요. 임시 보관함에 저장되었습니다.",
     failed_encrypt_envelope:
       "이 이메일을 보낼 수 있도록 보호하지 못했습니다. 다시 시도하세요. 임시 보관함에 저장되었습니다.",
     pgp_attachments_too_large:
@@ -11105,20 +11105,20 @@ export const ko = {
     no_authenticated_account:
       "이 기기에서 로그인된 계정을 찾을 수 없습니다. 계속하려면 로그인하세요.",
     daily_limit_reached:
-      "일일 발송 한도에 도달했습니다. {{time}} 후에 다시 시도하면 됩니다. 임시 저장 메일은 보관됩니다.",
+      "일일 발송 한도에 도달했습니다. {{time}} 후에 다시 시도하세요. 임시 저장 메일은 보관됩니다.",
     that_provider: "이 사업자",
     too_many_recipients:
-      "이 메일의 받는 사람이 한 통으로 보낼 수 있는 수를 넘었습니다. 이 계정은 한 번에 {{max}}명까지 보낼 수 있으며, 이 한도는 첫 주 동안 올라갑니다. 여러 번에 나눠 보내면 전송됩니다. 임시보관함에 저장되었습니다.",
+      "이 메일의 받는 사람이 너무 많습니다. 이 계정은 한 번에 {{max}}명까지 보낼 수 있으며, 이 한도는 첫 주 동안 올라갑니다. 여러 번에 나눠 보내세요. 임시보관함에 저장되었습니다.",
     recipient_concentration:
-      "{{domain}}의 주소로 한 시간에 허용되는 만큼 이미 보냈습니다. 한 번에 한 사업자에게 이렇게 많이 보내면 메일 서버가 차단됩니다. {{time}} 후에 다시 시도하면 전송됩니다. 임시보관함에 저장되었습니다.",
+      "{{domain}} 주소로 보낼 수 있는 시간당 한도에 도달했습니다. 한 사업자에게 한 번에 이렇게 많은 메일을 보내면 메일 서버가 차단됩니다. {{time}} 후에 다시 시도하세요. 임시보관함에 저장되었습니다.",
     attachments_too_large:
-      "첨부파일 크기의 합계가 {{size}}을 넘습니다. 현재 요금제에서 메일 한 통에 담을 수 있는 최대 크기입니다. 파일을 지우거나 줄이면 보낼 수 있습니다. 초안이 저장되었습니다.",
+      "첨부파일 크기의 합계가 현재 요금제의 메일 한 통 한도인 {{size}}을(를) 넘습니다. 보내려면 파일을 삭제하거나 크기를 줄이세요. 초안이 저장되었습니다.",
     too_many_attachments:
-      "이 메일의 첨부파일이 {{max}}개를 넘습니다. 메일 한 통에 담을 수 있는 최대 개수입니다. 몇 개를 지우면 보낼 수 있습니다. 초안이 저장되었습니다.",
+      "이 메일의 첨부파일이 메일 한 통 한도인 {{max}}개를 넘습니다. 보내려면 첨부파일 일부를 삭제하세요. 초안이 저장되었습니다.",
     failed_send_email:
       "이 이메일을 보내지 못했습니다. 다시 시도하세요. 임시 보관함에 저장되었습니다.",
     cannot_send_no_keys:
-      "필수 암호화가 켜져 있지만 {{recipients}}의 키가 없습니다. 보내려면 키 공유를 요청하거나 설정에서 필수 암호화를 끄세요. 임시 보관함에 저장되었습니다.",
+      "필수 암호화가 켜져 있지만 Aster에 {{recipients}}의 키가 없습니다. 보내려면 키 공유를 요청하거나 설정에서 필수 암호화를 끄세요. 임시 보관함에 저장되었습니다.",
     sender_address_refused:
       "Aster가 보낸 사람 필드의 주소로 이 메시지를 보낼 수 없습니다. 메시지를 보내려면 다른 주소를 선택하세요. 초안은 저장되어 있습니다.",
     cannot_send_no_recipient_keys:
@@ -11142,13 +11142,13 @@ export const ko = {
     failed_send_external:
       "연결된 외부 계정으로 이 이메일을 보내지 못했습니다. 다시 시도하세요. 임시 보관함에 저장되었습니다.",
     failed_queue_email:
-      "이 이메일을 나중에 보내도록 저장하지 못했습니다. 다시 시도하세요. 임시 보관함에 저장되었습니다.",
+      "이 이메일을 전송 대기열에 추가하지 못했습니다. 다시 시도하세요. 임시 보관함에 저장되었습니다.",
     no_active_account:
       "이 기기에서 로그인된 계정을 찾을 수 없습니다. 계속하려면 로그인하세요.",
     failed_queue_reply:
-      "이 답장을 나중에 보내도록 저장하지 못했습니다. 다시 시도하세요. 임시 보관함에 저장되었습니다.",
+      "이 답장을 전송 대기열에 추가하지 못했습니다. 다시 시도하세요. 임시 보관함에 저장되었습니다.",
     failed_queue_forward:
-      "이 전달 메일을 나중에 보내도록 저장하지 못했습니다. 다시 시도하세요. 임시 보관함에 저장되었습니다.",
+      "이 전달 메일을 전송 대기열에 추가하지 못했습니다. 다시 시도하세요. 임시 보관함에 저장되었습니다.",
     failed_send:
       "이 이메일을 보내지 못했습니다. 다시 시도하세요. 임시 보관함에 저장되었습니다.",
     send_unconfirmed:
@@ -11158,17 +11158,17 @@ export const ko = {
     scheduled_may_have_sent:
       "이 예약된 이메일은 이미 전송되었을 수 있어 취소되지 않았습니다. 보낸 편지함을 확인하세요.",
     no_keys_available:
-      "암호화 키를 사용할 수 없습니다. 로그아웃 후 다시 로그인하면 됩니다.",
+      "이 기기에서 개인 키가 잠겨 있습니다. 잠금을 해제하려면 비밀번호를 입력하세요. 서버의 키는 변경되지 않았습니다.",
     session_identity_mismatch:
-      "이 기기가 다른 계정으로 로그인되어 있어 계정을 분리하기 위해 로그아웃했습니다. 다시 로그인하기만 하면 됩니다. 데이터는 그대로입니다.",
+      "이 기기가 다른 계정으로 로그인되어 있어, 계정을 분리하기 위해 Aster가 로그아웃했습니다. 다시 로그인하세요. 데이터는 변경되지 않았습니다.",
     vault_rolled_back:
       "이 기기에는 서버가 보낸 것보다 최신 암호화 키 사본이 있으므로 Aster Mail이 이전 사본을 사용하지 않았습니다. 다시 로그인하세요. 이 문제가 계속되면 지원팀에 문의하세요.",
     key_material_unavailable:
-      "키 자료를 사용할 수 없습니다. 로그아웃 후 다시 로그인하면 됩니다.",
+      "이 기기에서 개인 키가 잠겨 있습니다. 잠금을 해제하려면 비밀번호를 입력하세요. 서버의 키는 변경되지 않았습니다.",
     storage_compromised:
-      "저장소가 손상된 것으로 보입니다. 보안 설정에서 확인하거나 hello@astermail.org로 문의하세요.",
+      "이 기기의 암호화된 데이터가 Aster가 예상한 것과 일치하지 않으며, 이는 변조의 징후일 수 있습니다. 로그아웃한 뒤 다시 로그인하세요. 경고가 다시 나타나면 즉시 hello@astermail.org로 문의하세요. 서버의 데이터는 변경되지 않았습니다.",
     registration_cancelled: "가입이 취소되었습니다.",
-    authentication_failed_webauthn: "패스키 로그인이 완료되지 않았습니다. 다시 시도하거나 다른 인증 방법을 사용하세요.",
+    authentication_failed_webauthn: "패스키로 로그인하지 못했습니다. 다시 시도하거나 다른 인증 방법을 사용하세요.",
     passkey_sign_in_not_found: "패스키 로그인이 취소되었거나 이 계정의 패스키를 찾을 수 없습니다. 다시 시도하거나 다른 인증 방법을 사용하세요.",
     passkey_sign_in_timed_out: "패스키 로그인 시간이 초과되었습니다. 다시 시도하고 기기에서 요청하면 확인하세요.",
     passkey_sign_in_not_supported: "이 브라우저에서는 이 페이지에서 패스키를 사용할 수 없습니다. 다른 브라우저를 사용하거나 다른 인증 방법을 사용하세요.",
@@ -11181,7 +11181,7 @@ export const ko = {
     alias_invalid_chars:
       "별칭은 영문자, 숫자, 점, 밑줄, 하이픈만 사용할 수 있습니다.",
     domain_empty: "도메인 이름을 입력하세요.",
-    domain_too_long: "도메인 이름이 너무 깁니다.",
+    domain_too_long: "이 도메인은 너무 깁니다. 더 짧은 도메인을 사용하세요.",
     domain_reserved:
       "astermail.org와 aster.cx는 여기에 사용할 수 없습니다. 소유한 다른 도메인을 사용하세요.",
     domain_invalid_format: "유효한 도메인을 입력하세요.",
@@ -11189,14 +11189,14 @@ export const ko = {
       "이 도메인의 한 부분이 너무 길거나 짧습니다. 도메인을 확인하고 다시 시도하세요.",
     domain_invalid_chars:
       "이 도메인에 허용되지 않는 문자가 있습니다. 철자를 확인하고 다시 시도하세요.",
-    address_empty: "주소를 입력하세요.",
+    address_empty: "주소에서 @ 앞부분을 입력하세요.",
     address_too_short: "한 글자 이상 입력하세요.",
     address_too_long: "64자 이하로 입력하세요.",
-    address_invalid_chars: "주소에 유효하지 않은 문자가 포함되어 있습니다.",
+    address_invalid_chars: "영문자, 숫자, 점, 밑줄, 하이픈만 사용하세요.",
     address_consecutive_dots: "주소에 연속된 점(.)이 포함될 수 없습니다.",
     address_numeric_only: "주소는 숫자만으로 구성될 수 없습니다.",
     max_accounts:
-      "동시에 최대 {{max}}개 계정을 사용할 수 있습니다. 하나를 제거하면 다른 계정을 추가할 수 있습니다.",
+      "최대 {{max}}개 계정에 동시에 로그인할 수 있습니다. 다른 계정을 추가하려면 하나를 제거하세요.",
     account_already_added:
       "이 계정은 이미 이 기기에 로그인되어 있습니다. 계정 메뉴에서 전환하세요.",
     client_upgrade_required:
@@ -11204,22 +11204,22 @@ export const ko = {
     failed_encrypt_draft:
       "이 기기에 임시 저장본을 안전하게 저장하지 못했습니다. 다시 시도하세요. 입력한 내용은 작성 창에 그대로 있습니다.",
     failed_decrypt_draft:
-      "임시 저장 복호화에 실패했습니다. 다시 시도하면 됩니다.",
+      "이 기기에서 이 임시 저장 메일을 열지 못했습니다. 로그아웃한 뒤 다시 로그인하고 다시 시도하세요.",
     version_conflict:
-      "버전 충돌이 발생했습니다. 새로고침 후 다시 시도하면 됩니다.",
-    no_emails_in_mbox: "이 MBOX 파일에서 이메일을 찾을 수 없습니다.",
-    no_emails_in_pst: "이 PST 파일에서 이메일을 찾을 수 없습니다.",
-    no_data_in_csv: "이 CSV 파일에 데이터가 없습니다.",
+      "다른 곳에서 먼저 변경되었습니다. 최신 버전을 보려면 새로고침하세요.",
+    no_emails_in_mbox: "이 MBOX 파일에 읽을 수 있는 이메일이 없습니다. 다른 내보내기 파일을 사용해 보세요.",
+    no_emails_in_pst: "이 PST 파일에 읽을 수 있는 이메일이 없습니다. 다른 내보내기 파일을 사용해 보세요.",
+    no_data_in_csv: "이 CSV 파일에 행이 없습니다. 다른 파일을 사용해 보세요.",
     email_skipped_size:
       "이메일 {{number}}번이 50 MB 제한을 초과하여 건너뜠습니다. 나머지 가져오기는 계속됩니다.",
     failed_parse_email:
       "이메일 {{number}}번을 읽을 수 없었습니다: {{error}}. 나머지 가져오기는 계속됩니다.",
     failed_parse_pst:
-      "이 PST 파일의 메시지를 읽을 수 없었습니다: {{error}}. Outlook에서 MBOX로 내보내는 것이 대안입니다.",
+      "이 PST 파일의 메시지를 읽지 못했습니다: {{error}}. 대신 Outlook에서 MBOX로 내보내세요.",
     pst_conversion_required:
       "Aster는 PST 파일을 직접 읽을 수 없습니다. 가져오려면 Outlook에서 이메일을 MBOX 또는 개별 EML 파일로 내보내세요.",
     failed_parse_pst_file:
-      "이 PST 파일을 읽을 수 없었습니다: {{error}}. 이메일 클라이언트에서 MBOX로 내보내면 보통 해결됩니다.",
+      "이 PST 파일을 읽지 못했습니다: {{error}}. 이메일 클라이언트에서 MBOX로 내보낸 뒤 다시 시도하세요.",
     no_valid_emails_csv:
       "이 CSV에서 사용할 수 있는 이메일을 찾지 못했습니다. 파일에는 from, to, subject, body, date 같은 열이 필요합니다. 열 제목을 확인하고 다시 시도하세요.",
     failed_parse_csv:
@@ -11231,27 +11231,27 @@ export const ko = {
     emails_skipped_invalid: "{{count}}개 이메일이 유효하지 않아 건너뜠습니다.",
     unrecognized_format:
       "Aster가 {{name}}을(를) 읽을 수 없습니다. 지원되는 형식은 MBOX, EML, CSV, PST입니다. 이 중 하나로 저장한 후 다시 시도하세요.",
-    unexpected_health_check_error: "다시 시도하세요.",
+    unexpected_health_check_error: "진단 중 오류가 발생했습니다. 다시 시도하세요.",
     all_emails_rejected:
       "이 파일의 이메일 {{count}}개가 모두 발신자나 본문이 없어 건너뛰었으므로 아무것도 가져오지 않았습니다. 원본 내보내기 파일을 확인하고 다시 시도하세요.",
     alias_not_available:
       "이 별칭은 이미 사용 중입니다. 다른 별칭을 사용해 보세요.",
     connection_failed:
-      "서버에 연결할 수 없습니다. 연결을 확인하고 다시 시도해 보세요.",
-    failed_to_snooze_emails: "다시 시도하세요.",
+      "서버에 연결하지 못했습니다. 연결을 확인하고 다시 시도하세요.",
+    failed_to_snooze_emails: "이 이메일들에 다시 알림을 설정하지 못했습니다. 다시 시도하세요.",
     file_too_large:
       "이 파일의 크기는 {{size}} MB로 {{limit}} MB 제한을 초과합니다. 더 작은 파일을 사용해 보세요.",
     health_check_failed: "진단이 완료되지 않았습니다. 다시 시도하세요.",
     incorrect_password:
       "비밀번호가 올바르지 않습니다. 다시 시도하세요. 계정은 잠기지 않았습니다.",
-    no_recipients: "보내기 전에 수신자가 한 명 이상 필요합니다.",
+    no_recipients: "보내기 전에 수신자를 한 명 이상 추가하세요.",
     registration_failed:
-      "회원가입이 완료되지 않았습니다. 처음부터 다시 시도해 보세요. 계정이 생성되지 않았습니다.",
+      "가입이 완료되지 않아 계정이 생성되지 않았습니다. 처음부터 다시 시도하세요.",
     session_expired_login:
       "세션이 종료되었습니다. 계속하려면 다시 로그인하세요. 데이터와 임시 저장 메일은 서버에 저장되어 있습니다.",
-    unexpected_error: "예상대로 작동하지 않았습니다. 다시 시도하세요.",
+    unexpected_error: "문제가 발생했습니다. 다시 시도하세요.",
     unknown_error:
-      "예상대로 작동하지 않았습니다. 다시 시도하세요. 원인을 파악하지 못했습니다.",
+      "문제가 발생했습니다. 다시 시도하세요.",
     post_quantum_unavailable:
       "Aster 계정 간 메일은 양자 내성 암호로 보호되지만 {{recipients}}님은 아직 양자 내성 키를 게시하지 않았습니다. 상대방에게 Aster를 열거나 앱을 업데이트해 달라고 요청한 뒤 다시 시도하세요. 임시보관한 메일은 저장되어 있습니다.",
     load_failed: "불러오지 못했습니다. 다시 시도하세요.",
@@ -11301,8 +11301,8 @@ export const ko = {
     upgrade_title: "폴더 자동 정리는 유료 기능입니다",
     upgrade_body:
       "Star 이상으로 업그레이드하면 폴더를 자동으로 정리할 수 있습니다.",
-    save_failed: "자동 정리 규칙을 저장하지 못했습니다.",
-    load_failed: "자동 정리 규칙을 불러오지 못했습니다.",
+    save_failed: "자동 정리 규칙을 저장하지 못했습니다. 다시 시도하세요.",
+    load_failed: "자동 정리 규칙을 불러오지 못했습니다. 다시 시도하세요.",
     deleted_toast: "자동 정리 규칙을 삭제했습니다.",
     saved_toast: "자동 정리 규칙을 저장했습니다.",
   },
@@ -11324,7 +11324,7 @@ export const ko = {
     expr_expected_string: '따옴표로 묶은 값을 입력하세요. 예: "example.com"',
     expr_expected_number: "여기에 숫자를 입력하세요.",
     expr_invalid_number: "숫자가 올바르지 않습니다.",
-    expr_expected_is: '여기에는 "is"라는 단어가 들어갑니다.',
+    expr_expected_is: "여기에는 \"is\"라는 단어가 와야 합니다.",
     expr_expected_bool_value: "여기에 true 또는 false를 입력하세요.",
     expr_expected_bool_value_got:
       '여기에는 "{{value}}"이(가) 아니라 true 또는 false를 입력하세요.',
@@ -11379,9 +11379,9 @@ export const ko = {
     apply_to_existing: "기존 메일에 지금 적용",
     apply_to_existing_started:
       "이 규칙을 기존 메일에 적용하는 중입니다. 백그라운드에서 실행됩니다.",
-    apply_to_existing_failed: "이 규칙 적용을 시작할 수 없습니다.",
+    apply_to_existing_failed: "이 규칙 적용을 시작하지 못했습니다. 다시 시도하세요.",
     apply_to_existing_cancel: "적용 중지",
-    apply_to_existing_cancel_failed: "이 실행을 중지할 수 없습니다.",
+    apply_to_existing_cancel_failed: "이 실행을 중지하지 못했습니다. 다시 시도하세요.",
     apply_to_existing_queued: "대기 중...",
     apply_to_existing_progress:
       "적용 중: {{scanned}}개 확인, {{applied}}개 업데이트",
@@ -11432,7 +11432,7 @@ export const ko = {
     action_apply_label: "라벨 적용",
     action_apply_labels: "라벨 적용",
     alias_delivery_conflict:
-      "별칭 {{ alias }}은(는) {{ alias_target }}으로 배달하지만, {{ rule_target }}(으)로 보내는 이 규칙이 우선합니다.",
+      "별칭 {{ alias }}은(는) {{ alias_target }}(으)로 배달되지만, 이 규칙은 {{ rule_target }}(으)로 보내며 규칙이 우선합니다.",
     alias_label_conflict:
       "별칭 {{ alias }}은(는) 메일에 {{ alias_target }}을(를) 지정하며, 이 규칙은 {{ rule_target }}도 추가합니다.",
     action_mark_as: "표시",
@@ -11487,11 +11487,11 @@ export const ko = {
       "이 정규식 패턴은 너무 복잡해서 저장할 수 없습니다. 반복이나 대안을 줄인 후 다시 시도하세요.",
     regex_invalid_reason:
       "이 정규식 패턴이 올바르지 않습니다: {{reason}}",
-    regex_too_long: "이 정규식이 너무 깁니다. 줄인 버전이면 됩니다.",
+    regex_too_long: "이 정규식이 너무 깁니다. 줄인 뒤 다시 시도하세요.",
     last_condition_required:
-      "이 규칙을 저장하기 전에 최소 하나의 조건이 필요합니다.",
+      "이 규칙을 저장하기 전에 조건을 하나 이상 추가하세요.",
     last_action_required:
-      "이 규칙을 저장하기 전에 최소 하나의 작업이 필요합니다.",
+      "이 규칙을 저장하기 전에 작업을 하나 이상 추가하세요.",
     read: "읽음",
     unread: "읽지 않음",
     none: "없음",
@@ -11549,18 +11549,18 @@ export const ko = {
     more_actions: "더 많은 작업",
     coming_soon: "곧 제공 예정",
     untitled_rule_name: "제목 없는 규칙",
-    hint_name_required: "여기에 이 규칙의 이름이 필요합니다.",
+    hint_name_required: "이 규칙의 이름을 입력하세요.",
     hint_conditions_required:
-      "이 규칙을 저장하기 전에 최소 하나의 조건이 필요합니다.",
+      "이 규칙을 저장하기 전에 조건을 하나 이상 추가하세요.",
     hint_actions_required:
-      "이 규칙을 저장하기 전에 최소 하나의 작업이 필요합니다.",
+      "이 규칙을 저장하기 전에 작업을 하나 이상 추가하세요.",
     hint_condition_incomplete:
-      "이 규칙을 저장하기 전에 모든 조건을 입력해야 합니다.",
-    hint_forward_required: "전달할 이메일 주소가 여기에 필요합니다.",
-    hint_snooze_required: "다시 알림 날짜가 여기에 필요합니다.",
-    hint_categorize_required: "여기에 분류가 필요합니다.",
-    hint_move_to_required: "이동할 폴더가 필요합니다.",
-    hint_labels_required: "라벨이 하나 이상 필요합니다.",
+      "이 규칙을 저장하기 전에 모든 조건을 완성하세요.",
+    hint_forward_required: "전달할 이메일 주소를 입력하세요.",
+    hint_snooze_required: "다시 알림 날짜를 선택하세요.",
+    hint_categorize_required: "분류를 선택하세요.",
+    hint_move_to_required: "이동할 폴더를 선택하세요.",
+    hint_labels_required: "라벨을 하나 이상 선택하세요.",
     remove_action: "작업 제거",
     field_section_recipient: "수신자 / 발신자",
     field_section_content: "내용",
@@ -11577,7 +11577,7 @@ export const ko = {
     expression_parse_error:
       "이 표현식은 유효하지 않습니다. 구문을 확인하고 다시 시도하세요.",
     cannot_render_visual:
-      "이 규칙에는 시각적 편집기에서 표시할 수 없는 중첩된 조건이 있습니다. 표현식 보기에서 편집할 수 있습니다.",
+      "이 규칙에는 시각적 편집기에서 표시할 수 없는 중첩된 조건이 있습니다. 편집하려면 표현식 보기를 사용하세요.",
     templates_button: "템플릿",
     templates_title: "규칙 템플릿",
     templates_subtitle:
@@ -11637,7 +11637,7 @@ export const ko = {
     show_in_signature_description: "발신 이메일 서명에 활성 배지를 포함합니다.",
     granted_at: "{date}에 획득",
     empty_state: "아직 배지를 찾지 못했습니다.",
-    claim_failed: "다시 시도하세요.",
+    claim_failed: "이 배지를 저장하지 못했습니다. 다시 시도하세요.",
   },
   secure_view: {
     preview: "미리 보기",
@@ -11658,7 +11658,7 @@ export const ko = {
     unlocking: "잠금 해제 중...",
     wrong_password: "비밀번호가 올바르지 않습니다. 다시 시도하세요.",
     locked: "시도 횟수가 너무 많습니다. 나중에 다시 시도하세요.",
-    decrypt_failed: "이 메시지를 복호화할 수 없습니다.",
+    decrypt_failed: "이 메시지를 복호화하지 못했습니다.",
     loading: "불러오는 중...",
     not_found: "이 보안 메시지를 찾을 수 없습니다.",
     attachments: "첨부 파일",
@@ -11669,21 +11669,21 @@ export const ko = {
     reply_button: "답장 보내기",
     reply_sending: "보내는 중...",
     reply_sent: "답장이 전송되었습니다.",
-    reply_failed: "답장을 보낼 수 없습니다. 다시 시도하세요.",
+    reply_failed: "답장을 보내지 못했습니다. 다시 시도하세요.",
     reply_limit_reached: "이 메시지는 답장 한도에 도달했습니다.",
     delete_button: "메시지 삭제",
     delete_confirm_prompt:
       "이 메시지를 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.",
     delete_confirm_yes: "삭제",
     delete_confirm_no: "취소",
-    delete_failed: "이 메시지를 삭제할 수 없습니다. 다시 시도하세요.",
+    delete_failed: "이 메시지를 삭제하지 못했습니다. 다시 시도하세요.",
   },
   compose: {},
   shared_mailboxes: {
     tab_label: "공유 메일함",
     create: "만들기",
     created: "공유 메일함을 만들었습니다",
-    create_failed: "공유 메일함을 만들지 못했습니다",
+    create_failed: "공유 메일함을 만들지 못했습니다. 다시 시도하세요.",
     create_hint:
       "공유 메일함 {{count}}/{{max}}. 접근 권한이 있는 모두가 같은 주소로 읽고 보냅니다.",
     limit_reached:
@@ -11699,11 +11699,11 @@ export const ko = {
     rotate: "키 갱신",
     rotated: "메일함 키를 갱신했습니다",
     rotate_conflict:
-      "갱신하는 동안 구성원 목록이 변경되었습니다. 목록을 새로 고쳤으니 다시 시도하세요.",
+      "키를 갱신하는 동안 구성원 목록이 변경되었습니다. Aster가 목록을 새로 고쳤습니다. 키 갱신을 다시 시도하세요.",
     revoke_rotation_pending:
-      "접근을 제거했지만 키를 갱신하지 못했습니다. 접근 권한 업데이트를 누르세요. 그때까지 구성원은 접근 권한을 유지합니다.",
+      "접근 권한을 제거했지만 키를 갱신하지 못했습니다. 완료하려면 접근 권한 업데이트를 누르세요. 그때까지 구성원은 접근 권한을 유지합니다.",
     created_grant_pending:
-      "메일함을 만들었지만 접근 설정에 실패했습니다. 메일함 행을 열어 본인에게 접근 권한을 부여하세요.",
+      "메일함을 만들었지만 Aster가 접근 권한을 설정하지 못했습니다. 사용하려면 메일함 행을 열어 본인에게 접근 권한을 부여하세요.",
     load_failed_retry:
       "공유 메일함을 불러오지 못했습니다. 다시 시도하려면 누르세요.",
     open: "열기",
@@ -11768,7 +11768,7 @@ export const ko = {
   },
   survey: {
     banner_message:
-      "Aster를 함께 만들어 주세요: 한 번뿐인 약 1분 설문입니다. 답변은 비공개로 유지되며 절대 공유되지 않습니다.",
+      "한 번만 진행되는 설문에 참여하여 Aster 개선에 도움을 주세요. 약 1분 정도 걸리며, 답변은 비공개로 유지되고 절대 공유되지 않습니다.",
     banner_take: "설문 참여",
     banner_dismiss: "닫기",
     remind_tomorrow: "내일 다시 알림",
@@ -11822,7 +11822,7 @@ export const ko = {
     submit: "제출",
     submit_failed: "설문을 제출하지 못했습니다. 다시 시도해 주세요.",
     submitted_thanks:
-      "감사합니다! 보내주신 의견이 모두를 위한 더 나은 Aster Mail을 만듭니다. 모든 답변을 꼼꼼히 읽습니다.",
+      "감사합니다. 보내주신 의견은 Aster Mail 개선에 도움이 되며, 모든 답변을 꼼꼼히 읽습니다.",
   },
   calendar: {
     beta_waitlist_title: "Aster Calendar",
@@ -12347,7 +12347,7 @@ export const ko = {
     section_protections_count: "보호 기능 {{total}}개 중 {{on}}개 켜짐",
     section_on_description: "승인된 기기가 로그인과 중요한 변경 사항을 보호합니다.",
     intro_title: "Aster Guard",
-    intro_lead: "Aster Guard는 이메일에 새로운 방식의 보호를 제공합니다. 새 로그인은 모두 내 기기에서 승인하고, 위험한 변경은 중단할 수 있도록 일정 시간 대기합니다.",
+    intro_lead: "Aster Guard를 사용하면 새 로그인은 모두 내 기기에서 승인하고, 위험한 변경은 중단할 수 있도록 일정 시간 대기합니다.",
     intro_approve_title: "새 로그인 승인",
     intro_approve_body: "새 기기에 표시된 숫자를 신뢰하는 휴대폰에 입력하세요.",
     intro_hold_title: "위험한 변경 보류",

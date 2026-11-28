@@ -43,6 +43,7 @@ import { SettingsSkeleton } from "@/components/settings/settings_skeleton";
 import { InfoHint } from "@/components/settings/aliases/info_hint";
 import { INSTANT_ALIAS_DELETE_KEY } from "@/components/settings/hooks/use_aliases";
 import { ConfirmationModal } from "@/components/modals/confirmation_modal";
+import { show_upgrade_plans } from "@/stores/upgrade_store";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
 import { app_locale, get_display_time_zone } from "@/utils/date_format";
@@ -380,7 +381,8 @@ export function GhostAliasesSection() {
         )}
       </IslandSections>
       <ConfirmationModal
-        confirm_text={null}
+        cancel_text={t("common.close")}
+        confirm_text={t("common.upgrade")}
         is_open={too_new_info.is_open}
         message={t("settings.ghost_alias_too_new_message", {
           date: too_new_info.eligible_date ?? "",
@@ -388,9 +390,10 @@ export function GhostAliasesSection() {
         on_cancel={() =>
           set_too_new_info({ is_open: false, eligible_date: null })
         }
-        on_confirm={() =>
-          set_too_new_info({ is_open: false, eligible_date: null })
-        }
+        on_confirm={() => {
+          set_too_new_info({ is_open: false, eligible_date: null });
+          show_upgrade_plans();
+        }}
         title={t("settings.ghost_alias_too_new_title")}
         variant="info"
       />

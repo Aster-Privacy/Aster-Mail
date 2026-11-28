@@ -538,7 +538,7 @@ describe("DomainHealthPanel", () => {
 
     const el = await render();
 
-    expect(el.textContent).toContain("We could not read your DNS");
+    expect(el.textContent).toContain("Couldn't read your DNS");
     expect(el.textContent).not.toContain("You are not receiving email");
   });
 
@@ -547,6 +547,6 @@ describe("DomainHealthPanel", () => {
 
     const el = await render();
 
-    expect(el.textContent).toContain("We could not read your DNS");
+    expect(el.textContent).toContain("Couldn't read your DNS");
   });
 });
