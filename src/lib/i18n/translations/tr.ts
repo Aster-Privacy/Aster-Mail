@@ -20,6 +20,20 @@
 //
 export const tr = {
   common: {
+    safety_number_compare: "Güvenlik numaralarını karşılaştır",
+    safety_number_section_title: "Şifreleme",
+    safety_number: "Güvenlik numarası",
+    safety_number_not_verified: "Doğrulanmadı",
+    safety_number_verified: "Doğrulandı",
+    safety_number_status_changed: "Değişti",
+    safety_number_changed: "Güvenlik numarası değişti",
+    safety_number_description: "Şifreli e-postalarınızı yalnızca {{name}} kişisinin okuyabildiğinden emin olmak için bu rakamları yüz yüze veya bir arama sırasında {{name}} kişisinin cihazındaki rakamlarla karşılaştırın.",
+    safety_number_changed_description: "{{name}} kişisinin hesap anahtarı değişti. E-postalarınız hâlâ şifreli. {{name}} kişisinin anahtarlarının başka kimsede olmadığından emin olmak için güvenlik numaralarını yeniden karşılaştırın.",
+    safety_number_unavailable: "Güvenlik numarası şu anda kullanılamıyor. Daha sonra yeniden deneyin.",
+    safety_number_copy: "Numarayı kopyala",
+    safety_number_mark_verified: "Doğrulandı olarak işaretle",
+    safety_number_clear: "Doğrulamayı kaldır",
+    safety_number_save_failed: "Doğrulama kaydedilmedi. Yeniden deneyin.",
     couldnt_load: "Yüklenemedi.",
     try_again_action: "Tekrar dene",
     merge_primary_label: "Birincil",
@@ -9534,8 +9548,14 @@ export const tr = {
       "Bu gönderenin şifreleme kimliği son mesajlaşmanızdan bu yana değişti. Bunu beklemiyorsan, bu kişiyle başka bir yoldan doğrula.",
     sender_identity_downgraded:
       "Bu gönderenin mesajları artık kuantum sonrası korumaya sahip değil. Bunu beklemiyorsan, bu kişiyle başka bir yoldan doğrula.",
+    recipient_identity_downgraded:
+      "{{email}} adresine giden mesajlar artık kuantum sonrası korumaya sahip değil. Bunu beklemiyorsan, bu kişiyle başka bir yoldan doğrula.",
     sender_identity_unreadable:
       "Bu gönderenin kayıtlı şifreleme anahtarı bu cihazda okunamıyor, bu yüzden bu ileti doğrulanamıyor. İletilerini yeniden doğrulamak için anahtarı bu kişiyle başka bir yoldan doğrulayın, ardından Yeni anahtara güven seçeneğini belirleyin.",
+    sender_identity_unverified:
+      "Bu iletinin bu göndericiden geldiği doğrulanamıyor. Beklemiyorsanız bunu kişiyle başka bir yoldan teyit edin.",
+    sender_identity_mismatch:
+      "Bu ileti, bu göndericinin yayımladığı anahtarla eşleşmeyen bir anahtarla şifrelendi. Anahtarı kişiyle başka bir yoldan teyit edene kadar iletiye güvenmeyin.",
     recipient_identity_changed:
       "{{email}} için şifreleme anahtarı değişti. Bunu beklemiyorsan, hassas bilgi göndermeden önce bu değişikliği kişiyle başka bir yoldan doğrula.",
     message_password_requirements:

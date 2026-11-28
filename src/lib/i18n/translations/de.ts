@@ -20,6 +20,20 @@
 //
 export const de = {
   common: {
+    safety_number_compare: "Sicherheitsnummern vergleichen",
+    safety_number_section_title: "Verschlüsselung",
+    safety_number: "Sicherheitsnummer",
+    safety_number_not_verified: "Nicht verifiziert",
+    safety_number_verified: "Verifiziert",
+    safety_number_status_changed: "Geändert",
+    safety_number_changed: "Sicherheitsnummer geändert",
+    safety_number_description: "Um sicherzustellen, dass nur {{name}} Ihre verschlüsselten E-Mails lesen kann, vergleichen Sie diese Zahlen mit denen auf dem Gerät von {{name}}, persönlich oder in einem Anruf.",
+    safety_number_changed_description: "Der Kontoschlüssel von {{name}} hat sich geändert. Ihre E-Mails bleiben verschlüsselt. Um sicherzustellen, dass niemand sonst die Schlüssel von {{name}} besitzt, vergleichen Sie die Sicherheitsnummern erneut.",
+    safety_number_unavailable: "Die Sicherheitsnummer ist gerade nicht verfügbar. Versuchen Sie es später erneut.",
+    safety_number_copy: "Nummer kopieren",
+    safety_number_mark_verified: "Als verifiziert markieren",
+    safety_number_clear: "Verifizierung entfernen",
+    safety_number_save_failed: "Die Verifizierung wurde nicht gespeichert. Versuchen Sie es erneut.",
     couldnt_load: "Laden fehlgeschlagen.",
     try_again_action: "Erneut versuchen",
     merge_primary_label: "Hauptkontakt",
@@ -9725,8 +9739,14 @@ export const de = {
       "Die Verschlüsselungsidentität dieses Absenders hat sich seit Ihrem letzten Nachrichtenaustausch geändert. Wenn Sie das nicht erwartet haben, bestätigen Sie es auf einem anderen Weg mit dieser Person.",
     sender_identity_downgraded:
       "Die Nachrichten dieses Absenders sind nicht mehr durch Post-Quanten-Verschlüsselung geschützt. Wenn Sie das nicht erwartet haben, bestätigen Sie es auf einem anderen Weg mit dieser Person.",
+    recipient_identity_downgraded:
+      "Nachrichten an {{email}} sind nicht mehr durch Post-Quanten-Verschlüsselung geschützt. Wenn Sie das nicht erwartet haben, bestätigen Sie es auf einem anderen Weg mit dieser Person.",
     sender_identity_unreadable:
       "Der gespeicherte Verschlüsselungsschlüssel dieses Absenders kann auf diesem Gerät nicht gelesen werden, daher lässt sich diese Nachricht nicht verifizieren. Bestätigen Sie den Schlüssel auf anderem Weg mit dieser Person und wählen Sie dann „Neuem Schlüssel vertrauen“.",
+    sender_identity_unverified:
+      "Es lässt sich nicht verifizieren, dass diese Nachricht von diesem Absender stammt. Wenn Sie sie nicht erwartet haben, bestätigen Sie sie auf anderem Weg mit dieser Person.",
+    sender_identity_mismatch:
+      "Diese Nachricht wurde mit einem Schlüssel verschlüsselt, der nicht zum veröffentlichten Schlüssel dieses Absenders passt. Vertrauen Sie ihr erst, wenn Sie den Schlüssel auf anderem Weg mit dieser Person bestätigt haben.",
     recipient_identity_changed:
       "Der Verschlüsselungsschlüssel von {{email}} hat sich geändert. Wenn Sie das nicht erwartet haben, bestätigen Sie die Änderung auf einem anderen Weg mit dieser Person, bevor Sie vertrauliche Inhalte senden.",
     message_password_requirements:

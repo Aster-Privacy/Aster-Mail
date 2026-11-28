@@ -123,6 +123,10 @@ import { sync_all_ratchet_states } from "@/services/crypto/ratchet_sync";
 import { wait_for_sync_encryption_key } from "@/services/crypto/ratchet_conversation";
 import { backfill_pq_secrets_to_server } from "@/services/crypto/pq_prekey_store";
 import { start_prekey_seal_migration } from "@/services/crypto/prekey_seal_migration";
+import {
+  start_format_retirement,
+  stop_format_retirement,
+} from "@/services/format_retirement";
 import { reconcile_pq_secrets_with_server } from "@/services/crypto/pq_secret_reconciler";
 import { sync_escrow_to_cache } from "@/services/crypto/message_escrow";
 import { generate_and_upload_prekeys } from "@/services/crypto/prekey_service";
@@ -377,7 +381,10 @@ const level2_storage = create_level2_storage({
 
 on_vault_cleared((event) => {
   level2_storage.handle_cleared(event);
-  if (!event.same_owner) stop_mail_legacy_migration();
+  if (!event.same_owner) {
+    stop_mail_legacy_migration();
+    stop_format_retirement();
+  }
 });
 
 on_vault_stored((event) => {
@@ -402,6 +409,7 @@ on_vault_stored((event) => {
           );
       },
     );
+    start_format_retirement(event.owner_id);
   }
   level2_storage
     .handle_stored(event)

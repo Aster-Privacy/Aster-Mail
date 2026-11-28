@@ -33,7 +33,9 @@ import {
 } from "react";
 
 import {
+  get_message_sender_identity,
   get_peer_identity_event,
+  subscribe_message_sender_identity,
   subscribe_peer_identity_events,
 } from "@/services/crypto/ratchet_verification_status";
 import { confirm_internal_key_trust } from "@/services/key_trust_consent";
@@ -119,6 +121,11 @@ export function EmailViewerContent({
   const peer_identity_event = useSyncExternalStore(
     subscribe_peer_identity_events,
     () => get_peer_identity_event(email.sender.email),
+    () => null,
+  );
+  const message_sender_identity = useSyncExternalStore(
+    subscribe_message_sender_identity,
+    () => get_message_sender_identity(email.id),
     () => null,
   );
   const { preferences } = use_preferences();
@@ -668,6 +675,22 @@ export function EmailViewerContent({
               )}
             </p>
           )}
+          {!peer_identity_event &&
+            !is_system &&
+            (message_sender_identity === "unverified" ||
+              message_sender_identity === "mismatch") && (
+              <p
+                className="mb-3 text-xs text-txt-tertiary"
+                data-testid="message-sender-identity-notice"
+                role="status"
+              >
+                {t(
+                  message_sender_identity === "mismatch"
+                    ? "mail.sender_identity_mismatch"
+                    : "mail.sender_identity_unverified",
+                )}
+              </p>
+            )}
           {show_banner && (
             <ExternalContentBanner
               blocked_content={sanitize_result.external_content}

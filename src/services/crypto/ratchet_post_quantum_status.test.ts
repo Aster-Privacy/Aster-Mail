@@ -49,6 +49,7 @@ vi.mock("./ratchet_identity_pin", async (import_original) => ({
   has_peer_signed_pq: vi.fn(async () => h.signed_pq_seen),
   read_peer_downgrade_floor: vi.fn(async () => ({
     x3dh_version: 0,
+    bound_at: {},
     pq_seen: h.signed_pq_seen,
     pq_signed_seen: h.signed_pq_seen,
   })),

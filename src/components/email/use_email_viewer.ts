@@ -870,6 +870,7 @@ export function use_email_viewer({
         user_email,
         item.id,
         item.dkim_result,
+        item.created_at,
       );
 
       if (is_pending_decrypt_body(body_text)) return;

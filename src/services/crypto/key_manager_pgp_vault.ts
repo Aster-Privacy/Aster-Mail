@@ -47,8 +47,13 @@ import {
   type VaultKdfIterations,
 } from "./vault_level2";
 
+import {
+  note_own_vault_opened,
+  note_own_vault_sealed,
+  vault_write_binds,
+} from "./vault_binding";
+
 import { load_openpgp } from "@/services/crypto/openpgp_loader";
-import { peek_account_key_capabilities } from "@/services/api/account_key";
 import { zero_uint8_array } from "@/services/crypto/secure_memory";
 
 const VAULT_SCHEME_VERSION = 1;
@@ -88,13 +93,18 @@ async function derive_vault_key(
   );
 }
 
+interface OpenedVaultBytes {
+  bytes: ArrayBuffer;
+  bound: boolean;
+}
+
 async function open_vault_with_key(
   key: CryptoKey,
   nonce: Uint8Array,
   ciphertext: Uint8Array,
-): Promise<ArrayBuffer> {
+): Promise<OpenedVaultBytes> {
   try {
-    return await crypto.subtle.decrypt(
+    const bytes = await crypto.subtle.decrypt(
       {
         name: "AES-GCM",
         iv: nonce,
@@ -103,8 +113,16 @@ async function open_vault_with_key(
       key,
       ciphertext,
     );
+
+    return { bytes, bound: true };
   } catch {
-    return crypto.subtle.decrypt({ name: "AES-GCM", iv: nonce }, key, ciphertext);
+    const bytes = await crypto.subtle.decrypt(
+      { name: "AES-GCM", iv: nonce },
+      key,
+      ciphertext,
+    );
+
+    return { bytes, bound: false };
   }
 }
 
@@ -135,12 +153,15 @@ async function open_vault_bytes(
         iterations,
         "decrypt",
       );
-      const decrypted = await open_vault_with_key(key, nonce, ciphertext);
+      const opened = await open_vault_with_key(key, nonce, ciphertext);
 
       record_vault_kdf_iterations(encrypted_vault, iterations);
-      if (own_vault) note_opened_vault_iterations(iterations);
+      if (own_vault) {
+        note_opened_vault_iterations(iterations);
+        note_own_vault_opened(opened.bound);
+      }
 
-      return decrypted;
+      return opened.bytes;
     } catch (caught) {
       last_error = caught;
     }
@@ -153,6 +174,7 @@ export async function encrypt_vault(
   vault: EncryptedVault,
   password: string,
   iterations: VaultKdfIterations = VAULT_KDF_ITERATIONS_LEGACY,
+  own_vault = true,
 ): Promise<VaultEncryptionResult> {
   const encoder = new TextEncoder();
   const vault_json = JSON.stringify(vault);
@@ -171,8 +193,8 @@ export async function encrypt_vault(
 
   zero_uint8_array(passphrase_bytes);
 
-  const algorithm: AesGcmParams = peek_account_key_capabilities()
-    .bound_vault_writes
+  const bind = vault_write_binds(own_vault);
+  const algorithm: AesGcmParams = bind
     ? {
         name: "AES-GCM",
         iv: nonce,
@@ -181,6 +203,8 @@ export async function encrypt_vault(
     : { name: "AES-GCM", iv: nonce };
 
   const encrypted = await crypto.subtle.encrypt(algorithm, key, vault_data);
+
+  if (own_vault) note_own_vault_sealed(bind);
 
   const combined = new Uint8Array(salt.length + encrypted.byteLength);
 
@@ -219,7 +243,7 @@ export async function prepare_vault_write(
   own_vault = true,
 ): Promise<PreparedVaultWrite> {
   const source: EncryptedVault = { ...vault };
-  const sealed = await encrypt_vault(source, password, first);
+  const sealed = await encrypt_vault(source, password, first, own_vault);
 
   return {
     sealed,
@@ -230,7 +254,7 @@ export async function prepare_vault_write(
         async (iterations) =>
           iterations === first
             ? sealed
-            : encrypt_vault(source, password, iterations),
+            : encrypt_vault(source, password, iterations, own_vault),
         send,
         own_vault,
       );
@@ -411,4 +435,47 @@ export function normalize_vault_fields(vault: EncryptedVault): EncryptedVault {
   }
 
   return raw;
+}
+
+export async function vault_blob_is_bound(
+  encrypted_vault: string,
+  vault_nonce: string,
+  password: string,
+): Promise<boolean> {
+  const combined = base64_to_array(encrypted_vault);
+  const nonce = base64_to_array(vault_nonce);
+  const salt = combined.slice(0, 16);
+  const ciphertext = combined.slice(16);
+  const passphrase = new TextEncoder().encode(password);
+
+  try {
+    for (const iterations of vault_kdf_attempt_order(encrypted_vault)) {
+      const key = await derive_vault_key(
+        passphrase,
+        salt,
+        iterations,
+        "decrypt",
+      );
+
+      try {
+        await crypto.subtle.decrypt(
+          {
+            name: "AES-GCM",
+            iv: nonce,
+            additionalData: build_vault_aad(VAULT_SCHEME_VERSION),
+          },
+          key,
+          ciphertext,
+        );
+
+        return true;
+      } catch {
+        continue;
+      }
+    }
+
+    return false;
+  } finally {
+    zero_uint8_array(passphrase);
+  }
 }

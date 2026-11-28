@@ -20,6 +20,20 @@
 //
 export const ja = {
   common: {
+    safety_number_compare: "安全番号を比べる",
+    safety_number_section_title: "暗号化",
+    safety_number: "安全番号",
+    safety_number_not_verified: "未確認",
+    safety_number_verified: "確認済み",
+    safety_number_status_changed: "変更あり",
+    safety_number_changed: "安全番号が変更されました",
+    safety_number_description: "暗号化されたメールを {{name}} だけが読めることを確認するには、対面または通話で、{{name}} のデバイスに表示される数字とこの数字を比べてください。",
+    safety_number_changed_description: "{{name}} のアカウントキーが変更されました。メールは引き続き暗号化されています。{{name}} の鍵をほかの誰も持っていないことを確認するには、安全番号をもう一度比べてください。",
+    safety_number_unavailable: "現在、安全番号を表示できません。しばらくしてからもう一度お試しください。",
+    safety_number_copy: "番号をコピー",
+    safety_number_mark_verified: "確認済みにする",
+    safety_number_clear: "確認を解除",
+    safety_number_save_failed: "確認を保存できませんでした。もう一度お試しください。",
     couldnt_load: "読み込めませんでした。",
     try_again_action: "再試行",
     merge_primary_label: "メイン",
@@ -9387,8 +9401,14 @@ export const ja = {
       "この送信者の暗号化 ID は、前回メッセージをやり取りしたときから変更されています。心当たりがない場合は、別の方法で本人に確認してください。",
     sender_identity_downgraded:
       "この送信者のメッセージは耐量子暗号で保護されなくなりました。心当たりがない場合は、別の方法で本人に確認してください。",
+    recipient_identity_downgraded:
+      "{{email}} 宛てのメッセージは耐量子暗号で保護されなくなりました。心当たりがない場合は、別の方法で本人に確認してください。",
     sender_identity_unreadable:
       "このデバイスでこの送信者の保存済み暗号鍵を読み取れないため、このメッセージを検証できません。再び検証できるようにするには、別の方法で相手に鍵を確認してから、「新しい鍵を信頼」を選択してください。",
+    sender_identity_unverified:
+      "このメッセージがこの送信者から送られたことを検証できません。心当たりがない場合は、別の方法で相手に確認してください。",
+    sender_identity_mismatch:
+      "このメッセージは、この送信者が公開している鍵と一致しない鍵で暗号化されています。別の方法で相手に鍵を確認するまで、このメッセージを信頼しないでください。",
     recipient_identity_changed:
       "{{email}} の暗号鍵が変更されました。心当たりがない場合は、機密情報を送信する前に別の方法で本人に確認してください。",
     message_password_requirements:

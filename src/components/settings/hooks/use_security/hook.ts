@@ -282,10 +282,9 @@ export function use_security() {
         user_email: user.email,
         current_password,
         new_password,
-        totp_code:
-          password_totp_code.length === 6 ? password_totp_code : undefined,
         preferences,
         t,
+        totp_code: password_totp_code || undefined,
         on_background_notice: (message) =>
           set_password_unreadable_notice((prev) =>
             append_password_notice(prev, message),
@@ -303,6 +302,7 @@ export function use_security() {
           return;
         }
 
+        set_password_totp_code("");
         set_password_error(result.error);
 
         return;

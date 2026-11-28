@@ -62,3 +62,15 @@ export function base64_to_array(base64: string): Uint8Array {
 
   return bytes;
 }
+
+export function canonical_base64_to_array(base64: string): Uint8Array | null {
+  if (typeof base64 !== "string") return null;
+
+  try {
+    const bytes = base64_to_array(base64);
+
+    return array_to_base64(bytes) === base64 ? bytes : null;
+  } catch {
+    return null;
+  }
+}

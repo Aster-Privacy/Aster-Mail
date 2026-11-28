@@ -70,17 +70,29 @@ export function clear_address_key_set_cache(): void {
   key_set_cache.clear();
 }
 
+const DOT_INSENSITIVE_DOMAINS = new Set([
+  "astermail.org",
+  "aster.cx",
+  "astermail.me",
+  "astermail.net",
+  "realiased.me",
+]);
+
 export function canonical_address_form(address: string): string {
   const normalized = normalize_identity_address(address);
   const at = normalized.lastIndexOf("@");
 
   if (at <= 0 || at === normalized.length - 1) return "";
 
-  const local = normalized.slice(0, at).split("+")[0].replace(/\./g, "");
+  const domain = normalized.slice(at + 1);
+  const base = normalized.slice(0, at).split("+")[0];
+  const local = DOT_INSENSITIVE_DOMAINS.has(domain)
+    ? base.replace(/\./g, "")
+    : base;
 
   if (!local) return "";
 
-  return `${local}@${normalized.slice(at + 1)}`;
+  return `${local}@${domain}`;
 }
 
 export function address_entry_forms(address: string): string[] {
@@ -90,6 +102,20 @@ export function address_entry_forms(address: string): string[] {
   if (!canonical) return [];
 
   return normalized === canonical ? [normalized] : [normalized, canonical];
+}
+
+function receiver_address_forms(address: string): string[] {
+  const forms = address_entry_forms(address);
+
+  if (forms.length === 0) return forms;
+
+  const last = forms[forms.length - 1];
+  const at = last.lastIndexOf("@");
+  const dotless = `${last.slice(0, at).replace(/\./g, "")}${last.slice(at)}`;
+
+  return forms.includes(dotless) || at <= 0 || dotless.startsWith("@")
+    ? forms
+    : [...forms, dotless];
 }
 
 export function is_primary_address(
@@ -216,7 +242,7 @@ export function address_receiver_key_sets(
   vault: EncryptedVault,
   address: string,
 ): RatchetKeySet[] {
-  const forms = address_entry_forms(address);
+  const forms = receiver_address_forms(address);
 
   if (forms.length === 0) return [];
 

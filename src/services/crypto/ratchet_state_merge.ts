@@ -176,6 +176,28 @@ function pick_winner(
   return remote.updated_at > local.updated_at ? remote : local;
 }
 
+export function archived_session_supersedes(
+  archived: SerializedState,
+  loaded: SerializedState | null,
+): boolean {
+  if (!loaded) return true;
+
+  return created_at_or_zero(archived.state) > created_at_or_zero(loaded.state);
+}
+
+export function server_replacement_supersedes(
+  server: SerializedState,
+  loaded: SerializedState | null,
+): boolean {
+  if (!loaded) return true;
+
+  if (server.conversation_id !== loaded.conversation_id) return false;
+
+  if (same_epoch(server.state, loaded.state)) return false;
+
+  return pick_newer_epoch(loaded.state, server.state) === server.state;
+}
+
 export function merge_discards_local_epoch(
   local: SerializedState,
   remote: SerializedState,
@@ -188,6 +210,30 @@ export function merge_discards_local_epoch(
   return (
     pick_winner(local.state, remote.state, remote_versioned) !== local.state
   );
+}
+
+function carried_session_binding(
+  winner: RatchetState,
+  local: RatchetState,
+  remote: RatchetState,
+): string | undefined {
+  if (winner.session_binding) return winner.session_binding;
+
+  const created = created_at_or_zero(winner);
+
+  if (created === 0) return undefined;
+
+  for (const other of [local, remote]) {
+    if (
+      other !== winner &&
+      other.session_binding &&
+      created_at_or_zero(other) === created
+    ) {
+      return other.session_binding;
+    }
+  }
+
+  return undefined;
 }
 
 export function merge_ratchet_states(
@@ -220,6 +266,11 @@ export function merge_ratchet_states(
           local.state.remote_identity_key ||
           remote.state.remote_identity_key,
         header_bound,
+        session_binding: carried_session_binding(
+          winner,
+          local.state,
+          remote.state,
+        ),
         skipped_message_keys: keep_local_skipped
           ? merge_skipped_keys(local_skipped, [])
           : merged_skipped,
@@ -260,7 +311,11 @@ export function merge_ratchet_states(
         local.state.remote_identity_key || remote.state.remote_identity_key,
       header_bound:
         local.state.header_bound || remote.state.header_bound || undefined,
+      session_binding:
+        local.state.session_binding || remote.state.session_binding,
       weak_bootstrap: local.state.weak_bootstrap || remote.state.weak_bootstrap,
+      account_unbound:
+        local.state.account_unbound || remote.state.account_unbound,
       skipped_message_keys,
       received_chains: local_received_chains(local.state),
       dirty_since_sync: true,

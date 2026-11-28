@@ -29,6 +29,14 @@ const h = vi.hoisted(() => ({
     address_scoped?: boolean | null;
   } | null,
   verification: { valid: false, endorsers: [] as string[] },
+  address_mode: true,
+}));
+
+vi.mock("@/services/crypto/crypto_enforcement_policy", async (original) => ({
+  ...(await original<
+    typeof import("@/services/crypto/crypto_enforcement_policy")
+  >()),
+  is_address_identity_mode_enabled: () => h.address_mode,
 }));
 
 vi.mock("@/services/account_manager", () => ({
@@ -157,6 +165,7 @@ function reset_all(): void {
   h.store.clear();
   h.entry = null;
   h.verification = { valid: false, endorsers: [] };
+  h.address_mode = true;
   reset_storage_name_state();
   reset_contact_entry_state();
   clear_sender_identity_authentication_cache();
@@ -277,6 +286,29 @@ describe("endorsed sender key rotation", () => {
 
   it("does not trust a pinned key that is itself an unacknowledged change", async () => {
     await seed_pin(OLD_KEY, true);
+    publish(NEW_KEY, [OLD_KEY]);
+
+    expect(await accept_endorsed_sender_rotation(SENDER, NEW_KEY, true)).toBe(
+      false,
+    );
+  });
+
+  it("keeps warning when address identity mode is off", async () => {
+    h.address_mode = false;
+    await seed_history([OLD_KEY]);
+    publish(NEW_KEY, [OLD_KEY]);
+
+    expect(await accept_endorsed_sender_rotation(SENDER, NEW_KEY, true)).toBe(
+      false,
+    );
+    expect(await check_sender_identity_continuity(SENDER, NEW_KEY)).toBe(
+      "changed",
+    );
+  });
+
+  it("does not let an older remembered key stand in for the current pin", async () => {
+    await seed_history([OLD_KEY]);
+    await seed_pin(STRANGER_KEY);
     publish(NEW_KEY, [OLD_KEY]);
 
     expect(await accept_endorsed_sender_rotation(SENDER, NEW_KEY, true)).toBe(

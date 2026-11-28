@@ -135,6 +135,7 @@ async function settled_category_preview(
         await current_user_email(),
         envelope.from?.email || "",
         item.id,
+        item.created_at,
       );
 
       if (sealed_body && bundle.sealed !== true) return null;

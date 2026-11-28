@@ -18,6 +18,13 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import {
+  build_ratchet_prekey_canonical,
+  classify_signed_text,
+  signed_format_for,
+  type RatchetPrekeyAccountKeys,
+  type SignedFormat,
+} from "./handshake_keys/prekey_signed_text";
 import { array_to_base64, base64_to_array } from "./key_manager_core";
 
 import { load_openpgp } from "@/services/crypto/openpgp_loader";
@@ -117,24 +124,7 @@ export async function verify_key_binding(
   };
 }
 
-const RATCHET_PREKEY_SIG_PREFIX = "aster-ratchet-prekey-v1:";
-const RATCHET_PREKEY_SIG_PREFIX_V2 = "aster-ratchet-prekey-v2:";
 const PGP_CLEARTEXT_HEADER = "-----BEGIN PGP SIGNED MESSAGE-----";
-
-function build_ratchet_prekey_canonical(
-  kem_identity_key: string,
-  signed_prekey: string,
-): string {
-  return `${RATCHET_PREKEY_SIG_PREFIX}${kem_identity_key}.${signed_prekey}`;
-}
-
-function build_ratchet_prekey_canonical_v2(
-  kem_identity_key: string,
-  signed_prekey: string,
-  pq_identity_key: string,
-): string {
-  return `${RATCHET_PREKEY_SIG_PREFIX_V2}${kem_identity_key}.${signed_prekey}.${pq_identity_key}`;
-}
 
 /*
  * Produce a real OpenPGP cleartext signature binding the ratchet identity key
@@ -149,6 +139,7 @@ export async function sign_ratchet_prekey_bundle(
   kem_identity_key: string,
   signed_prekey: string,
   pq_identity_key?: string | null,
+  account?: RatchetPrekeyAccountKeys | null,
 ): Promise<string> {
   const openpgp = await load_openpgp();
 
@@ -159,13 +150,13 @@ export async function sign_ratchet_prekey_bundle(
     passphrase,
   });
 
-  const text = pq_identity_key
-    ? build_ratchet_prekey_canonical_v2(
-        kem_identity_key,
-        signed_prekey,
-        pq_identity_key,
-      )
-    : build_ratchet_prekey_canonical(kem_identity_key, signed_prekey);
+  const text = build_ratchet_prekey_canonical(
+    signed_format_for(pq_identity_key, account),
+    kem_identity_key,
+    signed_prekey,
+    pq_identity_key,
+    account,
+  );
   const message = await openpgp.createCleartextMessage({ text });
   const signed = await openpgp.sign({
     message,
@@ -184,23 +175,13 @@ export type RatchetPrekeyVerdict =
   | "legacy"
   | "unknown";
 
-export type RatchetPrekeySignatureFormat = "v2" | "v1" | "hash" | "unreadable";
+export type RatchetPrekeySignatureFormat = SignedFormat | "hash" | "unreadable";
 
 export interface RatchetPrekeyVerification {
   verdict: RatchetPrekeyVerdict;
   format: RatchetPrekeySignatureFormat;
   strict: boolean;
   signed_at?: number | null;
-}
-
-function classify_signed_text(
-  signed_text: string,
-): Exclude<RatchetPrekeySignatureFormat, "hash"> {
-  if (signed_text.startsWith(RATCHET_PREKEY_SIG_PREFIX_V2)) return "v2";
-
-  if (signed_text.startsWith(RATCHET_PREKEY_SIG_PREFIX)) return "v1";
-
-  return "unreadable";
 }
 
 export async function read_ratchet_prekey_signature_format(
@@ -237,6 +218,7 @@ export async function verify_ratchet_prekey_bundle_detailed(
   signed_prekey: string,
   owner_pgp_public_key: string | null,
   pq_identity_key?: string | null,
+  account?: RatchetPrekeyAccountKeys | null,
 ): Promise<RatchetPrekeyVerification> {
   let armored: string;
 
@@ -266,7 +248,7 @@ export async function verify_ratchet_prekey_bundle_detailed(
 
   const format = classify_signed_text(signed_text);
 
-  if (format === "unreadable") {
+  if (format === "unreadable" || (format === "v3") !== Boolean(account)) {
     return { verdict: "tampered", format, strict: false };
   }
 
@@ -274,14 +256,13 @@ export async function verify_ratchet_prekey_bundle_detailed(
     return { verdict: "unknown", format, strict: false };
   }
 
-  const expected_text =
-    format === "v2"
-      ? build_ratchet_prekey_canonical_v2(
-          kem_identity_key,
-          signed_prekey,
-          pq_identity_key ?? "",
-        )
-      : build_ratchet_prekey_canonical(kem_identity_key, signed_prekey);
+  const expected_text = build_ratchet_prekey_canonical(
+    format,
+    kem_identity_key,
+    signed_prekey,
+    pq_identity_key,
+    account,
+  );
 
   let signed_at: number | null = null;
 
@@ -302,7 +283,7 @@ export async function verify_ratchet_prekey_bundle_detailed(
   const advertises_pq_identity_key = Boolean(pq_identity_key);
 
   const signature_covers_published_material =
-    format === "v2" || !advertises_pq_identity_key;
+    format !== "v1" || !advertises_pq_identity_key;
 
   return {
     verdict: "verified",

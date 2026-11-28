@@ -38,6 +38,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { EncryptionInfoDropdown } from "@/components/common/encryption_info_dropdown";
+import { SafetyNumberNotice } from "@/components/common/safety_number/safety_number_notice";
 import { TrackingProtectionShield } from "@/components/email/tracking_protection_shield";
 import { ExpirationCountdown } from "@/components/email/expiration_countdown";
 import { SnoozeBadge } from "@/components/ui/snooze_badge";
@@ -235,6 +236,10 @@ export function PopupEmailHeader({
             is_received={mail_item?.item_type === "received"}
             sender_verification={email.sender_verification}
             size={20}
+          />
+          <SafetyNumberNotice
+            email={email.sender_email}
+            name={email.sender}
           />
           {tracking_report && (
             <TrackingProtectionShield report={tracking_report} size={20} />

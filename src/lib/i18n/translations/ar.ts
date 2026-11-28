@@ -20,6 +20,20 @@
 //
 export const ar = {
   common: {
+    safety_number_compare: "مقارنة أرقام الأمان",
+    safety_number_section_title: "التشفير",
+    safety_number: "رقم الأمان",
+    safety_number_not_verified: "لم يتم التحقق",
+    safety_number_verified: "تم التحقق",
+    safety_number_status_changed: "تغيّر",
+    safety_number_changed: "تغيّر رقم الأمان",
+    safety_number_description: "للتأكد من أن {{name}} وحده يمكنه قراءة بريدك المشفّر، قارن هذه الأرقام بالأرقام الظاهرة على جهاز {{name}}، وجهًا لوجه أو خلال مكالمة.",
+    safety_number_changed_description: "تغيّر مفتاح حساب {{name}}. لا يزال بريدك مشفّرًا. للتأكد من أن لا أحد غيره يملك مفاتيح {{name}}، قارن أرقام الأمان مرة أخرى.",
+    safety_number_unavailable: "رقم الأمان غير متاح الآن. حاول مرة أخرى لاحقًا.",
+    safety_number_copy: "نسخ الرقم",
+    safety_number_mark_verified: "وضع علامة تم التحقق",
+    safety_number_clear: "إزالة التحقق",
+    safety_number_save_failed: "لم يتم حفظ التحقق. حاول مرة أخرى.",
     couldnt_load: "تعذّر التحميل.",
     try_again_action: "إعادة المحاولة",
     merge_primary_label: "أساسية",
@@ -9465,8 +9479,14 @@ export const ar = {
       "تغيّرت هوية التشفير لهذا المرسل منذ آخر تبادل للرسائل بينكما. إذا لم تكن تتوقع ذلك، فتأكد من الأمر معه بطريقة أخرى.",
     sender_identity_downgraded:
       "لم تعد رسائل هذا المرسل محمية بتشفير ما بعد الكم. إذا لم تكن تتوقع ذلك، فتأكد من الأمر معه بطريقة أخرى.",
+    recipient_identity_downgraded:
+      "لم تعد الرسائل المرسلة إلى {{email}} محمية بتشفير ما بعد الكم. إذا لم تكن تتوقع ذلك، فتأكد من الأمر معه بطريقة أخرى.",
     sender_identity_unreadable:
       "تعذرت قراءة مفتاح التشفير المحفوظ لهذا المرسل على هذا الجهاز، لذلك لا يمكن التحقق من هذه الرسالة. للتحقق من رسائله مجددًا، أكّد المفتاح معه بطريقة أخرى، ثم اختر الوثوق بالمفتاح الجديد.",
+    sender_identity_unverified:
+      "لا يمكن التحقق من أن هذه الرسالة واردة من هذا المرسل. إذا لم تكن تتوقعها، فتأكد منها مع الشخص بطريقة أخرى.",
+    sender_identity_mismatch:
+      "تم تشفير هذه الرسالة بمفتاح لا يطابق المفتاح الذي نشره هذا المرسل. لا تثق بها حتى تتأكد من مفتاحه مع الشخص بطريقة أخرى.",
     recipient_identity_changed:
       "تغيّر مفتاح التشفير الخاص بـ {{email}}. إذا لم تكن تتوقع ذلك، فتأكد من التغيير معه بطريقة أخرى قبل إرسال أي معلومات حساسة.",
     message_password_requirements:

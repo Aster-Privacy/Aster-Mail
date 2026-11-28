@@ -31,6 +31,7 @@ import {
 } from "./address_identity_entry";
 import { normalize_identity_address } from "./address_sender_identity";
 import { base64_to_array, compute_hash } from "./key_manager_core";
+import { is_address_identity_mode_enabled } from "./crypto_enforcement_policy";
 import {
   lookup_identity_pin_record,
   lookup_owner_key_pin,
@@ -427,9 +428,11 @@ async function classify_scoped_entry(
     return "entry";
   }
 
-  for (const endorser of verification.endorsers) {
-    if ((await fingerprint_of(endorser)) === pin.fingerprint) {
-      return "endorsed";
+  if (is_address_identity_mode_enabled()) {
+    for (const endorser of verification.endorsers) {
+      if ((await fingerprint_of(endorser)) === pin.fingerprint) {
+        return "endorsed";
+      }
     }
   }
 

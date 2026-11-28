@@ -116,4 +116,13 @@ describe("ratchet identity pin signing time", () => {
     expect(await pin("gale", KEY_B, T0)).toBe("rotated");
     expect(await pin("gale", KEY_A, null)).toBe("rotated");
   });
+
+  it("caps a stored signing time from the future when comparing", async () => {
+    await pin("hale", KEY_A, T0);
+    const name = await pin_name("ratchet_identity_pin_", "hale");
+    const stored = h.store.get(name) as { signed_at?: number };
+
+    h.store.set(name, { ...stored, signed_at: Date.now() + 365 * 24 * HOUR_MS });
+    expect(await pin("hale", KEY_B, Date.now())).toBe("rotated");
+  });
 });

@@ -294,6 +294,7 @@ export async function run_index_pipeline(
           user_email,
           sender_email,
           item.id,
+          item.created_at,
         );
 
         if (is_pending_decrypt_body(bundle.body)) {

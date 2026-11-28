@@ -178,6 +178,8 @@ describe("escrow reads follow the stored data policy", () => {
       plaintext: "old body",
       verified: false,
       unconfirmed_sender: false,
+      downgraded: false,
+      account_unbound: true,
     });
   });
 
@@ -304,6 +306,8 @@ describe("a sender-bound copy that fails to open is final", () => {
       plaintext: "bound body",
       verified: true,
       unconfirmed_sender: false,
+      downgraded: false,
+      account_unbound: true,
     });
     expect(requested).not.toContain(KEY_B);
   });
@@ -329,6 +333,8 @@ describe("a sender-bound copy that fails to open is final", () => {
         plaintext: "older body",
         verified: false,
         unconfirmed_sender: false,
+        downgraded: false,
+        account_unbound: true,
       });
     });
   }
@@ -347,6 +353,8 @@ describe("a sender-bound copy that fails to open is final", () => {
       plaintext: "body of b",
       verified: true,
       unconfirmed_sender: false,
+      downgraded: false,
+      account_unbound: true,
     });
   });
 });

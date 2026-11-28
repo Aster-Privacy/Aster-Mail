@@ -28,6 +28,7 @@ import {
   has_local_ec_one_time_secret,
   save_ec_one_time_secret,
 } from "./ec_prekey_store";
+import { sign_one_time_prekeys } from "./handshake_keys/bundle_signing";
 
 const EC_PREKEY_STATUS_ROUTE = "/crypto/v1/keys/ec-prekeys/status";
 const EC_PREKEY_UPLOAD_ROUTE = "/crypto/v1/keys/ec-prekeys";
@@ -188,7 +189,7 @@ export async function replenish_ec_one_time_prekeys(): Promise<number> {
 
     const response = await api_client.post<{ uploaded?: number }>(
       EC_PREKEY_UPLOAD_ROUTE,
-      { prekeys },
+      { prekeys: sign_one_time_prekeys("ec", prekeys) },
     );
 
     if (response.error || !response.data) {

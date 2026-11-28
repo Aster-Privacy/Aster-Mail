@@ -20,6 +20,20 @@
 //
 export const nl = {
   common: {
+    safety_number_compare: "Veiligheidsnummers vergelijken",
+    safety_number_section_title: "Versleuteling",
+    safety_number: "Veiligheidsnummer",
+    safety_number_not_verified: "Niet geverifieerd",
+    safety_number_verified: "Geverifieerd",
+    safety_number_status_changed: "Gewijzigd",
+    safety_number_changed: "Veiligheidsnummer gewijzigd",
+    safety_number_description: "Om zeker te weten dat alleen {{name}} je versleutelde mail kan lezen, vergelijk je deze cijfers met die op het apparaat van {{name}}, persoonlijk of tijdens een gesprek.",
+    safety_number_changed_description: "De accountsleutel van {{name}} is gewijzigd. Je mail is nog steeds versleuteld. Om zeker te weten dat niemand anders de sleutels van {{name}} heeft, vergelijk je de veiligheidsnummers opnieuw.",
+    safety_number_unavailable: "Het veiligheidsnummer is nu niet beschikbaar. Probeer het later opnieuw.",
+    safety_number_copy: "Nummer kopiëren",
+    safety_number_mark_verified: "Markeren als geverifieerd",
+    safety_number_clear: "Verificatie verwijderen",
+    safety_number_save_failed: "De verificatie is niet opgeslagen. Probeer het opnieuw.",
     couldnt_load: "Laden mislukt.",
     try_again_action: "Opnieuw proberen",
     merge_primary_label: "Primair",
@@ -9611,8 +9625,14 @@ export const nl = {
       "De versleutelingsidentiteit van deze afzender is veranderd sinds je voor het laatst berichten hebt uitgewisseld. Als je dat niet verwachtte, bevestig het dan op een andere manier met deze persoon.",
     sender_identity_downgraded:
       "De berichten van deze afzender hebben geen post-quantumbescherming meer. Als je dat niet verwachtte, bevestig het dan op een andere manier met deze persoon.",
+    recipient_identity_downgraded:
+      "Berichten aan {{email}} hebben geen post-quantumbescherming meer. Als je dat niet verwachtte, bevestig het dan op een andere manier met deze persoon.",
     sender_identity_unreadable:
       "De opgeslagen versleutelingssleutel van deze afzender kan op dit apparaat niet worden gelezen, dus dit bericht kan niet worden geverifieerd. Bevestig de sleutel op een andere manier bij deze persoon en kies daarna Nieuwe sleutel vertrouwen.",
+    sender_identity_unverified:
+      "Er kan niet worden geverifieerd dat dit bericht van deze afzender komt. Als je het niet verwachtte, bevestig het dan op een andere manier met deze persoon.",
+    sender_identity_mismatch:
+      "Dit bericht is versleuteld met een sleutel die niet overeenkomt met de sleutel die deze afzender heeft gepubliceerd. Vertrouw het pas als je de sleutel op een andere manier met deze persoon hebt bevestigd.",
     recipient_identity_changed:
       "De versleutelingssleutel van {{email}} is gewijzigd. Als je dat niet verwachtte, bevestig de wijziging dan op een andere manier met deze persoon voordat je gevoelige informatie verstuurt.",
     message_password_requirements:

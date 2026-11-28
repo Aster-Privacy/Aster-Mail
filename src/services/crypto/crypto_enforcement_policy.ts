@@ -26,6 +26,10 @@ export const ENABLE_PQXDH_TRANSCRIPT_BINDING: boolean = true;
 
 export const REQUIRE_SIGNED_RATCHET_KEYS: boolean = false;
 
+export const ADDRESS_IDENTITY_MODE: boolean = false;
+
+export const ADVERTISE_HANDSHAKE_V5: boolean = false;
+
 export function is_authenticated_ratchet_enforced(): boolean {
   return ENFORCE_AUTHENTICATED_RATCHET;
 }
@@ -52,5 +56,19 @@ export function is_signed_ratchet_keys_required(): boolean {
   return opted_in(
     import.meta.env.VITE_REQUIRE_SIGNED_RATCHET_KEYS,
     REQUIRE_SIGNED_RATCHET_KEYS,
+  );
+}
+
+export function is_address_identity_mode_enabled(): boolean {
+  return opted_in(
+    import.meta.env.VITE_ADDRESS_IDENTITY_MODE,
+    ADDRESS_IDENTITY_MODE,
+  );
+}
+
+export function is_handshake_v5_advertised(): boolean {
+  return opted_in(
+    import.meta.env.VITE_ADVERTISE_HANDSHAKE_V5,
+    ADVERTISE_HANDSHAKE_V5,
   );
 }

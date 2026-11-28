@@ -33,7 +33,11 @@ import {
 } from "@/services/crypto/recipient_identity_check";
 import { confirm_internal_key_trust } from "@/services/key_trust_consent";
 import { show_toast } from "@/components/toast/simple_toast";
-import { subscribe_peer_identity_events } from "@/services/crypto/ratchet_verification_status";
+import {
+  dismiss_peer_identity_event,
+  get_peer_identity_event,
+  subscribe_peer_identity_events,
+} from "@/services/crypto/ratchet_verification_status";
 import { is_email_shape } from "@/lib/email_shape";
 
 interface RecipientIdentityNoticeProps {
@@ -43,7 +47,7 @@ interface RecipientIdentityNoticeProps {
 
 interface ChangedRecipient {
   email: string;
-  status: Exclude<RecipientIdentityStatus, "unchanged">;
+  status: Exclude<RecipientIdentityStatus, "unchanged"> | "downgraded";
 }
 
 export function RecipientIdentityNotice({
@@ -95,9 +99,15 @@ export function RecipientIdentityNotice({
         if (cancelled) return;
 
         set_changed(
-          results.filter(
-            (entry): entry is ChangedRecipient => entry.status !== "unchanged",
-          ),
+          results.flatMap((entry): ChangedRecipient[] => {
+            if (entry.status !== "unchanged") {
+              return [{ email: entry.email, status: entry.status }];
+            }
+
+            return get_peer_identity_event(entry.email)?.event === "downgraded"
+              ? [{ email: entry.email, status: "downgraded" }]
+              : [];
+          }),
         );
       })
       .catch(() => undefined);
@@ -161,13 +171,25 @@ export function RecipientIdentityNotice({
               className="w-4 h-4 flex-shrink-0 text-amber-500"
             />
             <span className="flex-1 min-w-0 break-words">
-              {t("mail.recipient_identity_changed", { email })}
+              {t(
+                status === "downgraded"
+                  ? "mail.recipient_identity_downgraded"
+                  : "mail.recipient_identity_changed",
+                { email },
+              )}
             </span>
             <button
               className="flex-shrink-0 font-medium text-txt-secondary hover:text-txt-primary"
               type="button"
               onClick={() => {
                 set_dismissed((prev) => new Set(prev).add(email));
+
+                if (status === "downgraded") {
+                  dismiss_peer_identity_event(email);
+
+                  return;
+                }
+
                 acknowledge_identity_change(email).catch(() => undefined);
               }}
             >

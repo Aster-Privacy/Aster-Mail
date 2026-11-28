@@ -36,7 +36,7 @@ import {
   open_aes_gcm_with_fallback,
   open_mail_envelope_with_fallback,
 } from "@/services/crypto/legacy_keks";
-import { is_mail_legacy_retired } from "@/services/crypto/mail_legacy_retirement";
+import { is_format_refused } from "@/services/format_retirement/record";
 import { ignore_error } from "@/lib/ignore_error";
 
 export interface MailKeyOptions {
@@ -44,7 +44,7 @@ export interface MailKeyOptions {
 }
 
 function allows_legacy_mail_keys(options?: MailKeyOptions): boolean {
-  return options?.allow_legacy_keys ?? !is_mail_legacy_retired();
+  return options?.allow_legacy_keys ?? !is_format_refused("mail_public_kek");
 }
 
 async function decrypt_mail_envelope_bytes(

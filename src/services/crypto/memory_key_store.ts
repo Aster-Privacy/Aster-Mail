@@ -24,6 +24,7 @@ import type { EncryptedVault } from "./key_manager";
 import { sha256 } from "@noble/hashes/sha256";
 
 import { base64_to_array } from "./base64";
+import { reset_vault_binding_state } from "./vault_binding";
 import { array_to_base64 } from "./key_manager_core";
 import {
   SecureBuffer,
@@ -73,6 +74,12 @@ import {
 } from "./retired_storage_keks";
 
 import { clear_preview_memo } from "@/utils/preview_text";
+import {
+  is_format_refused,
+  reset_format_retirements,
+  sync_format_retirements,
+} from "@/services/format_retirement/record";
+import { without_refused_public_keks } from "@/services/format_retirement/keys";
 import { HASH_ALG } from "@/services/crypto/constants";
 import { get_active_translations } from "@/lib/i18n/translations";
 import {
@@ -334,6 +341,8 @@ async function derive_stretched_encryption_key(
   return new Uint8Array(derived_bits);
 }
 
+let password_v1_kek_id: string | null = null;
+
 async function derive_password_storage_raws(
   passphrase_bytes: Uint8Array,
   kdf_version: number,
@@ -343,15 +352,25 @@ async function derive_password_storage_raws(
     kdf_version,
   );
 
-  if (kdf_version < STORAGE_KDF_VERSION_STRETCHED) return [current];
+  if (
+    kdf_version < STORAGE_KDF_VERSION_STRETCHED ||
+    is_format_refused("storage_password_v1")
+  ) {
+    return [current];
+  }
 
-  return [
-    current,
-    await derive_encryption_key_from_passphrase(
-      passphrase_bytes,
-      STORAGE_KDF_VERSION_LEGACY,
-    ),
-  ];
+  const v1 = await derive_encryption_key_from_passphrase(
+    passphrase_bytes,
+    STORAGE_KDF_VERSION_LEGACY,
+  );
+
+  password_v1_kek_id = retired_storage_kek_id(v1);
+
+  return [current, v1];
+}
+
+export function get_password_v1_storage_kek_id(): string | null {
+  return password_v1_kek_id;
 }
 
 export async function derive_encryption_key_from_passphrase(
@@ -560,6 +579,7 @@ export async function store_vault_in_memory(
     pin_vault_generation(next_owner_id, vault);
   }
   sync_mail_legacy_retirement(vault, next_owner_id);
+  sync_format_retirements(vault);
 
   vault_in_memory = {
     ...vault,
@@ -606,7 +626,9 @@ export async function store_vault_in_memory(
       : undefined,
   };
 
-  await load_legacy_keks_into_memory(vault.legacy_keks);
+  await load_legacy_keks_into_memory(
+    without_refused_public_keks(vault.legacy_keks),
+  );
   await load_prior_storage_keys_into_memory(vault.storage_rekey?.prior_keys);
   await load_previous_key_derived_keks_into_memory([
     ...(vault.previous_keys ?? []),
@@ -783,7 +805,10 @@ export function clear_vault_from_memory(
   clear_passphrase();
   clear_legacy_keks_from_memory();
   reset_mail_legacy_retirement();
+  reset_format_retirements();
+  password_v1_kek_id = null;
   if (!options.keep_account_keys) {
+    reset_vault_binding_state();
     clear_server_known_keys();
     cancel_account_key_retry();
     clear_account_key_derived_keks();

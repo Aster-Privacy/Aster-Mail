@@ -1,0 +1,132 @@
+{
+  "legacy": [
+    {
+      "version": 1,
+      "mode": "none",
+      "expected_output": "8d18029bb35dde7d83b8f9228152e49d34e096819b1fb7c810ef70ac5bc600b6"
+    },
+    {
+      "version": 1,
+      "mode": "identity",
+      "expected_output": "2509840a0241b69887bbcbf7a712c4a946ce0701cd1db05a0cdee4a11a71acc1"
+    },
+    {
+      "version": 1,
+      "mode": "onetime",
+      "expected_output": "efa41c478ff0477bfea970527a6a9cee3d8a348e3e4704e255593aa18e3b25f6"
+    },
+    {
+      "version": 2,
+      "mode": "none",
+      "expected_output": "6bb032c615db5f87012e62cf8da751b52343c2b4c2d5ed8f140a2c1bb6014f48"
+    },
+    {
+      "version": 2,
+      "mode": "identity",
+      "expected_output": "1ffb50c01be8f1aa988305dc1152a159a7ab59ad9f845e2f3f7544bf272af88a"
+    },
+    {
+      "version": 2,
+      "mode": "onetime",
+      "expected_output": "023e364282464ccbe2c013d61f7453907d94e2a464f0ee5025cb485eb9cc324c"
+    },
+    {
+      "version": 3,
+      "mode": "none",
+      "expected_output": "09459744acadbaf0e93995b1e78476b89ae2abc12225f3b8471680411f39f075"
+    },
+    {
+      "version": 3,
+      "mode": "identity",
+      "expected_output": "c96ffc27882c8cdd893f3f3a5cea5c5961c94702b6fd34498f254a71e5266fdd"
+    },
+    {
+      "version": 3,
+      "mode": "onetime",
+      "expected_output": "295cb2db9bb952b6beff8dff48ab2bfda87b16c09eb05397a36326361bcc60f4"
+    },
+    {
+      "version": 4,
+      "mode": "none",
+      "expected_output": "cd86fc61ca372fd0fe6cef01c44b004d66956e98779c2c115605d5098a42b148"
+    },
+    {
+      "version": 4,
+      "mode": "identity",
+      "expected_output": "49e59d658796cf02446ae941a33c01f0f8bb954ce1f968a45738598c36132818"
+    },
+    {
+      "version": 4,
+      "mode": "onetime",
+      "expected_output": "80a66a85ce5a08d96469b61f1a35e8512b431519342d5bd597ff86a5bf7ec50a"
+    }
+  ],
+  "v5": [
+    {
+      "mode": "none",
+      "one_time_prekey": false,
+      "transcript": "010000001d61737465722f68616e647368616b652f7472616e7363726970742f76350200000001050300000014a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a10400000014b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2050000004104df27da46d60aa680ce6ab7599a8b9a99761fb1ba0ccda8f0b3f8cf4640e8358491502211cac333233f485d0cea0e0abe4206284e761a489e2e85c10977dc19bb060000004104a55e716220fe99a5f01e558574d7135d4dbd45b5b1ec1d8cf9e991faae525a48e3d4d993cd59b7fac116ac298bfbb77a0715a80a1eaa800c9623f1413c45c42e0700000041043db4d751ed678dd344ac549cc9c29963ffd132b4ccf259cf9082bc5cf98c8d182204d81e97171de86b3a97fd714cbcb24f4f97a5e2e3e26e3ed900f9988ad42708000000410437d03307b4037756e5649c1c364f4e8364ebbaa93ff55d42ca5f11dd731d9c16fc8a020d8551c69581505f76c48829f39b5fafbe86ddf81babac3517c36d5e3c09000000000a000000000b00000020352f519f4ac823dfbafaa20eecf9d385bfcdf5b15bf225bd3abc121b3f4e82c20c000000000d000000000e00000000",
+      "session_binding": "6042ea557142c9f9cccb9e44c665ec22219f2fc8751e6856f66356481f36c2e7",
+      "expected_output": "8260cf4ac4ddd03eb32705d26bc41c6d45b32e5cf7f0bdeb7e54a0769b984866"
+    },
+    {
+      "mode": "none",
+      "one_time_prekey": true,
+      "transcript": "010000001d61737465722f68616e647368616b652f7472616e7363726970742f76350200000001050300000014a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a10400000014b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2050000004104df27da46d60aa680ce6ab7599a8b9a99761fb1ba0ccda8f0b3f8cf4640e8358491502211cac333233f485d0cea0e0abe4206284e761a489e2e85c10977dc19bb060000004104a55e716220fe99a5f01e558574d7135d4dbd45b5b1ec1d8cf9e991faae525a48e3d4d993cd59b7fac116ac298bfbb77a0715a80a1eaa800c9623f1413c45c42e0700000041043db4d751ed678dd344ac549cc9c29963ffd132b4ccf259cf9082bc5cf98c8d182204d81e97171de86b3a97fd714cbcb24f4f97a5e2e3e26e3ed900f9988ad42708000000410437d03307b4037756e5649c1c364f4e8364ebbaa93ff55d42ca5f11dd731d9c16fc8a020d8551c69581505f76c48829f39b5fafbe86ddf81babac3517c36d5e3c0900000004010203040a00000041042475b1acbe8c58c6e92a51791be1142d8a4727933a3e711d95e83ae95d110afa650b848a41965cde7f00a25837ec61fc78cb9eaad01b8429564ccfa1c1586c980b00000020352f519f4ac823dfbafaa20eecf9d385bfcdf5b15bf225bd3abc121b3f4e82c20c000000000d000000000e00000000",
+      "session_binding": "0773ae9a9979ffa5e6cbb70b3dabdbd4096da4c5e9045e787c394b44452c0ed6",
+      "expected_output": "c35779ebe40dbea8456d64898f7d9d0af8698dce1b1dba8866a499d1f36ed3b2"
+    },
+    {
+      "mode": "identity",
+      "one_time_prekey": true,
+      "transcript": "010000001d61737465722f68616e647368616b652f7472616e7363726970742f76350200000001050300000014a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a10400000014b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2050000004104df27da46d60aa680ce6ab7599a8b9a99761fb1ba0ccda8f0b3f8cf4640e8358491502211cac333233f485d0cea0e0abe4206284e761a489e2e85c10977dc19bb060000004104a55e716220fe99a5f01e558574d7135d4dbd45b5b1ec1d8cf9e991faae525a48e3d4d993cd59b7fac116ac298bfbb77a0715a80a1eaa800c9623f1413c45c42e0700000041043db4d751ed678dd344ac549cc9c29963ffd132b4ccf259cf9082bc5cf98c8d182204d81e97171de86b3a97fd714cbcb24f4f97a5e2e3e26e3ed900f9988ad42708000000410437d03307b4037756e5649c1c364f4e8364ebbaa93ff55d42ca5f11dd731d9c16fc8a020d8551c69581505f76c48829f39b5fafbe86ddf81babac3517c36d5e3c0900000004010203040a00000041042475b1acbe8c58c6e92a51791be1142d8a4727933a3e711d95e83ae95d110afa650b848a41965cde7f00a25837ec61fc78cb9eaad01b8429564ccfa1c1586c980b00000020352f519f4ac823dfbafaa20eecf9d385bfcdf5b15bf225bd3abc121b3f4e82c20c000000000d000000000e00000020a43360145b62962fd1e7a66fe28a609b95eb15292119638cbff121b9e1dfa341",
+      "session_binding": "fd3702305d6a590e3c211b4cd53600d5ec359235c2e8af5eedaa76631fbabc1e",
+      "expected_output": "7a96dbf0b452e7fc0ffaa188bbfb0cf8f20f771108e244bd754a6a3465bd2bed"
+    },
+    {
+      "mode": "onetime",
+      "one_time_prekey": true,
+      "transcript": "010000001d61737465722f68616e647368616b652f7472616e7363726970742f76350200000001050300000014a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a10400000014b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2050000004104df27da46d60aa680ce6ab7599a8b9a99761fb1ba0ccda8f0b3f8cf4640e8358491502211cac333233f485d0cea0e0abe4206284e761a489e2e85c10977dc19bb060000004104a55e716220fe99a5f01e558574d7135d4dbd45b5b1ec1d8cf9e991faae525a48e3d4d993cd59b7fac116ac298bfbb77a0715a80a1eaa800c9623f1413c45c42e0700000041043db4d751ed678dd344ac549cc9c29963ffd132b4ccf259cf9082bc5cf98c8d182204d81e97171de86b3a97fd714cbcb24f4f97a5e2e3e26e3ed900f9988ad42708000000410437d03307b4037756e5649c1c364f4e8364ebbaa93ff55d42ca5f11dd731d9c16fc8a020d8551c69581505f76c48829f39b5fafbe86ddf81babac3517c36d5e3c0900000004010203040a00000041042475b1acbe8c58c6e92a51791be1142d8a4727933a3e711d95e83ae95d110afa650b848a41965cde7f00a25837ec61fc78cb9eaad01b8429564ccfa1c1586c980b00000020352f519f4ac823dfbafaa20eecf9d385bfcdf5b15bf225bd3abc121b3f4e82c20c00000004000000070d00000020352f519f4ac823dfbafaa20eecf9d385bfcdf5b15bf225bd3abc121b3f4e82c20e00000020a43360145b62962fd1e7a66fe28a609b95eb15292119638cbff121b9e1dfa341",
+      "session_binding": "0ca6962f48428a1134a1b5b8ca16b64d77425b5aa69870bbdc4ba378c003d737",
+      "expected_output": "f38601015ad9638874776ea9812e672486c13eea91d0e42cc6fc497ca08554bb"
+    }
+  ],
+  "negative": {
+    "one_time_prekey_signature": {
+      "signing_public_key": "BLaRaOcYEUudL6BP2njVUu8zuj1JZSx0V25g2U2z6Z7DYq6+r/3Iebo8knhBwt1PFyJP8DYJ/daYuM1K7P+liIM=",
+      "kind": "ec",
+      "key_id": 16909060,
+      "public_key": "BCR1say+jFjG6SpReRvhFC2KRyeTOj5xHZXoOuldEQr6ZQuEikGWXN5/AKJYN+xh/HjLnqrQG4QpVkzPocFYbJg=",
+      "digest": "efa4366c5eb12ccf18ab27b0cbde7b1cfad935798c84d8e75b7016c6e210fcda",
+      "signature": "7QwLPdhFRXEDowXAGIcddVaqkqzRdQhnafnKRpMAPk83WsgngBYPfvoK4SL8VqwEB3wx3fVIB8wZyzwQQ+rxLA==",
+      "forged_signature": "7QwLPdhFRXEDowXAGIcddVaqkqzRdQhnafnKRpMAPk83WsgngBYPfvoK4SL8VqwEB3wx3fVIB8wZyzwQQ+rxLQ=="
+    },
+    "wrong_account_fingerprint": {
+      "initiator_fingerprint": "5ea1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+      "expected_output": "a14c062b66c3720add25774b57e63760253b9dada48d4f564b43216c073ec35a"
+    },
+    "header_ad": {
+      "header": {
+        "dh_public": "BD2011HtZ43TRKxUnMnCmWP/0TK0zPJZz5CCvFz5jI0YIgTYHpcXHehrOpf9cUy8sk9Pl6Xi4+JuPtkA+ZiK1Cc=",
+        "previous_chain_length": 3,
+        "message_number": 9,
+        "v": 3,
+        "sb": "A5BYxvLAy0ksUzsKTRTvd8wPeKvMztUofYShogEc+4E="
+      },
+      "ad_v3": "010000001761737465722f726174636865742f6865616465722f76330200000001030300000020039058c6f2c0cb492c533b0a4d14ef77cc0f78abccced5287d84a1a2011cfb810400000041043db4d751ed678dd344ac549cc9c29963ffd132b4ccf259cf9082bc5cf98c8d182204d81e97171de86b3a97fd714cbcb24f4f97a5e2e3e26e3ed900f9988ad427050000000400000003060000000400000009",
+      "ad_v2": "61737465726d61696c2d726174636865742d6865616465722d763202043db4d751ed678dd344ac549cc9c29963ffd132b4ccf259cf9082bc5cf98c8d182204d81e97171de86b3a97fd714cbcb24f4f97a5e2e3e26e3ed900f9988ad4270000000300000009",
+      "tampered_header": {
+        "dh_public": "BD2011HtZ43TRKxUnMnCmWP/0TK0zPJZz5CCvFz5jI0YIgTYHpcXHehrOpf9cUy8sk9Pl6Xi4+JuPtkA+ZiK1Cc=",
+        "previous_chain_length": 3,
+        "message_number": 10,
+        "v": 3,
+        "sb": "A5BYxvLAy0ksUzsKTRTvd8wPeKvMztUofYShogEc+4E="
+      }
+    },
+    "downgrade": {
+      "remembered_x3dh_version": 5,
+      "bundle_x3dh_max_version": 4,
+      "error": "Recipient no longer offers the account bound handshake"
+    }
+  }
+}

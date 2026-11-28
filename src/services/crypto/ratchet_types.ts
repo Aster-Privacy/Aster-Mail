@@ -27,6 +27,7 @@ export interface RatchetRecipientData {
     previous_chain_length: number;
     message_number: number;
     v?: number;
+    sb?: string;
   };
   ciphertext: string;
   nonce: string;
@@ -35,6 +36,7 @@ export interface RatchetRecipientData {
   x3dh_v?: number;
   opk_id?: number;
   spk_id?: string;
+  ifp?: string;
   recovery?: RecoveryLaneData;
 }
 

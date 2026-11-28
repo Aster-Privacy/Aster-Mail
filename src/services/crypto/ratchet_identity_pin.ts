@@ -29,6 +29,7 @@ import {
   SENDER_HISTORY_PREFIX,
 } from "./storage_key_names";
 import { base64_to_array, compute_hash } from "./key_manager_core";
+import { canonical_address_form } from "./address_identity_entry";
 import {
   dismiss_peer_identity_event,
   note_peer_alias,
@@ -103,7 +104,12 @@ export interface RecipientBundleBinding {
 }
 
 export type IdentityPinStatus =
-  "first" | "ok" | "rotated" | "drift" | "unreadable" | "unknown";
+  | "first"
+  | "ok"
+  | "rotated"
+  | "drift"
+  | "unreadable"
+  | "unknown";
 
 interface StoredIdentityPin {
   fingerprint: string;
@@ -112,6 +118,7 @@ interface StoredIdentityPin {
   pq_seen?: boolean;
   pq_signed_seen?: boolean;
   x3dh_seen?: number;
+  x3dh_bound_at?: AccountBoundFloors;
   rotated?: boolean;
   missing_accepted_at?: number;
   address_rooted?: boolean;
@@ -152,6 +159,55 @@ function signed_pq_field(signed: boolean | undefined): {
 
 function x3dh_field(x3dh_seen: number | undefined): { x3dh_seen?: number } {
   return x3dh_seen !== undefined && x3dh_seen > 1 ? { x3dh_seen } : {};
+}
+
+export type AccountBoundFloors = Readonly<Record<string, number>>;
+
+const ACCOUNT_BOUND_FLOORS_MAX = 64;
+
+function valid_bound_at(value: unknown): number | null {
+  return typeof value === "number" && Number.isFinite(value) && value > 0
+    ? Math.floor(value)
+    : null;
+}
+
+function bound_floor_key(our_address: string): string {
+  return (
+    canonical_address_form(our_address) || our_address.trim().toLowerCase()
+  );
+}
+
+function merge_bound_floors(
+  ...sources: (AccountBoundFloors | null | undefined)[]
+): Record<string, number> {
+  const merged: Record<string, number> = {};
+
+  for (const source of sources) {
+    if (!source || typeof source !== "object" || Array.isArray(source)) {
+      continue;
+    }
+
+    for (const [address, value] of Object.entries(source)) {
+      const key = bound_floor_key(address);
+      const at = valid_bound_at(value);
+
+      if (!key || at === null) continue;
+
+      const previous = merged[key];
+
+      merged[key] = previous === undefined ? at : Math.min(previous, at);
+    }
+  }
+
+  return merged;
+}
+
+function bound_at_field(
+  ...sources: (AccountBoundFloors | null | undefined)[]
+): { x3dh_bound_at?: AccountBoundFloors } {
+  const merged = merge_bound_floors(...sources);
+
+  return Object.keys(merged).length > 0 ? { x3dh_bound_at: merged } : {};
 }
 
 export type IdentityPinLookup = IdentityPinRecord | "unreadable" | null;
@@ -296,18 +352,18 @@ async function confirm_first_contact_in_lock(
 export async function note_first_contact_identity(
   pin_id: string,
   identity_key: string,
-): Promise<void> {
-  if (!pin_id || !identity_key) return;
+): Promise<boolean> {
+  if (!pin_id || !identity_key) return false;
 
   try {
     const slot = await open_pins(pin_id);
 
-    if (!slot) return;
+    if (!slot) return false;
 
-    await with_contact_lock(slot, async () => {
+    return await with_contact_lock(slot, async () => {
       const read = await load_first_contact(slot);
 
-      if (!is_settled(read)) return;
+      if (!is_settled(read)) return false;
 
       const current = settled_value(read) ?? { pending: [], confirmed: [] };
 
@@ -315,21 +371,26 @@ export async function note_first_contact_identity(
         current.pending.includes(identity_key) ||
         current.confirmed.includes(identity_key)
       ) {
-        return;
+        return true;
       }
 
       await write_contact_entry(FIRST_CONTACT_PREFIX, slot, {
         pending: capped_keys([...current.pending, identity_key]),
         confirmed: current.confirmed,
       } satisfies StoredFirstContact);
+
+      return true;
     });
   } catch {
-    return;
+    return false;
   }
 }
 
 export type FirstContactStanding =
-  "confirmed" | "pending" | "absent" | "unreadable";
+  | "confirmed"
+  | "pending"
+  | "absent"
+  | "unreadable";
 
 export async function first_contact_standing(
   pin_id: string,
@@ -394,10 +455,12 @@ function merge_identity_pins(
       Boolean(left.pq_signed_seen) || Boolean(right.pq_signed_seen),
     ),
     ...x3dh_field(highest_x3dh_seen(left.x3dh_seen, right.x3dh_seen)),
+    ...bound_at_field(left.x3dh_bound_at, right.x3dh_bound_at),
     ...(left.rotated || right.rotated ? { rotated: true } : {}),
     ...rooted_field(
       Boolean(left.address_rooted) || Boolean(right.address_rooted),
     ),
+    ...signed_at_field(left.signed_at, right.signed_at ?? null),
     ...(left.missing_accepted_at && right.missing_accepted_at
       ? {
           missing_accepted_at: Math.max(
@@ -470,7 +533,8 @@ function signed_at_field(
   previous: number | undefined,
   signed_at: number | null,
 ): { signed_at?: number } {
-  const latest = Math.max(previous ?? 0, signed_at ?? 0);
+  const ceiling = Date.now() + SIGNED_AT_SKEW_MS;
+  const latest = Math.min(Math.max(previous ?? 0, signed_at ?? 0), ceiling);
 
   return latest > 0 ? { signed_at: latest } : {};
 }
@@ -482,7 +546,7 @@ function is_signed_before_pin(
   return (
     previous !== undefined &&
     signed_at !== null &&
-    signed_at + SIGNED_AT_SKEW_MS < previous
+    signed_at + SIGNED_AT_SKEW_MS < Math.min(previous, Date.now())
   );
 }
 
@@ -538,6 +602,7 @@ async function pin_identity_in_lock(
         pq_seen,
         ...signed_pq_field(pq_signed_seen),
         x3dh_seen,
+        ...bound_at_field(existing.x3dh_bound_at),
         ...(existing.rotated ? { rotated: true } : {}),
         ...rooted_field(rooted),
         ...signed_at_field(existing.signed_at, signed_at),
@@ -553,6 +618,7 @@ async function pin_identity_in_lock(
       pq_seen,
       ...signed_pq_field(pq_signed_seen),
       x3dh_seen,
+      ...bound_at_field(existing.x3dh_bound_at),
       rotated: true,
       ...rooted_field(rooted),
       ...signed_at_field(existing.signed_at, signed_at),
@@ -604,7 +670,7 @@ export async function check_and_pin_identity(
 ): Promise<IdentityPinStatus> {
   try {
     if (!pin_id || !kem_identity_key) {
-      return "ok";
+      return "unknown";
     }
 
     const fingerprint = await compute_hash(base64_to_array(kem_identity_key));
@@ -653,6 +719,7 @@ export async function adopt_endorsed_identity_in_lock(
     pq_seen: existing.pq_seen,
     ...signed_pq_field(existing.pq_signed_seen),
     ...x3dh_field(existing.x3dh_seen),
+    ...bound_at_field(existing.x3dh_bound_at),
     ...rooted_field(true),
     ...signed_at_field(existing.signed_at, null),
   } satisfies StoredIdentityPin);
@@ -1122,6 +1189,7 @@ export async function trust_recipient_keys(
 
   await with_contact_lock(slot, async () => {
     const known = await load_identity_pin(slot).catch(() => null);
+    const known_pin = known ? settled_value(known) : null;
     const pq_seen = Boolean(known && settled_value(known)?.pq_seen);
     const pq_signed_seen = Boolean(
       known && settled_value(known)?.pq_signed_seen,
@@ -1138,14 +1206,21 @@ export async function trust_recipient_keys(
     }
 
     if (kem_identity_key) {
+      const fingerprint = await compute_hash(base64_to_array(kem_identity_key));
+      const same_key = known_pin?.fingerprint === fingerprint;
+
       await write_contact_entry(IDENTITY_PIN_PREFIX, slot, {
-        fingerprint: await compute_hash(base64_to_array(kem_identity_key)),
+        fingerprint,
         verified: false,
         pinned_at: Date.now(),
         pq_seen,
         ...signed_pq_field(pq_signed_seen),
         ...x3dh_field(x3dh_seen),
-        ...rooted_field(address_rooted),
+        ...bound_at_field(known_pin?.x3dh_bound_at),
+        ...rooted_field(
+          address_rooted || (same_key && known_pin?.address_rooted === true),
+        ),
+        ...signed_at_field(known_pin?.signed_at, null),
       } satisfies StoredIdentityPin);
     } else if (!known || worst_health([known]) !== "settled") {
       await delete_contact_entry(IDENTITY_PIN_PREFIX, slot);
@@ -1189,6 +1264,7 @@ export async function trust_recipient_keys(
 
 export interface PeerDowngradeFloor {
   x3dh_version: number;
+  bound_at: AccountBoundFloors;
   pq_seen: boolean;
   pq_signed_seen: boolean;
 }
@@ -1211,6 +1287,7 @@ export async function read_peer_downgrade_floor(
 
     return {
       x3dh_version: highest_x3dh_seen(pin?.x3dh_seen, null),
+      bound_at: merge_bound_floors(pin?.x3dh_bound_at),
       pq_seen: pin?.pq_seen === true,
       pq_signed_seen: pin?.pq_signed_seen === true,
     };
@@ -1238,6 +1315,62 @@ export async function remembered_peer_x3dh_version(
   }
 }
 
+export async function note_account_bound_opening(
+  pin_id: string,
+  our_address: string,
+  kem_identity_key: string,
+  sent_at: number | undefined,
+): Promise<boolean> {
+  try {
+    const opened_at = valid_bound_at(sent_at);
+    const key = bound_floor_key(our_address);
+
+    if (!pin_id || !key || !kem_identity_key || opened_at === null) {
+      return false;
+    }
+
+    const slot = await open_pins(pin_id);
+
+    if (!slot) return false;
+
+    const fingerprint = await compute_hash(base64_to_array(kem_identity_key));
+
+    return await with_contact_lock(slot, async () => {
+      const read = await load_identity_pin(slot);
+
+      if (read.state !== "found" || read.conflict) return false;
+
+      const existing = read.value;
+
+      if (existing.fingerprint !== fingerprint) return false;
+
+      const floors = merge_bound_floors(existing.x3dh_bound_at);
+      const previous = floors[key];
+
+      if (previous !== undefined && previous <= opened_at) return false;
+
+      floors[key] = opened_at;
+
+      while (Object.keys(floors).length > ACCOUNT_BOUND_FLOORS_MAX) {
+        const [latest] = Object.entries(floors)
+          .filter(([address]) => address !== key)
+          .reduce((a, b) => (b[1] > a[1] ? b : a));
+
+        delete floors[latest];
+      }
+
+      await write_contact_entry(IDENTITY_PIN_PREFIX, slot, {
+        ...existing,
+        x3dh_bound_at: floors,
+      } satisfies StoredIdentityPin);
+
+      return true;
+    });
+  } catch {
+    return false;
+  }
+}
+
 export async function has_peer_signed_pq(pin_id: string): Promise<boolean> {
   try {
     if (!pin_id) return false;
@@ -1246,7 +1379,9 @@ export async function has_peer_signed_pq(pin_id: string): Promise<boolean> {
 
     if (!slot) return false;
 
-    return settled_value(await load_identity_pin(slot))?.pq_signed_seen === true;
+    return (
+      settled_value(await load_identity_pin(slot))?.pq_signed_seen === true
+    );
   } catch {
     return false;
   }
@@ -1342,14 +1477,11 @@ export async function acknowledge_identity_change(
     if (!read || read.state !== "found" || read.conflict) return;
     if (!read.value.rotated) return;
 
-    await write_contact_entry(IDENTITY_PIN_PREFIX, slot, {
-      fingerprint: read.value.fingerprint,
-      verified: read.value.verified,
-      pinned_at: read.value.pinned_at,
-      pq_seen: read.value.pq_seen,
-      ...signed_pq_field(read.value.pq_signed_seen),
-      ...x3dh_field(read.value.x3dh_seen),
-    } satisfies StoredIdentityPin);
+    const acknowledged: StoredIdentityPin = { ...read.value };
+
+    delete acknowledged.rotated;
+
+    await write_contact_entry(IDENTITY_PIN_PREFIX, slot, acknowledged);
   });
 
   dismiss_peer_identity_event(pin_id);

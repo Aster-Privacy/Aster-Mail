@@ -1016,6 +1016,7 @@ export function use_email_detail_load() {
           user?.email,
           response.data.id,
           response.data.dkim_result,
+          response.data.created_at,
         );
 
         start_attachment_prefetch();

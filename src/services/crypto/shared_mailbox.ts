@@ -134,6 +134,8 @@ export async function generate_shared_mailbox_material(
   const { encrypted_vault, vault_nonce } = await encrypt_vault(
     vault_data,
     login_secret,
+    undefined,
+    false,
   );
 
   return {

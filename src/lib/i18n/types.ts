@@ -1168,6 +1168,20 @@ export interface MailRulesTranslations {
 }
 
 export interface CommonTranslations {
+  safety_number_compare: string;
+  safety_number_section_title: string;
+  safety_number: string;
+  safety_number_not_verified: string;
+  safety_number_verified: string;
+  safety_number_status_changed: string;
+  safety_number_changed: string;
+  safety_number_description: string;
+  safety_number_changed_description: string;
+  safety_number_unavailable: string;
+  safety_number_copy: string;
+  safety_number_mark_verified: string;
+  safety_number_clear: string;
+  safety_number_save_failed: string;
   couldnt_load: string;
   try_again_action: string;
   post_quantum_unavailable_title: string;
@@ -8833,7 +8847,10 @@ export interface MailTranslations {
   alias_sent_indexing: string;
   sender_identity_rotated: string;
   sender_identity_downgraded: string;
+  recipient_identity_downgraded: string;
   sender_identity_unreadable: string;
+  sender_identity_unverified: string;
+  sender_identity_mismatch: string;
   recipient_identity_changed: string;
   message_password_requirements: string;
   recipient_identity_untrusted: string;

@@ -380,6 +380,16 @@ describe("is_primary_address", () => {
     expect(is_primary_address("", "first.last@astermail.org")).toBe(false);
   });
 
+  it("folds dots only on Aster domains", () => {
+    expect(
+      is_primary_address("jdoe@custom.example", "j.doe@custom.example"),
+    ).toBe(false);
+    expect(
+      is_primary_address("j.doe+news@custom.example", "j.doe@custom.example"),
+    ).toBe(true);
+    expect(is_primary_address("jdoe@aster.cx", "j.doe@aster.cx")).toBe(true);
+  });
+
   it("treats a blank primary as the primary", () => {
     expect(is_primary_address("shop@astermail.org", null)).toBe(true);
     expect(is_primary_address("shop@astermail.org", "")).toBe(true);

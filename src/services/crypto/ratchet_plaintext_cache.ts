@@ -25,6 +25,7 @@ import {
 } from "./memory_key_store";
 
 import {
+  mark_downgraded_plaintext,
   mark_unauthenticated_plaintext,
   mark_unconfirmed_sender_plaintext,
 } from "./ratchet_verification_status";
@@ -49,6 +50,37 @@ interface CachedPlaintext {
   sender_identity_key?: string;
   sender?: string;
   conversation_id?: string;
+  downgraded?: boolean;
+  account_unbound?: boolean;
+  sent_at?: number;
+}
+
+export interface CachedOpening {
+  downgraded?: boolean;
+  account_unbound?: boolean;
+  sent_at?: number;
+}
+
+export interface CachedOpeningState {
+  downgraded: boolean;
+  account_unbound: boolean;
+  sent_at: number | undefined;
+}
+
+function valid_sent_at(value: unknown): number | undefined {
+  return typeof value === "number" && Number.isFinite(value) && value > 0
+    ? value
+    : undefined;
+}
+
+function opening_fields(opening: CachedOpening): CachedOpening {
+  const sent_at = valid_sent_at(opening.sent_at);
+
+  return {
+    ...(opening.downgraded ? { downgraded: true } : {}),
+    ...(opening.account_unbound ? { account_unbound: true } : {}),
+    ...(sent_at !== undefined ? { sent_at } : {}),
+  };
 }
 
 export interface PlaintextBinding {
@@ -87,6 +119,7 @@ function build_entry(
   binding: PlaintextBinding | undefined,
   unconfirmed_sender: boolean,
   sender_identity_key: string | undefined,
+  opening: CachedOpening = {},
 ): CachedPlaintext {
   const bound = binding ? normalize_binding(binding) : null;
 
@@ -94,7 +127,10 @@ function build_entry(
     plaintext,
     stored_at: Date.now(),
     ...(unauthenticated ? { unauthenticated: true } : {}),
-    ...(unconfirmed_sender ? { unconfirmed_sender: true } : {}),
+    ...(unconfirmed_sender || opening.downgraded
+      ? { unconfirmed_sender: true }
+      : {}),
+    ...opening_fields(opening),
     ...(sender_identity_key && !unauthenticated ? { sender_identity_key } : {}),
     ...(bound
       ? {
@@ -228,6 +264,10 @@ export async function get_cached_ratchet_plaintext(
       mark_unconfirmed_sender_plaintext(entry.plaintext, message_id);
     }
 
+    if (entry.downgraded) {
+      mark_downgraded_plaintext(entry.plaintext, message_id);
+    }
+
     return entry.plaintext;
   } catch {
     return null;
@@ -258,6 +298,7 @@ export async function set_cached_ratchet_plaintext(
   binding?: PlaintextBinding,
   unconfirmed_sender = false,
   sender_identity_key?: string,
+  opening: CachedOpening = {},
 ): Promise<void> {
   if (!message_id) return;
   try {
@@ -285,6 +326,17 @@ export async function set_cached_ratchet_plaintext(
       return;
     }
 
+    const kept: CachedOpening =
+      existing && !is_foreign_entry(existing, binding)
+        ? {
+            downgraded: opening.downgraded || existing.downgraded === true,
+            account_unbound:
+              opening.account_unbound || existing.account_unbound === true,
+            sent_at:
+              valid_sent_at(opening.sent_at) ?? valid_sent_at(existing.sent_at),
+          }
+        : opening;
+
     await scoped_set(
       RATCHET_PLAINTEXT_PREFIX,
       scope.uid,
@@ -295,11 +347,58 @@ export async function set_cached_ratchet_plaintext(
         binding,
         unconfirmed_sender,
         sender_identity_key,
+        kept,
       ),
       key,
     );
   } catch {
     /* best-effort */
+  }
+}
+
+export async function read_cached_opening(
+  message_id: string,
+  binding: PlaintextBinding,
+): Promise<CachedOpeningState | null> {
+  if (!message_id) return null;
+  try {
+    const found = await read_entry(message_id);
+
+    if (!found || is_foreign_entry(found.entry, binding)) return null;
+
+    return {
+      downgraded: found.entry.downgraded === true,
+      account_unbound: found.entry.account_unbound === true,
+      sent_at: valid_sent_at(found.entry.sent_at),
+    };
+  } catch {
+    return null;
+  }
+}
+
+export async function mark_cached_downgraded(
+  message_id: string,
+  binding: PlaintextBinding,
+): Promise<void> {
+  if (!message_id) return;
+  try {
+    const found = await read_entry(message_id);
+
+    if (!found || is_foreign_entry(found.entry, binding)) return;
+
+    mark_downgraded_plaintext(found.entry.plaintext, message_id);
+
+    if (found.entry.downgraded) return;
+
+    await scoped_set(
+      RATCHET_PLAINTEXT_PREFIX,
+      found.scope.uid,
+      message_id,
+      { ...found.entry, downgraded: true, unconfirmed_sender: true },
+      found.key,
+    );
+  } catch {
+    return;
   }
 }
 

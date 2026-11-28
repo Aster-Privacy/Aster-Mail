@@ -275,7 +275,9 @@ export function generate_temp_id(): string {
   const random =
     typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
       ? crypto.randomUUID()
-      : `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
+      : Array.from(crypto.getRandomValues(new Uint8Array(16)), (b) =>
+            b.toString(16).padStart(2, "0"),
+          ).join("");
 
   return `${TEMP_ID_PREFIX}${random}`;
 }

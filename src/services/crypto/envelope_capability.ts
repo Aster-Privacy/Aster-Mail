@@ -35,6 +35,7 @@ import {
 export const ENVELOPE_CAPABILITY_MAX_MARKER = 4;
 export const ENVELOPE_CAPABILITY_X3DH_MAX_VERSION = 3;
 export const ENVELOPE_CAPABILITY_X3DH_ONE_TIME_VERSION = 4;
+export const ENVELOPE_CAPABILITY_X3DH_ACCOUNT_VERSION = 5;
 export const ENVELOPE_CAPABILITY_PGP_EXTERNAL_VERSION = 1;
 export const ENVELOPE_CAPABILITY_ADDRESS_IDENTITY_VERSION = 1;
 export const ENVELOPE_CAPABILITY_BOUND_VERSION = 1;
@@ -75,6 +76,7 @@ export interface EnvelopeCapabilityDeps {
   identity_fingerprint: () => Promise<string | null>;
   pq_identity_fingerprint: () => Promise<string | null>;
   one_time_prekeys_readable?: () => Promise<boolean>;
+  account_bound_published?: () => Promise<boolean>;
 }
 
 function browser_read(key: string): string | null {
@@ -204,14 +206,24 @@ async function current_one_time_prekeys_readable(): Promise<boolean> {
 
 export async function resolve_reported_x3dh_version(
   one_time_prekeys_readable?: () => Promise<boolean>,
+  account_bound_published?: () => Promise<boolean>,
 ): Promise<number> {
   if (!one_time_prekeys_readable) return ENVELOPE_CAPABILITY_X3DH_MAX_VERSION;
 
   const readable = await one_time_prekeys_readable().catch(() => false);
 
-  return readable === true
-    ? ENVELOPE_CAPABILITY_X3DH_ONE_TIME_VERSION
-    : ENVELOPE_CAPABILITY_X3DH_MAX_VERSION;
+  if (readable !== true) return ENVELOPE_CAPABILITY_X3DH_MAX_VERSION;
+
+  return (await account_bound_published?.().catch(() => false)) === true
+    ? ENVELOPE_CAPABILITY_X3DH_ACCOUNT_VERSION
+    : ENVELOPE_CAPABILITY_X3DH_ONE_TIME_VERSION;
+}
+
+async function current_account_bound_published(): Promise<boolean> {
+  const { is_account_bound_published } =
+    await import("./handshake_keys/bundle_signing");
+
+  return is_account_bound_published();
 }
 
 const default_deps: EnvelopeCapabilityDeps = {
@@ -224,6 +236,7 @@ const default_deps: EnvelopeCapabilityDeps = {
   identity_fingerprint: current_identity_fingerprint,
   pq_identity_fingerprint: current_pq_identity_fingerprint,
   one_time_prekeys_readable: current_one_time_prekeys_readable,
+  account_bound_published: current_account_bound_published,
 };
 
 export async function report_envelope_capability_if_due(
@@ -252,6 +265,14 @@ export async function report_envelope_capability_if_due(
   );
   const bound_marker = String(ENVELOPE_CAPABILITY_BOUND_VERSION);
   const stored_key_marker = String(ENVELOPE_CAPABILITY_STORED_KEY_VERSION);
+  const reported_x3dh_version = await resolve_reported_x3dh_version(
+    deps.one_time_prekeys_readable,
+    deps.account_bound_published,
+  );
+  const x3dh_marker =
+    reported_x3dh_version >= ENVELOPE_CAPABILITY_X3DH_ACCOUNT_VERSION
+      ? String(reported_x3dh_version)
+      : "";
   const [
     last_at,
     last_fingerprint = "",
@@ -260,6 +281,7 @@ export async function report_envelope_capability_if_due(
     last_address_identity = "",
     last_bound = "",
     last_stored_key = "",
+    last_x3dh = "",
   ] = (deps.read(LAST_REPORTED_PREFIX + user_id) ?? "").split("|");
   const last = Number(last_at);
   const elapsed = now - last;
@@ -272,6 +294,7 @@ export async function report_envelope_capability_if_due(
     address_identity_marker === last_address_identity &&
     bound_marker === last_bound &&
     stored_key_marker === last_stored_key &&
+    x3dh_marker === last_x3dh &&
     Number.isFinite(last) &&
     last > 0 &&
     elapsed >= 0 &&
@@ -286,10 +309,6 @@ export async function report_envelope_capability_if_due(
     client_id = deps.new_client_id();
     write(CLIENT_ID_KEY, client_id);
   }
-
-  const reported_x3dh_version = await resolve_reported_x3dh_version(
-    deps.one_time_prekeys_readable,
-  );
 
   const result = await deps
     .post(
@@ -309,7 +328,7 @@ export async function report_envelope_capability_if_due(
   if (result?.success) {
     write(
       LAST_REPORTED_PREFIX + user_id,
-      `${now}|${fingerprint}|${pq_fingerprint}|${pgp_external_marker}|${address_identity_marker}|${bound_marker}|${stored_key_marker}`,
+      `${now}|${fingerprint}|${pq_fingerprint}|${pgp_external_marker}|${address_identity_marker}|${bound_marker}|${stored_key_marker}${x3dh_marker ? `|${x3dh_marker}` : ""}`,
     );
   }
 

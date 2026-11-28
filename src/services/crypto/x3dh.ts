@@ -19,8 +19,12 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { ml_kem768 } from "@noble/post-quantum/ml-kem.js";
+import { p256 } from "@noble/curves/nist.js";
+import { hkdf } from "@noble/hashes/hkdf";
+import { sha256 } from "@noble/hashes/sha256";
 
 import { array_to_base64, base64_to_array } from "./base64";
+import { encode_fields, encode_u32 } from "./handshake_encoding";
 import {
   import_ke_public_key,
   import_ke_private_key,
@@ -33,41 +37,24 @@ import {
   is_pqxdh_transcript_binding_enabled,
   is_signed_ratchet_keys_required,
 } from "./crypto_enforcement_policy";
+import { base64url_decode } from "./address_sender_identity";
 
-import { HASH_ALG } from "@/services/crypto/constants";
 import { ignore_error } from "@/lib/ignore_error";
 
 const ECDH_ALGORITHM = "ECDH";
 const ECDH_CURVE = "P-256";
-
-const X3DH_INFO_CLASSICAL = new TextEncoder().encode("Aster Mail_X3DH_v1");
-const X3DH_INFO_PQ = new TextEncoder().encode("Aster Mail_PQXDH_v1");
-const X3DH_INFO_PQ_IDENTITY = new TextEncoder().encode(
-  "Aster Mail_PQXDH_identity_v1",
-);
-const X3DH_INFO_CLASSICAL_V2 = new TextEncoder().encode("Aster Mail_X3DH_v2");
-const X3DH_INFO_PQ_V2 = new TextEncoder().encode("Aster Mail_PQXDH_v2");
-const X3DH_INFO_PQ_IDENTITY_V2 = new TextEncoder().encode(
-  "Aster Mail_PQXDH_identity_v2",
-);
-const X3DH_INFO_CLASSICAL_V3 = new TextEncoder().encode("Aster Mail_X3DH_v3");
-const X3DH_INFO_PQ_V3 = new TextEncoder().encode("Aster Mail_PQXDH_v3");
-const X3DH_INFO_PQ_IDENTITY_V3 = new TextEncoder().encode(
-  "Aster Mail_PQXDH_identity_v3",
-);
-const X3DH_INFO_CLASSICAL_V4 = new TextEncoder().encode("Aster Mail_X3DH_v4");
-const X3DH_INFO_PQ_V4 = new TextEncoder().encode("Aster Mail_PQXDH_v4");
-const X3DH_INFO_PQ_IDENTITY_V4 = new TextEncoder().encode(
-  "Aster Mail_PQXDH_identity_v4",
-);
 const X3DH_SALT = new Uint8Array(32);
+const TRANSCRIPT_LABEL = "aster/handshake/transcript/v5";
+const ONE_TIME_PREKEY_SIGNATURE_LABEL = "aster/handshake/one-time-prekey/v5";
+const ML_KEM_768_DK_PKE_LEN = 1152;
 
 export const X3DH_VERSION_LEGACY = 1;
 export const X3DH_VERSION_TRANSCRIPT_BOUND = 2;
 export const X3DH_VERSION_KEY_BOUND = 3;
 export const X3DH_VERSION_ONE_TIME_BOUND = 4;
+export const X3DH_VERSION_ACCOUNT_BOUND = 5;
 export const X3DH_VERSION_MAX = X3DH_VERSION_KEY_BOUND;
-export const X3DH_READ_VERSION_MAX = X3DH_VERSION_ONE_TIME_BOUND;
+export const X3DH_READ_VERSION_MAX = X3DH_VERSION_ACCOUNT_BOUND;
 
 export const PQ_IDENTITY_KEY_ID = -1;
 export const ML_KEM_768_EK_LEN = 1184;
@@ -77,34 +64,46 @@ export const SIGNED_PREKEY_ID_BYTES = 8;
 
 export type PqBootstrapMode = "onetime" | "identity" | "none";
 
-const X3DH_INFO: Record<
-  PqBootstrapMode,
-  [Uint8Array, Uint8Array, Uint8Array, Uint8Array]
-> = {
-  none: [
-    X3DH_INFO_CLASSICAL,
-    X3DH_INFO_CLASSICAL_V2,
-    X3DH_INFO_CLASSICAL_V3,
-    X3DH_INFO_CLASSICAL_V4,
-  ],
-  onetime: [X3DH_INFO_PQ, X3DH_INFO_PQ_V2, X3DH_INFO_PQ_V3, X3DH_INFO_PQ_V4],
-  identity: [
-    X3DH_INFO_PQ_IDENTITY,
-    X3DH_INFO_PQ_IDENTITY_V2,
-    X3DH_INFO_PQ_IDENTITY_V3,
-    X3DH_INFO_PQ_IDENTITY_V4,
-  ],
-};
+type TranscriptField = keyof ReturnType<typeof transcript_fields>;
+
+function info(version: number, mode: PqBootstrapMode): Uint8Array {
+  const lane = { none: "X3DH", onetime: "PQXDH", identity: "PQXDH_identity" };
+
+  return text(`Aster Mail_${lane[mode]}_v${version}`);
+}
+
+function handshake_spec(framed: boolean, fields: string, required = "") {
+  const split = (names: string) =>
+    names.split(" ").filter(Boolean) as TranscriptField[];
+
+  return { framed, fields: split(fields), required: split(required) };
+}
+
+export const HANDSHAKE_VERSIONS = [
+  handshake_spec(false, ""),
+  handshake_spec(false, "ik_a ik_b kem_ct"),
+  handshake_spec(false, "ik_a ik_b spk ek kem_ct"),
+  handshake_spec(
+    false,
+    "ik_a ik_b spk ek opk opk_id kem_ct",
+    "ik_a ik_b spk opk opk_id",
+  ),
+  handshake_spec(
+    true,
+    "label version ifp_a ifp_b ik_a ik_b spk ek opk_id opk pq_ik_hash pq_opk_id pq_opk_hash kem_ct_hash",
+    "ifp_a ifp_b ik_a ik_b spk",
+  ),
+];
+
+export type OneTimePrekeyKind = "ec" | "pq";
 
 interface PqPrekey {
   key_id: number;
   public_key: string;
+  signature?: string | null;
 }
 
-interface EcOneTimePrekey {
-  key_id: number;
-  public_key: string;
-}
+type EcOneTimePrekey = PqPrekey;
 
 interface X3dhSenderResult {
   shared_secret: Uint8Array;
@@ -117,6 +116,7 @@ interface X3dhSenderResult {
   signed_prekey_id?: string;
   one_time_prekey_missing?: boolean;
   one_time_prekey_withheld?: boolean;
+  session_binding?: Uint8Array;
 }
 
 interface PrekeyBundle {
@@ -130,6 +130,8 @@ interface PrekeyBundle {
   pq_capable?: boolean | null;
   ec_one_time_prekey?: EcOneTimePrekey | null;
   address_scoped?: boolean | null;
+  signing_public_key?: string | null;
+  account_signature?: string | null;
 }
 
 interface PqReceiverInput {
@@ -137,85 +139,40 @@ interface PqReceiverInput {
   pq_key_id: number;
 }
 
+export interface HandshakeBinding {
+  initiator_fingerprint: Uint8Array;
+  responder_fingerprint: Uint8Array;
+  responder_pq_identity?: Uint8Array | null;
+}
+
+interface HandshakeSecret {
+  shared_secret: Uint8Array;
+  session_binding: Uint8Array | null;
+}
+
+export const HANDSHAKE_DOWNGRADE_ERROR =
+  "Recipient no longer offers the account bound handshake";
+
+function text(value: string): Uint8Array {
+  return new TextEncoder().encode(value);
+}
+
 async function generate_ephemeral_keypair(): Promise<{
-  public_key: CryptoKey;
   secret_key: CryptoKey;
   public_key_raw: Uint8Array;
 }> {
   const keypair = await crypto.subtle.generateKey(
     { name: ECDH_ALGORITHM, namedCurve: ECDH_CURVE },
-    true,
-    ["deriveBits"],
-  );
-
-  const public_key_raw = await crypto.subtle.exportKey(
-    "raw",
-    keypair.publicKey,
-  );
-
-  return {
-    public_key: keypair.publicKey,
-    secret_key: keypair.privateKey,
-    public_key_raw: new Uint8Array(public_key_raw),
-  };
-}
-
-async function kdf_x3dh(
-  dh_outputs: Uint8Array[],
-  info: Uint8Array,
-): Promise<Uint8Array> {
-  let total_length = 0;
-
-  for (const dh of dh_outputs) {
-    total_length += dh.length;
-  }
-
-  const concatenated = new Uint8Array(total_length);
-  let offset = 0;
-
-  for (const dh of dh_outputs) {
-    concatenated.set(dh, offset);
-    offset += dh.length;
-  }
-
-  const hkdf_key = await crypto.subtle.importKey(
-    "raw",
-    concatenated,
-    "HKDF",
     false,
     ["deriveBits"],
   );
 
-  const derived = await crypto.subtle.deriveBits(
-    {
-      name: "HKDF",
-      hash: HASH_ALG,
-      salt: X3DH_SALT,
-      info,
-    },
-    hkdf_key,
-    256,
-  );
-
-  concatenated.fill(0);
-
-  return new Uint8Array(derived);
-}
-
-function base64url_to_bytes(value: string): Uint8Array {
-  const normalized = value.replace(/-/g, "+").replace(/_/g, "/");
-  const padded = normalized.padEnd(
-    normalized.length + ((4 - (normalized.length % 4)) % 4),
-    "=",
-  );
-  const binary = atob(padded);
-  const bytes = new Uint8Array(binary.length);
-
-  for (let i = 0; i < binary.length; i++) {
-    bytes[i] = binary.charCodeAt(i);
-  }
-
-  return bytes;
+  return {
+    secret_key: keypair.privateKey,
+    public_key_raw: new Uint8Array(
+      await crypto.subtle.exportKey("raw", keypair.publicKey),
+    ),
+  };
 }
 
 function jwk_to_raw_public(private_jwk: JsonWebKey): Uint8Array | null {
@@ -223,8 +180,8 @@ function jwk_to_raw_public(private_jwk: JsonWebKey): Uint8Array | null {
 
   if (!jwk.x || !jwk.y) return null;
 
-  const x = base64url_to_bytes(jwk.x);
-  const y = base64url_to_bytes(jwk.y);
+  const x = base64url_decode(jwk.x);
+  const y = base64url_decode(jwk.y);
 
   if (x.length !== 32 || y.length !== 32) return null;
 
@@ -237,14 +194,17 @@ function jwk_to_raw_public(private_jwk: JsonWebKey): Uint8Array | null {
   return raw;
 }
 
-interface X3dhTranscript {
-  initiator_identity: Uint8Array | null;
-  responder_identity: Uint8Array | null;
-  responder_signed_prekey: Uint8Array | null;
-  initiator_ephemeral: Uint8Array;
-  kem_ciphertext: Uint8Array | null;
-  responder_one_time_prekey?: Uint8Array | null;
-  one_time_prekey_id?: number | null;
+interface TranscriptInput {
+  ik_a: Uint8Array | null;
+  ik_b: Uint8Array | null;
+  spk: Uint8Array | null;
+  ek: Uint8Array;
+  opk: Uint8Array | null;
+  opk_id: number | null;
+  kem_ct: Uint8Array | null;
+  pq_public: Uint8Array | null;
+  pq_key_id: number | null;
+  binding: HandshakeBinding | null;
 }
 
 export function is_valid_one_time_prekey_id(value: unknown): value is number {
@@ -261,26 +221,15 @@ export function encode_one_time_prekey_id(key_id: number): Uint8Array {
     throw new Error("Invalid one-time prekey id");
   }
 
-  const encoded = new Uint8Array(4);
-
-  new DataView(encoded.buffer).setUint32(0, key_id, false);
-
-  return encoded;
+  return encode_u32(key_id);
 }
 
 export async function compute_signed_prekey_id(
   signed_prekey_raw: Uint8Array,
 ): Promise<string> {
-  const digest = new Uint8Array(
-    await crypto.subtle.digest("SHA-256", signed_prekey_raw),
-  );
-  let hex = "";
-
-  for (let i = 0; i < SIGNED_PREKEY_ID_BYTES; i++) {
-    hex += digest[i].toString(16).padStart(2, "0");
-  }
-
-  return hex;
+  return Array.from(sha256(signed_prekey_raw).slice(0, SIGNED_PREKEY_ID_BYTES))
+    .map((byte) => byte.toString(16).padStart(2, "0"))
+    .join("");
 }
 
 export async function signed_prekey_id_from_private_jwk(
@@ -291,57 +240,117 @@ export async function signed_prekey_id_from_private_jwk(
   return raw ? compute_signed_prekey_id(raw) : null;
 }
 
-function transcript_inputs(
-  version: number,
-  transcript: X3dhTranscript,
-): Uint8Array[] {
-  const inputs: Uint8Array[] = [];
-
-  if (version < X3DH_VERSION_TRANSCRIPT_BOUND) return inputs;
-
-  if (transcript.initiator_identity) inputs.push(transcript.initiator_identity);
-
-  if (transcript.responder_identity) inputs.push(transcript.responder_identity);
-
-  if (version >= X3DH_VERSION_KEY_BOUND) {
-    if (transcript.responder_signed_prekey) {
-      inputs.push(transcript.responder_signed_prekey);
-    }
-
-    inputs.push(transcript.initiator_ephemeral);
-  }
-
-  if (version === X3DH_VERSION_ONE_TIME_BOUND) {
-    if (
-      !transcript.initiator_identity ||
-      !transcript.responder_identity ||
-      !transcript.responder_signed_prekey ||
-      !transcript.responder_one_time_prekey ||
-      transcript.responder_one_time_prekey.length !== P256_RAW_PUBLIC_KEY_LEN ||
-      !is_valid_one_time_prekey_id(transcript.one_time_prekey_id)
-    ) {
-      throw new Error("Incomplete transcript for the one-time bound handshake");
-    }
-
-    inputs.push(transcript.responder_one_time_prekey);
-    inputs.push(encode_one_time_prekey_id(transcript.one_time_prekey_id));
-  }
-
-  if (transcript.kem_ciphertext) inputs.push(transcript.kem_ciphertext);
-
-  return inputs;
+function hash_or_null(value: Uint8Array | null | undefined): Uint8Array | null {
+  return value ? sha256(value) : null;
 }
 
-function x3dh_info(version: number, mode: PqBootstrapMode): Uint8Array {
-  const [legacy, transcript_bound, key_bound, one_time_bound] = X3DH_INFO[mode];
+function transcript_fields(version: number, input: TranscriptInput) {
+  const pq_one_time =
+    input.pq_public !== null &&
+    input.pq_key_id !== null &&
+    input.pq_key_id !== PQ_IDENTITY_KEY_ID;
 
-  if (version === X3DH_VERSION_ONE_TIME_BOUND) return one_time_bound;
+  return {
+    label: text(TRANSCRIPT_LABEL),
+    version: Uint8Array.of(version),
+    ifp_a: input.binding?.initiator_fingerprint ?? null,
+    ifp_b: input.binding?.responder_fingerprint ?? null,
+    ik_a: input.ik_a,
+    ik_b: input.ik_b,
+    spk: input.spk,
+    ek: input.ek,
+    opk_id:
+      input.opk_id !== null ? encode_one_time_prekey_id(input.opk_id) : null,
+    opk: input.opk,
+    pq_ik_hash: hash_or_null(input.binding?.responder_pq_identity),
+    pq_opk_id: pq_one_time ? encode_u32(input.pq_key_id ?? 0) : null,
+    pq_opk_hash: pq_one_time ? hash_or_null(input.pq_public) : null,
+    kem_ct: input.kem_ct,
+    kem_ct_hash: hash_or_null(input.kem_ct),
+  };
+}
 
-  if (version >= X3DH_VERSION_KEY_BOUND) return key_bound;
+async function derive_handshake_secret(
+  version: number,
+  mode: PqBootstrapMode,
+  dh_outputs: (Uint8Array | null)[],
+  pq_ss: Uint8Array | null,
+  input: TranscriptInput,
+): Promise<HandshakeSecret> {
+  const spec = HANDSHAKE_VERSIONS[version - 1];
+  const values = transcript_fields(version, input);
 
-  if (version === X3DH_VERSION_TRANSCRIPT_BOUND) return transcript_bound;
+  if (spec.required.some((field) => !values[field]?.length)) {
+    throw new Error("Incomplete handshake transcript");
+  }
 
-  return legacy;
+  const fields = spec.fields.map((field) => values[field]);
+  const transcript = encode_fields(fields);
+  const ikm = spec.framed
+    ? encode_fields([...dh_outputs, pq_ss, transcript])
+    : Uint8Array.from(
+        [...dh_outputs, pq_ss, ...fields].flatMap((part) =>
+          part ? Array.from(part) : [],
+        ),
+      );
+
+  try {
+    return {
+      shared_secret: hkdf(sha256, ikm, X3DH_SALT, info(version, mode), 32),
+      session_binding: spec.framed ? sha256(transcript) : null,
+    };
+  } finally {
+    ikm.fill(0);
+  }
+}
+
+export function one_time_prekey_digest(
+  kind: OneTimePrekeyKind,
+  key_id: number,
+  public_key: Uint8Array,
+): Uint8Array {
+  return sha256(
+    encode_fields([
+      text(ONE_TIME_PREKEY_SIGNATURE_LABEL),
+      Uint8Array.of(kind === "ec" ? 1 : 2),
+      encode_u32(key_id),
+      public_key,
+    ]),
+  );
+}
+
+export function is_one_time_prekey_signed(
+  bundle: PrekeyBundle,
+  kind: OneTimePrekeyKind,
+): boolean {
+  const prekey = kind === "ec" ? bundle.ec_one_time_prekey : bundle.pq_prekey;
+
+  if (!bundle.signing_public_key || !prekey?.signature) return false;
+
+  try {
+    return p256.verify(
+      base64_to_array(prekey.signature),
+      one_time_prekey_digest(
+        kind,
+        prekey.key_id,
+        base64_to_array(prekey.public_key),
+      ),
+      base64_to_array(bundle.signing_public_key),
+      { lowS: true, prehash: false },
+    );
+  } catch {
+    return false;
+  }
+}
+
+export function bundle_advertises_account_binding(
+  bundle: PrekeyBundle,
+): boolean {
+  return (
+    typeof bundle.x3dh_max_version === "number" &&
+    bundle.x3dh_max_version >= X3DH_VERSION_ACCOUNT_BOUND &&
+    Boolean(bundle.signing_public_key)
+  );
 }
 
 function bounded_x3dh_version(
@@ -377,20 +386,17 @@ function receiver_x3dh_version(
   receiver_identity_raw: Uint8Array | null,
   receiver_signed_prekey_raw: Uint8Array | null,
 ): number {
-  if (requested === X3DH_VERSION_ONE_TIME_BOUND) {
-    if (!receiver_identity_raw || !receiver_signed_prekey_raw) {
-      throw new Error("Missing public keys for the one-time bound handshake");
-    }
-
-    return X3DH_VERSION_ONE_TIME_BOUND;
-  }
-
-  if (requested === X3DH_VERSION_KEY_BOUND) {
+  if (
+    requested !== undefined &&
+    requested >= X3DH_VERSION_KEY_BOUND &&
+    requested <= X3DH_READ_VERSION_MAX &&
+    Number.isInteger(requested)
+  ) {
     if (!receiver_identity_raw || !receiver_signed_prekey_raw) {
       throw new Error("Missing public keys for the key bound handshake");
     }
 
-    return X3DH_VERSION_KEY_BOUND;
+    return requested;
   }
 
   return requested === X3DH_VERSION_TRANSCRIPT_BOUND &&
@@ -399,20 +405,24 @@ function receiver_x3dh_version(
     : X3DH_VERSION_LEGACY;
 }
 
-function select_pq_encapsulation_target(recipient_bundle: PrekeyBundle): {
+function select_pq_encapsulation_target(
+  recipient_bundle: PrekeyBundle,
+  require_signed: boolean,
+): {
   public_key: Uint8Array;
   key_id: number;
   mode: Exclude<PqBootstrapMode, "none">;
 } | null {
-  if (recipient_bundle.pq_prekey) {
-    const onetime = base64_to_array(recipient_bundle.pq_prekey.public_key);
+  const prekey = recipient_bundle.pq_prekey;
+
+  if (
+    prekey &&
+    (!require_signed || is_one_time_prekey_signed(recipient_bundle, "pq"))
+  ) {
+    const onetime = base64_to_array(prekey.public_key);
 
     if (onetime.length === ML_KEM_768_EK_LEN) {
-      return {
-        public_key: onetime,
-        key_id: recipient_bundle.pq_prekey.key_id,
-        mode: "onetime",
-      };
+      return { public_key: onetime, key_id: prekey.key_id, mode: "onetime" };
     }
   }
 
@@ -437,7 +447,10 @@ function select_pq_identity_key(recipient_bundle: PrekeyBundle): {
   };
 }
 
-function select_one_time_prekey(recipient_bundle: PrekeyBundle): {
+function select_one_time_prekey(
+  recipient_bundle: PrekeyBundle,
+  require_signed: boolean,
+): {
   public_key: Uint8Array;
   key_id: number;
 } | null {
@@ -452,9 +465,14 @@ function select_one_time_prekey(recipient_bundle: PrekeyBundle): {
     return null;
   }
 
-  if (!offered || typeof offered.public_key !== "string") return null;
-
-  if (!is_valid_one_time_prekey_id(offered.key_id)) return null;
+  if (
+    !offered ||
+    typeof offered.public_key !== "string" ||
+    !is_valid_one_time_prekey_id(offered.key_id) ||
+    (require_signed && !is_one_time_prekey_signed(recipient_bundle, "ec"))
+  ) {
+    return null;
+  }
 
   let public_key: Uint8Array;
 
@@ -474,14 +492,22 @@ function select_one_time_prekey(recipient_bundle: PrekeyBundle): {
 export function bundle_offers_one_time_prekey(
   recipient_bundle: PrekeyBundle,
 ): boolean {
-  return select_one_time_prekey(recipient_bundle) !== null;
+  return (
+    select_one_time_prekey(
+      recipient_bundle,
+      bundle_advertises_account_binding(recipient_bundle),
+    ) !== null
+  );
 }
 
 export function restrict_bundle_to_signed_pq_key(
   recipient_bundle: PrekeyBundle,
   signature_covers_pq_identity: boolean,
 ): PrekeyBundle {
-  if (!signature_covers_pq_identity && !is_signed_ratchet_keys_required()) {
+  if (
+    (!signature_covers_pq_identity && !is_signed_ratchet_keys_required()) ||
+    is_one_time_prekey_signed(recipient_bundle, "pq")
+  ) {
     return recipient_bundle;
   }
 
@@ -504,7 +530,9 @@ export function bundle_supports_pq(recipient_bundle: PrekeyBundle): boolean {
   return select_pq_identity_key(recipient_bundle) !== null;
 }
 
-function carries_post_quantum_material(recipient_bundle: PrekeyBundle): boolean {
+function carries_post_quantum_material(
+  recipient_bundle: PrekeyBundle,
+): boolean {
   return (
     Boolean(recipient_bundle.pq_kem_public_key) ||
     Boolean(recipient_bundle.pq_prekey?.public_key)
@@ -540,6 +568,21 @@ export function bundle_is_downgraded(recipient_bundle: PrekeyBundle): boolean {
   );
 }
 
+export function signed_bundle_x3dh_floor(
+  bundle: PrekeyBundle,
+  covers_pq: boolean,
+  remembered_version: number | null,
+): number | null {
+  if (!bundle_has_signed_pq_identity(bundle, covers_pq)) {
+    return remembered_version;
+  }
+
+  return Math.max(
+    remembered_version ?? X3DH_VERSION_LEGACY,
+    X3DH_VERSION_TRANSCRIPT_BOUND,
+  );
+}
+
 export function bundle_supports_transcript_binding(
   recipient_bundle: PrekeyBundle,
 ): boolean {
@@ -556,31 +599,40 @@ export async function perform_x3dh_sender(
   sender_identity_jwk: JsonWebKey,
   recipient_bundle: PrekeyBundle,
   remembered_x3dh_version?: number | null,
+  binding?: HandshakeBinding | null,
 ): Promise<X3dhSenderResult> {
-  const sender_identity_private =
-    await import_ke_private_key(sender_identity_jwk);
-
   const recipient_identity_raw = base64_to_array(
     recipient_bundle.kem_identity_key,
   );
   const recipient_signed_prekey_raw = base64_to_array(
     recipient_bundle.signed_prekey,
   );
-
-  const recipient_identity_public = await import_ke_public_key(
-    recipient_identity_raw,
-  );
-  const recipient_signed_prekey_public = await import_ke_public_key(
-    recipient_signed_prekey_raw,
-  );
+  const [own_ik_private, ik_public, spk_public] = await Promise.all([
+    import_ke_private_key(sender_identity_jwk),
+    import_ke_public_key(recipient_identity_raw),
+    import_ke_public_key(recipient_signed_prekey_raw),
+  ]);
 
   const sender_identity_raw = jwk_to_raw_public(sender_identity_jwk);
 
   const binding_enabled =
     is_pqxdh_transcript_binding_enabled() && sender_identity_raw !== null;
+  const account_bound =
+    binding_enabled && bundle_advertises_account_binding(recipient_bundle);
+
+  if (
+    !account_bound &&
+    (remembered_x3dh_version ?? 0) >= X3DH_VERSION_ACCOUNT_BOUND
+  ) {
+    throw new Error(HANDSHAKE_DOWNGRADE_ERROR);
+  }
+
+  if (account_bound && !binding) {
+    throw new Error("Missing account binding for the handshake");
+  }
 
   let one_time_target = binding_enabled
-    ? select_one_time_prekey(recipient_bundle)
+    ? select_one_time_prekey(recipient_bundle, account_bound)
     : null;
   let one_time_public: CryptoKey | null = null;
 
@@ -601,26 +653,16 @@ export async function perform_x3dh_sender(
 
   const ephemeral = await generate_ephemeral_keypair();
 
-  const dh1 = await compute_agreement_bits(
-    sender_identity_private,
-    recipient_signed_prekey_public,
+  const [dh1, dh2, dh3] = await Promise.all([
+    compute_agreement_bits(own_ik_private, spk_public),
+    compute_agreement_bits(ephemeral.secret_key, ik_public),
+    compute_agreement_bits(ephemeral.secret_key, spk_public),
+  ]);
+
+  const pq_target = select_pq_encapsulation_target(
+    recipient_bundle,
+    account_bound,
   );
-
-  const dh2 = await compute_agreement_bits(
-    ephemeral.secret_key,
-    recipient_identity_public,
-  );
-
-  const dh3 = await compute_agreement_bits(
-    ephemeral.secret_key,
-    recipient_signed_prekey_public,
-  );
-
-  let shared_secret: Uint8Array;
-  let pq_ciphertext: Uint8Array | undefined;
-  let pq_key_id: number | undefined;
-
-  const pq_target = select_pq_encapsulation_target(recipient_bundle);
 
   let dh4: Uint8Array | null = null;
 
@@ -633,8 +675,9 @@ export async function perform_x3dh_sender(
     }
   }
 
-  const version =
-    one_time_target && dh4
+  const version = account_bound
+    ? X3DH_VERSION_ACCOUNT_BOUND
+    : one_time_target && dh4
       ? X3DH_VERSION_ONE_TIME_BOUND
       : binding_enabled
         ? negotiate_x3dh_version(
@@ -643,73 +686,53 @@ export async function perform_x3dh_sender(
           )
         : X3DH_VERSION_LEGACY;
 
-  const classical_outputs = dh4 ? [dh1, dh2, dh3, dh4] : [dh1, dh2, dh3];
+  const encap = pq_target ? ml_kem768.encapsulate(pq_target.public_key) : null;
+  let derived: HandshakeSecret;
 
   try {
-    if (pq_target) {
-      const encap = ml_kem768.encapsulate(pq_target.public_key);
-      const pq_ss = encap.sharedSecret;
-
-      try {
-        shared_secret = await kdf_x3dh(
-          [
-            ...classical_outputs,
-            pq_ss,
-            ...transcript_inputs(version, {
-              initiator_identity: sender_identity_raw,
-              responder_identity: recipient_identity_raw,
-              responder_signed_prekey: recipient_signed_prekey_raw,
-              initiator_ephemeral: ephemeral.public_key_raw,
-              kem_ciphertext: encap.cipherText,
-              responder_one_time_prekey: one_time_target?.public_key ?? null,
-              one_time_prekey_id: one_time_target?.key_id ?? null,
-            }),
-          ],
-          x3dh_info(version, pq_target.mode),
-        );
-      } finally {
-        pq_ss.fill(0);
-      }
-
-      pq_ciphertext = encap.cipherText;
-      pq_key_id = pq_target.key_id;
-    } else {
-      shared_secret = await kdf_x3dh(
-        [
-          ...classical_outputs,
-          ...transcript_inputs(version, {
-            initiator_identity: sender_identity_raw,
-            responder_identity: recipient_identity_raw,
-            responder_signed_prekey: recipient_signed_prekey_raw,
-            initiator_ephemeral: ephemeral.public_key_raw,
-            kem_ciphertext: null,
-            responder_one_time_prekey: one_time_target?.public_key ?? null,
-            one_time_prekey_id: one_time_target?.key_id ?? null,
-          }),
-        ],
-        x3dh_info(version, "none"),
-      );
-    }
+    derived = await derive_handshake_secret(
+      version,
+      pq_target ? pq_target.mode : "none",
+      [dh1, dh2, dh3, dh4],
+      encap?.sharedSecret ?? null,
+      {
+        ik_a: sender_identity_raw,
+        ik_b: recipient_identity_raw,
+        spk: recipient_signed_prekey_raw,
+        ek: ephemeral.public_key_raw,
+        opk: one_time_target?.public_key ?? null,
+        opk_id: one_time_target?.key_id ?? null,
+        kem_ct: encap?.cipherText ?? null,
+        pq_public: pq_target?.public_key ?? null,
+        pq_key_id: pq_target?.key_id ?? null,
+        binding: binding
+          ? {
+              ...binding,
+              responder_pq_identity:
+                select_pq_identity_key(recipient_bundle)?.public_key ?? null,
+            }
+          : null,
+      },
+    );
   } finally {
-    dh1.fill(0);
-    dh2.fill(0);
-    dh3.fill(0);
-    dh4?.fill(0);
+    for (const dh of [dh1, dh2, dh3, dh4, encap?.sharedSecret]) dh?.fill(0);
   }
 
   const result: X3dhSenderResult = {
-    shared_secret,
+    shared_secret: derived.shared_secret,
     ephemeral_public_key: ephemeral.public_key_raw,
     pq_mode: pq_target ? pq_target.mode : "none",
     x3dh_version: version,
   };
 
-  if (pq_ciphertext !== undefined && pq_key_id !== undefined) {
-    result.pq_ciphertext = pq_ciphertext;
-    result.pq_key_id = pq_key_id;
+  if (derived.session_binding) result.session_binding = derived.session_binding;
+
+  if (encap && pq_target) {
+    result.pq_ciphertext = encap.cipherText;
+    result.pq_key_id = pq_target.key_id;
   }
 
-  if (version === X3DH_VERSION_ONE_TIME_BOUND && one_time_target) {
+  if (version >= X3DH_VERSION_ONE_TIME_BOUND && one_time_target) {
     result.one_time_prekey_id = one_time_target.key_id;
     result.signed_prekey_id = await compute_signed_prekey_id(
       recipient_signed_prekey_raw,
@@ -725,7 +748,31 @@ export async function perform_x3dh_sender(
   return result;
 }
 
+const ML_KEM_768_CIPHERTEXT_LEN = 1088;
+
+function is_well_formed_pq_receiver_input(input: PqReceiverInput): boolean {
+  const key_id: unknown = input.pq_key_id;
+  const id_ok =
+    key_id === PQ_IDENTITY_KEY_ID ||
+    (typeof key_id === "number" &&
+      Number.isSafeInteger(key_id) &&
+      key_id >= 0 &&
+      key_id <= ONE_TIME_PREKEY_ID_MAX);
+
+  return (
+    id_ok &&
+    input.pq_ciphertext instanceof Uint8Array &&
+    input.pq_ciphertext.length === ML_KEM_768_CIPHERTEXT_LEN
+  );
+}
+
 export async function perform_x3dh_receiver(
+  ...args: Parameters<typeof receive_handshake>
+): Promise<Uint8Array> {
+  return (await receive_handshake(...args)).shared_secret;
+}
+
+export async function receive_handshake(
   receiver_identity_jwk: JsonWebKey,
   receiver_signed_prekey_jwk: JsonWebKey,
   sender_identity_raw: Uint8Array,
@@ -734,7 +781,12 @@ export async function perform_x3dh_receiver(
   pq_identity_secret_base64?: string | null,
   x3dh_version?: number,
   one_time_prekey_id?: number,
-): Promise<Uint8Array> {
+  binding?: HandshakeBinding | null,
+): Promise<HandshakeSecret> {
+  if (pq_input && !is_well_formed_pq_receiver_input(pq_input)) {
+    throw new Error("Invalid post-quantum handshake input");
+  }
+
   const receiver_identity_raw = jwk_to_raw_public(receiver_identity_jwk);
   const receiver_signed_prekey_raw = jwk_to_raw_public(
     receiver_signed_prekey_jwk,
@@ -744,11 +796,19 @@ export async function perform_x3dh_receiver(
     receiver_identity_raw,
     receiver_signed_prekey_raw,
   );
+  const account_bound = version === X3DH_VERSION_ACCOUNT_BOUND;
+
+  if (account_bound && !binding) {
+    throw new Error("Missing account binding for the handshake");
+  }
 
   let one_time_private: CryptoKey | null = null;
   let one_time_public_raw: Uint8Array | null = null;
 
-  if (version === X3DH_VERSION_ONE_TIME_BOUND) {
+  if (
+    version === X3DH_VERSION_ONE_TIME_BOUND ||
+    (account_bound && one_time_prekey_id !== undefined)
+  ) {
     if (!is_valid_one_time_prekey_id(one_time_prekey_id)) {
       throw new Error("Missing one-time prekey id for the one-time handshake");
     }
@@ -756,149 +816,101 @@ export async function perform_x3dh_receiver(
     const { load_ec_one_time_secret } = await import("./ec_prekey_store");
     const one_time_jwk = await load_ec_one_time_secret(one_time_prekey_id);
 
-    if (!one_time_jwk) {
-      throw new Error("Missing one-time prekey secret for the supplied key id");
-    }
+    one_time_public_raw = one_time_jwk ? jwk_to_raw_public(one_time_jwk) : null;
 
-    one_time_public_raw = jwk_to_raw_public(one_time_jwk);
-
-    if (!one_time_public_raw) {
+    if (!one_time_jwk || !one_time_public_raw) {
       throw new Error("Missing one-time prekey secret for the supplied key id");
     }
 
     one_time_private = await import_ke_private_key(one_time_jwk);
   }
 
-  const receiver_identity_private = await import_ke_private_key(
-    receiver_identity_jwk,
-  );
-  const receiver_signed_prekey_private = await import_ke_private_key(
-    receiver_signed_prekey_jwk,
-  );
-
-  const sender_identity_public =
-    await import_ke_public_key(sender_identity_raw);
-  const sender_ephemeral_public =
-    await import_ke_public_key(sender_ephemeral_raw);
-
-  const dh1 = await compute_agreement_bits(
-    receiver_signed_prekey_private,
-    sender_identity_public,
-  );
-
-  const dh2 = await compute_agreement_bits(
-    receiver_identity_private,
-    sender_ephemeral_public,
-  );
-
-  const dh3 = await compute_agreement_bits(
-    receiver_signed_prekey_private,
-    sender_ephemeral_public,
-  );
+  const [identity_private, signed_prekey_private, sender_ik, sender_ek] =
+    await Promise.all([
+      import_ke_private_key(receiver_identity_jwk),
+      import_ke_private_key(receiver_signed_prekey_jwk),
+      import_ke_public_key(sender_identity_raw),
+      import_ke_public_key(sender_ephemeral_raw),
+    ]);
+  const [dh1, dh2, dh3] = await Promise.all([
+    compute_agreement_bits(signed_prekey_private, sender_ik),
+    compute_agreement_bits(identity_private, sender_ek),
+    compute_agreement_bits(signed_prekey_private, sender_ek),
+  ]);
 
   const dh4 = one_time_private
-    ? await compute_agreement_bits(one_time_private, sender_ephemeral_public)
+    ? await compute_agreement_bits(one_time_private, sender_ek)
     : null;
-  const classical_outputs = dh4 ? [dh1, dh2, dh3, dh4] : [dh1, dh2, dh3];
-  const one_time_transcript = {
-    responder_one_time_prekey: one_time_public_raw,
-    one_time_prekey_id: dh4 ? (one_time_prekey_id ?? null) : null,
-  };
+  const from_identity = pq_input?.pq_key_id === PQ_IDENTITY_KEY_ID;
+  let pq_ss: Uint8Array | null = null;
+  let pq_public: Uint8Array | null = null;
 
-  let shared_secret: Uint8Array;
-
-  if (pq_input) {
-    const from_identity = pq_input.pq_key_id === PQ_IDENTITY_KEY_ID;
-
-    if (
-      !from_identity &&
-      (await refuse_used_pq_prekey(
-        pq_input.pq_key_id,
-        array_to_base64(sender_ephemeral_raw),
-      ))
-    ) {
-      dh1.fill(0);
-      dh2.fill(0);
-      dh3.fill(0);
-      dh4?.fill(0);
-      throw new Error("One-time PQ prekey was already used");
-    }
-
-    const pq_sk = from_identity
-      ? pq_identity_secret_base64
-        ? base64_to_array(pq_identity_secret_base64)
-        : null
-      : await load_pq_secret(pq_input.pq_key_id);
-
-    if (!pq_sk) {
-      dh1.fill(0);
-      dh2.fill(0);
-      dh3.fill(0);
-      dh4?.fill(0);
-
-      if (from_identity) {
-        throw new Error("Missing PQ identity secret for the PQ bootstrap");
+  try {
+    if (pq_input) {
+      if (
+        !from_identity &&
+        (await refuse_used_pq_prekey(
+          pq_input.pq_key_id,
+          array_to_base64(sender_ephemeral_raw),
+        ))
+      ) {
+        throw new Error("One-time PQ prekey was already used");
       }
 
-      import("./pq_secret_reconciler")
-        .then((m) => m.handle_missing_pq_secret(pq_input.pq_key_id))
-        .catch((caught) =>
-          ignore_error("services/crypto/x3dh:perform_x3dh_receiver", caught),
+      const pq_sk = from_identity
+        ? pq_identity_secret_base64
+          ? base64_to_array(pq_identity_secret_base64)
+          : null
+        : await load_pq_secret(pq_input.pq_key_id);
+
+      if (!pq_sk) {
+        if (from_identity) {
+          throw new Error("Missing PQ identity secret for the PQ bootstrap");
+        }
+
+        import("./pq_secret_reconciler")
+          .then((m) => m.handle_missing_pq_secret(pq_input.pq_key_id))
+          .catch((caught) =>
+            ignore_error("services/crypto/x3dh:perform_x3dh_receiver", caught),
+          );
+        throw new Error("Missing PQ prekey secret for the supplied key id");
+      }
+
+      try {
+        pq_ss = ml_kem768.decapsulate(pq_input.pq_ciphertext, pq_sk);
+        pq_public = pq_sk.slice(
+          ML_KEM_768_DK_PKE_LEN,
+          ML_KEM_768_DK_PKE_LEN + ML_KEM_768_EK_LEN,
         );
-      throw new Error("Missing PQ prekey secret for the supplied key id");
+      } finally {
+        pq_sk.fill(0);
+      }
     }
 
-    let pq_ss: Uint8Array;
-
-    try {
-      pq_ss = ml_kem768.decapsulate(pq_input.pq_ciphertext, pq_sk);
-    } finally {
-      pq_sk.fill(0);
-    }
-
-    try {
-      shared_secret = await kdf_x3dh(
-        [
-          ...classical_outputs,
-          pq_ss,
-          ...transcript_inputs(version, {
-            initiator_identity: sender_identity_raw,
-            responder_identity: receiver_identity_raw,
-            responder_signed_prekey: receiver_signed_prekey_raw,
-            initiator_ephemeral: sender_ephemeral_raw,
-            kem_ciphertext: pq_input.pq_ciphertext,
-            ...one_time_transcript,
-          }),
-        ],
-        x3dh_info(version, from_identity ? "identity" : "onetime"),
-      );
-    } finally {
-      pq_ss.fill(0);
-    }
-  } else {
-    shared_secret = await kdf_x3dh(
-      [
-        ...classical_outputs,
-        ...transcript_inputs(version, {
-          initiator_identity: sender_identity_raw,
-          responder_identity: receiver_identity_raw,
-          responder_signed_prekey: receiver_signed_prekey_raw,
-          initiator_ephemeral: sender_ephemeral_raw,
-          kem_ciphertext: null,
-          ...one_time_transcript,
-        }),
-      ],
-      x3dh_info(version, "none"),
+    return await derive_handshake_secret(
+      version,
+      pq_input ? (from_identity ? "identity" : "onetime") : "none",
+      [dh1, dh2, dh3, dh4],
+      pq_ss,
+      {
+        ik_a: sender_identity_raw,
+        ik_b: receiver_identity_raw,
+        spk: receiver_signed_prekey_raw,
+        ek: sender_ephemeral_raw,
+        opk: one_time_public_raw,
+        opk_id: dh4 ? (one_time_prekey_id ?? null) : null,
+        kem_ct: pq_input?.pq_ciphertext ?? null,
+        pq_public,
+        pq_key_id: pq_input?.pq_key_id ?? null,
+        binding: account_bound ? (binding ?? null) : null,
+      },
     );
+  } finally {
+    for (const secret of [dh1, dh2, dh3, dh4, pq_ss]) secret?.fill(0);
   }
-
-  dh1.fill(0);
-  dh2.fill(0);
-  dh3.fill(0);
-  dh4?.fill(0);
-
-  return shared_secret;
 }
+
+export { encode_fields, encode_u32 };
 
 export type {
   PrekeyBundle,

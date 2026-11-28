@@ -174,6 +174,7 @@ export interface EncryptedVault {
   data_kek?: string;
   escrow_seed?: string;
   lane_replay?: Record<string, unknown>;
+  bootstrap_replay?: Record<string, unknown>;
   escrow_format?: number;
   vault_format?: number;
   kdf_version?: number;
@@ -200,6 +201,12 @@ export interface EncryptedVault {
   prekey_seal_key?: string;
   prekey_seal_migrated?: boolean;
   folder_pins?: Record<string, { key: string; current: boolean }>;
+  format_retirements?: FormatRetirements;
+}
+
+export interface FormatRetirements {
+  v: number;
+  classes: Record<string, MailLegacyRetiredMarker>;
 }
 
 export interface ScheduledUntaggedSnapshot {

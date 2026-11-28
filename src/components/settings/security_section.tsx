@@ -18,6 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { peek_totp_required } from "@/services/api/step_up_cache";
 import type { ApiResponse } from "@/services/api/client";
 import type { HardwareKeysListResponse } from "@/services/api/webauthn";
 
@@ -292,6 +293,10 @@ export function SecuritySection({
             show_current_password: security.show_current_password,
             show_new_password: security.show_new_password,
             show_password_section: security.show_password_section,
+            totp_enabled:
+              security.totp_status?.enabled ?? peek_totp_required() === true,
+            totp_code: security.password_totp_code,
+            set_totp_code: security.set_password_totp_code,
           }}
           show_inline_totp_setup={show_inline_totp_setup}
           totp_backup_codes_remaining={

@@ -31,6 +31,7 @@ export class ExternalAccountPasswordError extends Error {
 import { array_to_base64, base64_to_array } from "../sender_utils";
 
 import { decrypt_with_ios_storage_keys } from "@/services/crypto/legacy_ios_envelope";
+import { constant_time_compare } from "@/services/crypto/secure_memory";
 import {
   get_storage_write_crypto_key,
   get_storage_write_hmac_key,
@@ -108,16 +109,6 @@ async function verify_integrity_hash(
   );
 }
 
-function bytes_equal(a: Uint8Array, b: Uint8Array): boolean {
-  if (a.length !== b.length) return false;
-
-  for (let i = 0; i < a.length; i++) {
-    if (a[i] !== b[i]) return false;
-  }
-
-  return true;
-}
-
 async function open_account_data(
   ciphertext: Uint8Array,
   nonce: Uint8Array,
@@ -130,7 +121,7 @@ async function open_account_data(
 
   const embedded_nonce = ciphertext.slice(0, COMBINED_NONCE_LENGTH);
 
-  if (nonce.length > 0 && !bytes_equal(embedded_nonce, nonce)) return null;
+  if (nonce.length > 0 && !constant_time_compare(embedded_nonce, nonce)) return null;
 
   return decrypt_with_ios_storage_keys(
     ciphertext.slice(COMBINED_NONCE_LENGTH),

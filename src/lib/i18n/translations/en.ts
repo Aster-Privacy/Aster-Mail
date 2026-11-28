@@ -22,6 +22,20 @@ import type { Translations } from "../types";
 
 export const en: Translations = {
   common: {
+    safety_number_compare: "Compare safety numbers",
+    safety_number_section_title: "Encryption",
+    safety_number: "Safety number",
+    safety_number_not_verified: "Not verified",
+    safety_number_verified: "Verified",
+    safety_number_status_changed: "Changed",
+    safety_number_changed: "Safety number changed",
+    safety_number_description: "To make sure only {{name}} can read your encrypted mail, compare these numbers with the ones on {{name}}’s device, in person or on a call.",
+    safety_number_changed_description: "{{name}}’s account key changed. Your mail is still encrypted. To make sure no one else holds {{name}}’s keys, compare safety numbers again.",
+    safety_number_unavailable: "The safety number isn’t available right now. Try again later.",
+    safety_number_copy: "Copy number",
+    safety_number_mark_verified: "Mark as verified",
+    safety_number_clear: "Remove verification",
+    safety_number_save_failed: "The verification wasn’t saved. Try again.",
     couldnt_load: "Couldn't load.",
     try_again_action: "Try again",
     merge_primary_label: "Primary",
@@ -9386,8 +9400,14 @@ export const en: Translations = {
       "This sender's encryption identity changed since you last exchanged messages. If you did not expect that, confirm it with them another way.",
     sender_identity_downgraded:
       "This sender's messages no longer carry post-quantum protection. If you did not expect that, confirm it with them another way.",
+    recipient_identity_downgraded:
+      "Messages to {{email}} no longer have post-quantum protection. If you did not expect that, confirm it with them another way.",
     sender_identity_unreadable:
       "The saved encryption key for this sender can't be read on this device, so this message can't be verified. To verify their messages again, confirm their key with them another way, then choose Trust new key.",
+    sender_identity_unverified:
+      "This message can't be verified as coming from this sender. If you did not expect it, confirm it with them another way.",
+    sender_identity_mismatch:
+      "This message was encrypted with a key that doesn't match the key this sender published. Don't trust it until you confirm their key with them another way.",
     recipient_identity_changed:
       "The encryption key for {{email}} changed. If you did not expect that, confirm the change with them another way before you send anything sensitive.",
     message_password_requirements:

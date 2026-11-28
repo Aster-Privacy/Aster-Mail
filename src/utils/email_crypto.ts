@@ -94,11 +94,22 @@ export function is_ratchet_envelope(body: string | null | undefined): boolean {
   return parse_ratchet_envelope(body) !== null;
 }
 
+export function server_sent_at(
+  created_at: string | null | undefined,
+): number | undefined {
+  if (!created_at) return undefined;
+
+  const parsed = Date.parse(created_at);
+
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : undefined;
+}
+
 export async function try_decrypt_ratchet_body(
   body_text: string,
   our_email: string,
   sender_email: string,
   message_id?: string,
+  created_at?: string,
 ): Promise<string> {
   if (!body_text.startsWith("{")) return body_text;
 
@@ -133,6 +144,7 @@ export async function try_decrypt_ratchet_body(
       envelope,
       vault,
       message_id,
+      server_sent_at(created_at),
     ),
   );
 }
@@ -1123,6 +1135,7 @@ async function resolve_body_text(
   user_email: string,
   sender_email: string,
   message_id?: string,
+  created_at?: string,
 ): Promise<DecryptedBodyText> {
   if (!body_text) {
     return { body: body_text, pgp_undecrypted: false, sealed: false };
@@ -1133,6 +1146,7 @@ async function resolve_body_text(
     user_email,
     sender_email,
     message_id,
+    created_at,
   );
 
   if (result === RATCHET_PENDING_SENTINEL) {
@@ -1174,12 +1188,14 @@ export async function decrypt_body_text(
   user_email: string,
   sender_email: string,
   message_id?: string,
+  created_at?: string,
 ): Promise<string> {
   const resolved = await resolve_body_text(
     body_text,
     user_email,
     sender_email,
     message_id,
+    created_at,
   );
 
   return resolved.body;
@@ -1196,12 +1212,14 @@ export async function decrypt_body_text_with_bundle(
   user_email: string,
   sender_email: string,
   message_id?: string,
+  created_at?: string,
 ): Promise<DecryptedBodyBundle> {
   const resolved = await resolve_body_text(
     body_text,
     user_email,
     sender_email,
     message_id,
+    created_at,
   );
 
   return {

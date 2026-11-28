@@ -29,6 +29,11 @@ const h = vi.hoisted(() => ({
   current_identity: null as string | null,
   history: null as {
     identity_keys: string[];
+    entries?: {
+      kem_identity_key: string;
+      first_published_at: string;
+      last_published_at: string;
+    }[];
     history_complete: boolean;
   } | null,
   history_calls: 0,
@@ -113,8 +118,13 @@ import {
   authenticate_sender_identity,
   check_sender_identity_continuity,
   clear_sender_identity_authentication_cache,
+  note_message_sender_identity,
   peek_sender_identity_status,
 } from "@/services/crypto/sender_identity_authentication";
+import {
+  get_message_sender_identity,
+  record_message_sender_identity,
+} from "@/services/crypto/ratchet_verification_status";
 import {
   base64_to_array,
   compute_hash,
@@ -179,6 +189,20 @@ function history_entries(): unknown[] {
     .map(([, value]) => value);
 }
 
+const ROTATED_SENT_AT = Date.parse("2026-09-20T12:00:00Z");
+
+function dated(keys: string[]): {
+  kem_identity_key: string;
+  first_published_at: string;
+  last_published_at: string;
+}[] {
+  return keys.map((key, index) => ({
+    kem_identity_key: key,
+    first_published_at: `2026-09-${String(22 - 2 * index).padStart(2, "0")}T00:00:00Z`,
+    last_published_at: `2026-09-${String(23 - 2 * index).padStart(2, "0")}T00:00:00Z`,
+  }));
+}
+
 function reset_all(): void {
   h.store.clear();
   h.unreadable.clear();
@@ -228,11 +252,32 @@ describe("sender identity authentication", () => {
   it("verifies a key that appears in the published history", async () => {
     h.history = {
       identity_keys: [CURRENT_KEY, ROTATED_KEY],
+      entries: dated([CURRENT_KEY, ROTATED_KEY]),
       history_complete: true,
     };
 
+    expect(
+      await authenticate_sender_identity(SENDER, ROTATED_KEY, ROTATED_SENT_AT),
+    ).toBe("verified");
+  });
+
+  it("does not verify a published key for mail received after it was retired", async () => {
+    h.history = {
+      identity_keys: [CURRENT_KEY, ROTATED_KEY],
+      entries: dated([CURRENT_KEY, ROTATED_KEY]),
+      history_complete: true,
+    };
+
+    expect(
+      await authenticate_sender_identity(
+        SENDER,
+        ROTATED_KEY,
+        Date.parse("2026-09-22T00:10:01Z"),
+      ),
+    ).toBe("unverified");
+    clear_sender_identity_authentication_cache();
     expect(await authenticate_sender_identity(SENDER, ROTATED_KEY)).toBe(
-      "verified",
+      "unverified",
     );
   });
 
@@ -319,12 +364,17 @@ describe("sender identity authentication", () => {
   it("verifies a remembered key after the account rotates away from it when nothing is pinned", async () => {
     h.history = {
       identity_keys: [ROTATED_KEY],
+      entries: dated([ROTATED_KEY]),
       history_complete: true,
     };
 
-    expect(await authenticate_sender_identity(SENDER, ROTATED_KEY)).toBe(
-      "verified",
-    );
+    expect(
+      await authenticate_sender_identity(
+        SENDER,
+        ROTATED_KEY,
+        Date.parse("2026-09-22T12:00:00Z"),
+      ),
+    ).toBe("verified");
 
     h.current_identity = CURRENT_KEY;
     h.history = { identity_keys: [CURRENT_KEY], history_complete: true };
@@ -371,6 +421,22 @@ describe("sender identity authentication", () => {
     expect(history_entries()).toEqual([[CURRENT_KEY]]);
   });
 
+  it("never gives a restored message the status of another message from the same sender", async () => {
+    expect(await authenticate_sender_identity(SENDER, CURRENT_KEY)).toBe(
+      "verified",
+    );
+    expect(peek_sender_identity_status(SENDER)).toBe("verified");
+
+    note_message_sender_identity("restored-without-status");
+    expect(get_message_sender_identity("restored-without-status")).toBe(
+      "unverified",
+    );
+
+    record_message_sender_identity("decrypted-earlier", "mismatch");
+    note_message_sender_identity("decrypted-earlier");
+    expect(get_message_sender_identity("decrypted-earlier")).toBe("mismatch");
+  });
+
   it("verifies the new key once the user trusts it", async () => {
     await seed_pin(SENDER, CURRENT_KEY);
     h.current_identity = OTHER_KEY;
@@ -393,6 +459,7 @@ describe("sender identity authentication", () => {
     h.current_identity = CURRENT_KEY;
     h.history = {
       identity_keys: [CURRENT_KEY, ROTATED_KEY],
+      entries: dated([CURRENT_KEY, ROTATED_KEY]),
       history_complete: true,
     };
 

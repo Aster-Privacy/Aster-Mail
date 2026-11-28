@@ -128,6 +128,8 @@ vi.mock("@/services/crypto/ratchet_plaintext_cache", () => ({
       h.cache.set(key, { plaintext, sender_key: sender_key ?? null });
     },
   ),
+  read_cached_opening: vi.fn(async () => null),
+  mark_cached_downgraded: vi.fn(async () => {}),
 }));
 
 vi.mock(

@@ -18,18 +18,17 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import type { FormatClassId } from "@/services/format_retirement/switches";
+
 import { has_tauri_runtime } from "@/lib/tauri_runtime";
+import { is_format_refused } from "@/services/format_retirement/record";
 
 export type UnboundPolicy = "accept_unbound" | "refuse_unbound";
 
-export const REFUSE_UNBOUND_STORED_DATA = false;
-
-export function stored_unbound_policy(): UnboundPolicy {
-  const raw: unknown = import.meta.env.VITE_REFUSE_UNBOUND_STORED_DATA;
-
-  return REFUSE_UNBOUND_STORED_DATA || raw === "1" || raw === "true"
-    ? "refuse_unbound"
-    : "accept_unbound";
+export function stored_unbound_policy(
+  format: FormatClassId = "escrow_unbound",
+): UnboundPolicy {
+  return is_format_refused(format) ? "refuse_unbound" : "accept_unbound";
 }
 
 export function local_unbound_policy(): UnboundPolicy {

@@ -52,9 +52,31 @@ const bundle_records = new Map<string, BundleVerificationRecord>();
 const message_records = new Map<string, SenderIdentityStatus>();
 const unauthenticated_plaintexts = new Map<string, Set<string>>();
 const unconfirmed_sender_plaintexts = new Map<string, Set<string>>();
+const downgraded_plaintexts = new Map<string, Set<string>>();
 const evicted_untrusted_plaintexts = new Set<string>();
 const peer_identity_events = new Map<string, PeerIdentityEventRecord>();
 const peer_identity_listeners = new Set<() => void>();
+const message_identity_listeners = new Set<() => void>();
+
+function notify_message_identity_listeners(): void {
+  message_identity_listeners.forEach((listener) => {
+    try {
+      listener();
+    } catch {
+      return;
+    }
+  });
+}
+
+export function subscribe_message_sender_identity(
+  listener: () => void,
+): () => void {
+  message_identity_listeners.add(listener);
+
+  return () => {
+    message_identity_listeners.delete(listener);
+  };
+}
 
 function notify_peer_identity_listeners(): void {
   peer_identity_listeners.forEach((listener) => {
@@ -177,10 +199,14 @@ export function record_message_sender_identity(
 ): void {
   if (!message_key) return;
 
+  const previous = message_records.get(message_key);
+
   message_records.delete(message_key);
   message_records.set(message_key, status);
 
   evict_oldest(message_records, MAX_TRACKED_MESSAGES);
+
+  if (previous !== status) notify_message_identity_listeners();
 }
 
 export function get_message_sender_identity(
@@ -273,6 +299,8 @@ export function clear_unconfirmed_sender_plaintext(
   plaintext: string,
   message_key = "",
 ): void {
+  if (is_downgraded_plaintext(plaintext, message_key)) return;
+
   clear_plaintext(unconfirmed_sender_plaintexts, plaintext, message_key);
 }
 
@@ -323,6 +351,21 @@ export function is_unconfirmed_sender_plaintext(
   return marked_for(unconfirmed_sender_plaintexts, plaintext, message_key);
 }
 
+export function mark_downgraded_plaintext(
+  plaintext: string,
+  message_key = "",
+): void {
+  mark_plaintext(downgraded_plaintexts, plaintext, message_key);
+  mark_plaintext(unconfirmed_sender_plaintexts, plaintext, message_key);
+}
+
+export function is_downgraded_plaintext(
+  plaintext: string | null | undefined,
+  message_key?: string,
+): boolean {
+  return marked_for(downgraded_plaintexts, plaintext, message_key);
+}
+
 export function is_end_to_end_ratchet_plaintext(
   plaintext: string | null | undefined,
   message_key?: string,
@@ -342,6 +385,7 @@ export function is_trusted_ratchet_plaintext(
     !!plaintext &&
     !is_unauthenticated_plaintext(plaintext, message_key) &&
     !is_unconfirmed_sender_plaintext(plaintext, message_key) &&
+    !is_downgraded_plaintext(plaintext, message_key) &&
     !was_evicted_untrusted(plaintext)
   );
 }
@@ -351,7 +395,9 @@ export function clear_ratchet_verification_status(): void {
   message_records.clear();
   unauthenticated_plaintexts.clear();
   unconfirmed_sender_plaintexts.clear();
+  downgraded_plaintexts.clear();
   evicted_untrusted_plaintexts.clear();
   peer_identity_events.clear();
   notify_peer_identity_listeners();
+  notify_message_identity_listeners();
 }

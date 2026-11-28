@@ -37,7 +37,7 @@ import { zero_uint8_array } from "@/services/crypto/secure_memory";
 import { get_legacy_crypto_keys } from "@/services/crypto/legacy_keks";
 import { get_storage_write_crypto_key } from "@/services/crypto/storage_write_key";
 import { server_known_kek_id } from "@/services/crypto/server_known_keys";
-import { is_mail_legacy_retired } from "@/services/crypto/mail_legacy_retirement";
+import { is_format_refused } from "@/services/format_retirement/record";
 import {
   mark_server_derivable_plaintext,
   settle_fallback_plaintext,
@@ -334,7 +334,7 @@ export async function decrypt_legacy_ios_mail_envelope(
   options?: MailKeyOptions,
 ): Promise<ArrayBuffer | null> {
   const allow_legacy_keys =
-    options?.allow_legacy_keys ?? !is_mail_legacy_retired();
+    options?.allow_legacy_keys ?? !is_format_refused("mail_public_kek");
 
   if (allow_legacy_keys) return decrypt_legacy_ios_envelope(ciphertext, nonce);
   if (ciphertext.length <= MINIMUM_GCM_LENGTH) return null;

@@ -68,22 +68,15 @@ import {
   can_seal_recovery_lane,
   recovery_lane_is_post_quantum,
   recovery_lane_transcript,
-  seal_recovery_lane,
-  RecoveryLaneSenderKeyMissingError,
   type RecoveryLaneData,
   type RecoveryLaneRecipientKeys,
-  type RecoveryLaneTranscript,
 } from "./ratchet_recovery_lane";
 import {
-  merge_discards_local_epoch,
-  merge_ratchet_states,
-} from "./ratchet_state_merge";
-import {
-  archive_ratchet_state,
-  load_ratchet_state,
-  save_ratchet_state,
-} from "./ratchet_state_store";
-import { load_ratchet_for_merge, sync_ratchet_to_server } from "./ratchet_sync";
+  adopt_server_state_before_send,
+  seal_lane_with_heal,
+} from "./ratchet_send_io";
+import { load_ratchet_state, save_ratchet_state } from "./ratchet_state_store";
+import { sync_ratchet_to_server } from "./ratchet_sync";
 import {
   KeyPinUnavailableError,
   RecipientPinUnreadableError,
@@ -97,46 +90,26 @@ import {
   minimum_x3dh_version,
   perform_x3dh_sender,
   restrict_bundle_to_signed_pq_key,
+  signed_bundle_x3dh_floor,
   PQ_IDENTITY_KEY_ID,
   X3DH_VERSION_LEGACY,
   X3DH_VERSION_ONE_TIME_BOUND,
+  type HandshakeBinding,
   type PrekeyBundle,
 } from "./x3dh";
+import {
+  account_binding_verdict,
+  account_handshake_binding,
+  bound_initiator_fields,
+  bound_recipient_fields,
+  note_handshake_downgrade,
+  same_published_bundle,
+  strip_account_binding,
+} from "./handshake_keys/send_binding";
 
 import { start_with_fresh_bundle_once } from "./one_time_prekey_watch";
 import { zero_uint8_array } from "@/services/crypto/secure_memory";
 import { is_crypto_module_load_error } from "@/services/crypto/openpgp_loader";
-
-async function adopt_server_state_before_send(
-  conversation_id: string,
-  ratchet: DoubleRatchet,
-): Promise<void> {
-  try {
-    const sync_key = await get_sync_encryption_key();
-
-    if (!sync_key) {
-      return;
-    }
-
-    const server = await load_ratchet_for_merge(conversation_id, sync_key);
-
-    if (!server) {
-      return;
-    }
-
-    const local = await ratchet.serialize();
-
-    if (merge_discards_local_epoch(local, server.state, server.versioned)) {
-      await archive_ratchet_state(local);
-    }
-
-    ratchet.adopt_state(
-      merge_ratchet_states(local, server.state, server.versioned),
-    );
-  } catch {
-    return;
-  }
-}
 
 export async function encrypt_for_ratchet_recipient(
   sender_email: string,
@@ -165,67 +138,6 @@ export async function encrypt_for_ratchet_recipient(
       local_bundle,
     ),
   );
-}
-
-async function healed_sender_identity(
-  sender_identity: SenderIdentity,
-): Promise<SenderIdentity | null> {
-  try {
-    const { ensure_ratchet_keys } = await import("./ensure_ratchet_keys");
-
-    if (!(await ensure_ratchet_keys())) return null;
-  } catch {
-    return null;
-  }
-
-  const vault = get_vault_from_memory();
-  const reloaded = vault ? account_sender_identity(vault) : null;
-
-  if (
-    !reloaded ||
-    reloaded.identity_public !== sender_identity.identity_public ||
-    reloaded.identity_jwk === sender_identity.identity_jwk
-  ) {
-    return null;
-  }
-
-  return reloaded;
-}
-
-async function seal_lane_with_heal(
-  message_key: string,
-  conversation_id: string,
-  sender_identity: SenderIdentity,
-  recipient: RecoveryLaneRecipientKeys,
-  transcript: RecoveryLaneTranscript,
-): Promise<RecoveryLaneData | undefined> {
-  const seal = (identity_jwk: string): Promise<RecoveryLaneData> =>
-    seal_recovery_lane(
-      message_key,
-      conversation_id,
-      sender_identity.identity_public,
-      recipient,
-      identity_jwk,
-      transcript,
-    );
-
-  try {
-    return await seal(sender_identity.identity_jwk);
-  } catch (error) {
-    if (!(error instanceof RecoveryLaneSenderKeyMissingError)) throw error;
-  }
-
-  const healed = await healed_sender_identity(sender_identity);
-
-  if (!healed) return undefined;
-
-  try {
-    return await seal(healed.identity_jwk);
-  } catch (error) {
-    if (error instanceof RecoveryLaneSenderKeyMissingError) return undefined;
-
-    throw error;
-  }
 }
 
 type BundleVerification = Awaited<
@@ -295,6 +207,8 @@ async function verify_recipient_bundle(
   trust: DirectoryTrust = "account",
 ): Promise<BundleVerification> {
   if (trust !== "account" && trust !== "downgraded") {
+    strip_account_binding(bundle);
+
     return verify_address_entry_bundle(
       bundle,
       (recipient_email ?? recipient_username).toLowerCase(),
@@ -320,6 +234,14 @@ async function verify_recipient_bundle(
     owner_public_key,
     bundle.pq_kem_public_key ?? null,
   );
+
+  if (
+    trust === "downgraded" ||
+    verification.verdict !== "verified" ||
+    (await account_binding_verdict(bundle, owner_public_key)) !== "verified"
+  ) {
+    strip_account_binding(bundle);
+  }
 
   const accepted_by_user =
     verification.verdict === "tampered" &&
@@ -534,6 +456,7 @@ async function start_sender_session(
   bundle: PrekeyBundle,
   remembered_x3dh_version: number | null = null,
   pq_identity_signed: boolean | null = null,
+  binding: HandshakeBinding | null = null,
 ): Promise<StartedSenderSession> {
   const sender_identity_jwk: JsonWebKey = JSON.parse(
     sender_identity.identity_jwk,
@@ -544,6 +467,7 @@ async function start_sender_session(
       ? bundle
       : restrict_bundle_to_signed_pq_key(bundle, pq_identity_signed),
     remembered_x3dh_version,
+    binding,
   );
 
   try {
@@ -552,6 +476,7 @@ async function start_sender_session(
       base64_to_array(bundle.signed_prekey),
       conversation_id,
       bundle.kem_identity_key,
+      x3dh_result.session_binding,
     );
     const ephemeral_key = array_to_base64(x3dh_result.ephemeral_public_key);
     const pq_ciphertext =
@@ -572,13 +497,14 @@ async function start_sender_session(
       recipient_identity_key: bundle.kem_identity_key,
       recipient_pq_identity_key: bundle.pq_kem_public_key ?? undefined,
       x3dh_version,
+      ...bound_initiator_fields(x3dh_result.session_binding, binding),
     };
 
     let one_time_prekey_id: number | undefined;
     let signed_prekey_id: string | undefined;
 
     if (
-      x3dh_result.x3dh_version === X3DH_VERSION_ONE_TIME_BOUND &&
+      x3dh_result.x3dh_version >= X3DH_VERSION_ONE_TIME_BOUND &&
       x3dh_result.one_time_prekey_id !== undefined
     ) {
       one_time_prekey_id = x3dh_result.one_time_prekey_id;
@@ -615,6 +541,7 @@ async function start_session_with_fresh_bundle(
   remembered_version: number | null,
   bundle_peer: string,
   refetch: () => Promise<{ entry: PrekeyBundle } | null>,
+  binding: HandshakeBinding | null,
 ): Promise<{ started: StartedSenderSession; bundle: PrekeyBundle }> {
   const outcome = await start_with_fresh_bundle_once(
     bundle,
@@ -623,13 +550,12 @@ async function start_session_with_fresh_bundle(
         conversation_id,
         sender_identity,
         restrict_bundle_to_signed_pq_key(candidate, covers_pq),
-        remembered_version,
+        signed_bundle_x3dh_floor(candidate, covers_pq, remembered_version),
+        null,
+        binding,
       ),
     async () => (await refetch())?.entry ?? null,
-    (first, fresh) =>
-      first.kem_identity_key === fresh.kem_identity_key &&
-      first.signed_prekey === fresh.signed_prekey &&
-      first.pq_kem_public_key === fresh.pq_kem_public_key,
+    same_published_bundle,
     (candidate) => candidate.one_time_prekey_withheld,
     (candidate) => Boolean(candidate.ec_one_time_prekey),
   );
@@ -900,6 +826,11 @@ async function encrypt_for_ratchet_recipient_unlocked(
         remembered_version,
         bundle_peer,
         () => resolve_recipient_bundle(recipient_username, recipient_email),
+        await account_handshake_binding(
+          bundle,
+          bundle_verification.owner_public_key,
+          vault,
+        ),
       );
 
       started = outcome.started;
@@ -998,8 +929,16 @@ async function encrypt_for_ratchet_recipient_unlocked(
       recipient_data.x3dh_v = x3dh_version_value;
     }
 
+    Object.assign(
+      recipient_data,
+      bound_recipient_fields(
+        x3dh_version_value,
+        ratchet.get_bootstrap()?.initiator_fingerprint,
+      ),
+    );
+
     if (
-      x3dh_version_value === X3DH_VERSION_ONE_TIME_BOUND &&
+      (x3dh_version_value ?? 0) >= X3DH_VERSION_ONE_TIME_BOUND &&
       one_time_prekey_id_value !== undefined
     ) {
       recipient_data.opk_id = one_time_prekey_id_value;
@@ -1023,6 +962,11 @@ async function encrypt_for_ratchet_recipient_unlocked(
     if (import.meta.env.DEV) {
       console.warn("ratchet encrypt failed; routing via PGP fallback", err);
     }
+
+    note_handshake_downgrade(
+      err,
+      (recipient_email ?? recipient_username).toLowerCase(),
+    );
 
     return null;
   }
