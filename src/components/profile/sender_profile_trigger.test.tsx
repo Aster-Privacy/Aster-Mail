@@ -41,11 +41,13 @@ vi.mock("@/components/profile/sender_profile_card", () => ({
     is_open,
     on_open_change,
     copy_row,
+    render_avatar,
   }: {
     children: ReactNode;
     is_open: boolean;
     on_open_change: (open: boolean) => void;
     copy_row?: ReactNode;
+    render_avatar?: (o: { size: string }) => ReactNode;
   }) => {
     card_props.copy_row = copy_row;
 
@@ -55,6 +57,7 @@ vi.mock("@/components/profile/sender_profile_card", () => ({
         type="button"
         onPointerDown={() => on_open_change(!is_open)}
       >
+        {render_avatar?.({ size: "md" })}
         {children}
       </button>
     );
