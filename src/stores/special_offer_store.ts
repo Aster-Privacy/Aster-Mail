@@ -26,6 +26,7 @@ import { get_special_offer_status_snapshot } from "@/stores/special_offer_status
 import { is_on_auth_route } from "@/stores/upgrade_store";
 
 const AUTO_SHOW_QUIET_AFTER_SIGN_UP_MS = 24 * 60 * 60 * 1000;
+const TIMED_OFFER_QUIET_AFTER_SIGN_UP_MS = 10 * 60 * 1000;
 
 export type SpecialOfferSource = "auto" | "manual";
 
@@ -80,11 +81,12 @@ function is_on_settings_route(): boolean {
 export function can_auto_show_special_offer(): boolean {
   if (!can_show_special_offer() || is_on_settings_route()) return false;
 
-  if (get_special_offer_status_snapshot().status?.ends_at) return true;
-
+  const quiet_ms = get_special_offer_status_snapshot().status?.ends_at
+    ? TIMED_OFFER_QUIET_AFTER_SIGN_UP_MS
+    : AUTO_SHOW_QUIET_AFTER_SIGN_UP_MS;
   const age = first_run_age_ms();
 
-  return age === null || age >= AUTO_SHOW_QUIET_AFTER_SIGN_UP_MS;
+  return age === null || age >= quiet_ms;
 }
 
 export function show_special_offer(
