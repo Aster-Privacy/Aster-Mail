@@ -1176,6 +1176,7 @@ export const ThreadMessagesList = forwardRef<
           regular_messages.length > 1 &&
           msg.id === regular_messages[regular_messages.length - 1].id
         }
+        is_last_displayed={display_idx === display_messages.length - 1}
         is_own_message={
           (msg.item_type === "sent" || msg.is_external === false) &&
           same_address_ignoring_dots(msg.sender_email, current_user_email)

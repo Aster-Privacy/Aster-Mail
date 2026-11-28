@@ -415,19 +415,13 @@ export function EmailReplySection({
           >
             <div ref={emoji_anchor_ref} className="relative">
               <motion.button
-                className="p-2 rounded-lg transition-colors disabled:opacity-50"
+                aria-expanded={show_emoji_picker && !is_disabled}
+                aria-haspopup="dialog"
+                className="p-2 rounded-lg transition-colors enabled:hover:bg-[var(--bg-hover)] disabled:opacity-50"
                 disabled={is_disabled}
-                style={{ backgroundColor: "transparent" }}
                 whileHover={{ scale: is_disabled ? 1 : 1.1 }}
                 onClick={() =>
                   !is_disabled && set_show_emoji_picker(!show_emoji_picker)
-                }
-                onMouseEnter={(e) =>
-                  !is_disabled &&
-                  (e.currentTarget.style.backgroundColor = "var(--bg-hover)")
-                }
-                onMouseLeave={(e) =>
-                  (e.currentTarget.style.backgroundColor = "transparent")
                 }
               >
                 😊
@@ -454,6 +448,7 @@ export function EmailReplySection({
             transition={{ delay: 0.25 }}
           >
             <motion.button
+              data-ripple
               className="flex-1 inline-flex items-center justify-center gap-2 py-2 px-4 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg font-semibold shadow-lg hover:shadow-xl hover:from-blue-600 hover:to-blue-700 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none disabled:from-blue-400 disabled:to-blue-500 transition-all text-sm"
               disabled={!reply_text.trim() || is_disabled}
               transition={{

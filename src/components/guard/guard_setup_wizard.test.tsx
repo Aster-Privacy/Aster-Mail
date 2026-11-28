@@ -440,23 +440,9 @@ describe("guard setup wizard", () => {
 
   it("dims dependent toggles while the parent is off", () => {
     render_wizard();
-    expect(by_label("guard.setup_scope_forwarding").checked).toBe(true);
+    expect(by_label("guard.setup_hold_changes").checked).toBe(true);
+    expect(container.textContent).not.toContain("guard.setup_scope_forwarding");
     expect(by_label("guard.setup_approve_mail_apps").disabled).toBe(false);
-
-    click(by_label("guard.setup_hold_changes"));
-    for (const key of [
-      "guard.setup_scope_forwarding",
-      "guard.setup_scope_recovery_password",
-      "guard.setup_scope_security_export",
-    ]) {
-      expect(by_label(key).disabled).toBe(true);
-      expect(by_label(key).checked).toBe(false);
-    }
-    expect(by_test_id("guard_setup_hold_scopes").dataset.active).toBe("false");
-
-    click(by_label("guard.setup_hold_changes"));
-    expect(by_label("guard.setup_scope_forwarding").disabled).toBe(false);
-    expect(by_label("guard.setup_scope_forwarding").checked).toBe(true);
 
     click(by_label("guard.setup_approve_mail_apps"));
     expect(by_label("guard.setup_approve_mail_apps").checked).toBe(true);

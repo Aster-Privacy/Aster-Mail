@@ -26,12 +26,9 @@ import type { ReactNode } from "react";
 import { Children, useEffect, useState } from "react";
 import { Island, IslandRow, SettingToggleRow } from "@aster/ui";
 import {
-  ArrowDownTrayIcon,
-  ArrowUturnRightIcon,
   ClockIcon,
   DevicePhoneMobileIcon,
   EnvelopeIcon,
-  KeyIcon,
   LifebuoyIcon,
 } from "@heroicons/react/24/outline";
 
@@ -60,7 +57,6 @@ import { use_i18n } from "@/lib/i18n/context";
 import { cn } from "@/lib/utils";
 import {
   GUARD_ALL_SCOPES,
-  GUARD_SCOPE,
   GUARD_SWITCH,
 } from "@/services/api/guard";
 import type {
@@ -196,27 +192,6 @@ export function GuardSwitchRows({
   const hold = has(GUARD_SWITCH.hold_changes);
   const describe = (key: TranslationKey) =>
     disabled && disabled_reason ? disabled_reason : t(key);
-  const scope_rows = [
-    {
-      scope: GUARD_SCOPE.forwarding_rules,
-      label: "guard.setup_scope_forwarding",
-      description: "guard.setup_scope_forwarding_description",
-      icon: <ArrowUturnRightIcon />,
-    },
-    {
-      scope: GUARD_SCOPE.recovery_password,
-      label: "guard.setup_scope_recovery_password",
-      description: "guard.setup_scope_recovery_password_description",
-      icon: <KeyIcon />,
-    },
-    {
-      scope: GUARD_SCOPE.security_export,
-      label: "guard.setup_scope_security_export",
-      description: "guard.setup_scope_security_export_description",
-      icon: <ArrowDownTrayIcon />,
-    },
-  ] as const;
-
   return (
     <>
       <GuardSubOptions
@@ -259,40 +234,18 @@ export function GuardSwitchRows({
           }
         />
       </GuardSubOptions>
-      <GuardSubOptions
-        parent={
-          <SettingToggleRow
-            checked={hold}
-            description={describe("guard.setup_hold_changes_description")}
-            disabled={disabled}
-            icon={<ClockIcon />}
-            label={t("guard.setup_hold_changes")}
-            on_change={(on) =>
-              on_change(
-                toggle_guard_switch(selection, GUARD_SWITCH.hold_changes, on),
-              )
-            }
-          />
+      <SettingToggleRow
+        checked={hold}
+        description={describe("guard.setup_hold_changes_description")}
+        disabled={disabled}
+        icon={<ClockIcon />}
+        label={t("guard.setup_hold_changes")}
+        on_change={(on) =>
+          on_change(
+            toggle_guard_switch(selection, GUARD_SWITCH.hold_changes, on),
+          )
         }
-        active={hold}
-        label={t("guard.setup_hold_scopes_title")}
-        test_id="guard_setup_hold_scopes"
-      >
-        {scope_rows.map((row) => (
-          <SettingToggleRow
-            key={row.scope}
-            checked={hold && (selection.hold_scopes & row.scope) !== 0}
-            description={describe(row.description)}
-            disabled={disabled || !hold}
-            icon={row.icon}
-            label={t(row.label)}
-            size="md"
-            on_change={(on) =>
-              on_change(toggle_guard_scope(selection, row.scope, on))
-            }
-          />
-        ))}
-      </GuardSubOptions>
+      />
       <SettingToggleRow
         checked={has(GUARD_SWITCH.recovery_wait)}
         description={describe("guard.setup_recovery_wait_description")}

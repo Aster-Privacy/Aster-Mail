@@ -148,6 +148,7 @@ export function SearchInputBar({
           <div className="relative">
             <button
               aria-expanded={show_clear_menu}
+              aria-haspopup="menu"
               className={`search_icon_tile flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-[10px]${show_clear_menu ? " search_icon_tile_active" : ""}`}
               title={t("mail.clear_search_data")}
               onClick={on_toggle_clear_menu}

@@ -168,6 +168,31 @@ describe("extract_mime_attachments", () => {
     expect(new TextDecoder().decode(parts[0]!.data)).toBe(`a${blanks}b\r\nc`);
   });
 
+  it("keeps an attachment whose base64 body has one stray trailing character", () => {
+    const raw = [
+      "Content-Type: multipart/mixed; boundary=\"b2\"",
+      "",
+      "--b2",
+      "Content-Type: text/plain",
+      "",
+      "see attached",
+      "--b2",
+      "Content-Type: application/octet-stream",
+      "Content-Disposition: attachment; filename=\"data.bin\"",
+      "Content-Transfer-Encoding: base64",
+      "",
+      "AQIDA",
+      "--b2--",
+      "",
+    ].join("\n");
+
+    const parts = extract_mime_attachments(raw);
+
+    expect(parts).toHaveLength(1);
+    expect(parts[0]?.filename).toBe("data.bin");
+    expect(Array.from(parts[0]!.data)).toEqual([1, 2, 3]);
+  });
+
   it("decodes RFC 2231 and RFC 2047 filenames", () => {
     const raw = multipart("mixed", "names", [
       text_part("plain", "body"),

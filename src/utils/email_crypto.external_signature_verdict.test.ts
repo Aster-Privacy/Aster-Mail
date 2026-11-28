@@ -72,6 +72,7 @@ vi.mock("@/services/api/keys", async (import_original) => ({
 }));
 
 import { resolve_inbound_pgp_body } from "@/utils/email_crypto";
+import { get_shown_decrypted_mime_attachments } from "@/services/decrypted_mime_attachments";
 import { process_envelope_body } from "@/components/email/shared/build_email_from_envelope";
 import {
   displayed_sender_verification,
@@ -335,6 +336,26 @@ describe("external sender encrypted without a signature", () => {
 
     expect(resolved.decrypted).toBe(true);
     expect(resolved.sender_verification).toBe("unsigned");
+  });
+});
+
+describe("attached sender key", () => {
+  it("never stores or lists the key the sender attached", async () => {
+    publish_sender_key();
+    const resolved = await resolve_inbound_pgp_body(
+      await encrypt_to_owner(mixed_body("key attached")),
+      OUTSIDE_SENDER,
+      "mail-key-1",
+    );
+
+    expect(resolved.decrypted).toBe(true);
+    expect(resolved.decrypted_attachments ?? []).toEqual([]);
+    expect(
+      get_shown_decrypted_mime_attachments(
+        "mail-key-1",
+        resolved.decrypted_content_tag,
+      ) ?? [],
+    ).toEqual([]);
   });
 });
 

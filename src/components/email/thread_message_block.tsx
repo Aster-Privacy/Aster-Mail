@@ -125,6 +125,7 @@ export function ThreadMessageBlock(
     is_expanded,
     is_single_message = false,
     is_last_in_thread = false,
+    is_last_displayed = true,
     on_toggle,
     is_starred = false,
     is_read = true,
@@ -342,6 +343,7 @@ export function ThreadMessageBlock(
     <div className="overflow-hidden">
       <div
         className={`group flex items-start gap-3 ps-4 pe-2 pt-3 pb-2 ${can_collapse ? "cursor-pointer select-none" : ""}`}
+        data-ripple={can_collapse ? "" : undefined}
         role={can_collapse ? "button" : undefined}
         tabIndex={can_collapse ? 0 : undefined}
         onClick={
@@ -1021,7 +1023,7 @@ export function ThreadMessageBlock(
 
       {!show_inline_reply && (
         <div
-          className={`${is_single_message || is_last_in_thread ? "sticky bottom-0 z-10" : ""} bg-[var(--aster-island-fill)]`}
+          className={`${is_single_message || (is_last_in_thread && is_last_displayed) ? "sticky bottom-0 z-10" : ""} bg-[var(--aster-island-fill)] pt-2`}
           onClick={(e) => e.stopPropagation()}
         >
           <ThreadMessageActions

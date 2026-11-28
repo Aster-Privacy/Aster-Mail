@@ -132,6 +132,17 @@ describe("get_safe_next_path", () => {
     expect(get_safe_next_path()).toBe("/join/family?token=abc#x");
   });
 
+  it("returns to the link-device page with its code", async () => {
+    const get_safe_next_path = await load();
+
+    set_location(
+      "/u/0/sign-in?next=" +
+        encodeURIComponent("/link-device#v=9B16AF790A6AE2F255D3"),
+    );
+
+    expect(get_safe_next_path()).toBe("/link-device#v=9B16AF790A6AE2F255D3");
+  });
+
   it("returns the root when no next path is requested", async () => {
     const get_safe_next_path = await load();
 
