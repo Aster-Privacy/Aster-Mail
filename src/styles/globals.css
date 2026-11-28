@@ -1439,8 +1439,9 @@
   --thread-card-border: #2e2e2e;
   --thread-header-bg: #161616;
   --thread-content-bg: #0a0a0a;
-  --mail_row_selected_mix: 31%;
-  --mail_row_selected_hover_mix: 38%;
+  --mail_row_selected_mix: 22%;
+  --mail_row_selected_hover_mix: 28%;
+  --mail_row_selected_edge_mix: 38%;
 }
 
 .dark.theme-black .aster_btn_secondary {
@@ -3885,27 +3886,34 @@ html:not([data-input-modality="keyboard"])
   --icon-muted: var(--text-muted);
 }
 
-.mail_row_selected,
-.mail_row:has(+ .mail_row_selected),
-[data-row-email-id]:has(+ [data-row-email-id] > .mail_row_selected)
-  > .mail_row {
-  border-bottom-color: color-mix(
+.mail_row {
+  --mail_row_selected_edge: color-mix(
     in srgb,
-    var(--accent-color, #3b82f6) 48%,
+    var(--accent-color, #3b82f6) var(--mail_row_selected_edge_mix, 48%),
     var(--bg-primary, #ffffff)
   );
 }
 
-.dark .mail_row_selected,
-.dark .mail_row:has(+ .mail_row_selected),
-.dark
-  [data-row-email-id]:has(+ [data-row-email-id] > .mail_row_selected)
-  > .mail_row {
-  border-bottom-color: color-mix(
+.dark .mail_row {
+  --mail_row_selected_edge: color-mix(
     in srgb,
-    var(--accent-color, #3b82f6) 68%,
+    var(--accent-color, #3b82f6) var(--mail_row_selected_edge_mix, 68%),
     var(--bg-primary, #121212)
   );
+}
+
+.mail_row_selected,
+.mail_row_selected + .mail_row,
+[data-row-email-id]:has(> .mail_row_selected) + [data-row-email-id] > .mail_row {
+  border-top-color: var(--mail_row_selected_edge);
+}
+
+.mail_row_selected {
+  border-bottom-color: var(--mail_row_selected_edge);
+}
+
+html[data-input-modality="keyboard"] .mail_row:focus-visible {
+  outline-offset: -2px;
 }
 
 .mail_row_selected:hover {

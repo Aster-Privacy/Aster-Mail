@@ -661,7 +661,7 @@ export function EmailList({
     <InboxEmailListItem
       attachment_previews={attachment_previews.get(email.id)}
       className={cn(
-        email.id === first_row_id && "border-t-0",
+        email.id === first_row_id && "border-t-transparent",
         email.id === last_row_id && "border-b",
       )}
       current_view={current_view}
@@ -888,7 +888,7 @@ export function EmailList({
 }
 
 export function LoadingState(): React.ReactElement {
-  return <MailRowSkeletonList first_row_class_name="border-t-0" />;
+  return <MailRowSkeletonList first_row_class_name="border-t-transparent" />;
 }
 
 interface EmptyStateProps {
