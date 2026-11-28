@@ -74,6 +74,8 @@ import { backup_key_fingerprints_of } from "@/services/crypto/recovery_backup_co
 import { array_to_base64 } from "@/services/crypto/key_manager_core";
 import { MASTER_KEY_VAULT_FORMAT } from "@/services/crypto/memory_key_store";
 import { register_user } from "@/services/api/auth";
+import { auto_claim_matching_addresses } from "@/services/api/aliases/matching_claim";
+import { clear_twin_address_cache } from "@/components/settings/aliases/use_twin_address";
 import { check_and_replenish_prekeys } from "@/services/crypto/prekey_service";
 import { keep_publishing_until_confirmed } from "@/services/crypto/prekey_bundle_confirmation";
 import {
@@ -1250,6 +1252,12 @@ export function use_registration(options?: RegistrationClaimOptions) {
 
   const finalize_registration = async (target_path?: string) => {
     await persist_registration_state();
+
+    void auto_claim_matching_addresses(`${username}@${email_domain}`).then(
+      (results) => {
+        if (results.length > 0) clear_twin_address_cache();
+      },
+    );
 
     const destination =
       invite_return_path_ref.current ?? target_path ?? finish_path_ref.current;
