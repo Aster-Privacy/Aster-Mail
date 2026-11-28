@@ -2000,6 +2000,15 @@
     BlinkMacSystemFont,
     "Segoe UI",
     Roboto,
+    "PingFang SC",
+    "Hiragino Sans",
+    "Hiragino Kaku Gothic ProN",
+    "Microsoft YaHei",
+    "Yu Gothic UI",
+    "Malgun Gothic",
+    "Noto Sans CJK SC",
+    "Noto Sans CJK JP",
+    "Noto Sans CJK KR",
     sans-serif;
 }
 
@@ -6976,6 +6985,115 @@ html.aster_drag_active * {
   color: var(--text-primary) !important;
 }
 
+:root {
+  --aster-radius-chip: 6px;
+  --aster-primary-top: color-mix(in srgb, var(--accent-color, #3b6aef) 90%, white);
+  --aster-primary-bottom: var(--accent-color, #3b6aef);
+  --aster-primary-border: color-mix(in srgb, var(--accent-color, #3b6aef) 82%, black);
+  --aster-primary-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.18);
+  --aster-primary-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+html:root .aster_btn_depth,
+html:root .aster_btn_primary,
+html:root.dark .aster_btn_depth,
+html:root.dark .aster_btn_primary {
+  color: #fff;
+  font-weight: 500;
+  border: 1px solid var(--aster-primary-border);
+  background: linear-gradient(
+    to bottom,
+    var(--aster-primary-top),
+    var(--aster-primary-bottom)
+  );
+  box-shadow: var(--aster-primary-highlight), var(--aster-primary-shadow);
+  filter: none;
+  transition:
+    filter 0.12s ease,
+    box-shadow 0.12s ease;
+}
+
+html:root .aster_btn_depth:hover,
+html:root .aster_btn_primary:hover,
+html:root.dark .aster_btn_depth:hover,
+html:root.dark .aster_btn_primary:hover {
+  background: linear-gradient(
+    to bottom,
+    var(--aster-primary-top),
+    var(--aster-primary-bottom)
+  );
+  filter: brightness(1.05);
+}
+
+html:root .aster_btn_depth:active,
+html:root .aster_btn_primary:active,
+html:root.dark .aster_btn_depth:active,
+html:root.dark .aster_btn_primary:active {
+  filter: brightness(0.94);
+  box-shadow: none;
+}
+
+html:root .aster_btn_depth:disabled,
+html:root .aster_btn_primary:disabled {
+  filter: saturate(0.6);
+  box-shadow: none;
+}
+
+html[data-input-modality="keyboard"] .aster_btn_depth:focus-visible,
+html[data-input-modality="keyboard"] .aster_btn_primary:focus-visible {
+  outline: 2px solid var(--accent-color, #3b6aef);
+  outline-offset: 2px;
+}
+
+html:root [data-onboarding="compose-button"] svg,
+html:root [data-onboarding="compose-button"] span {
+  color: #fff;
+}
+
+.tabular_figures {
+  font-variant-numeric: tabular-nums;
+}
+
+[data-sidebar-root] .sidebar-nav-btn > svg {
+  width: 18px;
+  height: 18px;
+  stroke-width: 1.6;
+  color: var(--text-secondary) !important;
+  opacity: 0.82;
+}
+
+[data-sidebar-root] .sidebar-nav-btn.sidebar-active > svg,
+[data-sidebar-root] .sidebar-nav-btn:hover > svg {
+  color: var(--text-primary) !important;
+  opacity: 1;
+}
+
+[data-sidebar-root][data-collapsed="true"] .sidebar-nav-btn > svg {
+  width: 20px;
+  height: 20px;
+}
+
+[data-sidebar-root] .mt-5.mb-1.px-2\.5 .opacity-70 {
+  opacity: 1;
+}
+
+[data-sidebar-root] .mt-5.mb-1.px-2\.5 .text-\[10px\] {
+  font-size: 12px;
+  letter-spacing: 0.04em;
+}
+
+.app_rail_column .app_rail_btn {
+  width: 40px;
+  height: 40px;
+}
+
+.app_rail_column .app_rail_btn > svg,
+.app_rail_column .app_rail_btn > img,
+.app_rail_column .app_rail_btn > span > svg {
+  width: 26px;
+  height: 26px;
+}
+
 .pdf_text_layer {
   position: absolute;
   text-align: initial;
@@ -7054,4 +7172,24 @@ html.aster_drag_active * {
   width: 0;
   height: 0;
   display: none;
+}
+
+.aster_tip_portal[data-tip-arrow][data-tip-arrow]::after {
+  width: 6px;
+  height: 12px;
+  border: 0;
+  background: inherit;
+  transform: translateY(-50%);
+}
+
+.aster_tip_portal[data-tip-arrow][data-tip-arrow="left"]::after {
+  right: -5.5px;
+  left: auto;
+  clip-path: polygon(0 0, 100% 50%, 0 100%);
+}
+
+.aster_tip_portal[data-tip-arrow][data-tip-arrow="right"]::after {
+  left: -5.5px;
+  right: auto;
+  clip-path: polygon(100% 0, 0 50%, 100% 100%);
 }

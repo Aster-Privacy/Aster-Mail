@@ -25,6 +25,7 @@ interface EmailProfileTriggerProps {
   children: React.ReactNode;
   on_compose?: (email: string) => void;
   className?: string;
+  sender_authenticated?: boolean;
 }
 
 export function EmailProfileTrigger({
@@ -33,6 +34,7 @@ export function EmailProfileTrigger({
   children,
   on_compose,
   className = "",
+  sender_authenticated = false,
 }: EmailProfileTriggerProps) {
   return (
     <SenderProfileTrigger
@@ -40,6 +42,7 @@ export function EmailProfileTrigger({
       email={email}
       name={name}
       on_compose={on_compose}
+      sender_authenticated={sender_authenticated}
     >
       {children}
     </SenderProfileTrigger>

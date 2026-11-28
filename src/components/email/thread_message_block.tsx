@@ -52,11 +52,15 @@ import { render_collapsed_thread_message } from "./thread_message_collapsed";
 import { use_thread_message_block } from "./use_thread_message_block";
 
 import {
+  phishing_menu_state,
+  use_phishing_reported,
+} from "@/components/email/viewer_shared/report_phishing";
+import {
   NotSpamIcon,
   ReportSpamIcon,
 } from "@/components/email/spam_action_icons";
 import { copy_text_or_throw } from "@/utils/copy_text";
-import { is_system_email, trust_source_for_display } from "@/lib/utils";
+import { trust_source_for_display, is_aster_trusted_sender } from "@/lib/utils";
 import { EmailTag } from "@/components/ui/email_tag";
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
 import {
@@ -163,6 +167,13 @@ export function ThreadMessageBlock(
     island_ref,
   } = props;
   const state = use_thread_message_block(props);
+  const phishing_reported = use_phishing_reported(message.id);
+  const phishing_menu = phishing_menu_state({
+    item_type: message.item_type,
+    is_own_message,
+    in_spam: !!on_not_spam,
+    is_reported: phishing_reported,
+  });
   const forward_mail_as_attachment = use_forward_as_attachment();
   const {
     t,
@@ -340,7 +351,7 @@ export function ThreadMessageBlock(
   }
 
   return wrap_in_island(
-    <div className="overflow-hidden">
+    <div key="expanded" className="overflow-hidden">
       <div
         className={`group flex items-start gap-3 ps-4 pe-2 pt-3 pb-2 ${can_collapse ? "cursor-pointer select-none" : ""}`}
         data-ripple={can_collapse ? "" : undefined}
@@ -375,7 +386,7 @@ export function ThreadMessageBlock(
             className="flex-shrink-0 mt-0.5 select-none"
             email={message.sender_email}
             name={message.sender_name}
-            sender_authenticated={is_system_email(message)}
+            sender_authenticated={is_aster_trusted_sender(message)}
             size="md"
           />
         ) : (
@@ -384,6 +395,7 @@ export function ThreadMessageBlock(
             email={message.sender_email}
             name={sender_trust ? sender_trust.name : message.sender_name}
             plain={marks_hidden}
+            sender_authenticated={is_aster_trusted_sender(message)}
           >
             <ProfileAvatar
               use_domain_logo
@@ -392,7 +404,7 @@ export function ThreadMessageBlock(
               plain={marks_hidden}
               sender_authenticated={
                 !marks_hidden &&
-                is_system_email(
+                is_aster_trusted_sender(
                   trust_source_for_display(message, show_sender_email),
                 )
               }
@@ -416,6 +428,7 @@ export function ThreadMessageBlock(
                 name={sender_trust ? sender_trust.name : message.sender_name}
                 plain={marks_hidden}
                 selectable
+                sender_authenticated={is_aster_trusted_sender(message)}
               >
                 {name}
               </SenderProfileTrigger>
@@ -501,7 +514,7 @@ export function ThreadMessageBlock(
                   plain_avatar={marks_hidden}
                   sender_authenticated={
                     !marks_hidden &&
-                    is_system_email(
+                    is_aster_trusted_sender(
                       trust_source_for_display(message, show_sender_email),
                     )
                   }
@@ -759,7 +772,7 @@ export function ThreadMessageBlock(
                 <CodeBracketIcon className="w-4 h-4 me-2" />
                 {viewing_source ? t("mail.hide_source") : t("mail.view_source")}
               </DropdownMenuItem>
-              {on_not_spam ? (
+              {on_not_spam && phishing_menu.show_not_spam && (
                 <DropdownMenuItem
                   onClick={(e) => {
                     e.stopPropagation();
@@ -769,19 +782,24 @@ export function ThreadMessageBlock(
                   <NotSpamIcon className="w-4 h-4 me-2" />
                   {t("mail.not_spam")}
                 </DropdownMenuItem>
-              ) : on_report_phishing ? (
-                <DropdownMenuItem
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    on_report_phishing(message);
-                  }}
-                >
-                  <ReportSpamIcon className="w-4 h-4 me-2 text-amber-500" />
-                  <span className="text-amber-500">
-                    {t("common.report_phishing")}
-                  </span>
-                </DropdownMenuItem>
-              ) : null}
+              )}
+              {on_report_phishing &&
+                phishing_menu.report_phishing !== "hidden" && (
+                  <DropdownMenuItem
+                    disabled={phishing_menu.report_phishing === "reported"}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      on_report_phishing(message);
+                    }}
+                  >
+                    <ReportSpamIcon className="w-4 h-4 me-2 text-amber-500" />
+                    <span className="text-amber-500">
+                      {phishing_menu.report_phishing === "reported"
+                        ? t("common.reported_as_phishing")
+                        : t("common.report_phishing")}
+                    </span>
+                  </DropdownMenuItem>
+                )}
               {on_block_sender && !is_own_message && (
                 <DropdownMenuItem
                   onClick={(e) => {
@@ -919,7 +937,7 @@ export function ThreadMessageBlock(
         )}
 
       <div
-        className={`${is_plain_text || show_as_text ? "ps-[52px] pb-4" : "pb-0"} pt-1`}
+        className={`${is_plain_text || show_as_text ? "ps-[52px] pb-4" : "pb-3"} pt-1`}
       >
         {message.is_sending === true && (
           <div

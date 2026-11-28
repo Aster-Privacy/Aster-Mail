@@ -1066,7 +1066,10 @@ export function use_mobile_mail_detail() {
     if (menu_message) {
       const target = menu_message;
 
-      request_spam(() => detail.handle_per_message_report_phishing(target));
+      request_spam(
+        () => detail.handle_per_message_report_phishing(target),
+        target.is_spam === true,
+      );
     }
     set_menu_message(null);
   }, [detail, menu_message, request_spam]);

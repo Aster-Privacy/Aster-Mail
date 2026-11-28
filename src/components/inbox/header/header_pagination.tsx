@@ -40,6 +40,7 @@ interface HeaderPaginationProps {
   page_row_count?: number;
   on_page_change?: (page: number) => void;
   on_jump_to_page?: (page: number) => void;
+  list_empty?: boolean;
 }
 
 export function HeaderPagination({
@@ -56,6 +57,7 @@ export function HeaderPagination({
   page_row_count = 0,
   on_page_change,
   on_jump_to_page,
+  list_empty = false,
 }: HeaderPaginationProps) {
   const { t } = use_i18n();
 
@@ -71,7 +73,7 @@ export function HeaderPagination({
     current_email_index !== undefined && current_email_index >= 0;
 
   if (!is_message_mode && filtered_count <= 0 && page_row_count <= 0) {
-    return null;
+    return list_empty ? <EmptyPagination /> : null;
   }
 
   if (is_message_mode && !message_index_known && !can_go_prev && !can_go_next) {
@@ -204,6 +206,53 @@ export function HeaderPagination({
           </Button>
         </span>
       </Tooltip>
+    </div>
+  );
+}
+
+function DisabledPageButton({
+  label,
+  children,
+}: {
+  label: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <Tooltip tip={label}>
+      <span className="inline-flex">
+        <Button
+          aria-disabled
+          aria-label={label}
+          className="h-9 w-9 rounded-[10px] text-[var(--icon-secondary)] opacity-40 pointer-events-none"
+          size="icon"
+          tabIndex={-1}
+          variant="ghost"
+        >
+          {children}
+        </Button>
+      </span>
+    </Tooltip>
+  );
+}
+
+function EmptyPagination() {
+  const { t } = use_i18n();
+  const zero = (0).toLocaleString(app_locale());
+
+  return (
+    <div
+      className="hidden select-none md:flex items-center gap-0.5 text-sm text-[var(--text-muted)] ms-1"
+      data-testid="header-pagination-empty"
+    >
+      <DisabledPageButton label={t("common.previous")}>
+        <ChevronLeftIcon className="w-5 h-5 rtl:-scale-x-100" />
+      </DisabledPageButton>
+      <span className="tabular-nums text-sm whitespace-nowrap px-1 text-center @max-[420px]/listbar:hidden">
+        {zero} {t("common.of")} {zero}
+      </span>
+      <DisabledPageButton label={t("common.next")}>
+        <ChevronRightIcon className="w-5 h-5 rtl:-scale-x-100" />
+      </DisabledPageButton>
     </div>
   );
 }

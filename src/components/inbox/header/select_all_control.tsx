@@ -46,6 +46,7 @@ interface SelectAllControlProps {
   label?: string;
   on_toggle: () => void;
   on_select_by_filter?: (mode: SelectByFilterMode) => void;
+  disabled?: boolean;
 }
 
 const FILTER_ITEMS: {
@@ -69,6 +70,7 @@ export function SelectAllControl({
   label,
   on_toggle,
   on_select_by_filter,
+  disabled = false,
 }: SelectAllControlProps) {
   const { t } = use_i18n();
   const layout = list_select_control_layout(compact, show_profile_pictures);
@@ -83,7 +85,8 @@ export function SelectAllControl({
 
   return (
     <div
-      className="list_select_control group/select flex h-9 flex-shrink-0 items-center rounded-[10px] transition-colors duration-150 hover:bg-[var(--bg-hover)] has-[[data-state=open]]:bg-[var(--bg-hover)]"
+      aria-disabled={disabled || undefined}
+      className={`list_select_control group/select flex h-9 flex-shrink-0 items-center rounded-[10px] transition-colors duration-150 ${disabled ? "pointer-events-none opacity-40" : "hover:bg-[var(--bg-hover)] has-[[data-state=open]]:bg-[var(--bg-hover)]"}`}
       data-testid="list-select-control"
       style={{ marginInlineStart: -layout.inset_px }}
     >
@@ -99,11 +102,15 @@ export function SelectAllControl({
           }
           className="list_select_control_toggle flex h-9 flex-shrink-0 cursor-pointer items-center rounded-[10px]"
           data-testid="list-select-toggle"
+          aria-disabled={disabled || undefined}
           role="checkbox"
           style={toggle_style}
-          tabIndex={0}
-          onClick={() => on_toggle()}
+          tabIndex={disabled ? -1 : 0}
+          onClick={() => {
+            if (!disabled) on_toggle();
+          }}
           onKeyDown={(e) => {
+            if (disabled) return;
             if (e.key === "Enter" || e.key === " ") {
               e.preventDefault();
               on_toggle();
@@ -137,6 +144,7 @@ export function SelectAllControl({
               aria-label={t("common.select_label")}
               className="list_select_control_menu flex h-9 flex-shrink-0 items-center rounded-[10px] ps-0.5 pe-1.5 text-[var(--icon-secondary)] transition-colors duration-150 group-hover/select:text-[var(--icon-active)] focus:outline-none data-[state=open]:text-[var(--icon-active)]"
               data-testid="list-select-menu"
+              disabled={disabled}
               style={{
                 marginInlineStart: show_label ? 0 : layout.menu_offset_px,
               }}

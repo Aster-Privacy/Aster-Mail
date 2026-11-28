@@ -470,6 +470,14 @@ export function start_press_feedback(): () => void {
     const el = current;
 
     if (!el || !el.hasAttribute(PRESS_ATTRIBUTE)) return;
+    if (!el.isConnected || !el.matches(RIPPLE_SELECTOR)) {
+      clear_timers();
+      is_down = false;
+      clear_element(el);
+      current = null;
+
+      return;
+    }
     refit_ripple(el);
     size_frame = requestAnimationFrame(watch_size);
   };

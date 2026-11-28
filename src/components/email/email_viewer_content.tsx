@@ -77,7 +77,7 @@ import {
   readable_text_with_fallback,
   renderable_html_part,
 } from "@/lib/message_markup";
-import { is_system_email } from "@/lib/utils";
+import { is_aster_trusted_sender, is_system_email } from "@/lib/utils";
 import { get_image_proxy_url } from "@/lib/image_proxy";
 import {
   is_lockdown_enabled,
@@ -607,6 +607,7 @@ export function EmailViewerContent({
             use_domain_logo
             email={email.sender.email}
             name={email.sender.name}
+            sender_authenticated={is_aster_trusted_sender(email)}
             size="lg"
           />
           <div className="flex-1">

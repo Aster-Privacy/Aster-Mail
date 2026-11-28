@@ -59,6 +59,19 @@ function is_blob_src(src: string): boolean {
   return src.slice(0, 5).toLowerCase() === "blob:";
 }
 
+function is_proxy_src(src: string, proxy_url: string): boolean {
+  if (typeof window === "undefined") return false;
+
+  try {
+    const parsed = new URL(src, window.location.href);
+    const proxy = new URL(proxy_url, window.location.href);
+
+    return parsed.origin === proxy.origin && parsed.pathname === proxy.pathname;
+  } catch {
+    return false;
+  }
+}
+
 function decode_payload(payload: string): string {
   try {
     return decodeURIComponent(payload);
@@ -114,7 +127,7 @@ export async function load_viewer_image_blob(
 
   const response = await fetch(src, {
     cache: "force-cache",
-    credentials: "same-origin",
+    credentials: is_proxy_src(src, proxy_url) ? "include" : "omit",
     referrerPolicy: "no-referrer",
   });
 
