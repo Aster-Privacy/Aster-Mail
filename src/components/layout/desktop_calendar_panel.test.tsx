@@ -55,6 +55,7 @@ const h = vi.hoisted(() => ({
   has_vault: true,
   open_external: vi.fn(),
   open_calendar_externally: vi.fn(),
+  create_event: vi.fn(),
 }));
 
 vi.mock("@/contexts/auth/use_auth_hook", () => ({
@@ -95,8 +96,12 @@ vi.mock("@/utils/open_link", () => ({
   open_external: h.open_external,
 }));
 
-vi.mock("@/components/layout/quick_calendar_panel", () => ({
+vi.mock("@/components/layout/open_calendar_externally", () => ({
   open_calendar_externally: h.open_calendar_externally,
+}));
+
+vi.mock("@/services/api/calendar", () => ({
+  create_event: h.create_event,
 }));
 
 declare global {
@@ -109,7 +114,7 @@ function make_event(
 ): DecryptedCalendarEvent {
   const start = new Date();
 
-  start.setHours(start.getHours() + 1, 0, 0, 0);
+  start.setHours(12, 0, 0, 0);
   const end = new Date(start.getTime() + 30 * 60_000);
 
   return {
@@ -246,6 +251,8 @@ describe("DesktopCalendarPanel", () => {
     h.has_vault = true;
     h.open_external.mockReset();
     h.open_calendar_externally.mockReset();
+    h.create_event.mockReset();
+    localStorage.clear();
     on_close = vi.fn<() => void>();
     container = document.createElement("div");
     document.body.appendChild(container);
@@ -400,6 +407,9 @@ describe("DesktopCalendarPanel", () => {
 
   it("moves the selected day with the arrow keys", async () => {
     await render();
+    await click(
+      container.querySelector('[data-testid="desktop_calendar_day_button"]'),
+    );
 
     const selected = () =>
       container.querySelector<HTMLButtonElement>(
@@ -415,6 +425,195 @@ describe("DesktopCalendarPanel", () => {
 
     expect(selected()?.getAttribute("aria-label")).not.toBe(before);
     expect(document.activeElement).toBe(selected());
+  });
+
+  it("starts with the month collapsed and remembers when it is opened", async () => {
+    await render();
+
+    const toggle = container.querySelector(
+      '[data-testid="desktop_calendar_day_button"]',
+    );
+
+    expect(toggle?.getAttribute("aria-expanded")).toBe("false");
+    expect(container.querySelector('[role="grid"]')).toBeNull();
+
+    await click(toggle);
+
+    expect(toggle?.getAttribute("aria-expanded")).toBe("true");
+    expect(container.querySelector('[role="grid"]')).not.toBeNull();
+    expect(localStorage.getItem("aster_calendar_panel_month_open")).toBe("1");
+  });
+
+  it("places timed events on the timeline and all-day events above it", async () => {
+    h.agenda.events = [
+      make_event(),
+      make_event({ id: "evt_2", title: "Overlap", location: "" }),
+      make_event({
+        id: "evt_3",
+        title: "Offsite",
+        is_all_day: true,
+        starts_at: new Date(new Date().setHours(0, 0, 0, 0)).toISOString(),
+        ends_at: new Date(
+          new Date().setHours(0, 0, 0, 0) + 86_400_000,
+        ).toISOString(),
+      }),
+    ];
+    await render();
+
+    const strip = container.querySelector(
+      '[data-testid="desktop_calendar_all_day"]',
+    );
+    const timeline = container.querySelector(
+      '[data-testid="desktop_calendar_timeline"]',
+    );
+
+    expect(strip?.textContent).toContain("Offsite");
+    expect(timeline?.textContent).not.toContain("Offsite");
+
+    const chips = Array.from(
+      timeline?.querySelectorAll<HTMLElement>("li") ?? [],
+    );
+
+    expect(chips).toHaveLength(2);
+    expect(
+      chips.every((chip) => chip.getAttribute("style")?.includes("50%")),
+    ).toBe(true);
+    expect(
+      container.querySelector('[data-testid="desktop_calendar_now_line"]'),
+    ).not.toBeNull();
+  });
+
+  it("tells the user when the selected day is empty", async () => {
+    await render();
+
+    expect(
+      container.querySelector('[data-testid="desktop_calendar_empty_day"]'),
+    ).not.toBeNull();
+  });
+
+  it("moves between days and back to today", async () => {
+    await render();
+
+    const today_button = find_button("calendar.today");
+
+    expect(today_button?.disabled).toBe(true);
+
+    await click(find_button("calendar.panel_next_day"));
+
+    expect(today_button?.disabled).toBe(false);
+    expect(
+      container.querySelector('[data-testid="desktop_calendar_now_line"]'),
+    ).toBeNull();
+
+    await click(today_button);
+
+    expect(today_button?.disabled).toBe(true);
+  });
+
+  it("creates an event from a click on the timeline", async () => {
+    h.create_event.mockResolvedValue({ data: make_event({ id: "evt_new" }) });
+    await render();
+
+    const grid = container.querySelector(
+      '[data-testid="desktop_calendar_grid"]',
+    );
+
+    await act(async () => {
+      grid?.dispatchEvent(
+        new MouseEvent("pointerdown", {
+          bubbles: true,
+          button: 0,
+          clientY: 480,
+        }),
+      );
+      grid?.dispatchEvent(
+        new MouseEvent("pointerup", { bubbles: true, button: 0, clientY: 480 }),
+      );
+    });
+
+    const form = container.querySelector(
+      '[data-testid="desktop_calendar_quick_create"]',
+    );
+
+    expect(form).not.toBeNull();
+    expect(
+      container.querySelector('[data-testid="desktop_calendar_draft"]')
+        ?.textContent,
+    ).toBe("10:00 - 10:30");
+
+    const input = form?.querySelector("input") as HTMLInputElement;
+
+    expect(document.activeElement).toBe(input);
+
+    await act(async () => {
+      const setter = Object.getOwnPropertyDescriptor(
+        HTMLInputElement.prototype,
+        "value",
+      )?.set;
+
+      setter?.call(input, "Planning");
+      input.dispatchEvent(new Event("input", { bubbles: true }));
+    });
+    await act(async () => {
+      form?.dispatchEvent(
+        new Event("submit", { bubbles: true, cancelable: true }),
+      );
+    });
+
+    const draft = h.create_event.mock.calls[0][0];
+    const starts = new Date(draft.starts_at);
+
+    expect(draft.title).toBe("Planning");
+    expect(draft.calendar_id).toBe("cal_1");
+    expect(starts.getHours()).toBe(10);
+    expect(new Date(draft.ends_at).getTime() - starts.getTime()).toBe(
+      30 * 60_000,
+    );
+    expect(h.agenda.retry).toHaveBeenCalled();
+    expect(
+      container.querySelector('[data-testid="desktop_calendar_quick_create"]'),
+    ).toBeNull();
+  });
+
+  it("keeps the form open with an error when saving fails", async () => {
+    h.create_event.mockResolvedValue({ data: null });
+    await render();
+    await click(
+      container.querySelector('[data-testid="desktop_calendar_new_event"]'),
+    );
+
+    const form = container.querySelector(
+      '[data-testid="desktop_calendar_quick_create"]',
+    );
+
+    await act(async () => {
+      form?.dispatchEvent(
+        new Event("submit", { bubbles: true, cancelable: true }),
+      );
+    });
+
+    expect(text()).toContain("calendar.panel_save_failed");
+    expect(
+      container.querySelector('[data-testid="desktop_calendar_quick_create"]'),
+    ).not.toBeNull();
+  });
+
+  it("cancels the new event on Escape without closing the panel", async () => {
+    await render();
+    await click(
+      container.querySelector('[data-testid="desktop_calendar_new_event"]'),
+    );
+
+    expect(
+      container.querySelector('[data-testid="desktop_calendar_quick_create"]'),
+    ).not.toBeNull();
+
+    await press_escape(document.activeElement);
+
+    expect(
+      container.querySelector('[data-testid="desktop_calendar_quick_create"]'),
+    ).toBeNull();
+    expect(on_close).not.toHaveBeenCalled();
   });
 
   it("closes from the header button", async () => {

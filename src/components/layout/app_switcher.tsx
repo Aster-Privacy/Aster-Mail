@@ -35,8 +35,6 @@ import { open_external } from "@/utils/open_link";
 import { has_tauri_runtime } from "@/lib/tauri_runtime";
 import { sibling_app_launch_url } from "@/contexts/auth/sibling_session_handoff";
 
-const DOT_POSITIONS = [5, 12, 19];
-
 function is_desktop_shell(): boolean {
   return has_tauri_runtime();
 }
@@ -52,25 +50,23 @@ function launch_sibling_app(
   window.open(launch_url, "_blank", "noopener,noreferrer");
 }
 
-function AppGridIcon() {
+function AppTilesIcon() {
   return (
     <svg
       aria-hidden="true"
       className="h-5 w-5"
-      fill="currentColor"
-      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeLinejoin="round"
+      strokeWidth={1.6}
+      viewBox="0 0 20 20"
     >
-      {DOT_POSITIONS.flatMap((y) =>
-        DOT_POSITIONS.map((x) => (
-          <circle key={`${x}_${y}`} cx={x} cy={y} r={2} />
-        )),
-      )}
+      <rect height={6} rx={1.75} width={6} x={3} y={3} />
+      <rect height={6} rx={3} width={6} x={11} y={3} />
+      <rect height={6} rx={3} width={6} x={3} y={11} />
+      <rect height={6} rx={1.75} width={6} x={11} y={11} />
     </svg>
   );
-}
-
-interface AppSwitcherProps {
-  on_open_current: () => void;
 }
 
 interface AppEntry {
@@ -85,7 +81,7 @@ function ExternalIcon() {
   return (
     <svg
       aria-hidden="true"
-      className="h-3.5 w-3.5 flex-shrink-0 text-[var(--icon-secondary)]"
+      className="app_switcher_external h-3.5 w-3.5 flex-shrink-0 text-[var(--icon-secondary)]"
       fill="none"
       stroke="currentColor"
       strokeLinecap="round"
@@ -93,12 +89,12 @@ function ExternalIcon() {
       strokeWidth={1.75}
       viewBox="0 0 16 16"
     >
-      <path d="M6 3.5H3.5v9h9V10M9 3.5h3.5V7M12.5 3.5 7 9" />
+      <path d="M5.5 10.5 10.5 5.5M6 5.5h4.5V10" />
     </svg>
   );
 }
 
-export function AppSwitcher({ on_open_current }: AppSwitcherProps) {
+export function AppSwitcher() {
   const { t } = use_i18n();
   const [is_open, set_is_open] = useState(false);
 
@@ -121,11 +117,11 @@ export function AppSwitcher({ on_open_current }: AppSwitcherProps) {
 
   const desktop_shell = is_desktop_shell();
   const row_class =
-    "flex cursor-pointer items-center gap-3 rounded-[10px] px-2.5 py-2 outline-none transition-colors duration-100 data-[highlighted]:bg-[var(--aster-hover)] focus-visible:bg-[var(--aster-hover)]";
+    "app_switcher_row group flex cursor-pointer items-center gap-3 rounded-[10px] px-2 py-2 outline-none data-[highlighted]:bg-[var(--aster-hover)] focus-visible:bg-[var(--aster-hover)]";
 
   const render_row = (app: AppEntry) => (
     <>
-      <span className="h-9 w-9 flex-shrink-0">
+      <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center">
         {app.icon ? (
           <img
             alt=""
@@ -143,11 +139,17 @@ export function AppSwitcher({ on_open_current }: AppSwitcherProps) {
         <span className="truncate text-[14px] font-medium leading-5 text-txt-primary">
           {app.label}
         </span>
-        <span className="truncate text-[12.5px] leading-[18px] text-txt-secondary">
+        <span className="truncate text-[12px] leading-4 text-txt-secondary">
           {app.description}
         </span>
       </span>
-      {app.href && <ExternalIcon />}
+      {app.href ? (
+        <ExternalIcon />
+      ) : (
+        <span className="flex-shrink-0 text-[12px] leading-4 text-txt-muted">
+          {t("common.app_you_are_here")}
+        </span>
+      )}
     </>
   );
 
@@ -158,21 +160,26 @@ export function AppSwitcher({ on_open_current }: AppSwitcherProps) {
           <DropdownMenuTrigger asChild>
             <button
               aria-label={t("common.aster_apps")}
-              className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full text-[var(--icon-secondary)] hover:bg-[var(--aster-hover)] hover:text-[var(--text-primary)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-color)] data-[state=open]:bg-[var(--aster-hover)] data-[state=open]:text-[var(--text-primary)]"
+              className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full text-[var(--text-primary)] transition-colors hover:bg-[var(--bg-hover)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-color)] aria-expanded:bg-[var(--bg-hover)]"
               data-app-switcher=""
               type="button"
             >
-              <AppGridIcon />
+              <AppTilesIcon />
             </button>
           </DropdownMenuTrigger>
         </Tooltip>
         <DropdownMenuContent
-          align="start"
+          align="end"
           aria-label={t("common.aster_apps")}
-          className="w-[288px] p-1.5"
+          className="app_switcher_panel w-[304px] p-1.5"
           collisionPadding={8}
-          sideOffset={8}
         >
+          <div
+            aria-hidden="true"
+            className="px-2 pb-1.5 pt-1 text-[12px] font-medium leading-4 text-txt-muted"
+          >
+            {t("common.aster_apps")}
+          </div>
           <div className="flex flex-col gap-0.5">
             {apps.map((app) => {
               const href = app.href;
@@ -184,7 +191,7 @@ export function AppSwitcher({ on_open_current }: AppSwitcherProps) {
                     className={row_class}
                     data-app-switcher-item={app.id}
                     onSelect={() => {
-                      open_external(href);
+                      open_external(sibling_app_launch_url(href));
                     }}
                   >
                     {render_row(app)}
@@ -209,15 +216,14 @@ export function AppSwitcher({ on_open_current }: AppSwitcherProps) {
                   </a>
                 </DropdownMenuItem>
               ) : (
-                <DropdownMenuItem
+                <div
                   key={app.id}
                   aria-current="page"
-                  className={row_class}
+                  className="flex cursor-default items-center gap-3 rounded-[10px] px-2 py-2"
                   data-app-switcher-item={app.id}
-                  onSelect={on_open_current}
                 >
                   {render_row(app)}
-                </DropdownMenuItem>
+                </div>
               );
             })}
           </div>

@@ -49,14 +49,15 @@ vi.mock("@/components/layout/quick_security_panel", () => ({
 }));
 
 const calendar = vi.hoisted(() => ({
-  origin: null as string | null,
   open_externally: vi.fn(),
 }));
 
-vi.mock("@/components/layout/quick_calendar_panel", () => ({
-  get_calendar_panel_origin: () => calendar.origin,
+vi.mock("@/components/layout/open_calendar_externally", () => ({
   open_calendar_externally: calendar.open_externally,
-  QuickCalendarPanel: ({ is_open }: { is_open: boolean }) => (
+}));
+
+vi.mock("@/components/layout/desktop_calendar_panel", () => ({
+  DesktopCalendarPanel: ({ is_open }: { is_open: boolean }) => (
     <div data-open={is_open ? "1" : "0"} data-testid="calendar_panel" />
   ),
 }));
@@ -96,7 +97,6 @@ describe("side panel setting", () => {
 
   beforeEach(() => {
     show_side_panel = true;
-    calendar.origin = null;
     calendar.open_externally.mockReset();
     localStorage.clear();
     container = document.createElement("div");
@@ -169,29 +169,7 @@ describe("side panel setting", () => {
     expect(on_change).not.toHaveBeenCalledWith(true);
   });
 
-  it("opens Calendar in a new tab when the panel cannot be embedded", async () => {
-    const on_calendar = vi.fn();
-
-    await render_rail("/", undefined, undefined, on_calendar);
-
-    const button = container.querySelector<HTMLButtonElement>(
-      'button[aria-label="common.app_name_calendar"]',
-    );
-
-    await act(async () => {
-      button?.click();
-    });
-
-    expect(calendar.open_externally).toHaveBeenCalledTimes(1);
-    expect(on_calendar).not.toHaveBeenCalled();
-    expect(
-      container.querySelector('[data-testid="calendar_panel"]'),
-    ).toBeNull();
-  });
-
-  it("opens the calendar panel in place when it can be embedded", async () => {
-    calendar.origin = "https://calendar.astermail.org";
-
+  it("opens the calendar panel in place", async () => {
     const on_contacts = vi.fn();
     const on_security = vi.fn();
     const on_calendar = vi.fn();
@@ -221,7 +199,6 @@ describe("side panel setting", () => {
   });
 
   it("closes the calendar panel when the rail is collapsed", async () => {
-    calendar.origin = "https://calendar.astermail.org";
     localStorage.setItem("aster_app_rail_hidden", "1");
 
     const on_calendar = vi.fn();

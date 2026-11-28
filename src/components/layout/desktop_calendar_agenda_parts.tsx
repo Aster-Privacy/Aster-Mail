@@ -37,7 +37,8 @@ import {
 
 const RELATIVE_LABEL_MAX_LENGTH = 9;
 const DAY_PERIOD_PATTERN = /\s*(AM|PM|am|pm|a\.m\.|p\.m\.)$/;
-const NOW_COLOR = "var(--calendar_now_line, var(--accent-color))";
+
+export const NOW_COLOR = "var(--calendar_now_line, var(--accent-color))";
 
 export function relative_day_label(
   day: Date,
