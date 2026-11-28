@@ -33,6 +33,7 @@ import { plan_allows_premium_alias_domains } from "@/components/settings/billing
 import { get_alias_preferences } from "@/services/api/aliases";
 import { SettingsTabBar } from "@/components/settings/settings_tab_bar";
 import { ConfirmationModal } from "@/components/modals/confirmation_modal";
+import { show_upgrade_plans } from "@/stores/upgrade_store";
 import { use_aliases } from "@/components/settings/hooks/use_aliases";
 import {
   CreateAliasModal,
@@ -405,7 +406,8 @@ export function AliasesSection() {
       />
 
       <ConfirmationModal
-        confirm_text={null}
+        cancel_text={t("common.close")}
+        confirm_text={t("common.upgrade")}
         is_open={hook.alias_too_new_info.is_open}
         message={t("settings.alias_too_new_message", {
           date: hook.alias_too_new_info.eligible_date ?? "",
@@ -413,9 +415,10 @@ export function AliasesSection() {
         on_cancel={() =>
           hook.set_alias_too_new_info({ is_open: false, eligible_date: null })
         }
-        on_confirm={() =>
-          hook.set_alias_too_new_info({ is_open: false, eligible_date: null })
-        }
+        on_confirm={() => {
+          hook.set_alias_too_new_info({ is_open: false, eligible_date: null });
+          show_upgrade_plans();
+        }}
         title={t("settings.alias_too_new_title")}
         variant="info"
       />

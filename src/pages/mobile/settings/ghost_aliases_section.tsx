@@ -34,6 +34,7 @@ import { register_ghost_email } from "@/stores/ghost_alias_store";
 import { Spinner } from "@/components/ui/spinner";
 import { show_toast } from "@/components/toast/simple_toast";
 import { ConfirmationModal } from "@/components/modals/confirmation_modal";
+import { show_upgrade_plans } from "@/stores/upgrade_store";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
 import { INSTANT_ALIAS_DELETE_KEY } from "@/components/settings/hooks/use_aliases";
@@ -348,7 +349,8 @@ export function GhostAliasesSection({
       </div>
 
       <ConfirmationModal
-        confirm_text={null}
+        cancel_text={t("common.close")}
+        confirm_text={t("common.upgrade")}
         is_open={too_new_info.is_open}
         message={t("settings.ghost_alias_too_new_message", {
           date: too_new_info.eligible_date ?? "",
@@ -356,9 +358,10 @@ export function GhostAliasesSection({
         on_cancel={() =>
           set_too_new_info({ is_open: false, eligible_date: null })
         }
-        on_confirm={() =>
-          set_too_new_info({ is_open: false, eligible_date: null })
-        }
+        on_confirm={() => {
+          set_too_new_info({ is_open: false, eligible_date: null });
+          show_upgrade_plans();
+        }}
         title={t("settings.ghost_alias_too_new_title")}
         variant="info"
       />

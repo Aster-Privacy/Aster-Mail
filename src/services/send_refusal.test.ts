@@ -20,10 +20,7 @@
 //
 import { describe, expect, it } from "vitest";
 
-import {
-  describe_send_refusal,
-  describe_sender_refusal,
-} from "./send_refusal";
+import { describe_send_refusal, describe_sender_refusal } from "./send_refusal";
 
 import { en } from "@/lib/i18n/translations/en";
 
@@ -169,7 +166,7 @@ describe("alias sending disabled refusal", () => {
     };
 
     expect(en.errors.alias_sending_disabled).toBe(
-      "Sending from this alias is disabled. First enable it.",
+      "Sending from this alias is turned off. To send from it, turn sending on first.",
     );
     expect(describe_send_refusal(source)).toEqual({
       kind: "send_failed",

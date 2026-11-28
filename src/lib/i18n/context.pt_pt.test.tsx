@@ -84,10 +84,10 @@ describe("European Portuguese plurals", () => {
     );
     expect(translate("mail.tab_unread_count", { count: 1 })).toBe("1 não lida");
     expect(translate("mail.empty_trash_description", { count: 1 })).toBe(
-      "A mensagem no Lixo será removida definitivamente e não é possível anular esta ação.",
+      "Isto elimina permanentemente 1 mensagem no Lixo. Não é possível anular esta ação.",
     );
     expect(translate("mail.empty_spam_description", { count: 1 })).toBe(
-      "A mensagem no spam será removida definitivamente e não é possível anular esta ação.",
+      "Isto elimina permanentemente 1 mensagem no Spam. Não é possível anular esta ação.",
     );
   });
 
