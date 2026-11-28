@@ -780,19 +780,12 @@ export const InlineReplySection = forwardRef<
               <div className="flex items-center gap-2">
                 <div ref={emoji_anchor_ref} className="relative">
                   <button
-                    className="p-2 rounded-[14px] transition-colors disabled:opacity-50"
+                    aria-expanded={show_emoji_picker && !is_disabled}
+                    aria-haspopup="dialog"
+                    className="p-2 rounded-[14px] transition-colors enabled:hover:bg-[var(--bg-hover)] disabled:opacity-50"
                     disabled={is_disabled}
-                    style={{ backgroundColor: "transparent" }}
                     onClick={() =>
                       !is_disabled && set_show_emoji_picker(!show_emoji_picker)
-                    }
-                    onMouseEnter={(e) =>
-                      !is_disabled &&
-                      (e.currentTarget.style.backgroundColor =
-                        "var(--bg-hover)")
-                    }
-                    onMouseLeave={(e) =>
-                      (e.currentTarget.style.backgroundColor = "transparent")
                     }
                   >
                     😊

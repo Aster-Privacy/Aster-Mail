@@ -342,6 +342,7 @@ export function ThreadMessageBlock(
     <div className="overflow-hidden">
       <div
         className={`group flex items-start gap-3 ps-4 pe-2 pt-3 pb-2 ${can_collapse ? "cursor-pointer select-none" : ""}`}
+        data-ripple={can_collapse ? "" : undefined}
         role={can_collapse ? "button" : undefined}
         tabIndex={can_collapse ? 0 : undefined}
         onClick={

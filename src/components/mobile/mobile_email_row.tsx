@@ -472,6 +472,7 @@ export const MobileEmailRow = memo(function MobileEmailRow(
         is_selected ? "bg-[var(--accent-color,#3b82f6)]/8" : ""
       }`}
       data-email-id={email.id}
+      data-ripple
       role="button"
       tabIndex={0}
       onClick={handle_click}
