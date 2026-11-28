@@ -45,12 +45,13 @@ import {
 } from "@/components/email/viewer_shared/trash_placement";
 import { adjust_stats_unread } from "@/hooks/use_mail_stats";
 import { conversation_has_unread_sibling } from "@/hooks/unread_read_delta";
-import { remove_spam_sender } from "@/services/api/mail";
-import { report_phishing_with_undo } from "@/components/email/viewer_shared/report_phishing";
+import {
+  mark_message_not_spam,
+  report_phishing_with_undo,
+} from "@/components/email/viewer_shared/report_phishing";
 import { reindex_ids } from "@/services/category_index";
 import { set_forward_mail_id } from "@/services/forward_store";
 import { remember_forward_from_message } from "@/components/email/delivery_reply_address";
-import { ignore_error } from "@/lib/ignore_error";
 import { app_locale, get_display_time_zone } from "@/utils/date_format";
 import {
   begin_read_change,
@@ -232,41 +233,18 @@ export function use_message_actions(
 
   const handle_per_message_report_phishing = useCallback(
     async (msg: DecryptedThreadMessage) => {
-      const reported = await report_phishing_with_undo(msg, deps.t);
+      const outcome = await report_phishing_with_undo(msg, deps.t);
 
-      if (reported && msg.id === deps.email_id) deps.on_dismiss();
+      if (outcome === "moved" && msg.id === deps.email_id) deps.on_dismiss();
     },
     [deps.on_dismiss, deps.email_id, deps.t],
   );
 
   const handle_per_message_not_spam = useCallback(
     async (msg: DecryptedThreadMessage) => {
-      const result = await update_item_metadata(
-        msg.id,
-        {
-          encrypted_metadata: msg.encrypted_metadata,
-          metadata_nonce: msg.metadata_nonce,
-        },
-        { is_spam: false },
-      );
+      const moved = await mark_message_not_spam(msg, deps.t);
 
-      if (result.success) {
-        if (msg.sender_email) {
-          remove_spam_sender(msg.sender_email).catch((caught) =>
-            ignore_error(
-              "components/email/email_viewer_message_actions:use_message_actions",
-              caught,
-            ),
-          );
-        }
-        reindex_ids([msg.id]);
-        emit_mail_item_updated({ id: msg.id, is_spam: false });
-        emit_mail_changed();
-        show_toast(deps.t("common.marked_as_not_spam"), "success");
-        if (msg.id === deps.email_id) deps.on_dismiss();
-      } else {
-        show_toast(deps.t("common.failed_to_update_emails"), "error");
-      }
+      if (moved && msg.id === deps.email_id) deps.on_dismiss();
     },
     [deps.on_dismiss, deps.email_id, deps.t],
   );

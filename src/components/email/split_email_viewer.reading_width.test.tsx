@@ -169,11 +169,11 @@ describe("SplitEmailViewer reading column", () => {
     container.remove();
   });
 
-  it("lets the subject and the message fill a wide reading pane together", () => {
+  it("keeps the subject and the message in one centered reading column", () => {
     const column = container.querySelector("h1")?.parentElement?.parentElement;
 
     expect(classes_of(column)).toContain("w-full");
-    expect(width_caps(column)).toEqual([]);
+    expect(width_caps(column).sort()).toEqual(["max-w-[760px]", "mx-auto"]);
     expect(column?.querySelector("[data-thread-content]")).not.toBeNull();
   });
 

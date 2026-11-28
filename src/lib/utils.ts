@@ -219,6 +219,10 @@ export function is_official_sender(source: SenderTrustSource): boolean {
   );
 }
 
+export function is_aster_trusted_sender(source: SenderTrustSource): boolean {
+  return is_system_email(source) || is_official_sender(source);
+}
+
 export function get_email_username(email: string | null | undefined): string {
   return email?.split("@")[0] || "";
 }

@@ -37,7 +37,6 @@ import {
   bulk_update_metadata_by_ids,
 } from "@/services/crypto/mail_metadata";
 import { batch_archive, batch_unarchive } from "@/services/api/archive";
-import { report_spam_sender, remove_spam_sender } from "@/services/api/mail";
 import { show_action_toast } from "@/components/toast/action_toast";
 import { use_spam_confirm } from "@/components/email/use_spam_confirm";
 import { use_permanent_delete_confirm } from "@/components/email/use_permanent_delete_confirm";
@@ -47,7 +46,7 @@ import { detect_unsubscribe_info } from "@/utils/unsubscribe_detector";
 import { emit_mail_changed, emit_mail_soft_refresh } from "@/hooks/mail_events";
 import { use_should_reduce_motion } from "@/provider";
 import { use_i18n } from "@/lib/i18n/context";
-import { ignore_error } from "@/lib/ignore_error";
+import { report_spam_with_retract } from "@/components/email/viewer_shared/report_phishing";
 
 export function EmailViewer({
   email,
@@ -161,11 +160,7 @@ export function EmailViewer({
     if (result.success) {
       const sender = email.sender?.email;
 
-      if (sender) {
-        report_spam_sender(sender).catch((caught) =>
-          ignore_error("components/email/email_viewer:EmailViewer", caught),
-        );
-      }
+      const retract_report = sender ? report_spam_with_retract(sender) : null;
       emit_mail_changed();
       show_action_toast({
         message: t("common.message_marked_as_spam"),
@@ -181,11 +176,7 @@ export function EmailViewer({
           if (!undo_result.success) {
             throw new Error(t("common.failed_to_undo_spam"));
           }
-          if (sender) {
-            remove_spam_sender(sender).catch((caught) =>
-              ignore_error("components/email/email_viewer:EmailViewer", caught),
-            );
-          }
+          void retract_report?.();
           emit_mail_soft_refresh();
         },
       });

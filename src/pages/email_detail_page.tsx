@@ -35,6 +35,11 @@ import { use_email_detail } from "@/components/email/hooks/use_email_detail";
 import { EmailDetailHeader } from "@/components/email/email_detail/email_detail_header";
 import { EmailDetailBody } from "@/components/email/email_detail/email_detail_body";
 import { use_spam_confirm } from "@/components/email/use_spam_confirm";
+import { use_block_sender_confirm } from "@/components/email/use_block_sender_confirm";
+import {
+  reportable_message,
+  use_phishing_reported,
+} from "@/components/email/viewer_shared/report_phishing";
 import { app_locale, get_display_time_zone } from "@/utils/date_format";
 import { show_toast } from "@/components/toast/simple_toast";
 import { block_sender } from "@/services/api/blocked_senders";
@@ -49,6 +54,8 @@ import { use_email_detail_shortcuts } from "@/components/email/email_detail/use_
 export default function EmailDetailPage() {
   const reduce_motion = use_should_reduce_motion();
   const { request_spam, spam_confirm_dialog } = use_spam_confirm();
+  const { request_block_sender, block_sender_dialog } =
+    use_block_sender_confirm();
   const detail = use_email_detail();
 
   use_compose_host({
@@ -63,6 +70,12 @@ export default function EmailDetailPage() {
   const active_message =
     detail.thread_messages?.find((m) => m.id === detail.email_id) ??
     detail.thread_messages?.[detail.thread_messages.length - 1];
+  const phishing_target = reportable_message(
+    detail.thread_messages,
+    detail.email_id,
+    detail.current_user_email,
+  );
+  const phishing_target_reported = use_phishing_reported(phishing_target?.id);
 
   use_email_detail_shortcuts({
     enabled: detail.preferences.keyboard_shortcuts_enabled !== false,
@@ -166,7 +179,20 @@ export default function EmailDetailPage() {
                       )
                   : undefined
               }
+              handle_report_phishing={
+                phishing_target
+                  ? () =>
+                      request_spam(
+                        () =>
+                          detail.handle_per_message_report_phishing(
+                            phishing_target,
+                          ),
+                        phishing_target.is_spam === true,
+                      )
+                  : undefined
+              }
               handle_trash={detail.handle_trash}
+              is_phishing_reported={phishing_target_reported}
               handle_view_source={
                 active_message
                   ? () => detail.handle_per_message_view_source(active_message)
@@ -199,8 +225,9 @@ export default function EmailDetailPage() {
               }
               handle_per_message_print={detail.handle_per_message_print}
               handle_per_message_report_phishing={(msg) =>
-                request_spam(() =>
-                  detail.handle_per_message_report_phishing(msg),
+                request_spam(
+                  () => detail.handle_per_message_report_phishing(msg),
+                  msg.is_spam === true,
                 )
               }
               handle_per_message_trash={detail.handle_per_message_trash}
@@ -217,6 +244,7 @@ export default function EmailDetailPage() {
                 detail.handle_external_content_detected
               }
               pending_thread_count={detail.pending_thread_count}
+              on_block_message_sender={request_block_sender}
               set_is_block_sender_modal_open={
                 detail.set_is_block_sender_modal_open
               }
@@ -231,6 +259,7 @@ export default function EmailDetailPage() {
       </div>
 
       {spam_confirm_dialog}
+      {block_sender_dialog}
 
       <AnimatePresence>
         {detail.is_block_sender_modal_open && detail.email && (

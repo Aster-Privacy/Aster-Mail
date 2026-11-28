@@ -60,8 +60,11 @@ import { show_unsubscribe_toast } from "@/utils/unsubscribe_toast";
 import { persist_unsubscribe } from "@/hooks/use_unsubscribed_senders";
 import { adjust_stats_unread } from "@/hooks/use_mail_stats";
 import { conversation_has_unread_sibling } from "@/hooks/unread_read_delta";
-import { report_spam_sender, remove_spam_sender } from "@/services/api/mail";
-import { report_phishing_with_undo } from "@/components/email/viewer_shared/report_phishing";
+import { remove_spam_sender } from "@/services/api/mail";
+import {
+  mark_message_not_spam,
+  report_phishing_with_undo,
+} from "@/components/email/viewer_shared/report_phishing";
 import {
   is_mail_item_in_trash,
   is_thread_message_in_trash,
@@ -87,6 +90,7 @@ import {
   begin_read_change,
   is_read_ticket_current,
 } from "@/services/read_intent";
+import { report_spam_with_retract } from "@/components/email/viewer_shared/report_phishing";
 
 export interface PopupActionsDeps {
   email_id: string | null;
@@ -363,14 +367,7 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
     if (result.success) {
       const sender = deps.email?.sender_email;
 
-      if (sender) {
-        report_spam_sender(sender).catch((caught) =>
-          ignore_error(
-            "components/email/hooks/popup_viewer_actions:use_popup_viewer_actions",
-            caught,
-          ),
-        );
-      }
+      const retract_report = sender ? report_spam_with_retract(sender) : null;
       emit_mail_items_removed({ ids: [deps.email_id] });
       emit_mail_item_updated({ id: deps.email_id, is_spam: true });
       show_action_toast({
@@ -395,14 +392,7 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
             is_spam: false,
             is_trashed: prev_is_trashed,
           });
-          if (sender) {
-            remove_spam_sender(sender).catch((caught) =>
-              ignore_error(
-                "components/email/hooks/popup_viewer_actions:use_popup_viewer_actions",
-                caught,
-              ),
-            );
-          }
+          void retract_report?.();
           window.dispatchEvent(new CustomEvent(MAIL_EVENTS.MAIL_SOFT_REFRESH));
         },
       });
@@ -1006,39 +996,20 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
 
   const handle_per_message_report_phishing = useCallback(
     async (msg: DecryptedThreadMessage) => {
-      const reported = await report_phishing_with_undo(msg, deps.t);
+      const outcome = await report_phishing_with_undo(msg, deps.t);
 
-      if (reported && msg.id === deps.email_id) close_or_advance(deps.email_id);
+      if (outcome === "moved" && msg.id === deps.email_id) {
+        close_or_advance(deps.email_id);
+      }
     },
     [close_or_advance, deps.email_id, deps.t],
   );
 
   const handle_per_message_not_spam = useCallback(
     async (msg: DecryptedThreadMessage) => {
-      const result = await update_item_metadata(
-        msg.id,
-        {
-          encrypted_metadata: msg.encrypted_metadata,
-          metadata_nonce: msg.metadata_nonce,
-        },
-        { is_spam: false },
-      );
+      const moved = await mark_message_not_spam(msg, deps.t);
 
-      if (result.success) {
-        reindex_ids([msg.id]);
-        if (msg.sender_email) {
-          remove_spam_sender(msg.sender_email).catch((caught) =>
-            ignore_error(
-              "components/email/hooks/popup_viewer_actions:use_popup_viewer_actions",
-              caught,
-            ),
-          );
-        }
-        show_toast(deps.t("common.marked_as_not_spam"), "success");
-        if (msg.id === deps.email_id) close_or_advance(deps.email_id);
-      } else {
-        show_toast(deps.t("common.failed_to_update"), "error");
-      }
+      if (moved && msg.id === deps.email_id) close_or_advance(deps.email_id);
     },
     [close_or_advance, deps.email_id, deps.t],
   );

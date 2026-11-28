@@ -109,6 +109,7 @@ import { bulk_add_tag, bulk_remove_tag } from "@/services/api/tags";
 import { open_email_in_new_window } from "@/utils/open_email_window";
 import { search_view_for_path, set_search_scope } from "@/utils/search_query";
 import { clear_filter_operators } from "@/utils/search_operators";
+import { report_phishing_for_emails } from "@/components/email/viewer_shared/report_phishing";
 
 export const SEARCH_NOTICE_DIVIDER =
   "border-b border-[var(--aster-island-divider,var(--aster-floating-divider,var(--border-secondary)))]";
@@ -771,6 +772,23 @@ export function SearchResultsPage(props: SearchResultsPageProps) {
               : void run_single((emails) => delete_emails(emails), false)
           }
           on_find_from_sender={() => handle_find_from_sender(menu_email)}
+          on_report_phishing={
+            menu_selection
+              ? undefined
+              : () =>
+                  void report_phishing_for_emails(
+                    [menu_email],
+                    menu_email.is_spam === true,
+                    t,
+                  ).then((outcome) => {
+                    if (outcome === "moved") {
+                      apply_flag_patch([menu_email.id], {
+                        is_spam: true,
+                        is_trashed: false,
+                      });
+                    }
+                  })
+          }
           on_folder_toggle={
             menu_selection
               ? (folder_token: string) =>
@@ -884,6 +902,11 @@ export function SearchResultsPage(props: SearchResultsPageProps) {
             hide_filter={true}
             hide_quick_actions={true}
             hide_view_switcher={true}
+            list_empty={
+              filtered_results.length === 0 &&
+              !is_awaiting_first_results &&
+              !index_status.is_active
+            }
             leading_left_slot={
               <Tooltip tip={t("common.back")}>
                 <button
@@ -915,21 +938,18 @@ export function SearchResultsPage(props: SearchResultsPageProps) {
             on_quick_settings_click={on_quick_settings_click}
             on_search_result_click={on_result_click}
             on_search_submit={on_search_submit}
-            on_select_by_filter={
-              paged_results.length > 0 ? handle_select_by_filter : undefined
-            }
+            on_select_by_filter={handle_select_by_filter}
             on_settings_click={on_settings_click || (() => {})}
             on_spam={handle_bulk_spam}
             on_tag_toggle={(tag_token) =>
               void handle_bulk_tag_toggle(tag_token)
             }
-            on_toggle_select_all={
-              paged_results.length > 0 ? handle_select_all_visible : undefined
-            }
+            on_toggle_select_all={handle_select_all_visible}
             on_toggle_star={handle_bulk_toggle_star}
             overflow_menu_slot={overflow_menu}
             page_size={search_page_size}
             search_context={query}
+            select_all_disabled={paged_results.length === 0}
             selected_count={selected_ids.size}
             some_selected={selection_some_selected}
             tags={menu_tags.map((tag) => ({

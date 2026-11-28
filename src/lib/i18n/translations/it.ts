@@ -1262,7 +1262,7 @@ export const it = {
     undo_failed: "Riprova.",
     expired: "Scaduto",
     expires_in: "Scade tra ",
-    report_phishing: "Segnala spam",
+    report_phishing: "Segnala phishing",
     suspicious: "Sospetto",
     dangerous: "Pericoloso",
     click_to_edit: "Clicca per modificare",
@@ -5097,6 +5097,11 @@ export const it = {
       "Per acquistare più spazio, seleziona prima un’opzione.",
     storage_promo_cta: "Vedi componenti aggiuntivi",
     storage_used_of_total: "{{used}} di {{total}} in uso",
+    inbox_footer_legal: "Note legali",
+    inbox_footer_terms: "Termini",
+    inbox_footer_privacy: "Privacy",
+    inbox_footer_other_device_activity: "Ultima attività su un altro dispositivo: {{time}}",
+    inbox_footer_only_this_device: "Solo questo dispositivo ha eseguito l'accesso",
     storage_nudge_almost_title: "Spazio di archiviazione quasi pieno",
     storage_nudge_critical_title:
       "Lo spazio di archiviazione sta per esaurirsi",
@@ -9852,7 +9857,7 @@ export const it = {
     mark_all_read: "Segna tutti come letti",
     empty_trash: "Svuota cestino",
     empty_spam: "Svuota spam",
-    report_phishing: "Segnala spam",
+    report_phishing: "Segnala phishing",
     not_spam: "Non è spam",
     pending_send_failed: "Impossibile inviare questo messaggio.",
     pending_send_offline:
@@ -10058,7 +10063,7 @@ export const it = {
       "Contrassegna le email importanti per trovarle rapidamente",
     empty_archive_title: "Nessun elemento archiviato",
     empty_spam_title: "Nessuno spam",
-    empty_spam_subtitle: "Le email sospette verranno catturate qui",
+    empty_spam_subtitle: "I messaggi contrassegnati come spam vengono visualizzati qui",
     empty_trash_title: "Il cestino è vuoto",
     empty_folder_title: "Questa cartella è vuota",
     empty_folder_subtitle: "Sposta le email qui per organizzarle",
@@ -10425,8 +10430,8 @@ export const it = {
     unsubscribe_senders_title_one: "Annullare l'iscrizione a {{count}} mittente?",
     unsubscribe_bulk_body: "Aster Mail invia una richiesta di annullamento a ogni mittente che la accetta.",
     manual_unsubscribe_link: "Link annullamento iscrizione manuale:",
-    empty_snoozed_title: "Niente in pausa al momento",
-    empty_snoozed_subtitle: "Le email posticipate si risveglieranno qui",
+    empty_snoozed_title: "Nessun messaggio posticipato",
+    empty_snoozed_subtitle: "I messaggi posticipati vengono visualizzati qui finché non tornano nella posta in arrivo",
     all_on_page_selected:
       "Tutte le {{ count }} conversazioni su questa pagina sono selezionate.",
     all_on_page_selected_one:
@@ -10677,6 +10682,8 @@ export const it = {
     official_sender: "Indirizzo ufficiale Aster",
     official_sender_desc:
       "Questo messaggio proviene da un indirizzo ufficiale Aster. Aster non ti chiederà mai la password o la frase di recupero via email.",
+    system_sender_no_replies:
+      "Questo indirizzo invia messaggi automatici e non può ricevere risposte.",
     filter_not_prefix: "Non ",
     filter_from: "Da: {{ value }}",
     filter_to: "A: {{ value }}",
@@ -13123,7 +13130,6 @@ export const it = {
     conversation_order: "ordine conversazione, prima i meno recenti, prima i più recenti, ordine thread",
     thread_count_position: "posizione contatore thread, contatore conversazione, posizione badge",
     reading_pane_position: "posizione riquadro di lettura, riquadro anteprima, a destra, in basso, nascosto",
-    show_message_size: "dimensione messaggio, dimensione email, KB, MB",
     force_dark_mode_emails: "email in modalità scura, forza tema scuro, inverti email, modalità scura email",
     sidebar_width: "larghezza barra laterale, dimensione barra laterale, larghezza pannello",
     minimize_sidebar: "riduci barra laterale, comprimi barra laterale, nascondi barra laterale",

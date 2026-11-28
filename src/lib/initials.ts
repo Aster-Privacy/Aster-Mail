@@ -54,6 +54,13 @@ function first_grapheme(value: string, locale?: string): string {
   return graphemes.length > 0 ? graphemes[0] : "";
 }
 
+const WIDE_SCRIPT_PATTERN =
+  /[\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}\p{Script=Hangul}]/u;
+
+function is_wide_script(value: string): boolean {
+  return WIDE_SCRIPT_PATTERN.test(value);
+}
+
 export function get_initials(
   name?: string,
   email?: string,
@@ -63,6 +70,10 @@ export function get_initials(
 
   if (from_name) {
     const words = from_name.split(/\s+/).filter(Boolean);
+
+    if (is_wide_script(first_grapheme(words[0], locale))) {
+      return first_grapheme(words[0], locale);
+    }
 
     if (words.length >= 2) {
       const first = first_grapheme(words[0], locale);

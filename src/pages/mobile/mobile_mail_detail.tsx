@@ -60,6 +60,11 @@ import {
 import { use_category_tab_options } from "@/components/email/inbox/category_move_menu";
 import { MobileCategorySheet } from "@/components/mobile/mobile_category_sheet";
 import { displayed_category } from "@/services/effective_category";
+import {
+  can_report_phishing,
+  use_phishing_reported,
+} from "@/components/email/viewer_shared/report_phishing";
+import { same_address_ignoring_dots } from "@/utils/address_dots";
 
 function open_image_loading_settings() {
   open_settings_target({ section: "behavior" });
@@ -178,6 +183,16 @@ function MobileMailDetail() {
     can_move_to_category(detail.mail_item)
       ? detail.mail_item
       : null;
+  const menu_is_reportable =
+    !!live_menu_message &&
+    can_report_phishing(
+      live_menu_message.item_type,
+      same_address_ignoring_dots(
+        live_menu_message.sender_email,
+        detail.current_user_email ?? "",
+      ),
+    );
+  const menu_is_reported = use_phishing_reported(live_menu_message?.id);
 
   if (detail.error) {
     return (
@@ -490,6 +505,8 @@ function MobileMailDetail() {
         on_print={handle_print}
         on_reply={handle_menu_reply}
         on_reply_all={handle_menu_reply_all}
+        can_report={menu_is_reportable}
+        is_phishing_reported={menu_is_reported}
         on_report_phishing={handle_report_phishing}
         on_snooze={() => {
           set_snooze_target_id(menu_message?.id || null);

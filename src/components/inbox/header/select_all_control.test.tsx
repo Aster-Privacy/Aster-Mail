@@ -221,4 +221,25 @@ describe("SelectAllControl", () => {
     act(() => by_test_id("list-select-none").click());
     expect(on_select_by_filter.mock.calls).toEqual([["unread"], ["none"]]);
   });
+
+  it("ignores clicks and keys while disabled for an empty list", () => {
+    const { on_toggle } = render_control({
+      disabled: true,
+      on_select_by_filter: vi.fn(),
+    });
+    const toggle = by_test_id("list-select-toggle");
+
+    act(() => toggle.click());
+    act(() => {
+      toggle.dispatchEvent(
+        new KeyboardEvent("keydown", { key: "Enter", bubbles: true }),
+      );
+    });
+
+    expect(on_toggle).not.toHaveBeenCalled();
+    expect(toggle.getAttribute("tabindex")).toBe("-1");
+    expect(toggle.getAttribute("aria-disabled")).toBe("true");
+    expect(by_test_id("list-select-menu").hasAttribute("disabled")).toBe(true);
+    expect(by_test_id("list-select-control")).not.toBeNull();
+  });
 });
