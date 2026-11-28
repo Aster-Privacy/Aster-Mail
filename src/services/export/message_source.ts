@@ -237,6 +237,7 @@ export function create_account_message_source(): ExportSource {
             decrypted,
             current_email,
             item.id,
+            item.created_at,
           );
 
           if (!readable) {

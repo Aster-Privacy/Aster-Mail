@@ -37,7 +37,7 @@ const line_budget: Record<string, number> = {
   "ratchet_encrypt.ts": 1173,
   "ratchet_decrypt.ts": 2324,
   "aes_gcm_aad_fallback.ts": 66,
-  "envelope.ts": 620,
+  "envelope.ts": 621,
   "sender_key_retirement.ts": 154,
 };
 
