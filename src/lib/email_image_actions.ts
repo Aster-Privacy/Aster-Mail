@@ -150,17 +150,9 @@ export async function save_viewer_image(
 ): Promise<void> {
   if (!is_safe_viewer_src(src, proxy_url)) throw new UnsafeImageSourceError();
 
-  if (is_blob_src(src)) {
-    const png = await image_source_to_png(src);
-    const url = URL.createObjectURL(png);
-
-    click_download(url, viewer_image_filename(png.type));
-    setTimeout(() => URL.revokeObjectURL(url), SAVE_URL_LIFETIME_MS);
-
-    return;
-  }
-
-  const blob = await load_viewer_image_blob(src, proxy_url);
+  const blob = is_blob_src(src)
+    ? await image_source_to_png(src)
+    : await load_viewer_image_blob(src, proxy_url);
   const url = URL.createObjectURL(blob);
 
   click_download(url, viewer_image_filename(blob.type));
