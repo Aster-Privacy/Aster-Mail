@@ -25,11 +25,11 @@ import { UserGroupIcon } from "@heroicons/react/24/outline";
 import { PanelToggleIcon, Tooltip } from "@aster/ui";
 
 import { scroll_to_storage_addons } from "@/components/layout/storage_meter";
-import { Skeleton } from "@/components/ui/skeleton";
 import { format_bytes, format_decimal } from "@/lib/utils";
 import { use_i18n } from "@/lib/i18n/context";
 
 const CRITICAL_STORAGE_PERCENT = 90;
+export const STORAGE_VISIBLE_PERCENT = 80;
 
 const footer_row_class =
   "flex items-center h-8 rounded-[10px] text-txt-secondary hover:text-txt-primary hover:bg-[var(--aster-hover,var(--bg-hover))]";
@@ -61,13 +61,11 @@ const SidebarStorage = memo(function SidebarStorage({
 }: SidebarStorageProps) {
   const { t } = use_i18n();
 
-  if (storage_total_bytes <= 0) {
-    return (
-      <div className="px-2.5 pb-3 pt-1" data-testid="sidebar-storage-loading">
-        <Skeleton className="h-4 w-24 rounded-md mb-2" />
-        <Skeleton className="h-1.5 w-full rounded-full" />
-      </div>
-    );
+  if (
+    storage_total_bytes <= 0 ||
+    storage_percentage <= STORAGE_VISIBLE_PERCENT
+  ) {
+    return null;
   }
 
   const is_critical = storage_percentage >= CRITICAL_STORAGE_PERCENT;

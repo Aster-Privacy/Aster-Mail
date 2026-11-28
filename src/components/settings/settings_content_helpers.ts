@@ -440,7 +440,7 @@ export function get_nav_items(
       id: "sound",
       label: t("settings.sound"),
       icon: SpeakerWaveIcon,
-      description: "Notification sound and Iconic Sounds",
+      description: "Notification sound and Iconic sounds",
       keywords: [
         "sound",
         "sounds",

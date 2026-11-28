@@ -500,7 +500,7 @@ export function FullEmailViewer({
           style={{ scrollbarGutter: "stable" }}
         >
           {email && (
-            <div className="w-full py-4 sm:py-5">
+            <div className="w-full max-w-[760px] mx-auto py-4 sm:py-5">
               <div className="px-4 sm:px-5 flex flex-wrap items-center gap-x-2 gap-y-1.5 mb-3">
                 <h1 className="text-[22px] sm:text-2xl font-bold leading-[1.3] text-txt-primary break-words">
                   <span

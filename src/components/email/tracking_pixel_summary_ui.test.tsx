@@ -216,7 +216,7 @@ describe("subject tracking protection shield", () => {
 
     expect(trigger.textContent).toBe("3");
     expect(trigger.getAttribute("aria-label")).toBe(
-      "Tracking Protection: 3 blocked",
+      "Tracking protection: 3 blocked",
     );
     expect(trigger.getAttribute("aria-haspopup")).toBe("dialog");
     expect(domain_rows()).toEqual([]);
@@ -230,7 +230,7 @@ describe("subject tracking protection shield", () => {
       dialog.getAttribute("aria-labelledby") ?? "",
     );
 
-    expect(title?.textContent).toBe("Tracking Protection");
+    expect(title?.textContent).toBe("Tracking protection");
     expect(domain_rows()).toEqual([
       ["open.mailmetrics.example", "x2"],
       ["t.beacon.example", ""],
@@ -338,7 +338,7 @@ describe("mobile blocked content banner", () => {
 
     expect(indicator().getAttribute("aria-expanded")).toBe("true");
     expect(tracker_dialog()!.getAttribute("aria-label")).toBe(
-      "Tracking Protection",
+      "Tracking protection",
     );
     expect(domain_rows()).toEqual([
       ["open.mailmetrics.example", "x2"],

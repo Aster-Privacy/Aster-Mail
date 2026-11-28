@@ -60,6 +60,7 @@ import { BottomPagination } from "@/components/email/inbox/inbox_bottom_paginati
 import { reveal_list_row } from "@/components/email/inbox/use_inbox_list_scroll";
 import { use_empty_folder_request } from "@/components/email/inbox/empty_folder_request";
 import { StorageBanner } from "@/components/email/inbox/inbox_storage_banner";
+import { InboxListFooter } from "@/components/email/inbox/inbox_list_footer";
 import { TrashBanner } from "@/components/email/inbox/inbox_trash_banner";
 import { is_outgoing_view } from "@/hooks/email_list_helpers";
 import { use_primary_identity } from "@/lib/primary_identity";
@@ -268,8 +269,8 @@ export function EmailInbox(props: EmailInboxProps): React.ReactElement {
           )}
         </div>
       ) : (
-        <div className="relative min-h-full -mt-px border-t border-edge-secondary">
-          <div>
+        <div className="relative flex flex-col min-h-full -mt-px border-t border-edge-secondary">
+          <div className="flex flex-1 flex-col">
             {filtered_emails.length > 0 && (
               <EmailList
                 categories_enabled={
@@ -330,6 +331,12 @@ export function EmailInbox(props: EmailInboxProps): React.ReactElement {
                 />
               )}
             {show_indexing_notice && <AliasIndexingNotice />}
+            {filtered_emails.length > 0 && !skeleton_visible && (
+              <InboxListFooter
+                storage_total_bytes={mail_stats.storage_total_bytes}
+                storage_used_bytes={mail_stats.storage_used_bytes}
+              />
+            )}
           </div>
           {(skeleton_visible ||
             ((manual_refresh_active || email_state.is_loading_more) &&
