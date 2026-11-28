@@ -10602,6 +10602,8 @@ export const en: Translations = {
       "Too many attempts. Wait about a minute, then try again.",
     link_device_account_suspended:
       "This account is suspended, so new devices can't be linked right now. Contact support to sort it out.",
+    link_device_step_up_canceled:
+      "You closed the identity check, so the device isn't linked yet. To link it, select Link device again.",
     keep_signed_in: "Keep me signed in",
     back_to_inbox: "Back to inbox",
     back_to_link_device: "Back to link device",

@@ -10867,6 +10867,8 @@ export const ko = {
       "시도 횟수가 너무 많습니다. 1분 정도 기다린 뒤 다시 시도하세요.",
     link_device_account_suspended:
       "이 계정은 정지된 상태여서 지금은 새 기기를 연결할 수 없습니다. 지원팀에 문의해 해결하세요.",
+    link_device_step_up_canceled:
+      "본인 확인을 닫아서 기기가 아직 연결되지 않았습니다. 연결하려면 연결을 다시 선택하세요.",
     plan_academic_discount_note:
       "이메일 인증이 끝나면 결제 시 30% 할인이 자동으로 적용됩니다.",
     plan_referral_discount_note: "추천 할인은 결제 시 자동으로 적용됩니다.",

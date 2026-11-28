@@ -11327,6 +11327,8 @@ export const nl = {
       "Te veel pogingen. Wacht ongeveer een minuut en probeer het opnieuw.",
     link_device_account_suspended:
       "Dit account is geschorst, dus er kunnen nu geen nieuwe apparaten worden gekoppeld. Neem contact op met support.",
+    link_device_step_up_canceled:
+      "Je hebt de identiteitscontrole gesloten, dus het apparaat is nog niet gekoppeld. Kies opnieuw Apparaat koppelen om het te koppelen.",
     plan_academic_discount_note:
       "Je korting van 30% wordt bij het afrekenen automatisch toegepast zodra je e-mailadres is geverifieerd.",
     plan_referral_discount_note:

@@ -11353,6 +11353,8 @@ export const es = {
       "Demasiados intentos. Espera un minuto y vuelve a intentarlo.",
     link_device_account_suspended:
       "Esta cuenta está suspendida, así que ahora no se pueden vincular dispositivos nuevos. Escribe al soporte para resolverlo.",
+    link_device_step_up_canceled:
+      "Cerraste la verificación de identidad, así que el dispositivo aún no está vinculado. Para vincularlo, selecciona Confirmar de nuevo.",
     plan_academic_discount_note:
       "Tu descuento del 30 % se aplica automáticamente al pagar en cuanto se verifique tu correo.",
     plan_referral_discount_note:

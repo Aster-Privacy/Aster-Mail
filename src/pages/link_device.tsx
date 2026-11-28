@@ -21,7 +21,7 @@
 import type { ReactNode } from "react";
 import type { StepUpProof } from "@/services/api/guard";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   PlusIcon,
@@ -46,10 +46,13 @@ import { fingerprint_of_encoded_device_keys } from "@/lib/crypto/device_fingerpr
 import {
   capture_link_commitment,
   clear_link_commitment,
+  clear_pending_link_code,
   format_fingerprint_input,
   link_commitment_fragment,
   normalize_fingerprint,
   read_link_commitment,
+  remember_pending_link_code,
+  take_pending_link_code,
 } from "@/lib/device_link_commitment";
 import {
   get_passphrase_from_memory,
@@ -288,9 +291,11 @@ function CurrentAccountPill({ on_click }: { on_click: () => void }) {
 function AccountChooser({
   on_select_current,
   on_cancel,
+  on_leave,
 }: {
   on_select_current: () => void;
   on_cancel: () => void;
+  on_leave: () => void;
 }) {
   const { t } = use_i18n();
   const {
@@ -328,6 +333,7 @@ function AccountChooser({
     if (switching_id) return;
 
     set_switching_id(account_id);
+    on_leave();
     set_post_switch_path(return_path());
 
     try {
@@ -348,6 +354,7 @@ function AccountChooser({
       return;
     }
 
+    on_leave();
     set_is_adding_account(true);
     navigate(`/sign-in?next=${encodeURIComponent(return_path())}`);
   };
@@ -496,7 +503,11 @@ function LinkDeviceFlow({
   } = use_auth();
 
   const [page_state, set_page_state] = useState<PageState>("choose_account");
-  const [code_input, set_code_input] = useState("");
+  const [code_input, set_code_input] = useState(() => {
+    const pending = take_pending_link_code();
+
+    return pending ? `${pending.slice(0, 4)}-${pending.slice(4)}` : "";
+  });
   const [device_info, set_device_info] = useState<DeviceInfo | null>(null);
   const [error, set_error] = useState<string | null>(null);
   const [is_verifying, set_is_verifying] = useState(false);
@@ -508,6 +519,8 @@ function LinkDeviceFlow({
     },
   );
   const [fingerprint_input, set_fingerprint_input] = useState("");
+  const [fingerprint_missing, set_fingerprint_missing] = useState(false);
+  const fingerprint_ref = useRef<HTMLInputElement>(null);
   const identity = use_account_identity();
   const device_fingerprint = useMemo(
     () =>
@@ -527,6 +540,8 @@ function LinkDeviceFlow({
 
   const reset_link = (next_state: PageState) => {
     clear_link_commitment();
+    clear_pending_link_code();
+    set_fingerprint_missing(false);
     set_link_commitment(null);
     set_device_info(null);
     set_code_input("");
@@ -621,6 +636,7 @@ function LinkDeviceFlow({
 
       set_link_commitment(read_link_commitment());
       set_fingerprint_input("");
+      set_fingerprint_missing(false);
       set_device_info(response.data);
       set_page_state("confirming_device");
     } catch {
@@ -631,7 +647,23 @@ function LinkDeviceFlow({
   };
 
   const handle_confirm = async () => {
-    if (!device_info || !fingerprint_matches || link_conflict) return;
+    if (!device_info) {
+      set_error(t("auth.link_device_expired_code"));
+      reset_link("input");
+
+      return;
+    }
+    if (link_conflict) {
+      fingerprint_ref.current?.focus();
+
+      return;
+    }
+    if (!fingerprint_matches) {
+      set_fingerprint_missing(typed_fingerprint === null);
+      fingerprint_ref.current?.focus();
+
+      return;
+    }
 
     set_page_state("sealing");
     set_error(null);
@@ -644,6 +676,7 @@ function LinkDeviceFlow({
       );
 
       if (guard.kind === "canceled") {
+        set_error(t("auth.link_device_step_up_canceled"));
         set_page_state("confirming_device");
 
         return;
@@ -713,12 +746,15 @@ function LinkDeviceFlow({
       }
 
       clear_link_commitment();
+      clear_pending_link_code();
       set_page_state("success");
     } catch (err) {
+      const offline =
+        typeof navigator !== "undefined" && navigator.onLine === false;
       const message =
         err instanceof Error && err.message === "vault_locked"
           ? t("common.session_expired_sign_in")
-          : t("auth.link_device_failed");
+          : t(offline ? "errors.connection_failed" : "auth.link_device_failed");
 
       set_error(message);
       show_toast(message, "error");
@@ -733,7 +769,11 @@ function LinkDeviceFlow({
 
   const open_account_chooser = () => {
     set_error(null);
-    reset_link("choose_account");
+    set_page_state("choose_account");
+  };
+
+  const keep_code_for_next_account = () => {
+    remember_pending_link_code(code_input);
   };
 
   if (auth_loading || !is_authenticated) {
@@ -766,7 +806,12 @@ function LinkDeviceFlow({
     return (
       <AccountChooser
         on_cancel={() => navigate("/")}
-        on_select_current={() => set_page_state("input")}
+        on_leave={keep_code_for_next_account}
+        on_select_current={() =>
+          set_page_state(
+            device_info && device_fingerprint ? "confirming_device" : "input",
+          )
+        }
       />
     );
   }
@@ -903,7 +948,10 @@ function LinkDeviceFlow({
               </span>
               <input
                 aria-describedby="device_fingerprint_help"
-                aria-invalid={fingerprint_rejected || link_conflict}
+                ref={fingerprint_ref}
+                aria-invalid={
+                  fingerprint_rejected || link_conflict || fingerprint_missing
+                }
                 aria-label={t("auth.device_fingerprint")}
                 autoCapitalize="characters"
                 autoComplete="off"
@@ -917,6 +965,7 @@ function LinkDeviceFlow({
                   set_fingerprint_input(
                     format_fingerprint_input(e.target.value),
                   );
+                  set_fingerprint_missing(false);
                   set_error(null);
                 }}
                 onKeyDown={(e) => {
@@ -932,6 +981,15 @@ function LinkDeviceFlow({
                   role="alert"
                 >
                   {t("auth.link_device_fingerprint_link_mismatch")}
+                </span>
+              )}
+              {fingerprint_missing && !link_conflict && (
+                <span
+                  className="mt-1.5 block text-[11px] leading-relaxed text-red-500"
+                  data-testid="device_fingerprint_missing"
+                  role="alert"
+                >
+                  {t("auth.link_device_fingerprint_incomplete")}
                 </span>
               )}
               {fingerprint_rejected && !link_conflict && (
@@ -965,8 +1023,8 @@ function LinkDeviceFlow({
         )}
 
         <Button
+          aria-describedby="device_fingerprint_help"
           className="w-full mt-6"
-          disabled={!fingerprint_matches || link_conflict}
           size="xl"
           variant="depth"
           onClick={handle_confirm}
@@ -1012,7 +1070,6 @@ function LinkDeviceFlow({
 
       <Button
         className="w-full mt-5"
-        disabled={code_input.replace(/-/g, "").length < 8}
         is_loading={is_verifying}
         size="xl"
         variant="depth"

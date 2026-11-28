@@ -2151,6 +2151,19 @@ label {
   cursor: not-allowed;
 }
 
+.aster_btn_depth:disabled:not([data-loading]),
+.aster_btn_depth_destructive:disabled:not([data-loading]) {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.aster_btn_depth:disabled:hover,
+.aster_btn_depth_destructive:disabled:hover,
+.dark .aster_btn_depth:disabled:hover,
+.dark .aster_btn_depth_destructive:disabled:hover {
+  filter: none;
+}
+
 .aster_btn_spinner {
   position: absolute;
   inset: 0;
