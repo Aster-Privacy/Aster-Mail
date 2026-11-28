@@ -11485,6 +11485,8 @@ export const fr = {
       "Trop de tentatives. Patientez environ une minute, puis réessayez.",
     link_device_account_suspended:
       "Ce compte est suspendu, il n’est donc pas possible d’associer de nouveaux appareils pour l’instant. Contactez l’assistance pour régler la situation.",
+    link_device_step_up_canceled:
+      "Vous avez fermé la vérification d’identité, l’appareil n’est donc pas encore associé. Pour l’associer, sélectionnez de nouveau Confirmer.",
     plan_academic_discount_note:
       "Votre remise de 30 % s’applique automatiquement au paiement dès que votre e-mail est vérifié.",
     plan_referral_discount_note:

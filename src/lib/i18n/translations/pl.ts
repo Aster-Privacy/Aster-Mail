@@ -11573,6 +11573,8 @@ export const pl = {
       "Zbyt wiele prób. Odczekaj około minuty i spróbuj ponownie.",
     link_device_account_suspended:
       "To konto jest zawieszone, więc nie można teraz powiązać nowych urządzeń. Skontaktuj się z pomocą techniczną.",
+    link_device_step_up_canceled:
+      "Zamknięto weryfikację tożsamości, więc urządzenie nie jest jeszcze połączone. Aby je połączyć, ponownie wybierz Połącz urządzenie.",
     plan_academic_discount_note:
       "Zniżka 30% zostanie zastosowana automatycznie przy płatności, gdy Twój e-mail zostanie zweryfikowany.",
     plan_referral_discount_note:

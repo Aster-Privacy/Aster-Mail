@@ -10129,6 +10129,8 @@ export const zh_CN = {
     link_device_rate_limited: "尝试次数过多。请等待约一分钟后重试。",
     link_device_account_suspended:
       "此账户已被暂停，目前无法关联新设备。请联系支持人员处理。",
+    link_device_step_up_canceled:
+      "你关闭了身份验证，因此设备尚未关联。要关联设备，请再次选择“关联设备”。",
     plan_academic_discount_note: "验证邮箱后，30% 折扣会在结账时自动应用。",
     plan_referral_discount_note: "结算时会自动应用您的推荐折扣。",
     plan_referral_discount_percent_note:

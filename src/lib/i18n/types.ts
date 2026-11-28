@@ -9927,6 +9927,7 @@ export interface AuthTranslations {
   link_device_already_linked: string;
   link_device_rate_limited: string;
   link_device_account_suspended: string;
+  link_device_step_up_canceled: string;
   keep_signed_in: string;
   back_to_inbox: string;
   back_to_link_device: string;

@@ -11481,6 +11481,8 @@ export const de = {
       "Zu viele Versuche. Warten Sie etwa eine Minute und versuchen Sie es erneut.",
     link_device_account_suspended:
       "Dieses Konto ist gesperrt, daher lassen sich derzeit keine neuen Geräte verknüpfen. Wenden Sie sich an den Support.",
+    link_device_step_up_canceled:
+      "Sie haben die Identitätsprüfung geschlossen, daher ist das Gerät noch nicht verknüpft. Wählen Sie zum Verknüpfen erneut „Gerät verknüpfen“.",
     plan_academic_discount_note:
       "Ihr Rabatt von 30 % wird beim Bezahlen automatisch angewendet, sobald Ihre E-Mail bestätigt ist.",
     plan_referral_discount_note:

@@ -11405,6 +11405,8 @@ export const it = {
       "Troppi tentativi. Attendi circa un minuto e riprova.",
     link_device_account_suspended:
       "Questo account è sospeso, quindi al momento non è possibile collegare nuovi dispositivi. Contatta l’assistenza per risolvere.",
+    link_device_step_up_canceled:
+      "Hai chiuso la verifica dell’identità, quindi il dispositivo non è ancora collegato. Per collegarlo, seleziona di nuovo Collega dispositivo.",
     plan_academic_discount_note:
       "Lo sconto del 30% viene applicato automaticamente al pagamento appena la tua e-mail è verificata.",
     plan_referral_discount_note:

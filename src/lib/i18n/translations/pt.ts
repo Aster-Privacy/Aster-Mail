@@ -11458,6 +11458,8 @@ export const pt = {
       "Demasiadas tentativas. Aguarde cerca de um minuto e tente novamente.",
     link_device_account_suspended:
       "Esta conta está suspensa, por isso não é possível associar novos dispositivos de momento. Contacte o suporte para resolver a situação.",
+    link_device_step_up_canceled:
+      "Fechou a verificação de identidade, por isso o dispositivo ainda não está associado. Para o associar, selecione novamente Associar dispositivo.",
     plan_academic_discount_note:
       "O seu desconto de 30% é aplicado automaticamente no pagamento assim que o seu e-mail for verificado.",
     plan_referral_discount_note:

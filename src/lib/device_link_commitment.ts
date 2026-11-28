@@ -155,3 +155,53 @@ export function read_link_commitment(): string | null {
 export function clear_link_commitment(): void {
   safe_session_remove(COMMITMENT_KEY);
 }
+
+const PENDING_CODE_KEY = "aster_link_device_pending_code";
+const PENDING_CODE_TTL_MS = 10 * 60 * 1000;
+const PENDING_CODE_PATTERN = /^[A-Z0-9]{8}$/;
+
+interface stored_pending_code {
+  code: string;
+  stored_at: number;
+}
+
+export function remember_pending_link_code(raw: string): void {
+  const code = raw.replace(/[^a-zA-Z0-9]/g, "").toUpperCase();
+
+  if (!PENDING_CODE_PATTERN.test(code)) return;
+
+  const value: stored_pending_code = { code, stored_at: Date.now() };
+
+  safe_session_set(PENDING_CODE_KEY, JSON.stringify(value));
+}
+
+export function take_pending_link_code(): string | null {
+  const raw = safe_session_get(PENDING_CODE_KEY);
+
+  safe_session_remove(PENDING_CODE_KEY);
+
+  if (!raw) return null;
+
+  try {
+    const parsed = JSON.parse(raw) as Partial<stored_pending_code> | null;
+    const age = Date.now() - Number(parsed?.stored_at);
+
+    if (
+      parsed &&
+      typeof parsed.code === "string" &&
+      PENDING_CODE_PATTERN.test(parsed.code) &&
+      age >= 0 &&
+      age <= PENDING_CODE_TTL_MS
+    ) {
+      return parsed.code;
+    }
+  } catch {
+    return null;
+  }
+
+  return null;
+}
+
+export function clear_pending_link_code(): void {
+  safe_session_remove(PENDING_CODE_KEY);
+}

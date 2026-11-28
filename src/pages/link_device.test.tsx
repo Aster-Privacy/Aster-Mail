@@ -128,7 +128,11 @@ vi.mock("@/components/ui/profile_avatar", () => ({
 }));
 
 vi.mock("@/components/common/account_pill", () => ({
-  AccountPill: () => null,
+  AccountPill: ({ label, on_click }: { label: string; on_click: () => void }) => (
+    <button type="button" onClick={on_click}>
+      {label}
+    </button>
+  ),
 }));
 
 vi.mock("@/components/common/plan_badge", () => ({ PlanBadge: () => null }));
@@ -290,17 +294,15 @@ describe("link device approval", () => {
     expect(fingerprint_value()).toBe("");
   });
 
-  it("stays locked until the whole fingerprint is typed", async () => {
+  it("does not link until the whole fingerprint is typed", async () => {
     await render_page();
     await enter_code();
 
-    expect(button("auth.link_device_confirm_button")?.disabled).toBe(true);
     await approve();
     await press_enter_in_fingerprint();
 
     await enter_fingerprint("9B16 AF79 0A6A E2F2");
 
-    expect(button("auth.link_device_confirm_button")?.disabled).toBe(true);
     expect(
       container.querySelector('[data-testid="device_fingerprint_error"]'),
     ).toBeNull();
@@ -309,9 +311,118 @@ describe("link device approval", () => {
     await approve();
     await press_enter_in_fingerprint();
 
-    expect(button("auth.link_device_confirm_button")?.disabled).toBe(true);
     expect(h.seal).not.toHaveBeenCalled();
     expect(h.confirm).not.toHaveBeenCalled();
+  });
+
+  it("keeps Link device clickable and asks for the fingerprint when it is empty", async () => {
+    await render_page();
+    await enter_code();
+
+    expect(button("auth.link_device_confirm_button")?.disabled).toBe(false);
+    expect(container.textContent).not.toContain(
+      "auth.link_device_fingerprint_incomplete",
+    );
+
+    await approve();
+
+    const alert = container.querySelector(
+      '[data-testid="device_fingerprint_missing"]',
+    );
+
+    expect(alert?.getAttribute("role")).toBe("alert");
+    expect(alert?.textContent).toBe("auth.link_device_fingerprint_incomplete");
+    expect(document.activeElement).toBe(
+      container.querySelector('[data-testid="device_fingerprint_input"]'),
+    );
+    expect(h.seal).not.toHaveBeenCalled();
+    expect(h.confirm).not.toHaveBeenCalled();
+  });
+
+  it("asks for the rest of a partly typed fingerprint when you press Enter", async () => {
+    await render_page();
+    await enter_code();
+    await enter_fingerprint("9B16 AF79");
+    await press_enter_in_fingerprint();
+
+    expect(container.textContent).toContain(
+      "auth.link_device_fingerprint_incomplete",
+    );
+
+    await enter_fingerprint(FINGERPRINT);
+
+    expect(container.textContent).not.toContain(
+      "auth.link_device_fingerprint_incomplete",
+    );
+
+    await approve();
+
+    expect(container.textContent).toContain("auth.link_device_success");
+  });
+
+  it("keeps the device when you open the account chooser and keep this account", async () => {
+    h.accounts = [
+      { id: "a1", user: { email: "ada@astermail.org" } },
+      { id: "a2", user: { email: "bea@astermail.org" } },
+    ];
+    await render_page();
+    await act(async () => {
+      button("auth.link_device_use_this_account")?.click();
+    });
+    await enter_code();
+    await enter_fingerprint("9B16");
+    await act(async () => {
+      button("auth.link_device_change_account")?.click();
+    });
+
+    expect(container.textContent).toContain("auth.link_device_choose_account");
+
+    await act(async () => {
+      button("auth.link_device_use_this_account")?.click();
+    });
+
+    expect(button("auth.link_device_confirm_button")).toBeDefined();
+    expect(fingerprint_value()).toBe("9B16");
+
+    await enter_fingerprint(FINGERPRINT);
+    await approve();
+
+    expect(h.verify).toHaveBeenCalledTimes(1);
+    expect(h.confirm.mock.calls[0][0]).toBe("ABCD2345");
+    expect(container.textContent).toContain("auth.link_device_success");
+  });
+
+  it("keeps the linking code when you switch to another account", async () => {
+    h.accounts = [
+      { id: "a1", user: { email: "ada@astermail.org" } },
+      { id: "a2", user: { email: "bea@astermail.org" } },
+    ];
+    await render_page();
+    await act(async () => {
+      button("auth.link_device_use_this_account")?.click();
+    });
+    await enter_code();
+    await act(async () => {
+      button("auth.link_device_change_account")?.click();
+    });
+    await act(async () => {
+      [...container.querySelectorAll("button")]
+        .find((b) => b.textContent?.includes("bea@astermail.org"))
+        ?.click();
+    });
+    await act(async () => root.unmount());
+    container.remove();
+
+    await render_page();
+    await act(async () => {
+      button("auth.link_device_use_this_account")?.click();
+    });
+
+    const code = container.querySelector("input");
+
+    expect(code instanceof HTMLInputElement ? code.value : "").toBe(
+      "ABCD-2345",
+    );
   });
 
   it("explains a wrong fingerprint and does not seal", async () => {
@@ -323,7 +434,6 @@ describe("link device approval", () => {
       container.querySelector('[data-testid="device_fingerprint_error"]')
         ?.textContent,
     ).toBe("auth.link_device_fingerprint_mismatch");
-    expect(button("auth.link_device_confirm_button")?.disabled).toBe(true);
 
     await approve();
     await press_enter_in_fingerprint();
@@ -393,7 +503,6 @@ describe("link device approval", () => {
 
     await enter_fingerprint(FINGERPRINT);
 
-    expect(button("auth.link_device_confirm_button")?.disabled).toBe(true);
 
     await approve();
     await press_enter_in_fingerprint();
@@ -417,7 +526,6 @@ describe("link device approval", () => {
     expect(
       container.querySelector('[data-testid="device_fingerprint_link_error"]'),
     ).toBeNull();
-    expect(button("auth.link_device_confirm_button")?.disabled).toBe(true);
 
     await approve();
     await enter_fingerprint("55D3");
@@ -498,7 +606,6 @@ describe("link device approval", () => {
     await enter_code();
 
     expect(fingerprint_value()).toBe("");
-    expect(button("auth.link_device_confirm_button")?.disabled).toBe(true);
 
     await enter_fingerprint(FINGERPRINT);
     await approve();
@@ -677,6 +784,9 @@ describe("link device approval", () => {
     expect(h.confirm).not.toHaveBeenCalled();
     expect(container.textContent).not.toContain("auth.link_device_failed");
     expect(button("auth.link_device_confirm_button")).toBeDefined();
+    expect(container.textContent).toContain(
+      "auth.link_device_step_up_canceled",
+    );
   });
 
   it("explains a refused step-up", async () => {

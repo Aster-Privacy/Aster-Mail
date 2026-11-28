@@ -11226,6 +11226,8 @@ export const tr = {
       "Çok fazla deneme yapıldı. Yaklaşık bir dakika bekleyip tekrar deneyin.",
     link_device_account_suspended:
       "Bu hesap askıya alındı, bu yüzden şu anda yeni cihaz bağlanamıyor. Çözmek için destek ekibiyle iletişime geçin.",
+    link_device_step_up_canceled:
+      "Kimlik doğrulamasını kapattınız, bu yüzden cihaz henüz bağlanmadı. Bağlamak için Cihazı bağla seçeneğini yeniden seçin.",
     plan_academic_discount_note:
       "E-postanız doğrulandığında %30 indiriminiz ödeme sırasında otomatik uygulanır.",
     plan_referral_discount_note:
