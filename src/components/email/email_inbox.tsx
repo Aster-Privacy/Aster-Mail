@@ -378,6 +378,12 @@ export function EmailInbox(props: EmailInboxProps): React.ReactElement {
           is_scheduled_view={is_scheduled_view}
           is_spam_view={current_view === "spam"}
           is_trash_view={current_view === "trash"}
+          list_empty={
+            empty_state_visible &&
+            !folder_not_found &&
+            !tag_not_found &&
+            !locked_folder
+          }
           on_activate_select_all_mode={
             scope_for_view && active_filter === "all"
               ? selection.activate_select_all_mode
