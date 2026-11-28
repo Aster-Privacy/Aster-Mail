@@ -27,7 +27,6 @@ import {
   useRef,
   useEffect,
   useLayoutEffect,
-  useMemo,
   useCallback,
   type CSSProperties,
   type KeyboardEvent as ReactKeyboardEvent,
@@ -37,9 +36,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   ChevronDownIcon,
   CheckIcon,
-  AtSymbolIcon,
-  EyeSlashIcon,
   MagnifyingGlassIcon,
+  PlusIcon,
 } from "@heroicons/react/24/outline";
 
 import { Badge } from "@aster/ui";
@@ -48,8 +46,6 @@ import { PinIcon } from "@/components/common/icons";
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
 import { COMPOSE_PICKER_TRIGGER_CLASS } from "@/components/compose/compose_toolbar/shared";
 import { use_should_reduce_motion } from "@/provider";
-import { get_gradient_background } from "@/constants/profile";
-import { get_alias_color } from "@/lib/avatar_color";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_escape_layer } from "@/lib/overlay_layer_stack";
 import { is_composing } from "@/utils/ime";
@@ -61,20 +57,19 @@ import {
   typed_catch_all_domains,
   typed_catch_all_options,
 } from "@/services/catch_all_sender";
+import {
+  AliasAtIcon,
+  AliasGlyphAvatar,
+  GhostMaskIcon,
+} from "@/components/icons/alias_icons";
 
 function SenderAliasIcon({
-  address,
   size,
   profile_picture,
 }: {
-  address: string;
   size: string;
   profile_picture?: string;
 }) {
-  const gradient = useMemo(
-    () => get_gradient_background(get_alias_color(address)),
-    [address],
-  );
   const dim = size === "xs" ? 24 : 20;
   const icon_cls = size === "xs" ? "w-3.5 h-3.5" : "w-3 h-3";
 
@@ -94,18 +89,9 @@ function SenderAliasIcon({
   }
 
   return (
-    <div
-      className="rounded-full flex items-center justify-center flex-shrink-0"
-      style={{
-        width: dim,
-        height: dim,
-        background: gradient,
-        boxShadow:
-          "inset 0 1px 1px rgba(255,255,255,0.2), inset 0 -1px 1px rgba(0,0,0,0.15)",
-      }}
-    >
-      <AtSymbolIcon className={`${icon_cls} text-white`} />
-    </div>
+    <AliasGlyphAvatar size={dim}>
+      <AliasAtIcon className={icon_cls} />
+    </AliasGlyphAvatar>
   );
 }
 
@@ -114,18 +100,9 @@ function GhostSenderIcon({ size }: { size: string }) {
   const icon_cls = size === "xs" ? "w-3.5 h-3.5" : "w-3 h-3";
 
   return (
-    <div
-      className="rounded-full flex items-center justify-center flex-shrink-0"
-      style={{
-        width: dim,
-        height: dim,
-        background: "linear-gradient(135deg, #a855f7 0%, #7c3aed 100%)",
-        boxShadow:
-          "inset 0 1px 1px rgba(255,255,255,0.2), inset 0 -1px 1px rgba(0,0,0,0.15)",
-      }}
-    >
-      <EyeSlashIcon className={`${icon_cls} text-white`} />
-    </div>
+    <AliasGlyphAvatar size={dim}>
+      <GhostMaskIcon className={icon_cls} />
+    </AliasGlyphAvatar>
   );
 }
 
@@ -179,17 +156,9 @@ function SenderOptionIcon({
     );
   }
 
-  if (option.profile_picture) {
-    return (
-      <SenderAliasIcon
-        address={option.email}
-        profile_picture={option.profile_picture}
-        size={size}
-      />
-    );
-  }
-
-  return <SenderAliasIcon address={option.email} size={size} />;
+  return (
+    <SenderAliasIcon profile_picture={option.profile_picture} size={size} />
+  );
 }
 
 interface SenderSelectorProps {
@@ -483,7 +452,7 @@ export function SenderSelector({
       <div className="flex-1 flex items-center gap-1.5">
         <GhostSenderIcon size="xs" />
         <span className="text-sm text-txt-primary">{display_option.email}</span>
-        <EyeSlashIcon className="w-3.5 h-3.5 text-purple-400" />
+        <GhostMaskIcon className="w-3.5 h-3.5 text-txt-muted" />
       </div>
     );
   }
@@ -805,28 +774,13 @@ export function SenderSelector({
                           on_create_ghost();
                         }}
                       >
-                        <div
-                          className="rounded-full flex items-center justify-center flex-shrink-0"
-                          style={{
-                            width: 24,
-                            height: 24,
-                            background:
-                              "linear-gradient(135deg, #a855f7 0%, #7c3aed 100%)",
-                            boxShadow:
-                              "inset 0 1px 1px rgba(255,255,255,0.2), inset 0 -1px 1px rgba(0,0,0,0.15)",
-                          }}
-                        >
-                          <svg
-                            className="w-3 h-3 text-white"
-                            fill="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
-                          </svg>
-                          {is_creating_ghost && (
-                            <ButtonSpinner className="text-white" size="xs" />
+                        <AliasGlyphAvatar size={24}>
+                          {is_creating_ghost ? (
+                            <ButtonSpinner size="xs" />
+                          ) : (
+                            <PlusIcon className="w-3 h-3" />
                           )}
-                        </div>
+                        </AliasGlyphAvatar>
                         <div className="flex-1 min-w-0">
                           <p className="text-sm text-txt-primary">
                             {is_creating_ghost

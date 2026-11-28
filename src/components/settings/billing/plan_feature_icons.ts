@@ -27,14 +27,12 @@ import {
   ArrowPathRoundedSquareIcon,
   ArrowUpTrayIcon,
   ArrowUturnRightIcon,
-  AtSymbolIcon,
   BookOpenIcon,
   BuildingOffice2Icon,
   CircleStackIcon,
   ClipboardDocumentListIcon,
   ClockIcon,
   DevicePhoneMobileIcon,
-  EyeSlashIcon,
   FolderIcon,
   FunnelIcon,
   GlobeAltIcon,
@@ -51,12 +49,13 @@ import {
   UserPlusIcon,
   UsersIcon,
 } from "@heroicons/react/24/outline";
+import { AliasAtIcon, GhostMaskIcon } from "@/components/icons/alias_icons";
 
 export const PLAN_FEATURE_ICONS = {
   accounts: UserGroupIcon,
   activity: ClipboardDocumentListIcon,
   advanced_alias: AdjustmentsHorizontalIcon,
-  alias: AtSymbolIcon,
+  alias: AliasAtIcon,
   apps: DevicePhoneMobileIcon,
   attachment: PaperClipIcon,
   catch_all: InboxArrowDownIcon,
@@ -71,7 +70,7 @@ export const PLAN_FEATURE_ICONS = {
   filter: FunnelIcon,
   folder: FolderIcon,
   forward: ArrowUturnRightIcon,
-  ghost_alias: EyeSlashIcon,
+  ghost_alias: GhostMaskIcon,
   import: ArrowDownTrayIcon,
   invite: UserPlusIcon,
   lock: LockClosedIcon,

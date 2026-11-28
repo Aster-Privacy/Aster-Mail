@@ -19,7 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { useEffect, useState } from "react";
-import { PlusIcon, AtSymbolIcon } from "@heroicons/react/24/outline";
+import { PlusIcon } from "@heroicons/react/24/outline";
 import { Button, IslandSection, IslandSections, PillButton } from "@aster/ui";
 
 import { use_i18n } from "@/lib/i18n/context";
@@ -54,6 +54,7 @@ import {
   AUTO_OPEN_CREATE_ALIAS_EVENT,
   consume_auto_open_create_alias,
 } from "@/components/settings/aliases/create_alias_request";
+import { AliasAtIcon } from "@/components/icons/alias_icons";
 
 export { DomainSetupWizard } from "@/components/settings/aliases/domain_setup_wizard";
 
@@ -236,7 +237,7 @@ export function AliasesSection() {
           <IslandSection
             bare
             description={t("settings.aliases_description")}
-            icon={<AtSymbolIcon />}
+            icon={<AliasAtIcon />}
             title={t("settings.email_aliases")}
             trailing={
               <div className="flex items-center gap-1">

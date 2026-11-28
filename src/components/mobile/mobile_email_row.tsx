@@ -33,7 +33,6 @@ import {
 import { createPortal } from "react-dom";
 import { motion } from "framer-motion";
 import {
-  AtSymbolIcon,
   PaperClipIcon,
   StarIcon as StarOutlineIcon,
   CheckIcon,
@@ -93,6 +92,7 @@ import {
 import { haptic_long_press, haptic_impact } from "@/native/haptic_feedback";
 import { use_shown_thread_count } from "@/hooks/pending_thread_replies";
 import { use_has_unseen_reaction } from "@/services/unseen_reactions";
+import { AliasAtIcon } from "@/components/icons/alias_icons";
 
 interface MobileEmailRowProps {
   email: InboxEmail;
@@ -589,7 +589,7 @@ export const MobileEmailRow = memo(function MobileEmailRow(
                 })}
                 className="shrink-0 inline-flex items-center text-[var(--text-muted)]"
               >
-                <AtSymbolIcon className="h-3.5 w-3.5" />
+                <AliasAtIcon className="h-3.5 w-3.5" />
               </span>
             </Tooltip>
           )}

@@ -22,12 +22,12 @@ import type { SenderOption } from "@/hooks/use_sender_aliases";
 import type { TranslationKey } from "@/lib/i18n";
 import type { EditDraftData } from "@/components/compose/compose_shared";
 
-import { useMemo } from "react";
-import { AtSymbolIcon } from "@heroicons/react/24/outline";
-
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
-import { get_gradient_background } from "@/constants/profile";
-import { get_alias_color } from "@/lib/avatar_color";
+import {
+  AliasAtIcon,
+  AliasGlyphAvatar,
+  GhostMaskIcon,
+} from "@/components/icons/alias_icons";
 
 export function MobileSenderIcon({
   option,
@@ -36,11 +36,6 @@ export function MobileSenderIcon({
   option: SenderOption;
   size: "xs" | "sm";
 }) {
-  const gradient = useMemo(
-    () => get_gradient_background(get_alias_color(option.email)),
-    [option.email],
-  );
-
   if (option.type === "primary") {
     return (
       <ProfileAvatar
@@ -54,19 +49,12 @@ export function MobileSenderIcon({
   const dim = size === "sm" ? 32 : 24;
   const icon_cls = size === "sm" ? "w-3.5 h-3.5" : "w-3 h-3";
 
+  const Glyph = option.type === "ghost" ? GhostMaskIcon : AliasAtIcon;
+
   return (
-    <div
-      className="rounded-full flex items-center justify-center flex-shrink-0"
-      style={{
-        width: dim,
-        height: dim,
-        background: gradient,
-        boxShadow:
-          "inset 0 1px 1px rgba(255,255,255,0.2), inset 0 -1px 1px rgba(0,0,0,0.15)",
-      }}
-    >
-      <AtSymbolIcon className={`${icon_cls} text-white`} />
-    </div>
+    <AliasGlyphAvatar size={dim}>
+      <Glyph className={icon_cls} />
+    </AliasGlyphAvatar>
   );
 }
 

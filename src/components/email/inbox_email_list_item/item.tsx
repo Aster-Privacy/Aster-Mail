@@ -25,7 +25,6 @@ import { forwardRef, memo, useMemo, useState, useRef, useEffect } from "react";
 import {
   ArchiveBoxArrowDownIcon,
   ArrowUturnLeftIcon,
-  AtSymbolIcon,
   EnvelopeIcon,
   EnvelopeOpenIcon,
   InboxIcon,
@@ -121,6 +120,7 @@ import { use_shown_thread_count } from "@/hooks/pending_thread_replies";
 import { use_has_unseen_reaction } from "@/services/unseen_reactions";
 import { is_list_email_in_trash } from "@/components/email/viewer_shared/trash_placement";
 import { resolve_mail_location } from "@/lib/system_move_targets";
+import { AliasAtIcon } from "@/components/icons/alias_icons";
 
 export const InboxEmailListItem = memo(
   forwardRef<HTMLDivElement, InboxEmailListItemProps>(
@@ -1008,7 +1008,7 @@ export const InboxEmailListItem = memo(
                   address: alias_delivery.address,
                 })}
               >
-                <AtSymbolIcon className="h-3.5 w-3.5" />
+                <AliasAtIcon className="h-3.5 w-3.5" />
               </span>
             )}
 

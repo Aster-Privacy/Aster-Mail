@@ -19,7 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
-import { EyeSlashIcon, PencilSquareIcon } from "@heroicons/react/24/outline";
+import { PencilSquareIcon } from "@heroicons/react/24/outline";
 import {
   Button,
   Island,
@@ -46,6 +46,7 @@ import { ConfirmationModal } from "@/components/modals/confirmation_modal";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
 import { app_locale, get_display_time_zone } from "@/utils/date_format";
+import { GhostMaskIcon } from "@/components/icons/alias_icons";
 
 const GHOST_ALIAS_MAX_LIFETIME_MS = 90 * 24 * 60 * 60 * 1000;
 const GHOST_ALIAS_GRACE_PERIOD_MS = 30 * 24 * 60 * 60 * 1000;
@@ -261,7 +262,7 @@ export function GhostAliasesSection() {
         <IslandSection
           bare
           description={t("settings.ghost_aliases_description")}
-          icon={<EyeSlashIcon />}
+          icon={<GhostMaskIcon />}
           title={t("settings.ghost_aliases_title")}
           title_info={
             <InfoHint
@@ -309,7 +310,7 @@ export function GhostAliasesSection() {
                   {t("settings.ghost_aliases_compose_cta")}
                 </PillButton>
               }
-              icon={<EyeSlashIcon className="w-6 h-6" />}
+              icon={<GhostMaskIcon className="w-6 h-6" />}
               title={t("settings.ghost_aliases_empty")}
             />
           ) : null}
@@ -328,7 +329,7 @@ export function GhostAliasesSection() {
                     ({format_date(alias.expires_at)})
                   </>
                 }
-                icon={<EyeSlashIcon />}
+                icon={<GhostMaskIcon />}
                 label={
                   <span className="block truncate">{alias.full_address}</span>
                 }
@@ -370,7 +371,7 @@ export function GhostAliasesSection() {
                 description={t("settings.ghost_alias_grace_until", {
                   date: format_date(alias.grace_expires_at),
                 })}
-                icon={<EyeSlashIcon />}
+                icon={<GhostMaskIcon />}
                 label={
                   <span className="block truncate">{alias.full_address}</span>
                 }

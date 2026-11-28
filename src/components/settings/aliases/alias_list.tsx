@@ -23,7 +23,6 @@ import type { DecryptedDomainAddress } from "@/services/api/domains";
 
 import { useState, useMemo, useEffect, useRef } from "react";
 import {
-  AtSymbolIcon,
   ExclamationTriangleIcon,
   InformationCircleIcon,
   TrashIcon,
@@ -79,6 +78,7 @@ import {
   sort_alias_entries,
   store_alias_sort_mode,
 } from "@/components/settings/aliases/alias_sort";
+import { AliasAtIcon } from "@/components/icons/alias_icons";
 
 type FilterMode = "all" | "enabled" | "disabled" | "hidden";
 
@@ -663,7 +663,7 @@ export function AliasList({
           resource_label="aliases"
         />
         <IslandEmpty
-          icon={<AtSymbolIcon className="w-6 h-6" />}
+          icon={<AliasAtIcon className="w-6 h-6" />}
           title={t("settings.no_aliases_yet")}
         />
         <RecentlyDeletedAliasesSection

@@ -18,8 +18,6 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { PROFILE_COLORS } from "@/constants/profile";
-
 export const AVATAR_COLORS = [
   "#1e88e5",
   "#e53935",
@@ -59,10 +57,6 @@ export function get_avatar_color_index(identifier: string): number {
 
 export function get_avatar_color(identifier: string): string {
   return AVATAR_COLORS[get_avatar_color_index(identifier)];
-}
-
-export function get_alias_color(address: string): string {
-  return PROFILE_COLORS[Math.abs(hash_utf16(address)) % PROFILE_COLORS.length];
 }
 
 function to_linear(channel: number): number {

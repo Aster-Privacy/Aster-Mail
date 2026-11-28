@@ -26,7 +26,6 @@ import {
   MagnifyingGlassIcon,
   PlusIcon,
   ClipboardDocumentIcon,
-  AtSymbolIcon,
   IdentificationIcon,
   LinkIcon,
   TrashIcon,
@@ -84,6 +83,7 @@ import {
   type AliasSortMode,
 } from "@/components/settings/aliases/alias_sort";
 import { format_relative_time } from "@/components/settings/aliases/alias_stats_format";
+import { AliasAtIcon } from "@/components/icons/alias_icons";
 
 const ALIASES_PER_PAGE = 50;
 
@@ -542,7 +542,7 @@ export function AliasesSection({
           </div>
         ) : hook.aliases.length === 0 && hook.domain_addresses.length === 0 ? (
           <div className="flex flex-col items-center justify-center gap-3 px-8 pt-12">
-            <AtSymbolIcon className="h-16 w-16 text-[var(--mobile-text-muted)] opacity-40" />
+            <AliasAtIcon className="h-16 w-16 text-[var(--mobile-text-muted)] opacity-40" />
             <p className="text-center text-[14px] text-[var(--mobile-text-muted)]">
               {t("settings.no_aliases_yet")}
             </p>

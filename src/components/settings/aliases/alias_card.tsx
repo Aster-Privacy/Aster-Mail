@@ -23,10 +23,9 @@ import type { DecryptedEmailAlias } from "@/services/api/aliases";
 import type { DecryptedDomainAddress } from "@/services/api/domains";
 import type { TranslationKey } from "@/lib/i18n/types";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   TrashIcon,
-  AtSymbolIcon,
   GlobeAltIcon,
   BoltIcon,
   CameraIcon,
@@ -47,8 +46,6 @@ import { compress_square_avatar } from "@/utils/square_avatar_image";
 import { Spinner } from "@/components/ui/spinner";
 import { use_i18n } from "@/lib/i18n/context";
 import { show_toast } from "@/components/toast/simple_toast";
-import { get_gradient_background } from "@/constants/profile";
-import { get_alias_color } from "@/lib/avatar_color";
 import { update_alias } from "@/services/api/aliases";
 import { update_domain_address } from "@/services/api/domains";
 import {
@@ -62,10 +59,13 @@ import { PinIcon } from "@/components/common/icons";
 import { AliasDisplayNameEditor } from "@/components/settings/aliases/alias_display_name_editor";
 import { AliasMetaEditor } from "@/components/settings/aliases/alias_meta_editor";
 import { AliasNoteEditor } from "@/components/settings/aliases/alias_note_editor";
+import {
+  AliasAtIcon,
+  AliasGlyphAvatar,
+} from "@/components/icons/alias_icons";
 
 function AliasAvatar({
   profile_picture,
-  gradient,
   icon,
   is_locked,
   uploading,
@@ -73,7 +73,6 @@ function AliasAvatar({
   on_remove,
 }: {
   profile_picture?: string;
-  gradient: string;
   icon: React.ReactNode;
   is_locked: boolean;
   uploading: boolean;
@@ -112,16 +111,7 @@ function AliasAvatar({
           />
         </div>
       ) : (
-        <div
-          className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0"
-          style={{
-            background: gradient,
-            boxShadow:
-              "inset 0 1px 2px rgba(255,255,255,0.2), inset 0 -1px 2px rgba(0,0,0,0.15)",
-          }}
-        >
-          {icon}
-        </div>
+        <AliasGlyphAvatar size={40}>{icon}</AliasGlyphAvatar>
       )}
       {uploading && (
         <div className="absolute inset-0 flex items-center justify-center rounded-full bg-black/55 text-white">
@@ -267,10 +257,6 @@ export function AliasItem({
   const [local_picture, set_local_picture] = useState<string | undefined>(
     undefined,
   );
-  const gradient = useMemo(
-    () => get_gradient_background(get_alias_color(alias.full_address)),
-    [alias.full_address],
-  );
 
   const last_received_relative = alias.last_received_at
     ? format_relative_time(t, alias.last_received_at)
@@ -397,12 +383,11 @@ export function AliasItem({
           }}
         >
           <AliasAvatar
-            gradient={gradient}
             icon={
               alias.is_random ? (
-                <BoltIcon className="w-5 h-5 text-white" />
+                <BoltIcon className="w-5 h-5" />
               ) : (
-                <AtSymbolIcon className="w-5 h-5 text-white" />
+                <AliasAtIcon className="w-5 h-5" />
               )
             }
             is_locked={is_avatar_locked}
@@ -616,10 +601,6 @@ export function DomainAddressItem({
     );
   };
   const full_address = `${address.local_part}@${address.domain_name}`;
-  const gradient = useMemo(
-    () => get_gradient_background(get_alias_color(full_address)),
-    [full_address],
-  );
 
   const displayed_picture =
     local_picture !== undefined
@@ -721,8 +702,7 @@ export function DomainAddressItem({
     <Island className="group">
       <div className="flex flex-wrap items-center gap-3 p-4">
         <AliasAvatar
-          gradient={gradient}
-          icon={<GlobeAltIcon className="w-5 h-5 text-white" />}
+          icon={<GlobeAltIcon className="w-5 h-5" />}
           is_locked={is_avatar_locked}
           on_file_select={handle_file_select}
           on_remove={handle_remove}

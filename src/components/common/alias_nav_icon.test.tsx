@@ -50,10 +50,9 @@ describe("AliasNavIcon", () => {
     act(() => {
       root.render(
         <AliasNavIcon
-          address="dana@astermail.org"
-          is_random={false}
+          picture_size={20}
           profile_picture={profile_picture}
-          size={20}
+          size={16}
         />,
       );
     });
@@ -68,11 +67,20 @@ describe("AliasNavIcon", () => {
     expect(img?.style.width).toBe("20px");
   });
 
-  it("shows the gradient icon when the alias has no photo", () => {
+  it("shows the at icon when the alias has no photo", () => {
     render(undefined);
 
     expect(container.querySelector("img")).toBeNull();
     expect(container.querySelector("svg")).not.toBeNull();
+  });
+
+  it("draws the at icon at the glyph size", () => {
+    render(undefined);
+
+    const svg = container.querySelector("svg");
+
+    expect(svg?.getAttribute("width")).toBe("16");
+    expect(svg?.getAttribute("stroke")).toBe("currentColor");
   });
 
   it("treats a blank photo as no photo", () => {
@@ -81,7 +89,7 @@ describe("AliasNavIcon", () => {
     expect(container.querySelector("img")).toBeNull();
   });
 
-  it("falls back to the gradient icon when the photo fails to load", () => {
+  it("falls back to the at icon when the photo fails to load", () => {
     render(photo);
 
     act(() => {

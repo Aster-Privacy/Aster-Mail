@@ -19,7 +19,6 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
-import { EyeSlashIcon } from "@heroicons/react/24/outline";
 
 import { SettingsGroup, SettingsHeader } from "./shared";
 
@@ -38,6 +37,10 @@ import { use_i18n } from "@/lib/i18n/context";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
 import { INSTANT_ALIAS_DELETE_KEY } from "@/components/settings/hooks/use_aliases";
 import { app_locale, get_display_time_zone } from "@/utils/date_format";
+import {
+  AliasGlyphAvatar,
+  GhostMaskIcon,
+} from "@/components/icons/alias_icons";
 
 export function GhostAliasesSection({
   on_back,
@@ -249,7 +252,7 @@ export function GhostAliasesSection({
           </div>
         ) : aliases.length === 0 ? (
           <div className="px-4 py-10 text-center">
-            <EyeSlashIcon className="mx-auto mb-2 h-6 w-6 text-[var(--text-muted)]" />
+            <GhostMaskIcon className="mx-auto mb-2 h-6 w-6 text-[var(--text-muted)]" />
             <p className="text-[14px] text-[var(--text-muted)]">
               {t("settings.ghost_aliases_empty")}
             </p>
@@ -263,15 +266,9 @@ export function GhostAliasesSection({
                     key={alias.id}
                     className="flex items-center gap-3 px-4 py-3"
                   >
-                    <div
-                      className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full"
-                      style={{
-                        background:
-                          "linear-gradient(135deg, #a855f7 0%, #7c3aed 100%)",
-                      }}
-                    >
-                      <EyeSlashIcon className="h-4 w-4 text-white" />
-                    </div>
+                    <AliasGlyphAvatar size={32}>
+                      <GhostMaskIcon className="h-4 w-4" />
+                    </AliasGlyphAvatar>
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-[14px] font-medium text-[var(--text-primary)]">
                         {alias.full_address}
@@ -320,15 +317,9 @@ export function GhostAliasesSection({
                     key={alias.id}
                     className="flex items-center gap-3 px-4 py-3 opacity-60"
                   >
-                    <div
-                      className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full"
-                      style={{
-                        background:
-                          "linear-gradient(135deg, #9ca3af 0%, #6b7280 100%)",
-                      }}
-                    >
-                      <EyeSlashIcon className="h-4 w-4 text-white" />
-                    </div>
+                    <AliasGlyphAvatar size={32}>
+                      <GhostMaskIcon className="h-4 w-4" />
+                    </AliasGlyphAvatar>
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-[14px] font-medium text-[var(--text-primary)]">
                         {alias.full_address}
