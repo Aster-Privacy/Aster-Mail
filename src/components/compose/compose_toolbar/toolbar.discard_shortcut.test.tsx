@@ -248,6 +248,6 @@ describe("compose toolbar discard shortcut", () => {
       (button) => button.getAttribute("title"),
     );
 
-    expect(titles).toContain("Delete Draft (Ctrl+Shift+D)");
+    expect(titles).toContain("Delete draft (Ctrl+Shift+D)");
   });
 });

@@ -122,6 +122,7 @@ export function use_preferences_core() {
       ),
       sidebar_aliases_collapsed: get_cached_sidebar_state(
         "sidebar_aliases_collapsed",
+        true,
       ),
       sidebar_folders_show_all: get_cached_sidebar_state(
         "sidebar_folders_show_all",

@@ -19,201 +19,231 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type { TranslationKey } from "@/lib/i18n/types";
+import type { CSSProperties } from "react";
 
-import { useState, useEffect, useMemo } from "react";
-import { FireIcon } from "@heroicons/react/24/outline";
+import { useEffect, useRef, useState } from "react";
+import { ClockIcon } from "@heroicons/react/16/solid";
 import { Tooltip } from "@aster/ui";
 
 import { use_i18n } from "@/lib/i18n/context";
 
-interface ExpirationCountdownProps {
-  expires_at: Date | string;
-  show_icon?: boolean;
-  show_label?: boolean;
-  size?: "sm" | "md" | "lg";
-  on_expired?: () => void;
+export type ExpiryUrgency = "later" | "today" | "soon" | "expired";
+
+export type ExpiryPillSize = "sm" | "md" | "lg";
+
+const ONE_MINUTE_MS = 60 * 1000;
+const ONE_HOUR_MS = 60 * ONE_MINUTE_MS;
+const ONE_DAY_MS = 24 * ONE_HOUR_MS;
+
+type Translate = (key: TranslationKey) => string;
+
+export function expiry_urgency(remaining_ms: number): ExpiryUrgency {
+  if (!Number.isFinite(remaining_ms) || remaining_ms <= 0) return "expired";
+  if (remaining_ms <= ONE_HOUR_MS) return "soon";
+  if (remaining_ms <= ONE_DAY_MS) return "today";
+
+  return "later";
 }
 
-interface TimeRemaining {
-  days: number;
-  hours: number;
-  minutes: number;
-  seconds: number;
-  total_ms: number;
-}
-
-function calculate_time_remaining(expires_at: Date): TimeRemaining {
-  const now = new Date();
-  const total_ms = expires_at.getTime() - now.getTime();
-
-  if (total_ms <= 0) {
-    return { days: 0, hours: 0, minutes: 0, seconds: 0, total_ms: 0 };
-  }
-
-  const seconds = Math.floor((total_ms / 1000) % 60);
-  const minutes = Math.floor((total_ms / (1000 * 60)) % 60);
-  const hours = Math.floor((total_ms / (1000 * 60 * 60)) % 24);
-  const days = Math.floor(total_ms / (1000 * 60 * 60 * 24));
-
-  return { days, hours, minutes, seconds, total_ms };
-}
-
-function format_countdown(
-  time: TimeRemaining,
-  t: (key: TranslationKey) => string,
+export function format_expiry_remaining(
+  remaining_ms: number,
+  t: Translate,
 ): string {
-  if (time.total_ms <= 0) {
-    return t("common.expired");
-  }
+  if (!Number.isFinite(remaining_ms) || remaining_ms <= 0) return "";
 
-  if (time.days > 0) {
-    return `${time.days}${t("common.time_days_short")} ${time.hours}${t("common.time_hours_short")}`;
-  }
+  const days = Math.floor(remaining_ms / ONE_DAY_MS);
+  const hours = Math.floor((remaining_ms % ONE_DAY_MS) / ONE_HOUR_MS);
+  const minutes = Math.floor((remaining_ms % ONE_HOUR_MS) / ONE_MINUTE_MS);
+  const seconds = Math.floor((remaining_ms % ONE_MINUTE_MS) / 1000);
+  const day_unit = t("common.time_days_short");
+  const hour_unit = t("common.time_hours_short");
+  const minute_unit = t("common.time_minutes_short");
+  const second_unit = t("common.time_seconds_short");
 
-  if (time.hours > 0) {
-    return `${time.hours}${t("common.time_hours_short")} ${time.minutes}${t("common.time_minutes_short")}`;
+  if (days > 0) {
+    return hours > 0
+      ? `${days}${day_unit} ${hours}${hour_unit}`
+      : `${days}${day_unit}`;
   }
-
-  if (time.minutes > 0) {
-    return `${time.minutes}${t("common.time_minutes_short")} ${time.seconds}${t("common.time_seconds_short")}`;
+  if (hours > 0) {
+    return minutes > 0
+      ? `${hours}${hour_unit} ${minutes}${minute_unit}`
+      : `${hours}${hour_unit}`;
   }
+  if (minutes > 0) return `${minutes}${minute_unit}`;
 
-  return `${time.seconds}${t("common.time_seconds_short")}`;
+  return `${Math.max(1, seconds)}${second_unit}`;
 }
 
-function get_urgency_color(time: TimeRemaining): {
-  bg: string;
-  text: string;
-  border: string;
-} {
-  const { total_ms } = time;
+function to_time(expires_at: Date | string | null): number {
+  if (!expires_at) return Number.NaN;
 
-  if (total_ms <= 0) {
-    return {
-      bg: "rgba(107, 114, 128, 0.15)",
-      text: "#6b7280",
-      border: "rgba(107, 114, 128, 0.3)",
-    };
-  }
+  return expires_at instanceof Date
+    ? expires_at.getTime()
+    : new Date(expires_at).getTime();
+}
 
-  const one_hour = 60 * 60 * 1000;
-  const one_day = 24 * one_hour;
+export interface ExpiryState {
+  urgency: ExpiryUrgency;
+  remaining: string;
+}
 
-  if (total_ms <= one_hour) {
-    return {
-      bg: "rgba(239, 68, 68, 0.15)",
-      text: "var(--color-danger)",
-      border: "rgba(239, 68, 68, 0.3)",
-    };
-  }
-
-  if (total_ms <= one_day) {
-    return {
-      bg: "rgba(234, 179, 8, 0.15)",
-      text: "#eab308",
-      border: "rgba(234, 179, 8, 0.3)",
-    };
-  }
+function read_expiry_state(target: number, t: Translate): ExpiryState {
+  const remaining_ms = target - Date.now();
 
   return {
-    bg: "rgba(34, 197, 94, 0.15)",
-    text: "var(--color-success)",
-    border: "rgba(34, 197, 94, 0.3)",
+    urgency: expiry_urgency(remaining_ms),
+    remaining: format_expiry_remaining(remaining_ms, t),
   };
 }
 
-const SIZE_CLASSES = {
-  sm: {
-    container: "px-1.5 py-0.5 text-xs gap-1",
-    icon: "w-3 h-3",
-  },
-  md: {
-    container: "px-2 py-1 text-xs gap-1.5",
-    icon: "w-3.5 h-3.5",
-  },
-  lg: {
-    container: "px-2.5 py-1.5 text-sm gap-2",
-    icon: "w-4 h-4",
-  },
-};
-
-export function ExpirationCountdown({
-  expires_at,
-  show_icon = true,
-  show_label = true,
-  size = "md",
-  on_expired,
-}: ExpirationCountdownProps) {
+export function use_expiry_state(
+  expires_at: Date | string | null,
+  on_expired?: () => void,
+): ExpiryState {
   const { t } = use_i18n();
-
-  const expiry_date = useMemo(() => {
-    if (expires_at instanceof Date) {
-      return expires_at;
-    }
-
-    return new Date(expires_at);
-  }, [expires_at]);
-
-  const [time_remaining, set_time_remaining] = useState<TimeRemaining>(() =>
-    calculate_time_remaining(expiry_date),
+  const target = to_time(expires_at);
+  const on_expired_ref = useRef(on_expired);
+  const [state, set_state] = useState<ExpiryState>(() =>
+    read_expiry_state(target, t),
   );
 
   useEffect(() => {
-    const update_countdown = () => {
-      const new_time = calculate_time_remaining(expiry_date);
+    on_expired_ref.current = on_expired;
+  }, [on_expired]);
 
-      set_time_remaining(new_time);
+  useEffect(() => {
+    let fired = false;
 
-      if (new_time.total_ms <= 0 && on_expired) {
-        on_expired();
+    const tick = () => {
+      const next = read_expiry_state(target, t);
+
+      set_state((prev) =>
+        prev.urgency === next.urgency && prev.remaining === next.remaining
+          ? prev
+          : next,
+      );
+
+      if (next.urgency === "expired" && !fired && Number.isFinite(target)) {
+        fired = true;
+        on_expired_ref.current?.();
       }
+
+      return next.urgency;
     };
 
-    update_countdown();
+    if (tick() === "expired") return;
 
-    const interval = setInterval(update_countdown, 1000);
+    const interval = window.setInterval(() => {
+      if (tick() === "expired") window.clearInterval(interval);
+    }, 1000);
 
-    return () => clearInterval(interval);
-  }, [expiry_date, on_expired]);
+    return () => window.clearInterval(interval);
+  }, [target, t]);
 
-  const colors = get_urgency_color(time_remaining);
-  const formatted = format_countdown(time_remaining, t);
-  const size_class = SIZE_CLASSES[size];
+  return state;
+}
 
-  if (time_remaining.total_ms <= 0) {
-    return (
-      <Tooltip position="bottom" tip={t("mail.self_destruct_tooltip")}>
-        <div
-          className={`inline-flex items-center rounded-md font-medium cursor-default ${size_class.container}`}
-          style={{
-            backgroundColor: colors.bg,
-            color: colors.text,
-            border: `1px solid ${colors.border}`,
-          }}
-        >
-          {show_icon && <FireIcon className={size_class.icon} />}
-          <span>{t("common.expired")}</span>
-        </div>
-      </Tooltip>
-    );
-  }
+const URGENCY_TONE: Record<ExpiryUrgency, string> = {
+  later: "slate",
+  today: "amber",
+  soon: "rose",
+  expired: "slate",
+};
+
+export function expiry_pill_style(urgency: ExpiryUrgency): CSSProperties {
+  const tone = URGENCY_TONE[urgency];
+
+  return {
+    backgroundColor: `var(--cat-${tone}-soft)`,
+    color: `var(--cat-${tone}-fg)`,
+    boxShadow: `inset 0 0 0 1px var(--cat-${tone}-border)`,
+  };
+}
+
+const PILL_SIZE_CLASSES: Record<ExpiryPillSize, string> = {
+  sm: "h-5 px-1.5 gap-1 text-[11px]",
+  md: "h-6 px-2 gap-1 text-xs",
+  lg: "h-7 px-2.5 gap-1.5 text-[13px]",
+};
+
+const PILL_ICON_CLASSES: Record<ExpiryPillSize, string> = {
+  sm: "h-3 w-3",
+  md: "h-3.5 w-3.5",
+  lg: "h-4 w-4",
+};
+
+export function expiry_pill_class(
+  size: ExpiryPillSize,
+  urgency: ExpiryUrgency,
+): string {
+  return [
+    "inline-flex shrink-0 items-center whitespace-nowrap rounded-full font-medium leading-none tabular-nums",
+    PILL_SIZE_CLASSES[size],
+    urgency === "expired" ? "opacity-80" : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
+}
+
+export function ExpiryPillIcon({ size }: { size: ExpiryPillSize }) {
+  return (
+    <ClockIcon
+      aria-hidden="true"
+      className={`${PILL_ICON_CLASSES[size]} shrink-0`}
+    />
+  );
+}
+
+interface ExpirationCountdownProps {
+  expires_at: Date | string;
+  show_label?: boolean;
+  size?: ExpiryPillSize;
+  on_expired?: () => void;
+  show_tooltip?: boolean;
+  title?: string;
+}
+
+export function ExpirationCountdown({
+  expires_at,
+  show_label = true,
+  size = "md",
+  on_expired,
+  show_tooltip = true,
+  title,
+}: ExpirationCountdownProps) {
+  const { t } = use_i18n();
+  const { urgency, remaining } = use_expiry_state(expires_at, on_expired);
+  const expired = urgency === "expired";
+  const label = expired
+    ? t("common.expired")
+    : show_label
+      ? t("mail.expires_in_time", { time: remaining })
+      : remaining;
+  const hidden_prefix =
+    !expired && !show_label
+      ? t("mail.expires_in_time", { time: "" }).trim()
+      : "";
+
+  const pill = (
+    <span
+      className={expiry_pill_class(size, urgency)}
+      data-testid="expiry-pill"
+      data-urgency={urgency}
+      style={expiry_pill_style(urgency)}
+      title={title}
+    >
+      <ExpiryPillIcon size={size} />
+      {hidden_prefix && <span className="sr-only">{hidden_prefix} </span>}
+      <span>{label}</span>
+    </span>
+  );
+
+  if (!show_tooltip) return pill;
 
   return (
     <Tooltip position="bottom" tip={t("mail.self_destruct_tooltip")}>
-      <div
-        className={`inline-flex items-center rounded-md font-medium cursor-default ${size_class.container}`}
-        style={{
-          backgroundColor: colors.bg,
-          color: colors.text,
-          border: `1px solid ${colors.border}`,
-        }}
-      >
-        {show_icon && <FireIcon className={size_class.icon} />}
-        <span>
-          {show_label && t("common.expires_in")}
-          {formatted}
-        </span>
-      </div>
+      {pill}
     </Tooltip>
   );
 }
@@ -226,65 +256,21 @@ export function ExpirationBanner({
   on_expired?: () => void;
 }) {
   const { t } = use_i18n();
-
-  const expiry_date = useMemo(() => {
-    if (expires_at instanceof Date) {
-      return expires_at;
-    }
-
-    return new Date(expires_at);
-  }, [expires_at]);
-
-  const [time_remaining, set_time_remaining] = useState<TimeRemaining>(() =>
-    calculate_time_remaining(expiry_date),
-  );
-
-  useEffect(() => {
-    const update_countdown = () => {
-      const new_time = calculate_time_remaining(expiry_date);
-
-      set_time_remaining(new_time);
-
-      if (new_time.total_ms <= 0 && on_expired) {
-        on_expired();
-      }
-    };
-
-    update_countdown();
-    const interval = setInterval(update_countdown, 1000);
-
-    return () => clearInterval(interval);
-  }, [expiry_date, on_expired]);
-
-  const formatted = format_countdown(time_remaining, t);
-
-  if (time_remaining.total_ms <= 0) {
-    return (
-      <div
-        className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium"
-        style={{
-          backgroundColor: "rgba(107, 114, 128, 0.15)",
-          color: "#6b7280",
-          border: "1px solid rgba(107, 114, 128, 0.3)",
-        }}
-      >
-        <FireIcon className="w-4 h-4" />
-        <span>{t("common.expired")}</span>
-      </div>
-    );
-  }
+  const { urgency, remaining } = use_expiry_state(expires_at, on_expired);
+  const text =
+    urgency === "expired"
+      ? t("common.expired")
+      : t("mail.self_destructs_in", { time: remaining });
 
   return (
-    <div
-      className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium"
-      style={{
-        backgroundColor: "rgba(239, 68, 68, 0.15)",
-        color: "var(--color-danger)",
-        border: "1px solid rgba(239, 68, 68, 0.3)",
-      }}
+    <span
+      className={expiry_pill_class("lg", urgency)}
+      data-testid="expiry-banner"
+      data-urgency={urgency}
+      style={expiry_pill_style(urgency)}
     >
-      <FireIcon className="w-4 h-4" />
-      <span>{t("mail.self_destructs_in", { time: formatted })}</span>
-    </div>
+      <ExpiryPillIcon size="lg" />
+      <span>{text}</span>
+    </span>
   );
 }

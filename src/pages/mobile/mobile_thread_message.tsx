@@ -57,7 +57,7 @@ import {
   move_leading_footer_to_end,
 } from "@/components/email/message_body_parts";
 import { renderable_html_part } from "@/lib/message_markup";
-import { is_system_email } from "@/lib/utils";
+import { is_aster_trusted_sender, is_system_email } from "@/lib/utils";
 import {
   effective_remote_image_mode,
   resolve_remote_content_preferences,
@@ -291,6 +291,7 @@ function MobileThreadMessageContent({
   }, [clean_body, is_decrypt_pending, password_protected, t]);
 
   const is_system = is_system_email(message);
+  const is_trusted_sender = is_aster_trusted_sender(message);
   const raw_sender_name = message.display_sender_name ?? message.sender_name;
   const show_sender_email =
     message.display_sender_email ?? message.sender_email;
@@ -609,7 +610,7 @@ function MobileThreadMessageContent({
               email={show_sender_email}
               name={show_sender_name}
               plain={marks_hidden}
-              sender_authenticated={!marks_hidden && is_system}
+              sender_authenticated={!marks_hidden && is_trusted_sender}
               size="sm"
             />
           </div>
@@ -671,7 +672,7 @@ function MobileThreadMessageContent({
             email={show_sender_email}
             name={show_sender_name}
             plain={marks_hidden}
-            sender_authenticated={!marks_hidden && is_system}
+            sender_authenticated={!marks_hidden && is_trusted_sender}
             size="md"
           />
         </div>

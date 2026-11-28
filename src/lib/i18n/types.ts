@@ -58,6 +58,7 @@ export interface TranslationNamespace {
   compose: ComposeTranslations;
   passkeys: PasskeysTranslations;
   shared_mailboxes: SharedMailboxesTranslations;
+  found_us: FoundUsTranslations;
   review_prompt: ReviewPromptTranslations;
   survey: SurveyTranslations;
   calendar: CalendarTranslations;
@@ -191,7 +192,6 @@ export interface SettingsKeywordsTranslations {
   conversation_order: string;
   thread_count_position: string;
   reading_pane_position: string;
-  show_message_size: string;
   force_dark_mode_emails: string;
   sidebar_width: string;
   minimize_sidebar: string;
@@ -813,6 +813,12 @@ export interface PasskeysTranslations {
 }
 
 export interface SecureViewTranslations {
+  preview: string;
+  preview_attachment: string;
+  download_attachment: string;
+  text_preview_truncated: string;
+  media_unsupported: string;
+  expires_on: string;
   title: string;
   from: string;
   expires: string;
@@ -5476,6 +5482,11 @@ export interface SettingsTranslations {
   storage_promo_cta: string;
   storage_select_option_first: string;
   storage_used_of_total: string;
+  inbox_footer_legal: string;
+  inbox_footer_terms: string;
+  inbox_footer_privacy: string;
+  inbox_footer_other_device_activity: string;
+  inbox_footer_only_this_device: string;
   storage_nudge_almost_title: string;
   storage_nudge_critical_title: string;
   storage_nudge_full_title: string;
@@ -9170,6 +9181,7 @@ export interface MailTranslations {
   empty_trash_confirmation: string;
   empty_tag_subtitle: string;
   self_destructs_in: string;
+  expires_in_time: string;
   cancel_scheduled_confirmation: string;
   shipping_label_created: string;
   shipping_shipped: string;
@@ -9637,6 +9649,7 @@ export interface MailTranslations {
   mark_read: string;
   official_sender: string;
   official_sender_desc: string;
+  system_sender_no_replies: string;
   verified_sender: string;
   verified_sender_desc: string;
   sender_warning_title: string;
@@ -10464,6 +10477,41 @@ export interface BadgesTranslations {
   claim_failed: string;
 }
 
+export interface FoundUsTranslations {
+  banner_message: string;
+  banner_answer: string;
+  banner_dismiss: string;
+  remind_later: string;
+  dont_ask: string;
+  modal_title: string;
+  modal_subtitle: string;
+  source_reddit: string;
+  source_youtube: string;
+  source_friend: string;
+  source_invite_link: string;
+  source_search_engine: string;
+  source_comparison_site: string;
+  source_privacy_directory: string;
+  source_article: string;
+  source_app_store: string;
+  source_github: string;
+  source_social_media: string;
+  source_short_video: string;
+  source_forum: string;
+  source_ai_assistant: string;
+  source_other: string;
+  other_label: string;
+  other_placeholder: string;
+  char_count: string;
+  pick_one_error: string;
+  other_required_error: string;
+  privacy_note: string;
+  skip: string;
+  send: string;
+  thanks: string;
+  send_failed: string;
+}
+
 export interface ReviewPromptTranslations {
   banner_message: string;
   banner_open: string;
@@ -10841,6 +10889,7 @@ export type TranslationKey =
   | `compose.${keyof ComposeTranslations}`
   | `passkeys.${keyof PasskeysTranslations}`
   | `shared_mailboxes.${keyof SharedMailboxesTranslations}`
+  | `found_us.${keyof FoundUsTranslations}`
   | `review_prompt.${keyof ReviewPromptTranslations}`
   | `survey.${keyof SurveyTranslations}`
   | `calendar.${keyof CalendarTranslations}`

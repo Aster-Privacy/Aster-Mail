@@ -35,7 +35,6 @@ import {
   TagIcon,
 } from "@heroicons/react/24/outline";
 import {
-  SidebarEmptyText,
   SidebarMoreToggle,
   SidebarRailSectionButton,
   SidebarSectionAddButton,
@@ -76,11 +75,7 @@ import {
 import { new_tab_handlers } from "@/components/layout/sidebar/new_tab_target";
 
 export type TagModalAction =
-  | "rename"
-  | "recolor"
-  | "reicon"
-  | "move"
-  | "delete";
+  "rename" | "recolor" | "reicon" | "move" | "delete";
 
 export interface TagModalData {
   tag_id: string;
@@ -226,22 +221,27 @@ export const SidebarTags = memo(function SidebarTags({
     set_expanded_tags(account_id, next);
   };
 
+  const hide_empty_section =
+    all_tags.length === 0 && !is_loading && !show_failure;
+
   return (
     <>
-      <SidebarSectionToggle
-        is_collapsed={is_collapsed}
-        label={t("common.labels")}
-        on_toggle={on_toggle_section ?? (() => {})}
-        right_slot={
-          <SidebarSectionAddButton
-            label={t("common.create_label")}
-            on_click={() => set_is_create_tag_open(true)}
-          />
-        }
-        section_collapsed={section_collapsed}
-      />
+      {!hide_empty_section && (
+        <SidebarSectionToggle
+          is_collapsed={is_collapsed}
+          label={t("common.labels")}
+          on_toggle={on_toggle_section ?? (() => {})}
+          right_slot={
+            <SidebarSectionAddButton
+              label={t("common.create_label")}
+              on_click={() => set_is_create_tag_open(true)}
+            />
+          }
+          section_collapsed={section_collapsed}
+        />
+      )}
 
-      {is_collapsed && (
+      {is_collapsed && !hide_empty_section && (
         <SidebarRailSectionButton
           icon={TagIcon}
           label={t("common.create_label")}
@@ -445,11 +445,8 @@ export const SidebarTags = memo(function SidebarTags({
           (!is_loading || load_stalled) &&
           !is_collapsed &&
           !section_collapsed &&
-          (show_failure && on_retry ? (
-            <LoadFailedNotice compact on_retry={on_retry} />
-          ) : (
-            <SidebarEmptyText>{t("common.no_labels_yet")}</SidebarEmptyText>
-          ))}
+          show_failure &&
+          on_retry && <LoadFailedNotice compact on_retry={on_retry} />}
       </div>
     </>
   );

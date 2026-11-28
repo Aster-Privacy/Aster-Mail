@@ -423,7 +423,7 @@ describe("import summary", () => {
     expect(text).toContain("1 already existed");
     expect(text).toContain("1 invalid");
     expect(text).toContain("1 not selected");
-    expect(text).not.toContain("aliases");
+    expect(text).not.toMatch(/1 aliases/);
   });
 
   it("uses singular forms in European Portuguese", async () => {

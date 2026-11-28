@@ -47,7 +47,7 @@ describe("load_vanguard_state", () => {
 
     const state = await load_vanguard_state("acct");
 
-    expect(state).toEqual({ enabled: true, eligible: true, from_server: true });
+    expect(state).toEqual({ enabled: true, eligible: true });
     expect(is_vanguard_enabled("acct")).toBe(true);
   });
 
@@ -57,7 +57,6 @@ describe("load_vanguard_state", () => {
     const state = await load_vanguard_state("acct");
 
     expect(state.eligible).toBeNull();
-    expect(state.from_server).toBe(true);
   });
 
   it("falls back to the cached flag when the request fails", async () => {
@@ -66,6 +65,6 @@ describe("load_vanguard_state", () => {
 
     const state = await load_vanguard_state("acct");
 
-    expect(state).toEqual({ enabled: true, eligible: null, from_server: false });
+    expect(state).toEqual({ enabled: true, eligible: null });
   });
 });

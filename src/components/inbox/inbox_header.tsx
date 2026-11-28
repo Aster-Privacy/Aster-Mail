@@ -170,6 +170,8 @@ interface InboxHeaderProps {
   on_clear_selection?: () => void;
   page_selected_count?: number;
   excluded_count?: number;
+  list_empty?: boolean;
+  select_all_disabled?: boolean;
 }
 
 export function InboxHeader({
@@ -242,6 +244,8 @@ export function InboxHeader({
   page_selected_count = 0,
   excluded_count = 0,
   total_messages = 0,
+  list_empty = false,
+  select_all_disabled,
 }: InboxHeaderProps) {
   const { t } = use_i18n();
   const { preferences } = use_preferences();
@@ -392,6 +396,7 @@ export function InboxHeader({
             <SelectAllControl
               all_selected={all_selected}
               compact={compact_rows}
+              disabled={!has_selection && (select_all_disabled ?? list_empty)}
               label={select_all_label}
               on_select_by_filter={
                 hide_mail_actions ? undefined : on_select_by_filter
@@ -986,6 +991,7 @@ export function InboxHeader({
             current_email_index={current_email_index}
             current_page={current_page}
             filtered_count={filtered_count}
+            list_empty={list_empty}
             on_navigate_next={on_navigate_next}
             on_jump_to_page={on_jump_to_page}
             on_navigate_prev={on_navigate_prev}

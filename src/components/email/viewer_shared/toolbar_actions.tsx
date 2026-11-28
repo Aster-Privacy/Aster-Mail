@@ -106,6 +106,8 @@ export interface ViewerToolbarActionsProps {
   on_read_toggle: () => void;
   on_spam?: () => void;
   on_not_spam?: () => void;
+  on_report_phishing?: () => void;
+  is_phishing_reported?: boolean;
   is_spam?: boolean;
   on_print: () => void;
   on_unsubscribe: () => void;
@@ -152,6 +154,8 @@ export function ViewerToolbarActions({
   on_read_toggle,
   on_spam,
   on_not_spam,
+  on_report_phishing,
+  is_phishing_reported = false,
   is_spam,
   on_print,
   on_unsubscribe,
@@ -614,6 +618,19 @@ export function ViewerToolbarActions({
               {t("mail.report_spam")}
             </DropdownMenuItem>
           ) : null}
+          {on_report_phishing && (
+            <DropdownMenuItem
+              disabled={is_phishing_reported}
+              onClick={on_report_phishing}
+            >
+              <ReportSpamIcon className="w-4 h-4 me-2 text-amber-500" />
+              <span className="text-amber-500">
+                {is_phishing_reported
+                  ? t("common.reported_as_phishing")
+                  : t("common.report_phishing")}
+              </span>
+            </DropdownMenuItem>
+          )}
           <DropdownMenuItem disabled={is_trash_loading} onClick={on_trash}>
             <TrashIcon className="w-4 h-4 me-2" />
             {is_trashed_item

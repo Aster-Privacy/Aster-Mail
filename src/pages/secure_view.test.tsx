@@ -72,6 +72,10 @@ vi.mock("@/lib/secure_view_inline_images", () => ({
   inline_secure_view_images: (html: string) => html,
 }));
 
+vi.mock("@/components/email/pdf_preview_modal", () => ({
+  PdfPreviewModal: () => null,
+}));
+
 declare global {
   var IS_REACT_ACT_ENVIRONMENT: boolean;
 }
@@ -412,6 +416,47 @@ describe("secure view page actions", () => {
     expect(serialized_requests()).not.toContain(TYPED_SECRET);
     expect(serialized_requests()).not.toContain(SERVER_FIELD);
     expect(container.textContent).not.toContain("Quarterly numbers");
+  });
+
+  it("lists decrypted attachments with previews only for safe files", async () => {
+    h.decrypt_secure_message.mockResolvedValue({
+      subject: "Quarterly numbers",
+      body: "<p>Revenue is up.</p>",
+      attachments: [
+        {
+          filename: "chart.png",
+          content_type: "image/png",
+          size_bytes: 8,
+          data: new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]),
+        },
+        {
+          filename: "logo.png",
+          content_type: "image/png",
+          size_bytes: 12,
+          data: new TextEncoder().encode("<svg></svg>"),
+        },
+      ],
+    });
+    route_requests(metadata({}), {
+      is_zero_knowledge: true,
+      kdf_salt: "c2FsdHNhbHRzYWx0c2FsdA",
+      encrypted_subject: { ciphertext: "a", nonce: "b" },
+      encrypted_body: { ciphertext: "c", nonce: "d" },
+    });
+
+    await render_page();
+    await unlock();
+
+    const rows = container.querySelectorAll('[data-testid="secure-attachment"]');
+
+    expect(rows).toHaveLength(2);
+    expect(
+      rows[0].querySelector('[data-testid="secure-attachment-preview"]'),
+    ).not.toBeNull();
+    expect(
+      rows[1].querySelector('[data-testid="secure-attachment-preview"]'),
+    ).toBeNull();
+    expect(container.querySelectorAll("iframe")).toHaveLength(1);
   });
 
   it("keeps a server-encrypted view closed after a wrong entry", async () => {

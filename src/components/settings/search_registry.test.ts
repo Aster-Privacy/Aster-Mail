@@ -81,15 +81,15 @@ describe("settings search registry", () => {
       section: "mail_rules",
       tab: "allowlist",
     });
-    expect(target_of("Vacation Reply")).toEqual({
+    expect(target_of("Vacation reply")).toEqual({
       section: "mail_rules",
       tab: "vacation_reply",
     });
-    expect(target_of("Auto-Forward")).toEqual({
+    expect(target_of("Auto-forward")).toEqual({
       section: "mail_rules",
       tab: "auto_forward",
     });
-    expect(target_of("External Accounts")).toEqual({
+    expect(target_of("External accounts")).toEqual({
       section: "import",
       tab: "external_accounts",
     });
@@ -101,7 +101,7 @@ describe("settings search registry", () => {
     for (const label of [
       "Custom domain",
       "Buy a domain",
-      "Verify All Records",
+      "Verify all records",
       "DNS records",
       "Catch-all",
     ]) {
